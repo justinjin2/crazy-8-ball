@@ -24,6 +24,7 @@ export type RewardOut = {
 	blocks: { Daily.BlockCount },
 	spins: number,
 	lucky: number,
+	cues: { string }, -- cue ids it gives (economy v5: the first week's day 7)
 }
 
 export type LoginView = {
@@ -107,7 +108,8 @@ export type FavoriteView = {
 -- The day's win track (economy v4 plan section 5): the bar above the hotbar.
 export type WinsView = {
 	given: number, -- track steps given today, 0..#kinds
-	kinds: { string }, -- each step's block kind (Config.BlockOdds.Drop.WinTrack)
+	kinds: { string }, -- each step's block kind or "Money" (Config.BlockOdds.Drop.WinTrack; the
+	-- first win's block, while due, at the next step)
 }
 
 export type Payload = {
@@ -137,6 +139,9 @@ local RewardView = {}
 RewardView.FavoriteFlag = "FavoriteReward"
 -- The save's Flags key set once the inviter's reward was given (Config.Social.InviterOnce).
 RewardView.InviterFlag = "InviterRewarded"
+-- The save's Flags key set once the first win's block was given (PlayerData's FIRST_WIN_FLAG,
+-- Config.BlockOdds.Drop.FirstWin).
+RewardView.FirstWinFlag = "FirstWinBlock"
 
 -- A finite number, else 0.
 local function num(x: any): number
@@ -161,15 +166,25 @@ function RewardView.claimAll(offer: Daily.ClaimAllOffer, restricted: boolean?): 
 end
 
 --- A Daily.Reward as a remote carries it: { money, blocks = { { kind, count } }, spins,
---- lucky } with the blocks in Config.LuckyBlocks.Order (a list, so the client shows and flies
---- them in a fixed order); spins and lucky are 0 when the reward adds none.
+--- lucky, cues } with the blocks in Config.LuckyBlocks.Order (a list, so the client shows and
+--- flies them in a fixed order); spins and lucky are 0 when the reward adds none; cues the
+--- cue ids it gives, in order (economy v5: the Week One Cue), empty for none.
 function RewardView.reward(reward: Daily.Reward): RewardOut
 	local raw: any = reward
+	local cues: { string } = {}
+	if type(raw.cues) == "table" then
+		for _, id in raw.cues do
+			if type(id) == "string" then
+				table.insert(cues, id)
+			end
+		end
+	end
 	return {
 		money = math.max(0, math.floor(num(raw.money))),
 		blocks = Daily.blockList(reward),
 		spins = math.max(0, math.floor(num(raw.spins))),
 		lucky = math.max(0, math.floor(num(raw.lucky))),
+		cues = cues,
 	}
 end
 
@@ -206,9 +221,26 @@ end
 --- a new day: PlayerData.dailyState), `titles` the save's Titles, `vip` whether the player
 --- is VIP (each day's claim adds Config.Daily.VipSpins and VipBlocks), `social` the save's
 --- Social and `member` whether the player is in the group (the InGroup attribute), `flags`
---- the save's Flags (the favorite reward's flag, RewardView.FavoriteFlag) and `extra` what
+--- the save's Flags (the favorite reward's flag, RewardView.FavoriteFlag; the first win's) and `extra` what
 --- the login rules need besides the save (Daily.LoginExtra: the join day, VIP's restriction;
 --- today's match is read from `daily`).
+--- The day's win track for the bar: the steps given today and each step's kind, a block kind
+--- or "Money" (Config.BlockOdds.Drop.WinTrack). A player whose first win's block is still due
+--- (`flags` without RewardView.FirstWinFlag) sees it at the next step, as BlockDrop.winKind
+--- gives it (a Rare block, economy v5).
+function RewardView.wins(daily: any, flags: any?): WinsView
+	local given = math.clamp(
+		math.floor(num(if type(daily) == "table" then daily.Track else 0)),
+		0,
+		#WIN_TRACK
+	)
+	local kinds = table.clone(WIN_TRACK)
+	if type(flags) == "table" and flags[RewardView.FirstWinFlag] ~= true and kinds[given + 1] then
+		kinds[given + 1] = Config.BlockOdds.Drop.FirstWin
+	end
+	return { given = given, kinds = kinds }
+end
+
 function RewardView.build(
 	login: any,
 	daily: any,
@@ -349,14 +381,7 @@ function RewardView.build(
 				lucky = 0,
 			}),
 		},
-		wins = {
-			given = math.clamp(
-				math.floor(num(if type(daily) == "table" then daily.Track else 0)),
-				0,
-				#WIN_TRACK
-			),
-			kinds = table.clone(WIN_TRACK),
-		},
+		wins = RewardView.wins(daily, flags),
 		ready = anyReady,
 	}
 end

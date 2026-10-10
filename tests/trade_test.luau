@@ -21,10 +21,10 @@ local function newSave(): any
 	return SaveSchema.template()
 end
 
--- A block of `kind` that is ready at NOW (it landed long ago), paid or free.
-local function readyBlock(save: any, kind: string, paid: boolean?)
+-- A block of `kind` that is ready at NOW (it landed long ago), paid or free, climbed or not.
+local function readyBlock(save: any, kind: string, paid: boolean?, climbed: boolean?)
 	local LuckyBlocks = select(5, load())
-	return LuckyBlocks.add(save.LuckyBlocks, kind, NOW - 7 * 86400, nil, paid)
+	return LuckyBlocks.add(save.LuckyBlocks, kind, NOW - 7 * 86400, nil, paid, nil, climbed)
 end
 
 local function blocksOf(save: any, kind: string): number
@@ -43,7 +43,8 @@ return {
 		readyBlock(a, "Rare")
 		readyBlock(a, "Rare")
 		readyBlock(a, "Rare", true) -- bought: only with paidOk
-		LuckyBlocks.add(a.LuckyBlocks, "Epic", NOW) -- on its timer: not offerable
+		readyBlock(a, "Rare", false, true) -- climbed: its own item (economy v5)
+		LuckyBlocks.add(a.LuckyBlocks, "Epic", NOW, nil, nil, nil, true) -- climbed, on its timer
 		local function countOf(list: { any }, item: string): number
 			for _, e in list do
 				if e.item == item then
@@ -55,8 +56,9 @@ return {
 		local all = Trade.offerable(a, true, NOW)
 		H.expect(countOf(all, "NeonCue") == 3, "every Neon copy")
 		H.expect(countOf(all, "ChromaCue") == 1, "the paid Chroma")
-		H.expect(countOf(all, "Block:Rare") == 3, "three ready Rare blocks")
-		H.expect(countOf(all, "Block:Epic") == 0, "a block on its timer is not offerable")
+		H.expect(countOf(all, "Block:Rare") == 3, "three ready unclimbed Rare blocks")
+		H.expect(countOf(all, "Climbed:Rare") == 1, "the climbed Rare block, apart")
+		H.expect(countOf(all, "Climbed:Epic") == 0, "a block on its timer is not offerable")
 		H.expect(countOf(all, "VipCue") == 0, "an Exclusive cue never trades")
 		H.expect(countOf(all, "Classic") == 0, "Classic never trades")
 		local free = Trade.offerable(a, false, NOW)
@@ -65,7 +67,14 @@ return {
 		H.expect(countOf(free, "Block:Rare") == 2, "free Rare blocks only")
 		-- Six hours on, the Epic block is ready and offerable too.
 		local later = Trade.offerable(a, true, NOW + 6 * 3600)
-		H.expect(countOf(later, "Block:Epic") == 1, "ready now")
+		H.expect(countOf(later, "Climbed:Epic") == 1, "ready now")
+		-- An unclimbed block waits its own name's timer (economy v5.2), then trades.
+		LuckyBlocks.add(a.LuckyBlocks, "Legendary", NOW)
+		H.expect(countOf(Trade.offerable(a, true, NOW), "Block:Legendary") == 0, "on its timer")
+		H.expect(
+			countOf(Trade.offerable(a, true, NOW + 6 * 3600), "Block:Legendary") == 1,
+			"ready after 6 hours"
+		)
 	end,
 	["items: cue ids and ready blocks, at most 8 a side"] = function()
 		local Trade = load()
@@ -88,6 +97,15 @@ return {
 			H.expect(items == nil and why == "BadRequest", "bad side")
 		end
 		H.expect(Trade.blockItem("Epic") == "Block:Epic", "a block's item")
+		H.expect(Trade.blockItem("Epic", true) == "Climbed:Epic", "a climbed block's item")
+		H.expect(Trade.parse({ "Climbed:Epic" }) ~= nil, "a climbed block tier trades")
+		H.expect(Trade.parse({ "Climbed:Mystery" }) == nil, "only block tiers are climbed")
+		H.expect(Trade.parse({ "Climbed:Secret" }) == nil, "no Secret block")
+		local kind, climbed = Trade.itemBlock("Climbed:Rare")
+		H.expect(kind == "Rare" and climbed, "itemBlock: a climbed Rare")
+		kind, climbed = Trade.itemBlock("Block:Rare")
+		H.expect(kind == "Rare" and not climbed, "itemBlock: an unclimbed Rare")
+		H.expect(Trade.itemBlock("NeonCue") == nil, "itemBlock: a cue is no block")
 		H.expect(Trade.parse({ "Block:Mystery" }) ~= nil, "a Mystery block trades once ready")
 		H.expect(Trade.tradable("NeonCue") and Trade.tradable("FireworkCue"), "block, Unique")
 		H.expect(Trade.tradable("StarterCue"), "the Starter Cue may")
@@ -126,6 +144,27 @@ return {
 		H.expect(Inventory.found(b, "NeonCue") and a.Money == 0 and b.Money == 0, "no money")
 	end,
 
+	["a climbed block arrives climbed, an unclimbed one unclimbed"] = function()
+		local Trade, Inventory, _, _, LuckyBlocks = load()
+		local a, b = newSave(), newSave()
+		readyBlock(a, "Epic", false, true)
+		readyBlock(a, "Rare")
+		Inventory.addCue(b, "NeonCue", 1)
+		local ok = Trade.swap(a, b, { "Climbed:Epic", "Block:Rare" }, { "NeonCue" }, true, NOW)
+		H.expect(ok, "swapped")
+		local epic, rare
+		for _, block in b.LuckyBlocks.List do
+			if block.Kind == "Epic" then
+				epic = block
+			elseif block.Kind == "Rare" then
+				rare = block
+			end
+		end
+		H.expect(epic ~= nil and LuckyBlocks.unclimbed(epic) == false, "the Epic stays climbed")
+		H.expect(epic ~= nil and LuckyBlocks.isReady(epic, NOW), "and ready at once")
+		H.expect(rare ~= nil and LuckyBlocks.unclimbed(rare), "the Rare still climbs")
+	end,
+
 	["refusals change nothing"] = function()
 		local Trade, Inventory = load()
 		local a, b = newSave(), newSave()
@@ -148,11 +187,13 @@ return {
 		Inventory.addCue(a, "VipCue")
 		H.expect(refused({ "VipCue" }, { "MidnightCue" }, true) == "NotTradable", "Exclusive")
 		H.expect(refused({ "Block:Rare" }, { "MidnightCue" }, true) == "NotOwned", "no block")
-		-- A block on its timer is not ready, so not tradable.
+		-- A climbed block on its timer is not ready, so not tradable; nor as an unclimbed one.
 		local _, _, _, _, LuckyBlocks = load()
-		LuckyBlocks.add(a.LuckyBlocks, "Rare", NOW)
-		H.expect(refused({ "Block:Rare" }, { "MidnightCue" }, true) == "NotOwned", "on its timer")
+		LuckyBlocks.add(a.LuckyBlocks, "Rare", NOW, nil, nil, nil, true)
+		H.expect(refused({ "Climbed:Rare" }, { "MidnightCue" }, true) == "NotOwned", "on its timer")
 		H.expect(blocksOf(a, "Rare") == 1, "the block stays")
+		readyBlock(a, "Rare", false, true)
+		H.expect(refused({ "Block:Rare" }, { "MidnightCue" }, true) == "NotOwned", "not unclimbed")
 		-- A bought block only moves with paidOk.
 		readyBlock(a, "Epic", true)
 		H.expect(refused({ "Block:Epic" }, { "MidnightCue" }, false) == "PaidBlocked", "paid block")
@@ -317,11 +358,18 @@ return {
 		end
 		local rare = Trade.blockWorth("Rare", copies) :: number
 		H.expect(rare ~= nil and rare > 0, "known")
-		-- Rare row: 99.999% of cues at 1 / 1,000 and the Secret's 0.001% at 1 / 10.
-		H.near(rare, 0.99999 / 1000 + 0.00001 / 10, 1e-12, "the Rare row's worth")
-		H.expect(Trade.blockWorth("Lucky8", copies) == rare, "Lucky 8 rolls the Rare row")
+		-- An unclimbed Rare block climbs from Rare (economy v5): it reaches the Secret
+		-- 18% x 10% x 15% x 2.5% = 0.00675% of the time, every other cue at 1 / 1,000.
+		local secret = 0.18 * 0.10 * 0.15 * 0.025
+		H.near(rare, (1 - secret) / 1000 + secret / 10, 1e-12, "the Rare climb's worth")
+		-- A climbed Rare block is exactly a Rare cue.
+		H.near(Trade.blockWorth("Rare", copies, true) :: number, 1 / 1000, 1e-15, "climbed Rare")
+		H.expect(
+			(Trade.blockWorth("Lucky8", copies) :: number) < rare,
+			"Lucky 8 climbs from Uncommon"
+		)
 		local mythic = Trade.blockWorth("Mythic", copies) :: number
-		H.expect(mythic > rare, "a Mythic block's 3% Secret is worth more")
+		H.expect(mythic > rare, "a Mythic block's 2.5% Secret is worth more")
 		-- As copies of a rarity grow, blocks that give it are worth less (the v4 plan's reason).
 		local more = table.clone(copies)
 		for _, cue in Catalog.list() do
@@ -333,5 +381,26 @@ return {
 		local mystery = Trade.blockWorth("Mystery", copies) :: number
 		H.expect(mystery > 0 and mystery < rare, "a Mystery block: mostly Standard and Uncommon")
 		H.expect(Trade.blockWorth("Nope", copies) == nil, "unknown kind")
+	end,
+	["until the counts load, the model's day-30 fallback: unclimbed and climbed apart"] = function()
+		local Trade, _, _, Config = load()
+		local T = Config.Trade
+		-- Every block kind that trades has a fallback, and every block tier a climbed one.
+		for _, kind in Config.LuckyBlocks.Order do
+			H.expect((T.BlockExists :: any)[kind] ~= nil, kind .. ": BlockExists")
+		end
+		for _, tier in Config.BlockOdds.Order do
+			H.expect((T.ClimbedExists :: any)[tier] ~= nil, tier .. ": ClimbedExists")
+		end
+		-- A climbed Mythic block (exactly a Mythic cue) is worth more than an unclimbed Rare one,
+		-- and an unclimbed Legendary block less than a climbed one (it may stay Legendary).
+		H.expect(
+			Trade.lopsided({ "Climbed:Mythic" }, { "Block:Rare" }, {}) == "A",
+			"a climbed Mythic far above a Rare start"
+		)
+		H.expect(
+			(T.ClimbedExists :: any).Legendary > (T.BlockExists :: any).Legendary,
+			"an unclimbed Legendary may climb: worth more than a climbed one"
+		)
 	end,
 }

@@ -28,6 +28,7 @@ local HudParts = require(script.Parent.HudParts)
 local UIAnim = require(script.Parent.UIAnim)
 
 local C = Config.UI.Progress.Cash
+local STREAK = Config.UI.Streak
 local V = C.Vip
 local CashFlyer = {}
 CashFlyer.__index = CashFlyer
@@ -56,6 +57,8 @@ type Chip = {
 	pocket: number?,
 	start: Vector2?, -- where it popped out, once it has
 	kind: string?,
+	level: number?, -- a "BallStreak" chip's streak level (its colour)
+	rainbow: UIAnim.Handle?, -- x8's moving rainbow on the words
 	label: string?,
 	startAt: number, -- os.clock() when it pops
 	frame: Frame?,
@@ -158,6 +161,9 @@ function CashFlyer.onGrant(self: any, payload: any)
 		if plain > 0 and plain < amount then
 			self.chips[#self.chips].plain = plain
 		end
+		if kind == "BallStreak" and type(grant.level) == "number" then
+			self.chips[#self.chips].level = grant.level
+		end
 	end
 end
 
@@ -236,7 +242,8 @@ function CashFlyer.startOf(self: any, chip: Chip): Vector2
 	return if point then self:clampToScreen(point) else self:centre()
 end
 
--- Draw a chip: the cash bundle and its words, green, or gold for anything but a plain ball.
+-- Draw a chip: the cash bundle and its words, green, or gold for anything but a plain ball; a
+-- ball streak's chip in its level's colour (Config.UI.Streak.Levels; x8 the moving rainbow).
 function CashFlyer.build(self: any, chip: Chip)
 	chip.start = self:startOf(chip)
 	local short = self.layer.AbsoluteSize.Y < Config.Multiplayer.Style.ShortHeight
@@ -261,13 +268,21 @@ function CashFlyer.build(self: any, chip: Chip)
 	local icon = HudParts.icon(frame, "CashSingle", "Cash")
 	icon.Size = UDim2.fromOffset(iconWidth, height)
 	icon.ZIndex = 1
+	local streak = if chip.kind == "BallStreak" and chip.level
+		then STREAK.Levels[math.clamp(chip.level, 1, #STREAK.Levels)]
+		else nil
 	local text = HudParts.text(
 		frame,
 		"Amount",
 		textSize,
 		words,
-		HudParts.tone(if plain then "Green" else "Gold")
+		if streak
+			then Color3.fromRGB(streak.Color[1], streak.Color[2], streak.Color[3])
+			else HudParts.tone(if plain then "Green" else "Gold")
 	)
+	if streak and streak.Rainbow then
+		chip.rainbow = UIAnim.rainbow(text)
+	end
 	text.AutoLocalize = false -- only a number
 	text.TextWrapped = false
 	text.Position = UDim2.fromOffset(iconWidth, 0)
@@ -365,6 +380,10 @@ function CashFlyer.finish(self: any, chip: Chip)
 		return
 	end
 	chip.landed = true
+	if chip.rainbow then
+		chip.rainbow.stop()
+		chip.rainbow = nil
+	end
 	if chip.frame then
 		chip.frame:Destroy()
 		chip.frame = nil

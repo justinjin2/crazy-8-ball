@@ -15,7 +15,8 @@
 --     save inside the mutation, never on a read-only copy.
 --
 -- A reward is always { money = n, blocks = { [kind] = count }, spins = n, lucky = n } (0 and
--- empty when there is none); Daily.blockList lists its lucky blocks in
+-- empty when there is none), plus `cues` (cue ids, in the row's order; economy v5: the first
+-- week's day 7 gives the Week One Cue); Daily.blockList lists its lucky blocks in
 -- Config.LuckyBlocks.Order. `spins` and `lucky` are ability spins and Lucky Spins. The
 -- approved economy plan (2026-10-02, section 6; cases retired for blocks 2026-10-04).
 local Config = require(script.Parent.Parent.Config)
@@ -30,6 +31,7 @@ export type Reward = {
 	blocks: { [string]: number }, -- lucky blocks by kind
 	spins: number, -- ability spins
 	lucky: number, -- Lucky Spins
+	cues: { string }?, -- cue ids, one copy each (economy v5); nil or empty: none
 }
 
 -- The save's login days: the last claimed day (0 none), the later weeks' loop day that claim
@@ -90,11 +92,12 @@ export type Gift = {
 
 export type BlockCount = { kind: string, count: number }
 
--- A Config reward row: Money, Blocks, Spins and/or LuckySpins, plus Minutes (playtime),
+-- A Config reward row: Money, Blocks, Cues, Spins and/or LuckySpins, plus Minutes (playtime),
 -- Day (the track) or Expires and Live (codes).
 type RewardRow = {
 	Money: number?,
 	Blocks: { [string]: number }?,
+	Cues: { string }?,
 	Spins: number?,
 	LuckySpins: number?,
 	Minutes: number?,
@@ -141,12 +144,19 @@ local function whole(x: any): number
 	return math.floor(num(x))
 end
 
--- A new reward from a Config row. Only Money, Blocks, Spins and LuckySpins are read, so a
--- reward can never carry anything else.
+-- A new reward from a Config row. Only Money, Blocks, Cues, Spins and LuckySpins are read, so
+-- a reward can never carry anything else.
 local function rewardOf(row: RewardRow?): Reward
-	local reward: Reward = { money = 0, blocks = {}, spins = 0, lucky = 0 }
+	local reward: Reward = { money = 0, blocks = {}, spins = 0, lucky = 0, cues = {} }
 	if row == nil then
 		return reward
+	end
+	if type(row.Cues) == "table" then
+		for _, id in row.Cues :: { any } do
+			if type(id) == "string" then
+				table.insert(reward.cues :: { string }, id)
+			end
+		end
 	end
 	reward.money = math.max(0, whole(row.Money))
 	reward.spins = math.max(0, whole(row.Spins))
@@ -168,11 +178,17 @@ local function rewardOf(row: RewardRow?): Reward
 end
 
 local function merge(a: Reward, b: Reward): Reward
+	local cues: { string } = table.clone(a.cues or {})
+	local more: { string } = b.cues or {}
+	for _, id in more do
+		table.insert(cues, id)
+	end
 	local out: Reward = {
 		money = a.money + b.money,
 		blocks = {},
 		spins = a.spins + b.spins,
 		lucky = a.lucky + b.lucky,
+		cues = cues,
 	}
 	for _, kind in BLOCK_ORDER do
 		local count = (a.blocks[kind] or 0) + (b.blocks[kind] or 0)
@@ -198,6 +214,23 @@ end
 --- The unix time day `day` starts (Config.Daily.ResetHour UTC that date).
 function Daily.dayStart(day: number): number
 	return day * SECONDS_PER_DAY + DAY_OFFSET
+end
+
+--- Every cue id a login claim can give (the first week's, the later weeks' and the track's
+--- rows), once each in row order: the server counts their copies in existence around a claim.
+function Daily.rewardCues(): { string }
+	local out: { string } = {}
+	for _, rows in { FIRST, STREAK, TRACK } do
+		for _, row in rows do
+			local cues: { string } = rewardOf(row).cues or {}
+			for _, id in cues do
+				if table.find(out, id) == nil then
+					table.insert(out, id)
+				end
+			end
+		end
+	end
+	return out
 end
 
 --- A reward's lucky blocks as a list in Config.LuckyBlocks.Order, for showing them.

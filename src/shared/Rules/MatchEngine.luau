@@ -10,6 +10,7 @@ local Simulation = require(script.Parent.Parent.Physics.Simulation)
 local ShotInput = require(script.Parent.Parent.ShotInput)
 local Judge = require(script.Parent.ShotJudge)
 local Placement = require(script.Parent.CuePlacement)
+local Streak = require(script.Parent.Streak)
 local Ults = require(script.Parent.Parent.Ults.Match)
 local Arming = require(script.Parent.Parent.Ults.Arming)
 local Catalog = require(script.Parent.Parent.Ults.Catalog)
@@ -63,6 +64,9 @@ function Engine.new(id: number, teamSize: number, seed: number?): any
 		turnId = 0,
 		rackSeed = seed,
 		feedback = {},
+		-- The ball streak (Rules/Streak): { team, count } while a team's run lasts, else nil;
+		-- nil in a fresh game (a rematch and the next game start from Engine.new).
+		streak = nil,
 		voteNextAt = { 0, 0 },
 		state = Simulation.newState(geometry, Rack.newGame(geometry, seed)),
 		-- The ult bars and the armed ult (Ults/Match), fresh every game, and the gains waiting
@@ -321,6 +325,9 @@ local function beginTurn(t: any, team: number, now: number, hand: boolean, skipI
 		return
 	end
 	local before = t.activeTeam
+	if t.streak and t.streak.team ~= team then
+		t.streak = nil -- the table passed to the other team: the ball streak is over
+	end
 	t.activeTeam, t.shooter = team, s.userId
 	t.lastOrder[team] = s.order
 	t.turnId += 1
@@ -361,8 +368,9 @@ end
 
 local function foul(t: any, reason: string, now: number)
 	-- Any foul ends the turn: its run, and an armed ult is spent (a timeout, a death, a
-	-- departure; a judged foul's shot already spent it).
+	-- departure; a judged foul's shot already spent it). It ends the ball streak too.
 	Ults.onTurnLost(t)
+	t.streak = nil
 	t.sneak = nil
 	t.foul = { by = t.shooter, team = t.activeTeam, reason = reason }
 	-- Solo has nobody to hand the table to: the fouler takes ball in hand themselves.
@@ -1231,6 +1239,22 @@ function finalizeShot(t: any, before: { any }, outcome: any, now: number, from: 
 	else
 		t.pending = { outcome = outcome, judgement = j }
 		Engine.awards(t, j, base)
+		-- The ball streak (Rules/Streak), decided with the stings: every client plays each
+		-- step as its replay drops that ball (StreakHud), and the pay reads the same levels
+		-- (Money.shotPay). A Rewind try (above) never touches it.
+		local streak, steps = Streak.step(t.streak, j.drops, {
+			foul = j.foul ~= nil,
+			breakShot = t.breakShot == true,
+			groupsBefore = t.groups,
+			groupsAfter = j.groups,
+			team = t.activeTeam,
+			winner = j.winner,
+			reason = j.reason,
+			solo = t.solo ~= nil,
+		})
+		t.streak = streak
+		shot.streaks = steps
+		shot.streakAfter = if streak then streak.count else 0
 		-- The ult bars fill (and an armed ult is spent) while groups are still the shot's own.
 		Ults.onShot(t, j, before, base, outcome.events)
 	end

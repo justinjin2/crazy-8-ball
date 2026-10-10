@@ -11,7 +11,11 @@
 -- <CUE>!" card (LuckyResult) over the dimmed world with rays in the rarity's colour. A tap,
 -- click or A skips the reel, then the cutscene (an old one, once it has been seen; never Rare),
 -- then closes the card; the cue is already in the inventory. The rest of the HUD
--- hides while it is up. Tuning in Config.LuckyBlocks.UI; the reel's own in Config.UI.Reel.
+-- hides while it is up. A climb that reached the Secret skips the reel (`pull`): its pull
+-- cutscene, then the card. A Common or Uncommon cue (economy v5 plan 3.8) skips the reel too
+-- (`quick`): the card alone, a little smaller, gone by itself after a second and a half.
+-- "Open all"'s summary (`summary`): the cues that came out as cue cards ("x3" for repeats)
+-- under "5 BLOCKS OPENED!". Tuning in Config.LuckyBlocks.UI; the reel's own in Config.UI.Reel.
 local ContextActionService = game:GetService("ContextActionService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -20,9 +24,11 @@ local TweenService = game:GetService("TweenService")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
+local Catalog = require(Shared:WaitForChild("Progression"):WaitForChild("Catalog"))
 local LuckyBlocks = require(Shared:WaitForChild("Progression"):WaitForChild("LuckyBlocks"))
 local BlockReel = require(script.Parent.BlockReel)
 local HudParts = require(script.Parent.HudParts)
+local InventoryCard = require(script.Parent.InventoryCard)
 local ItemState = require(script.Parent.ItemState)
 local LuckyResult = require(script.Parent.LuckyResult)
 local PullCutscene = require(script.Parent.PullCutscene)
@@ -45,9 +51,14 @@ function Opening.new(screen: ScreenGui): any
 	local self: any = setmetatable({}, Opening)
 	self.screen = screen
 	self.open = false
-	self.phase = "Closed" -- Closed, Lead (the blur's head start), Reel, Scene (the pull cutscene), Card
+	-- Closed, Lead (the blur's head start), Reel, Scene (the pull cutscene), Card, Quick (the
+	-- quick reveal's card), Summary ("Open all")
+	self.phase = "Closed"
 	self.reel = nil :: any
 	self.card = nil :: any
+	self.cards = nil :: { any }? -- the summary's cue cards (InventoryCard)
+	self.holder = nil :: Frame? -- the quick card's frame (its QuickScale)
+	self.shownAt = 0 -- os.clock when the quick card or the summary showed
 	self.hidden = nil :: { ScreenGui }?
 	self.onClosed = nil :: (() -> ())?
 	self:build()
@@ -153,10 +164,49 @@ local function hintFor(phase: string): string
 	return SKIP.SkipMouse
 end
 
+-- A tap, a click, A, B, Return, Space or Escape goes to Opening.tap while it is up.
+local function bindTap(self: any)
+	ContextActionService:BindActionAtPriority(
+		TAP_ACTION,
+		function(_, state: Enum.UserInputState)
+			if state == Enum.UserInputState.Begin then
+				self:tap()
+			end
+			return Enum.ContextActionResult.Sink
+		end,
+		false,
+		TAP_PRIORITY,
+		Enum.KeyCode.ButtonA,
+		Enum.KeyCode.ButtonB,
+		Enum.KeyCode.Return,
+		Enum.KeyCode.Space,
+		Enum.KeyCode.Escape
+	)
+end
+
+-- Up with nothing on it yet (quick and summary): the rest of the HUD hidden, the world
+-- blurring, an empty stage, the taps bound.
+local function begin(self: any, onClosed: (() -> ())?)
+	if self.open then
+		self:close()
+	end
+	self.open = true
+	self.onClosed = onClosed
+	self.playId = (self.playId or 0) + 1
+	self:hideOthers()
+	self.backGui.Enabled = true
+	self.gui.Enabled = true
+	self.dim.BackgroundTransparency = U.DimTransparency
+	ScreenBlur.set(self, true)
+	self.stage = ReelFx.stage(self.area, "Stage")
+	bindTap(self)
+end
+
 --- Play a block's opening: `kind` (its name over the reel) and the server's Open answer
---- ({ cue, rarity, oddsId, glimpse }; `oddsId` is the odds row the reel shows: the Mystery
---- block's rolled tier's; `glimpse`: the tutorial's block, a card of that rarity flashes past).
---- `onClosed` runs once it is gone.
+--- ({ cue, rarity, oddsId, glimpse }; `oddsId` is the odds row the reel shows; `climb`, a
+--- climb rolled at the open (economy v5.2): the reel shows that climb's odds instead;
+--- `glimpse`: the tutorial's block, a card of that rarity flashes past). `onClosed` runs once
+--- it is gone.
 function Opening.play(
 	self: any,
 	kind: string,
@@ -164,6 +214,7 @@ function Opening.play(
 	rarity: string,
 	onClosed: (() -> ())?,
 	oddsId: string?,
+	climb: BlockReel.Climb?,
 	glimpse: string?
 )
 	if self.open then
@@ -198,9 +249,167 @@ function Opening.play(
 	self.phase = "Lead"
 	task.delay(Config.UI.Blur.ReelLeadSeconds, function()
 		if self.open and self.playId == playId then
-			self:startReel(kind, cueId, rarity, reelOdds, glimpse)
+			self:startReel(kind, cueId, rarity, reelOdds, climb, glimpse)
 		end
 	end)
+end
+
+--- A climb that reached the Secret (economy v5 plan 2.7: there is no Secret block): straight to
+--- the cue's pull cutscene with no reel (the climb screen was the show), then the "YOU GOT"
+--- card. The cue is already the player's. `onClosed` runs once it is gone.
+function Opening.pull(self: any, cueId: string, rarity: string, onClosed: (() -> ())?)
+	if self.open then
+		self:close()
+	end
+	self.open = true
+	self.onClosed = onClosed
+	self.playId = (self.playId or 0) + 1
+	self.cueId, self.rarity = cueId, rarity
+	self:hideOthers()
+	ScreenBlur.set(self, true)
+	local stage = ReelFx.stage(self.area, "Stage")
+	self.stage = stage
+	-- The card's layout reads these; nothing shows them here.
+	self.title = HudParts.text(stage.frame, "Title", CO.TitlePx, "")
+	self.title.Visible = false
+	self.hint = HudParts.text(stage.frame, "Hint", CO.HintPx, "")
+	self.hint.Visible = false
+	bindTap(self)
+	self.phase = "Scene"
+	local function card()
+		self.gui.Enabled = true
+		self.backGui.Enabled = true
+		self:showCard()
+	end
+	local ok = pcall(PullCutscene.play, rarity, cueId, function()
+		local phase: string = self.phase
+		if self.open and phase == "Scene" then
+			card()
+		end
+	end, function() end)
+	if not ok then
+		card()
+	end
+end
+
+--- The quick reveal (economy v5 plan 3.8): a cue of a Config.LuckyBlocks.QuickReveal rarity
+--- skips the reel (none since 2026-10-09: the designer wants the reel every time). The result card alone, at QuickScale of its size, with
+--- its sting and rays, then it pops out by itself after QuickRevealSeconds (a tap closes it
+--- sooner). The cue is already the player's. `onClosed` runs once it is gone.
+function Opening.quick(self: any, cueId: string, rarity: string, onClosed: (() -> ())?)
+	begin(self, onClosed)
+	self.cueId, self.rarity = cueId, rarity
+	self.phase = "Quick"
+	local holder = HudParts.frame(self.stage.frame, "Quick")
+	holder.AnchorPoint = Vector2.new(0.5, 0.5)
+	local shrink = Instance.new("UIScale")
+	shrink.Name = "QuickScale"
+	shrink.Scale = U.QuickScale
+	shrink.Parent = holder
+	self.holder = holder
+	local card = LuckyResult.new(holder, cueId, rarity)
+	card:setHint("")
+	self.card = card
+	self:layout()
+	card:show(self.stage.frame)
+	self.shownAt = os.clock()
+	local playId = self.playId
+	task.delay(Config.LuckyBlocks.QuickRevealSeconds, function()
+		local phase: string = self.phase
+		if self.open and self.playId == playId and phase == "Quick" then
+			UIAnim.popOut(card.root, function()
+				local now: string = self.phase
+				if self.open and self.playId == playId and now == "Quick" then
+					self:close()
+				end
+			end)
+		end
+	end)
+end
+
+--- "Open all"'s summary (economy v5 plan 3.8): what came out of `opened` (the server's list:
+--- { cue, new }), one cue card per cue (a repeat says "x3", a first find NEW), the rarest
+--- first, under "5 BLOCKS OPENED!"; a tap closes it. The cues are already the player's.
+--- `onClosed` runs once it is gone.
+function Opening.summary(self: any, opened: { any }, onClosed: (() -> ())?)
+	local groups: { { cue: string, rarity: string, count: number, new: boolean } } = {}
+	local byCue = {}
+	local total = 0
+	for _, o in opened do
+		local row = if type(o) == "table" and type(o.cue) == "string"
+			then Catalog.get(o.cue)
+			else nil
+		if row then
+			local group = byCue[row.Id]
+			if group == nil then
+				group = { cue = row.Id, rarity = row.Rarity, count = 0, new = false }
+				byCue[row.Id] = group
+				table.insert(groups, group)
+			end
+			group.count += 1
+			group.new = group.new or o.new == true
+			total += 1
+		end
+	end
+	if total == 0 then
+		if onClosed then
+			onClosed()
+		end
+		return
+	end
+	table.sort(groups, function(a, b)
+		local ra, rb = Catalog.rarityRank(a.rarity), Catalog.rarityRank(b.rarity)
+		if ra ~= rb then
+			return ra > rb
+		end
+		return a.cue < b.cue
+	end)
+	begin(self, onClosed)
+	self.phase = "Summary"
+	local frame = self.stage.frame
+	local title = HudParts.text(
+		frame,
+		"Title",
+		U.CardTitlePx,
+		if total == 1 then W.OpenAllOne else W.OpenAllSummary:format(total)
+	)
+	title.AnchorPoint = Vector2.new(0.5, 0)
+	title.TextWrapped = false
+	title.ZIndex = 4
+	self.title = title
+	local hint = HudParts.text(frame, "Hint", U.CardHintPx, hintFor("Card"))
+	hint.AnchorPoint = Vector2.new(0.5, 0)
+	hint.TextWrapped = false
+	hint.ZIndex = 4
+	self.hint = hint
+	local cards = {}
+	for i, group in groups do
+		local card = InventoryCard.new(frame, { name = "Cue" .. i, onPress = function() end })
+		card.button.Interactable = false -- a tap anywhere closes it
+		card.button.Selectable = false
+		card.button.AnchorPoint = Vector2.new(0.5, 0.5)
+		card.button.ZIndex = 3
+		InventoryCard.set(card, {
+			cueId = group.cue,
+			count = if group.count > 1
+				then Strings.Menus.Inventory.Count:format(tostring(group.count))
+				else nil,
+			new = group.new,
+		})
+		table.insert(cards, card)
+	end
+	self.cards = cards
+	self:layout()
+	-- One by one, quickly, like the reel's entrance: the title, each card, then the hint once a
+	-- tap may close it.
+	local S = Config.UI.Kit.Motion.Stagger
+	UIAnim.expandIn(title, 0)
+	for i, card in cards do
+		UIAnim.expandIn(card.button, i * S.GapSeconds)
+	end
+	UIAnim.expandIn(hint, math.max(U.CardDismissAfterSeconds, (#cards + 1) * S.GapSeconds))
+	ReelFx.sting(groups[1].rarity)
+	self.shownAt = os.clock()
 end
 
 -- The odds row's Unique rows closed for this player (the Grand Opening's: one they own, or
@@ -226,6 +435,7 @@ function Opening.startReel(
 	cueId: string,
 	rarity: string,
 	reelOdds: string,
+	climb: BlockReel.Climb?,
 	glimpse: string?
 )
 	local stage = ReelFx.stage(self.area, "Stage")
@@ -244,7 +454,7 @@ function Opening.startReel(
 	local reel = BlockReel.new(
 		stage.frame,
 		reelOdds,
-		{ look = "Dark", closed = closedFor(reelOdds), glimpse = glimpse }
+		{ look = "Dark", closed = closedFor(reelOdds), climb = climb, glimpse = glimpse }
 	)
 	reel:setPrize(cueId, rarity)
 	self.reel = reel
@@ -259,22 +469,7 @@ function Opening.startReel(
 	local spinAt = reel:intro(S.GapSeconds) + CO.Reel.StillSeconds
 	UIAnim.expandIn(hint, spinAt)
 	local playId = self.playId
-	ContextActionService:BindActionAtPriority(
-		TAP_ACTION,
-		function(_, state: Enum.UserInputState)
-			if state == Enum.UserInputState.Begin then
-				self:tap()
-			end
-			return Enum.ContextActionResult.Sink
-		end,
-		false,
-		TAP_PRIORITY,
-		Enum.KeyCode.ButtonA,
-		Enum.KeyCode.ButtonB,
-		Enum.KeyCode.Return,
-		Enum.KeyCode.Space,
-		Enum.KeyCode.Escape
-	)
+	bindTap(self)
 	task.delay(spinAt, function()
 		if not (self.open and self.playId == playId and self.reel == reel) then
 			return
@@ -304,6 +499,69 @@ function Opening.layout(self: any)
 			UDim2.fromOffset(math.floor(natural.X / 2), math.floor(natural.Y / 2))
 		self.title.Visible = false
 		self.hint.Visible = false
+		return
+	end
+	if self.phase == "Quick" and self.card and self.holder then
+		local size = LuckyResult.size()
+		local natural = stage.fit(
+			size * U.QuickScale + Vector2.new(2, 2) * CO.CardMarginPx,
+			U.MinScale,
+			U.MaxScale,
+			U.MarginPx
+		)
+		self.holder.Size = UDim2.fromOffset(size.X, size.Y)
+		self.holder.Position =
+			UDim2.fromOffset(math.floor(natural.X / 2), math.floor(natural.Y / 2))
+		self.card.root.Position = UDim2.fromOffset(math.floor(size.X / 2), math.floor(size.Y / 2))
+		return
+	end
+	if self.phase == "Summary" and self.cards then
+		local A = U.OpenAll
+		local units: { number } = Config.UI.CueCard.Units :: any
+		local cardW = A.CardPx
+		local cardH = math.floor(cardW * units[2] / units[1] + 0.5)
+		local n = #self.cards
+		local titleH, hintH = U.CardTitlePx + 8, U.CardHintPx + 6
+		local function needFor(c: number): Vector2
+			local r = math.ceil(n / c)
+			return Vector2.new(
+				math.max(c * cardW + (c - 1) * A.GapPx, CO.StageMinWidthPx),
+				titleH + A.GapPx + r * cardH + (r - 1) * A.GapPx + A.GapPx + hintH
+			)
+		end
+		-- The columns that make the cards biggest on this screen (a tie: the wider one).
+		local room = self.area.AbsoluteSize - Vector2.new(2, 2) * U.MarginPx
+		local cols, best = 1, -1
+		for c = 1, math.min(n, A.MaxColumns) do
+			local want = needFor(c)
+			local s = math.min(room.X / want.X, room.Y / want.Y, U.MaxScale)
+			if s >= best then
+				cols, best = c, s
+			end
+		end
+		local gridH = math.ceil(n / cols) * (cardH + A.GapPx) - A.GapPx
+		local need = needFor(cols)
+		local natural = stage.fit(need, U.MinScale, U.MaxScale, U.MarginPx)
+		local mid = math.floor(natural.X / 2)
+		local top = math.floor((natural.Y - need.Y) / 2)
+		self.title.Position = UDim2.fromOffset(mid, top)
+		self.title.Size = UDim2.fromOffset(natural.X, titleH)
+		local gridTop = top + titleH + A.GapPx
+		for i, card in self.cards do
+			local row = math.floor((i - 1) / cols)
+			local col = (i - 1) % cols
+			-- The last row's cards sit in the middle.
+			local inRow = math.min(cols, n - row * cols)
+			local left = mid - math.floor((inRow * cardW + (inRow - 1) * A.GapPx) / 2)
+			card.button.Size = UDim2.fromOffset(cardW, cardH)
+			card.button.Position = UDim2.fromOffset(
+				left + col * (cardW + A.GapPx) + math.floor(cardW / 2),
+				gridTop + row * (cardH + A.GapPx) + math.floor(cardH / 2)
+			)
+		end
+		self.hint.Position = UDim2.fromOffset(mid, gridTop + gridH + A.GapPx)
+		self.hint.Size = UDim2.fromOffset(natural.X, hintH)
+		self.hint.Text = hintFor("Card")
 		return
 	end
 	local titleH, gap, hintH = CO.TitleHeightPx, CO.GapPx, CO.HintHeightPx
@@ -394,9 +652,20 @@ function Opening.tap(self: any)
 		self.reel:skip()
 	elseif self.phase == "Scene" then
 		PullCutscene.trySkip() -- once the kind has been seen; its own done() shows the card
-	elseif self.phase == "Card" and self.card and self.card:canDismiss() then
+	elseif self:canDismiss() then
 		self:close()
 	end
+end
+
+-- Whether a tap may close what shows (not in its first moment, so a tap meant for the reel
+-- or the hotbar does not close it before it is seen).
+function Opening.canDismiss(self: any): boolean
+	if self.phase == "Card" then
+		return self.card ~= nil and self.card:canDismiss()
+	elseif self.phase == "Quick" or self.phase == "Summary" then
+		return os.clock() - self.shownAt >= U.CardDismissAfterSeconds
+	end
+	return false
 end
 
 function Opening.close(self: any)
@@ -418,6 +687,11 @@ function Opening.close(self: any)
 		self.card:destroy()
 		self.card = nil
 	end
+	for _, card in self.cards or {} do
+		InventoryCard.destroy(card)
+	end
+	self.cards = nil
+	self.holder = nil
 	if self.stage then
 		self.stage.frame:Destroy()
 		self.stage = nil

@@ -4,8 +4,10 @@
 -- CashFlyer's look and timing) into the money HUD, which counts up as it lands; each lucky
 -- block as its 3D icon (with "x2") on a curve to the hotbar when it shows (deps.hotbarCenter,
 -- bumpHotbar), else the left column's Inventory tile, which bounces (MenuColumn.tileCenter and
--- bump); ult spins and Lucky Spins (their icons with "+2") the same way to the column's Ults
--- button, or the Rewards tile when the column has no Ults button (RewardsParts.SpinTiles). Everything flies in its own ScreenGui just over the menus,
+-- bump); a cue (its thumbnail: the first week's Week One Cue) to the Inventory tile; ult spins
+-- and Lucky Spins (their icons with "+2") the same way to the column's Ults button, or the
+-- Rewards tile when the column has no Ults button (RewardsParts.SpinTiles). Everything flies in
+-- its own ScreenGui just over the menus,
 -- so it is seen over the open menu's panel (the HUDs sit under it; on a phone the panel covers
 -- them and the chips land where they are). Purely visual: the server already put the reward
 -- in the save.
@@ -17,6 +19,7 @@ local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local BlockIcon = require(script.Parent.BlockIcon)
 local CashFlyer = require(script.Parent.CashFlyer)
+local CueThumb = require(script.Parent.CueThumb)
 local HudParts = require(script.Parent.HudParts)
 local RewardsParts = require(script.Parent.RewardsParts)
 local UIAnim = require(script.Parent.UIAnim)
@@ -100,12 +103,13 @@ function RewardsFlyer.reward(self: any, value: any, from: Vector2)
 			delay = F.AfterMoneySeconds
 		end
 	end
-	-- The blocks, then the spins' icons, one after another.
+	-- The blocks, the cues, then the spins' icons, one after another.
 	local items = RewardsParts.pictures({
 		money = 0,
 		blocks = reward.blocks,
 		spins = reward.spins,
 		lucky = reward.lucky,
+		cues = reward.cues,
 	})
 	for index, picture in items do
 		local tiles = if picture.label then RewardsParts.SpinTiles else { "Inventory" }
@@ -164,6 +168,10 @@ function RewardsFlyer.flyPicture(
 		if icon.fallback then
 			icon.fallback.ZIndex = F.ZIndex + 1
 		end
+	elseif picture.key == "Cue" then
+		local thumb = CueThumb.new(chip, picture.cue or "")
+		thumb.Size = UDim2.fromScale(1, 1)
+		thumb.ZIndex = F.ZIndex + 1
 	else
 		local icon = HudParts.icon(chip, picture.key, "Picture")
 		icon.Size = UDim2.fromScale(1, 1)

@@ -1,10 +1,11 @@
 --!strict
 -- Restock: the restock shop (the lucky-block economy, designer 2026-10-04; ECONOMY section
 -- 12). Every Config.Shop.Restock.SlotSeconds on the clock (UTC :00, :10 ...) a new restock:
--- Slots slots that each roll one lucky block kind by Odds (economy v4: a Rare most of the
--- time, an Epic about 1 restock in 3, a Legendary about 4 times a day, a Mythic about every 5
--- days), and a VIP-only slot rolled by VipOdds. The kinds come from the slot number through an integer hash, so every server
--- shows the same restock with no messaging.
+-- Slots slots that each roll one lucky block kind, slot i by SlotOdds[i] when it has one else
+-- by Odds (economy v5: slot 1 always Epic or better, a Legendary or better in about 1 restock
+-- in 3, a Mythic about 7 times a day), and a VIP-only slot rolled by VipOdds. The kinds come
+-- from the slot number through an integer hash, so every server shows the same restock with
+-- no messaging.
 --
 -- Stock is per player per restock per slot (the save's Shop.Restock = { Slot, Bought = { [id]
 -- = n } }, which starts over when the restock changes). No item has a shared stock now; the
@@ -107,11 +108,43 @@ local function item(id: string, kind: string, vip: boolean): Item
 	}
 end
 
+--- The odds table shared slot `i` rolls by: Config.Shop.Restock.SlotOdds[i] when it has one,
+--- else Odds.
+function Restock.oddsOf(i: number): { [string]: number }
+	local own: { { [string]: number } } = (R.SlotOdds or {}) :: any
+	return own[i] or R.Odds
+end
+
+--- The chance (0..1) that one restock holds a block of `kind` or rarer (in
+--- Config.LuckyBlocks.Order) in some shared slot, or in VIP's slot too with `vip`: 1 minus the
+--- chance that every slot rolls below it.
+function Restock.chanceOf(kind: string, vip: boolean?): number
+	local at = table.find(KIND_ORDER, kind) or (#KIND_ORDER + 1)
+	local function below(odds: { [string]: number }): number
+		local parts = 0
+		for i, name in KIND_ORDER do
+			if i < at then
+				parts += odds[name] or 0
+			end
+		end
+		return parts / R.ChanceTotal
+	end
+	local none = 1
+	for i = 1, R.Slots do
+		none *= below(Restock.oddsOf(i))
+	end
+	if vip == true then
+		none *= below(R.VipOdds)
+	end
+	return 1 - none
+end
+
 --- Restock `slot`'s items in shop order: Slot1 .. Slot<Slots> (each a rolled kind), then Vip.
 function Restock.items(slot: number): { Item }
 	local list = {}
 	for i = 1, R.Slots do
-		table.insert(list, item("Slot" .. i, Restock.kindOf(Restock.roll(slot, i), R.Odds), false))
+		local kind = Restock.kindOf(Restock.roll(slot, i), Restock.oddsOf(i))
+		table.insert(list, item("Slot" .. i, kind, false))
 	end
 	table.insert(
 		list,
@@ -259,10 +292,19 @@ function Restock.view(slot: number, save: any, isVip: boolean, globalSold: numbe
 end
 
 --- Problems in Config.Shop.Restock (empty when it is sound): every odds kind has a Kinds row
---- and is a lucky block kind, the odds add up to ChanceTotal.
+--- and is a lucky block kind, the odds add up to ChanceTotal, and SlotOdds names only shared
+--- slots.
 function Restock.validate(): { string }
 	local problems = {}
 	local tables: { [string]: { [string]: number } } = { Odds = R.Odds, VipOdds = R.VipOdds }
+	local own: { [any]: any } = (R.SlotOdds or {}) :: any
+	for i, odds in own do
+		if type(i) ~= "number" or i < 1 or i > R.Slots or i ~= math.floor(i) then
+			table.insert(problems, ("SlotOdds: %s is not a shared slot"):format(tostring(i)))
+		else
+			tables["SlotOdds" .. i] = odds
+		end
+	end
 	for name, odds in tables do
 		local sum = 0
 		for kind, weight in odds do

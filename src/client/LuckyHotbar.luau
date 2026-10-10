@@ -3,16 +3,21 @@
 -- the kit's look. Along the bottom: one slot per block (the first Config.LuckyBlocks
 -- .HotbarSlots of the list; a phone only the first UI.PhoneHotbarSlots), each the block's 2D icon (its Icon; else a slowly turning 3D model) with its number and, on
 -- a timer, its countdown; the held block's slot has a thick gold outline. Keys 1-9, a tap or a
--- click hold a block (LuckyClient); a ready Mystery block's slot says OPEN! and opens its
--- upgrade screen instead (MysteryReveal). The bag button at the end ("+12": blocks waiting) and the `
--- key open the bag: a grid of every block. A click on a block there equips it like Roblox's
--- backpack (the bag stays open; a Mystery block opens instead); drag a block onto a hotbar slot
--- to put it there (mouse and touch).
+-- click hold a block (LuckyClient); a Mystery (economy v5.2: the only block with an upgrade
+-- screen) wears the climb mark in its top-right corner, its ready slot says OPEN! and a tap
+-- opens its upgrade screen instead (MysteryReveal). The bag button at the end ("+12": blocks
+-- waiting) and the ` key open the bag: a grid of every block. A click on a block there equips
+-- it like Roblox's backpack (the bag stays open; a Mystery opens its screen instead); drag a
+-- block onto a hotbar slot to put it there (mouse and touch). "Open all" (economy v5 plan 3.8),
+-- a green button right of the bag button while a Standard or Uncommon block is ready, opens
+-- them all at once (LuckyClient asks the server and shows the summary); in the open bag a
+-- gamepad selects it.
 --
--- A throw of a block still on its timer (it stays in the hands: 2026-10-09), a Mystery block's
--- tap, or an open refused asks about the skip (economy v4 plan 18.1 item 8) in the kit's dialog over the screen (MenuFrame.ask): the block's name,
+-- A throw of a block still on its timer (it stays in the hands: 2026-10-09), a Mystery's tap
+-- during its wait, or an open refused asks about the skip (economy v4
+-- plan 18.1 item 8) in the kit's dialog over the screen (MenuFrame.ask): the block's name,
 -- "Ready in 4:32. Skip the wait?", Wait and the green "Skip · 4" with the price for the time
--- left right now (4 / 9 / 15 R$, Config.LuckyBlocks.Skips; the live price from the shop's
+-- left right now (1 / 4 / 9 / 15 R$, Config.LuckyBlocks.Skips; the live price from the shop's
 -- view). Skip asks the server, which prompts that same tier's product. Where the shop says the
 -- skip cannot be bought it says why instead. The skip is a paid random item (economy v4 plan
 -- 13), so the dialog wears the block's dice: the question steps aside for the block's Odds &
@@ -53,12 +58,15 @@ local BAG = "LuckyBag" -- its name in Menus
 local SKIPS: { { UpTo: number?, Product: string } } = L.Skips :: any
 local NAMES: { [string]: string } = W.Names
 
-export type Entry = { id: number, kind: string, readyAt: number }
+-- climbed: the block climbed on the old climb screen (BlockState's `climbed`, economy v5); nil
+-- for any other.
+export type Entry = { id: number, kind: string, readyAt: number, climbed: boolean? }
 export type Handlers = {
 	select: (id: number) -> (), -- hold (or put away) this block
-	reveal: (id: number) -> (), -- open this Mystery block's upgrade screen (MysteryReveal)
+	reveal: (id: number) -> (), -- open this Mystery's upgrade screen (MysteryReveal)
 	move: (id: number, to: number) -> (), -- put this block at this place in the list
 	skip: (id: number) -> (), -- the skip dialog's Skip: ask the server to prompt this block's skip
+	openAll: () -> (), -- "Open all": every ready Standard and Uncommon block at once
 }
 
 -- picture: the kind's 2D icon (an ImageLabel) or its 3D view (a ViewportFrame); both have
@@ -71,11 +79,18 @@ type Tile = {
 	edge: UIStroke,
 	number: TextLabel?,
 	timer: TextLabel,
-	open: TextLabel?, -- a Mystery block's OPEN! (designer, 2026-10-07)
+	open: TextLabel?, -- a Mystery's OPEN! (designer, 2026-10-07)
+	mark: Frame?, -- a Mystery's climb mark
 }
 
 local Hotbar = {}
 Hotbar.__index = Hotbar
+
+--- Whether `entry`'s block needs its upgrade screen first (economy v5.2: only a Mystery,
+--- LuckyBlocks.needsRoll). Its tap opens the screen; it is never held as it is.
+function Hotbar.rollsFirst(entry: Entry?): boolean
+	return entry ~= nil and entry.climbed ~= true and LuckyBlocks.turns(entry.kind)
+end
 
 -- A phone's screen (narrower than UI.PhoneWidthPx): smaller slots, fewer of them.
 local function phone(gui: ScreenGui): boolean
@@ -216,11 +231,35 @@ local function makeTile(parent: Instance, entry: Entry, number: number?): Tile
 	timer.TextWrapped = false
 	timer.Visible = false
 	timer.ZIndex = 4
-	-- A Mystery block says OPEN! along its bottom once it is ready, and pulses: a tap opens
-	-- its upgrade screen.
+	-- A Mystery says OPEN! along its bottom once it is ready, and pulses: a tap opens its
+	-- upgrade screen. It wears the climb mark meanwhile (the screen's up arrow).
 	local openLabel: TextLabel? = nil
-	local row = LuckyBlocks.kind(entry.kind)
-	if row and row.Roll then
+	local mark: Frame? = nil
+	if Hotbar.rollsFirst(entry) then
+		local M = U.ClimbMark
+		local disc = HudParts.frame(button, "ClimbMark")
+		disc.AnchorPoint = Vector2.new(1, 0)
+		disc.Position = UDim2.new(1, -M.InsetPx, 0, M.InsetPx)
+		disc.SizeConstraint = Enum.SizeConstraint.RelativeXX
+		disc.Size = UDim2.fromScale(M.Share, M.Share)
+		disc.BackgroundTransparency = 0
+		disc.BackgroundColor3 = INK
+		disc.ZIndex = 5
+		HudParts.corner(disc, 999)
+		local ring = Instance.new("UIStroke")
+		ring.Color = WHITE
+		ring.Thickness = M.RingPx
+		ring.Parent = disc
+		local least = Instance.new("UISizeConstraint")
+		least.MinSize = Vector2.new(M.MinPx, M.MinPx)
+		least.Parent = disc
+		local arrow = HudParts.icon(disc, "ChevronUp", "Arrow")
+		arrow.AnchorPoint = Vector2.new(0.5, 0.5)
+		arrow.Position = UDim2.fromScale(0.5, 0.5)
+		arrow.Size = UDim2.fromScale(M.ArrowShare, M.ArrowShare)
+		arrow.ImageColor3 = GOLD
+		arrow.ZIndex = 6
+		mark = disc
 		local label = HudParts.text(button, "Open", U.OpenPx, W.OpenSlot, GOLD)
 		label.AnchorPoint = Vector2.new(0.5, 1)
 		label.Position = UDim2.new(0.5, 0, 1, 2)
@@ -239,6 +278,7 @@ local function makeTile(parent: Instance, entry: Entry, number: number?): Tile
 		number = numberLabel,
 		timer = timer,
 		open = openLabel,
+		mark = mark,
 	}
 end
 
@@ -303,6 +343,15 @@ function Hotbar.new(screen: ScreenGui, handlers: Handlers): any
 		Menus.toggle(BAG)
 	end)
 	self.bagButton, self.bagCount = bagButton, bagCount
+	-- "Open all", right of the bag button (it hangs past the bar, so the bar stays centred).
+	local openAll = HudParts.candy(bar, W.OpenAll, function()
+		UISound.play("Click")
+		self.handlers.openAll()
+	end, "Green")
+	openAll.Name = "OpenAll"
+	openAll.Visible = false
+	openAll.Selectable = false
+	self.openAllButton = openAll
 
 	-- "Ready in 1:42" and the server's refusals, over the bar.
 	local notice = HudParts.text(gui, "Notice", U.NoticePx, "")
@@ -443,7 +492,15 @@ function Hotbar.set(
 	for _, e in entries do
 		table.insert(
 			parts,
-			e.id .. ":" .. e.kind .. ":" .. e.readyAt .. ":" .. tostring(hiddenIds[e.id])
+			e.id
+				.. ":"
+				.. e.kind
+				.. ":"
+				.. e.readyAt
+				.. ":"
+				.. tostring(e.climbed)
+				.. ":"
+				.. tostring(hiddenIds[e.id])
 		)
 	end
 	local key = table.concat(parts, ",")
@@ -540,11 +597,9 @@ function Hotbar.pressed(self: any, id: number, slot: number?)
 	UISound.play("Click")
 	if slot == nil then
 		-- A bag tile (designer, 2026-10-07), like Roblox's backpack: a click equips it (held
-		-- out; again puts it away) and the bag stays open; a Mystery block closes the bag and
-		-- opens its upgrade screen. Dragging still moves a block into the hotbar.
-		local entry = self:find(id)
-		local row = if entry then LuckyBlocks.kind(entry.kind) else nil
-		if row and row.Roll then
+		-- out; again puts it away) and the bag stays open; a Mystery closes the bag and opens
+		-- its upgrade screen. Dragging still moves a block into the hotbar.
+		if Hotbar.rollsFirst(self:find(id)) then
 			if self.bagOpen then
 				Menus.close(BAG)
 			end
@@ -561,9 +616,7 @@ function Hotbar.pressed(self: any, id: number, slot: number?)
 		self:refreshSelection()
 		return
 	end
-	local entry = self:find(id)
-	local row = if entry then LuckyBlocks.kind(entry.kind) else nil
-	if row and row.Roll then
+	if Hotbar.rollsFirst(self:find(id)) then
 		self.handlers.reveal(id)
 		return
 	end
@@ -645,6 +698,7 @@ function Hotbar.refreshSelection(self: any)
 		tile.edge.Thickness = if marked then U.SelectedStrokePx else U.SlotStrokePx
 		tile.button.Selectable = self.bagOpen
 	end
+	self.openAllButton.Selectable = self.bagOpen and self.openAllButton.Visible
 	local list, inBar = self:shown()
 	local waiting = #list - inBar
 	self.bagCount.Text = if waiting > 0 then W.BagCount:format(waiting) else ""
@@ -663,6 +717,11 @@ function Hotbar.layout(self: any)
 	end
 	self.bagButton.Size = UDim2.fromOffset(size, size)
 	self.bagButton.Position = UDim2.fromOffset(n * (size + gap), 0)
+	local textPx = if phone(self.gui) then U.OpenAll.PhoneTextPx else U.OpenAll.TextPx
+	HudParts.setButtonTextSize(self.openAllButton, textPx)
+	local openW = math.max(size, HudParts.candyWidth(self.openAllButton, size, textPx))
+	self.openAllButton.Size = UDim2.fromOffset(openW, size)
+	self.openAllButton.Position = UDim2.fromOffset((n + 1) * (size + gap), 0)
 	self.notice.Position = UDim2.new(0.5, 0, 1, -U.BottomPx - size - 8)
 	self.notice.Size = UDim2.fromOffset(math.max(width, 300), U.NoticePx + 6)
 	-- The skip's Odds & Details, over the whole screen.
@@ -880,7 +939,9 @@ function Hotbar.skipOdds(self: any, id: number, kind: string)
 	if self.skipDialog then
 		self.skipDialog.cancel()
 	end
-	local spec = OddsDetails.blockSpec(kind)
+	-- An unclimbed block's list is its climb's odds; a climbed one's its one rarity.
+	local entry = self:find(id)
+	local spec = OddsDetails.blockSpec(kind, entry ~= nil and entry.climbed == true)
 	spec.closed = function()
 		-- After the list has put the gamepad's selection back, so the question takes it.
 		task.defer(function()
@@ -903,11 +964,37 @@ function Hotbar.toggleBag(self: any)
 	end
 end
 
+-- Whether "Open all" has something to open at `t`: a ready block of its tiers that is not in
+-- the hands or on the floor (the server's rule: LuckyBlocks.openAllIds).
+function Hotbar.canOpenAll(self: any, t: number): boolean
+	for _, entry in self.entries do
+		if
+			not Hotbar.rollsFirst(entry)
+			and entry.readyAt <= t
+			and entry.id ~= self.heldId
+			and not self.hiddenIds[entry.id]
+			and table.find(L.OpenAll.Tiers, entry.kind) ~= nil
+		then
+			return true
+		end
+	end
+	return false
+end
+
 function Hotbar.step(self: any)
 	if not self.visible and not self.bagOpen then
 		return
 	end
 	local t = now()
+	local canOpenAll = self:canOpenAll(t)
+	if self.openAllButton.Visible ~= canOpenAll then
+		if canOpenAll then
+			UIAnim.popIn(self.openAllButton) -- it shows, growing in
+		else
+			self.openAllButton.Visible = false
+		end
+		self:refreshSelection()
+	end
 	-- The skip's question goes once its block is ready (its timer ran out, or VIP came).
 	if self.skipDialog and self.skipId then
 		local asked = self:find(self.skipId)
@@ -921,7 +1008,11 @@ function Hotbar.step(self: any)
 		if icon.model then
 			icon.model:PivotTo(CFrame.Angles(0, turn, 0) * icon.base)
 		end
-		if self.masked[tile.entry.id] then
+		local masked = self.masked[tile.entry.id] == true
+		if tile.mark then
+			tile.mark.Visible = not masked
+		end
+		if masked then
 			icon.picture.ImageTransparency = 1
 			tile.timer.Visible = false
 			if tile.open then
@@ -939,7 +1030,7 @@ function Hotbar.step(self: any)
 			tile.timer.TextColor3 = HudParts.tone("White")
 			icon.picture.ImageTransparency = 0.35
 		else
-			-- Ready: READY! in green (a Mystery block says OPEN! instead); a VIP's blocks say it
+			-- Ready: READY! in green (a Mystery says OPEN! instead); a VIP's blocks say it
 			-- from the moment they arrive (the designer, 2026-10-09).
 			tile.timer.Visible = tile.open == nil
 			tile.timer.Text = W.Ready

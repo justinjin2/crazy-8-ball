@@ -12,8 +12,12 @@ return {
 		-- The Unique cues are built one at a time (the Beta Cue first, 2026-10-04); a Unique
 		-- cue without a skin keeps its placeholder bands.
 		local built = { BetaCue = true, FireworkCue = true }
+		-- The Week One Cue (economy v5) keeps the default cue's bands until its art exists.
+		local awaitingArt = { WeekOneCue = true }
 		for _, cue in Catalog.list() do
-			if cue.Group == "Unique" and not built[cue.Id] then
+			if awaitingArt[cue.Id] then
+				H.expect(not CueSkins.has(cue.Id), cue.Id .. ": its skin is not built yet")
+			elseif cue.Group == "Unique" and not built[cue.Id] then
 				H.expect(
 					not CueSkins.has(cue.Id),
 					cue.Id .. ": a Unique cue's skin is not built yet"

@@ -21,7 +21,8 @@ or saved wins.
 
 ## Play each mode
 
-- Heads belongs to the host's team; the coin names the breaker (a HUD overlay; nobody's
+- The coin shows a player's token each side (yours first; a watcher sees the host's side
+  first) and lands on the breaker's; it names the breaker (a HUD overlay; nobody's
   camera is taken for it). The breaker starts in the **home view**. Drag the cue ball
   along the dotted line (press on the ball itself) and shoot whenever you like; there is
   no Lock button. After 15 seconds the ball stays put and the 20-second aim clock runs.

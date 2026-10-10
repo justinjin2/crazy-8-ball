@@ -15,6 +15,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local Format = require(Shared:WaitForChild("Progression"):WaitForChild("Format"))
+local CueThumb = require(script.Parent.CueThumb)
 local HudParts = require(script.Parent.HudParts)
 local RewardsParts = require(script.Parent.RewardsParts)
 local ShopCards = require(script.Parent.ShopCards)
@@ -319,9 +320,21 @@ end
 --------------------------------------------------------------------------------------------
 
 --- What comes with a big prize's block (its art shows one `heroKind` block), one entry each:
---- "+2 Ability Spins", "+$5,000", "+1 Rare Lucky Block".
+--- "+2 Ability Spins", "+$5,000", "+1 Rare Lucky Block". A cue comes first: its name, then its
+--- rarity in its colour ("Week One Cue", "Legendary"; rich text: economy v5's first week).
 function FreeParts.extras(reward: RewardsParts.Reward, heroKind: string?): { string }
 	local parts: { string } = {}
+	local cues: { string } = reward.cues or {}
+	for _, id in cues do
+		local rarity = CueThumb.rarityOf(id)
+		local word = string.format(
+			'<font color="#%s">%s</font>',
+			CueThumb.accentColor(rarity):ToHex(),
+			CueThumb.rarityName(rarity)
+		)
+		table.insert(parts, CueThumb.cueName(id))
+		table.insert(parts, word)
+	end
 	if reward.money > 0 then
 		table.insert(parts, W.HeroMoney:format(Format.money(reward.money)))
 	end

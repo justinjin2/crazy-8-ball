@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "OVERNIGHT_BRIEF=docs/prompts/ECONOMY_V5_GUI_PROMPT.md OVERNIGHT_ATTENDED=1 OVERNIGHT_MAX=300 \"$CLAUDE_PROJECT_DIR\"/tools/overnight/keep_going.sh",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}

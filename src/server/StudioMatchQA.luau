@@ -85,8 +85,10 @@ function QA.start(
 						Engine.join(e, uid, name, name, now)
 					end
 				end
+				-- data.coinWinner: the team the coin picks (1 by default).
 				local request = { kind = "Start", epoch = e.epoch, turnId = e.turnId }
-				assert(Engine.action(e, e.hostId, request, now, 1), "Start was refused")
+				local coinWinner = if data and data.coinWinner == 2 then 2 else 1
+				assert(Engine.action(e, e.hostId, request, now, coinWinner), "Start was refused")
 				Engine.advance(e, now + 8)
 			end
 		elseif command == "shot" then

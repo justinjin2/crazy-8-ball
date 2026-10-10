@@ -15,6 +15,8 @@ local TIERS: { string } = Config.Ranks.Tiers
 local ROWS: { [string]: { EpicPlus: number, LegendaryPlus: number, MythicPlus: number } } =
 	Config.BotCues :: any
 local BELOW = { "Common", "Uncommon", "Rare" }
+-- The Common, Uncommon and Rare spread: a Mystery block's, over both its steps (economy v5.1).
+local MYSTERY = { mystery = true }
 
 export type Share = { rarity: string, share: number }
 
@@ -46,13 +48,13 @@ function BotCues.shares(tier: string): { Share }
 	local below = 1 - row.EpicPlus
 	local weight = 0
 	for _, rarity in BELOW do
-		weight += BlockDrop.rarityPercent(rarity)
+		weight += BlockDrop.rarityPercent(rarity, MYSTERY)
 	end
 	local list: { Share } = {}
 	for _, rarity in BELOW do
 		table.insert(
 			list,
-			{ rarity = rarity, share = below * BlockDrop.rarityPercent(rarity) / weight }
+			{ rarity = rarity, share = below * BlockDrop.rarityPercent(rarity, MYSTERY) / weight }
 		)
 	end
 	table.insert(list, { rarity = "Epic", share = row.EpicPlus - row.LegendaryPlus })

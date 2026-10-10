@@ -582,7 +582,7 @@ local function grantProduct(
 			return false, why
 		end
 	elseif LuckyBlocks.skipTierOf(key) ~= nil then
-		grant = { key = key, money = 0, luckySkip = true, skipTier = LuckyBlocks.skipTierOf(key) }
+		grant = { key = key, money = 0, luckySkip = true }
 	else
 		grant, notFor = Shop.grantFor(
 			key,
@@ -640,8 +640,14 @@ local function grantProduct(
 			)
 		)
 	end
-	-- The copies in existence: a granted cue (the Starter Cue, a Limited) counts once it lands.
+	-- The copies in existence: a granted cue (the Starter Cue, a Limited) counts once it lands,
+	-- and so does a cue Claim All gives (the Week One Cue, economy v5).
 	local cueBefore = if grant.cue ~= nil then Inventory.count(data, grant.cue) else 0
+	local dayCues: { string } = if grant.claimAll ~= nil then Daily.rewardCues() else {}
+	local dayHad: { number } = {}
+	for i, id in dayCues do
+		dayHad[i] = Inventory.count(data, id)
+	end
 	if not PlayerData.applyPurchase(player, purchaseId, grant, copy) then
 		return false, "Failed"
 	end
@@ -649,6 +655,12 @@ local function grantProduct(
 	local after = PlayerData.read(player)
 	if grant.cue ~= nil and after ~= nil and Inventory.count(after, grant.cue) > cueBefore then
 		Counters.add(grant.cue, 1)
+	end
+	for i, id in dayCues do
+		local gained = if after ~= nil then Inventory.count(after, id) - dayHad[i] else 0
+		if gained > 0 then
+			Counters.add(id, gained)
+		end
 	end
 	if limited ~= nil and copy ~= nil then
 		Counters.add(limited, 1)

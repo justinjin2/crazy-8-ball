@@ -8,7 +8,7 @@
 -- opens: FreeSocial.wantsWelcome, setWelcome):
 -- - The Lucky 8 card: the Lucky 8 Block over its glow (the sky-blue dice opens its odds), "Free
 --   Lucky Blocks" and two rows, each with a tick box, its words and its button:
---   * Join the group (3 Mystery Lucky Blocks + 10% more match money while a member): Join is
+--   * Join the group (2 Mystery Lucky Blocks + 10% more match money while a member): Join is
 --     Roblox's own join prompt (GroupService:PromptJoinAsync), then the server asks Roblox
 --     again and gives the reward (RewardRequest "ClaimGroup"); a member's button reads Claim.
 --   * Favorite the game ($10,000 + a Lucky 8 Block): Roblox's own favorite prompt
@@ -16,7 +16,7 @@
 --     when Roblox answers it) the client claims (RewardRequest "ClaimFavorite", once: a server
 --     cannot check a favorite).
 --   A claimed row's box is ticked and its button goes.
--- - The invite card: the invite envelope and a Rare Lucky Block, "Invite a friend", what an
+-- - The invite card: the invite envelope and an Uncommon Lucky Block, "Invite a friend", what an
 --   invite gives (both get the block when the friend wins their first match; the inviter's own
 --   block comes once ever, Config.Social.InviterOnce, then the line says only the friend gets
 --   it), how many invited friends won this month, and Invite (Roblox's invite prompt with our

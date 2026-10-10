@@ -508,25 +508,39 @@ local function blocksText(count: number): string
 	return string.format(if count == 1 then words.One else words.Many, count)
 end
 
+-- A pack's Robux words: the live price (ShopState's `products`: what Roblox charges this player;
+-- Config's until it comes), and for a pack of several the single block's live price times the
+-- count struck through beside it ("49 R$ 57"), so the saving is always true.
+local function robuxWords(products: any, count: number): string
+	local function robuxOf(key: string): number
+		local live = if type(products) == "table" then products[key] else nil
+		return if type(live) == "table" and type(live.robux) == "number"
+			then live.robux
+			else PRODUCTS[key].Robux
+	end
+	local robux = robuxOf(DEAL.Products[count])
+	local price = string.format(SHOP_COPY.Robux, Format.commas(robux))
+	local was = robuxOf(DEAL.Products[1]) * count
+	if count > 1 and was > robux then
+		-- The old price, struck through, beside the new one (red: UI_STYLE 13).
+		price ..= string.format(
+			' <font color="#%s"><s>%s</s></font>',
+			rgb(K.Numbers.Old):ToHex(),
+			Format.commas(was)
+		)
+	end
+	return price
+end
+
 function GrandOpeningCard.buildButtons(self: any)
 	local card = self.card
 	self.robuxButtons = {} :: { TextButton }
 	self.giftButtons = {} :: { TextButton }
 	self.moneyButtons = {} :: { TextButton }
 	self.countLabels = {} :: { TextLabel }
-	local wasHex = rgb(K.Numbers.Old):ToHex() -- a crossed-out price is red (UI_STYLE 13)
 	for index, count in COUNTS do
 		local key = DEAL.Products[count]
-		local product = PRODUCTS[key]
-		local price = string.format(SHOP_COPY.Robux, Format.commas(product.Robux))
-		if product.Was then
-			-- The old price, struck through, beside the new one.
-			price ..= string.format(
-				' <font color="#%s"><s>%s</s></font>',
-				wasHex,
-				Format.commas(product.Was)
-			)
-		end
+		local price = robuxWords(nil, count)
 		local green = HudParts.candy(card, price, function()
 			UISound.play("RobuxBuy")
 			self.actions.robux(key)
@@ -870,13 +884,21 @@ end
 --------------------------------------------------------------------------------------------
 
 --- Show what the shop state says: the time left on the deal ("Ends in 20d 23h"), hidden when
---- the deal is not open.
+--- the deal is not open or has no end date (the soft launch).
 function GrandOpeningCard.refresh(self: any, state: any)
 	local deals = if type(state) == "table" and type(state.deals) == "table"
 		then state.deals
 		else {}
 	local deal = deals.GrandOpening
-	local open = type(deal) == "table" and deal.open == true and type(deal.endsAt) == "number"
+	local open = type(deal) == "table"
+		and deal.open == true
+		and type(deal.endsAt) == "number"
+		and deal.endsAt > 0
+	-- The live Robux prices.
+	local products = if type(state) == "table" then state.products else nil
+	for index, count in COUNTS do
+		HudParts.setText(self.robuxButtons[index], robuxWords(products, count))
+	end
 	self.endsIn.Visible = open
 	if open then
 		self.endsIn.Text =

@@ -133,6 +133,11 @@ function ShopMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		odds(kind)
 		return #self.odds.items
 	end)
+	-- GuiQA:Invoke("tierOdds", tier) presses that row's dice on the Mystery card.
+	GuiQA.add("tierOdds", function(tier: string)
+		odds(tier)
+		return #self.odds.items
+	end)
 	-- The Blocks group under the card: its header first (it peeks in at the bottom of the first
 	-- screen), then the Mystery block, the restock and the offers.
 	local blocks = HudParts.frame(scroll, "Blocks")
@@ -153,6 +158,8 @@ function ShopMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 			self:buyBlocks("Mystery", count)
 		end,
 		gift = gift,
+		-- A row's dice: the block a Mystery turns into there, the same list as the restock's
+		-- (it climbs from its name; economy v5.1).
 		tierOdds = odds,
 		odds = function()
 			self.mysteryOdds:open()
@@ -176,6 +183,13 @@ function ShopMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		odds = odds,
 	})
 	self.offers = ShopOffers.new(blocks, { robux = buyProduct, gift = gift, odds = odds })
+	-- Studio only: GuiQA:Invoke("shopPity", rare?, epic?) draws the Mystery card's pity bars as
+	-- if that many blocks were left to each guarantee (1: the very next; nothing: the server's).
+	GuiQA.add("shopPity", function(rare: number?, epic: number?)
+		self.mystery.fakePity = if rare or epic then { rare = rare, epic = epic } else nil
+		self:refresh()
+		return true
+	end)
 	-- Studio only: GuiQA:Invoke("offers", patch) draws the Starter Pack and VIP over the shop
 	-- state with `patch`'s fields (restricted, vip, starterBought, offers); nil goes back.
 	GuiQA.add("offers", function(patch: any)

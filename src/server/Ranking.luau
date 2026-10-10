@@ -98,7 +98,8 @@ function Ranking.setBlockKind(fn: ((Player) -> string?)?)
 end
 
 -- The rank-up's at-once blocks: the Reward to pay with the rank, or nil for none. With the
--- tutorial's kind set, every at-once block is of that kind.
+-- tutorial's kind set, every at-once block is of that kind and lands ready (its lesson holds,
+-- throws and opens it at once; every block has its name's timer since economy v5.2).
 local function atOnceOf(player: Player, result: Ranks.MatchResult): PlayerData.Reward?
 	local blocks = RankClaim.blocksAtOnce(result.peakBefore, result.peakAfter)
 	if next(blocks) == nil then
@@ -110,7 +111,7 @@ local function atOnceOf(player: Player, result: Ranks.MatchResult): PlayerData.R
 		for _, count in blocks do
 			total += count
 		end
-		blocks = { [kind] = total }
+		return { blocks = { [kind] = total }, ready = true }
 	end
 	return { blocks = blocks }
 end
@@ -232,7 +233,7 @@ end
 -- A short match's pots (ECONOMY 3.6): what they paid this player adds to today's short total.
 local function countShort(player: Player, key: string)
 	local tally = Economy.tally(key, player.UserId)
-	local paid = tally.ballMoney + tally.niceMoney
+	local paid = tally.ballMoney + tally.niceMoney + tally.ballStreakMoney
 	if paid > 0 then
 		PlayerData.addDailyMoney(player, "Short", paid)
 	end
@@ -360,6 +361,7 @@ type Paid = {
 	streak: number,
 	boost: number,
 	block: PlayerData.WinBlock?, -- the win's lucky block (the result screen's block chip)
+	trackMoney: number?, -- the win track's money step (economy v5), already paid
 }
 
 -- Settles one player (every "before" count is on `entry`, read before anyone was paid).
@@ -463,7 +465,12 @@ local function settleOne(m: Match, entry: Entry, paid: Paid)
 		if drops then
 			local block = giveBlock(p, ctx.firstWinEver, entry.opponents)
 			if block then
-				paid.block = block
+				-- A money step (economy v5) pays its money; a block step lands its block.
+				if block.kind ~= nil then
+					paid.block = block
+				else
+					paid.trackMoney = block.money or 0
+				end
 				if pc then
 					PlayerData.countDaily(p, "PcDrops")
 				end
@@ -592,11 +599,20 @@ local function settle(e: any)
 				ballMoney = tally.ballMoney,
 				nice = tally.nice,
 				niceMoney = tally.niceMoney,
+				ballStreakMoney = tally.ballStreakMoney,
+				bestStreak = tally.bestStreak,
 				bonus = paid.bonus,
+				track = paid.trackMoney, -- the win track's money step (economy v5), its own line
 				streak = paid.streak,
 				reward = reward,
 				boost = paid.boost,
-				total = tally.ballMoney + tally.niceMoney + paid.bonus + paid.streak + reward,
+				total = tally.ballMoney
+					+ tally.niceMoney
+					+ tally.ballStreakMoney
+					+ paid.bonus
+					+ (paid.trackMoney or 0)
+					+ paid.streak
+					+ reward,
 			},
 			-- The win's lucky block ({ kind, readyAt }), already in the hotbar; nil without one.
 			block = paid.block,

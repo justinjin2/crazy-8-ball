@@ -18,7 +18,7 @@
 -- The Starter Pack shows until it is bought or its first week ends; VIP shows until it is
 -- owned (the designer, 2026-10-08: VIP lives only here now, so it can always be bought), half
 -- price with its time left while its offer is open. With neither there is no section. Both
--- packs hold a lucky block (the Starter Lucky Block; VIP's Rare block every day), so each hero
+-- packs hold a lucky block (the Starter Lucky Block; VIP's Uncommon block every day), so each hero
 -- has the sky-blue dice opening that block's Odds & Details (Roblox's paid-random-items rule;
 -- OddsDetails), hidden where paid random items are restricted. Robux through StoreRequest "Buy"
 -- (StarterPack, VipOffer, or the Vip pass). Sizes in Config.UI.ShopBlocks.Pair, words in
@@ -153,7 +153,7 @@ local function vipBlock(): string
 		table.insert(kinds, kind)
 	end
 	table.sort(kinds)
-	return kinds[1] or "Rare"
+	return kinds[1] or "Uncommon"
 end
 
 -- Give `object` its place in a hero by Config shares: centre x, centre y, size (of its side).

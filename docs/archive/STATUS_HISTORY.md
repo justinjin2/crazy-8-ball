@@ -5,6 +5,59 @@ when `docs/STATUS.md` became current state only. Finished work moves here from S
 on top. Read it only to answer "when or why did X change"; it is not part of the read-first list.
 An entry marked "(latest)" was the latest when written.
 
+**2026-10-09: the economy v5 GUI run** (steps 0-11, 13 on PC and 14). Every screen updated to
+economy v5 in place on `gui-v4` (`docs/prompts/ECONOMY_V5_GUI_PROMPT.md`, its Notes per step):
+the server hook for the tutorial's scripted first block; the climb screen
+for every unclimbed block with its mark and the Secret rung; the quick reveal and "Open all"
+with its summary; every block's Odds & Details with each cue's "1 in N" and the pity bars; the
+Grand Opening Luck's clover; the shop's Mystery card (7 rows, live luck, the pity bars, "35 R$
+one by one"), the restock's three cards with slot 1's "Epic or better!" and per-slot odds, the
+Grand Opening card's live prices; the win track's money tiles and the result screen's "Win
+track" line; the first week's day 7 cue; the Index's Week One Cue line; the Strings sweep.
+Shims 1-5 and 7-9 gone. Checked on PC in Studio, console clean; lint OK, 1160 tests.
+
+**2026-10-09: economy v5 built on `gui-v4`** (the unattended run of
+`docs/prompts/ECONOMY_V5_PROMPT.md`, steps 0-15, commits `f39f815` to step 15; backup branch
+`before-economy-v5` at `f4e17c0`). Every block climbs from its name on one ladder, the Grand
+Opening Luck, pity 10 / 40 with a head start, unclimbed and climbed blocks (save v11, skip
+credits by product), the win track's 4 blocks and $1,000 steps, the Week One Cue, the v5
+rewards, the restock's 2 slots, $14,900 Mystery blocks, the 1 R$ skip (product 3717460488, the
+only Robux change), "Open all", the "1 in N", climbed blocks in trades, the model doing v5
+(within a point of the plan), ECONOMY.md rewritten, the hand-off and the Robux proposal. Tests
+1139 to 1156. No Studio in the run: the report's "try in Studio" list is open in STATUS.
+
+**2026-10-09: the GUI hand-off after economy v4, its done list (moved from STATUS).** Done and
+checked in Studio: Abilities films the real character; Lucky Spins retired (save v10); Ranked's
+reward tiles one size; Claim All's server side; the restock banner; bigger money packs and the
+Starter Pack at 29 R$ with its cue; the Shop's Blocks, Money and Passes tabs; the HUD's win
+track (A); the Free Reward menu (Daily A with Playtime, the track and Group in one menu; codes
+stay in Settings) with Claim All's six Robux products (Not Listed); Ranked in the lively frame
+(A); the ability spin screen (A); the Mystery screen (B, the Track); Settings (A); the reel's v4
+odds (look unchanged), the skip's dialog priced for the time left, every block's "Odds &
+Details" behind a sky-blue dice. The designer's second and third notes (2026-10-08), done on
+PC: Starter Pack and VIP side by side (VIP only there now), the Passes row of four, odds
+rounded and in the lively popup (Mystery: tiers, then pity meters), the folded win track, the
+rainbow THANK YOU! after a Robux purchase, the VIP tag and VIP's x2 pots.
+
+**2026-10-09: economy v4's open entry (moved from STATUS when v5 replaced it).** Economy v4
+(approved and merged into `shop-lively` 2026-10-08; roadmap 7.8): the rules, saves (v9), model
+and docs in, Lune-tested; the v4 Robux prices live on Roblox (four new products made, the six
+sale products off sale); "until the merged place is published, the live game sells at the new
+prices with the old grants: publish soon". Its open items (the Studio check, Not Listed, the
+GUI screens of its hand-off) carry on in the v5 entry.
+
+**2026-10-09: the ball streak.** Built on `gui-v4` in five commits (rules and engine, money,
+assets, the HUD, the docs) from the approved mockup
+(https://claude.ai/artifact/7sj2aFqL94Zv5C1n7Us44T). Checked in Studio with real shots through
+`PoolMatchQA` (a hand-laid straight-in lane each shot): x1 to x8 for real, the 8 winning at x8,
+each level's look, the fire lighting at x3, the orange +$30 chip at x3 and the rainbow +$180 at
+x8, the result line "Streak bonus (best x8)", Reduce Motion (no tilt, wave, jitter or shake),
+Lower effects (half the shards, no ghosts), a mid-step frame at a tenth of the speed. The check
+found the flames sitting behind YOUR TURN (it shows after every pot) from x4, so they now duck
+under any popup (measured: 4 px clear after about 0.1 s). A shot clock running out between QA
+shots ended the streak as a Timeout foul should. Not checked: the phone emulator (switching it
+needs desktop clicks in Studio), a real phone, the sound by ear. Tests 1103 to 1138.
+
 **2026-10-08: economy v4 merged.** Built in the worktree `~/Desktop/8ball-economy-v4` (branch
 `economy-v4`, steps 1-14 of `docs/prompts/ECONOMY_V4_PROMPT.md`), merged into `shop-lively` as a
 fast-forward. Tests went from 1045 to 1051. The Robux prices were synced through Open Cloud the

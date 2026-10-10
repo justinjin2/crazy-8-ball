@@ -34,7 +34,8 @@
 --   (dropChoices) and the screen stays until it is pressed.
 --
 -- Money: the pots' money already flew into the HUD during play, so only the match bonus, the
--- streak bonus and the rank reward are new here. They are told to the HUD the moment the screen
+-- win track's money step ("Win track +$1,000", economy v5), the streak bonus and the rank
+-- reward are new here. They are told to the HUD the moment the screen
 -- opens (expect) and land with the total chip, so the HUD neither jumps early nor counts
 -- anything twice.
 --
@@ -662,8 +663,8 @@ function ResultScreen.build(self: any, view: any)
 	view.segments, view.xpEnd = planXp(xp)
 	view.shown = nil -- the division the bar shows (Shown), once drawn
 
-	-- The money list: balls, nice shots, the match bonus, the win streak and a rank reward,
-	-- then the Total.
+	-- The money list: balls, nice shots, the ball streak's bonus, the match bonus, the win
+	-- track's money step, the win streak and a rank reward, then the Total.
 	local m = if type(summary.money) == "table" then summary.money else {}
 	local outcome = if type(summary.you) == "table" then summary.you.outcome else nil
 	view.lines = {}
@@ -674,8 +675,14 @@ function ResultScreen.build(self: any, view: any)
 	if clean(m.nice) > 0 then
 		add(P.NiceLine:format(clean(m.nice)), clean(m.niceMoney))
 	end
+	if clean(m.ballStreakMoney) > 0 then
+		add(P.BallStreakLine:format(clean(m.bestStreak)), clean(m.ballStreakMoney))
+	end
 	if clean(m.bonus) > 0 then
 		add(if outcome == "Win" then P.WinBonus else P.LossBonus, clean(m.bonus))
+	end
+	if clean(m.track) > 0 then
+		add(P.TrackLine, clean(m.track))
 	end
 	if clean(m.streak) > 0 then
 		add(P.StreakLine, clean(m.streak))
@@ -989,11 +996,11 @@ end
 -- Showing, step by step
 --------------------------------------------------------------------------------------------
 
--- The money a summary adds that has not flown in yet: the match bonus, the streak bonus and
--- the rank reward (all paid at the end, not live).
+-- The money a summary adds that has not flown in yet: the match bonus, the win track's money
+-- step, the streak bonus and the rank reward (all paid at the end, not live).
 local function newMoneyOf(summary: any): number
 	local m = if type(summary.money) == "table" then summary.money else {}
-	return clean(m.bonus) + clean(m.streak) + clean(m.reward)
+	return clean(m.bonus) + clean(m.track) + clean(m.streak) + clean(m.reward)
 end
 
 -- The screen's clock: seconds since it opened, plus any skip.

@@ -280,7 +280,7 @@ end
 local STAND_IN = { userId = 1, name = "Opponent", tier = "Gold", division = 3 }
 
 local RESULTS: { [string]: string } =
-	{ win = "Win", lose = "Loss", loss = "Loss", draw = "Draw", firstwin = "Win" }
+	{ win = "Win", lose = "Loss", loss = "Loss", draw = "Draw", firstwin = "Win", track = "Win" }
 -- /result lose <word>: the 8-ball rule that lost it (ShotJudge's reason).
 local LOSS_REASONS: { [string]: string } =
 	{ early = "EarlyEight", pocket = "WrongPocket", foul = "FoulEight", off = "EightOffTable" }
@@ -309,10 +309,11 @@ local function nearTable(player: Player): number
 	return best
 end
 
--- /result win|lose|draw|firstwin: the result screen with made-up numbers (the caller against a
--- stand-in opponent), worked out from the caller's real rank but never saved. A sample: every
--- boost that can apply is on (the streak, on a win) so every chip shows, a win brings the
--- Mystery block chip, and `firstwin` the first win's Rare block instead (nothing is given).
+-- /result win|lose|draw|firstwin|track: the result screen with made-up numbers (the caller
+-- against a stand-in opponent), worked out from the caller's real rank but never saved. A
+-- sample: every boost that can apply is on (the streak, on a win) so every chip shows, a win
+-- brings the Mystery block chip, `firstwin` the first win's Rare block instead, and `track` a
+-- win on a money step of the win track (its own "Win track" line, no chip; nothing is given).
 -- A win or loss first plays the result cutscene at the table nearest the caller.
 local function previewResult(player: Player, args: { string })
 	local word = args[1] or ""
@@ -329,6 +330,8 @@ local function previewResult(player: Player, args: { string })
 	end
 	local win = outcome == "Win"
 	local firstWin = word == "firstwin"
+	local moneyStep = word == "track"
+	local track = if moneyStep then Config.BlockOdds.Drop.WinTrackMoney else 0
 	local opponentIndex = Ranks.indexOf(STAND_IN.tier, STAND_IN.division)
 	local xp = Ranks.applyMatch({
 		RankXp = data.RankXp,
@@ -364,6 +367,14 @@ local function previewResult(player: Player, args: { string })
 	local balls, nice = 4, 1
 	local ballMoney = Money.round(balls * E.BallPay * (1 + boost))
 	local niceMoney = Money.round(E.NiceShotPay.Bank * (1 + boost))
+	-- A sample ball streak to x5: the x3, x4 and x5 bonuses.
+	local bestStreak = 5
+	local ballStreakMoney = 0
+	for level = E.BallStreakFrom, bestStreak do
+		ballStreakMoney += Money.round(
+			E.BallPay * E.BallStreakShare * (level - E.BallStreakFrom + 1) * (1 + boost)
+		)
+	end
 	local bonus = Money.matchBonus({
 		outcome = outcome,
 		opponent = "Player",
@@ -377,7 +388,7 @@ local function previewResult(player: Player, args: { string })
 	local streak = if win then Money.streakBonus(E.StreakFrom, "Player", 1, boost, 1) else 0
 	-- The win's block chip (a sample: nothing is given).
 	local block = nil
-	if win then
+	if win and not moneyStep then
 		local kind = if firstWin then Config.BlockOdds.Drop.FirstWin else "Mystery"
 		local timer = LuckyBlocks.timer(kind, player:GetAttribute("Vip") == true)
 		block = { kind = kind, readyAt = if timer > 0 then os.time() + timer else 0 }
@@ -400,11 +411,14 @@ local function previewResult(player: Player, args: { string })
 			ballMoney = ballMoney,
 			nice = nice,
 			niceMoney = niceMoney,
+			ballStreakMoney = ballStreakMoney,
+			bestStreak = bestStreak,
 			bonus = bonus,
+			track = if moneyStep then track else nil,
 			streak = streak,
 			reward = reward,
 			boost = boost,
-			total = ballMoney + niceMoney + bonus + streak + reward,
+			total = ballMoney + niceMoney + ballStreakMoney + bonus + track + streak + reward,
 		},
 		block = block,
 		rematch = false,

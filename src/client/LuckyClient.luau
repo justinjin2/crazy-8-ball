@@ -11,15 +11,18 @@
 --   down is never thrown (the designer, 2026-10-09): it shakes in its slot and the skip popup
 --   opens (VIP has no timers). Each thrown block keeps its own hold prompt. The Throw animation
 --   asks the server at its Release marker.
--- - Open it: the prompt over it (LuckyWorld). The server rolls; once the block bursts at the
---   top of its rise, the reel plays (and a Rare or better cue's pull cutscene, LuckyOpening).
--- - A Mystery block is never held: its slot says OPEN! and a tap, a click or its key opens its
---   upgrade screen (MysteryReveal), where it becomes a tier's block and jumps back into its
---   slot. On a gamepad LB / RB pick its slot and R2 opens it.
+-- - Open it: the prompt over it (LuckyWorld). The server rolls its climb and its cue; once the
+--   block bursts at the top of its rise, the reel plays at the climb's odds, every time
+--   (economy v5.2: a Rare block's strip is Rare 82%, Epic 16.2%...; a Rare or better cue's
+--   pull cutscene follows, LuckyOpening).
+-- - A Mystery (economy v5.1; since v5.2 the only block with an upgrade screen) is never held
+--   as it is: its slot says OPEN! and a tap, a click or its key opens its upgrade screen
+--   (MysteryReveal), where its roll turns it into a tier's block, which jumps back into its
+--   slot on its timer. On a gamepad LB / RB pick its slot and R2 opens it.
 -- The tutorial (Tutorial.luau) reads which slot holds a kind (slotOf), what is held and what
 -- lies on the floor, and the hotbar registers its slots as anchors.
 -- - The bag: the ` (or ~) key, the bag button, or L3. A click on a block in it equips it with
---   the bag still open, like Roblox's backpack (a Mystery block opens).
+--   the bag still open, like Roblox's backpack (a Mystery opens its upgrade screen).
 -- Lobby only: Progression hides it in a match and under the screens and menus (the bag aside).
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -32,6 +35,7 @@ local Config = require(Shared:WaitForChild("Config"))
 local Net = require(Shared:WaitForChild("Net"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local Progression = Shared:WaitForChild("Progression")
+local BlockDrop = require(Progression:WaitForChild("BlockDrop"))
 local BlockOdds = require(Progression:WaitForChild("BlockOdds"))
 local Catalog = require(Progression:WaitForChild("Catalog"))
 local LuckyBlocks = require(Progression:WaitForChild("LuckyBlocks"))
@@ -69,12 +73,14 @@ local LuckyClient = {}
 local hotbar: any = nil
 local opening: any = nil
 local reveal: any = nil
-local aimedId: number? = nil -- a Mystery block the gamepad's LB / RB picked (R2 opens it)
+local aimedId: number? = nil -- a Mystery the gamepad's LB / RB picked (R2 opens its screen)
 local entries: { Entry } = {}
 local heldId: number? = nil
 local liveIds: { [number]: boolean } = {}
 local reveals: { any } = {}
 local revealing = false
+local openingAll = false -- an "Open all" asked of the server, not answered yet
+local nextReveal: () -> () -- plays the queued reels one after another (below)
 local throwing = false
 local visible = false
 local started = false
@@ -249,13 +255,13 @@ local function putAway()
 	task.spawn(request, "Hold", nil)
 end
 
-local function isMystery(entry: Entry?): boolean
-	local row = if entry then LuckyBlocks.kind(entry.kind) else nil
-	return row ~= nil and row.Roll == true
+-- A Mystery (economy v5.2): its tap opens its upgrade screen, it is never held as it is.
+local function rollsFirst(entry: Entry?): boolean
+	return LuckyHotbar.rollsFirst(entry)
 end
 
 -- The skip for a block still counting down (LuckyHotbar.offerSkip asks, with the price for the
--- time left), and its Skip: the server prompts that tier's product (4 / 9 / 15 R$), or a line
+-- time left), and its Skip: the server prompts that tier's product (1 / 4 / 9 / 15 R$), or a line
 -- says why not.
 local function offerSkip(id: number)
 	hotbar:offerSkip(id)
@@ -273,14 +279,14 @@ local function requestSkip(id: number)
 	end)
 end
 
--- A Mystery block's upgrade screen: its icon jumps out of its slot (MysteryReveal asks the
--- server, which turns it into its tier's block before anything is shown).
+-- A Mystery's upgrade screen: its icon jumps out of its slot (MysteryReveal asks the server,
+-- which turns it into the block its roll reached before anything is shown).
 local function revealBlock(id: number)
 	if not visible or throwing or opening:isOpen() or reveal:isBusy() then
 		return
 	end
 	local entry = find(id)
-	if entry == nil or not isMystery(entry) or liveIds[id] then
+	if entry == nil or not rollsFirst(entry) or liveIds[id] then
 		return
 	end
 	aimedId = nil
@@ -292,7 +298,7 @@ local function revealBlock(id: number)
 	end
 	putAway()
 	local from, px = hotbar:slotOf(id)
-	reveal:play(id, from, px)
+	reveal:play(id, from, px, nil, entry.kind)
 	refresh()
 end
 
@@ -300,7 +306,7 @@ local function holdBlock(id: number)
 	if throwing or opening:isOpen() or reveal:isBusy() then
 		return
 	end
-	if isMystery(find(id)) then
+	if rollsFirst(find(id)) then
 		revealBlock(id)
 		return
 	end
@@ -313,10 +319,8 @@ local function holdBlock(id: number)
 	if entry == nil or liveIds[entry.id] then
 		return
 	end
-	if entry.readyAt > serverNow() then
-		-- A block still on its timer was tapped: the tutorial's RareBlock step counts it seen.
-		TutorialAnchors.setFlag("BlockTapped", true)
-	end
+	-- A tapped block: the tutorial's RareBlock step counts the win's Rare block seen.
+	TutorialAnchors.setFlag("BlockTapped", true)
 	heldId = id
 	playHold()
 	refresh()
@@ -383,23 +387,75 @@ local function throw()
 	end)
 end
 
-local function nextReveal()
+function nextReveal()
 	if revealing or #reveals == 0 then
 		return
 	end
 	local reward = table.remove(reveals, 1)
 	revealing = true
-	opening:play(
-		reward.kind,
-		reward.cue,
-		reward.rarity,
-		function()
-			revealing = false
-			task.defer(nextReveal)
-		end,
-		if type(reward.oddsId) == "string" then reward.oddsId else nil,
-		if type(reward.glimpse) == "string" then reward.glimpse else nil
-	)
+	local function done()
+		revealing = false
+		task.defer(nextReveal)
+	end
+	-- A Config.LuckyBlocks.QuickReveal rarity skips the reel (none since 2026-10-09: the
+	-- designer wants the reel every time).
+	if LuckyBlocks.quickReveal(reward.rarity) then
+		opening:quick(reward.cue, reward.rarity, done)
+	else
+		-- A climb rolled at the open (economy v5.2): the reel shows the climb's odds.
+		local climb = if type(reward.start) == "string"
+			then { start = reward.start, luck = reward.luck == true }
+			else nil
+		opening:play(
+			reward.kind,
+			reward.cue,
+			reward.rarity,
+			done,
+			if type(reward.oddsId) == "string" then reward.oddsId else nil,
+			climb,
+			-- The tutorial's block: a card of this rarity flashes past on its reel.
+			if type(reward.glimpse) == "string" then reward.glimpse else nil
+		)
+	end
+end
+
+-- "Open all" (economy v5 plan 3.8): the server opens every ready Standard and Uncommon block
+-- (not the one in the hands, not a thrown one) and the summary shows the Common and Uncommon
+-- cues that came out; a climb that reached Rare or better gets its own reel after it, one by
+-- one (economy v5.2).
+local function openAll()
+	if openingAll or not visible or revealing or opening:isOpen() or reveal:isBusy() then
+		return
+	end
+	openingAll = true
+	task.spawn(function()
+		local reply = request("OpenAll")
+		openingAll = false
+		if not reply.ok then
+			hotbar:say(reasonText(reply))
+			return
+		end
+		if type(reply.opened) == "table" and #reply.opened > 0 then
+			if hotbar:isBagOpen() then
+				hotbar:toggleBag()
+			end
+			local quick = {}
+			for _, o in reply.opened do
+				if type(o) ~= "table" or type(o.rarity) ~= "string" then
+					continue
+				elseif table.find(L.OpenAll.Summary, o.rarity) ~= nil then
+					table.insert(quick, o)
+				elseif type(o.cue) == "string" and type(o.kind) == "string" then
+					table.insert(reveals, o)
+				end
+			end
+			revealing = true
+			opening:summary(quick, function()
+				revealing = false
+				task.defer(nextReveal)
+			end)
+		end
+	end)
 end
 
 -- A block kind that can drop a cue of `rarity`, and that cue (the kind named after the rarity
@@ -509,8 +565,8 @@ local function onInput(input: InputObject, processed: boolean)
 		local step = if key == Enum.KeyCode.ButtonR1 then 1 else -1
 		local nextIndex = if at == 0 then (if step > 0 then 1 else n) else (at - 1 + step) % n + 1
 		local entry = hotbar:slotEntry(nextIndex)
-		if entry and isMystery(entry) then
-			-- Picked, not held: R2 opens its upgrade screen.
+		if entry and rollsFirst(entry) then
+			-- Picked, not held: R2 opens its climb screen.
 			putAway()
 			aimedId = entry.id
 			refresh()
@@ -537,10 +593,13 @@ function LuckyClient.start(screen: ScreenGui)
 	pcall(function()
 		StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Backpack, false)
 	end)
-	hotbar = LuckyHotbar.new(
-		screen,
-		{ select = holdBlock, reveal = revealBlock, move = move, skip = requestSkip }
-	)
+	hotbar = LuckyHotbar.new(screen, {
+		select = holdBlock,
+		reveal = revealBlock,
+		move = move,
+		skip = requestSkip,
+		openAll = openAll,
+	})
 	opening = LuckyOpening.new(screen)
 	reveal = MysteryReveal.new(screen.Parent :: Instance, {
 		request = function(id: number): any
@@ -562,6 +621,16 @@ function LuckyClient.start(screen: ScreenGui)
 				TutorialAnchors.setFlag("MysteryLanded", true) -- the tutorial's Mystery step
 			end
 		end,
+		-- A climb that reached the Secret (no block): straight to the Secret's pull, then the
+		-- card (the cue is already the player's).
+		secret = function(reply: any)
+			if type(reply.cue) == "string" then
+				opening:pull(
+					reply.cue,
+					if type(reply.rarity) == "string" then reply.rarity else "Secret"
+				)
+			end
+		end,
 		refused = function(reply: any)
 			hotbar:say(reasonText(reply))
 			if type(reply) == "table" and reply.reason == "NotReady" and reveal.id then
@@ -570,15 +639,23 @@ function LuckyClient.start(screen: ScreenGui)
 		end,
 	})
 	LuckyWorld.start({ onOpen = openBlock })
-	-- Studio tests of the upgrade screen with a made-up path ("Standard,Uncommon,Uncommon,Rare"),
-	-- nothing asked of the server or changed in the save.
-	GuiQA.add("mystery", function(path: string?)
+	-- Studio tests of the climb screen with a made-up path ("Standard,Uncommon,Uncommon,Rare")
+	-- for a `kind` block (default Mystery), nothing asked of the server or changed in the save.
+	-- A path ending on the Secret plays the Secret's pull with a Secret cue (nothing given).
+	GuiQA.add("mystery", function(path: string?, kind: string?)
 		-- One tier per press (Config.BlockOdds.Drop.Upgrade.Clicks): the start, then climbs.
 		local tiers = string.split(path or "Standard,Uncommon,Uncommon,Rare", ",")
+		local final = tiers[#tiers]
 		local from, px = hotbar:slotOf(-1)
-		local fake =
-			{ ok = true, tiers = tiers, kind = tiers[#tiers], pity = { rare = 3, epic = 87 } }
-		reveal:play(-1, from, px, fake)
+		local fake: any = { ok = true, path = tiers, from = kind or "Mystery" }
+		if BlockDrop.isBlockTier(final) then
+			fake.kind = final
+		else
+			local pool = BlockDrop.pool(final)
+			fake.secret, fake.rarity = true, final
+			fake.cue = if pool[1] then pool[1].Id else nil
+		end
+		reveal:play(-1, from, px, fake, kind)
 		return true
 	end)
 	-- Studio tests of the reel with a made-up prize (default a Standard block's Cobalt Cue),
@@ -587,6 +664,44 @@ function LuckyClient.start(screen: ScreenGui)
 		local id = cueId or "CobaltCue"
 		local row = Catalog.get(id)
 		opening:play(kind or "Standard", id, if row then row.Rarity else "Common")
+		return opening:isOpen()
+	end)
+	-- Studio tests of the quick reveal (default a Common cue of the Standard row) and of "Open
+	-- all"'s summary (`ids`: "CobaltCue,CobaltCue,..."; default a few of the Standard and
+	-- Uncommon rows' cues, one twice), nothing asked of the server or changed in the save.
+	GuiQA.add("quickReveal", function(cueId: string?)
+		local id = cueId or BlockOdds.cueOdds("Standard")[1].id
+		local row = Catalog.get(id)
+		opening:quick(id, if row then row.Rarity else "Common")
+		return opening:isOpen()
+	end)
+	-- Press "Open all" as a tap would (the server really opens the blocks); whether it shows.
+	GuiQA.add("openAll", function()
+		local shown = hotbar.openAllButton.Visible
+		openAll()
+		return shown
+	end)
+	GuiQA.add("openAllSummary", function(ids: string?)
+		local list = {}
+		if ids then
+			for _, id in string.split(ids, ",") do
+				table.insert(list, { cue = id })
+			end
+		else
+			local seen = {}
+			for _, row in { "Standard", "Uncommon" } do
+				for _, entry in BlockOdds.cueOdds(row) do
+					if table.find(L.OpenAll.Summary, entry.rarity) and not seen[entry.id] then
+						seen[entry.id] = true
+						table.insert(list, { cue = entry.id, new = #list == 0 })
+					end
+				end
+			end
+			if list[1] then
+				table.insert(list, { cue = list[1].cue })
+			end
+		end
+		opening:summary(list)
 		return opening:isOpen()
 	end)
 	-- The open reel's showcase card (economy v4 plan 4): stop the spin with it under the marker
@@ -616,7 +731,12 @@ function LuckyClient.start(screen: ScreenGui)
 			return hotbar.skipDialog ~= nil
 		end
 		local list = table.clone(entries)
-		table.insert(list, 1, { id = -2, kind = "Epic", readyAt = serverNow() + (seconds or 1500) })
+		-- A block on its timer has climbed (economy v5): its odds are its one rarity's.
+		table.insert(
+			list,
+			1,
+			{ id = -2, kind = "Epic", readyAt = serverNow() + (seconds or 1500), climbed = true }
+		)
 		hotbar:set(list, heldId or aimedId, liveIds)
 		hotbar:setVisible(true)
 		hotbar:offerSkip(-2)
@@ -625,6 +745,20 @@ function LuckyClient.start(screen: ScreenGui)
 			return hotbar.odds:isOpen()
 		end
 		return hotbar.skipDialog ~= nil
+	end)
+	-- Press the bar's `index`-th block (in bar order) as a tap would: a Mystery opens its
+	-- upgrade screen, any other is held. Returns the pressed block's id and kind.
+	GuiQA.add("blockPress", function(index: number?)
+		local entry = entries[index or 1]
+		if entry == nil then
+			return nil
+		end
+		hotbar:pressed(entry.id)
+		return entry.id, entry.kind
+	end)
+	GuiQA.add("blockBag", function(open: boolean?)
+		hotbar:setBag(open ~= false)
+		return hotbar:isBagOpen()
 	end)
 	GuiQA.add("mysteryTap", function()
 		reveal:tap()
@@ -685,7 +819,12 @@ function LuckyClient.start(screen: ScreenGui)
 		local list: { Entry } = {}
 		for _, b in payload.blocks do
 			if type(b) == "table" and type(b.id) == "number" and type(b.kind) == "string" then
-				table.insert(list, { id = b.id, kind = b.kind, readyAt = tonumber(b.readyAt) or 0 })
+				table.insert(list, {
+					id = b.id,
+					kind = b.kind,
+					readyAt = tonumber(b.readyAt) or 0,
+					climbed = if b.climbed == true then true else nil,
+				})
 			end
 		end
 		entries = list

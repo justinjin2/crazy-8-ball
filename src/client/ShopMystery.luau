@@ -1,15 +1,16 @@
 --!strict
 -- ShopMystery: the Shop's Mystery Lucky Block card under "- BLOCKS -" (the designer's pick A on
 -- the mock page, 2026-10-08). On a pale panel with its navy title pill: the block (its purple
--- glow, turning rays and twinkles; the sky-blue "i" opens its "Odds & Details",
--- ShopMysteryOdds: pity, the final tier, each tier block's odds and every rarity's chance per
--- Mystery block, adding up to 100%), the ladder of the six tiers it can climb to with their chances
--- (BlockDrop.tiers), the small sky-blue dice after each row's name opening that tier block's odds
--- (designer, 2026-10-09), the x1 and x10
--- columns (the purple gift square and the green Robux price, then the gold money price; the
--- launch bonus's "13 for 10!" ribbon on x10 while it runs) and the Epic guarantee strip (the
--- server's pity count). Money buys through ItemRequest "BuyBlocks" (the Mystery deal), Robux
--- through StoreRequest "Buy" (Mystery1, Mystery10); both are refused by the server where paid
+-- glow, turning rays and twinkles; the dice opens its "Odds & Details", ShopMysteryOdds: the
+-- blocks it turns into, pity and each cue's chance over both steps), the rows of the blocks it
+-- can turn into with their chances (economy v5.1, BlockDrop.turnTiers: Standard to Legendary),
+-- the small dice after each row's name opening that block's own odds, the same list as the
+-- restock's (it climbs from its name; designer, 2026-10-09), the x1 and x5
+-- columns (the purple gift square and the green Robux price, then the gold money price; on x5
+-- "35 R$ one by one" and the launch bonus's "6 for 5!" ribbon while it runs) and the pity strip:
+-- Rare by the 10th and Epic by the 40th side by side, each with its bar (the server's pity
+-- counts). Money buys through ItemRequest "BuyBlocks" (the Mystery deal), Robux
+-- through StoreRequest "Buy" (Mystery1, Mystery5); both are refused by the server where paid
 -- random items are restricted, so the buttons are off there. Sizes in
 -- Config.UI.ShopBlocks.Mystery, words in Strings.Menus.Shop.Blocks.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -30,15 +31,17 @@ local B = Config.UI.ShopBlocks
 local M = B.Mystery
 local P = B.Panel
 local DEAL = Config.Shop.Deals.Mystery
+local DROP = Config.BlockOdds.Drop
 local KINDS: { [string]: any } = Config.LuckyBlocks.Kinds :: any
 local COPY: { [string]: any } = (Strings.Menus.Shop :: any).Blocks
 local SHORT: { [string]: string } = Strings.LuckyBlocks.Short
-local BULK = Config.Shop.Mystery.BulkCount -- the x10 deal
+local BULK = Config.Shop.Mystery.BulkCount -- the bundle (x5 since economy v5)
 local COUNTS = { 1, BULK }
+local COLUMN_ONE_KEY: string = DEAL.Products[1] -- the single block's product (Mystery1)
 local rgb, round = ShopCards.rgb, ShopCards.round
 
 export type Actions = {
-	robux: (key: string) -> (), -- Mystery1 or Mystery10
+	robux: (key: string) -> (), -- Mystery1 or Mystery5
 	money: (count: number) -> (), -- 1 or BULK for money (the Mystery deal)
 	gift: (key: string) -> (), -- the gift square: gift that product to someone here
 	odds: () -> (), -- the dice badge: the "Odds & Details" (ShopMysteryOdds)
@@ -56,10 +59,21 @@ type Row = {
 type Column = {
 	box: ShopCards.Box,
 	count: TextLabel,
+	oneByOne: TextLabel?, -- the bundle's "35 R$ one by one"
 	green: TextButton,
 	gift: TextButton,
 	gold: TextButton,
 	key: string,
+}
+-- One half of the pity strip: a tier's icon, its words and its bar.
+type PityHalf = {
+	rarity: string,
+	count: number, -- Config.BlockOdds.Drop's PityRare or PityEpic
+	icon: ImageLabel,
+	words: TextLabel,
+	track: Frame,
+	edge: UIStroke,
+	fill: Frame,
 }
 
 local ShopMystery = {}
@@ -71,6 +85,7 @@ function ShopMystery.new(parent: Instance, actions: Actions): any
 	self.actions = actions
 	self.k = 1
 	self.shown = {} :: { [string]: any } -- what refresh last drew
+	self.fakePity = nil :: any -- Studio only: stand-in pity counts (ShopMenu's GuiQA "shopPity")
 
 	local root = HudParts.frame(parent, "Mystery")
 	root.ZIndex = 2
@@ -96,7 +111,7 @@ function ShopMystery.new(parent: Instance, actions: Actions): any
 	self.ladder = ladder
 	self.rows = {} :: { Row }
 	local count = rgb(Config.UI.Kit.Numbers.Count)
-	for index, tier in BlockDrop.tiers() do
+	for index, tier in BlockDrop.turnTiers() do
 		local strip = HudParts.frame(ladder.frame, "Row" .. index)
 		strip.BackgroundTransparency = 0
 		strip.BackgroundColor3 = rgb(M.RowColor)
@@ -129,7 +144,7 @@ function ShopMystery.new(parent: Instance, actions: Actions): any
 		)
 	end
 
-	-- The x1 and x10 columns.
+	-- The x1 and x5 columns.
 	self.columns = {} :: { Column }
 	for index, n in COUNTS do
 		local key = DEAL.Products[n]
@@ -150,49 +165,68 @@ function ShopMystery.new(parent: Instance, actions: Actions): any
 		local gold = ShopCards.moneyButton(box.frame, "Money" .. n, function()
 			self.actions.money(n)
 		end)
+		local oneByOne = if n > 1
+			then ShopCards.label(box.frame, "OneByOne", "", rgb(Config.UI.Kit.Numbers.Count), 5)
+			else nil
 		self.columns[index] = {
 			box = box,
 			count = countLabel,
+			oneByOne = oneByOne,
 			green = green,
 			gift = gift,
 			gold = gold,
 			key = key,
 		}
 	end
-	-- The launch bonus's ribbon on x10 ("13 for 10!"), its pill shaking (as the hero card's NEW
+	-- The launch bonus's ribbon on x5 ("6 for 5!"), its pill shaking (as the hero card's NEW
 	-- tag).
 	local ribbon =
 		ShopCards.tag(self.columns[2].box.frame, "Ribbon", "", rgb(Config.UI.Kit.Colors.Red), 6)
 	ribbon.holder.Visible = false
 	self.ribbon = ribbon
 
-	-- The Epic guarantee strip.
+	-- The pity strip: Rare by the 10th and Epic by the 40th, side by side.
 	local pity = ShopCards.inner(card, "MysteryPity", 3)
 	self.pity = pity
-	local epic = KINDS.Epic
-	self.pityIcon = ShopCards.image(pity.frame, "Icon", if epic then epic.Icon else "", 4)
-	self.pityText = ShopCards.label(pity.frame, "Words", "", nil, 4)
-	self.pityText.AnchorPoint = Vector2.new(0, 0.5)
-	self.pityText.TextXAlignment = Enum.TextXAlignment.Left
-	self.pityText.RichText = true
-	local track = HudParts.frame(pity.frame, "Track")
-	track.BackgroundTransparency = 0
-	track.BackgroundColor3 = rgb(M.PityTrack)
-	track.AnchorPoint = Vector2.new(1, 0.5)
-	track.ZIndex = 4
-	HudParts.corner(track, 99)
-	local trackEdge = Instance.new("UIStroke")
-	trackEdge.Color = rgb(Config.UI.Kit.Colors.Ink)
-	trackEdge.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-	trackEdge.Parent = track
-	self.track, self.trackEdge = track, trackEdge
-	local fill = HudParts.frame(track, "Fill")
-	fill.BackgroundTransparency = 0
-	fill.BackgroundColor3 = rgb(M.PityFill)
-	fill.Size = UDim2.fromScale(0, 1)
-	fill.ZIndex = 5
-	HudParts.corner(fill, 99)
-	self.fill = fill
+	self.halves = {} :: { PityHalf }
+	local guarantees: { { rarity: string, count: number } } = {
+		{ rarity = "Rare", count = DROP.PityRare },
+		{ rarity = "Epic", count = DROP.PityEpic },
+	}
+	for _, guarantee in guarantees do
+		local rarity, blocks = guarantee.rarity, guarantee.count
+		local row = KINDS[rarity]
+		local icon = ShopCards.image(pity.frame, rarity .. "Icon", if row then row.Icon else "", 4)
+		local words = ShopCards.label(pity.frame, rarity .. "Words", "", nil, 4)
+		words.AnchorPoint = Vector2.new(0, 0.5)
+		words.TextXAlignment = Enum.TextXAlignment.Left
+		words.RichText = true
+		local track = HudParts.frame(pity.frame, rarity .. "Track")
+		track.BackgroundTransparency = 0
+		track.BackgroundColor3 = rgb(M.PityTrack)
+		track.AnchorPoint = Vector2.new(1, 0.5)
+		track.ZIndex = 4
+		HudParts.corner(track, 99)
+		local edge = Instance.new("UIStroke")
+		edge.Color = rgb(Config.UI.Kit.Colors.Ink)
+		edge.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+		edge.Parent = track
+		local fill = HudParts.frame(track, "Fill")
+		fill.BackgroundTransparency = 0
+		fill.BackgroundColor3 = ShopCards.rarityColor(rarity)
+		fill.Size = UDim2.fromScale(0, 1)
+		fill.ZIndex = 5
+		HudParts.corner(fill, 99)
+		table.insert(self.halves, {
+			rarity = rarity,
+			count = blocks,
+			icon = icon,
+			words = words,
+			track = track,
+			edge = edge,
+			fill = fill,
+		})
+	end
 	return self
 end
 
@@ -225,12 +259,12 @@ function ShopMystery.layout(self: any, width: number, k: number, y: number): num
 	-- The block and its badge (the badge's place is in the panel's units; it sits in the
 	-- block's holder, so it moves with the block).
 	ShopCards.layoutArt(self.art, k, M.Block[1], M.Block[2], M.Block[3], M.Glow, M.Rays)
-	local half = M.Block[3] / 2
+	local blockHalf = M.Block[3] / 2
 	ShopCards.layoutBadge(
 		self.badge,
 		k,
-		M.OddsBadge[1] - M.Block[1] + half,
-		M.OddsBadge[2] - M.Block[2] + half,
+		M.OddsBadge[1] - M.Block[1] + blockHalf,
+		M.OddsBadge[2] - M.Block[2] + blockHalf,
 		M.OddsBadge[3]
 	)
 
@@ -272,6 +306,17 @@ function ShopMystery.layout(self: any, width: number, k: number, y: number): num
 		ShopCards.sizeBox(column.box, k, P.InnerCornerUnits, P.InnerEdgeUnits)
 		local countPx = ShopCards.textPx(M.CountUnits, k)
 		ShopCards.line(column.count, k, cw / 2, M.CountY, cw - 2 * M.CountSideUnits, countPx)
+		if column.oneByOne then
+			local notePx = ShopCards.textPx(M.OneByOneUnits, k)
+			ShopCards.line(
+				column.oneByOne,
+				k,
+				cw / 2,
+				M.OneByOneY,
+				cw - 2 * M.CountSideUnits,
+				notePx
+			)
+		end
 		local inner = cw - 2 * M.ButtonInsetUnits
 		ShopCards.layoutRobuxRow(
 			column.green,
@@ -299,29 +344,35 @@ function ShopMystery.layout(self: any, width: number, k: number, y: number): num
 	local rw, rh = M.RibbonUnits[1], M.RibbonUnits[2]
 	ShopCards.layoutTag(self.ribbon, k, M.Columns[2][3] / 2, M.RibbonY, rw, rh, M.RibbonTextUnits)
 
-	-- The guarantee strip.
+	-- The pity strip: each half its tier's icon, its words and its bar at its right end.
 	local px, cy, pw, ph = M.Pity[1], M.Pity[2], M.Pity[3], M.Pity[4]
 	put(self.pity.frame, px + pw / 2, cy, pw, ph)
 	ShopCards.sizeBox(self.pity, k, P.InnerCornerUnits, P.InnerEdgeUnits)
 	local pityIconU = M.PityIconUnits
-	ShopCards.put(
-		self.pityIcon,
-		k,
-		M.PityIconLeftUnits + pityIconU / 2,
-		ph / 2,
-		pityIconU,
-		pityIconU
-	)
 	local textPx = ShopCards.textPx(M.PityTextUnits, k)
 	local barW, barH = M.PityBar[1], M.PityBar[2]
-	local textLeft = M.PityIconLeftUnits + pityIconU + M.PityTextGapUnits
-	local textW = pw - textLeft - M.PityBarGapUnits - barW - M.PityBarRightUnits
-	self.pityText.Position = UDim2.fromOffset(round(textLeft * k), round(ph / 2 * k))
-	self.pityText.Size = UDim2.fromOffset(round(textW * k), textPx + B.TextBoxPx)
-	HudParts.setTextSize(self.pityText, textPx)
-	self.track.Position = UDim2.fromOffset(round((pw - M.PityBarRightUnits) * k), round(ph / 2 * k))
-	self.track.Size = UDim2.fromOffset(round(barW * k), math.max(M.MinPityBarPx, round(barH * k)))
-	self.trackEdge.Thickness = math.max(B.MinEdgePx, M.PityTrackEdgeUnits * k)
+	local halfW = pw / #self.halves
+	for index, half in self.halves do
+		local left = (index - 1) * halfW
+		ShopCards.put(
+			half.icon,
+			k,
+			left + M.PityIconLeftUnits + pityIconU / 2,
+			ph / 2,
+			pityIconU,
+			pityIconU
+		)
+		local textLeft = left + M.PityIconLeftUnits + pityIconU + M.PityTextGapUnits
+		local barRight = left + halfW - M.PityBarRightUnits
+		local textW = barRight - barW - M.PityBarGapUnits - textLeft
+		half.words.Position = UDim2.fromOffset(round(textLeft * k), round(ph / 2 * k))
+		half.words.Size = UDim2.fromOffset(round(textW * k), textPx + B.TextBoxPx)
+		HudParts.setTextSize(half.words, textPx)
+		half.track.Position = UDim2.fromOffset(round(barRight * k), round(ph / 2 * k))
+		half.track.Size =
+			UDim2.fromOffset(round(barW * k), math.max(M.MinPityBarPx, round(barH * k)))
+		half.edge.Thickness = math.max(B.MinEdgePx, M.PityTrackEdgeUnits * k)
+	end
 	return height
 end
 
@@ -346,17 +397,32 @@ function ShopMystery.refresh(self: any, state: any)
 	local mystery = if type(state.mystery) == "table" then state.mystery else {}
 	local bonus = if type(state.launchBonus) == "table" then state.launchBonus else {}
 	local restricted = state.restricted == true
+	-- The live Robux price (ShopState: what Roblox charges this player).
+	local function robuxOf(key: string): number
+		local product = products[key]
+		return if type(product) == "table" and type(product.robux) == "number"
+			then product.robux
+			else (Config.Products.List :: any)[key].Robux
+	end
 	for index, column in self.columns do
 		local n = COUNTS[index]
 		local product = products[column.key]
-		local robux = if type(product) == "table" and type(product.robux) == "number"
-			then product.robux
-			else (Config.Products.List :: any)[column.key].Robux
-		local words = ShopCards.robuxText(robux)
+		local words = ShopCards.robuxText(robuxOf(column.key))
 		if self.shown["robux" .. n] ~= words then
 			self.shown["robux" .. n] = words
 			ShopCards.setButtonWords(column.green, words)
 		end
+		-- The bundle's saving: the single block's price times its count, never crossed out.
+		if column.oneByOne then
+			local single = robuxOf(COLUMN_ONE_KEY)
+			setText(
+				column.oneByOne,
+				string.format((Strings :: any).ShopV4.OneByOne, Format.commas(single * n))
+			)
+		end
+		-- Off sale (Roblox says so, or its product is not made): the price shows, greyed.
+		local offSale = (type(product) == "table" and product.available == false)
+			or (Config.Products.List :: any)[column.key].Id == 0
 		local money = if n == 1
 			then (if type(mystery.price) == "number" then mystery.price else DEAL.Money[1])
 			else (if type(mystery.bulkPrice) == "number"
@@ -367,14 +433,18 @@ function ShopMystery.refresh(self: any, state: any)
 			self.shown["money" .. n] = cash
 			HudParts.setText(column.gold, cash)
 		end
+		local robuxOn = not restricted and not offSale
+		if self.shown["on" .. n] ~= robuxOn then
+			self.shown["on" .. n] = robuxOn
+			HudParts.setEnabled(column.green, robuxOn)
+			HudParts.setEnabled(column.gift, robuxOn)
+		end
 		if self.shown.restricted ~= restricted then
-			HudParts.setEnabled(column.green, not restricted)
-			HudParts.setEnabled(column.gift, not restricted)
 			HudParts.setEnabled(column.gold, not restricted)
 		end
 	end
 	self.shown.restricted = restricted
-	-- "13 for 10!" while the launch bonus runs.
+	-- "6 for 5!" while the launch bonus runs.
 	local bonusOn = bonus.open == true
 		and type(bonus.bulkCount) == "number"
 		and bonus.bulkCount > BULK
@@ -382,24 +452,26 @@ function ShopMystery.refresh(self: any, state: any)
 	if bonusOn then
 		setText(self.ribbon.words, string.format(COPY.Bonus, bonus.bulkCount, BULK))
 	end
-	-- The Epic guarantee: blocks left until one is Epic (1: the next one is).
-	local pity = if type(state.pity) == "table" then state.pity else {}
-	local left = if type(pity.epic) == "number" then math.max(1, math.floor(pity.epic)) else nil
-	local total = Config.BlockOdds.Drop.PityEpic
-	self.pity.frame.Visible = left ~= nil
-	if left ~= nil then
-		local epic = ShopCards.rarityColor("Epic"):ToHex()
-		local name = string.format('<font color="#%s">%s</font>', epic, SHORT.Epic or "Epic")
+	-- Pity: blocks left until each guarantee (1: the next one is; a new save starts part way:
+	-- Config.BlockOdds.Drop.PityStart), each bar filled by the blocks opened since.
+	local pity = self.fakePity or (if type(state.pity) == "table" then state.pity else {})
+	self.pity.frame.Visible = type(pity.rare) == "number" or type(pity.epic) == "number"
+	for _, half in self.halves do
+		local raw = if half.rarity == "Rare" then pity.rare else pity.epic
+		local left = if type(raw) == "number" then math.max(1, math.floor(raw)) else half.count
+		local hex = ShopCards.rarityColor(half.rarity):ToHex()
+		local name =
+			string.format('<font color="#%s">%s</font>', hex, SHORT[half.rarity] or half.rarity)
 		setText(
-			self.pityText,
+			half.words,
 			if left <= 1
 				then string.format(COPY.PityNext, name)
 				else string.format(COPY.Pity, name, left)
 		)
-		local share = math.clamp((total - left) / math.max(1, total - 1), 0, 1)
+		local share = math.clamp((half.count - left) / math.max(1, half.count - 1), 0, 1)
 		local want = UDim2.fromScale(share, 1)
-		if self.fill.Size ~= want then
-			self.fill.Size = want
+		if half.fill.Size ~= want then
+			half.fill.Size = want
 		end
 	end
 end

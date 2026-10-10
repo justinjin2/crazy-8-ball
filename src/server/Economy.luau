@@ -32,7 +32,29 @@ local Money = require(Shared.Progression.Money)
 local Settle = require(Shared.Progression.Settle)
 local PlayerData = require(script.Parent.PlayerData)
 
-export type Tally = { balls: number, ballMoney: number, nice: number, niceMoney: number }
+-- What a player's pots paid in a match: balls, nice shots, and the ball streak's bonus (its
+-- count, money and the best level it paid at; Rules/Streak).
+export type Tally = {
+	balls: number,
+	ballMoney: number,
+	nice: number,
+	niceMoney: number,
+	ballStreak: number,
+	ballStreakMoney: number,
+	bestStreak: number,
+}
+
+local function newTally(): Tally
+	return {
+		balls = 0,
+		ballMoney = 0,
+		nice = 0,
+		niceMoney = 0,
+		ballStreak = 0,
+		ballStreakMoney = 0,
+		bestStreak = 0,
+	}
+end
 
 local E = Config.Economy
 local Economy = {}
@@ -130,7 +152,7 @@ end
 function Economy.tally(key: string, userId: number): Tally
 	local byUser = tallies[key]
 	local t = byUser and byUser[userId]
-	return if t then table.clone(t) else { balls = 0, ballMoney = 0, nice = 0, niceMoney = 0 }
+	return if t then table.clone(t) else newTally()
 end
 
 --- Forget a finished match's tallies (Ranking, once its result is paid).
@@ -153,6 +175,13 @@ local function payOne(e: any, player: Player, team: number, isShooter: boolean, 
 	local j = pending.judgement
 	local kind = Economy.moneyKind(e, player)
 	local sinceBreak = if type(e.brokeAt) == "number" then now - e.brokeAt else nil
+	-- The ball streak's level of each counted ball, by drop index (the engine's shot.streaks).
+	local streakLevels: { [number]: number } = {}
+	if type(shot) == "table" and type(shot.streaks) == "table" then
+		for _, step in shot.streaks do
+			streakLevels[step.index] = step.level
+		end
+	end
 	local farm = if kind == "Player"
 		then Economy.farmRow(player, Economy.opponentIds(e, team))
 		else Money.farmRow(1)
@@ -177,6 +206,7 @@ local function payOne(e: any, player: Player, team: number, isShooter: boolean, 
 		vipBoost = if player:GetAttribute("Vip") == true then Money.boost({ vip = true }) else 0,
 		farmBalls = farm.Balls,
 		multiplier = Economy.multiplier(e),
+		streakLevels = streakLevels,
 	})
 	if pay.total <= 0 then
 		return
@@ -193,13 +223,17 @@ local function payOne(e: any, player: Player, team: number, isShooter: boolean, 
 	local key = Economy.matchKey(e)
 	local byUser = tallies[key] or {}
 	tallies[key] = byUser
-	local tally = byUser[player.UserId] or { balls = 0, ballMoney = 0, nice = 0, niceMoney = 0 }
+	local tally = byUser[player.UserId] or newTally()
 	byUser[player.UserId] = tally
 	local grants = {}
 	for _, g in pay.grants do
 		if g.kind == "Ball" then
 			tally.balls += 1
 			tally.ballMoney += g.amount
+		elseif g.kind == "BallStreak" then
+			tally.ballStreak += 1
+			tally.ballStreakMoney += g.amount
+			tally.bestStreak = math.max(tally.bestStreak, g.level or 0)
 		else
 			tally.nice += 1
 			tally.niceMoney += g.amount
@@ -211,6 +245,7 @@ local function payOne(e: any, player: Player, team: number, isShooter: boolean, 
 			-- Less than amount when VIP doubled it: the chip shows it, then VIP's "x2".
 			plain = if g.plain < g.amount then g.plain else nil,
 			kind = g.kind,
+			level = g.level, -- a ball streak chip's level (its colour)
 			at = shot.startedAt + g.t, -- when the replay drops the ball
 		})
 	end

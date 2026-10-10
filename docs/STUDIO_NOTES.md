@@ -114,7 +114,10 @@ print(require(game.ReplicatedStorage.Shared.TableBuilder).prepareImport(require(
   `PlayerDataQA` (every save mutation, `read`, `snapshot`, `reset`), `ItemsQA` (`request`
   runs an ItemRequest as that player, `setSale`, `setRestricted`, `flush`/`refresh` the
   copies counter, `unbox`/`reyes`/`party` banners), `StoreQA` (`state`, `grant` a product with
-  a purchase id, `setPass`, `buy`, `receipt`), `RewardsQA` (`state`, `request`, `credit`).
+  a purchase id, `setPass`, `buy`, `receipt`), `RewardsQA` (`state`, `request`, `credit`),
+  `LuckyBlockQA` (`script`, tier or nil: every climb ends on that tier, the Secret included;
+  `luck`, unix seconds or nil: the Grand Opening Luck runs from then in this server, with the
+  client's `GuiQA:Invoke("luck", startsAt)` for the clover and the odds screens).
   A real 1v1 win for the settle: `PoolMatchQA:Invoke("fixture", 1, { phase = "Aiming",
   finalEight = true, brokeAgo = 120, calledPocket = 2 })`, then `Invoke("shot", 1, { angle =
   math.pi / 2, power = 0.35, epoch = snap.epoch, turnId = snap.turnId })`. To read what the
@@ -689,7 +692,10 @@ basics (glb textures, face direction, axes, texture alpha) are under "Uploading 
   fine texture (halftone, forks, thin bolts) disappears. Make shapes fat and high-contrast.
 - **Full-screen layers need `ScreenInsets.None`.** A ScreenGui's default inset is the device
   safe area, so on a phone a "full-screen" frame stops short of the edges (Eagle's Eye's
-  vignette drew a hard box). Screen effects set `ScreenInsets = Enum.ScreenInsets.None`.
+  vignette drew a hard box). Screen effects set `ScreenInsets = Enum.ScreenInsets.None`;
+  cutscenes use `Letterbox.screen` (None and `ClipToDeviceSafeArea = false`). In the iPhone
+  emulator the full screen is 874 x 402 and the HUD's area 750 x 304 (62 px each side, 78 at
+  the top: 20 of device plus Roblox's 58 px row, 20 at the bottom).
 - **Touch in the phone emulator through MCP:** `user_mouse_input` in the emulator arrives as
   touch. An `InputObject.Position` is in GUI space (below the top bar inset, 58 px there), and
   the MCP tool's raw coordinates are offset from GUI space (in the 750 x 361 emulator, GUI
@@ -760,3 +766,25 @@ basics (glb textures, face direction, axes, texture alpha) are under "Uploading 
   body from then on, so the server's spot is lost. The leaving shooter over the middle of the
   table went under the floor (y -0.27) and fell to FallGuard. ShooterPoser's guard now puts
   the root back at the spot it was let go at, after letting the limbs go.
+
+## Real shots through PoolMatchQA (2026-10-09, the ball streak check)
+
+- `ServerStorage.PoolMatchQA:Invoke("phase", tableId, { phase = "Aiming", seconds = 600, spots
+  = {...} })` lays the balls out by hand without a new engine, so match state such as the
+  ball streak carries over (`"fixture"` starts a new engine). `spots` keys are ball ids as
+  strings (`["0"]` the cue ball); `false` keeps a ball down. Every unlisted ball comes back up.
+- A sure pot: the ball 5 in off the +y side pocket (`{0, halfWidth - 5}`), the cue ball 8 in
+  behind it, `angle = math.pi / 2, power = 0.2`. A ShotFinder plan from the default spots
+  scratched (the cue ball followed the object ball into the corner).
+- **Give the clock room:** the real shot clock (about 20 s) runs between MCP calls and a
+  Timeout foul resets the turn. Pass `seconds = 600` and lay out the next shot in the same
+  call as the last one resolves.
+- **The short-match cap:** each `phase` call clears the break time, so after a day's $2,000 of
+  short-match money every pot pays a flat $10 and no bonuses. Pass `brokeAgo = 120` (fixture and
+  phase) to be past the one-minute mark.
+- The 8 needs its pocket called: pass `calledPocket` to `phase` (2 is the +y side pocket);
+  a `called` on the shot itself is refused with "CallRequired".
+- **The coin flip:** `"fixture"` with `{ phase = "CoinFlip", seconds = 600, coinWinner = 2 }`
+  (1 by default) shows the card again; it fades after `Config.Multiplayer.CoinSeconds` (3 s) of
+  the phase whatever `seconds` says, so screenshot within about 2 s (a `"phase"` call with
+  CoinFlip replays it). Table 9 is a 2v2 for the team wording.

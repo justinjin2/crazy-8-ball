@@ -442,28 +442,32 @@ end
 -- reported (TutorialEvent). Every step also has its fallback (Config.Tutorial.Timing).
 ---------------------------------------------------------------------------------------------
 
--- The chain's block opens to the tutorial's cue (4.5 step 7).
+-- The chain's block (4.5 steps 6 and 7), on economy v5.2's hooks (LuckyBlockService
+-- .setOpenHooks). Each answer is keyed on the step, so no later block (or a skipper's) is
+-- touched. Its Mystery's upgrade screen rolls it into a MysteryReveal.Tier block, ready at once
+-- (a block on its timer cannot be placed; pity still counted).
+local function scriptedClimb(player: Player, kind: string): string?
+	if kind ~= T.MysteryKind or TutorialService.step(player) ~= "Mystery" then
+		return nil
+	end
+	TutorialService.mark(player, "Revealed")
+	return T.MysteryReveal.Tier
+end
+
+-- That block's climb, rolled at its open since v5.2, stays on its tier at the Place step (never
+-- the Mystery itself: staying on its roll would make it a Standard block)...
+local function stayFor(player: Player, kind: string): boolean
+	return kind == T.MysteryReveal.Tier
+		and kind ~= T.MysteryKind
+		and TutorialService.step(player) == "Place"
+end
+
+-- ...and it opens to the tutorial's cue (an Uncommon cue that block's row can drop).
 local function forcedOpen(player: Player, kind: string): string?
-	if TutorialService.step(player) ~= "Place" or kind == "Rare" then
+	if kind ~= T.MysteryReveal.Tier or TutorialService.step(player) ~= "Place" then
 		return nil
 	end
 	return T.TutorialCue
-end
-
--- The chain's Mystery block's upgrade screen climbs once, the bottom tier to
--- MysteryReveal.Tier on MysteryReveal.ClimbPress, and the block it becomes is ready at once
--- (4.5 step 6; a block on its timer cannot be placed).
-local function forcedReveal(player: Player): { tiers: { string }, ready: boolean }?
-	if TutorialService.step(player) ~= "Mystery" then
-		return nil
-	end
-	local R = T.MysteryReveal
-	local tiers = {}
-	for press = 1, Config.BlockOdds.Drop.Upgrade.Clicks do
-		table.insert(tiers, if press < R.ClimbPress then Config.BlockOdds.Order[1] else R.Tier)
-	end
-	TutorialService.mark(player, "Revealed")
-	return { tiers = tiers, ready = true }
 end
 
 local function opened(player: Player, kind: string, cueId: string)
@@ -902,22 +906,26 @@ local function forget(player: Player)
 end
 
 function TutorialService.start()
-	LuckyBlockService.setOpenHooks(forcedOpen, function(player: Player, kind: string, cueId: string)
-		TutorialService.guard(player, "Opened", function()
-			opened(player, kind, cueId)
-		end)
-	end)
+	LuckyBlockService.setOpenHooks(
+		forcedOpen,
+		function(player: Player, kind: string, cueId: string)
+			TutorialService.guard(player, "Opened", function()
+				opened(player, kind, cueId)
+			end)
+		end,
+		stayFor,
+		function(player: Player, kind: string): string?
+			local tier = nil
+			TutorialService.guard(player, "Reveal", function()
+				tier = scriptedClimb(player, kind)
+			end)
+			return tier
+		end
+	)
 	Items.setEquipHook(function(player: Player, cueId: string)
 		TutorialService.guard(player, "Equipped", function()
 			equipped(player, cueId)
 		end)
-	end)
-	LuckyBlockService.setRevealHook(function(player: Player): any
-		local forced = nil
-		TutorialService.guard(player, "Reveal", function()
-			forced = forcedReveal(player)
-		end)
-		return forced
 	end)
 	UltSpins.setSpinHooks(forcedSpin, function(player: Player, id: string)
 		TutorialService.guard(player, "Spun", function()

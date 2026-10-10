@@ -276,7 +276,9 @@ separately from real multi-client playtests.
   divisions from one total `RankXp`; match XP (wins only), first-win placement, one-time
   rank-up rewards, the roadmap's list), `Money` (what a shot pays its shooter, the
   match bonus, the solo daily cap), `Format` (commas, "$1,250", "$12.5M"). `Rules/NiceShot`
-  also names the kind of nice shot (bank, kick, combo, carom) for the bonus.
+  also names the kind of nice shot (bank, kick, combo, carom) for the bonus. `Rules/Streak`
+  (the ball streak) owns `Streak.counts`, the one rule for "this ball counts for you" that
+  `Money` pays by too, and each shot's streak steps.
 - Server: `Vendor/ProfileStore` (loleris, never edited, pinned in `Vendor/README.md`),
   `PlayerData` (the only module that touches it: session per player, kick on failure,
   validated named mutations, replication), `Economy` (pays each accepted shot), `Ranking`
@@ -284,7 +286,8 @@ separately from real multi-client playtests.
   commands; the giving ones designer-only, aimed at any player in the server by name).
 - Client: `Progression` (builds and routes everything below), `RankBadge` (one badge with its
   shine on a shared clock, used by every screen), `RankHud` (top left), `MoneyHud` (bottom
-  left), `CashFlyer` (the "+$10" chips), `Nameplates`, `ResultScreen`, `NewRankPopup`,
+  left), `CashFlyer` (the "+$10" chips), `StreakHud` (STREAK x1 to x8 in the match popups' row,
+  stepping aside for a popup; its curves in the shared, Lune-tested `StreakMath`), `Nameplates`, `ResultScreen`, `NewRankPopup`,
   `Roadmap`, `UISound`, `ChatTags` (the [TIER] tag before names in chat, from each speaker's
   RankTier attribute); MatchHUD shows a small badge under each portrait.
 
@@ -315,6 +318,17 @@ separately from real multi-client playtests.
    finished match gets `MatchSummary` once; `ResultScreen` animates it, then `NewRankPopup`
    follows a rank change. `/xp` and `/newrank` send `RankEvent`, held until the player is not
    shooting.
+5. *Ball streak* (2026-10-09). `MatchEngine.finalizeShot` runs `Streak.step` when a shot's
+   verdict is in (never on a Rewind try) and keeps `t.streak` (team, count); a foul, a turn
+   passing to the other team or a new game clears it. The shot carries `streaks` (each counted
+   ball's drop event index and level) and `streakAfter` in the ShotResult every client gets
+   (Time Stop: in the late verdict) and in the snapshot's `shot`. `Economy` hands the levels to
+   `Money.shotPay`, which adds a `BallStreak` grant from x3 (`level` rides in `MoneyGrant`, the
+   tally's `ballStreakMoney` and `bestStreak` in `MatchSummary.money`). On the client
+   `Match.receive` keeps them in `Match.streaks`; Main's per-table pocket hook calls
+   `StreakHud:onPocket`, which plays the step when the replay drops that ball, for the table
+   this player sits at. It ends when the replay of a shot with `streakAfter == 0` comes to
+   rest, on a Foul or Result phase, or when the other team's turn starts.
 
 **Studio test hooks** (created only when `RunService:IsStudio()`, in ServerStorage, never
 reachable by clients): `PlayerDataQA` (read, mutate, end and reload a session, force a failed
@@ -457,7 +471,8 @@ the lucky-block section below is the item flow now.
   from the cases to the lucky blocks; being redone one by one: every scene starts on its veil,
   a black fade from a second before the reel stops (`BlockReel.start`'s `onStopping`), and Rare and Epic draw
   only on the veil; Legendary's film holds the camera, clamped short of anything solid, under
-  letterbox bars on the veil), `ShopMenu` (emptied 2026-10-04 to its
+  letterbox bars on the veil), `Letterbox` (every cutscene's black bars and full-screen
+  ScreenGui: a share of the height, never thinner than most of the HUD's edge rows), `ShopMenu` (emptied 2026-10-04 to its
   frame and the four jump buttons for the GUI overhaul; the page, card, odds, need, gift and
   thank-you modules are deleted), `RewardsMenu`, `RewardChips` (a block chip flies to the
   hotbar as its 3D icon, `BlockIcon`), `TradeMenu`, `CueViewport` (the Index's cue turning in 3D: a ViewportFrame holding

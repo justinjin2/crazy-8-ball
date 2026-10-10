@@ -1,7 +1,8 @@
 --!strict
--- BlockOdds (Progression/BlockOdds): the odds rows the lucky blocks roll (the economy v4 plan,
--- 2026-10-08, section 4; cases retired for lucky blocks 2026-10-04), per-cue odds, seeded
--- rolls, the guarantee, vaulting, sell-back values (ECONOMY 8) and announcements.
+-- BlockOdds (Progression/BlockOdds): the odds rows the lucky blocks roll (economy v5 plan,
+-- 2026-10-09: a climbed block gives exactly its tier's rarity; the Grand Opening and Starter
+-- tables stay), per-cue odds, seeded rolls, the guarantee, vaulting, sell-back values (ECONOMY
+-- 8) and announcements.
 
 local H = require("./harness")
 
@@ -9,57 +10,26 @@ local function load()
 	return H.require("Progression.BlockOdds"), H.require("Progression.Catalog"), H.require("Config")
 end
 
--- The v4 plan's section 4 table, in percent as it prints them (nil = "-").
+-- The rows in percent (nil = "-"). Economy v5 (2026-10-09, plan 3.1): a climbed block of a tier
+-- gives exactly that tier's rarity; the Starter block keeps its approved table (the Grand
+-- Opening's has its own test).
 local ODDS: { [string]: { [string]: number } } = {
-	Standard = {
-		Common = 72.5,
-		Uncommon = 25,
-		Rare = 2.4,
-		Epic = 0.09,
-		Legendary = 0.009,
-		Mythic = 0.0009,
-		Secret = 0.0001,
-	},
-	Uncommon = {
-		Common = 40,
-		Uncommon = 54,
-		Rare = 5.8,
-		Epic = 0.18,
-		Legendary = 0.018,
-		Mythic = 0.0018,
-		Secret = 0.0002,
-	},
-	Rare = {
-		Uncommon = 68,
-		Rare = 31,
-		Epic = 0.9,
-		Legendary = 0.09,
-		Mythic = 0.009,
-		Secret = 0.001,
-	},
-	Epic = { Rare = 77.3, Epic = 21, Legendary = 1.5, Mythic = 0.18, Secret = 0.02 },
-	Legendary = { Epic = 72, Legendary = 25, Mythic = 2.7, Secret = 0.3 },
-	Mythic = { Legendary = 72, Mythic = 25, Secret = 3 },
+	Standard = { Common = 100 },
+	Uncommon = { Uncommon = 100 },
+	Rare = { Rare = 100 },
+	Epic = { Epic = 100 },
+	Legendary = { Legendary = 100 },
+	Mythic = { Mythic = 100 },
 	Starter = { Rare = 90, Epic = 9, Legendary = 0.9, Mythic = 0.09, Secret = 0.01 },
-	Sky = {
-		Common = 45,
-		Uncommon = 45,
-		Rare = 9.5,
-		Epic = 0.45,
-		Legendary = 0.045,
-		Mythic = 0.0045,
-		Secret = 0.0005,
-	},
 }
 local MIN_RARITY = {
 	Standard = "Common",
-	Uncommon = "Common",
-	Rare = "Uncommon",
-	Epic = "Rare",
-	Legendary = "Epic",
-	Mythic = "Legendary",
+	Uncommon = "Uncommon",
+	Rare = "Rare",
+	Epic = "Epic",
+	Legendary = "Legendary",
+	Mythic = "Mythic",
 	Starter = "Rare",
-	Sky = "Common",
 }
 
 -- ECONOMY 8: sell-back per copy.
@@ -331,15 +301,16 @@ return {
 			end
 			H.near(total, 100, 1e-9, case.Id .. " total")
 		end
-		-- In the Legendary row each of the 7 Legendaries is 25/7%, each of the 3 Mythics 0.9%.
+		-- A climbed Legendary block: each of the 7 Legendaries is 100/7%, nothing else.
 		for _, entry in BlockOdds.cueOdds("Legendary") do
-			if entry.rarity == "Legendary" then
-				H.near(entry.percent, 25 / 7, 1e-9, entry.id)
-				H.expect(entry.display == "3.6%", entry.id .. " shows " .. entry.display)
-			elseif entry.rarity == "Mythic" then
-				H.expect(entry.display == "0.9%", entry.id .. " shows " .. entry.display)
-			elseif entry.rarity == "Secret" then
-				H.expect(entry.display == "0.3%", entry.id .. " shows " .. entry.display)
+			H.expect(entry.rarity == "Legendary", entry.id .. " is " .. entry.rarity)
+			H.near(entry.percent, 100 / 7, 1e-9, entry.id)
+			H.expect(entry.display == "14%", entry.id .. " shows " .. entry.display)
+		end
+		-- In the Starter row each of the 3 Mythics is 0.03%.
+		for _, entry in BlockOdds.cueOdds("Starter") do
+			if entry.rarity == "Mythic" then
+				H.expect(entry.display == "0.03%", entry.id .. " shows " .. entry.display)
 			end
 		end
 		-- The rarest share anywhere still reads as more than 0.
@@ -427,20 +398,25 @@ return {
 	["roll uses the rng's top and bottom values and refuses bad input"] = function()
 		local BlockOdds, Catalog = load()
 		-- rng always 1: the first weight (the guarantee's rarity), the first cue of it.
-		local low, lowRarity = BlockOdds.roll("Epic", function(_n: number): number
+		local low, lowRarity = BlockOdds.roll("Starter", function(_n: number): number
 			return 1
 		end)
 		H.expect(lowRarity == "Rare" and low == "HoneycombCue", "lowest roll: " .. low)
 		-- rng always n: the last rarity, its last cue.
-		local high, highRarity = BlockOdds.roll("Rare", function(n: number): number
+		local high, highRarity = BlockOdds.roll("Starter", function(n: number): number
 			return n
 		end)
 		H.expect(highRarity == "Secret" and high == "EclipseCue", "highest roll: " .. high)
-		local secrets = Catalog.droppable("Standard", "Secret")
+		-- A climbed block's row: only its rarity, whatever the rng.
+		local commons = Catalog.droppable("Standard", "Common")
 		local top, topRarity = BlockOdds.roll("Standard", function(n: number): number
 			return n
 		end)
-		H.expect(topRarity == "Secret" and top == secrets[#secrets].Id, "Standard's top: " .. top)
+		H.expect(topRarity == "Common" and top == commons[#commons].Id, "Standard's top: " .. top)
+		local mythic, mythicRarity = BlockOdds.roll("Mythic", function(_n: number): number
+			return 1
+		end)
+		H.expect(mythicRarity == "Mythic" and mythic == "CelestialDragonCue", "Mythic: " .. mythic)
 		H.expect(not pcall(BlockOdds.roll, "Nope", seeded(1)), "unknown row")
 		H.expect(not pcall(BlockOdds.roll, "Standard", function(n: number): number
 			return n + 1
@@ -454,7 +430,7 @@ return {
 			for _, entry in BlockOdds.cueOdds("Standard") do
 				H.expect(entry.id ~= "MidnightCue", "MidnightCue still listed")
 				if entry.rarity == "Common" then
-					H.near(entry.percent, 72.5 / 6, 1e-9, entry.id)
+					H.near(entry.percent, 100 / 6, 1e-9, entry.id)
 				end
 			end
 			local total = 0
@@ -470,10 +446,11 @@ return {
 		end)
 		H.expect(not (Catalog.get("MidnightCue") :: any).Vaulted, "restored")
 		H.expect(BlockOdds.canDrop("Standard", "MidnightCue"), "drops again")
-		-- Vaulting the only Secret leaves a share with no cue: validate says so.
+		-- Vaulting the only Secret leaves a share with no cue: validate says so (the two tables
+		-- that still give one: the Grand Opening's and the Starter's).
 		withVaulted(Catalog, "EclipseCue", function()
 			local problems = BlockOdds.validate()
-			H.expect(#problems >= 4, "validate missed the empty Secret pool")
+			H.expect(#problems == 2, "validate missed the empty Secret pool")
 			H.expect(problems[1]:find("Secret") ~= nil, problems[1] or "")
 		end)
 		H.expect(#BlockOdds.validate() == 0, "valid again once restored")
@@ -509,8 +486,9 @@ return {
 
 	["the top rarity and the Unique rows of the extra tables"] = function()
 		local BlockOdds, Catalog = load()
-		H.expect(BlockOdds.topRarity("Standard") == "Secret", "every row reaches the Secret (v4)")
-		H.expect(BlockOdds.topRarity("Rare") == "Secret", "Rare reaches Secret")
+		H.expect(BlockOdds.topRarity("Standard") == "Common", "a climbed Standard: Common")
+		H.expect(BlockOdds.topRarity("Rare") == "Rare", "a climbed Rare: Rare")
+		H.expect(BlockOdds.topRarity("Starter") == "Secret", "the Starter table reaches the Secret")
 		H.expect(BlockOdds.topRarity("Nope") == nil, "unknown")
 		H.expect(#BlockOdds.uniqueRows("GrandOpening") == 2, "two Unique rows")
 		H.expect(#BlockOdds.uniqueRows("Standard") == 0, "the ladder rows have none")

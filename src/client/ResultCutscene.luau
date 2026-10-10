@@ -22,6 +22,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local HudParts = require(script.Parent.HudParts)
+local Letterbox = require(script.Parent.Letterbox)
 local Seen = require(script.Parent.Seen)
 
 local R = Config.Cutscenes.Result
@@ -126,7 +127,7 @@ function ResultCutscene.play(summary: any, onReady: () -> ()): boolean
 	local gui = Instance.new("ScreenGui")
 	gui.Name = "ResultCutscene"
 	gui.ResetOnSpawn = false
-	gui.IgnoreGuiInset = true
+	Letterbox.screen(gui)
 	gui.DisplayOrder = Config.Cutscenes.DisplayOrder
 	local black = Instance.new("Frame")
 	black.Name = "Black"
@@ -262,7 +263,7 @@ function ResultCutscene.play(summary: any, onReady: () -> ()): boolean
 			TweenService:Create(
 				bar,
 				TweenInfo.new(R.FadeInSeconds, Enum.EasingStyle.Quad),
-				{ Size = UDim2.fromScale(1, R.BarsShare) }
+				{ Size = Letterbox.size(R.BarsShare) }
 			):Play()
 		end
 		task.wait(R.FadeInSeconds)

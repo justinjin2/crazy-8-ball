@@ -6,8 +6,8 @@
 --     (Config.Daily rows, Ranks)), and its words ("$250", "2 Mystery Lucky Blocks", "a Rare
 --     Lucky Block + 2 Ult Spins", "+$500 and a Mystery Lucky Block"); `spins` and `lucky` are
 --     ult spins and Lucky Spins (docs/prompts/ULTIMATES_PROMPT.md section 10);
---   * a reward's pictures as a list (the cash stack, each lucky block, the ult spin and the
---     Lucky Spin with "+2"), for the flyer;
+--   * a reward's pictures as a list (the cash stack, each lucky block, each cue, the ult spin
+--     and the Lucky Spin with "+2"), for the flyer;
 --   * { phone, full } pairs at a layout's t (Config.UI.Menu.Frame's convention) and times.
 -- Every word is from Strings.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -18,17 +18,26 @@ local Strings = require(Shared:WaitForChild("Strings"))
 local Format = require(Shared:WaitForChild("Progression"):WaitForChild("Format"))
 
 local BLOCK_ORDER: { string } = Config.LuckyBlocks.Order
+local KINDS: { [string]: any } = Config.LuckyBlocks.Kinds :: any
+local TIERS: { string } = Config.BlockOdds.Climb.Tiers :: any
 local BLOCK_NAMES: { [string]: string } = Strings.LuckyBlocks.Names :: any
 local W = Strings.Menus.Rewards
 local BLOCK_MANY: { [string]: string } = W.BlockMany :: any
 local BLOCK_A: { [string]: string } = W.BlockA :: any
 
 export type BlockCount = { kind: string, count: number }
-export type Reward = { money: number, blocks: { BlockCount }, spins: number, lucky: number }
+export type Reward = {
+	money: number,
+	blocks: { BlockCount },
+	spins: number,
+	lucky: number,
+	cues: { string }?, -- cue ids (economy v5: the first week's day 7, the Week One Cue)
+}
 
 -- One picture of a reward: an icon key and how many ("x2" shows above 1), or `label` instead
--- (an ult spin's "+1", shown at any count). A lucky block is key "Block" with its `kind`.
-export type Picture = { key: string, count: number, label: string?, kind: string? }
+-- (an ult spin's "+1", shown at any count). A lucky block is key "Block" with its `kind`, a cue
+-- key "Cue" with its `cue` id (drawn by CueThumb).
+export type Picture = { key: string, count: number, label: string?, kind: string?, cue: string? }
 
 -- The left column's tiles that ult spins fly into, the first that shows: the Ults button, else
 -- Free Reward (a column without the Ults button).
@@ -86,6 +95,15 @@ function RewardsParts.reward(value: any): Reward
 	out.money = whole(value.money)
 	out.spins = whole(value.spins)
 	out.lucky = whole(value.lucky)
+	if type(value.cues) == "table" then
+		local cues: { string } = {}
+		for _, id in ipairs(value.cues) do
+			if type(id) == "string" then
+				table.insert(cues, id)
+			end
+		end
+		out.cues = if #cues > 0 then cues else nil
+	end
 	local blocks = value.blocks
 	if type(blocks) ~= "table" then
 		return out
@@ -139,6 +157,15 @@ function RewardsParts.luckyWords(count: number): string
 	return if count == 1 then W.LuckyOne else W.LuckyMany:format(count)
 end
 
+-- A reward's cues by name, one part each ("Week One Cue").
+local function addCueParts(parts: { string }, reward: Reward)
+	local names: { [string]: string } = Strings.Items.Cues :: any
+	local cues: { string } = reward.cues or {}
+	for _, id in cues do
+		table.insert(parts, names[id] or id)
+	end
+end
+
 -- A reward's spins and Lucky Spins as parts of its words, after its money and blocks.
 local function addSpinParts(parts: { string }, reward: Reward)
 	if reward.spins > 0 then
@@ -174,13 +201,37 @@ function RewardsParts.blockInSentence(entry: BlockCount): string
 	return RewardsParts.blockWords(entry)
 end
 
---- The most valuable block in a reward: the latest in Config.LuckyBlocks.Order (an unknown
---- kind counts as the least), or nil when it has none.
+-- The tier a block of `kind` is worth at least (economy v5: every block climbs from its name):
+-- its climb's start (a Mystery block: Standard), else the lowest rarity its own odds give (the
+-- Grand Opening and Starter blocks: Rare); nil for an unknown kind.
+local function floorOf(kind: string): string?
+	local row = KINDS[kind]
+	if row == nil then
+		return nil
+	elseif type(row.Climb) == "string" then
+		return row.Climb
+	end
+	local list: any = (Config.BlockOdds.List :: any)[row.Odds or kind]
+	local odds = if type(list) == "table" then list.Odds else nil
+	if type(odds) == "table" then
+		for _, rarity in Config.BlockOdds.Rarities do
+			if (odds[rarity] or 0) > 0 then
+				return if rarity == "Common" then TIERS[1] else rarity
+			end
+		end
+	end
+	return nil
+end
+
+--- The most valuable block in a reward: the highest floor (floorOf), ties to the latest in
+--- Config.LuckyBlocks.Order (an unknown kind counts as the least), or nil when it has none.
 function RewardsParts.bestBlock(reward: Reward): BlockCount?
 	local best: BlockCount? = nil
 	local bestAt = -1
 	for _, entry in reward.blocks do
-		local at = table.find(BLOCK_ORDER, entry.kind) or 0
+		local floor = floorOf(entry.kind)
+		local tier = if floor then table.find(TIERS, floor) or 0 else 0
+		local at = tier * 100 + (table.find(BLOCK_ORDER, entry.kind) or 0)
 		if at > bestAt then
 			best, bestAt = entry, at
 		end
@@ -207,6 +258,7 @@ function RewardsParts.words(reward: Reward): string
 	for _, entry in reward.blocks do
 		table.insert(parts, RewardsParts.blockWords(entry))
 	end
+	addCueParts(parts, reward)
 	addSpinParts(parts, reward)
 	return joinPlus(parts)
 end
@@ -223,6 +275,11 @@ function RewardsParts.gains(reward: Reward, blocksOnly: boolean?): string
 			then W.OneBlock:format(RewardsParts.blockName(entry.kind))
 			else RewardsParts.blockWords(entry)
 		table.insert(parts, W.Gain:format(words))
+	end
+	local cues: { string } = {}
+	addCueParts(cues, reward)
+	for _, name in cues do
+		table.insert(parts, W.Gain:format(name))
 	end
 	if not blocksOnly then
 		local spins: { string } = {}
@@ -244,6 +301,7 @@ function RewardsParts.summary(reward: Reward): string
 	for _, entry in reward.blocks do
 		table.insert(parts, RewardsParts.blockInSentence(entry))
 	end
+	addCueParts(parts, reward)
 	addSpinParts(parts, reward)
 	if #parts <= 1 then
 		return parts[1] or ""
@@ -256,7 +314,8 @@ function RewardsParts.summary(reward: Reward): string
 end
 
 --- A reward's pictures: the cash stack for money, then each lucky block (key "Block" with its
---- kind), then the ult spin icon ("+2") and the Lucky Spin icon ("+1").
+--- kind), each cue (key "Cue" with its id), then the ult spin icon ("+2") and the Lucky Spin
+--- icon ("+1").
 function RewardsParts.pictures(reward: Reward): { Picture }
 	local list: { Picture } = {}
 	if reward.money > 0 then
@@ -264,6 +323,10 @@ function RewardsParts.pictures(reward: Reward): { Picture }
 	end
 	for _, entry in reward.blocks do
 		table.insert(list, { key = "Block", kind = entry.kind, count = entry.count })
+	end
+	local cues: { string } = reward.cues or {}
+	for _, id in cues do
+		table.insert(list, { key = "Cue", cue = id, count = 1 })
 	end
 	if reward.spins > 0 then
 		table.insert(

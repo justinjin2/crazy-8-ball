@@ -59,20 +59,23 @@ type Profile = ProfileStore.Profile<any>
 --- What a reward gives (rank-ups, the daily streak, playtime gifts, codes, dev commands); every
 --- field is optional. `money` is money given, not earned in play (no daily caps; it counts in
 --- Stats.MoneyEarned). `blocks` is { [kind] = count }: lucky blocks landing in the hotbar,
---- free origin, their timers starting (Config.LuckyBlocks). `cues` are catalog ids given one
---- copy each (never Classic or a Unique cue; an Exclusive cue already owned is skipped: one
---- per player). `spins` and `lucky` add ult spins and Lucky Spins (Ults.Spins,
---- Ults.LuckySpins; capped at Config.Ults.Earn.MaxSpins).
+--- free origin, their timers starting (Config.LuckyBlocks); `ready` lands them ready instead,
+--- still free origin (the tutorial's game-1 block, Ranking: every block has its name's timer
+--- since economy v5.2). `cues` are catalog ids given one copy each (never Classic or a Unique
+--- cue; an Exclusive cue already owned is skipped: one per player). `spins` and `lucky` add ult
+--- spins and Lucky Spins (Ults.Spins, Ults.LuckySpins; capped at Config.Ults.Earn.MaxSpins).
 export type Reward = {
 	money: number?,
 	blocks: { [string]: number }?,
+	ready: boolean?,
 	cues: { string }?,
 	spins: number?,
 	lucky: number?,
 }
 
---- The win's lucky block (PlayerData.winBlock): its kind and when it opens (unix; 0 = now).
-export type WinBlock = { kind: string, readyAt: number }
+--- The win's track step (PlayerData.winBlock): a block, its kind and when it opens (unix; 0 =
+--- now), or a money step's money (economy v5; kind nil, readyAt 0).
+export type WinBlock = { kind: string?, readyAt: number, money: number? }
 
 --- A cue that entered a player's Index for the first time, and the finder's money it paid.
 export type Find = { cue: string, money: number }
@@ -145,7 +148,7 @@ local MONEY_KINDS: { [string]: string } = {
 -- Flags[FIRST_WIN_FLAG] = true once the first win's Rare block was given (Config.BlockOdds
 -- .Drop.FirstWin). Kept apart from Progress.Wins so a first win that an anti-farm rule kept
 -- from dropping a block does not use it up (BlockDrop.DropContext.firstWinEver).
-local FIRST_WIN_FLAG = "FirstWinBlock"
+local FIRST_WIN_FLAG = "FirstWinBlock" -- RewardView.FirstWinFlag
 -- GUI lane (designer 2026-10-03): Flags[INVITER_FLAG] once the inviter's reward was given
 -- (Config.Social.InviterOnce), Flags[FAVORITE_FLAG] once the favorite reward was.
 local INVITER_FLAG = "InviterRewarded" -- RewardView.InviterFlag
@@ -425,7 +428,8 @@ local function vipOf(player: Player): boolean
 end
 
 -- Adds `count` lucky blocks of `kind` to the save, landing now (`paid`: bought, ready at
--- once, paid origin; `vip`: a free one has the VIP timer, none). A purchase is Robux already paid
+-- once, paid origin; `vip`: a free one has the VIP timer, none; `ready`: ready at once, free
+-- origin). A purchase is Robux already paid
 -- and is never cut (the shop refuses the prompt when the hotbar is full, ShopView "Full"); a
 -- free block past Config.LuckyBlocks.MaxBlocks is dropped rather than growing the list
 -- without limit (a count nobody reaches). Free blocks are noted for commit (BlocksGiven).
@@ -435,7 +439,8 @@ local function giveBlocksTo(
 	kind: string,
 	count: number,
 	paid: boolean?,
-	vip: boolean?
+	vip: boolean?,
+	ready: boolean?
 ): number?
 	local now = os.time()
 	local state = data.LuckyBlocks
@@ -445,6 +450,9 @@ local function giveBlocksTo(
 			break
 		end
 		local block = LuckyBlocks.add(state, kind, now, nil, paid, vip)
+		if ready then
+			block.ReadyAt = now
+		end
 		readyAt = if block.ReadyAt <= now then 0 else block.ReadyAt
 		if not paid then
 			local list = pendingBlocks[data]
@@ -478,7 +486,7 @@ end
 -- finder's money). An Exclusive cue (a rank, the VIP or the Starter Cue) is one per player: it
 -- never sells, so a second copy would be worth nothing, and one already owned is not given
 -- again. Returns whether it was given.
-local function giveCue(data: any, id: string): boolean
+local function giveCue(data: any, id: string, paid: boolean?): boolean
 	local cue = Catalog.get(id)
 	if cue == nil then
 		return false
@@ -487,7 +495,7 @@ local function giveCue(data: any, id: string): boolean
 	if (cue.Group == "Exclusive" and have > 0) or have >= S.ItemCountCap then
 		return false
 	end
-	local given, first = Inventory.addCue(data, id, 1)
+	local given, first = Inventory.addCue(data, id, 1, paid == true)
 	if first then
 		payFind(data, id)
 	end
@@ -546,6 +554,7 @@ end
 local REWARD_FIELDS: { [any]: boolean } = {
 	money = true,
 	blocks = true,
+	ready = true,
 	cues = true,
 	spins = true,
 	lucky = true,
@@ -588,6 +597,9 @@ local function badReward(reward: any): string?
 			return ("reward has an unknown field %s"):format(tostring(key))
 		end
 	end
+	if reward.ready ~= nil and type(reward.ready) ~= "boolean" then
+		return "ready is not a boolean"
+	end
 	if reward.money ~= nil and not intIn(reward.money, 0, S.GrantCap) then
 		return ("money %s is not a whole number in 0..%d"):format(
 			tostring(reward.money),
@@ -602,8 +614,9 @@ end
 
 -- Applies a checked reward (also a Daily.Reward: { money, blocks, spins, lucky }): money
 -- (earned; `reason` names it for the analytics), lucky blocks in Config.LuckyBlocks.Order
--- (free origin, their timers starting), cues in the order given, ult spins. `paid`: bought
--- with Robux (Claim All): the money is not earned and the blocks are paid origin, ready.
+-- (free origin, their timers starting; `ready`: ready at once), cues in the order given, ult
+-- spins. `paid`: bought with Robux (Claim All): the money is not earned and the blocks are
+-- paid origin, ready.
 local function giveReward(data: any, reward: any, reason: string, paid: boolean?)
 	local money = reward.money or 0
 	if money > 0 then
@@ -614,14 +627,21 @@ local function giveReward(data: any, reward: any, reason: string, paid: boolean?
 		for _, kind in Config.LuckyBlocks.Order do
 			local count = blocks[kind]
 			if count ~= nil and count > 0 then
-				giveBlocksTo(data, kind, count, paid == true, vipOfSave[data] == true)
+				giveBlocksTo(
+					data,
+					kind,
+					count,
+					paid == true,
+					vipOfSave[data] == true,
+					reward.ready == true
+				)
 			end
 		end
 	end
 	local cues = reward.cues
 	if cues ~= nil then
 		for _, id in cues do
-			giveCue(data, id)
+			giveCue(data, id, paid == true)
 		end
 	end
 	addSpinsTo(data, reward.spins, reward.lucky)
@@ -1418,13 +1438,14 @@ function PlayerData.grantReward(player: Player, reward: Reward, reason: string):
 	return true
 end
 
---- The win's lucky block (economy v4 plan section 5; BlockDrop.dropFor said this win moves
---- the day's win track): the next track step's block (Config.BlockOdds.Drop.WinTrack) landing
---- in the hotbar on its timer, free origin, and the step counted (Daily.Track), in one change.
---- `firstWin` asks for the first win's block (Config.BlockOdds.Drop.FirstWin: a Rare block)
---- and marks it given; once given before, the win gives the step's block as usual. Returns
---- { kind, readyAt } (readyAt unix, 0 = ready now), or nil when the save is not loaded, the
---- day's track is done or the hotbar is full (the step is then not used up).
+--- The win's track step (economy v5 plan section 4; BlockDrop.dropFor said this win moves the
+--- day's win track): the next step's block (Config.BlockOdds.Drop.WinTrack) landing in the
+--- hotbar unclimbed, free origin, or a money step's Drop.WinTrackMoney (earned, never boosted),
+--- and the step counted (Daily.Track), in one change. `firstWin` asks for the first win's
+--- block (Config.BlockOdds.Drop.FirstWin: a Rare block) and marks it given; once given before,
+--- the win gives the step as usual. Returns { kind, readyAt } for a block (readyAt unix, 0 =
+--- ready now) or { money, readyAt = 0 } for a money step, or nil when the save is not loaded,
+--- the day's track is done or the hotbar is full (the step is then not used up).
 function PlayerData.winBlock(player: Player, firstWin: boolean?): WinBlock?
 	local op = "winBlock"
 	if not isPlayer(player) then
@@ -1440,6 +1461,12 @@ function PlayerData.winBlock(player: Player, firstWin: boolean?): WinBlock?
 	local kind = BlockDrop.winKind(data.Daily.Track, due)
 	if kind == nil then
 		return nil
+	elseif kind == BlockDrop.Money then
+		local money = BlockDrop.trackMoney()
+		addMoneyTo(data, money, true, "WinTrack")
+		data.Daily.Track = math.min(data.Daily.Track + 1, S.StatCap)
+		commit(player, data, op)
+		return { money = money, readyAt = 0 }
 	end
 	local readyAt = giveBlocksTo(data, kind, 1, false, vipOfSave[data] == true)
 	if readyAt == nil then
@@ -1993,14 +2020,19 @@ function PlayerData.prepareLuckySkip(player: Player, id: number): (boolean, bool
 end
 
 -- The open of one block as the server rolled it (PlayerData.planLuckyOpen): the odds row the
--- cue came from (a Roll kind's tier's row), the tier (Roll kinds only), the cue, whether it
--- is a Unique cue (the caller takes its copy number first) and whether a Guarantee forced it.
+-- cue came from (the climb's final tier's row, the Secret's the Mythic row as BlockDrop.pool;
+-- a climbed block's tier's row; a never-climbing kind's own), the tier (the climb's final tier,
+-- or a climbed block's), the cue, whether it is a Unique cue (the caller takes its copy number
+-- first) and whether a Guarantee forced it. A climb rolled at this open (economy v5.2) also
+-- carries its `start` (the kind's Climb) and whether the Grand Opening Luck ran (`luck`).
 export type OpenPlan = {
 	oddsId: string,
 	tier: string?,
 	cueId: string,
 	unique: boolean,
 	forced: boolean,
+	start: string?,
+	luck: boolean?,
 }
 
 -- planLuckyOpen's "Invalid": logged, and no plan.
@@ -2009,26 +2041,27 @@ local function planRefused(op: string, player: any, why: string): (nil, string)
 	return nil, "Invalid"
 end
 
--- The odds row a Roll kind's tier opens (Config.LuckyBlocks.Kinds[tier].Odds).
-local function oddsOfTier(tier: any): string?
-	local row = LuckyBlocks.kind(tier)
-	return if row ~= nil then row.Odds else nil
-end
-
---- Plans the open of the ready block `id` without changing the save: the odds row (a Roll
---- kind, the Mystery block, rolls its tier first by Config.BlockOdds.Drop.Weights, with this
---- player's pity), then the cue (`rng(n)` gives 1..n): a Guarantee due is forced (the Grand
---- Opening block's Beta Cue, while any are left), and the row's Unique rows this player owns
---- or whose copies are all found (`found(cueId)`: copies handed out, nil unknown; the row's
---- Caps) roll as its lowest rarity instead (BlockOdds.closedFor, economy v4). A Unique cue
---- this player owns that still comes up is rolled again (Config.LuckyBlocks.UniqueRerolls
---- times, then the row's top rarity's first cue).
---- Answers (plan) or (nil, reason): "NotOwned", "NotReady", "NotLoaded", "Invalid".
+--- Plans the open of the ready block `id` without changing the save (`rng(n)` gives 1..n). An
+--- unclimbed block climbs now (economy v5.2, designer 2026-10-09: only the Mystery keeps an
+--- upgrade screen; the same odds): its final tier from its kind's start (BlockDrop.climbFor,
+--- with the Grand Opening Luck while it runs; `stay` and `scriptTier` are the tutorial's hooks,
+--- its stay and forced), then one cue of that tier's pool (BlockDrop.pool), every cue equally likely. Any
+--- other block rolls its odds row (a climbed block's tier's row: exactly that rarity; a
+--- never-climbing kind's own): a Guarantee due is forced (the Grand Opening block's Beta Cue,
+--- while any are left), and the row's Unique rows this player owns or whose copies are all
+--- found (`found(cueId)`: copies handed out, nil unknown; the row's Caps) roll as its lowest
+--- rarity instead (BlockOdds.closedFor, economy v4). A Unique cue this player owns that still
+--- comes up is rolled again (Config.LuckyBlocks.UniqueRerolls times, then the row's top
+--- rarity's first cue). A Mystery rolls on its upgrade screen first (PlayerData.climbBlock),
+--- never opens as it is. Answers (plan) or (nil, reason): "NotOwned", "NotReady", "Climb",
+--- "NotLoaded", "Invalid".
 function PlayerData.planLuckyOpen(
 	player: Player,
 	id: number,
 	rng: (number) -> number,
-	found: ((string) -> number?)?
+	found: ((string) -> number?)?,
+	stay: boolean?,
+	scriptTier: string?
 ): (OpenPlan?, string?)
 	local op = "planLuckyOpen"
 	if not isPlayer(player) then
@@ -2041,19 +2074,50 @@ function PlayerData.planLuckyOpen(
 		return nil, "NotLoaded"
 	end
 	local block = LuckyBlocks.find(data.LuckyBlocks, id)
+	local now = os.time()
 	if block == nil then
 		return nil, "NotOwned"
-	elseif not LuckyBlocks.canOpen(block, os.time(), player.UserId) then
+	elseif not LuckyBlocks.canOpen(block, now, player.UserId) then
 		return nil, "NotReady"
+	elseif LuckyBlocks.needsRoll(block) then
+		return nil, "Climb"
 	end
 	local kind = LuckyBlocks.kind(block.Kind) :: LuckyBlocks.Kind
-	local tier: string? = nil
-	local oddsId = kind.Odds
-	if kind.Roll then
-		-- Every Mystery block uses pity, bought ones too (economy v4).
-		tier = BlockDrop.roll(BlockDrop.readPity(data.Drops), rng, nil)
-		oddsId = oddsOfTier(tier)
+	if LuckyBlocks.unclimbed(block) then
+		local start = kind.Climb :: string
+		local toTier = if type(scriptTier) == "string" then scriptTier else nil
+		local final, luck, scripted = BlockDrop.climbFor(start, rng, {
+			luck = BlockDrop.luckLive(now),
+			stay = stay,
+			forced = toTier,
+		})
+		if toTier ~= nil and not scripted then
+			warn(
+				("[8ball] PlayerData.planLuckyOpen: the scripted tier %s can't end a climb from %s; rolled instead"):format(
+					toTier,
+					start
+				)
+			)
+		end
+		local pool = BlockDrop.pool(final)
+		if pool[1] == nil then
+			return planRefused(op, player, ("no %s cue to give"):format(final))
+		end
+		return {
+			oddsId = if BlockDrop.isBlockTier(final)
+				then final
+				else Config.BlockOdds.Order[#Config.BlockOdds.Order],
+			tier = final,
+			cueId = pool[rng(#pool)].Id,
+			unique = false,
+			forced = false,
+			start = start,
+			luck = luck,
+		},
+			nil
 	end
+	local tier: string? = if block.Climbed then block.Kind else nil
+	local oddsId = kind.Odds
 	if oddsId == nil or BlockOdds.get(oddsId) == nil then
 		return planRefused(op, player, ("%s has no odds row to open"):format(block.Kind))
 	end
@@ -2096,22 +2160,24 @@ function PlayerData.planLuckyOpen(
 		nil
 end
 
---- The upgrade screen (designer, 2026-10-07): the ready Mystery block `id` rolls its tier
---- (Config.BlockOdds.Drop.Weights, with pity for every Mystery block, counted), and the path its
---- presses show (BlockDrop.path), and becomes that tier's block in one change: same id, same
---- place, its origin kept, on the tier's timer (none for a paid block or a VIP). Answers (true,
---- { tiers, kind, readyAt, pity }) or (false, reason): "NotOwned", "NotReady", "NotLoaded",
---- "NotMystery", "Invalid". `pity` is BlockDrop.pityLeft as it stood before this block (this one
---- counted in it, so it never gives the result away), for the upgrade screen's counters.
---- `forced` (the tutorial's Mystery step): the presses' tiers instead of a roll (a path
---- BlockDrop.validPath accepts; its last tier is the block's, still counted for pity), and
---- `ready`: the revealed block opens at once.
-function PlayerData.revealMystery(
+--- The Mystery's upgrade screen (economy v5.1, designer 2026-10-09; since v5.2 the only
+--- screen: every other block climbs as it opens, PlayerData.planLuckyOpen): the Mystery block
+--- `id` rolls which block it turns into (BlockDrop.turnFor, with pity, counted) and the path its
+--- presses show (BlockDrop.path), in one change. It becomes an unclimbed block of that tier
+--- (same id, same place, its origin kept, LuckyBlocks.turn) on that tier's timer (none for a
+--- paid block or a VIP) and answers `turned` with `pity` (BlockDrop.pityLeft as it stood before
+--- this Mystery, for the screen's counters). Answers (true, { tiers, kind, readyAt, turned,
+--- pity, from, luck }) or (false, reason): "NotOwned", "NotReady", "NotMystery" (not a Mystery
+--- block), "NotLoaded", "Invalid". `stay` (the tutorial's game-1 block): a Standard block, no
+--- pity counted. `forced` (the tutorial's scripted first block): the block it turns into, pity
+--- still counted, ready at once; a tier it can't turn into is ignored (a normal roll, warned).
+function PlayerData.climbBlock(
 	player: Player,
 	id: number,
-	forced: { tiers: { string }, ready: boolean? }?
+	stay: boolean?,
+	forced: string?
 ): (boolean, any)
-	local op = "revealMystery"
+	local op = "climbBlock"
 	if not isPlayer(player) then
 		return refuseInvalid(op, player, "not a player")
 	elseif not intIn(id, 1, S.StatCap) then
@@ -2126,38 +2192,61 @@ function PlayerData.revealMystery(
 		return false, "NotOwned"
 	end
 	local kind = LuckyBlocks.kind(block.Kind) :: LuckyBlocks.Kind
-	if not kind.Roll then
+	if not LuckyBlocks.needsRoll(block) or kind.Climb == nil then
 		return false, "NotMystery"
 	elseif not LuckyBlocks.canOpen(block, os.time(), player.UserId) then
 		return false, "NotReady"
 	end
-	-- Every Mystery block counts and gets pity, bought ones too (economy v4, 2026-10-08:
-	-- ECONOMY 7.1; a paid block rolled the plain odds before).
-	local path = if forced and BlockDrop.validPath(forced.tiers) then forced.tiers else nil
-	local before = BlockDrop.pityLeft(BlockDrop.readPity(data.Drops))
-	local tier, pity =
-		BlockDrop.roll(BlockDrop.readPity(data.Drops), dropRoll, if path then path[#path] else nil)
-	data.Drops.SinceRare = math.min(pity.SinceRare, S.StatCap)
-	data.Drops.SinceEpic = math.min(pity.SinceEpic, S.StatCap)
-	data.Drops.Total = math.min(pity.Total, S.StatCap)
-	local tiers = if path then table.clone(path) else BlockDrop.path(tier, dropRoll)
 	local now = os.time()
-	local revealed =
-		LuckyBlocks.reveal(data.LuckyBlocks, id, tier, now, vipOfSave[data] == true) :: LuckyBlocks.Block
-	if path and forced and forced.ready then
-		revealed.ReadyAt = now
+	local from = block.Kind
+	local start = kind.Climb :: string
+	if forced ~= nil and type(forced) ~= "string" then
+		forced = nil
+	end
+	-- Every Mystery counts and gets pity, bought ones too (plan 3.6); the counters it can't
+	-- settle yet ride on the block (Pity) until it opens.
+	local pity = BlockDrop.readPity(data.Drops)
+	local tier, after, waits, scripted = BlockDrop.turnFor(pity, dropRoll, {
+		stay = stay,
+		forced = forced,
+	})
+	if forced ~= nil and not scripted then
+		warn(
+			("[8ball] PlayerData.climbBlock: a Mystery can't turn into the scripted tier %s; rolled instead"):format(
+				tostring(forced)
+			)
+		)
+	end
+	data.Drops.SinceRare = math.min(after.SinceRare, S.StatCap)
+	data.Drops.SinceEpic = math.min(after.SinceEpic, S.StatCap)
+	data.Drops.Total = math.min(after.Total, S.StatCap)
+	local turned =
+		LuckyBlocks.turn(data.LuckyBlocks, id, tier, now, waits, vipOfSave[data] == true) :: LuckyBlocks.Block
+	if scripted then
+		turned.ReadyAt = now -- the tutorial's block: ready at once
 	end
 	commit(player, data, op)
-	return true, { tiers = tiers, kind = revealed.Kind, readyAt = revealed.ReadyAt, pity = before }
+	return true,
+		{
+			tiers = BlockDrop.path(tier, dropRoll, start),
+			kind = turned.Kind,
+			turned = true,
+			readyAt = turned.ReadyAt,
+			pity = BlockDrop.pityLeft(pity),
+			from = from,
+			luck = false,
+		}
 end
 
 --- Opens the ready block `id` as `plan` says (PlayerData.planLuckyOpen; `copy`: the Unique
 --- cue's copy number, taken by the caller) in one change: the block goes, the open is counted
---- (the Guarantee), a free Mystery block's tier counts for pity, the cue is added (the block's
---- origin) and a cue new to the Index pays the finder's money. Answers (true, Opened, place)
---- where place was the block's place in the list, or (false, reason): "NotOwned",
---- "NotReady", "NotLoaded", "Invalid" (logged: a cue that odds row cannot drop, a Unique cue
---- without a copy number or already owned).
+--- (the Guarantee), a block a Mystery turned into settles the pity counters it carries on the
+--- climb's final tier (BlockDrop.countClimb), the cue is added (the block's origin) and a cue
+--- new to the Index pays the finder's money. A Mystery is refused ("Climb"): it rolls on its
+--- upgrade screen first. Answers (true, Opened, place) where place was the block's place in the
+--- list, or (false, reason): "NotOwned", "NotReady", "NotLoaded", "Invalid" (logged: a climb
+--- the block can't make, a cue that odds row or tier cannot drop, a Unique cue without a copy
+--- number or already owned).
 function PlayerData.openLuckyBlock(
 	player: Player,
 	id: number,
@@ -2185,18 +2274,41 @@ function PlayerData.openLuckyBlock(
 		return false, "NotOwned"
 	elseif not LuckyBlocks.canOpen(block, os.time(), player.UserId) then
 		return false, "NotReady"
+	elseif LuckyBlocks.needsRoll(block) then
+		return false, "Climb"
 	end
 	local kind = LuckyBlocks.kind(block.Kind) :: LuckyBlocks.Kind
 	local cueId, oddsId = plan.cueId, plan.oddsId
 	local cue = Catalog.get(cueId)
-	if kind.Roll then
-		if oddsOfTier(plan.tier) ~= oddsId then
-			return refuseInvalid(op, player, ("%s is not a tier's odds row"):format(oddsId))
-		end
-	elseif oddsId ~= kind.Odds then
-		return refuseInvalid(op, player, ("%s is not %s's odds row"):format(oddsId, block.Kind))
+	if cue == nil then
+		return refuseInvalid(op, player, ("%s is not a cue"):format(tostring(cueId)))
 	end
-	if cue == nil or not BlockOdds.canDrop(oddsId, cueId) then
+	local climb = LuckyBlocks.unclimbed(block)
+	if climb then
+		-- A climb rolled at this open: from the kind's start to a tier at or above it, the cue
+		-- one of that tier's pool.
+		local final = plan.tier
+		if
+			plan.start ~= kind.Climb
+			or type(final) ~= "string"
+			or BlockDrop.rank(final) < BlockDrop.rank(kind.Climb)
+		then
+			return refuseInvalid(op, player, ("not a climb %s can make"):format(block.Kind))
+		end
+		local inPool = false
+		for _, other in BlockDrop.pool(final) do
+			inPool = inPool or other.Id == cueId
+		end
+		if not inPool then
+			return refuseInvalid(
+				op,
+				player,
+				("%s does not drop from a %s climb"):format(tostring(cueId), final)
+			)
+		end
+	elseif plan.start ~= nil or oddsId ~= kind.Odds then
+		return refuseInvalid(op, player, ("%s is not %s's odds row"):format(oddsId, block.Kind))
+	elseif not BlockOdds.canDrop(oddsId, cueId) then
 		return refuseInvalid(
 			op,
 			player,
@@ -2218,15 +2330,15 @@ function PlayerData.openLuckyBlock(
 		)
 	end
 	local new = data.Index.Seen[cueId] ~= true and not Inventory.owns(data, cueId)
+	-- A block a Mystery turned into settles the pity counters it carries on its final tier.
+	if climb and block.Pity ~= nil then
+		local after =
+			BlockDrop.countClimb(BlockDrop.readPity(data.Drops), block.Pity, plan.tier :: string)
+		data.Drops.SinceRare = math.min(after.SinceRare, S.StatCap)
+		data.Drops.SinceEpic = math.min(after.SinceEpic, S.StatCap)
+	end
 	local _, place = LuckyBlocks.remove(data.LuckyBlocks, id)
 	LuckyBlocks.noteOpened(data.LuckyBlocks, block.Kind)
-	-- A Mystery block's tier counts for pity, bought ones too (Config.BlockOdds.Drop pity).
-	if kind.Roll and plan.tier ~= nil then
-		local _, pity = BlockDrop.roll(BlockDrop.readPity(data.Drops), dropRoll, plan.tier)
-		data.Drops.SinceRare = math.min(pity.SinceRare, S.StatCap)
-		data.Drops.SinceEpic = math.min(pity.SinceEpic, S.StatCap)
-		data.Drops.Total = math.min(pity.Total, S.StatCap)
-	end
 	local first: boolean
 	if unique then
 		local _, isFirst = Inventory.addUnique(data, cueId, copy :: number, block.Paid == true)
@@ -3209,8 +3321,8 @@ local function badGrant(grant: any, copy: any): string?
 			return ("grant.%s is not true or false"):format(flag)
 		end
 	end
-	if grant.skipTier ~= nil and not intIn(grant.skipTier, 1, #Config.LuckyBlocks.Skips) then
-		return "grant.skipTier is not a skip tier"
+	if grant.luckySkip == true and LuckyBlocks.skipTierOf(grant.key) == nil then
+		return "grant.luckySkip names no skip product"
 	end
 	local rowDays = math.max(#Config.Daily.FirstWeek, #Config.Daily.Streak)
 	if grant.claimAll ~= nil and not intIn(grant.claimAll, 1, rowDays) then
@@ -3333,7 +3445,7 @@ function PlayerData.applyPurchase(
 		giveBlocksTo(data, restock.block, 1, true, vipOf(player))
 	end
 	if grant.luckySkip then
-		LuckyBlocks.grantSkip(data.LuckyBlocks, os.time(), grant.skipTier)
+		LuckyBlocks.grantSkip(data.LuckyBlocks, os.time(), grant.key)
 	end
 	-- Claim All: the rest of this login row (Daily.claimAll), worked out here so the claim and
 	-- the purchase are one change. Nothing left (the row moved on since the prompt) pays the

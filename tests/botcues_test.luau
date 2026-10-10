@@ -96,11 +96,13 @@ return {
 		local BotCues, Catalog = load()
 		local BlockDrop = H.require("Progression.BlockDrop")
 		local shares = BotCues.shares("Bronze")
-		local weight = BlockDrop.rarityPercent("Common")
-			+ BlockDrop.rarityPercent("Uncommon")
-			+ BlockDrop.rarityPercent("Rare")
-		H.near(shares[1].share, 0.75 * BlockDrop.rarityPercent("Common") / weight, 1e-12, "Common")
-		H.near(shares[3].share, 0.75 * BlockDrop.rarityPercent("Rare") / weight, 1e-12, "Rare")
+		local mystery = { mystery = true }
+		local function percent(rarity: string): number
+			return BlockDrop.rarityPercent(rarity, mystery)
+		end
+		local weight = percent("Common") + percent("Uncommon") + percent("Rare")
+		H.near(shares[1].share, 0.75 * percent("Common") / weight, 1e-12, "Common")
+		H.near(shares[3].share, 0.75 * percent("Rare") / weight, 1e-12, "Rare")
 		-- Evenly spaced rolls through the Common band give each Common cue the same count.
 		local commons = 0
 		for _, cue in Catalog.ofRarity("Common") do

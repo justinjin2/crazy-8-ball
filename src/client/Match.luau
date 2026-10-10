@@ -129,6 +129,10 @@ export type Match = typeof(setmetatable(
 		-- The shot being replayed picks the colors: the groups it produces, and the ball
 		-- whose drop reveals them. Cleared once the server's snapshot carries the groups.
 		assign: { groups: { [number]: string }, ball: number, index: number }?,
+		-- The ball streak's steps of the shot being replayed (the server's shot.streaks,
+		-- Rules/Streak): each counted ball's drop event index and level, and the streak after
+		-- the shot (0: it ended). Nil until the shot's verdict is in (Time Stop: at the resume).
+		streaks: { seq: number, steps: { any }, after: number }?,
 		-- Where the local shooter is holding the cue ball in hand. Snapshots and echoes of
 		-- older spots keep arriving while they drag; this is re-applied over them so the
 		-- ball never snaps back. It lasts for this turn's Intro and Placement only (and Look
@@ -173,6 +177,7 @@ function Match.new(
 		sunk = {},
 		downVersion = 0,
 		assign = nil,
+		streaks = nil,
 		cueHold = nil,
 		timeScale = 1,
 		holdAt = nil,
@@ -334,6 +339,18 @@ function Match.applyBalls(self: Match, packed: { number })
 	resync(self)
 end
 
+-- A shot message's ball streak (shot.streaks and shot.streakAfter), or nil before its verdict.
+local function streaksOf(msg: any): { seq: number, steps: { any }, after: number }?
+	if type(msg.streakAfter) ~= "number" then
+		return nil
+	end
+	return {
+		seq = msg.seq,
+		steps = if type(msg.streaks) == "table" then msg.streaks else {},
+		after = msg.streakAfter,
+	}
+end
+
 function Match.receive(self: Match, msg: any)
 	-- The same shot again with more of it (Time Stop: the second strike, the resume, and the
 	-- final positions once it is judged).
@@ -344,6 +361,7 @@ function Match.receive(self: Match, msg: any)
 			self.pendingChecksum = msg.checksum
 			self.shot.eightWins = msg.eightWins == true
 			self.assign = msg.assign
+			self.streaks = streaksOf(msg)
 			self.downVersion += 1
 		end
 		return
@@ -371,6 +389,7 @@ function Match.receive(self: Match, msg: any)
 	end
 	if self.seq == msg.seq then
 		self.assign = msg.assign
+		self.streaks = streaksOf(msg)
 		self.downVersion += 1
 	end
 end
@@ -404,6 +423,7 @@ function Match.snapshot(self: Match, snapshot: any)
 		self.pendingChecksum = nil
 		self.pendingRack = nil
 		self.assign = nil
+		self.streaks = nil
 	end
 	self.rackSeed, self.rackConfirmed = snapshot.rackSeed, true
 	if snapshot.shot then

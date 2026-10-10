@@ -56,6 +56,7 @@ local LookOverThereFx = require(script.Parent.LookOverThereFx)
 local UltScreen = require(script.Parent.UltScreen)
 local UI = require(script.Parent.UI)
 local MatchHUD = require(script.Parent.MatchHUD)
+local StreakHud = require(script.Parent.StreakHud)
 local MatchTargets = require(script.Parent.MatchTargets)
 local PadEffects = require(script.Parent.PadEffects)
 local MatchBar = require(script.Parent.MatchBar)
@@ -174,6 +175,8 @@ local aimShot: AbilityFx.AimShot? = nil
 local controlled = false
 local lastTurnKey = ""
 local lastPhaseKey = ""
+local lastShooterKey = "" -- the table, game and shooter of the last turn
+local newShooter = false -- this turn's shooter differs from the last turn's (YOUR TURN's sound)
 local sinceAim = 0
 local lastAim: number? = nil
 local lastElevation: number? = nil
@@ -618,6 +621,9 @@ local function action(kind: string, value: any?)
 	end
 end
 hud = MatchHUD.new(screen, action)
+-- The ball streak in the match popups' row (Rules/Streak decides it; each step plays as the
+-- replay drops its ball, from the per-table hook below).
+local streakHud = StreakHud.new(screen, hub, hud)
 padGuide:attachLeave(hud.leave) -- the Circle beside Leave
 matchBar = MatchBar.new(screen, action)
 -- Ranks and money: the HUDs, nameplates, flying cash, result screen, NEW RANK! and roadmap.
@@ -866,7 +872,7 @@ local function acquireTable(s: any?)
 		clearHighlights()
 		ballPulse:clear()
 		match, placement = nil, nil
-		lastTurnKey, lastPhaseKey = "", ""
+		lastTurnKey, lastPhaseKey, lastShooterKey = "", "", ""
 		if oldId and audioByTable[oldId] then
 			audioByTable[oldId]:resetStreak()
 		end
@@ -880,11 +886,14 @@ local function acquireTable(s: any?)
 		end
 		guideline = Guideline.new(visuals, placement)
 		Camera.setTable(placement)
-		lastTurnKey, lastPhaseKey = "", ""
+		lastTurnKey, lastPhaseKey, lastShooterKey = "", "", ""
 	end
 	local turnKey = ("%d:%d:%d"):format(s.id, s.epoch, s.turnId)
 	if turnKey ~= lastTurnKey then
 		lastTurnKey = turnKey
+		local shooterKey = ("%d:%d:%s"):format(s.id, s.epoch, tostring(s.shooter))
+		newShooter = shooterKey ~= lastShooterKey
+		lastShooterKey = shooterKey
 		awaitingAt = nil
 		input:resetSpin()
 		input:resetElevation()
@@ -912,7 +921,8 @@ local function acquireTable(s: any?)
 	local key = turnKey .. ":" .. s.phase
 	if key ~= lastPhaseKey then
 		lastPhaseKey = key
-		if s.phase == "Intro" and shooter() then
+		if s.phase == "Intro" and shooter() and newShooter then
+			-- Only when the table comes to you, as the turn popup (MatchHUD), not after each pot.
 			sound("YourTurn", M.YourTurnSound)
 		elseif s.phase == "Foul" and s.foul and s.foul.by == player.UserId then
 			sound("Foul", M.FoulSound, M.FoulSoundVolume)
@@ -1016,6 +1026,7 @@ for id = 1, Placement.tableCount() do
 	effectsByTable[id] = e
 	m:onEvent(function(ev, index)
 		if ev.type == "pocket" then
+			streakHud:onPocket(id, m, ev, index)
 			-- The gust rises from the pocket's own centre; the ball's spot is the fallback.
 			local at: Vector3? = nil
 			for _, p in m.state.geometry.pockets do
@@ -1706,6 +1717,15 @@ require(script.Parent.GuiQA).add("aim", function(angle: number?, pull: number?)
 		currentPull = pull
 	end
 	refreshAim()
+	return input.angle
+end)
+-- "turn" turns the aim `degrees` in `steps` small turns, as a drag does (the aim tick's path).
+require(script.Parent.GuiQA).add("turn", function(degrees: number?, steps: number?)
+	local n = steps or 10
+	for _ = 1, n do
+		input:rotate((degrees or 2) / n)
+		task.wait(0.05)
+	end
 	return input.angle
 end)
 require(script.Parent.GuiQA).add("camera", function(cf: CFrame?)

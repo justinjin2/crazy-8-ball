@@ -70,9 +70,11 @@ local REMOTES: { [string]: string } = {
 	--   division the new peak passed, bottom first), rewardTotal, rewardBlocks = {[kind] =
 	--   count}, rewardCues = {cueId}, breakdown = {base, mode, fade, gap, pc, farm, boosts =
 	--   {{kind = "Streak", share}}, boostTotal}},
-	-- money = {balls, ballMoney, nice, niceMoney (the pots, paid live), bonus (win or loss),
-	--   streak (the win-streak bonus), reward (rank-up money), boost (the money boost share
-	--   applied at the end: VIP + Money Party, 0..2), total (all of them added)},
+	-- money = {balls, ballMoney, nice, niceMoney, ballStreakMoney and bestStreak (the ball
+	--   streak's bonus and the best level it paid at; the pots, paid live), bonus (win or loss),
+	--   track? (the win track's money step, economy v5), streak (the win-streak bonus), reward
+	--   (rank-up money), boost (the money boost share applied at the end: VIP + Money Party,
+	--   0..2), total (all of them added)},
 	-- block? = { kind, readyAt } (the win's lucky block, already in the hotbar: a Mystery
 	-- block, the first win's Rare one; readyAt in unix seconds, 0 = ready now),
 	-- rematch, arena, series? = {wins = {team 1, team 2}, games}}.
@@ -112,10 +114,11 @@ local REMOTES: { [string]: string } = {
 	--   "ClaimIndexRow" (rarity) -> { rarity, money }
 	--   "BuyLimited" (cueId: a money-priced Limited shelf row) -> { cueId, copy, price }
 	--   "BuyBlocks" (dealId: a Config.Shop.Deals key, count: a count it sells) -> { dealId,
-	--     kind, count, price } (the lucky blocks land ready at once, paid origin; "BuyMystery"
-	--     (count) is the old name for the Mystery deal)
-	--   "BuyRestock" (itemId "Slot1" .. "Slot3" | "Vip" of the restock now) -> { itemId,
-	--     price } (its lucky block lands ready at once)
+	--     kind, count, price } (the lucky blocks land paid origin: a climbing kind unclimbed,
+	--     its climbed block then opens at once; "BuyMystery" (count) is the old name for the
+	--     Mystery deal)
+	--   "BuyRestock" (itemId "Slot1" .. "Slot<Config.Shop.Restock.Slots>" | "Vip" of the restock
+	--     now) -> { itemId, price } (its lucky block lands unclimbed, paid origin)
 	-- Reasons (Progression/Requests.Reasons): "BadRequest" (unknown action, wrong type,
 	-- unknown id, count not allowed), "TooFast" (Config.Items.RateBurst / RatePerSecond),
 	-- "Busy" (another request still being answered), "NotLoaded" (the save, or for a block
@@ -183,7 +186,7 @@ local REMOTES: { [string]: string } = {
 	--     (GUI lane, 2026-10-03: the release sale's products Pack4Sale-Pack7Sale, VipSale,
 	--     Mystery10Sale sell only while open; the Legendary restock has no shared stock now) }
 	-- Product keys (Config.Products): passes Vip, UltSlot2, UltSlot3; products VipOffer,
-	-- StarterPack, Pack1-7, Mystery1, Mystery10, GrandOpening1/3/10, RestockRare, RestockEpic,
+	-- StarterPack, Pack1-7, Mystery1, Mystery5, GrandOpening1/3/10, RestockRare, RestockEpic,
 	-- RestockLegendary, LuckyBlockSkip, MoneyParty, Spin1/5/10/50, Lucky1/3. Paid random
 	-- items (blocks, Restock, the block skip, spins)
 	-- answer "Restricted" where PolicyService restricts them; blocks answer "Full" when the
@@ -255,9 +258,10 @@ local REMOTES: { [string]: string } = {
 	-- code, or a like code not switched on), "Used" (this code already redeemed), "Expired",
 	-- "NotMember" (not in the group yet), "Error".
 	RewardRequest = "RemoteFunction",
-	-- Trading (src/server/Trading.luau; the rules are Progression/Trade). An item is a cue id or
-	-- "Block:<kind>" (a READY lucky block); a side is a list of up to Config.Trade.MaxSideItems
-	-- (one entry a copy).
+	-- Trading (src/server/Trading.luau; the rules are Progression/Trade). An item is a cue id,
+	-- "Block:<kind>" (a READY unclimbed or never-climbing lucky block) or "Climbed:<tier>" (a
+	-- READY climbed block, economy v5; Trade.blockItem / Trade.itemBlock); a side is a list of
+	-- up to Config.Trade.MaxSideItems (one entry a copy).
 	-- client -> server, answered { ok = true, ... } or { ok = false, reason }:
 	--   ("Invite", userId)   ask anyone in the server; they get TradeState { kind = "Invite" }
 	--   ("Accept", userId)   accept that player's invite: the session opens for both
@@ -289,7 +293,8 @@ local REMOTES: { [string]: string } = {
 	-- the top middle and a system chat line (src/server/Announce.luau). The server sends ids and
 	-- names only; the client words it from Strings.Banner. `name` is the player's username
 	-- (player.Name), not their DisplayName.
-	--   { kind = "Unbox", userId, name, cue, rarity } a Legendary unboxed here
+	--   { kind = "Unbox", userId, name, cue, rarity, oneIn?, from? } a Legendary unboxed here
+	--     (oneIn: the N of "1 in N" from the block `from` it started as, economy v5)
 	--     (BlockOdds.announcesHere), or a Mythic or Secret unboxed in any server
 	--     (BlockOdds.announces), sent Config.Items.UnboxAnnounceDelaySeconds after the roll
 	--   { kind = "Party", endsAt, name? } a Money Party started (endsAt: unix seconds)
@@ -381,13 +386,18 @@ local REMOTES: { [string]: string } = {
 	-- client -> server: (action, a, b), checked by Progression/LuckyBlocks.parse:
 	-- "Hold" (block id, or nil to put it away), "Throw" (the held block's id, sent at the throw
 	-- animation's release), "Open" (the thrown block's id, after the 1 s hold), "Move" (id,
-	-- place in the list). Answers { ok = true, ... } or { ok = false, reason } (LuckyBlocks
-	-- .Reasons). Open's answer: { ok, cue, rarity, kind, oddsId, tier?, copy?, forced, new,
-	-- found, count, burstAt } (oddsId: the odds row it rolled, a Mystery block's rolled tier's;
-	-- copy: a Unique cue's number; forced: the Guarantee gave it; burstAt: server time the
-	-- block bursts and the reel may show).
+	-- place in the list), "Reveal" (an unclimbed block's id: its climb, economy v5) and
+	-- "OpenAll" (no id: every ready climbed Standard and Uncommon block). Answers { ok = true,
+	-- ... } or { ok = false, reason } (LuckyBlocks.Reasons). Open's answer: { ok, cue, rarity,
+	-- kind, oddsId, tier?, copy?, forced, new, found, count, burstAt } (oddsId: the odds row it
+	-- rolled; copy: a Unique cue's number; forced: the Guarantee gave it; burstAt: server time
+	-- the block bursts and the reel may show). Reveal's answer: { ok, id, path (the presses: the
+	-- start, then a climb or not each; the Secret on top), kind?, readyAt?, pity = { rare, epic
+	-- }, from, luck, secret, cue?, rarity?, new?, found?, count? } (kind and readyAt: the
+	-- climbed block's; a Secret climb leaves no block and gives its cue at once). OpenAll's
+	-- answer: { ok, opened = { { id, cue, rarity, kind, new, found, count } } }.
 	BlockRequest = "RemoteFunction",
-	-- server -> one player: their blocks { blocks = { { id, kind, readyAt, paid? } } } in hotbar order
+	-- server -> one player: their blocks { blocks = { { id, kind, readyAt, climbed? } } } in hotbar order
 	-- (readyAt in unix seconds, compared with workspace:GetServerTimeNow()). Sent when the save
 	-- loads and after every change, only when it differs from the last one sent.
 	BlockState = "RemoteEvent",

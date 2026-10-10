@@ -293,6 +293,9 @@ play-solo on PC; the phone, gamepad and two-player checks are open.*
 - [ ] **2.6 Juice, pass two.** Turn streaks (x2 on fire, x3 blue fire), trickshot detection
   (bank, combo, multi-ball) with popups, money per ball win or lose, victory screen, loser
   shown as lost, Rematch and Play again. Done means: a lucky bank shot makes you react out loud.
+  Progress 2026-10-09: the **ball streak** is built (STREAK x1 to x8 under the match popups,
+  sprays, fire from x3, a growing shake, a small money bonus from x3; GDD section 8, UI_STYLE
+  section 28). Open: a real phone and the sound by ear.
 - [ ] **4.2 UI pass.** Clean consistent HUD, popups, host popup, victory and post-match screens;
   thumb-friendly and gamepad-navigable; one strings module.
   Moved here from Phase 4 (2026-09-26): it is part of the pool game's UI.
@@ -448,6 +451,32 @@ daily rewards, trading's gates, Roblox policy): `docs/ECONOMY.md`.*
   Studio check of the shop prices, the Mystery screen, the rewards, the timers and the skip.
   Still to come with the GUI: the screens listed in the plan's hand-off (section 18). Planned,
   not built: the Lucky Shot, Golden Shot, Lucky Rain and the stay bonus (`Config.Planned`).
+- [ ] **7.9 Economy v5, "every block climbs".** Approved 2026-10-09
+  (`docs/prompts/ECONOMY_V5_PLAN.md`; numbers in `docs/ECONOMY.md`). Built on `gui-v4`
+  (Lune-tested, 2026-10-09; backup branch `before-economy-v5`): one climb ladder for every
+  block (the name is the floor), the Grand Opening Luck, pity 10 / 40 with a head start,
+  unclimbed and climbed blocks (save version 11), the win track's 4 blocks and $1,000 steps, the
+  Week One Cue on the first week's day 7, the new rewards, the restock's 2 slots (the first
+  Epic or better), the Mystery block at $14,900 (5 for $66,900), the 1 R$ skip (made on
+  Roblox), "Open all", the "1 in N" messages, climbed blocks in trades and the model doing v5.
+  The Robux pass is approved and live on Roblox (2026-10-09: Mystery 7 R$, the 29 R$ 5-pack,
+  restock 39 / 149, later weeks' Claim All 79 / 69 / 35). Done means: every screen
+  (`docs/prompts/ECONOMY_V5_GUI_PROMPT.md`, spec in `docs/prompts/ECONOMY_V5_HANDOFF.md`),
+  merged, and a Studio check of a Mystery block and a tier block from a win, the restock, the
+  Mystery band, Free Reward's first week, a trade of a block, the 1 R$ skip and the luck's odds.
+  Progress 2026-10-09 (the GUI run): every screen updated on `gui-v4` and checked on PC (the
+  climb screen for every block and the Secret rung, the quick reveal, "Open all", Odds &
+  Details with each cue and the pity bars, the clover, the shop's Mystery card and restock, the
+  win track's money tiles and the result line, the first week's day 7 cue, the Index line).
+  Progress 2026-10-09 evening (v5.1 "Lively", plan section 15): a Mystery turns into a real
+  block (its roll 30 / 25 / 10 / 5%) that then climbs; the Mystery at $19,900 (5 for $89,900)
+  and 9 R$ (5 for 39 R$); the 15-minute gift $2,000; pity on the final cue; the model, Config,
+  tests (1164) and docs; checked in Studio on PC. Progress 2026-10-09 night (v5.2, designer):
+  only the Mystery keeps the upgrade screen; every other block waits its own name's timer and
+  climbs as it opens, shown by the reel at the same odds; checked in Studio on PC. Still to do:
+  the phone and gamepad checks with
+  the designer, the merge with `tutorial-v2` (when the tutorial is done; it needs the hand-off
+  in DECISIONS.md), the place saved and published, the release clicks.
 
 ---
 

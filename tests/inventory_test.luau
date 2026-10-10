@@ -434,7 +434,8 @@ return {
 		-- 2026-09-28), so the rows above Epic have no reward.
 		local MONEY = { Common = 10000, Uncommon = 25000, Rare = 75000, Epic = 250000 }
 		local TOTALS =
-			{ Common = 8, Uncommon = 9, Rare = 10, Epic = 9, Legendary = 7, Mythic = 3, Secret = 1 }
+			-- Legendary 8: the seven block Legendaries and the Week One Cue (economy v5).
+			{ Common = 8, Uncommon = 9, Rare = 10, Epic = 9, Legendary = 8, Mythic = 3, Secret = 1 }
 		local save = newSave()
 		local rows = Inventory.indexRows(save)
 		local order = {}

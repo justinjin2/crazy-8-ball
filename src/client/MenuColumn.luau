@@ -211,10 +211,13 @@ function MenuColumn.new(screen: ScreenGui, opts: Options): any
 	if moneyRoot then
 		connect(moneyRoot:GetPropertyChangedSignal("AbsoluteSize"), queueLayout)
 		connect(moneyRoot:GetPropertyChangedSignal("AbsolutePosition"), queueLayout)
-		-- The VIP tag over the money pill (VipTag): the column keeps above it too.
-		local vip = moneyRoot:FindFirstChild("VipTag")
-		if vip and vip:IsA("GuiObject") then
-			connect(vip:GetPropertyChangedSignal("Visible"), queueLayout)
+		-- The VIP tag and the luck's clover over the money pill (VipTag, LuckClover): the
+		-- column keeps above them too.
+		for _, name in { "VipTag", "LuckClover" } do
+			local tag = moneyRoot:FindFirstChild(name)
+			if tag and tag:IsA("GuiObject") then
+				connect(tag:GetPropertyChangedSignal("Visible"), queueLayout)
+			end
 		end
 	end
 	connect(UserInputService.LastInputTypeChanged, function()
@@ -536,15 +539,17 @@ function MenuColumn.rankBottom(self: any, origin: Vector2, short: boolean): numb
 	return math.max(0, badge + RANK.TopMinPx - GuiService:GetGuiInset().Y)
 end
 
--- The money HUD's top edge in the screen's pixels (the VIP tag's while it shows over it):
--- measured, or from its Config size.
+-- The money HUD's top edge in the screen's pixels (the VIP tag's or the luck's clover's while
+-- one shows over it): measured, or from its Config size.
 function MenuColumn.moneyTop(self: any, origin: Vector2, size: Vector2, short: boolean): number
 	local root = self:moneyRoot()
 	if root and root.AbsoluteSize.Y > 0 then
 		local top = root.AbsolutePosition.Y
-		local vip = root:FindFirstChild("VipTag")
-		if vip and vip:IsA("GuiObject") and vip.Visible and vip.AbsoluteSize.Y > 0 then
-			top = math.min(top, vip.AbsolutePosition.Y)
+		for _, name in { "VipTag", "LuckClover" } do
+			local tag = root:FindFirstChild(name)
+			if tag and tag:IsA("GuiObject") and tag.Visible and tag.AbsoluteSize.Y > 0 then
+				top = math.min(top, tag.AbsolutePosition.Y)
+			end
 		end
 		return top - origin.Y
 	end

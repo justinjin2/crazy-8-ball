@@ -1,28 +1,36 @@
 --!strict
--- MysteryReveal: the Mystery block's upgrade screen (designer, 2026-10-07, like Star Drop but
--- our own; restyled to pick "mystery_reveal B", the Track, 2026-10-08; Config.LuckyBlocks
--- .Reveal). A tap on a ready Mystery block's OPEN! slot jumps its 2D icon out of the hotbar at
--- the screen while the world blurs; it lands still a Mystery block, "MYSTERY" over it
--- (designer, 2026-10-09: "before you even click on it its still a mystery block"), and floats
--- there with its particles over a glow and turning rays. The first press turns it into its
--- starting tier; each of the other three may lift it one tier. At the top a white pill counts
--- the presses ("Mystery Lucky Block - 2 / 4"),
--- with "The result is decided when you open it; the presses reveal it." and the pity counters
--- under it; along the bottom the ladder of the six tiers, its line filled up to the tier on
--- show, that tier's block raised with an arrow over it. Each press (a tap, a click, A, Space or
+-- MysteryReveal: the climb screen (the Mystery block's upgrade screen, designer, 2026-10-07,
+-- like Star Drop but our own; restyled to pick "mystery_reveal B", the Track, 2026-10-08;
+-- every unclimbed block's since economy v5, 2026-10-09; Config.LuckyBlocks.Reveal). A tap on a
+-- ready unclimbed block's OPEN! slot jumps its 2D icon out of the hotbar at the screen while
+-- the world blurs; it lands as itself, its name over it ("MYSTERY": designer, 2026-10-09,
+-- "before you even click on it its still a mystery block"; a tier block shows its tier, lit on
+-- the ladder: it climbs from there), and floats there with its particles over a glow and
+-- turning rays. The first press shows its starting tier (its own, or higher); each of the
+-- other three may lift it one tier, never down. At the top a white pill counts the presses
+-- ("Rare Lucky Block - 2 / 4"; designer, 2026-10-09: no lines under it, the block takes their
+-- room, and no pity here); along the bottom the climb's ladder of seven tiers, the Secret on
+-- top (a dark silhouette with a red "?": there is no Secret block), its line filled up to the
+-- tier on show, that tier's block raised with an arrow over it. Each press (a tap, a click, A, Space or
 -- Enter) squashes the block; a press that lifts the tier bounces it, then it turns into the
 -- next block with an impact (a white flash, a screen shake and a burst; designer, 2026-10-07:
--- no spin), its name slamming in over it ("EPIC!") as the ladder's line reaches it. A dot
+-- no spin), its name slamming in over it ("EPIC!"; Standard has no "!") as the ladder's line
+-- reaches it. A dot
 -- under the block fills per press in the colour that press showed; the white Tap! button under
 -- the dots says what to do. After the last press "Tap to collect" (or a few seconds) shrinks
--- the screen and the block jumps back into its hotbar slot. Sounds (designer, 2026-10-09): a
+-- the screen and the block jumps back into its hotbar slot, the climbed block on its tier's
+-- timer. A Mystery's presses are its roll instead (economy v5.1): it lands back as the
+-- unclimbed block it turned into, showing OPEN!, and climbs when that block is opened. A climb
+-- that reached the Secret leaves no block: a moment after its last press the
+-- screen hands over to the Secret's pull cutscene (deps.secret). Sounds (designer, 2026-10-09): a
 -- whoosh as it opens, a rising shimmer on a press that lifts the tier, a soft shimmer on one
 -- that only shakes it (Config.Audio.Ui.Mystery*).
 --
--- The server decides everything first (BlockRequest "Reveal": the tier, with pity, and the path
--- of the presses, BlockDrop.path: one entry per press, the start then climbs only) and the block
--- is already that tier's block in the save; this screen only plays the path. Leaving or closing
--- early loses nothing.
+-- The server decides everything first (BlockRequest "Reveal": the tier, with a Mystery block's
+-- pity, and the path of the presses, BlockDrop.path: one entry per press, the start then
+-- climbs only) and the block is already that tier's climbed block in the save (a Mystery's: the
+-- unclimbed block it turned into; or the Secret cue the player's); this screen only plays the
+-- path. Leaving or closing early loses nothing.
 local ContextActionService = game:GetService("ContextActionService")
 local GuiService = game:GetService("GuiService")
 local Players = game:GetService("Players")
@@ -46,10 +54,12 @@ local R = Config.LuckyBlocks.Reveal
 local LD = R.Ladder
 local IMAGES: { [string]: string } = R.Images :: any
 local TIERS: { [string]: any } = R.Tiers :: any
-local ORDER: { string } = Config.BlockOdds.Order -- the ladder, Standard to Mythic
+local ORDER: { string } = Config.BlockOdds.Climb.Tiers -- the ladder, Standard to the Secret
 local W = Strings.LuckyBlocks.Reveal
+local KIND_TITLES: { [string]: string } = W.Kinds :: any
 local SHORT: { [string]: string } = Strings.LuckyBlocks.Short :: any
-local BLOCK_NAME: string = Strings.LuckyBlocks.Names.Mystery
+local NAMES: { [string]: string } = Strings.LuckyBlocks.Names :: any
+local SECRET = "Secret" -- the ladder's top: no block, its cue at once
 local CLICKS: number = Config.BlockOdds.Drop.Upgrade.Clicks
 local FONT: Enum.Font = (Enum.Font :: any)[Config.UI.Kit.Font]
 local ACTION = "MysteryRevealPress"
@@ -94,12 +104,35 @@ local function arc(a: Vector2, b: Vector2, lift: number, t: number): Vector2
 end
 
 local function iconOf(kind: string): string
+	if kind == SECRET then
+		return R.Secret.Icon
+	end
 	local row = LuckyBlocks.kind(kind)
 	return if row and row.Icon then row.Icon else ""
 end
 
+-- A tier's look, or a block kind's own (the Mystery block's), else its start tier's (Lucky 8
+-- and the Gift: Uncommon's; the Sky block: Standard's).
 local function look(kind: string): any
-	return TIERS[kind] or TIERS.Standard
+	local row = LuckyBlocks.kind(kind)
+	return TIERS[kind] or (row and row.Climb and TIERS[row.Climb]) or TIERS.Standard
+end
+
+-- The Secret's silhouette tint on a picture of `kind` (white: none), and its red "?" over it.
+local function tintOf(kind: string): Color3
+	return if kind == SECRET then rgb(R.Secret.Tint) else Color3.new(1, 1, 1)
+end
+
+local function secretMark(parent: GuiObject, z: number): TextLabel
+	local mark = HudParts.text(parent, "SecretMark", 18, W.SecretMark, rgb(R.Secret.MarkColor))
+	mark.AutoLocalize = false
+	mark.AnchorPoint = Vector2.new(0.5, 0.5)
+	mark.Position = UDim2.fromScale(0.5, 0.52)
+	mark.Size = UDim2.fromScale(R.Secret.MarkShare, R.Secret.MarkShare)
+	mark.TextScaled = true
+	mark.ZIndex = z
+	mark.Visible = false
+	return mark
 end
 
 local function hint(done: boolean): string
@@ -169,9 +202,6 @@ type Geo = {
 	pillY: number,
 	pillH: number,
 	pillText: number,
-	lineText: number,
-	decidedY: number,
-	pityY: number,
 	titleY: number,
 	titleH: number,
 	dot: number,
@@ -189,8 +219,8 @@ type Geo = {
 }
 
 export type Deps = {
-	-- Asks the server to reveal block `id` (BlockRequest "Reveal"): { ok, tiers, kind } or a
-	-- refusal { ok = false, reason }.
+	-- Asks the server to climb block `id` (BlockRequest "Reveal"): { ok, path, kind?, secret?,
+	-- cue?, rarity? } or a refusal { ok = false, reason }.
 	request: (id: number) -> any,
 	-- Where the block's hotbar slot is now (absolute pixels, top bar inset included in the
 	-- hotbar's own space) and its size, or nil when the bar is hidden.
@@ -199,6 +229,9 @@ export type Deps = {
 	mask: (id: number, on: boolean) -> (),
 	-- The block landed back in its slot, now a `kind` block.
 	landed: (id: number, kind: string) -> (),
+	-- The climb reached the Secret (the answer: its cue and rarity): the screen is gone, the
+	-- Secret's pull plays.
+	secret: (reply: any) -> (),
 	-- A refusal's words over the hotbar.
 	refused: (reply: any) -> (),
 }
@@ -243,7 +276,7 @@ function Reveal.build(self: any)
 	local wash = HudParts.frame(gui, "Wash")
 	wash.Size = UDim2.fromScale(1, 1)
 	wash.BackgroundTransparency = 1
-	wash.BackgroundColor3 = rgb(look("Mystery").Glow)
+	wash.BackgroundColor3 = rgb(look(self.kind).Glow)
 	wash.ZIndex = 1
 	self.wash = wash
 
@@ -317,6 +350,7 @@ function Reveal.build(self: any)
 	pic.ZIndex = 8
 	pic.Parent = holder
 	self.pic = pic
+	self.picMark = secretMark(holder, 9)
 
 	local title = HudParts.text(root, "Title", 60, "")
 	title.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -337,20 +371,6 @@ function Reveal.build(self: any)
 	count.Size = UDim2.fromScale(1, 1)
 	count.ZIndex = 11
 	self.pill, self.count = pill, count
-	-- Under it: how the presses work, and the pity counters (once the server has answered).
-	local decided = HudParts.text(root, "Decided", 14, W.Decided)
-	decided.AnchorPoint = Vector2.new(0.5, 0.5)
-	decided.TextWrapped = false
-	decided.ZIndex = 10
-	decided.Visible = false
-	self.decided = decided
-	local pity = HudParts.text(root, "Pity", 14, "")
-	pity.AutoLocalize = false
-	pity.AnchorPoint = Vector2.new(0.5, 0.5)
-	pity.TextWrapped = false
-	pity.ZIndex = 10
-	pity.Visible = false
-	self.pity = pity
 	self:buildLadder(root)
 
 	local row = HudParts.frame(root, "Dots")
@@ -494,8 +514,13 @@ function Reveal.buildLadder(self: any, root: Frame)
 		icon.Image = iconOf(kind)
 		icon.ScaleType = Enum.ScaleType.Fit
 		icon.AnchorPoint = Vector2.new(0.5, 0.5)
+		icon.ImageColor3 = tintOf(kind)
 		icon.ZIndex = 13
 		icon.Parent = ladder
+		if kind == SECRET then
+			self.rungMark = secretMark(icon, 14)
+			self.rungMark.Visible = true
+		end
 		local name = HudParts.text(ladder, "Name" .. i, 14, SHORT[kind] or kind)
 		name.AnchorPoint = Vector2.new(0.5, 0.5)
 		name.TextWrapped = false
@@ -519,9 +544,6 @@ function Reveal.geometry(self: any): Geo
 	local P = R.Pill
 	local pillH = math.max(minText / P.TextShare, H * P.HeightShare)
 	local pillY = H * P.Y
-	local lineText = math.clamp(H * R.LineTextShare, minText, R.LineMaxTextPx)
-	local decidedY = pillY + pillH / 2 + gap * 0.6 + lineText / 2
-	local pityY = decidedY + lineText + 2
 	-- The ladder from the bottom up: the names, the blocks (the lit one raised), the arrow.
 	local block = H * LD.BlockShare
 	local litSide = block * LD.LitScale
@@ -539,10 +561,10 @@ function Reveal.geometry(self: any): Geo
 	local tapY = ladderTop - gap - tapH / 2
 	local dot = math.max(10, planned * R.DotShare)
 	local dotsY = tapY - tapH / 2 - gap - dot / 2
-	-- The name under the counters, the block in the room between it and the dots (with room
-	-- for its float).
+	-- The name under the pill, the block in the room between it and the dots (with room for
+	-- its float).
 	local titleH = planned * R.TitleHeightShare
-	local titleTop = pityY + lineText / 2 + gap
+	local titleTop = pillY + pillH / 2 + gap
 	local blockTop = titleTop + titleH + gap / 2
 	local blockBottom = dotsY - dot / 2 - gap - planned * R.Float.HeightShare
 	local side = math.max(40, math.min(planned, blockBottom - blockTop))
@@ -554,9 +576,6 @@ function Reveal.geometry(self: any): Geo
 		pillY = pillY,
 		pillH = pillH,
 		pillText = math.max(minText, pillH * P.TextShare),
-		lineText = lineText,
-		decidedY = decidedY,
-		pityY = pityY,
 		titleY = titleTop + titleH / 2,
 		titleH = titleH,
 		dot = dot,
@@ -591,23 +610,18 @@ function Reveal.layout(self: any)
 		then UDim2.fromScale(1, 1)
 		else UDim2.fromOffset(size.X, size.Y)
 	self.holder.Size = UDim2.fromOffset(side, side)
+	HudParts.setTextSize(self.picMark, side * R.Secret.MarkShare)
 	self.glow.Size = UDim2.fromOffset(side * R.GlowShare, side * R.GlowShare)
 	self.glow.Position = UDim2.fromOffset(centre.X, centre.Y)
 	self.rays.Size = UDim2.fromOffset(side * R.RaysShare, side * R.RaysShare)
 	self.rays.Position = UDim2.fromOffset(centre.X, centre.Y)
-	-- The top: the pill, the two lines, the tier's name.
+	-- The top: the pill, the tier's name.
 	HudParts.setTextSize(self.count, g.pillText)
 	local countW =
 		TextService:GetTextSize(self.count.Text, g.pillText, FONT, Vector2.new(4000, 400)).X
 	self.pill.Size =
 		UDim2.fromOffset(math.min(size.X * 0.9, countW + 2 * g.pillH * R.Pill.PadShare), g.pillH)
 	self.pill.Position = UDim2.fromOffset(size.X / 2, g.pillY)
-	for _, line in { self.decided, self.pity } do
-		HudParts.setTextSize(line, g.lineText)
-		line.Size = UDim2.fromOffset(size.X * 0.94, g.lineText + 4)
-	end
-	self.decided.Position = UDim2.fromOffset(size.X / 2, g.decidedY)
-	self.pity.Position = UDim2.fromOffset(size.X / 2, g.pityY)
 	self.title.Size = UDim2.fromOffset(math.min(size.X * 0.94, side * R.TitleWidthShare), g.titleH)
 	self.title.Position = UDim2.fromOffset(size.X / 2, g.titleY)
 	HudParts.setTextSize(self.title, g.titleH)
@@ -662,6 +676,9 @@ function Reveal.layoutLadder(self: any, g: Geo)
 		step.icon.ImageTransparency = if self.lit > 0 and i > self.lit
 			then LD.FadeTransparency
 			else 0
+		if step.kind == SECRET and self.rungMark then
+			HudParts.setTextSize(self.rungMark, block * scale * R.Secret.MarkShare)
+		end
 		HudParts.setTextSize(step.name, g.nameText)
 		step.name.Size = UDim2.fromOffset(spacing * 0.98, g.nameText + 4)
 		step.name.Position = UDim2.fromOffset(xOf(i), g.nameCy)
@@ -883,14 +900,19 @@ end
 -- The tier on show
 ---------------------------------------------------------------------------------------------
 
--- The name over the block ("EPIC!" once a press lifted it), its colour (or the rainbow) and the
--- glow, rays and wash behind it; the ladder lights the tier.
-function Reveal.showTier(self: any, kind: string, slam: boolean, climbed: boolean?)
+-- The name over the block ("EPIC!"; "STANDARD" plain, and the arriving block's own name before
+-- the first press: "MYSTERY", "RARE", "LUCKY 8"), its colour (or the rainbow) and the glow, rays
+-- and wash behind it; the ladder lights the tier (a block that is not a tier: nothing yet).
+function Reveal.showTier(self: any, kind: string, slam: boolean, arriving: boolean?)
 	self.shown = kind
 	local tier = look(kind)
 	self.pic.Image = iconOf(kind)
-	local words = if kind == "Mystery" then W.Title else (W.Tiers[kind] or string.upper(kind))
-	self.title.Text = if climbed then W.Climbed:format(words) else words
+	self.pic.ImageColor3 = tintOf(kind)
+	self.picMark.Visible = kind == SECRET
+	local words = if kind == "Mystery"
+		then W.Title
+		else (W.Tiers[kind] or KIND_TITLES[kind] or string.upper(kind))
+	self.title.Text = if arriving or kind == "Standard" then words else W.Exclaim:format(words)
 	self:lightStep(kind)
 	-- A rainbow name is white under its gradient (a colour under it would darken it).
 	self.title.TextColor3 = if tier.Rainbow then Color3.new(1, 1, 1) else rgb(tier.Color)
@@ -946,9 +968,9 @@ function Reveal.lightStep(self: any, kind: string)
 	end
 end
 
--- The pill's count: the presses made of the four.
+-- The pill's count: the block's name, the presses made of the four.
 function Reveal.setCount(self: any, presses: number)
-	self.count.Text = W.Count:format(BLOCK_NAME, presses, CLICKS)
+	self.count.Text = W.Count:format(NAMES[self.kind] or self.kind, presses, CLICKS)
 	if self.gui then
 		self:layout()
 	end
@@ -1062,16 +1084,26 @@ function Reveal.showOthers(self: any)
 	end
 end
 
---- Opens the screen for the ready Mystery block `id`: it jumps out of the hotbar slot at
---- `from` (absolute pixels in the hotbar's space, and the slot's size) while the server
---- reveals it. `fake` (Studio tests only, GuiQA "mystery"): a made-up reply, nothing asked.
-function Reveal.play(self: any, id: number, from: Vector2?, fromPx: number?, fake: any?)
+--- Opens the screen for the ready unclimbed `kind` block `id` (nil: a Mystery block): it jumps
+--- out of the hotbar slot at `from` (absolute pixels in the hotbar's space, and the slot's
+--- size) while the server climbs it. `fake` (Studio tests only, GuiQA "mystery"): a made-up
+--- reply, nothing asked.
+function Reveal.play(
+	self: any,
+	id: number,
+	from: Vector2?,
+	fromPx: number?,
+	fake: any?,
+	kind: string?
+)
 	if self.open then
 		return
 	end
 	self.open = true
 	self.id = id
+	self.kind = kind or "Mystery"
 	self.reply = nil
+	self.failed = false
 	UISound.play("MysteryOpen")
 	self.presses = 0
 	self.particles = {}
@@ -1124,16 +1156,16 @@ function Reveal.play(self: any, id: number, from: Vector2?, fromPx: number?, fak
 		if
 			type(reply) ~= "table"
 			or not reply.ok
-			or type(reply.tiers) ~= "table"
-			or #reply.tiers ~= CLICKS
+			or type(reply.path) ~= "table"
+			or #reply.path ~= CLICKS
 		then
 			self.deps.refused(reply)
 			self.failed = true
 			self:leave()
 			return
 		end
-		for _, tier in reply.tiers do
-			if LuckyBlocks.kind(tier) == nil then
+		for _, tier in reply.path do
+			if not table.find(ORDER, tier) then
 				self.deps.refused({ ok = false, reason = "Error" })
 				self.failed = true
 				self:leave()
@@ -1141,18 +1173,6 @@ function Reveal.play(self: any, id: number, from: Vector2?, fromPx: number?, fak
 			end
 		end
 		self.reply = reply
-		local pity = reply.pity
-		if
-			type(pity) == "table"
-			and type(pity.rare) == "number"
-			and type(pity.epic) == "number"
-		then
-			self.pity.Text = W.Pity:format(math.floor(pity.rare), math.floor(pity.epic))
-			if self.decided.Visible and not self.pity.Visible then
-				self.pity.Visible = true
-				UIAnim.popIn(self.pity)
-			end
-		end
 		if self.waitingReply then
 			self.waitingReply = false
 			self:press()
@@ -1166,7 +1186,7 @@ function Reveal.play(self: any, id: number, from: Vector2?, fromPx: number?, fak
 		then from + Vector2.new(0, inset.Y)
 		else Vector2.new(size.X / 2, size.Y + side / 2)
 	local startScale = (fromPx or side * 0.25) / side
-	self:showTier("Mystery", false)
+	self:showTier(self.kind, false, true)
 	self.phase = "Arrive"
 	local A = R.Arrive
 	local reduced = UIAnim.reduced()
@@ -1209,13 +1229,8 @@ function Reveal.play(self: any, id: number, from: Vector2?, fromPx: number?, fak
 	):Play()
 	task.delay(A.TitleAt, function()
 		if self.open and self.phase ~= "Leave" then
-			-- The pill, the decided line and the pity counters (once the server answered).
-			for _, object in { self.pill, self.decided, self.pity } do
-				if object ~= self.pity or object.Text ~= "" then
-					object.Visible = true
-					UIAnim.popIn(object)
-				end
-			end
+			self.pill.Visible = true
+			UIAnim.popIn(self.pill)
 		end
 	end)
 	task.delay(A.DotsAt, function()
@@ -1249,10 +1264,10 @@ function Reveal.play(self: any, id: number, from: Vector2?, fromPx: number?, fak
 	end)
 end
 
--- Landed: still the Mystery block, "MYSTERY" slamming in over it with a soft white puff; the
--- ladder lights nothing until the first press shows the start.
+-- Landed: still the block it was, its name slamming in over it with a soft white puff; the
+-- ladder lights its tier (a tier block), or nothing until the first press shows the start.
 function Reveal.arrived(self: any)
-	self:showTier("Mystery", false)
+	self:showTier(self.kind, false, true)
 	self.title.Visible = true
 	UIAnim.slam(self.title, Color3.new(1, 1, 1))
 	self:puff()
@@ -1292,8 +1307,10 @@ function Reveal.press(self: any)
 	end
 	self.presses += 1
 	local i = self.presses
-	local tiers = self.reply.tiers
-	local before = if i == 1 then "Mystery" else tiers[i - 1] -- the first press always changes it
+	local tiers = self.reply.path
+	-- The first press shows the start: a change from the arriving block, or a tier block that
+	-- starts at its own tier keeping it.
+	local before = if i == 1 then self.kind else tiers[i - 1]
 	local after = tiers[i]
 	self.phase = "Press"
 	local side = self.side
@@ -1363,7 +1380,7 @@ function Reveal.press(self: any)
 			self.pose.lift, self.pose.turn = 0, 0
 			self.pic.Image = iconOf(after)
 			self:impact()
-			self:showTier(after, true, true)
+			self:showTier(after, true)
 			self:burst(after)
 			self.anim = {
 				seconds = U.LandSeconds,
@@ -1441,6 +1458,18 @@ function Reveal.done(self: any)
 	self.buffered = 0
 	self.collectAt = os.clock() + R.DoneHintDelay
 	local id = self.id
+	if self.reply and self.reply.secret then
+		-- No block to collect: a moment on the Secret, then its pull takes over.
+		self.collectAt = math.huge
+		task.delay(R.SecretHandOffSeconds, function()
+			if self.open and self.phase == "Done" and self.id == id then
+				local reply = self.reply
+				self:finish(id, nil)
+				self.deps.secret(reply)
+			end
+		end)
+		return
+	end
 	task.delay(R.DoneHintDelay, function()
 		if self.open and self.phase == "Done" and self.id == id then
 			HudParts.setText(self.hint, hint(true))
@@ -1459,7 +1488,7 @@ function Reveal.done(self: any)
 	end)
 end
 
--- The jump back into the hotbar (or, after a refusal, the Mystery block going back as it was).
+-- The jump back into the hotbar (or, after a refusal, the block going back as it was).
 function Reveal.leave(self: any)
 	if not self.open or self.phase == "Leave" then
 		return
@@ -1479,7 +1508,7 @@ function Reveal.leave(self: any)
 	ScreenBlur.set(self, false)
 	local L = R.Leave
 	local fade = TweenInfo.new(L.FadeSeconds, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-	for _, object in { self.title, self.hint, self.pill, self.decided, self.pity, self.ladder } do
+	for _, object in { self.title, self.hint, self.pill, self.ladder } do
 		UIAnim.popOut(object)
 	end
 	for _, d in self.dots do
@@ -1489,7 +1518,7 @@ function Reveal.leave(self: any)
 	TweenService:Create(self.rays, fade, { ImageTransparency = 1 }):Play()
 	TweenService:Create(self.wash, fade, { BackgroundTransparency = 1 }):Play()
 	local id = self.id
-	local kind = if self.reply and not self.failed then self.reply.kind else "Mystery"
+	local kind = if self.reply and not self.failed then self.reply.kind else self.kind
 	-- The hotbar comes back a frame or two later (Progression sees isOpen go false): the slot
 	-- is looked up every frame of the flight, until it is there.
 	local inset = GuiService:GetGuiInset()
@@ -1529,8 +1558,9 @@ function Reveal.leave(self: any)
 	}
 end
 
--- Gone: the slot shows its block again and bounces.
-function Reveal.finish(self: any, id: number, kind: string)
+-- Gone: the slot shows its block again and bounces (`kind` nil: no block came back, the
+-- Secret).
+function Reveal.finish(self: any, id: number, kind: string?)
 	if not self.open then
 		return
 	end
@@ -1554,13 +1584,16 @@ function Reveal.finish(self: any, id: number, kind: string)
 	end
 	self.particles = {}
 	self.deps.mask(id, false)
-	self.deps.landed(id, kind)
+	if kind then
+		self.deps.landed(id, kind)
+	end
 end
 
---- Closes at once (a match is starting): the block is already its tier in the save.
+--- Closes at once (a match is starting): the block is already its tier in the save (or the
+--- Secret cue the player's).
 function Reveal.close(self: any)
 	if self.open then
-		local kind = if self.reply and not self.failed then self.reply.kind else "Mystery"
+		local kind = if self.reply and not self.failed then self.reply.kind else self.kind
 		self:finish(self.id, kind)
 	end
 end

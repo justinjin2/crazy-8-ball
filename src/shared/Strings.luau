@@ -107,13 +107,13 @@ return {
 		VoteHint = "Every teammate must vote Yes. The match clock keeps running.",
 		Voted = "Your vote is in",
 		VoteCount = "%d/%d agreed · %.0fs",
-		-- The coin flip, a few words at a time (designer, 2026-09-27): your side while it
-		-- spins, then who breaks once it lands. WHO BREAKS? is for someone watching.
-		CoinYouAre = { Heads = "YOU ARE HEADS", Tails = "YOU ARE TAILS" },
+		-- The coin flip (designer, 2026-10-09: a player's token each side, no heads or tails):
+		-- WHO BREAKS? while it flips, then who breaks once it lands. A team match names the
+		-- breaker's team: "PAINICANE'S TEAM BREAKS".
 		CoinTitle = "WHO BREAKS?",
 		CoinYouBreak = "YOU BREAK",
 		CoinBreaks = "%s BREAKS",
-		CoinTeam = "TEAM %s · %s",
+		CoinTeamBreaks = "%s'S TEAM BREAKS",
 		Breaker = "%s breaks",
 		You = "YOU",
 		Active = "SHOOTING",
@@ -182,8 +182,6 @@ return {
 		VoteWaiting = "Your vote is in. Waiting for your teammates.",
 		ClocksContinue = "Match clocks continue",
 		BackToQueue = "Returning to the table area",
-		CoinHeadGlyph = "H",
-		CoinTailGlyph = "T",
 		PlacementHint = "Drag the cue ball anywhere · shoot any time",
 		PlacementHintGamepad = "Hold LT + left stick to move the cue ball · shoot any time",
 		-- The break's hint: short, in capitals (designer, 2026-09-27).
@@ -200,6 +198,11 @@ return {
 		SecondChance = "SECOND CHANCE: %ds",
 		-- Time Stop's stopped time, the shooter's instruction line.
 		TimeStopHint = "TIME STOPPED · HIT ONE OF YOUR BALLS",
+	},
+	-- The ball streak under the match popups (StreakHud): STREAK and its level, "x3".
+	Streak = {
+		Word = "STREAK",
+		Number = "x%d",
 	},
 	-- Saves (PlayerData): the kick messages when a save cannot be used.
 	-- The global queue's teleports and why one did not happen (GlobalQueue, TeleportScreen).
@@ -276,11 +279,11 @@ return {
 	},
 	-- The developer chat commands' private replies (DevCommands; shown only to the caller).
 	Dev = {
-		Help = "Rank and money commands: /rank <tier> [1-5] [xp], /rank unranked, /xp <amount>, /money <amount>, /addmoney <amount>, /result win|lose|draw|firstwin, /newrank [tier] [1-5], /resetdata. Economy commands: /econhelp. Ability commands: /abilityhelp. Put a player's username last to give it to them instead (/rank, /xp, /money, /addmoney, /givecue, /giveblock, /spins, /lucky, /ability, /abilitysetup).",
+		Help = "Rank and money commands: /rank <tier> [1-5] [xp], /rank unranked, /xp <amount>, /money <amount>, /addmoney <amount>, /result win|lose|draw|firstwin|track, /newrank [tier] [1-5], /resetdata. Economy commands: /econhelp. Ability commands: /abilityhelp. Put a player's username last to give it to them instead (/rank, /xp, /money, /addmoney, /givecue, /giveblock, /spins, /lucky, /ability, /abilitysetup).",
 		BadRank = "Try /rank gold 3, /rank reyes or /rank unranked.",
 		BadAmount = "Give a whole number, like %s 500.",
 		XpNeverLost = "XP is never lost: give a gain, like %s 250.",
-		BadResult = "Try /result win, /result lose, /result draw or /result firstwin; a loss may add early, pocket, foul or off.",
+		BadResult = "Try /result win, /result lose, /result draw, /result firstwin or /result track; a loss may add early, pocket, foul or off.",
 		NotLoaded = "Your save is not loaded yet.",
 		RankSet = "Rank set to %s.",
 		MoneySet = "Money set to %s.",
@@ -504,8 +507,11 @@ return {
 		},
 		BallsLine = "Balls pocketed x%d",
 		NiceLine = "Nice shots x%d",
+		-- The ball streak's bonus (ECONOMY 3.1) and the best streak it paid at.
+		BallStreakLine = "Streak bonus (best x%d)",
 		WinBonus = "Win bonus",
 		LossBonus = "Match bonus",
+		TrackLine = "Win track", -- the win track's money step (economy v5): "Win track +$1,000"
 		StreakLine = "Win streak", -- the win-streak money (ECONOMY 3.1), from the 3rd win in a row
 		RankReward = "Rank reward",
 		Total = "Total",
@@ -574,6 +580,7 @@ return {
 			SeraphCue = "Seraph Cue",
 			InfernalCue = "Infernal Cue",
 			ClockworkCue = "Clockwork Cue",
+			WeekOneCue = "Week One Cue", -- working name (economy v5 plan section 5)
 			CelestialDragonCue = "Celestial Dragon Cue",
 			KitsuneCue = "Kitsune Cue",
 			ApexCue = "Apex Cue",
@@ -750,13 +757,14 @@ return {
 			-- 2026-10-08). Numbers come from Config and the server's shop state.
 			Blocks = {
 				MysteryTitle = "MYSTERY LUCKY BLOCK",
-				Count = "x%d", -- over a buy column: "x1", "x10"
-				Bonus = "%d for %d!", -- the launch bonus ribbon: "13 for 10!"
-				Pity = "%s guaranteed in %d", -- "Epic guaranteed in 87" (the tier's name)
+				Count = "x%d", -- over a buy column: "x1", "x5"
+				Bonus = "%d for %d!", -- the launch bonus ribbon: "6 for 5!"
+				Pity = "%s guaranteed in %d", -- "Rare guaranteed in 10" (a pity bar: the tier's name)
 				PityNext = "Your next one is %s!", -- the guarantee is the very next block
 				RestockTitle = "RESTOCK",
-				-- Under the slots: each kind's chance in a slot, each name in its colour.
-				SlotOdds = "Each slot: %s",
+				-- Slot 1's tag (economy v5: its own table, from its lowest kind): "Epic or better!".
+				SlotFloor = "%s or better!",
+				-- Under each slot: each kind's chance in it, each name in its colour.
 				OddsPart = "%s %s", -- a kind and its chance: "Rare 87%"
 				OddsJoin = " · ",
 				Left = "x%d left", -- a restock slot's stock: "x2 left"
@@ -775,7 +783,7 @@ return {
 				VipPerks = {
 					"2x money",
 					"No lucky block timers",
-					"A Rare Lucky Block every day",
+					"An Uncommon Lucky Block every day",
 					"+1 Ability Spin a day",
 					"The VIP restock slot",
 					"The VIP Cue and tag",
@@ -793,7 +801,7 @@ return {
 				-- VIP's perks under its picture (2x money is the big line), two columns of three,
 				-- in the order of Config.UI.ShopBlocks.Pair.VipPerkIcons.
 				VipPerksWide = {
-					"Rare block every day",
+					"Uncommon block every day",
 					"No block timers",
 					"+1 ability spin a day",
 					"VIP restock slot",
@@ -946,6 +954,10 @@ return {
 			FindReward = "Find it for +%s", -- a cue not found yet: its finder's money ("$250")
 			-- The chosen cue's big card (GUI lane, 2026-10-03).
 			Odds = "%s chance", -- a cue's rarity per Mystery block: "4.2% chance"
+			-- A cue the first week gives (economy v5: the Week One Cue on day 7): its card's chip
+			-- and its line in the details and the Index, in place of a chance.
+			FirstWeekChip = "Day %d",
+			FirstWeekOdds = "Day %d of your first week",
 			Joined = "%s · %s", -- the chance and how many exist: "4.2% chance · 1,284 exist"
 			SellSome = "Sell", -- opens the count chooser (any copy, the last one too)
 			SellCount = "Sell %s for %s", -- the count and the money: "Sell 3 for $360"
@@ -988,6 +1000,7 @@ return {
 			Epic = "Epic",
 			Legendary = "Legendary",
 			Mythic = "Mythic",
+			Secret = "Secret", -- the climb's top (economy v5: no block, the cue at once)
 		} :: { [string]: string },
 		ReadyIn = "Ready in %s", -- a block still on its timer: "Ready in 1:42"
 		Bag = "Bag", -- the hotbar's bag button and the panel's title
@@ -1013,15 +1026,31 @@ return {
 			NoBody = "You can't throw that right now.",
 			TooFar = "Get closer to the block.",
 			NotLanded = "Wait for it to land.",
-			Reveal = "Tap the Mystery block's slot to open it!",
+			Reveal = "Tap the block's slot to open it!", -- a Mystery rolls on its screen first
 			NotMystery = "That block opens in the world.",
+			Climb = "Tap the block's slot to open it first!", -- a Mystery (economy v5.2)
+			NoneReady = "No Standard or Uncommon blocks are ready to open.", -- Open all
 			Error = "Something went wrong. Try again.",
 		} :: { [string]: string },
 		-- A ready Mystery block's hotbar slot (designer, 2026-10-07: like Star Drop).
 		OpenSlot = "OPEN!",
-		-- The Mystery block's upgrade screen (MysteryReveal).
+		-- "Open all" (economy v5 plan 3.8; the GUI session draws it): the button, and the
+		-- summary after it ("12 blocks opened!", then each cue).
+		OpenAll = "Open all",
+		OpenAllSummary = "%d BLOCKS OPENED!", -- over the summary's cue cards, like YOU GOT
+		OpenAllOne = "1 BLOCK OPENED!",
+		-- The upgrade screen (MysteryReveal; the Mystery block's, the only one since economy
+		-- v5.2; every unclimbed block's in v5).
 		Reveal = {
-			Title = "MYSTERY", -- over the block before the first press
+			Title = "MYSTERY", -- over the Mystery block before the first press
+			-- Over another block that is not a tier block before the first press (a tier block
+			-- shows its tier's name).
+			Kinds = {
+				Lucky8 = "LUCKY 8",
+				Sky = "SKY",
+				Gift = "GIFT",
+			} :: { [string]: string },
+			SecretMark = "?", -- over the Secret's dark silhouette (there is no Secret block)
 			Tiers = {
 				Standard = "STANDARD",
 				Uncommon = "UNCOMMON",
@@ -1029,8 +1058,9 @@ return {
 				Epic = "EPIC",
 				Legendary = "LEGENDARY",
 				Mythic = "MYTHIC",
+				Secret = "SECRET",
 			} :: { [string]: string },
-			Climbed = "%s!", -- the tier's name once a press lifted it: "EPIC!"
+			Exclaim = "%s!", -- a tier's name over the block, all but Standard's: "EPIC!"
 			-- The pill at the top (pick "mystery_reveal B"): the block's name, the presses made
 			-- and how many in all: "Mystery Lucky Block - 2 / 4".
 			Count = "%s - %d / %d",
@@ -1040,9 +1070,6 @@ return {
 			Collect = "Tap to collect", -- after the last press
 			CollectMouse = "Click to collect",
 			CollectPad = "Press A to collect",
-			-- Economy v4 (plan 3.2): the presses only reveal a result decided at the start.
-			Decided = "The result is decided when you open it; the presses reveal it.",
-			Pity = "Rare by %d more · Epic by %d more", -- Mystery blocks left to each pity
 		},
 		-- A rare chance as "1 in N" (BlockOdds.oneIn): on the reel's showcase card's chip (its
 		-- rarity is on its bar) and beside the rare rows of the odds screens.
@@ -1058,18 +1085,16 @@ return {
 	WinTrack = {
 		Wins = "Wins %d/%d", -- the bar's left pill (the designer's pick A)
 		NextTag = "NEXT", -- the gold tag on the next step's tile
-		Count = "Lucky Blocks today %d/%d",
-		Next = "Next win: %s", -- the next step's block name
 		Done = "%d/%d · wins pay money and XP today",
 		ResetsIn = "New day in %s",
 		ResetsAbove = "Resets in", -- over the clock pill
 		NextFolded = "Next", -- the folded pill: "Next ->" then the next step's block
 	},
 	-- A Robux purchase's thank-you (Purchased): one line, "Thank you!" and the item by name or
-	-- what it gave (RewardsParts.gains: "+$250,000", "+10 Mystery Lucky Blocks").
+	-- what it gave (RewardsParts.gains: "+$250,000", "+5 Mystery Lucky Blocks").
 	Purchased = {
 		Thanks = "Thank you!",
-		Line = "Thank you! %s", -- what was bought: "Thank you! +10 Mystery Lucky Blocks"
+		Line = "Thank you! %s", -- what was bought: "Thank you! +5 Mystery Lucky Blocks"
 		Named = "+%s", -- an item by name: "+VIP", "+Ability Slot 2"
 		Vip = "VIP",
 		Party = "Money Party",
@@ -1083,29 +1108,34 @@ return {
 		Title = "VIP perks active",
 		TwoX = "x2", -- stamped beside a pot's money VIP doubled (CashFlyer)
 	},
+	-- The Grand Opening Luck's clover by the money pill (LuckClover; economy v5 plan 3.4): its
+	-- card's title, each boosted step ("Rare to Epic: 27% instead of 18%") and the countdown.
+	LuckClover = {
+		Title = "Extra luck for the release!",
+		Step = "%s to %s: %s instead of %s",
+		EndsIn = "Ends in %s",
+	},
 	-- The login days (economy v4 plan 6.1): the first week, then the later weeks.
 	Login = {
 		FirstWeek = "Day %d: %s · log in on any 7 days within 14",
 		FirstWeekLeft = "%d days left to finish your first week",
 		LaterWeeks = "Day %d of 7",
 		NeedsMatch = "Finish one match to claim today's reward",
-		VipBlock = "VIP: a Rare Lucky Block every day",
+		VipBlock = "VIP: an Uncommon Lucky Block every day",
 		VipRestricted = "VIP: $5,000 every day", -- where paid random items are restricted
 	},
 	-- The shop's v4 lines (economy v4 plan sections 8.2-8.5).
 	ShopV4 = {
 		LaunchBonus = "Launch bonus +%d%% · ends %s",
-		MysteryBonus = "%d for %d", -- "13 for 10" during the launch bonus
 		OneByOne = "%s R$ one by one", -- a bundle's saving, never a crossed-out price
 		BestValue = "Best value",
 		UniqueLeft = "%s · %s of %s left", -- "Beta Cue · 23 of 100 left"
 		CopyOf = "#%d of %d", -- a capped Unique's copy: "#4 of 100"
 		OnlyEver = "only %s ever", -- "only 100 ever"
-		VipPerks = "2x money · no timers · a Rare Lucky Block every day · +1 spin a day · "
+		VipPerks = "2x money · no timers · an Uncommon Lucky Block every day · +1 spin a day · "
 			.. "Skip and Auto Spin · the VIP restock slot · the VIP Cue",
 		VipRestrictedNote = "Where Lucky Blocks can't be bought, the daily block is $5,000.",
 		StarterRestricted = "$40,000 + 1 hour of 2x money",
-		RestockOdds = "Each slot: Rare %s · Epic %s · Legendary %s · Mythic %s",
 	},
 	-- The "Odds & Details" popup behind every lucky block's dice badge (OddsDetails; economy v4
 	-- plan 13: every outcome's chance, before buying). The Mystery block's adds its pity, the
@@ -1119,15 +1149,26 @@ return {
 		-- its chance goes to the block's lowest rarity): its bar says why.
 		UniqueOwned = "%s · Owned",
 		UniqueGone = "%s · All found",
-		-- The Mystery block's (ShopMysteryOdds): the final tiers first, then pity as two meters
-		-- (designer, 2026-10-08: "pity make it easier to explain and show ... like 99/100").
+		-- The Mystery block's (ShopMysteryOdds): the blocks it turns into first (economy v5.1),
+		-- then pity as two meters (designer, 2026-10-08: "pity make it easier to explain and
+		-- show ... like 99/100").
 		Pity = "Pity", -- the head over the pity meters (designer, 2026-10-09: nothing after it)
-		PityRare = "Guaranteed Rare or better", -- a meter's word
-		PityEpic = "Guaranteed Epic or better",
+		-- A meter's word (economy v5.1: a Rare block by the 10th Mystery block without a Rare or
+		-- better cue, an Epic block by the 40th; each still climbs).
+		PityRare = "Rare guaranteed",
+		PityEpic = "Epic guaranteed",
 		PityCount = "%d/%d", -- the blocks opened since the last one, the count: "3/10"
-		Live = "Your next Mystery block is %s or better!", -- the tier's name
-		Tiers = "Final tier",
-		TiersLive = "Final tier, with pity",
+		Live = "Your next Mystery block turns into a %s block!", -- the tier's name (v5.1)
+		Tiers = "Turns into",
+		TiersLive = "Turns into, with pity",
+		-- Under the blocks it turns into (economy v5.1): the second step, and what the cue list
+		-- below counts.
+		TurnNote = "Then that block climbs from its name, the same as anywhere else. Each cue below counts both steps.",
+		Ends = "Ends with a cue that is", -- the head over each rarity's chance, both steps (v5.1)
+		-- Every block's list: each cue on its own line (economy v5 plan 3.3) under this head,
+		-- its chance and "1 in N" ("0.29% · 1 in 345").
+		EachCue = "Each cue",
+		CueChance = "%s · 1 in %s",
 	},
 
 	-- The lucky block reel's skip hint (LuckyOpening, UltSpinAnim, PullCutscene, ResultCutscene).
@@ -1255,6 +1296,7 @@ return {
 		NoItems = "Nothing you can trade yet",
 		TheyHaveNone = "They have nothing to trade yet",
 		Full = "Your side is full",
+		Climbed = "Climbed %s", -- a climbed lucky block (economy v5): "Climbed Rare Block"
 		Lopsided = {
 			Mine = "Careful! You give far more than you get!",
 			Theirs = "Big deal for you: they give far more!",
@@ -1323,6 +1365,9 @@ return {
 			Mythic = "[GLOBAL]: %s pulled a Mythical Cue!",
 			Secret = "[GLOBAL]: %s pulled a Secret Cue!",
 		},
+		-- The "1 in N" after an unboxing's sentence (economy v5 plan 3.9): the sentence, then N
+		-- ("2,610", "8.24"): "Painicane unboxed a Legendary Cue! (1 in 2,610)".
+		OneIn = "%s (1 in %s)",
 		-- A Legendary or Mythic block in the restock, in every server (economy v4 plan 8.4): the
 		-- time left in the restock ("9:41").
 		Restock = {

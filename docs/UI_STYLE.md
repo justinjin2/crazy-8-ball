@@ -227,7 +227,8 @@ below are the summary; the skill has the numbers and code.
 - **The art:** `tools/gen_ui_art.py` renders the icons (`assets/ui/icons`) and the effect
   images (`assets/ui/art`: the pattern tile, ball gloss and band, rays, 9-slice shadow).
 - **Screens:** the match top bar, the turn popup, the foul popup (no panel, 3 s), the hints,
-  the leave and surrender dialog, the coin and result cards, the host menu, the floor box, the
+  the leave and surrender dialog, the coin card (a player's headshot token each side of the
+  coin, in its gold rim; 2026-10-09) and the result card, the host menu, the floor box, the
   table sign (only near its table), the power bar, the spin panel and the pocket targets.
 - **Calling the 8** (designer, 2026-09-27): choosing, every pocket gets a 44 px ring with its
   name. Once called, while you shoot, the chosen pocket keeps a ring sized to sit inside its
@@ -246,9 +247,11 @@ below are the summary; the skill has the numbers and code.
   shows while a clock runs. No names under the portraits (a rank badge goes there later).
 - **No status card** (designer, 2026-09-26): whose turn it is shows as a small popup under the
   bar for 2 s when a turn starts ("YOUR TURN" in green with the cue, "OPPONENT'S TURN",
-  "ALLY'S TURN"), like the foul popup but smaller. The same popup says "YOU ARE SOLIDS" or
+  "ALLY'S TURN"), like the foul popup but smaller; only when the table comes to a new shooter,
+  not again after each pot of a shooter who keeps it (designer, 2026-10-09; its sound too). The same popup says "YOU ARE SOLIDS" or
   "YOU ARE STRIPES" in gold, with a solid or striped ball, for 3.5 s when the break's first
-  legal ball decides the groups (2026-09-27); during the turn, the shooter's green
+  legal ball decides the groups (2026-09-27; its full time even into the same shooter's next
+  turn since 2026-10-09); during the turn, the shooter's green
   clock ring round the portrait shows it, draining with the clock. With ball in hand a blue
   "MOVE 12s" pill with the hand under the big clock counts the time left to move the cue
   ball; the big clock holds at the full shot clock, and the ring stays full, until it ends. The
@@ -473,7 +476,9 @@ then; the reel's rules hold for the blocks.
   purple vortex: a bass hit and a longer riser with the fade, a ring pulse in the black, purple
   rays spinning up while sparkles spiral in from the corners, a collapse into a bright point
   and a white burst on the riser's peak (about 2 s from the fade, never skipped). Legendary is
-  a film behind letterbox bars (side to front, low up at a gold star, from the sky as its beam
+  a film behind letterbox bars (`Letterbox`: a share of the screen's height, but on a phone
+  at least 90% of the way over Roblox's top row or the hotbar, whichever is deeper (70 px on
+  the iPhone emulator); edge to edge, past the safe area) (side to front, low up at a gold star, from the sky as its beam
   hits on the track's impact, a heavy shake and sparks), a fade to black with the rise starting under it,
   a gold starlight warp, a white flash and the card (about 9 s, skippable once seen). Tap (or A) skips, in two stages (section 14). Fast Open's grid, the first
   win's reel inside the result screen and the "Still opening" wait are gone: a block is
@@ -849,29 +854,39 @@ band, restock tiles and pass bands.
 - **Each section** sits on a pale blue panel, its navy title pill (gold words, a thin gold
   rim) across the panel's top edge; white boxes inside.
 - **The Mystery block (A)**: the rainbow block with a purple glow, turning rays and twinkles
-  (the picture stays still) and the sky-blue dice at its corner; the six tiers (the tier's
-  block, its name in its colour, the chance in sky blue) filling the box, no line under them
-  (designer, 2026-10-09); x1 and x10 columns: the count in gold, the purple gift square and the green Robux
-  button, the gold money button under; the red "13 for 10!" ribbon, tilted and shaking, on x10
-  while the launch bonus runs; the Epic guarantee strip under everything ("Epic guaranteed in
-  53" and a purple bar).
+  (the picture stays still) and the sky-blue dice at its corner; the five blocks it turns into
+  (economy v5.1: Standard to Legendary, each the tier's block, its name in its colour and the
+  chance in sky blue: 70%, 22%, 6.8%, 0.71%, 0.04%) filling the box, a small dice after each
+  name opening that block's own Odds & Details, the same popup as the restock's (it is the same
+  block); x1 and x5 columns: the count in gold, "45 R$ one by one" under x5 (the live single
+  price times five),
+  the purple gift square and the green Robux button (the live price; greyed when off sale), the
+  gold money button under; the red "6 for 5!" ribbon, tilted and shaking, on x5 while the
+  launch bonus runs; the pity strip under everything: "Rare guaranteed in 10" and "Epic
+  guaranteed in 40" side by side, each with its tier's block and a bar in its colour filling
+  with the blocks opened ("Your next one is Rare!" once it is the very next).
 - **The Mystery block's "Odds & Details"** (economy v4 plan 3.2, hand-off item 13,
   `ShopMysteryOdds` in the shared popup below; designer, 2026-10-08: "show the block tiers
-  first, then pity"): **Final tier** first, each tier as a rarity bar with its block over the
-  bar's left end and its chance (Standard in Common's grey); then **Pity** (the head says just that; designer, 2026-10-09) as two meters, a
-  pale track filling with the rarity's bar ("Guaranteed Rare or better" 3/10, "Guaranteed
-  Epic or better" 56/100); once a guarantee is the very next block a gold line says "Your next
-  Mystery block is Epic or better!" and the lists show the odds with pity; then **Each
-  Mystery block**, a bar per rarity; then the one line. No description line. A Mystery day's
-  dice in Free Reward opens the same list.
-- **The restock (B)**: "RESTOCK", a stopwatch and the time in its pill; four slot cards, each
-  the block big in its rarity's glow with the dice at the top right, "**Rare** Lucky Block", a
-  navy "x2 left" pill, the green Robux button over the gold money button (no gift square:
-  restock items cannot be gifted). The 4th is the VIP slot: cream with a gold edge, a crown
-  rocking over its block; without VIP it says "VIP only" in gold and shows one Get VIP button
-  between the two button rows. "Each slot: Rare 87% · Epic 12% · ..." under the slots.
+  first, then pity"): **Turns into** first (economy v5.1), each block it can turn into as a
+  rarity bar with its block over the bar's left end and its chance (Standard in Common's grey),
+  then the small line "Then that block climbs from its name, the same as anywhere else. Each
+  cue below counts both steps."; then **Ends with a cue that is**, each rarity's chance over
+  both steps as plain rarity bars; then **Pity** (the head says just that; designer,
+  2026-10-09) as two meters, a pale track filling with the rarity's bar ("Rare guaranteed"
+  3/10, "Epic guaranteed" 12/40); once a guarantee is the very next block a gold line says
+  "Your next Mystery block turns into a Rare block!" and the lists show the odds with pity;
+  then **Each cue**, every cue on its own line in its rarity's colour with its chance and "1 in
+  N" over both steps; then the one line. No description line. A Mystery day's dice in Free Reward opens the same list.
+- **The restock (B)**: "RESTOCK", a stopwatch and the time in its pill; three slot cards
+  across the band (economy v5), each the block big in its rarity's glow with the dice at the top
+  right, "**Rare** Lucky Block", a navy "x2 left" pill, the green Robux button over the gold
+  money button (no gift square: restock items cannot be gifted). Slot 1 wears a tilted tag in
+  its floor's colour at its top left ("Epic or better!"). The 3rd is the VIP slot: cream with a
+  gold edge, a crown rocking over its block; without VIP it says "VIP only" in gold and shows
+  one Get VIP button between the two button rows. Under each card its own odds, each kind in
+  its colour ("Rare 55% · Epic 34% · ...").
 - **The Starter Pack and VIP cards** each have the sky-blue dice on their picture's top left
-  corner: the odds of the lucky block in them (the Starter Lucky Block, VIP's daily Rare
+  corner: the odds of the lucky block in them (the Starter Lucky Block, VIP's daily Uncommon
   block); hidden where paid random items are restricted.
 - **The Starter Pack and VIP** (designer, 2026-10-08, their second reference: "so it can fit
   on one page without scrolling"; `ShopOffers`, `Config.UI.ShopBlocks.Pair`): two wide cards
@@ -961,10 +976,12 @@ band, restock tiles and pass bands.
 ## 21. The day's win track over the hotbar (designer's pick A, 2026-10-08)
 
 `WinTrack`, sizes in `Config.UI.WinTrack`, words in `Strings.WinTrack`; the steps are
-`Config.BlockOdds.Drop.WinTrack` (economy v4 plan section 5).
+RewardState's `wins.kinds` (`Config.BlockOdds.Drop.WinTrack`, economy v5 plan section 4; a new
+player's first win shows its Rare block).
 
 - **A white bar of ten tiles** centred over the hotbar, one per counted win of the day: the
-  step's block with its number on a navy dot at the tile's corner. A step given today is greyed
+  step's block with its number on a navy dot at the tile's corner; a money step is the cash
+  bundle, smaller and higher, over "$1K" in the money green. A step given today is greyed
   under a green tick; the next one has a thick gold edge and a gold NEXT tag across its bottom
   edge, hopping gently.
 - **Across the top edge**, navy pills with a gold rim: "Wins 3/10" at the left (after the tenth:
@@ -976,7 +993,7 @@ band, restock tiles and pass bands.
 - **A new step** pops its tick where the player sees it: at once while the bar shows, else
   as the bar comes back after the result screen, one tick after another.
 - **Folded by default** (designer, 2026-10-08): a navy pill with a gold rim at the bar's foot,
-  "Next ->" and the next step's block, "Wins 3/10" and an up arrow; a press opens the whole
+  "Next ->" and the next step's block (or the cash bundle), "Wins 3/10" and an up arrow; a press opens the whole
   bar, and its fold button (a navy circle with a gold rim and a down arrow on the bar's top
   edge, between the pills; designer, 2026-10-09) folds it. **After a match** it opens by itself as it comes back, for 4 s
   (`PeekSeconds`), then folds (a press meanwhile keeps it as pressed). "Resets in" sits over
@@ -1092,14 +1109,14 @@ band, restock tiles and pass bands.
 shares of the screen's height so a phone shows the same stack. Section 14's motion stays: the
 jump out of the hotbar, the float, the presses, the impact, the jump back.
 
-- **Top**: a white pill counting the presses, "Mystery Lucky Block - 2 / 4"; under it "The
-  result is decided when you open it; the presses reveal it." and the pity counters as they
-  stood before this block ("Rare by 3 more · Epic by 87 more", so they never give the result
-  away); then the tier's name: the rainbow "MYSTERY" when it lands (designer, 2026-10-09: it
-  stays a Mystery block until the first press, and the ladder lights nothing), then the start
-  the first press shows ("STANDARD!", with the impact), "EPIC!" when a later press lifts it.
-- **The block** in the room between the name and the dots, its glow, rays and particles as
-  before.
+- **Top**: a white pill counting the presses, "Mystery Lucky Block - 2 / 4"; right under it
+  the tier's name (designer, 2026-10-09: no lines between them; the decided line and the pity
+  counters went, the Shop's odds popup still has both): the rainbow "MYSTERY" when it lands
+  (it stays a Mystery block until the first press, and the ladder lights nothing), then the
+  start the first press shows ("STANDARD", with the impact), "EPIC!" when a later press lifts
+  it. Every tier's name has a "!" but Standard's.
+- **The block** in the room between the name and the dots (up to `BlockShare` 0.35 of the
+  screen's height, which a phone's room fills), its glow, rays and particles as before.
 - **Under it**: the four press dots (the next one a pulsing "?"), then the white Tap! button
   with the tutorial's pointer hand, big ("Click!" with a mouse, "Press A" on a gamepad). It stays
   through the presses, swelling with each, and pops back as "Tap to collect", rocking gently.
@@ -1160,3 +1177,85 @@ screen's width (`WidthShare`), the frame's 66% on a phone.
 
 **Open**: a real purchase on Roblox, a real phone and a controller (the tag and the folded
 win track are press targets, not yet in the gamepad's route).
+
+## 28. The ball streak (designer, 2026-10-09)
+
+The approved mockup: https://claude.ai/artifact/7sj2aFqL94Zv5C1n7Us44T. `StreakHud`,
+`StreakMath`, `Config.UI.Streak`, `Strings.Streak`; the rules in `Rules/Streak` (GDD section 8).
+
+- **Where** (designer, 2026-10-09, after the first Studio build covered the far end of the
+  table): in the match popups' row just under the top bar, where YOUR TURN shows, 6 px below
+  its middle so x8 clears the bar. While a new shooter's turn or a foul shows there the streak
+  fades out in 0.12 s and pops back in when it goes (a step meanwhile still plays its sound and
+  shake). **YOU ARE SOLIDS / STRIPES** it does not hide for: it slides down under it in 0.35 s
+  and back up once it has faded, for everyone at the table (it shows as the ball that picks
+  the groups drops, often a run's second ball after the break's).
+- **On a phone** (a short screen, as the top bar's compact layout; designer, 2026-10-09, on
+  an iPhone: it covered too much of the screen): it shows only from a ball's drop until the
+  next turn begins (at least 1 s), then fades over 0.4 s and stays away until the next counted
+  ball. Tablets and computers keep it up all turn. It sits under the whole match HUD (ZIndex 0), never takes input, and hides with the
+  HUD for menus.
+- **Words**: "STREAK" and "x2" in **Press Start 2P** (built into Roblox), one label per letter,
+  the number a quarter bigger on the same baseline, a square ink outline (UIStroke, Miter), a
+  dark drop shadow and a light-topped fill (UIGradient). 18 px letters at x1, the capitals
+  about as tall as YOUR TURN's words (the same on a phone, as the popups are), 5% bigger each
+  level (x8 is 1.35x).
+- **Each level's colour**: x1 white, x2 yellow, x3 orange, x4 blue, x5 purple, x6 red, x7 gold,
+  x8 a moving rainbow, one hue per letter. From x6 a cyan and a pink copy sit either side of
+  each letter (a spray-paint look). The motion grows each level: the beat, the sway, the
+  whole-pixel wave and, from x5, a jitter.
+- **The step up**: a squash, two pure white impact frames, a punch out to 1.45x settling back
+  (Back), the number slamming in big and tilted, the burst (white ring and rays tinted the new
+  colour) and pixel shards. Each step's spray is its level's (`Config.Audio.Ui.Streak2..8`);
+  x1 has none. Two balls in one shot step twice, 0.12 s apart. **Past x8** (x9 after a break
+  and run, Solo up to x15) it counts on, x9, x10, in x8's rainbow look and size, with no
+  spray.
+- **Fire from x3**: low pixel flames hugging the words (`tools/gui/streak_fire.py`: 32 frames
+  at 30 fps, a seamless loop, drawn pixelated; designer, 2026-10-09), burning behind the
+  letters from their middle: x3's tips just peek over them, each level taller and hotter, x8's
+  about a letter high (orange, blue, purple, black-red, gold-white, rainbow). Tips that reach
+  the top bar go behind it. It grows in at x3 and flares on every step.
+- **The shake** from x3: a tiny camera shake on each step, a little stronger each level
+  (`ScreenFx.shake`).
+- **The end**: the fire sinks and the letters drop 6 px and fade over 0.5 s.
+- **Money chips**: a streak bonus chip ("+$25" at x3) flies in the level's colour (x8 the
+  rainbow) beside the green ball chip; for a VIP it turns gold at the "x2" like every VIP chip.
+  The result screen adds "Streak bonus (best x6)".
+- **Settings**: Reduce Motion drops the shake, the sway, the wave and the jitter; Lower effects
+  halves the shards and drops the ghost copies.
+
+**Open**: a real phone and the sound by ear (the spray over the pocket ding).
+
+## 29. Economy v5's small pieces (the GUI run, 2026-10-09)
+
+Built in their screens' style on the designer's "use your judgment"; screenshots in
+`~/Desktop/8ball-refs/economy-v5-gui/`. Sizes in Config, words in Strings.
+
+- **The climb mark** (`LuckyBlocks.UI.ClimbMark`): a Mystery's hotbar and bag slot wears an
+  ink disc with a white ring and a gold up-arrow at its top right; its slot says OPEN!. A tap
+  opens its upgrade screen. Since economy v5.2 no other block has the mark, OPEN! or the
+  screen: a Rare block is held, thrown and opened into a reel at its climb's odds (Rare and
+  Epic cards and rarer, each chip its real chance).
+- **The Secret rung** (section 25's ladder): the Mythic block darkened (`Reveal.Secret.Tint`)
+  with a red "?"; a Secret climb slams SECRET! in red, then the pull cutscene and YOU GOT.
+- **The quick reveal** (`LuckyOpening.quick`): the result card alone at 0.8 with its rays and
+  sting, gone by itself after 1.5 s (a tap sooner). Off since 2026-10-09 (the designer: the
+  reel every time); `Config.LuckyBlocks.QuickReveal` lists the rarities that would use it.
+- **"Open all"** (`LuckyHotbar`, `LuckyBlocks.UI.OpenAll`): a green kit button right of the
+  bag button while a ready climbed Standard or Uncommon block waits; its summary is "37 BLOCKS
+  OPENED!" over one cue card per cue ("x7", NEW on a first find), rarest first, in the columns
+  that make the cards biggest; a tap closes it.
+- **The Grand Opening Luck's clover** (`LuckClover`, `UI.LuckClover`): a navy badge with a
+  green rim right of the VIP tag (in its place without VIP), the four-leaf clover rocking,
+  only while the luck runs; hover shows its card ("Extra luck for the release!", each boosted
+  step, the countdown), a tap pins it.
+- **Each cue in Odds & Details** (`OddsDetails.cues`): every cue on its own line in its
+  rarity's colour, its chance and "1 in N" at the right.
+- **The shop's pity bars, the restock's tag and per-slot odds** (section 18).
+- **The win track's money tile** (section 21) and the result screen's "Win track +$1,000" line
+  after the win bonus.
+- **The first week's day 7** (`FreeDaily`): the cue itself in the block's place over its
+  rarity's glow, its name and rarity (in its colour) on the line above the spins; no dice. A
+  claimed cue flies to the CUES button. In Cues and the Index it shows "Day 7" and "Day 7 of
+  your first week" where a block cue shows its chance.
+

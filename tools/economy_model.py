@@ -1,33 +1,41 @@
 #!/usr/bin/env python3
-"""Economy model for Crazy 8 Ball (economy v4, "the forgiving economy"): a 60-day player-population
+"""Economy model for Crazy 8 Ball (economy v5.1, "every block climbs"): a 60-day player-population
 simulation that reads every game number from src/shared/Config.luau (through tools/economy_config.json).
 
-    python3 tools/economy_model.py                # v4 at day 7, 30 and 60, against the targets
+    python3 tools/economy_model.py                # v5.1 at day 7, 30 and 60, against the plan's numbers
     python3 tools/economy_model.py --built-only   # the same without the planned, not yet built features
-    python3 tools/economy_model.py --compare      # the economy before v4, v4 built only and v4 side by side
+    python3 tools/economy_model.py --compare      # before v4, v4 (frozen), v5 built only and v5 side by side
+    python3 tools/economy_model.py --sell         # v5 with finder's money, the Index rows and selling back
     python3 tools/economy_model.py --retention typical   # a typical Roblox game's retention instead of the plan's
     python3 tools/economy_model.py tables         # odds per block and per Mystery block, money per hour, rank hours
     python3 tools/economy_model.py value          # the Robux value ladder: R$ to pull each rarity, money vs Robux
     python3 tools/economy_model.py players        # reference players: first session ... day 30
     python3 tools/economy_model.py copies         # when each cue's first 100 copies are gone
+    python3 tools/economy_model.py exists         # Config.Trade.BlockExists and ClimbedExists at day 30
     python3 tools/economy_model.py ranks          # a year of players on the rank ladder (slow, a few minutes)
 
-Sources modelled: the 10-step daily win track (wins 11+ pay money and XP only), the Mystery block's
-tier roll with pity (bought blocks too), every block's odds row, the first week (any 7 login days
-within 14 of joining) and the later weeks, the 28-day track, playtime gifts, VIP's daily block,
-the group, favorite, invites, launch codes and the first-leave Gift, rank rewards, the restock shop
-(money and Robux, Mythic included), the Grand Opening block (window, copy caps, guarantee), the
-Starter Pack, money packs and the launch bonus. Config.Planned (the Lucky Shot, Golden Shot, Lucky
-Rain and stay bonus) is designed but not built; it is in by default, as in the approved plan, and
---built-only switches it off.
+Sources modelled: the 10-step daily win track (blocks and money steps; wins 11+ pay money and XP
+only), the climb (economy v5: every block climbs from its name on one ladder, Config.BlockOdds.Climb,
+with the Grand Opening Luck for its first days; a climbed block gives exactly its tier's rarity,
+the Secret climb its cue), the Mystery (economy v5.1: its roll, Config.BlockOdds.Turn, turns it into
+an unclimbed block that then climbs; pity with its head start, bought ones too, counted on the cue
+it finally gives), the Grand Opening and Starter blocks' own rows, the first week (any 7 login days within 14 of
+joining; day 7 the Week One Cue) and the later weeks, the 28-day track, playtime gifts, VIP's daily
+block, the group, favorite, invites, launch codes and the first-leave Gift, rank rewards, the
+restock shop (money and Robux; slot 1 its own table), the Grand Opening block (window, copy caps,
+guarantee), the Starter Pack, money packs and the launch bonus. Config.Planned (the Lucky Shot,
+Golden Shot, Lucky Rain and stay bonus) is designed but not built; it is in by default, as in the
+approved plan, and --built-only switches it off. --sell adds finder's money, the Index rows'
+money and selling duplicates (and the Week One Cue) back, by the ASSUMPTION shares below.
 
 The numbers come from tools/economy_config.json, which tools/export_economy.luau writes from Config
 (this script runs it through Lune when the JSON is missing or older than Config). How players
 behave is an ASSUMPTION constant below, each with a comment. "before" (--compare) is a frozen copy
-of the economy before v4, kept only for comparison.
+of the economy before v4, and "v4" (--compare) is built from tools/economy_config_v4.json, the
+exported Config at the last v4 commit (f4e17c0); both are kept only for comparison.
 
-Not modelled: sell-back money, Money Party, timer skips, Limited cues, trading, anti-farm and PC/bot
-money rules. Nothing here runs in the game. Python 3 standard library only.
+Not modelled: Money Party, timer skips, Limited cues, trading, anti-farm and PC/bot money rules
+(sell-back money only with --sell). Nothing here runs in the game. Python 3 standard library only.
 """
 
 import argparse
@@ -43,11 +51,14 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 CONFIG_JSON = ROOT / "tools" / "economy_config.json"
+CONFIG_V4_JSON = ROOT / "tools" / "economy_config_v4.json"  # frozen: Config at f4e17c0, for --compare
 EXPORTER = "tools/export_economy.luau"
 SOURCES_LUAU = [ROOT / "src/shared/Config.luau", ROOT / "src/shared/Progression/Catalog.luau", ROOT / EXPORTER]
 
 RAR = ["Common", "Uncommon", "Rare", "Epic", "Legendary", "Mythic", "Secret"]
-TIERS = ["Standard", "Uncommon", "Rare", "Epic", "Legendary", "Mythic"]
+# The climb ladder (economy v5): the six block tiers and the Secret on top (no Secret block: a
+# climb that reaches it gives the Secret cue, its own row below).
+TIERS = ["Standard", "Uncommon", "Rare", "Epic", "Legendary", "Mythic", "Secret"]
 OUTS = RAR + ["Firework", "Beta"]
 UNIQUES = {"FireworkCue": "Firework", "BetaCue": "Beta"}  # the Grand Opening's numbered cues, as outcomes
 CUES = {}  # cues of each rarity that can drop (filled from Config)
@@ -67,6 +78,9 @@ WIN_RATE_MEAN, WIN_RATE_SD, WIN_RATE_RANGE = 0.5, 0.06, (0.3, 0.72)
 MIN_PER_MATCH = 8.0  # minutes per match including the end screen (7.5 matches an hour)
 WINNER_BALLS, LOSER_BALLS = 7.5, 4.0  # balls that pay the winner / loser in a match
 WINNER_NICE, LOSER_NICE = 0.5, 0.3  # nice shots per match, winner / loser
+# The share of paying balls at each ball streak level (x1..x8+): the all-rank average of
+# tools/streak_model.luau (200 bot-duel games a rank, 2026-10-09). Prices the streak bonus.
+BALL_STREAK_LEVELS = {1: 0.520, 2: 0.244, 3: 0.121, 4: 0.062, 5: 0.032, 6: 0.015, 7: 0.006, 8: 0.002}
 MODE_MIX = {"Classic": 0.5, "Difficult": 0.3, "Challenger": 0.2}  # tables played once harder ones unlock
 MODE_RANK_XP = 1.3  # rank XP a win earns on that mix, against Classic (for the rank rewards)
 PAYER_SHARE_STAYERS, PAYER_SHARE_OTHERS = 0.06, 0.012  # pay Robux: lifetime 7+ days / shorter
@@ -94,6 +108,11 @@ RINGS = [0.30, 0.30, 0.20, 0.12, 0.08]  # Lucky / Golden Shot: miss, grey, blue,
 LUCKY_SHOT_SHARE = 0.8  # days played on which the free Lucky Shot is taken
 GOLDEN_BUYER_SHARE = 0.25  # payers who buy the Golden Shot on a day they play
 LUCKY_RAIN_CATCH = 0.2  # share of Lucky Rains a player is in a match for and reaches a block
+# --sell (economy v5 plan 7.5): the share of DUPLICATE copies a player sells back by rarity (first
+# copies are kept, for the Index), and the share of Week One Cue owners who sell theirs.
+SELL_DUPLICATES = {"Common": 1.0, "Uncommon": 1.0, "Rare": 0.9, "Epic": 0.6, "Legendary": 0.4, "Mythic": 0.25,
+                   "Secret": 0.25}
+WEEK_ONE_SELL = 0.3
 
 SOURCES = ["win track", "mystery (money)", "mystery (Robux)", "restock (money)", "restock (Robux)", "login + 28-day",
            "playtime", "rank rewards", "group/fav/invite/codes/gift", "vip daily", "grand opening", "starter pack",
@@ -130,11 +149,56 @@ def load_config():
 
 
 def reward(row):
-    """A Config reward row ({Money, Blocks, Spins}) as {"money": n, kind: n}. Spins are not loot."""
+    """A Config reward row ({Money, Blocks, Cues, Spins}) as {"money": n, kind: n, "cues": [ids]}.
+    Spins are not loot."""
     out = {}
     if row.get("Money"):
         out["money"] = row["Money"]
     out.update(row.get("Blocks") or {})
+    if row.get("Cues"):
+        out["cues"] = list(row["Cues"])
+    return out
+
+
+def chain_dist(chain, start):
+    """The final tier (percent) of a block that starts at `start` and climbs one step with
+    chain[tier] (0-1) until a step fails (economy v5: Config.BlockOdds.Climb)."""
+    out, p, t = {}, 1.0, TIERS.index(start)
+    while True:
+        up = chain.get(TIERS[t], 0.0) if t < len(TIERS) - 1 else 0.0
+        out[TIERS[t]] = p * (1 - up) * 100
+        if up <= 0:
+            break
+        p *= up
+        t += 1
+    return {k: out.get(k, 0.0) for k in TIERS}
+
+
+def per_block(plan, kind, launch=False):
+    """One block of `kind`'s cue rarity odds (percent, no pity): a climbing kind's climb from its
+    start (with the launch luck when `launch`) times each final tier's row, else its own row."""
+    rows = plan["rows"]
+    kind = plan.get("alias", {}).get(kind, kind)
+    cl = plan.get("climb")
+    if kind == "Mystery":
+        tier = plan["tier_launch"] if launch and plan.get("tier_launch") else plan["tier"]
+        if plan.get("unified"):
+            # Economy v5.1: the block it turns into, then that block's own climb.
+            out = {r: 0.0 for r in RAR}
+            for t, pt in tier.items():
+                if pt:
+                    for r, pr in per_block(plan, t, launch).items():
+                        out[r] += pt / 100 * pr
+            return out
+    elif cl and kind in cl["starts"]:
+        tier = chain_dist(cl["launch_chain"] if launch else cl["chain"], kind)
+    else:
+        return {r: rows[kind].get(r, 0.0) for r in RAR}
+    out = {r: 0.0 for r in RAR}
+    for t, pt in tier.items():
+        for r, pr in rows.get(t, {}).items():
+            if r in out:
+                out[r] += pt / 100 * pr
     return out
 
 
@@ -155,14 +219,19 @@ def rank_wins(c):
 
 
 def plan_from_config(c, built_only=False):
-    """The v4 plan in the simulation's shapes, every number from Config."""
+    """The plan in the simulation's shapes, every number from Config: economy v5 (Config has the
+    climb, Config.BlockOdds.Climb), or v4 for the frozen tools/economy_config_v4.json."""
     CUES.update(c["BlockCues"])
     bo, total = c["BlockOdds"], c["BlockOdds"]["OddsTotal"]
+    v5 = "Climb" in bo
     assert bo["Rarities"] == RAR, bo["Rarities"]
     drop, kinds = bo["Drop"], c["LuckyBlocks"]["Kinds"]
     daily, social, shop, prod = c["Daily"], c["Social"], c["Shop"], c["Products"]
     e = c["Economy"]
     nice = sum(e["NiceShotPay"].values()) / len(e["NiceShotPay"])
+    # The ball streak's bonus on an average paying ball (Config.Economy.BallStreak*).
+    streak_ball = e["BallPay"] * e["BallStreakShare"] * sum(
+        p * max(n - e["BallStreakFrom"] + 1, 0) for n, p in BALL_STREAK_LEVELS.items())
     dm = c["DifficultyMoney"] if e["UseDifficultyMultiplier"] else {m: 1 for m in MODE_MIX}
     rk = c["Ranks"]
     wins_at = rank_wins(c)
@@ -172,15 +241,22 @@ def plan_from_config(c, built_only=False):
     go_kind = kinds["GrandOpening"]
     lb = shop["LaunchBonus"]
     bonus_on = lb["Percent"] > 0 and lb["With"] == "GrandOpening"
+    rows = {k: pct_row(row["Odds"], total) for k, row in bo["List"].items()}
+    rows["Secret"] = {"Secret": 100.0}  # the top of the climb: the Secret cue (no block)
+    # The win track: a block kind, or (economy v5) "Money", a step paying WinTrackMoney.
+    track = [{"money": drop["WinTrackMoney"]} if k == "Money" else k for k in drop["WinTrack"]]
+    bulk = shop["Mystery"]["BulkCount"]
+    bulk_key = f"Mystery{bulk}" if f"Mystery{bulk}" in prod else "Mystery10"
+    start = drop.get("PityStart") or {}
     plan = {
-        "name": "v4 built only" if built_only else "v4",
-        "rows": {k: pct_row(row["Odds"], total) for k, row in bo["List"].items()},
-        "lucky8": kinds["Lucky8"]["Odds"], "gift": kinds["Gift"]["Odds"],
-        "tier": {t: drop["Weights"].get(t, 0) * 100 / total for t in TIERS},
+        "name": ("v5.1" if "Turn" in bo else "v5" if v5 else "v4") + (" built only" if built_only else ""),
+        "rows": rows,
         "pity": {"Rare": drop["PityRare"], "Epic": drop["PityEpic"]},
+        # A new save's pity counters (economy v5: a head start; v4: none).
+        "pity_start": (start.get("SinceRare", 0), start.get("SinceEpic", 0)),
         "pity_paid": True,  # every Mystery block counts and gets pity, bought ones too
         "first_win": drop["FirstWin"],
-        "track": drop["WinTrack"], "vip_track": [],
+        "track": track, "vip_track": [],
         "vip_daily": reward({"Blocks": daily["VipBlocks"]}),
         "login_first": [reward(r) for r in daily["FirstWeek"]],
         "login_later": [reward(r) for r in daily["Streak"]],
@@ -201,16 +277,20 @@ def plan_from_config(c, built_only=False):
                         row["Price"], prod[row["Product"]]["Robux"] if row.get("Product") else None, row["Stock"])
                     for k, row in sorted(rs["Kinds"].items(), key=lambda kv: TIERS.index(kv[0]))},
         "restock_slots": rs["Slots"],
+        # Slots with their own table (economy v5: slot 1 is always Epic or better), by slot index.
+        "restock_own": {n: {k: v * 100 / rs["ChanceTotal"] for k, v in own.items()}
+                        for n, own in enumerate(rs.get("SlotOdds") or []) if own},
         "packs": [(p["Robux"], p["Money"]) for p in c["Packs"]],
-        "mystery_robux": (prod["Mystery1"]["Robux"], prod["Mystery10"]["Robux"]),
+        "mystery_robux": (prod["Mystery1"]["Robux"], prod[bulk_key]["Robux"]),
         "go_robux": (prod["GrandOpening1"]["Robux"], prod["GrandOpening3"]["Robux"], prod["GrandOpening10"]["Robux"]),
         "starter": {"robux": prod["StarterPack"]["Robux"], "money": shop["StarterMoney"], "block": "Starter"},
         "vip_robux": prod["Vip"]["Robux"], "skip_robux": prod["LuckyBlockSkip"]["Robux"],
         "launch_bonus": lb["Percent"] / 100 if bonus_on else 0.0,
         "launch_bulk": lb["MysteryBulkCount"] if bonus_on else shop["Mystery"]["BulkCount"],
+        "robux_bulk": bulk if bulk_key != "Mystery10" or bulk == 10 else 10,
         # Match money (Config.Economy) and the money sink.
-        "win_pay": WINNER_BALLS * e["BallPay"] + WINNER_NICE * nice + e["WinBonus"],
-        "loss_pay": LOSER_BALLS * e["BallPay"] + LOSER_NICE * nice + e["LossBonus"],
+        "win_pay": WINNER_BALLS * (e["BallPay"] + streak_ball) + WINNER_NICE * nice + e["WinBonus"],
+        "loss_pay": LOSER_BALLS * (e["BallPay"] + streak_ball) + LOSER_NICE * nice + e["LossBonus"],
         "streak_bonus": e["StreakBonus"],
         "boosts": {"vip": e["VipBoost"], "group": e["GroupBoost"], "plus": e.get("PlusBoost", 0)},
         "mode_money": sum(MODE_MIX[m] * dm[m] for m in MODE_MIX), "unlock_wins": wins_at[unlock],
@@ -227,6 +307,35 @@ def plan_from_config(c, built_only=False):
                               "rare_share": 1 / rain["RareOneIn"]}
         sb = pl["StayBonus"]
         plan["stay"] = {"per_minute": sb["PercentPerStep"] / 100 / (sb["StepSeconds"] / 60), "cap": sb["MaxPercent"] / 100}
+    if v5:
+        # The climb: one chance per step (parts of OddsTotal); the Grand Opening Luck's steps for
+        # its first Seconds (the model's Grand Opening window starts on day 0, as the deal's).
+        cl = bo["Climb"]
+        chain = {t: cl["Steps"].get(t, 0) / total for t in TIERS}
+        luck = dict(chain, **{t: v / total for t, v in cl["Luck"]["Steps"].items()})
+        plan["climb"] = {"chain": chain, "launch_chain": luck,
+                         "starts": [t for t in TIERS if (kinds.get(t) or {}).get("Climb") == t]}
+        turn = bo.get("Turn")
+        if turn:
+            # Economy v5.1: the Mystery's roll (its own steps up to Top; the luck never lifts it)
+            # turns it into an unclimbed block, which climbs from its name. Pity forces the
+            # block and counts the cue the Mystery finally gives.
+            top = TIERS.index(turn["Top"])
+            steps = {t: (turn["Steps"].get(t, 0) / total if TIERS.index(t) < top else 0.0) for t in TIERS}
+            plan["tier"] = chain_dist(steps, "Standard")
+            plan["tier_launch"] = plan["tier"]
+            plan["unified"], plan["pity_final"] = True, True
+        else:
+            plan["tier"] = chain_dist(chain, "Standard")  # v5: a Standard start, with pity
+            plan["tier_launch"] = chain_dist(luck, "Standard")
+        plan["luck_days"] = cl["Luck"]["Seconds"] / 86400 if cl["Luck"]["With"] == "GrandOpening" else 0
+        # Kinds that climb from another kind's start (Lucky 8, the Gift, the Sky block).
+        plan["alias"] = {k: row["Climb"] for k, row in kinds.items()
+                         if row.get("Climb") and row["Climb"] != k and not row.get("Pity")}
+        plan["lucky8"], plan["gift"] = "Lucky8", "Gift"
+    else:
+        plan["tier"] = {t: drop["Weights"].get(t, 0) * 100 / total for t in TIERS}
+        plan["lucky8"], plan["gift"] = kinds["Lucky8"]["Odds"], kinds["Gift"]["Odds"]
     return plan
 
 
@@ -303,6 +412,8 @@ def cum(table, keys):
 
 def per_mystery(plan):
     """Each outcome's chance per Mystery block, no pity (percent)."""
+    if plan.get("unified"):
+        return per_block(plan, "Mystery")
     p = {r: 0.0 for r in RAR}
     for t in TIERS:
         for r in RAR:
@@ -333,16 +444,25 @@ def best_pack_rate(plan, robux):
 
 
 class Sim:
-    def __init__(self, plan, seed=SEED, sample=SAMPLE, days=DAYS, report=REPORT, ref=None):
+    def __init__(self, plan, seed=SEED, sample=SAMPLE, days=DAYS, report=REPORT, ref=None, sell=None):
         self.p, self.seed, self.sample, self.days, self.report, self.ref = plan, seed, sample, days, report, ref
+        self.sell = sell  # --sell: {"find", "rows", "back"} money from Config (sell_rules)
         self.v4 = plan["track"] is not None
         self.go_cue = OUTS.index(plan["go_pity_cue"])
         self.tier_cum = cum(plan["tier"], TIERS)
+        self.tier_cum_launch = cum(plan["tier_launch"], TIERS) if plan.get("tier_launch") else self.tier_cum
         self.row_cum = {k: cum(v, OUTS) for k, v in plan["rows"].items()}
-        self.row_cum["Lucky8"] = self.row_cum[plan["lucky8"]]  # the favorite's block rolls this row
-        self.row_cum["Gift"] = self.row_cum[plan["gift"]]
+        if not plan.get("climb"):
+            self.row_cum["Lucky8"] = self.row_cum[plan["lucky8"]]  # the favorite's block rolls this row
+            self.row_cum["Gift"] = self.row_cum[plan["gift"]]
         rs = plan["restock"]
         self.slot_cum = cum({k: v[0] for k, v in rs.items()}, list(rs))
+        own = plan.get("restock_own") or {}
+        self.slot_cums = [cum({k: own[n].get(k, 0.0) for k in rs}, list(rs)) if n in own else self.slot_cum
+                          for n in range(plan["restock_slots"])]
+        self.extra_money = {"find": 0.0, "index rows": 0.0, "sell-back": 0.0, "week one sold": 0.0}
+        self.match_money = 0.0
+        self.week_one_given = [0] * days  # Week One Cue copies given, by day (cumulative)
         vip_tab = {k: v[1] for k, v in rs.items() if v[1] > 0}
         self.vip_cum = cum(vip_tab, list(vip_tab))
         self.vip_kinds = list(vip_tab)
@@ -396,7 +516,12 @@ class Sim:
         money = [0.0] * N
         wins = [0] * N
         owned = [[0] * 9 for _ in range(N)]
-        rare_p, epic_p = [0] * N, [0] * N
+        rare_p, epic_p = [P.get("pity_start", (0, 0))[0]] * N, [P.get("pity_start", (0, 0))[1]] * N
+        week1 = [0] * N  # holds the Week One Cue (economy v5: first-week day 7)
+        week1_total = [0]
+        sl = self.sell
+        found = [[0] * 9 for _ in range(N)] if sl else None  # --sell: the cues found, per rarity (bits)
+        sellrng = random.Random(20261009)
         streak, claims, last_active, freeze_week = [0] * N, [0] * N, [-99] * N, [-1] * N
         first_done = [0] * N  # first-week loop days already given (bitmask)
         rank_idx = [0] * N
@@ -416,8 +541,25 @@ class Sim:
         spent = [0.0] * N  # money spent (so money earned = money + spent)
         snaps = {}
 
-        def open_row(i, kind, src, recv=None):
+        pity_paid_ok = [True]  # whether the Mystery being opened counts pity (roll_tier sets it)
+
+        def luck_on():
+            return P.get("luck_days") and day_now[0] < P["luck_days"]
+
+        def climb_from(start):
+            """Economy v5: the final tier of a block starting at `start` (one chance a step)."""
+            cl = P["climb"]
+            ch = cl["launch_chain"] if luck_on() else cl["chain"]
+            t = TIERS.index(start)
+            while t < len(TIERS) - 1 and loot.random() < ch[TIERS[t]]:
+                t += 1
+            return TIERS[t]
+
+        def open_row(i, kind, src, recv=None, climbed=False):
             received[recv or kind] = received.get(recv or kind, 0) + 1
+            kind = P.get("alias", {}).get(kind, kind)
+            if P.get("climb") and not climbed and kind in P["climb"]["starts"]:
+                kind = climb_from(kind)
             r = bisect.bisect_right(self.row_cum[kind], loot.random() * 100.0)
             r = min(r, len(OUTS) - 1)
             if kind == "GrandOpening":
@@ -434,21 +576,58 @@ class Sim:
                 if r in (7, 8):
                     unique_made[r] += 1
             owned[i][r] += 1
+            if recv == "Mystery" and P.get("pity_final") and (pity_paid_ok[0]):
+                # Economy v5.1: the counters count the cue the Mystery finally gave.
+                rare_p[i] = 0 if r >= 2 else rare_p[i] + 1
+                epic_p[i] = 0 if r >= 3 else epic_p[i] + 1
             source[src][r] += 1
             opened[kind] = opened.get(kind, 0) + 1
             if r >= 2 and first_seen[r][i] is None:
                 first_seen[r][i] = (day_now[0], hours[i])
+            if sl:
+                if r >= 7:
+                    if owned[i][r] == 1:
+                        money[i] += sl["find"]["Unique"]
+                        self.extra_money["find"] += sl["find"]["Unique"]
+                else:
+                    c_ = sellrng.randrange(CUES[RAR[r]])
+                    if not (found[i][r] >> c_) & 1:
+                        found[i][r] |= 1 << c_
+                        money[i] += sl["find"][RAR[r]]
+                        self.extra_money["find"] += sl["find"][RAR[r]]
+                        if found[i][r] == (1 << CUES[RAR[r]]) - 1:
+                            money[i] += sl["rows"].get(RAR[r], 0)
+                            self.extra_money["index rows"] += sl["rows"].get(RAR[r], 0)
+                    elif sellrng.random() < SELL_DUPLICATES[RAR[r]]:
+                        money[i] += sl["back"][RAR[r]]
+                        self.extra_money["sell-back"] += sl["back"][RAR[r]]
+                        owned[i][r] -= 1
+
+        def give_cue(i, cue):
+            """A cue a reward gives (economy v5: the Week One Cue, a Legendary in no block)."""
+            week1[i] = 1
+            week1_total[0] += 1
+            if sl:
+                money[i] += sl["find"]["Legendary"]
+                self.extra_money["find"] += sl["find"]["Legendary"]
+                if sellrng.random() < WEEK_ONE_SELL:
+                    money[i] += sl["back"]["Legendary"]
+                    self.extra_money["week one sold"] += sl["back"]["Legendary"]
+                    week1[i] = 0
 
         def roll_tier(i, paid):
-            t = min(bisect.bisect_right(self.tier_cum, loot.random() * 100.0), len(TIERS) - 1)
-            if paid and not P["pity_paid"]:
+            tc = self.tier_cum_launch if luck_on() else self.tier_cum
+            t = min(bisect.bisect_right(tc, loot.random() * 100.0), len(TIERS) - 1)
+            pity_paid_ok[0] = not paid or P["pity_paid"]
+            if not pity_paid_ok[0]:
                 return TIERS[t]
             if t < 3 and epic_p[i] + 1 >= P["pity"]["Epic"]:
                 t = 3
             elif t < 2 and rare_p[i] + 1 >= P["pity"]["Rare"]:
                 t = 2
-            rare_p[i] = 0 if t >= 2 else rare_p[i] + 1
-            epic_p[i] = 0 if t >= 3 else epic_p[i] + 1
+            if not P.get("pity_final"):
+                rare_p[i] = 0 if t >= 2 else rare_p[i] + 1
+                epic_p[i] = 0 if t >= 3 else epic_p[i] + 1
             return TIERS[t]
 
         def give(i, reward, src, paid=False):
@@ -456,16 +635,20 @@ class Sim:
                 if k == "money":
                     money[i] += n
                     continue
+                if k == "cues":
+                    for cue in n:
+                        give_cue(i, cue)
+                    continue
                 for _ in range(n):
                     if k == "Mystery":
-                        open_row(i, roll_tier(i, paid), src, recv="Mystery")
+                        open_row(i, roll_tier(i, paid), src, recv="Mystery", climbed=not P.get("unified"))
                     else:
                         open_row(i, k, src)
 
         def restock_slots():
             kinds = []
-            for _ in range(P["restock_slots"]):
-                kinds.append(list(P["restock"])[bisect.bisect_right(self.slot_cum, xtra.random() * 100.0)])
+            for n in range(P["restock_slots"]):
+                kinds.append(list(P["restock"])[bisect.bisect_right(self.slot_cums[n], xtra.random() * 100.0)])
             return kinds
 
         alive = []
@@ -494,6 +677,7 @@ class Sim:
                         boost += P["stay"]["cap"] * (ramp / 2 + (mins - ramp)) / mins
                 pay = w * (P["win_pay"] + P["streak_bonus"] * wr[i] ** 2) + (matches - w) * P["loss_pay"]
                 money[i] += pay * (P["mode_money"] if unlocked else 1) * boost
+                self.match_money += pay * (P["mode_money"] if unlocked else 1) * boost
                 # Login loop (first week, then later weeks), weekly freeze, 28-day track.
                 gap = day - last_active[i]
                 freeze = gap == 2 and freeze_week[i] != wk
@@ -560,7 +744,7 @@ class Sim:
                         kind = steps[k]
                         if wins[i] == 0 and k == 0:
                             kind = P["first_win"]
-                        give(i, {kind: 1}, S["win track"])
+                        give(i, kind if isinstance(kind, dict) else {kind: 1}, S["win track"])
                 else:
                     for k in range(w):
                         give(i, {P["first_win"] if (wins[i] == 0 and k == 0) else "Mystery": 1}, S["win track"])
@@ -599,8 +783,9 @@ class Sim:
                         n10 = int(spend // r10)
                         n1 = int((spend - n10 * r10) // r1)
                         robux_spent["mystery"] += n10 * r10 + n1 * r1
-                        per10 = P["launch_bulk"] if go_open else 10  # the launch bonus: 10 come as 13
-                        give(i, {"Mystery": n10 * per10 + n1}, S["mystery (Robux)"], paid=True)
+                        bulk = P.get("robux_bulk", 10)
+                        per = P["launch_bulk"] if go_open else bulk  # the launch bonus: 5 come as 6
+                        give(i, {"Mystery": n10 * per + n1}, S["mystery (Robux)"], paid=True)
                     wallet[i] += robux * split["restock"]
                     packs = robux * split["packs"]
                     robux_spent["packs"] += packs
@@ -646,6 +831,7 @@ class Sim:
                     spent[i] += tens * bp + n * P["mystery_money"]
                     give(i, {"Mystery": tens * bc + n}, S["mystery (money)"])
             copies_by_day.append([sum(source[s][r] for s in range(len(SOURCES))) / self.sample for r in range(9)])
+            self.week_one_given[day] = week1_total[0] / self.sample
             if ref and day + 1 in REF_SNAPS:
                 snaps[day + 1] = {
                     "received": {k: v / N for k, v in received.items()},
@@ -666,22 +852,34 @@ class Sim:
                 res["opened"] = {k: v / self.sample for k, v in opened.items()}
                 res["robux"] = {k: v / self.sample for k, v in robux_spent.items()}
                 res["wins_owned"] = [(wins[i], owned[i][:]) for i in recent]
+                # Economy v5: the Week One Cue's holders, and a Legendary from blocks or it.
+                res["WeekOne"] = sum(1 for i in recent if week1[i]) / max(len(recent), 1)
+                res["LegOrWeekOne"] = sum(1 for i in recent if owned[i][4] or week1[i]) / max(len(recent), 1)
                 out[day + 1] = res
         if ref:
             return {"first": first_seen, "owned": owned, "hours": hours, "N": N, "snaps": snaps}
         out["copies_by_day"] = copies_by_day
+        out["week_one_given"] = self.week_one_given
+        out["extra_money"] = dict(self.extra_money)
+        out["match_money"] = self.match_money
         return out
 
 
 # ------------------------------------------------------------------------------------------------
 # Reports
 # ------------------------------------------------------------------------------------------------
-TARGETS = {  # share of players active in the last 7 days who own one (percent): (low, high)
-    # Week 1: the designer's (2026-10-08). Epic, and days 30 and 60: the approved v4 plan.
-    7: {"Epic": (15, 22), "Legendary": (2, 3), "Mythic": (0, 1), "Secret": (0, 0.05)},
-    30: {"Epic": (25, 35), "Legendary": (6, 9), "Mythic": (0.7, 1.2), "Secret": (0.05, 0.15)},
-    60: {"Epic": (35, 45), "Legendary": (10, 14), "Mythic": (1.2, 2), "Secret": (0.1, 0.3)},
+# Economy v5.1 (the designer's approved "Lively", 2026-10-09, docs/prompts/ECONOMY_V5_PLAN.md
+# section 15; this model on that Config): share of players active in the last 7 days who own one
+# (percent), as (low, high) within about the simulation's noise. Legendary is from blocks; the
+# Week One Cue is apart. (v5, plan 7.1: Epic 58.9 / 67.3 / 65.0, Legendary 13.8 / 21.2 / 17.9,
+# Mythic 2.41 / 4.63 / 4.34, Secret 0.08 / 0.14 / 0.12.)
+PLAN_V5 = {
+    7: {"Epic": 60.9, "Legendary": 14.8, "Mythic": 2.57, "Secret": 0.10, "WeekOne": 0.18},
+    30: {"Epic": 69.2, "Legendary": 22.2, "Mythic": 4.80, "Secret": 0.17, "WeekOne": 15.8},
+    60: {"Epic": 66.7, "Legendary": 18.7, "Mythic": 4.58, "Secret": 0.16, "WeekOne": 29.0},
 }
+TARGETS = {d: {r: (v - (1.5 if v >= 10 else 0.5 if v >= 1 else 0.05), v + (1.5 if v >= 10 else 0.5 if v >= 1 else 0.05))
+               for r, v in row.items() if r != "WeekOne"} for d, row in PLAN_V5.items()}
 
 
 def pct(x, d=2):
@@ -695,6 +893,8 @@ def show_run(out, label):
         print(f"Day {d}: {res['ever']:,.0f} players ever won, {res['recent']:,.0f} active in the last 7 days, "
               f"average money of an active player ${res['avg_money_recent']:,.0f}")
         print("  own one (active 7d):  " + "  ".join(f"{r} {pct(res[r][0])} ({res[r][1]:,.0f} copies)" for r in OUTS[3:]))
+        if "WeekOne" in res:
+            print(f"  the Week One Cue: {pct(res['WeekOne'])} hold it; a Legendary from blocks or it: {pct(res['LegOrWeekOne'])}")
         src = res["source"]
         print("  Epic / Legendary / Mythic / Secret copies by source:")
         tot = [sum(src[s][r] for s in range(len(SOURCES))) for r in range(9)]
@@ -715,7 +915,19 @@ def show_run(out, label):
 
 
 def tables(plan):
-    print(f"Plan {plan['name']}: each block's odds (percent, each row adds to 100), 1 in N for the rare ones\n")
+    if plan.get("climb"):
+        print(f"Plan {plan['name']}: each block's cue odds over its whole climb (percent; the launch luck after /)\n")
+        kinds = ["Mystery"] + plan["climb"]["starts"] + sorted(plan.get("alias", {})) + ["GrandOpening", "Starter"]
+        for k in kinds:
+            o, ol = per_block(plan, k), per_block(plan, k, launch=True)
+            up = sum(o[r] for r in RAR[4:])
+            cells = ", ".join(f"{r} {o[r]:.4g}" + (f"/{ol[r]:.4g}" if abs(ol[r] - o[r]) > 1e-9 else "") + "%" for r in RAR if o[r])
+            print(f"  {k:13s} {cells}  (Legendary or better 1 in {100 / up:,.0f})" if up else f"  {k:13s} {cells}")
+        print("\n  Climb steps: " + ", ".join(f"{t} {plan['climb']['chain'][t] * 100:g}%" for t in TIERS[:-1])
+              + f"; the Grand Opening Luck ({plan['luck_days']:g} days): "
+              + ", ".join(f"{t} {plan['climb']['launch_chain'][t] * 100:g}%" for t in TIERS[:-1]
+                          if plan['climb']['launch_chain'][t] != plan['climb']['chain'][t]))
+    print(f"Plan {plan['name']}: each odds row (percent, each row adds to 100), 1 in N for the rare ones\n")
     for k, row in plan["rows"].items():
         cells = []
         for r in OUTS:
@@ -723,10 +935,12 @@ def tables(plan):
                 v = row[r]
                 cells.append(f"{r} {v:g}%" + (f" (1 in {100 / v:,.0f})" if v < 1 else ""))
         print(f"  {k:13s} " + ", ".join(cells))
-    print("\n  Mystery block, final tier: " + ", ".join(f"{t} {plan['tier'][t]:g}%" for t in TIERS))
+    print("\n  Mystery block, " + ("turns into" if plan.get("unified") else "final tier") + ": "
+          + ", ".join(f"{t} {plan['tier'][t]:g}%" for t in TIERS if plan["tier"][t] or not plan.get("unified")))
     pm = per_mystery(plan)
     print("  Mystery block, per cue rarity: " + ", ".join(f"{r} {pm[r]:.4g}%" + (f" (1 in {100 / pm[r]:,.0f})" if pm[r] < 1 else "") for r in RAR))
-    print(f"  Ends above Standard: {100 - plan['tier']['Standard']:g}%   pity: Rare by {plan['pity']['Rare']}, Epic by {plan['pity']['Epic']}")
+    print(f"  Ends above Standard: {100 - plan['tier']['Standard']:g}%   pity: Rare by {plan['pity']['Rare']}, Epic by {plan['pity']['Epic']}"
+          + (f" (a new save starts at {plan['pity_start'][0]} and {plan['pity_start'][1]})" if any(plan.get("pity_start", ())) else ""))
     print()
 
 
@@ -746,12 +960,15 @@ def value_ladder(plan):
     pm = per_mystery(plan)
     routes = []
     r1, r10 = plan["mystery_robux"]
-    routes.append(("Mystery block (10-pack)", r10 / 10, pm))
+    bulk = plan.get("robux_bulk", 10)
+    routes.append(("Mystery block (1)", r1, pm))
+    routes.append((f"Mystery block ({bulk}-pack)", r10 / bulk, pm))
     g1, g3, g10 = plan["go_robux"]
     routes.append(("Grand Opening (10-pack)", g10 / 10, {r: plan["rows"]["GrandOpening"].get(r, 0) for r in RAR}))
     for k, (_, _, _, rp, _) in plan["restock"].items():
         if rp:
-            routes.append((f"Restock {k} block", rp, {r: plan["rows"][k].get(r, 0) for r in RAR}))
+            # Economy v5: a restock block arrives unclimbed and climbs from its tier.
+            routes.append((f"Restock {k} block", rp, per_block(plan, k)))
     st = plan["starter"]
     print(f"Plan {plan['name']}: Robux to pull one cue of each rarity or better (R$ per block / chance of that rarity or better)\n")
     print(f"  {'route':26s} {'R$':>6s} " + " ".join(f"{r:>12s}" for r in RAR[2:]))
@@ -798,6 +1015,47 @@ def copies_report(plan, out):
     for r in ["Firework", "Beta"]:
         k = OUTS.index(r)
         print(f"  {r:10s} day 7 {cbd[6][k]:9,.0f}  day 21 {cbd[20][k]:9,.0f}  (one cue; numbered every copy)")
+    w1 = out.get("week_one_given")
+    if w1 and w1[-1]:
+        gone = next((d + 1 for d, x in enumerate(w1) if x >= 100), None)
+        print(f"  {'Week One':10s} day 7 {w1[6]:9,.1f}  day 30 {w1[29]:9,.1f}  day 60 {w1[59]:9,.1f}   first 100 gone: "
+              + (f"day {gone}" if gone else "after day 60") + "  (one cue, given on first-week day 7)")
+    print()
+
+
+def exists_report(plan, out, day=30, min_exists=10):
+    """Config.Trade's fallback block worths (economy v5 plan section 8): a block's worth is the sum
+    over cues of (its chance of that cue) / (that cue's copies in existence); BlockExists is
+    1 / that worth at `day` for an unclimbed block (the climb from its start, no luck: the launch
+    luck is over by day 30) or a kind that never climbs, ClimbedExists for a climbed block of each
+    tier (exactly its rarity). Rounded to 2 significant figures, as Config keeps them."""
+    made = out["copies_by_day"][day - 1]  # copies made so far, by outcome (none sold here)
+    per_cue = {r: max(made[k] / CUES.get(r, 1), min_exists) for k, r in enumerate(OUTS)}
+
+    def worth(odds):
+        return sum(p / 100 / per_cue[r] for r, p in odds.items() if p and r in per_cue)
+
+    def sig2(x):
+        e = 10 ** max(int(math.floor(math.log10(x))) - 1, 0)
+        return int(round(x / e) * e)
+
+    kinds = ["Standard", "Uncommon", "Rare", "Epic", "Legendary", "Mythic", "Mystery", "GrandOpening", "Lucky8", "Sky",
+             "Starter", "Gift"]
+    print(f"Plan {plan['name']}: copies in existence per cue at day {day}: "
+          + ", ".join(f"{r} {v:,.0f}" for r, v in per_cue.items()))
+    print("  BlockExists = {")
+    for k in kinds:
+        odds = per_block(plan, k)
+        if "GrandOpening" == k:
+            odds = dict(odds, **{u: plan["rows"]["GrandOpening"].get(u, 0) for u in ("Firework", "Beta")})
+        w = worth(odds)
+        print(f"    {k} = {sig2(1 / w)},")
+    print("  },")
+    print("  ClimbedExists = {")
+    for t in TIERS[:-1]:
+        w = worth(plan["rows"][t])
+        print(f"    {t} = {sig2(1 / w)},")
+    print("  },")
     print()
 
 
@@ -834,19 +1092,21 @@ def players(plan, n=1000):
 
 def summary(rows):
     print("Players active in the last 7 days who own at least one (day 7 / 30 / 60):\n")
-    print(f"  {'plan':16s} " + " ".join(f"{r:>24s}" for r in ("Epic", "Legendary", "Mythic", "Secret", "Firework", "Beta")))
+    print(f"  {'plan':16s} " + " ".join(f"{r:>24s}" for r in ("Epic", "Legendary", "Mythic", "Secret", "Firework", "Beta", "WeekOne")))
     for label, out in rows:
         cells = []
         for r in ("Epic", "Legendary", "Mythic", "Secret", "Firework", "Beta"):
             cells.append("/".join(f"{out[d][r][0] * 100:.2f}" for d in REPORT) + "%")
+        cells.append("/".join(f"{out[d]['WeekOne'] * 100:.2f}" for d in REPORT) + "%" if "WeekOne" in out[REPORT[0]] else "-")
         print(f"  {label:16s} " + " ".join(f"{c:>24s}" for c in cells))
-    print("\n  Targets (approved 2026-10-08; week 1 the designer's own):")
+    print("\n  The plan's numbers (economy v5.1, 2026-10-09, about the simulation's noise either side):")
     for r in ("Epic", "Legendary", "Mythic", "Secret"):
         print(f"    {r:10s} " + "  ".join(f"day {d}: {TARGETS[d][r][0]:g}-{TARGETS[d][r][1]:g}%" for d in REPORT))
+    print("    WeekOne    " + "  ".join(f"day {d}: {PLAN_V5[d]['WeekOne']:g}%" for d in REPORT))
     for label, out in rows:
         miss = [f"{r} day {d} {out[d][r][0] * 100:.2f}%" for d in REPORT for r in TARGETS[d]
                 if not TARGETS[d][r][0] <= out[d][r][0] * 100 <= TARGETS[d][r][1]]
-        print(f"  {label}: " + ("every target met" if not miss else "outside: " + ", ".join(miss)))
+        print(f"  {label}: " + ("every number near the plan's" if not miss else "away from the plan: " + ", ".join(miss)))
     print()
 
 
@@ -1004,12 +1264,21 @@ def rank_tables(c, plan):
     print()
 
 
+def sell_rules(c):
+    """--sell: finder's money (Config.Index.FindMoney), the Index rows' money (Config.Index.Rows)
+    and the sell-back prices (Config.BlockOdds.SellBack)."""
+    return {"find": c["Index"]["FindMoney"], "rows": {r: row["Money"] for r, row in c["Index"]["Rows"].items()},
+            "back": c["BlockOdds"]["SellBack"]}
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("what", nargs="?", default="sim", choices=["sim", "tables", "value", "players", "copies", "ranks"])
+    ap.add_argument("what", nargs="?", default="sim",
+                    choices=["sim", "tables", "value", "players", "copies", "exists", "ranks"])
     ap.add_argument("--built-only", action="store_true", help="switch the planned, not yet built features off")
     ap.add_argument("--before", action="store_true", help="the economy before v4 (frozen, for comparison)")
-    ap.add_argument("--compare", action="store_true", help="before v4, v4 built only and v4 side by side")
+    ap.add_argument("--compare", action="store_true", help="before v4, v4 (frozen), v5 built only and v5 side by side")
+    ap.add_argument("--sell", action="store_true", help="add finder's money, the Index rows and selling duplicates back")
     ap.add_argument("--retention", default="plan", choices=list(RETENTION))
     ap.add_argument("--sample", type=float, default=SAMPLE, help="share of the real player base simulated")
     ap.add_argument("--seed", type=int, default=SEED)
@@ -1017,11 +1286,12 @@ def main():
     args = ap.parse_args()
     set_retention(args.retention)
     c = load_config()
-    v4 = plan_from_config(c, args.built_only)
+    v5 = plan_from_config(c, args.built_only)
     built = plan_from_config(c, True)
     for k in ("win_pay", "loss_pay", "streak_bonus", "boosts", "mode_money", "unlock_wins", "ranks"):
         BEFORE.setdefault(k, built[k])
-    plan = BEFORE if args.before else v4
+    plan = BEFORE if args.before else v5
+    sell = sell_rules(c) if args.sell else None
     if args.what == "tables":
         tables(plan)
         rank_tables(c, plan)
@@ -1030,14 +1300,25 @@ def main():
     elif args.what == "players":
         players(plan)
     elif args.what == "copies":
-        copies_report(plan, Sim(plan, args.seed, args.sample).run())
+        copies_report(plan, Sim(plan, args.seed, args.sample, sell=sell).run())
+    elif args.what == "exists":
+        exists_report(plan, Sim(plan, args.seed, args.sample).run())
     elif args.what == "ranks":
         cmd_ranks(c, args)
     elif args.compare:
-        summary([(p["name"], Sim(p, args.seed, args.sample).run()) for p in (BEFORE, built, plan_from_config(c))])
+        with open(CONFIG_V4_JSON) as f:
+            v4 = plan_from_config(json.load(f))
+        CUES.clear()
+        CUES.update(c["BlockCues"])  # the v4 export refilled them; the counts are the same
+        summary([(p["name"], Sim(p, args.seed, args.sample).run()) for p in (BEFORE, v4, built, plan_from_config(c))])
     else:
-        out = Sim(plan, args.seed, args.sample).run()
-        show_run(out, plan["name"])
+        out = Sim(plan, args.seed, args.sample, sell=sell).run()
+        show_run(out, plan["name"] + (" + selling" if sell else ""))
+        if sell:
+            mm = max(out["match_money"], 1)
+            print("  Money over 60 days beside match money: "
+                  + ", ".join(f"{k} {v / mm * 100:.1f}%" for k, v in out["extra_money"].items())
+                  + f" (all {sum(out['extra_money'].values()) / mm * 100:.1f}%)\n")
         summary([(plan["name"], out)])
 
 

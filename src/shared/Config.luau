@@ -1819,7 +1819,7 @@ Config.Ranks = {
 			Master = 80000,
 			Grandmaster = 150000,
 		},
-		-- Blocks: lucky blocks by kind (a Mystery block rolls its tier with pity when opened).
+		-- Blocks: lucky blocks by kind (a Mystery block turns into a block with pity when opened).
 		-- Bronze's block is given at once with the first win (the tutorial's Standard block);
 		-- everything else waits until the player claims it in Rank (designer, 2026-10-03).
 		-- Economy v4 (2026-10-08, plan section 7): Platinum and up pay better blocks, the first
@@ -1886,6 +1886,13 @@ Config.Economy = {
 	-- A nice shot pays this on top of its ball (Rules/NiceShot's kinds), to the shooter only.
 	-- Never in solo (3.2).
 	NiceShotPay = { Bank = 150, Kick = 150, Combo = 200, Carom = 200 },
+	-- The ball streak (3.1, Rules/Streak; designer, 2026-10-09): from streak x(BallStreakFrom)
+	-- on, each ball the shooter pots pays BallStreakShare of BallPay for every level from
+	-- BallStreakFrom, on top of its ball: x3 +$25, x4 +$50 ... x8 +$150. Never a multiplier.
+	-- The shooter only, never in solo or at a flat after-cap pay, like a nice shot. About
+	-- +6.6% an hour (tools/streak_model.luau, 1,600 bot-duel games). (tune)
+	BallStreakFrom = 3,
+	BallStreakShare = 0.25,
 	-- The match bonus at the end of a real match (3.1, 3.2), by opponent. The leaver gets
 	-- nothing. The win bonus is multiplied by the opponent-gap factor (Config.Ranks.Gap) but
 	-- never below WinBonusGapFloor of it (4.4); the loss bonus is not.
@@ -1978,13 +1985,13 @@ Config.Economy = {
 -- (tune)
 ---------------------------------------------------------------------------------------------
 Config.BlockOdds = {
-	-- The tier ladder, lowest first (the approved economy plan, 2026-10-02, section 3). A lucky
-	-- block kind names the row it rolls (Config.LuckyBlocks.Kinds[kind].Odds).
+	-- The block tiers, lowest first: a lucky block of each (Config.LuckyBlocks.Kinds), each with
+	-- its climbed row in List. The climb ladder (Climb.Tiers) adds the Secret on top.
 	Order = { "Standard", "Uncommon", "Rare", "Epic", "Legendary", "Mythic" },
-	-- Odds tables outside the ladder (the lucky-block economy, designer 2026-10-04): the Sky
-	-- block (Lucky Rain), the Grand Opening block (30 days) and the Starter block (the Starter
-	-- Pack). They roll the whole core pool (every block cue of a rarity), never the tier roll.
-	Extra = { "Sky", "GrandOpening", "Starter" },
+	-- Odds tables outside the ladder (designer 2026-10-04; economy v5: the Sky block climbs
+	-- now, so only these two keep a table): the Grand Opening block (30 days) and the Starter
+	-- block (the Starter Pack). They roll the whole core pool, never the climb.
+	Extra = { "GrandOpening", "Starter" },
 	-- Rarities, bottom to top (GDD section 12). Exclusive and Unique sit outside the ladder.
 	Rarities = { "Common", "Uncommon", "Rare", "Epic", "Legendary", "Mythic", "Secret" },
 	-- When sorting by rarity, Exclusive cues sit just above this rarity (below Legendary;
@@ -1993,62 +2000,77 @@ Config.BlockOdds = {
 	-- Odds are whole parts of OddsTotal (a million, so 0.0001% is 1), and each row adds to
 	-- exactly OddsTotal (a load-time assert and tests/blockodds_test check it).
 	OddsTotal = 1000000,
-	-- Economy v4 (2026-10-08, plan section 4): each tier block keeps its floor (never below
-	-- the rarity in its name) and every row can reach the Secret.
+	-- The climb (economy v5 plan section 3, designer 2026-10-09): every block climbs from its
+	-- name, one step at a time on one ladder, and the name is its floor. The tier it ends on
+	-- is the cue's rarity (Rarity); the reel only picks which cue of that rarity. The server
+	-- rolls every step before the climb screen shows anything (BlockDrop.climbRoll), so the
+	-- shown odds are the real odds.
+	Climb = {
+		-- The ladder, bottom first: the block tiers, then the Secret (a climb that reaches it
+		-- gives the Secret cue at once; there is no Secret block).
+		Tiers = { "Standard", "Uncommon", "Rare", "Epic", "Legendary", "Mythic", "Secret" },
+		-- Each tier's cue rarity (a climbed Standard block gives a Common cue).
+		Rarity = {
+			Standard = "Common",
+			Uncommon = "Uncommon",
+			Rare = "Rare",
+			Epic = "Epic",
+			Legendary = "Legendary",
+			Mythic = "Mythic",
+			Secret = "Secret",
+		},
+		-- The chance of each step up from a tier, in parts of OddsTotal (plan 3.2): 50 / 35 /
+		-- 18 / 10 / 15 / 2.5%. A Standard block reaches Epic or better 1 in 32, Legendary or
+		-- better 1 in 317, Mythic or better 1 in 2,116 and the Secret 1 in 84,656.
+		Steps = {
+			Standard = 500000, -- to Uncommon
+			Uncommon = 350000, -- to Rare
+			Rare = 180000, -- to Epic
+			Epic = 100000, -- to Legendary
+			Legendary = 150000, -- to Mythic
+			Mythic = 25000, -- to the Secret
+		},
+		-- The Grand Opening Luck (plan 3.4, designer 2026-10-09): x1.5 on two steps for Seconds
+		-- from the StartsAt of Config.Shop.Deals[With] (its own clock: changing the Grand
+		-- Opening's length never changes it; StartsAt 0: off). Free, the same for everyone; every
+		-- odds screen shows these steps while it runs, and the clover next to the money shows it.
+		Luck = {
+			With = "GrandOpening",
+			Seconds = 30 * 86400,
+			Steps = {
+				Rare = 270000, -- Rare to Epic 27% (18% without)
+				Epic = 150000, -- Epic to Legendary 15% (10% without)
+			},
+		},
+	},
+	-- The Mystery block's roll (economy v5.1, designer 2026-10-09: "Lively"): on its screen
+	-- (4 presses, Drop.Upgrade) a Mystery turns into an unclimbed block of the tier its roll
+	-- reaches, the same block the restock and the rewards give, which then climbs from its
+	-- name (Climb). Each step up from a tier, in parts of OddsTotal: 30 / 25 / 10 / 5%, so it
+	-- turns into a Standard block 70%, Uncommon 22.5%, Rare 6.75%, Epic 0.7125% and Legendary
+	-- 0.0375% (1 in 2,667); Top is as high as the roll goes. Both steps together, a Mystery
+	-- gives Epic or better 1 in 18, Legendary or better 1 in 169, Mythic or better 1 in 1,125
+	-- and the Secret 1 in 45,007 (launch luck: 1 in 12.5 and 1 in 81). The Grand Opening Luck
+	-- boosts the climbs, never the roll.
+	Turn = {
+		Steps = {
+			Standard = 300000, -- to Uncommon
+			Uncommon = 250000, -- to Rare
+			Rare = 100000, -- to Epic
+			Epic = 50000, -- to Legendary
+		},
+		Top = "Legendary",
+	},
+	-- The climbed block's row (economy v5): a block that climbed to a tier gives a cue of
+	-- exactly that tier's rarity (Climb.Rarity), every cue of it equally likely. The Grand
+	-- Opening and Starter blocks keep their approved tables and never climb.
 	List = {
-		Standard = {
-			Odds = {
-				Common = 725000,
-				Uncommon = 250000,
-				Rare = 24000,
-				Epic = 900, -- 1 in 1,111
-				Legendary = 90, -- 1 in 11,111
-				Mythic = 9, -- 1 in 111,111
-				Secret = 1, -- 1 in 1,000,000
-			},
-		},
-		Uncommon = {
-			Odds = {
-				Common = 400000,
-				Uncommon = 540000,
-				Rare = 58000,
-				Epic = 1800,
-				Legendary = 180,
-				Mythic = 18,
-				Secret = 2,
-			},
-		},
-		Rare = {
-			Odds = {
-				Uncommon = 680000,
-				Rare = 310000,
-				Epic = 9000,
-				Legendary = 900,
-				Mythic = 90,
-				Secret = 10,
-			},
-		},
-		Epic = {
-			Odds = { Rare = 773000, Epic = 210000, Legendary = 15000, Mythic = 1800, Secret = 200 },
-		},
-		Legendary = {
-			Odds = { Epic = 720000, Legendary = 250000, Mythic = 27000, Secret = 3000 },
-		},
-		Mythic = {
-			Odds = { Legendary = 720000, Mythic = 250000, Secret = 30000 },
-		},
-		-- Lucky Rain's Sky block (plan section 7): follows the Uncommon block.
-		Sky = {
-			Odds = {
-				Common = 450000,
-				Uncommon = 450000,
-				Rare = 95000,
-				Epic = 4500,
-				Legendary = 450,
-				Mythic = 45,
-				Secret = 5,
-			},
-		},
+		Standard = { Odds = { Common = 1000000 } },
+		Uncommon = { Odds = { Uncommon = 1000000 } },
+		Rare = { Odds = { Rare = 1000000 } },
+		Epic = { Odds = { Epic = 1000000 } },
+		Legendary = { Odds = { Legendary = 1000000 } },
+		Mythic = { Odds = { Mythic = 1000000 } },
 		-- The Grand Opening block (v4 plan 8.5): Rare or better plus two Unique rows that exist
 		-- nowhere else, named by cue id: the Firework Cue 6% and the Beta Cue 0.4%. Caps: copies
 		-- of each Unique ever; once a cue's copies are all found its row's share goes to Rare
@@ -2072,59 +2094,45 @@ Config.BlockOdds = {
 			Odds = { Rare = 900000, Epic = 90000, Legendary = 9000, Mythic = 900, Secret = 100 },
 		},
 	},
-	-- The win's block (v4 plan sections 3 and 5): a real win moves the day's win track
-	-- (WinTrack) and gives that step's block. A Mystery block (from the track, rewards or the
-	-- shop) rolls its tier by Weights (out of OddsTotal) when it opens, then that tier's row.
-	-- Pity, for every Mystery block, bought ones too: the PityRare-th in a row without a
-	-- Rare-or-better tier is Rare; the PityEpic-th without an Epic-or-better is Epic; pity
-	-- never gives Legendary. The first win ever gives a FirstWin block (Progression/BlockDrop).
+	-- The win's block (economy v5 plan section 4): a real win moves the day's win track
+	-- (WinTrack) and gives that step's block or money. The first win ever gives a FirstWin
+	-- block (Progression/BlockDrop). Pity, for Mystery blocks only, bought ones too (plan
+	-- 3.6; economy v5.1): pity counts the cue a Mystery finally gives, after its block's own
+	-- climb. The PityRare-th Mystery block in a row without a Rare-or-better cue turns into a
+	-- Rare block, the PityEpic-th without an Epic-or-better into an Epic block (each still
+	-- climbs); a block still held counts once it is opened (LuckyBlocks' Pity mark).
 	Drop = {
-		-- The tier roll (v4 plan 3.1): half climb above Standard. Standard 50, Uncommon 40,
-		-- Rare 9.52, Epic 0.42 (1 in 238), Legendary 0.05 (1 in 2,000), Mythic 0.01 (1 in
-		-- 10,000).
-		Weights = {
-			Standard = 500000,
-			Uncommon = 400000,
-			Rare = 95200,
-			Epic = 4200,
-			Legendary = 500,
-			Mythic = 100,
-		},
 		PityRare = 10,
-		PityEpic = 100, -- v4 (was 150)
+		PityEpic = 40, -- v5 (v4: 100)
+		-- A new save's head start (plan 3.6): the counters begin here, so the bars show 2/10 and
+		-- 10/40 from the first day and the first Epic block is guaranteed by the 30th Mystery.
+		-- Old saves keep their counters.
+		PityStart = { SinceRare = 2, SinceEpic = 10 },
 		FirstWin = "Rare",
-		-- The daily win track (v4 plan section 5): the block for each of the first 10 track
-		-- wins of the day (the day: Config.Daily.ResetHour); later wins pay money and XP only.
-		-- A win moves the track exactly when the anti-farm rules allow a block (BlockDrop.dropFor).
+		-- The daily win track (v5 plan section 4): each of the first 10 track wins of the day (the
+		-- day: Config.Daily.ResetHour) gives its step: a block kind, or "Money" for
+		-- WinTrackMoney (earned, never boosted, like a reward). Later wins pay money and XP only.
+		-- A win moves the track exactly when the anti-farm rules allow it (BlockDrop.dropFor).
 		-- The first win ever is step 1 of day 1, so it is FirstWin's Rare block either way.
 		WinTrack = {
-			"Rare",
-			"Mystery",
-			"Mystery",
 			"Uncommon",
+			"Money",
+			"Money",
 			"Mystery",
+			"Money",
+			"Money",
 			"Mystery",
-			"Rare",
-			"Mystery",
-			"Mystery",
+			"Money",
+			"Money",
 			"Epic",
 		},
-		-- The upgrade screen (v4 plan 3.2, like Starr Drop; designer, 2026-10-09: "just 4"): the
-		-- block stays a Mystery block on screen until the first of Clicks presses shows its
-		-- start; each later press lifts it one tier or doesn't. The server rolls the final tier
-		-- first (Weights, with pity), starts it as low as the later presses allow (Standard for
-		-- Epic and below, Uncommon for a Legendary, Rare for a Mythic: BlockDrop.startOf), then
-		-- picks which later presses climb, every choice equally likely (BlockDrop.path). Final
-		-- odds are unchanged. Chances is the old chain's table, unused by the server.
+		WinTrackMoney = 1000,
+		-- The climb screen (v4 plan 3.2, like Starr Drop; designer, 2026-10-09: "just 4"): the
+		-- first of Clicks presses shows the start, the block's own tier or higher when the later
+		-- presses couldn't reach the final tier otherwise (BlockDrop.startOf); each later press
+		-- lifts it one tier or doesn't (BlockDrop.path). The final tier is rolled first.
 		Upgrade = {
 			Clicks = 4, -- presses in all: the first shows the start, the other 3 may climb
-			Chances = {
-				Standard = 70000, -- 7% a press, Standard -> Uncommon
-				Uncommon = 40000, -- 4%, Uncommon -> Rare
-				Rare = 10000, -- 1%, Rare -> Epic
-				Epic = 20000, -- 2%, Epic -> Legendary
-				Legendary = 10000, -- 1%, Legendary -> Mythic
-			},
 		},
 	},
 	-- Selling a block cue back (section 8), by rarity. Exclusive and Unique never sell.
@@ -2180,15 +2188,23 @@ Config.LuckyBlocks = {
 		VoidLava = "Epic",
 		GoldKing = "Legendary",
 	},
-	-- Odds: the Config.BlockOdds row whose odds and cue pool it rolls (Roll = true instead:
-	-- the Mystery block rolls a tier by Config.BlockOdds.Drop.Weights first and opens as that
-	-- tier's block). Timer: seconds after it lands in the inventory until it can be opened (0:
-	-- at once); a bought block (Paid) opens at once, and so does every block of a VIP
-	-- (VipTimerFactor 0). Model: its
-	-- template's name in ReplicatedStorage[ModelFolder]. Idle (optional): the block's own idle
-	-- animation, uploaded to the group; without one it plays Anim.BlockIdle. Guarantee: the
-	-- At-th block of this kind a player opens is this cue if they have none (a paid pity, shown
-	-- live). Adding a block: the recipe in assets/luckyblocks/Readme.md.
+	-- Climb (economy v5): the tier the block climbs from (its name is its floor; Sky Standard,
+	-- Lucky 8 and the Gift Uncommon, each tier block its own tier). A new block
+	-- of a climbing kind arrives unclimbed, on its Timer (Wait: the Gift's comeback wait
+	-- first), and climbs when it is opened (economy v5.2, designer 2026-10-09: no climb screen
+	-- but the Mystery's; BlockDrop.climbFor): the tier it reaches is the cue's rarity, one cue
+	-- of it, and the reel shows that climb's odds. Turns (the Mystery, economy v5.1): its
+	-- upgrade screen (MysteryReveal, from its hotbar slot's OPEN!) is a roll
+	-- (Config.BlockOdds.Turn) that turns it into an unclimbed block of the tier reached;
+	-- Climb is then only where its presses start. Pity: the Mystery block's pity counters
+	-- apply. Odds: the Config.BlockOdds row a climbed block (v5's climb screen) or a block that
+	-- never climbs (the Grand Opening and Starter blocks) rolls. Timer: seconds after a block
+	-- lands until it can be opened (0: at once); a bought block (Paid) opens at once, and so
+	-- does every block of a VIP (VipTimerFactor 0). Model:
+	-- its template's name in ReplicatedStorage[ModelFolder]. Idle (optional): the block's own
+	-- idle animation, uploaded to the group; without one it plays Anim.BlockIdle. Guarantee:
+	-- the At-th block of this kind a player opens is this cue if they have none (a paid pity,
+	-- shown live). Adding a block: the recipe in assets/luckyblocks/Readme.md.
 	Kinds = {
 		-- Our own models (designer, 2026-10-07): built by tools/luckyblock_build.py, pivot at
 		-- the bottom of the block. Idle: LuckyBoxIdle (the pack's Box Idle on our rig) or
@@ -2200,6 +2216,7 @@ Config.LuckyBlocks = {
 		-- approved concept art), shown wherever a block is drawn in a GUI (BlockIcon, the hotbar
 		-- and bag) instead of a turning 3D model (designer, 2026-10-07).
 		Standard = {
+			Climb = "Standard",
 			Odds = "Standard",
 			Timer = 0,
 			Model = "StandardBlock",
@@ -2207,6 +2224,7 @@ Config.LuckyBlocks = {
 			Icon = "rbxassetid://125706639188399",
 		},
 		Uncommon = {
+			Climb = "Uncommon",
 			Odds = "Uncommon",
 			Timer = 60, -- 1 minute (designer, 2026-10-07)
 			Model = "UncommonBlock",
@@ -2214,6 +2232,7 @@ Config.LuckyBlocks = {
 			Icon = "rbxassetid://119408380665005",
 		},
 		Rare = {
+			Climb = "Rare",
 			Odds = "Rare",
 			Timer = 300,
 			Model = "RareBlock",
@@ -2221,6 +2240,7 @@ Config.LuckyBlocks = {
 			Icon = "rbxassetid://114285593441963",
 		}, -- 5 minutes (designer, 2026-10-07; was 1 hour)
 		Epic = {
+			Climb = "Epic",
 			Odds = "Epic",
 			Timer = 1800,
 			Model = "EpicBlock",
@@ -2229,6 +2249,7 @@ Config.LuckyBlocks = {
 		}, -- 30 minutes (economy v4, 2026-10-08; was 1 hour)
 		Legendary = {
 			Icon = "rbxassetid://128589483213137",
+			Climb = "Legendary",
 			Odds = "Legendary",
 			Timer = 6 * 3600, -- 6 hours (designer, 2026-10-07; was 24)
 			Model = "LegendaryBlock", -- gold, with wings
@@ -2239,6 +2260,7 @@ Config.LuckyBlocks = {
 		},
 		Mythic = {
 			Icon = "rbxassetid://125009619556113",
+			Climb = "Mythic",
 			Odds = "Mythic",
 			Timer = 12 * 3600, -- 12 hours (designer, 2026-10-07; was 48)
 			Model = "MythicBlock", -- pastel rainbow, halo and wings
@@ -2248,13 +2270,16 @@ Config.LuckyBlocks = {
 			IconScale = 2.2,
 			Rainbow = true, -- the client cycles its icon's aura through the rainbow
 		},
-		-- The tier roll's block (plan 2, 4.2): no timer (designer, 2026-10-07; was 5 minutes).
-		-- Its hotbar slot says OPEN!; a tap opens the upgrade screen (MysteryReveal), where it
-		-- becomes the tier's block (Config.BlockOdds.Drop.Upgrade), which lands back in its
-		-- slot on that tier's own timer.
+		-- The Mystery block (economy v5.1): its hotbar slot says OPEN!; a tap opens its screen
+		-- (MysteryReveal, 4 presses from Standard), where its roll (Config.BlockOdds.Turn, with
+		-- pity) turns it into an unclimbed block of that tier, the same block the restock sells,
+		-- which lands back in its slot on that tier's timer and climbs from its name when
+		-- opened (economy v5.2: the reel shows it).
 		Mystery = {
 			Icon = "rbxassetid://76412774878315",
-			Roll = true,
+			Climb = "Standard",
+			Turns = true,
+			Pity = true,
 			Timer = 0,
 			Model = "MysteryBlock", -- frame C (flush rims), the moving rainbow
 			Idle = BOX_IDLE,
@@ -2274,7 +2299,7 @@ Config.LuckyBlocks = {
 			IconScale = 1.2,
 		},
 		Lucky8 = {
-			Odds = "Rare",
+			Climb = "Uncommon", -- v5 plan 2.11 (v4: the Rare row)
 			Timer = 0,
 			Model = "EightBallBlock",
 			Idle = BOX_IDLE,
@@ -2283,7 +2308,7 @@ Config.LuckyBlocks = {
 		-- Lucky Rain: a baby-blue block on a cloud, small wings.
 		Sky = {
 			Icon = "rbxassetid://75262912311625",
-			Odds = "Sky",
+			Climb = "Standard", -- v5 plan 2.11 (v4: its own row)
 			Timer = 0,
 			Model = "SkyBlock",
 			Idle = WING_IDLE,
@@ -2303,8 +2328,9 @@ Config.LuckyBlocks = {
 		},
 		Gift = { -- given the first time a player leaves (GDD); white, gold ribbon and clock
 			Icon = "rbxassetid://78700846306745",
-			Odds = "Rare",
-			Timer = 12 * 3600,
+			Climb = "Uncommon", -- v5 plan 2.11 (v4: the Rare row)
+			Timer = 0,
+			Wait = 12 * 3600, -- its comeback wait before its climb, from the first leave
 			Model = "GiftBlock",
 			Idle = BOX_IDLE,
 			SizeMultiplier = 1.28, -- 6 studs tall (the bow)
@@ -2316,11 +2342,14 @@ Config.LuckyBlocks = {
 	-- A kind with Bob = true (a model without an animation; none now) hovers and turns by
 	-- code once it has landed: this high, this fast.
 	Bob = { HeightStuds = 0.35, Seconds = 2.4, TurnDegreesPerSecond = 30 },
-	SkipProduct = "LuckyBlockSkip", -- the cheapest skip (Skips[1]); kept for old readers
+	SkipProduct = "LuckyBlockSkip1", -- the cheapest skip (Skips[1]); kept for old readers
 	-- The skip by time left (v4 plan 8.2, designer 2026-10-08): the first row whose UpTo
 	-- (seconds left on the timer) covers the block names the product; the last has no UpTo.
-	-- 30 min or less 4 R$, 6 h or less 9 R$, more 15 R$.
+	-- 5 min or less 1 R$ (economy v5, designer 2026-10-09: every Uncommon and Rare block),
+	-- 30 min or less 4 R$, 6 h or less 9 R$, more 15 R$. Saved credits are kept per product
+	-- (LuckyBlocks.Credits), so a new row never changes what one buys.
 	Skips = {
+		{ UpTo = 300, Product = "LuckyBlockSkip1" },
 		{ UpTo = 1800, Product = "LuckyBlockSkip" },
 		{ UpTo = 6 * 3600, Product = "LuckyBlockSkip9" },
 		{ Product = "LuckyBlockSkip15" },
@@ -2423,6 +2452,23 @@ Config.LuckyBlocks = {
 	-- BlockRequest's token bucket: this many at once, refilling this fast.
 	RateBurst = 8,
 	RatePerSecond = 4,
+	-- A cue of these rarities opens with the quick reveal (its result card alone, about
+	-- QuickRevealSeconds) instead of the reel. Economy v5 (plan 3.8) had Common and Uncommon;
+	-- none since the designer's "its supposed to go through the scroll everytime"
+	-- (2026-10-09): every open spins the reel. "Open all" has its own summary (OpenAll.Summary).
+	QuickReveal = {},
+	QuickRevealSeconds = 1.5,
+	-- "Open all" (plan 3.8; BlockRequest "OpenAll"): every ready climbed block of these tiers
+	-- opens at once from the hotbar and bag (not one in the hands or thrown), oldest first, at
+	-- most Max a press, with a short summary of what came out. One press per MinGapSeconds
+	-- (on top of the token bucket). Summary: the rarities the summary shows; a block that
+	-- climbed to any other gets its full reel after it (economy v5.2).
+	OpenAll = {
+		Tiers = { "Standard", "Uncommon" },
+		Max = 50,
+		MinGapSeconds = 3,
+		Summary = { "Common", "Uncommon" },
+	},
 	-- Animations, all uploaded to the group (675425213) so they play in the game. BlockIdle:
 	-- the pack's bounce, played on a thrown block whose kind has no Idle of its own. Hold and Throw: the arms (an empty id plays
 	-- nothing), per rig.
@@ -2495,20 +2541,20 @@ Config.LuckyBlocks = {
 	Reveal = {
 		DisplayOrder = 40, -- over the hotbar and the HUD
 		-- The layout (designer's pick "mystery_reveal B", the Track, 2026-10-08), top to bottom:
-		-- the white pill "Mystery Lucky Block - 2 / 5", the line "The result is decided..." and
-		-- the pity counters under it, the tier's name, the block, its five press dots, the white
-		-- Tap! button; along the bottom the ladder of the six tiers, joined by a line filled up
-		-- to the tier on show. Shares of the screen's height unless named; the block takes the
-		-- room left between the name and the dots, at most BlockShare.
-		BlockShare = 0.32,
+		-- the white pill "Mystery Lucky Block - 2 / 4" (the Mystery's only since economy v5.2;
+		-- v5 gave every unclimbed block this screen), the tier's name, the block, its press dots, the white Tap! button; along
+		-- the bottom the climb's ladder of seven tiers (Config.BlockOdds.Climb.Tiers, the Secret
+		-- on top), joined by a line filled up to the tier on show. Shares of the screen's height unless named; the
+		-- block takes the room left between the name and the dots, at most BlockShare
+		-- (designer, 2026-10-09: the two lines under the pill went, the block got their room;
+		-- 0.35 fills a phone's room, was 0.32).
+		BlockShare = 0.35,
 		BlockMaxShareOfWidth = 0.62, -- a tall phone: the block no wider than this
 		GapShare = 0.012, -- between the stacked pieces
 		MinTextPx = 12, -- no word smaller (a phone's smallest, UI_STYLE)
 		-- Y: its middle; TextShare: its words, of its height; PadShare: room each side of them,
 		-- of its height.
 		Pill = { Y = 0.065, HeightShare = 0.055, TextShare = 0.6, PadShare = 0.6 },
-		LineTextShare = 0.024, -- the decided line and the pity counters
-		LineMaxTextPx = 18,
 		TitleHeightShare = 0.3, -- of the block's side
 		TitleWidthShare = 1.9, -- of the block's side, at most (long names shrink)
 		TitleTurnDegrees = -4, -- a slight tilt, like a sticker
@@ -2552,7 +2598,7 @@ Config.LuckyBlocks = {
 			Seconds = 0.55,
 			ArcShare = 0.35, -- how high above the straight line the arc rises, of the screen
 			FromTurn = -25, -- degrees at the start
-			TitleAt = 0.35, -- the pill, the decided line and the pity counters pop in
+			TitleAt = 0.35, -- the pill pops in (the climb screen shows no pity: designer, 2026-10-09)
 			DotsAt = 0.45, -- the ladder and the dots pop in, the dots one after another
 			DotStagger = 0.05,
 			HintAt = 0.7,
@@ -2611,6 +2657,19 @@ Config.LuckyBlocks = {
 		DotPulse = { Seconds = 0.9, Transparency = { 0.15, 0.85 }, HaloShare = 1.9 },
 		DoneHintDelay = 0.55, -- after the last press settles, "Tap to collect" shows
 		AutoCollect = 4, -- seconds after the last press: it collects by itself
+		-- A climb that reached the Secret (economy v5: no block lands): this long after the
+		-- last press settles, the screen hands over to the Secret's pull cutscene (LuckyOpening
+		-- .pull), with no "Tap to collect".
+		SecretHandOffSeconds = 0.9,
+		-- The Secret's picture (there is no Secret block): the Mythic block's icon drawn as a
+		-- near-black silhouette (Tint; Config.UI.Kit.Rarity.Secret) with a red "?" over it
+		-- (MarkColor, MarkShare of the block's side), on the block and on the ladder's top rung.
+		Secret = {
+			Icon = "rbxassetid://125009619556113", -- Config.LuckyBlocks.Kinds.Mythic.Icon
+			Tint = { 30, 24, 32 },
+			MarkColor = { 255, 48, 72 },
+			MarkShare = 0.42,
+		},
 		-- The jump back: everything else shrinks and fades, the block arcs into its slot.
 		Leave = { Seconds = 0.6, ArcShare = 0.2, FadeSeconds = 0.25, ToTurn = 20 },
 		-- Pictures (Config.UI.Kit.Art and Config.UI.Effects): the particles' shapes.
@@ -2854,6 +2913,44 @@ Config.LuckyBlocks = {
 					},
 				},
 			},
+			-- The Secret (economy v5: the ladder's top; no block): red on near-black, red and
+			-- white sparks bursting and a slow red glow rising.
+			Secret = {
+				Color = { 255, 48, 72 },
+				Glow = { 255, 40, 60 },
+				Particles = {
+					{
+						Image = "Streak",
+						Colors = { { 255, 60, 80 }, { 255, 255, 255 } },
+						Rate = 8,
+						Life = { 0.35, 0.6 },
+						Size = { 0.25, 0.4 },
+						Speed = { 1.2, 1.8 },
+						Mode = "Burst",
+						Spin = 0,
+					},
+					{
+						Image = "Spark",
+						Colors = { { 255, 40, 60 }, { 255, 255, 255 } },
+						Rate = 10,
+						Life = { 0.6, 1 },
+						Size = { 0.08, 0.14 },
+						Mode = "Twinkle",
+						Spin = 160,
+						Speed = { 0, 0 },
+					},
+					{
+						Image = "Glow",
+						Colors = { { 255, 40, 60 } },
+						Rate = 8,
+						Life = { 1.4, 2.2 },
+						Size = { 0.04, 0.08 },
+						Speed = { 0.25, 0.4 },
+						Mode = "Rise",
+						Spin = 0,
+					},
+				},
+			},
 		},
 	},
 	-- The screens (LuckyHotbar, LuckyWorld, LuckyOpening).
@@ -2872,7 +2969,12 @@ Config.LuckyBlocks = {
 		BottomPx = 10, -- the hotbar's gap from the bottom of the screen
 		NumberPx = 14, -- the slot's number, top-left
 		TimerPx = 14, -- the countdown along the slot's bottom
-		OpenPx = 16, -- a ready Mystery block's OPEN! along the slot's bottom (gold, pulsing)
+		OpenPx = 16, -- a ready Mystery's OPEN! along the slot's bottom (gold, pulsing)
+		-- A Mystery's mark (economy v5.2: only it has an upgrade screen), in the slot's
+		-- top-right corner: the screen's up arrow in gold on a small ink disc
+		-- with a white ring. Share: the disc, of the slot's side (at least MinPx); InsetPx: from
+		-- the corner; ArrowShare: the arrow, of the disc.
+		ClimbMark = { Share = 0.3, MinPx = 16, InsetPx = 3, ArrowShare = 0.86, RingPx = 1.5 },
 		IconTurnDegreesPerSecond = 30, -- the 3D icon turns slowly
 		IconImageShare = 0.9, -- a slot's 2D icon (the kind's Icon), of the slot's side
 		IconFieldOfView = 30,
@@ -2943,6 +3045,22 @@ Config.LuckyBlocks = {
 		MinScale = 0.55,
 		MaxScale = 1.4,
 		MarginPx = 12,
+		-- The quick reveal (economy v5 plan 3.8: a cue of a QuickReveal rarity): the result
+		-- card alone, no reel and no hint, at this share of its size; it pops out by itself
+		-- after QuickRevealSeconds (a tap closes it sooner, after CardDismissAfterSeconds).
+		QuickScale = 0.8,
+		-- "Open all" (OpenAll): a green kit button the bar's height right of the bag button
+		-- while at least one such block is ready, its words TextPx (a phone's PhoneTextPx).
+		-- Its summary: the cues that came out as cue cards CardPx wide (a repeat is one card
+		-- with "x3"), GapPx apart, under "5 BLOCKS OPENED!", in as many columns (at most
+		-- MaxColumns) as make them biggest on the screen.
+		OpenAll = {
+			TextPx = 20,
+			PhoneTextPx = 16,
+			CardPx = 120,
+			MaxColumns = 8,
+			GapPx = 12,
+		},
 	},
 }
 
@@ -2950,8 +3068,8 @@ Config.LuckyBlocks = {
 -- A bot's equipped cue (src/shared/Progression/BotCues.luau; the Bots lane's Look.cue calls
 -- it): its rarity matches what real players at that rank own (the approved economy plan,
 -- 2026-10-02, section 3). Each row is the chance the cue is that rarity or better; the rest
--- (Common, Uncommon, Rare) is spread by the Mystery block's odds. Mythic+ is a Mythic: a bot
--- never shows the Secret cue (lane decision, 2026-10-03). (tune)
+-- (Common, Uncommon, Rare) is spread by the Mystery's odds (its roll and climb, economy v5.1).
+-- Mythic+ is a Mythic: a bot never shows the Secret cue (lane decision, 2026-10-03). (tune)
 ---------------------------------------------------------------------------------------------
 Config.BotCues = {
 	-- Economy v4 (2026-10-08, plan section 11): from the simulation's real players at day 60
@@ -3083,23 +3201,35 @@ Config.Daily = {
 	-- login days, in a row or not, within FirstWeekWindow days of joining (the join's day is
 	-- day 1). After FirstWeekDays claims or after the window, the later weeks (Streak) take
 	-- over. Each day: Money, Blocks (lucky blocks, { [kind] = count }) and/or Spins.
+	-- Economy v5 (plan sections 4 and 5): a Rare block on day 2, $15,000 on day 5, 2 Mystery on
+	-- day 6 and the Week One Cue on day 7 (v4: Epic, Rare, 3 Mystery, a Legendary block). Cues:
+	-- cue ids, one copy each (a player who owns one already gets another).
 	FirstWeek = {
 		{ Money = 5000, Blocks = { Mystery = 1 } },
-		{ Blocks = { Epic = 1 } },
+		{ Blocks = { Rare = 1 } },
 		{ Money = 10000 },
 		{ Blocks = { Mystery = 2 } },
-		{ Blocks = { Rare = 1 } },
-		{ Blocks = { Mystery = 3 } },
-		{ Blocks = { Legendary = 1 }, Spins = 2 },
-	} :: { { Money: number?, Blocks: { [string]: number }?, Spins: number? } },
+		{ Money = 15000 },
+		{ Blocks = { Mystery = 2 } },
+		{ Cues = { "WeekOneCue" }, Spins = 2 },
+	} :: {
+		{
+			Money: number?,
+			Blocks: { [string]: number }?,
+			Cues: { string }?,
+			Spins: number?,
+		}
+	},
 	FirstWeekWindow = 14,
 	-- Claim All (designer, 2026-10-08: "a claim all robux option as well (put a fair price)";
 	-- priced by the days left, the designer's pick): one Robux product claims every day still
 	-- ahead in this 7-day row at once, today's unclaimed day included (Daily.claimAll). The
 	-- product: the first step whose MinDays the days ahead reach. Each is about half the shop
 	-- value of those days (blocks at their shop prices, money at Pack1's): the first week from
-	-- day 1 is worth ~800 R$, most of it day 7's Legendary (599 R$ in the restock); a later week
-	-- ~250 R$. Paid random items (the days give lucky blocks): refused where restricted.
+	-- day 1 was worth ~800 R$ in v4, most of it day 7's Legendary block (599 R$ in the
+	-- restock); a later week ~250 R$. Economy v5 changes the days (day 7 is the Week One Cue);
+	-- the prices stay until the designer's Robux pass. Paid random items (the days give lucky
+	-- blocks): refused where restricted.
 	ClaimAll = {
 		First = {
 			{ MinDays = 6, Product = "ClaimAllFirst7" }, -- 399 R$
@@ -3107,9 +3237,9 @@ Config.Daily = {
 			{ MinDays = 1, Product = "ClaimAllFirst2" }, -- 299 R$
 		},
 		Week = {
-			{ MinDays = 6, Product = "ClaimAllWeek7" }, -- 129 R$
-			{ MinDays = 3, Product = "ClaimAllWeek5" }, -- 99 R$
-			{ MinDays = 1, Product = "ClaimAllWeek2" }, -- 59 R$
+			{ MinDays = 6, Product = "ClaimAllWeek7" }, -- 79 R$ (economy v5; v4 129)
+			{ MinDays = 3, Product = "ClaimAllWeek5" }, -- 69 R$ (economy v5; v4 99)
+			{ MinDays = 1, Product = "ClaimAllWeek2" }, -- 35 R$ (economy v5; v4 59)
 		},
 	},
 	-- A login day counts (can be claimed) only once the player has finished a match that day
@@ -3118,14 +3248,16 @@ Config.Daily = {
 	-- The later weeks (the login loop, every day claimed once per day): seven days that repeat.
 	-- A missed day starts again at day 1, unless the week's streak freeze covers it. Every reward
 	-- is claimed in the Rewards menu (no popups, designer 2026-10-04).
+	-- Economy v5 (plan section 4): a Mystery on days 2, 4 and 6, a Rare block on day 7 (v4:
+	-- Rare, 2 Mystery, 3 Mystery, Epic; every v5 block climbs from its name).
 	Streak = {
 		{ Money = 5000 },
-		{ Blocks = { Rare = 1 } },
+		{ Blocks = { Mystery = 1 } },
 		{ Money = 10000 },
-		{ Blocks = { Mystery = 2 } },
+		{ Blocks = { Mystery = 1 } },
 		{ Money = 15000 },
-		{ Blocks = { Mystery = 3 } },
-		{ Blocks = { Epic = 1 }, Spins = 2 },
+		{ Blocks = { Mystery = 1 } },
+		{ Blocks = { Rare = 1 }, Spins = 2 },
 	} :: { { Money: number?, Blocks: { [string]: number }?, Spins: number? } },
 	-- One free streak freeze a week (weeks start Monday): a single missed day is covered
 	-- by itself, so the streak goes on. Two or more missed days start it over.
@@ -3135,33 +3267,39 @@ Config.Daily = {
 	VipSpins = 1,
 	-- VIP's daily block (v4 plan 6.7, designer 2026-10-08), added to each day's claim. Where
 	-- PolicyService restricts paid random items it is VipRestrictedMoney instead (VIP is then
-	-- a paid random item: its card shows the block's odds).
-	VipBlocks = { Rare = 1 },
+	-- a paid random item: its card shows the block's odds). Economy v5: an Uncommon block (was
+	-- Rare; it climbs from Uncommon).
+	VipBlocks = { Uncommon = 1 },
 	VipRestrictedMoney = 5000,
 	-- The 28-day track: total days claimed (never resets), repeating every TrackDays. On the
 	-- day the count reaches one of these it adds its reward to that day's claim (v4: the first
-	-- prize on day 8, since day 7 of the first week is the Legendary block). Bigger prizes
-	-- (designer, 2026-10-08: "it should give at least a legendary at the end"; it was a Rare,
-	-- 2 Rare, 2 Rare and an Epic, about $280,000 of value): about 7x, a Legendary at the end.
+	-- prize on day 8, since day 7 of the first week is its big day). Bigger prizes (designer,
+	-- 2026-10-08: "it should give at least a legendary at the end"; it was a Rare, 2 Rare,
+	-- 2 Rare and an Epic, about $280,000 of value): about 7x. Economy v5 (plan section 4): a
+	-- Rare block on day 14 and an Epic block on day 28 (v4: Epic and Legendary); each climbs
+	-- from its name.
 	TrackDays = 28,
 	Track = {
 		{ Day = 8, Money = 50000 },
-		{ Day = 14, Blocks = { Epic = 1 } },
+		{ Day = 14, Blocks = { Rare = 1 } },
 		{ Day = 21, Money = 150000 },
-		{ Day = 28, Blocks = { Legendary = 1 } },
+		{ Day = 28, Blocks = { Epic = 1 } },
 	} :: { { Day: number, Money: number?, Blocks: { [string]: number }? } },
 	-- Old names the Rewards screen still reads until the GUI lane rebuilds it: the track's four
-	-- weeks ("Week 2 of 4") and its day-28 prize.
+	-- weeks ("Week 2 of 4") and its day-28 prize (the same as Track's day 28).
 	WeeksForBonus = 4,
 	WeekBonus = { Blocks = { Epic = 1 } },
 	-- Playtime gifts: minutes played in a day, across sessions, each claimable once that day
 	-- (v4 plan 6.3: all within the first hour; Roblox ranks playtime up to 60 minutes a day).
+	-- Economy v5 (plan section 4): money only (v4: a Mystery at 15, 30 and 45, a Rare block at
+	-- 60). Economy v5.1 (designer, 2026-10-09): $2,000 at 15 minutes (v5: a Mystery), part of
+	-- what pays for the better Mystery.
 	Playtime = {
 		{ Minutes = 5, Money = 1000 },
-		{ Minutes = 15, Blocks = { Mystery = 1 } },
-		{ Minutes = 30, Blocks = { Mystery = 1 } },
-		{ Minutes = 45, Blocks = { Mystery = 1 } },
-		{ Minutes = 60, Blocks = { Rare = 1 }, Spins = 1 },
+		{ Minutes = 15, Money = 2000 },
+		{ Minutes = 30, Money = 2500 },
+		{ Minutes = 45, Money = 3500 },
+		{ Minutes = 60, Money = 5000, Spins = 1 },
 	} :: {
 		{
 			Minutes: number,
@@ -3178,7 +3316,8 @@ Config.Daily = {
 	Codes = {
 		WELCOME = { Money = 5000, Blocks = { Mystery = 1 } },
 		["8BALL"] = { Money = 2500 },
-		ROOFTOP = { Blocks = { Rare = 1 }, Expires = 1798761600 }, -- through 2026-12-31 (UTC)
+		-- Through 2026-12-31 (UTC). Economy v5: an Uncommon block (was Rare).
+		ROOFTOP = { Blocks = { Uncommon = 1 }, Expires = 1798761600 },
 		-- The spin screen's code box (Config.Ults.CodeBanner.ActiveCode names it): 3 ability
 		-- spins. The tutorial points at it (designer, 2026-10-03: RELEASE replaces ABILITIES).
 		RELEASE = { Spins = 3 },
@@ -3231,23 +3370,34 @@ Config.Trade = {
 	-- The lopsided warning: one side's worth is more than this many times the other's. A
 	-- cue's worth is 1 / its copies in existence (fewer than MinExists counts as MinExists);
 	-- a lucky block's is worked out live from its odds row and the live copies of each rarity
-	-- (Trade.blockWorth, v4 plan section 11). BlockExists is the fallback until the counters
-	-- load: 1 / worth from the model at day 30. Only READY blocks trade (Progression/Trade).
+	-- (Trade.blockWorth, v4 plan section 11; economy v5: an unclimbed block's from its climb
+	-- odds, a climbed block's from its tier). BlockExists (an unclimbed block, or a kind that
+	-- never climbs) and ClimbedExists (a climbed block of each tier) are the fallback until the
+	-- counters load: 1 / worth from the model at day 30 (tools/economy_model.py exists, economy
+	-- v5.1, 2026-10-09). Only READY blocks trade (Progression/Trade).
 	LopsidedRatio = 4,
 	MinExists = 10,
 	BlockExists = {
-		Standard = 160000,
-		Uncommon = 140000,
-		Rare = 73000,
-		Epic = 11000,
-		Legendary = 1600,
-		Mythic = 400,
-		Mystery = 120000, -- the tier roll: mostly Standard and Uncommon
-		GrandOpening = 15000,
-		Lucky8 = 73000, -- the Rare row
-		Sky = 115000,
-		Starter = 19000,
-		Gift = 73000, -- the Rare row
+		Standard = 47000,
+		Uncommon = 46000,
+		Rare = 32000,
+		Epic = 12000,
+		Legendary = 2800,
+		Mythic = 1100,
+		Mystery = 44000, -- its roll, then that block's climb (v5.1)
+		GrandOpening = 7800,
+		Lucky8 = 46000, -- an Uncommon start
+		Sky = 47000, -- a Standard start
+		Starter = 38000,
+		Gift = 46000, -- an Uncommon start
+	},
+	ClimbedExists = {
+		Standard = 48000,
+		Uncommon = 60000,
+		Rare = 50000,
+		Epic = 19000,
+		Legendary = 3800,
+		Mythic = 1400,
 	},
 	-- The ledger: each player's trades written before their saves change, replayed on a load
 	-- that missed one (one key per player: the trades not yet confirmed saved).
@@ -3271,11 +3421,13 @@ Config.Social = {
 	GroupId = 675425213, -- "Lucky 8"
 	-- Join (the client's GroupService:PromptJoinAsync) then Claim: this once per player. While a
 	-- member, match money gets Config.Economy.GroupBoost (checked on join and on Claim).
-	GroupReward = { Blocks = { Mystery = 3 } },
+	-- Economy v5: 2 Mystery blocks (was 3).
+	GroupReward = { Blocks = { Mystery = 2 } },
 	-- Invites: a brand-new player who joined through a player's invite (the invite's launch
 	-- data) and wins any match that is not solo gives both of them this lucky block. The inviter gets
 	-- at most InvitesPerMonth a UTC month; one who is offline gets theirs on the next join.
-	InviteBlock = "Rare",
+	-- Economy v5: an Uncommon block (was Rare).
+	InviteBlock = "Uncommon",
 	InvitesPerMonth = 5,
 	-- "Brand new": the save was made at most this long before the launch data is read.
 	NewPlayerSeconds = 600,
@@ -3290,7 +3442,8 @@ Config.Social = {
 	InviterOnce = true,
 	-- GUI lane (D4): favoriting the game through Roblox's favorite prompt gives this once.
 	-- Roblox gives a server no way to check a favorite, so the client reports it.
-	-- v4: a Lucky 8 block (the designer's choice, 2026-10-08; was a Mystery block).
+	-- v4: a Lucky 8 block (the designer's choice, 2026-10-08; was a Mystery block). Economy v5:
+	-- the Lucky 8 climbs from Uncommon.
 	FavoriteReward = { Money = 10000, Blocks = { Lucky8 = 1 } },
 	-- A ClaimGroup request (it asks Roblox for the player's groups) at most this often.
 	ClaimCooldownSeconds = 5,
@@ -3308,15 +3461,17 @@ Config.Planned = {
 		Grey = { Money = 1500 },
 		Blue = { Money = 3000 },
 		Red = { Blocks = { Mystery = 1 } },
-		Gold = { Blocks = { Rare = 1 } },
+		Gold = { Blocks = { Uncommon = 1 } }, -- economy v5 (was a Rare block)
 	},
-	GoldenShot = { -- 15 R$, once a day; its top prize stays 2 Rare blocks, never an Epic block
+	-- 15 R$, once a day; never an Epic block. Economy v5 (plan section 4): Grey a Mystery (was
+	-- Uncommon), Blue an Uncommon (was Rare), Red an Uncommon (was Rare), Gold 1 Rare (was 2).
+	GoldenShot = {
 		Robux = 15,
 		Miss = { Money = 5000 },
-		Grey = { Money = 7500, Blocks = { Uncommon = 1 } },
-		Blue = { Blocks = { Rare = 1 } },
-		Red = { Money = 10000, Blocks = { Rare = 1 } },
-		Gold = { Money = 25000, Blocks = { Rare = 2 } },
+		Grey = { Money = 7500, Blocks = { Mystery = 1 } },
+		Blue = { Blocks = { Uncommon = 1 } },
+		Red = { Money = 10000, Blocks = { Uncommon = 1 } },
+		Gold = { Money = 25000, Blocks = { Rare = 1 } },
 	},
 	-- Lucky Rain: in a server with MinPlayers or more, a block falls every EverySeconds (each
 	-- match finished there brings it PerMatchSeconds sooner, never under MinSeconds); it is a
@@ -3379,16 +3534,24 @@ Config.Shop = {
 	-- A deal with StartsAt runs StartsAt..StartsAt + Seconds only (0: off until the designer
 	-- sets it, right before the release is published; the release sale follows it).
 	Deals = {
+		-- What the server charges. Economy v5.1 (designer, 2026-10-09): $19,900, 5 for $89,900
+		-- (v5: $14,900 and $66,900; v4: $4,900, 10 for $44,100); keep it the same as
+		-- Config.Shop.Mystery, which the shop card shows.
 		Mystery = {
 			Kind = "Mystery",
-			Money = { [1] = 4900, [10] = 44100 },
-			Products = { [1] = "Mystery1", [10] = "Mystery10" },
+			Money = { [1] = 19900, [5] = 89900 },
+			Products = { [1] = "Mystery1", [5] = "Mystery5" },
 		},
 		GrandOpening = {
 			Kind = "GrandOpening",
 			-- v4 plan 8.5: $24,900 (3.4 hours of play), 3 for $69,900, 10 for $219,000.
 			Money = { [1] = 24900, [3] = 69900, [10] = 219000 },
 			Products = { [1] = "GrandOpening1", [3] = "GrandOpening3", [10] = "GrandOpening10" },
+			-- The soft launch (designer, 2026-10-09, temporary): while StartsAt is 0 the block is
+			-- on sale for money and Robux with no end date. It does not start the Grand Opening
+			-- Luck or the launch bonus (they follow StartsAt). For the release window set
+			-- StartsAt (the deal then runs Seconds and ends), or false to close it again.
+			SoftLaunch = true,
 			StartsAt = 0,
 			-- 30 days (the designer, 2026-10-08: start at publish, maybe 30-45 days; the caps in
 			-- Config.BlockOdds.List.GrandOpening keep the Uniques at 1,000 and 100 either way).
@@ -3396,28 +3559,37 @@ Config.Shop = {
 			VaultedSeconds = 7 * 86400, -- the "Vaulted" card stays this long after the end
 		},
 	},
-	-- The Mystery block's money price (plan section 4; the shop's Mystery band reads it).
-	Mystery = { Price = 4900, BulkCount = 10, BulkPrice = 44100 },
+	-- The Mystery block's money price as the shop card shows it (Deals.Mystery.Money is what the
+	-- server charges; keep the two the same). Economy v5.1 (designer,
+	-- 2026-10-09): $19,900 and 5 for $89,900 (v5: $14,900 and $66,900). Each Mystery is worth
+	-- 1.7x v5's (it turns into a block that still climbs); the price keeps its value per Robux
+	-- inside the restock's range.
+	Mystery = { Price = 19900, BulkCount = 5, BulkPrice = 89900 },
 	-- The restock shop (plan section 12; Progression/Restock): new blocks every SlotSeconds on
 	-- the clock (UTC :00, :10 ...), the same in every server (picked from the slot number).
-	-- Three slots each roll one block kind by Odds (parts of ChanceTotal), a fourth for VIP by
-	-- VipOdds (a richer table; every block in it has its usual odds). Stock is per player per
+	-- Slots shared slots each roll one block kind (parts of ChanceTotal): slot i by SlotOdds[i]
+	-- when it has one, else by Odds; one more for VIP by VipOdds. Stock is per player per
 	-- restock, per slot; one block per press; money and Robux share it. Robux where a Product
-	-- is named. v4 plan 8.4: Rare or better (the Uncommon slot is gone), a Mythic block about
-	-- every 5 days (1 in 2,000 slots; VIP's 1 in 500).
+	-- is named. Economy v5 (plan 6.2): two shared slots, slot 1 always Epic or better (Epic
+	-- 75.56%, Legendary 21.11%, Mythic 3.33%), slot 2 Rare 55% / Epic 34% / Legendary 9.5% /
+	-- Mythic 1.5%, VIP's 40 / 40 / 16 / 4: a Legendary or better in 32.8% of restocks (46.2%
+	-- with VIP's slot), a Mythic in 4.8% (8.6%). A restock block arrives unclimbed and climbs
+	-- from its tier when opened. The Robux prices stay until the designer's Robux pass (v5 plan 9).
 	Restock = {
 		SlotSeconds = 600,
 		ChanceTotal = 10000,
-		Slots = 3,
-		Odds = { Rare = 8700, Epic = 1200, Legendary = 95, Mythic = 5 },
-		VipOdds = { Rare = 8000, Epic = 1700, Legendary = 280, Mythic = 20 },
+		Slots = 2,
+		SlotOdds = { { Epic = 7556, Legendary = 2111, Mythic = 333 } },
+		Odds = { Rare = 5500, Epic = 3400, Legendary = 950, Mythic = 150 },
+		VipOdds = { Rare = 4000, Epic = 4000, Legendary = 1600, Mythic = 400 },
+		-- Money prices, economy v5 (v4: $19,900 / $199,000 / $1,490,000 / $4,990,000).
 		Kinds = {
-			Rare = { Price = 19900, Product = "RestockRare", Stock = 2 },
-			Epic = { Price = 199000, Product = "RestockEpic", Stock = 1 },
-			Legendary = { Price = 1490000, Product = "RestockLegendary", Stock = 1 },
+			Rare = { Price = 49900, Product = "RestockRare", Stock = 2 },
+			Epic = { Price = 249000, Product = "RestockEpic", Stock = 1 },
+			Legendary = { Price = 1290000, Product = "RestockLegendary", Stock = 1 },
 			Mythic = { Price = 4990000, Product = "RestockMythic", Stock = 1 },
 		},
-		-- A restock with one of these in any slot (the three shared ones) is announced in every
+		-- A restock with one of these in any slot (the two shared ones) is announced in every
 		-- server ("A MYTHIC block is in the restock for 9:41!").
 		Announce = { Legendary = true, Mythic = true },
 		-- A Robux restock receipt still counts for its restock this long after the prompt
@@ -3493,13 +3665,15 @@ Config.Shop = {
 		Percent = 0,
 	},
 	-- The launch bonus (v4 plan 8.2, designer 2026-10-08): inside the window of the Deals key
-	-- With (the Grand Opening's), every money pack gives Percent more money and 10 Mystery
-	-- blocks come as MysteryBulkCount. Shown as "Launch bonus +30%" with its real end date; a
-	-- receipt counts inside the window plus Config.Shop.OfferGraceSeconds. No new products.
+	-- With (the Grand Opening's), every money pack gives Percent more money and the Robux
+	-- Mystery bundle (Mystery.BulkCount blocks) comes as MysteryBulkCount. Shown as "Launch
+	-- bonus +30%" with its real end date; a receipt counts inside the window plus
+	-- Config.Shop.OfferGraceSeconds. No new products. Economy v5: 5 come as 6 (was 10 as 13;
+	-- the plan's lean, to be confirmed with the Robux prices).
 	LaunchBonus = {
 		With = "GrandOpening",
 		Percent = 30,
-		MysteryBulkCount = 13,
+		MysteryBulkCount = 6,
 	},
 }
 
@@ -3524,7 +3698,7 @@ Config.Products = {
 	List = {
 		-- Game passes.
 		-- VIP (399 R$, economy v4 2026-10-08: was 499; no block timers, fast reveals, Auto Spin,
-		-- a Rare block a day: Config.Daily.VipBlocks). The live price is read from Roblox;
+		-- an Uncommon block a day: Config.Daily.VipBlocks). The live price is read from Roblox;
 		-- tools/roblox_products.py --sync sets it. The Quick Cases pass (id 2006144658) was
 		-- retired into VIP 2026-10-04.
 		Vip = { Kind = "Pass", Id = 2005370712, Robux = 399 },
@@ -3552,18 +3726,33 @@ Config.Products = {
 		-- Lucky blocks by the count (Config.Shop.Deals): Blocks = { Kind, Count }, paid origin
 		-- (they open at once). The Grand Opening ones sell inside their deal's window only. Was:
 		-- the same count bought one at a time (a true saving; the shop shows "57 R$ one by one").
+		-- Economy v5.1 (designer, 2026-10-09): 9 R$ (v5: 7, before it 5).
 		Mystery1 = {
 			Kind = "Product",
 			Id = 3716158359,
-			Robux = 5,
+			Robux = 9,
 			Blocks = { Kind = "Mystery", Count = 1 },
 			Random = true,
 		},
+		-- Retired by economy v5 (off sale on Roblox, never deleted): an old receipt still pays its
+		-- 10 blocks.
 		Mystery10 = {
 			Kind = "Product",
 			Id = 3716158365,
 			Robux = 45,
 			Blocks = { Kind = "Mystery", Count = 10 },
+			Random = true,
+			Retired = true,
+		},
+		-- Economy v5's bundle: 5 Mystery blocks (made 2026-10-09; 6 during the launch bonus,
+		-- Config.Shop.LaunchBonus.MysteryBulkCount). Economy v5.1: 39 R$, crossed out 45 (v5: 29
+		-- and 35).
+		Mystery5 = {
+			Kind = "Product",
+			Id = 3717476154,
+			Robux = 39,
+			Was = 45,
+			Blocks = { Kind = "Mystery", Count = 5 },
 			Random = true,
 		},
 		GrandOpening1 = {
@@ -3597,14 +3786,14 @@ Config.Products = {
 		RestockRare = {
 			Kind = "Product",
 			Id = 3717253507,
-			Robux = 15,
+			Robux = 39, -- economy v5 (was 15)
 			Restock = "Rare",
 			Random = true,
 		},
 		RestockEpic = {
 			Kind = "Product",
 			Id = 3716158370,
-			Robux = 99,
+			Robux = 149, -- economy v5 (was 99)
 			Restock = "Epic",
 			Random = true,
 		},
@@ -3622,7 +3811,9 @@ Config.Products = {
 			Restock = "Mythic",
 			Random = true,
 		},
-		-- The skip by time left (Config.LuckyBlocks.Skips): 30 min or less, 6 h or less, more.
+		-- The skip by time left (Config.LuckyBlocks.Skips): 5 min or less (economy v5, designer
+		-- 2026-10-09), 30 min or less, 6 h or less, more.
+		LuckyBlockSkip1 = { Kind = "Product", Id = 3717460488, Robux = 1, Random = true },
 		LuckyBlockSkip = { Kind = "Product", Id = 3716368528, Robux = 4, Random = true },
 		LuckyBlockSkip9 = { Kind = "Product", Id = 3717253512, Robux = 9, Random = true },
 		LuckyBlockSkip15 = { Kind = "Product", Id = 3717253515, Robux = 15, Random = true },
@@ -3654,21 +3845,21 @@ Config.Products = {
 		ClaimAllWeek7 = {
 			Kind = "Product",
 			Id = 3717289791,
-			Robux = 129,
+			Robux = 79, -- economy v5 (was 129)
 			ClaimAll = 7,
 			Random = true,
 		},
 		ClaimAllWeek5 = {
 			Kind = "Product",
 			Id = 3717289793,
-			Robux = 99,
+			Robux = 69, -- economy v5 (was 99)
 			ClaimAll = 5,
 			Random = true,
 		},
 		ClaimAllWeek2 = {
 			Kind = "Product",
 			Id = 3717289797,
-			Robux = 59,
+			Robux = 35, -- economy v5 (was 59)
 			ClaimAll = 2,
 			Random = true,
 		},
@@ -5181,6 +5372,18 @@ Config.Audio = {
 	-- 2026-10-07 (designer: nothing should hurt): the reveals and the pull cutscenes' risers and
 	-- hits, added since, sat 1.5 to 3x over and now cap at 0.06, a big moment.
 	Ui = {
+		-- The ball streak's steps (StreakHud; designer, 2026-10-09): the Jet Set Radio spray
+		-- sounds the designer brought (assets/audio/streak, cut from one file of eight), the six
+		-- rising single sprays at x2 to x7 and the four-hit burst at x8 (the double spray, clip
+		-- 7, is not used); x1 has none. Played with the pocket drop and its ding. Measured from
+		-- the files (90th-percentile RMS): Volume x RMS climbs from 0.05 at x2 to 0.06 at x8.
+		Streak2 = { Id = "rbxassetid://117312474365847", Volume = 0.22, Overlap = true },
+		Streak3 = { Id = "rbxassetid://129742099128979", Volume = 0.22, Overlap = true },
+		Streak4 = { Id = "rbxassetid://87519189220528", Volume = 0.26, Overlap = true },
+		Streak5 = { Id = "rbxassetid://139898623546632", Volume = 0.25, Overlap = true },
+		Streak6 = { Id = "rbxassetid://82377161023037", Volume = 0.27, Overlap = true },
+		Streak7 = { Id = "rbxassetid://74358862314454", Volume = 0.24, Overlap = true },
+		Streak8 = { Id = "rbxassetid://88090510137949", Volume = 0.23, Overlap = true },
 		-- "CoinTransfer_01" (Roblox, 1.7 s): a chip lands in the money HUD.
 		CashLand = { Id = "rbxassetid://127645268874265", Volume = 0.3, Overlap = true },
 		-- "Roblox_UI_Small_Click" (Roblox, 0.13 s), pitched up: the money count ticking.
@@ -7658,10 +7861,15 @@ Config.Multiplayer = {
 		ButtonHeight = 44, -- touch target (at least 44)
 		ResultPanelHeight = 170, -- the result card; its icon sits on the top edge
 		ResultIconSize = 90, -- trophy, sad ball or flag
-		CoinPanelHeight = 150, -- the coin flip card: one title line and the coin
-		CoinHoldSeconds = 0.5, -- YOU ARE HEADS/TAILS on the still coin before it flips
+		CoinPanelHeight = 162, -- the coin flip card: one title line and the coin
+		CoinHoldSeconds = 0.5, -- the still coin on your side's token before it flips
 		CoinSpinSeconds = 1.2, -- the flip; who breaks shows for the rest of CoinSeconds
-		CoinSize = 78, -- the coin
+		-- The coin: a player's token each side (designer, 2026-10-09; 78 with H and T), their
+		-- headshot on a white disc this share of the coin, inside its gold rim.
+		CoinSize = 90,
+		CoinFaceShare = 0.78,
+		CoinRimLight = { 255, 229, 138 }, -- the gold rim's top-left light...
+		CoinRimDeep = { 227, 154, 18 }, -- ...and its bottom-right shade (Gold between)
 		DialogIconSize = 52, -- the door or flag over the leave question
 		ModalWidth = 340, -- responsive dialog maximum width
 		-- How much the screen behind a dialog and the coin and result cards darkens: none,
@@ -8459,6 +8667,12 @@ Config.UI.WinTrack = {
 	TileColor = { 255, 255, 255 },
 	TileEdge = { 176, 214, 245 }, -- the panels' pale blue
 	IconShare = 0.72, -- the step's block, a share of its tile
+	-- A money step (economy v5): the cash bundle smaller and higher (shares of its tile), over
+	-- "$1K" in the money green (9 px on a phone).
+	MoneyIconShare = 0.56,
+	MoneyIconY = 0.4,
+	MoneyTextPx = 14,
+	MoneyTextY = 0.8,
 	-- A step's number: a navy dot on its tile's top left corner (its centre this far in). On a
 	-- phone its words stay at 9 px or more (a small tag over art, UI_STYLE).
 	NumberPx = 20,
@@ -8585,12 +8799,260 @@ Config.UI.VipTag = {
 	},
 }
 
+-- The Grand Opening Luck's clover (LuckClover; economy v5 plan 3.4): beside the VIP tag over the
+-- money pill (in its place without VIP), the VIP tag's height (Config.UI.VipTag), only while
+-- the luck runs. Its card over it says what the luck does and when it ends.
+Config.UI.LuckClover = {
+	ZIndex = 12, -- over the money pill, as the VIP tag
+	GapPx = 6, -- right of the VIP tag
+	IconShare = 0.8, -- the clover, a share of the badge
+	Color = { 24, 36, 86 }, -- navy, as the VIP tag
+	Rim = { 70, 205, 110 }, -- clover green
+	RimPx = 2,
+	Rock = { 10, 2.6 }, -- the clover rocks this many degrees each way, over these seconds
+	PinSeconds = 6, -- a press keeps the card open this long
+	PollSeconds = 1, -- how often it looks at the clock (the luck's start and end, the countdown)
+	Card = {
+		CornerPx = 14,
+		PadPx = 12,
+		GapPx = 6, -- between a clover and its words, under the title, over the countdown
+		TitlePx = 20,
+		TitleColor = { 110, 225, 140 }, -- clover green
+		TextPx = 16,
+		RowPx = 24,
+		IconPx = 18,
+		AbovePx = 8, -- its room over the badge
+	},
+}
+
 -- The economy's menus (2026-09-28, docs/prompts/ECONOMY_UI_PROMPT.md sections 5 and 5.1): the
 -- left column (MenuColumn), every full menu's frame (MenuFrame: header band, tabs, sheet, red
 -- X), its confirm dialog, notice line, scrollers and card tiles, the rarity dressing and cue
 -- thumbnails (CueThumb) and the top banner (Banner). Pixels and seconds. "Short" values are for
 -- a phone on its side (the HUD screen under Multiplayer.Style.ShortHeight, as the rank and money
 -- HUDs). A menu's slight dim is the roadmap's (Config.UI.Progress.Roadmap.Dim*). (tune)
+-- The ball streak (designer, 2026-10-09; src/client/StreakHud.luau, Rules/Streak; the approved
+-- mockup https://claude.ai/artifact/7sj2aFqL94Zv5C1n7Us44T): "STREAK xN" in Press Start 2P in
+-- the match popups' row under the top bar, for everyone seated at the table; it steps aside
+-- while a popup shows there. Each level is a new colour and a little bigger; from x3 the words
+-- burn with low flames (pixel fire sheets, tools/gui/streak_fire.py). Each step up plays its
+-- spray (Config.Audio.Ui.Streak2..8), two white impact frames, a burst and pixel shards, and
+-- from x3 a small camera shake that grows each level. It sits under the HUD (the top bar
+-- draws over it) and never takes input. Sizes are px, times ShortScale on a phone
+-- (Multiplayer.Style.ShortHeight). (tune)
+Config.UI.Streak = {
+	Font = "rbxasset://fonts/families/PressStart2P.json", -- built into Roblox
+	-- A letter's width at x1: its capitals about as tall as YOUR TURN's words (designer,
+	-- 2026-10-09: smaller and higher, it covered the far end of the table; it was 26).
+	GlyphPx = 18,
+	-- Press Start 2P's letters in Roblox (measured 2026-10-09 in Studio and from the font's
+	-- metrics): Advance of the TextSize wide, the capitals' top CapTopShare and their baseline
+	-- BaselineShare of the TextSize down from the label's top. A letter GlyphPx wide is
+	-- TextSize GlyphPx / Advance.
+	Advance = 0.55,
+	CapTopShare = 0.322,
+	BaselineShare = 0.82,
+	ShortScale = 1, -- on a phone: the popups keep their size there, and so does the streak
+	GrowPerLevel = 0.05, -- each level past x1 is 5% bigger: x8 is 1.35x
+	NumberScale = 1.25, -- "xN" is a quarter bigger than STREAK
+	-- Where: centred in the turn popup's row under the top bar (TurnPopupTitleSize + HeaderGap
+	-- tall). While a match popup shows there (YOUR TURN, a foul, YOU ARE SOLIDS) it fades out
+	-- over HideSeconds and pops back in (Step.In*) once the popup is gone (designer, 2026-10-09).
+	HideSeconds = 0.12,
+	-- A little lower than the row's middle, so x8 and its flames clear the top bar (designer,
+	-- 2026-10-09: "lower it just a tiny tiny tiny bit").
+	LowerPx = 6, -- 8 was a touch low (designer, 2026-10-09)
+	-- YOU ARE SOLIDS / STRIPES is the one popup it does not step aside for (it shows as the
+	-- ball that picks the groups drops, often a run's second ball after the break's): the
+	-- words slide down under it, one popup row (TurnPopupTitleSize + HeaderGap) plus GapPx,
+	-- over Seconds, and back up once it has faded (designer, 2026-10-09).
+	UnderGroup = { GapPx = 2, Seconds = 0.35 },
+	-- On a phone (Multiplayer.Style.ShortHeight) it only shows from a ball's drop until the next
+	-- turn begins (the shot over, the table someone's to aim at), then fades over RestFadeSeconds
+	-- and stays away until the next counted ball (designer, 2026-10-09: on an iPhone it covered
+	-- too much of the screen, and smaller would not help). It shows at least MinShowSeconds.
+	Phone = { MinShowSeconds = 1, RestFadeSeconds = 0.4 },
+	ZIndex = 0, -- under every other piece of the match screen (theirs are 1 and up)
+	Ink = { 27, 32, 51 }, -- the outline (Kit Ink)
+	OutlineShare = 0.1, -- the ink outline's thickness, a share of GlyphPx (UIStroke, Miter)
+	ShadowColor = { 11, 14, 28 }, -- the drop shadow, down and right
+	ShadowShare = { 0.1, 0.16 }, -- its offset, shares of GlyphPx (x, y)
+	HighlightMix = 0.45, -- the fill's top is its colour this far toward white (UIGradient)
+	-- From x6 a cyan and a pink copy sit either side of each letter (a spray-paint look).
+	Ghost = {
+		Colors = { { 56, 232, 255 }, { 255, 79, 216 } },
+		OffsetShare = 0.1,
+		Transparency = 0.45,
+	},
+	-- Each level (x1 to x8; past x8, x9 after a break and run or Solo's long runs, keeps x8's
+	-- look and size and plays no spray; designer, 2026-10-09): its colour (x8 the moving rainbow), its
+	-- fire sheet (Fire, a key of Fire.Sheets; nil: no fire), the idle motion (Wave px up and
+	-- down per glyph, Sway degrees of tilt, Jitter px, Beat = { seconds, extra scale } a quick
+	-- pop on a beat), the step's shards, the camera shake (studs, ScreenFx.shake; 0 none) and
+	-- the ghost letters.
+	Levels = {
+		{
+			Color = { 255, 255, 255 },
+			Wave = 0,
+			Sway = 0,
+			Jitter = 0,
+			Beat = { 1.6, 0.03 },
+			Shards = 0,
+			Shake = 0,
+		},
+		{
+			Color = { 255, 216, 74 },
+			Wave = 1,
+			Sway = 0.8,
+			Jitter = 0,
+			Beat = { 1.3, 0.04 },
+			Shards = 8,
+			Shake = 0,
+		},
+		{
+			Color = { 255, 138, 31 },
+			Fire = 3,
+			Wave = 1.5,
+			Sway = 1.4,
+			Jitter = 0,
+			Beat = { 1.1, 0.05 },
+			Shards = 12,
+			Shake = 0.05,
+		},
+		{
+			Color = { 79, 182, 255 },
+			Fire = 4,
+			Wave = 2.2,
+			Sway = 2,
+			Jitter = 0,
+			Beat = { 0.95, 0.05 },
+			Shards = 14,
+			Shake = 0.08,
+		},
+		{
+			Color = { 182, 124, 255 },
+			Fire = 5,
+			Wave = 2.8,
+			Sway = 2.5,
+			Jitter = 0.4,
+			Beat = { 0.85, 0.06 },
+			Shards = 16,
+			Shake = 0.11,
+		},
+		{
+			Color = { 255, 51, 70 },
+			Fire = 6,
+			Wave = 3.4,
+			Sway = 3,
+			Jitter = 0.8,
+			Beat = { 0.75, 0.06 },
+			Shards = 18,
+			Shake = 0.14,
+			Ghost = true,
+		},
+		{
+			Color = { 255, 240, 160 },
+			Fire = 7,
+			Wave = 4,
+			Sway = 3.5,
+			Jitter = 1.1,
+			Beat = { 0.65, 0.07 },
+			Shards = 22,
+			Shake = 0.18,
+			Ghost = true,
+		},
+		{
+			Color = { 255, 200, 40 },
+			Rainbow = true,
+			Fire = 8,
+			Wave = 4.8,
+			Sway = 4,
+			Jitter = 1.4,
+			Beat = { 0.55, 0.08 },
+			Shards = 28,
+			Shake = 0.24,
+			Ghost = true,
+		},
+	},
+	-- The step up: squash, two white impact frames (the new number already in), then a punch
+	-- out to PunchScale settling back (Back, SettleOvershoot) while the number slams in from
+	-- 1 + NumberSlam tilted NumberTilt degrees. x1 just pops in from InFromScale.
+	Step = {
+		SquashSeconds = 0.05,
+		SquashScale = 0.88,
+		ImpactSeconds = 0.04,
+		ImpactScale = 1.3,
+		PunchScale = 1.45,
+		SettleSeconds = 0.36,
+		SettleOvershoot = 2.4,
+		NumberSlam = 0.7,
+		NumberTilt = -10,
+		InSeconds = 0.28,
+		InFromScale = 0.6,
+		-- Two balls dropping in the same moment still step one after the other, this far apart.
+		MinGapSeconds = 0.12,
+	},
+	ShakeSeconds = 0.28, -- plus ShakeSecondsPerStud x the level's studs
+	ShakeSecondsPerStud = 0.6,
+	-- The end (a miss, a foul, the turn passing): the fire sinks, the letters drop and fade.
+	FadeSeconds = 0.5,
+	FadeDropPx = 6,
+	-- The fire behind the words: one sheet per level (8 x 4 frames of 104 x 24 art pixels, 32
+	-- frames at 30 fps, a seamless loop), drawn pixelated, scaled so its SpanPx art pixels span
+	-- the words, with art row TextTopPx at the words' top. Low flames hugging the words
+	-- (designer, 2026-10-09): x3's tips just peek over the letters, x8's rise about a letter.
+	-- It flares on a step (1 + FlareScale, easing out at FlareDecay a second) and grows in over
+	-- IgniteSeconds at x3.
+	Fire = {
+		Sheets = {
+			[3] = "rbxassetid://121954079483569", -- fire_x3.png
+			[4] = "rbxassetid://104584080293144", -- fire_x4.png
+			[5] = "rbxassetid://124207438998904", -- fire_x5.png
+			[6] = "rbxassetid://125076796510619", -- fire_x6.png
+			[7] = "rbxassetid://79671280496164", -- fire_x7.png
+			[8] = "rbxassetid://133867556750225", -- fire_x8.png
+		},
+		Columns = 8,
+		Rows = 4,
+		FrameWidthPx = 104,
+		FrameHeightPx = 24,
+		Frames = 32,
+		Fps = 30,
+		SpanPx = 76,
+		TextTopPx = 14,
+		Transparency = 0.04,
+		FlareScale = 0.45,
+		FlareDecay = 7,
+		IgniteSeconds = 0.4,
+	},
+	-- The white burst at a step (a ring and rays, tinted the new colour; 8 frames at 30 fps),
+	-- WidthShare of the words' width.
+	Burst = {
+		Image = "rbxassetid://78644095284790", -- burst.png
+		Columns = 8,
+		Rows = 1,
+		FrameWidthPx = 128,
+		FrameHeightPx = 48,
+		Frames = 8,
+		Fps = 30,
+		WidthShare = 1.55,
+	},
+	-- Pixel shards out of the number: px a second, gravity px/s², a share white, the rest the
+	-- level's colour; half as many with Lower effects.
+	Shards = {
+		SpeedMin = 140,
+		SpeedMax = 400,
+		UpPx = 60,
+		Gravity = 520,
+		Drag = 0.985,
+		LifeMin = 0.45,
+		LifeMax = 0.75,
+		WhiteShare = 0.35,
+		PixelShare = 0.15, -- a shard's side, a share of GlyphPx
+		LowShare = 0.5,
+	},
+}
+
 Config.UI.Menu = {
 	-- The menus whose panel and cards take Kit.PaleEdge's pale-blue outline instead of ink
 	-- (designer, 2026-10-06: these four for now). Names as Menus.register ("Ults": Abilities).
@@ -9147,6 +9609,7 @@ Config.UI.OddsDetails = {
 	-- cutoff on the left"). At least the thickest outline (a bar's height / 20).
 	EdgePx = 4,
 	ValueShare = 0.3, -- a row's value (its blocks to go), of the row's width (right)
+	CueValueShare = 0.5, -- a cue's row: its chance and "1 in N" ("0.29% · 1 in 345")
 	BarPx = { 26, 34 }, -- a rarity bar's height
 	BarTextPx = { 13, 18 }, -- its word and chance
 	BarGapPx = { 4, 6 }, -- between two bars
@@ -9246,7 +9709,7 @@ Config.UI.Shop.Open = {
 		{ Ids = { "MysteryPanel" }, Kind = "Grow", At = 0.20 },
 		{ Ids = { "MysteryTitle" }, Kind = "Pop", At = 0.24 },
 		{ Ids = { "MysteryBlock" }, Kind = "Slam", At = 0.26, Length = 0.16, Burst = "Purple" },
-		{ Ids = { "MysteryLadder", "MysteryX1", "MysteryX10" }, Kind = "Pop", At = 0.29 },
+		{ Ids = { "MysteryLadder", "MysteryX1", "MysteryX5" }, Kind = "Pop", At = 0.29 },
 		{
 			Ids = {
 				"MysteryRow1",
@@ -9254,24 +9717,29 @@ Config.UI.Shop.Open = {
 				"MysteryRow3",
 				"MysteryRow4",
 				"MysteryRow5",
-				"MysteryRow6",
 			},
 			Kind = "Pop",
 			At = 0.33,
 		},
-		{ Ids = { "MysteryRobux1", "MysteryRobux10" }, Kind = "Pop", At = 0.42 }, -- with their gift squares
-		{ Ids = { "MysteryMoney1", "MysteryMoney10" }, Kind = "Pop", At = 0.47 },
-		{ Ids = { "MysteryRibbon" }, Kind = "Pop", At = 0.52 }, -- "13 for 10!" (only while it runs)
+		-- With their gift squares; one column per Config.Shop.Mystery count (1 and BulkCount: 5).
+		{ Ids = { "MysteryRobux1", "MysteryRobux5" }, Kind = "Pop", At = 0.42 },
+		{ Ids = { "MysteryMoney1", "MysteryMoney5" }, Kind = "Pop", At = 0.47 },
+		{ Ids = { "MysteryRibbon" }, Kind = "Pop", At = 0.52 }, -- "6 for 5!" (only while it runs)
 		{ Ids = { "MysteryPity" }, Kind = "Fade", At = 0.55, Length = 0.12 },
 		{ Ids = { "RestockPanel" }, Kind = "Grow", At = 0.3 },
 		{ Ids = { "RestockTitle" }, Kind = "Pop", At = 0.34 },
 		{
-			Ids = { "RestockSlot1", "RestockSlot2", "RestockSlot3", "RestockSlot4" },
+			Ids = { "RestockSlot1", "RestockSlot2", "RestockSlot3" },
 			Kind = "Pop",
 			At = 0.38,
 			Stagger = 1.5,
 		},
-		{ Ids = { "RestockOdds" }, Kind = "Fade", At = 0.56, Length = 0.12 },
+		{
+			Ids = { "RestockOdds1", "RestockOdds2", "RestockOdds3" },
+			Kind = "Fade",
+			At = 0.56,
+			Length = 0.12,
+		},
 		{ Ids = { "OfferStarter" }, Kind = "Pop", At = 0.44, Burst = "Pink" },
 		{ Ids = { "OfferVip" }, Kind = "Pop", At = 0.48, Burst = "Gold" },
 		-- The Money group (ShopMoney, pick B), the same rhythm: seen when jumped to.
@@ -9636,7 +10104,8 @@ Config.UI.ShopBlocks = {
 	ShineStaggerSeconds = 0.35, -- the next Robux button's shine starts this much later
 	ShineMinRate = 0.25, -- Lower effects never spaces the shines out more than 4x
 	CornerTagDegrees = -6, -- the "13 for 10!" ribbon's tilt
-	-- The Mystery Lucky Block (pick A): the block, its six tiers with their chances, x1 and x10.
+	-- The Mystery Lucky Block (pick A): the block, the five blocks it turns into with their
+	-- chances, x1 and x5.
 	Mystery = {
 		Units = { 1275, 494 }, -- the panel
 		Block = { 182, 226, 276 }, -- centre x, centre y, size
@@ -9645,26 +10114,31 @@ Config.UI.ShopBlocks = {
 		OddsBadge = { 286, 338, 50 }, -- centre x, centre y, size
 		GlowTint = { 196, 132, 255 }, -- the Mystery block's purple
 		Ladder = { 344, 44, 452, 374 }, -- left, top, width, height
-		-- The six rows fill the ladder (designer, 2026-10-09: the climb line under them is gone).
-		RowTop = 17, -- the first row's top inside the ladder
-		RowUnits = 58, -- a row's step
-		RowHeightUnits = 50,
+		-- The five rows fill the ladder (designer, 2026-10-09: the climb line under them is gone;
+		-- economy v5.1: Standard to Legendary, the blocks a Mystery turns into).
+		RowTop = 18, -- the first row's top inside the ladder
+		RowUnits = 70, -- a row's step
+		RowHeightUnits = 58,
 		RowInsetUnits = 12, -- the row strips' inset from the ladder's sides
 		RowCornerUnits = 14,
 		RowColor = { 242, 248, 255 },
-		IconUnits = 40,
+		IconUnits = 44,
 		RowIconLeftUnits = 8, -- a row's tier icon from the strip's left
-		RowNameGapUnits = 8, -- between the icon and the tier's name
+		RowNameGapUnits = 10, -- between the icon and the tier's name
 		NameUnits = 27,
 		PercentUnits = 27,
 		ValueUnits = 110, -- the percent column, at the strip's right
 		ValueRightUnits = 12, -- its room from the strip's right
 		-- Each row's dice (that tier block's odds; designer, 2026-10-09), this far after the
 		-- tier's name.
-		RowDiceUnits = 34,
+		RowDiceUnits = 30,
 		RowDiceGapUnits = 10,
-		Columns = { { 812, 44, 218, 374 }, { 1044, 44, 218, 374 } }, -- x1 and x10: left, top, w, h
-		CountY = 72, -- "x1" / "x10"
+		Columns = { { 812, 44, 218, 374 }, { 1044, 44, 218, 374 } }, -- x1 and x5: left, top, w, h
+		CountY = 72, -- "x1" / "x5"
+		-- "35 R$ one by one" under the bundle's ribbon (economy v5: a bundle's saving, never a
+		-- crossed-out price): its centre and its words' size.
+		OneByOneY = 178,
+		OneByOneUnits = 22,
 		CountUnits = 58,
 		CountSideUnits = 10, -- its room each side in the column
 		RibbonY = 134,
@@ -9680,31 +10154,38 @@ Config.UI.ShopBlocks = {
 		GreenTextUnits = 40,
 		GoldTextUnits = 34,
 		CashIconShare = 1.05, -- the money buttons' cash bundle (of the button's height)
-		Pity = { 196, 454, 884, 46 }, -- the guarantee strip under the boxes: left, centre y, width, height
+		-- The pity strip under the boxes (economy v5: Rare by the 10th, Epic by the 40th, side by
+		-- side, each half its tier's icon, "Rare guaranteed in 8" and its bar): left, centre y,
+		-- width, height.
+		Pity = { 24, 454, 1227, 46 },
 		PityIconUnits = 42,
-		PityIconLeftUnits = 14, -- the Epic icon from the strip's left
-		PityTextUnits = 27,
+		PityIconLeftUnits = 14, -- a tier's icon from its half's left
+		PityTextUnits = 26,
 		PityTextGapUnits = 10, -- between the icon and the words
-		PityBar = { 470, 22 }, -- the bar at the strip's right end: width, height
+		PityBar = { 190, 22 }, -- the bar at its half's right end: width, height
 		PityBarGapUnits = 18, -- between the words and the bar
 		PityBarRightUnits = 18, -- the bar's room from the strip's right
 		MinPityBarPx = 8, -- the bar is never thinner than this
-		PityTrackEdgeUnits = 2.5, -- the bar's ink edge
-		PityFill = { 162, 89, 255 }, -- Epic's purple
+		PityTrackEdgeUnits = 2.5, -- the bar's ink edge (its fill is its tier's colour)
 		PityTrack = { 222, 228, 240 },
 	},
 	-- The restock (pick B): three slots and the VIP slot, big blocks, odds behind each dice.
 	Restock = {
-		Units = { 1275, 522 }, -- the panel
+		Units = { 1275, 556 }, -- the panel
 		SlotTop = 50,
-		SlotUnits = { 297, 426 }, -- a slot card
+		-- A slot card: economy v5's three (slot 1, slot 2, VIP's) and their gaps fill the panel.
+		SlotUnits = { 401, 426 },
 		SlotGapUnits = 14,
 		SlotSideUnits = 22, -- the first slot's inset from the panel's side
-		Block = { 148, 120, 172 }, -- in a slot: centre x, centre y, size
+		Block = { 200, 120, 172 }, -- in a slot: centre x, centre y, size
 		Glow = 262,
 		Rays = 300,
-		OddsBadge = { 262, 36, 44 },
-		Crown = { 148, 30, 58 }, -- the VIP slot's crown over its block
+		OddsBadge = { 366, 36, 44 },
+		Crown = { 200, 30, 58 }, -- the VIP slot's crown over its block
+		-- Slot 1's tag at its top left ("Epic or better!", economy v5: its own odds table),
+		-- tilted as the Mystery card's ribbon: centre x, centre y, width, height; its words.
+		Floor = { 96, 34, 168, 38 },
+		FloorTextUnits = 20,
 		CrownRock = { 6, 2.4 }, -- it rocks this many degrees each way, over this many seconds
 		NameY = 228,
 		NameUnits = 25,
@@ -9718,14 +10199,16 @@ Config.UI.ShopBlocks = {
 		GreenUnits = 62,
 		GoldY = 386, -- the money row's centre (a gap under the Robux row)
 		GoldUnits = 56,
-		ButtonInsetUnits = 16,
+		ButtonInsetUnits = 40,
 		GreenTextUnits = 34,
 		GoldTextUnits = 30,
 		VipFill = { 255, 248, 224 }, -- the VIP slot's card
 		VipEdge = { 242, 178, 0 },
-		OddsY = 498, -- "Each slot: Rare 87% ..."
-		OddsUnits = 21,
-		OddsSideUnits = 30, -- its room each side in the panel
+		-- Each slot's odds under its card ("Rare 55% · Epic 34% · ..."), up to OddsRows rows.
+		OddsY = 514,
+		OddsUnits = 19, -- one row on a PC (21 wraps the longest)
+		OddsRows = 2,
+		OddsSideUnits = 6, -- its room each side under its card
 	},
 	-- The Starter Pack and VIP side by side, wide (ShopOffers; designer, 2026-10-08: "put VIP
 	-- and starter side by side ... this should actually be used mainly as the reference so it
@@ -14018,8 +14501,9 @@ Config.Tutorial = {
 	-- 2026-10-09: Cosmo, clearly nicer than the Bronze Cue). That one block is ready at once
 	-- (a block on its timer cannot be placed).
 	MysteryKind = "Mystery",
-	-- Its upgrade screen's path: the bottom tier until this press, then this tier.
-	MysteryReveal = { Tier = "Uncommon", ClimbPress = 3 },
+	-- The block its upgrade screen rolls it into (economy v5's scripted climb; the presses' path
+	-- is the economy's), and the tier that block then opens on.
+	MysteryReveal = { Tier = "Uncommon" },
 	TutorialCue = "CosmoCue",
 	-- That block's reel: a card of this rarity out of the block's own pool flashes past once,
 	-- as late as the reel's showcase safeguard allows (Config.UI.Reel.ShowcaseGapCards).
@@ -15169,6 +15653,17 @@ Config.Cutscenes = {
 	From = "Rare", -- pulls of this rarity and up get a cutscene
 	RemoteFrom = "Legendary", -- and from this one up, everyone else in the server a sky tint
 	DisplayOrder = 60, -- its screen over the lucky block reel (whose overlay hides while it plays)
+	-- The black letterbox bars (Letterbox; the pulls', the 1v1 result's, the Gift block's): each
+	-- its scene's BarsShare of the screen's height, but never thinner than the HUD's rows at
+	-- the screen's edges (Roblox's top row, where a phone's match top bar sits, and the hotbar),
+	-- which keep their size on a phone (designer, 2026-10-09: they peeked out).
+	Letterbox = {
+		-- Of the way over the deeper of those rows (the designer, 2026-10-09: all of it plus
+		-- 6 px, 84 px on the iPhone emulator, was a bit much; 0.9 is 70 px there, still over
+		-- the phone's match top bar, which ends well inside Roblox's row).
+		CoverShare = 0.9,
+		MostShare = 0.3, -- a bar never takes more of the screen's height than this
+	},
 	-- Every pull cutscene starts the same way (designer, 2026-10-05, Sol's RNG style): a second
 	-- before the reel stops on a Rare or better, everything fades to black (the reel's last
 	-- crawl plays on under it, so the prize is glimpsed, never seen to land), then the
