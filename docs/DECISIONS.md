@@ -4105,3 +4105,4 @@ timer of a new block stay the designer's call.
 - 2026-10-10 (designer): tutorial v2 is approved and closed. Everything after it (the economy
   rescale of the first session, the phone and controller checks, Max Players, the controller's
   shooting mode) goes on in the main folder (`~/Desktop/8ball`, `gui-v4`).
+- 2026-10-10 (designer, "instead of roman numerals for ranks like Silver II Silver III just do Silver 2 silver 3 for everything from now on and all ranks in every gui and hud"): rank divisions are digits everywhere ("Silver 2"). One list (`Strings.Ranks.Numerals`) feeds every screen through `Ranks.name`, so every GUI, HUD, popup, leaderboard and dev reply changes together. Older docs still say "Bronze I" in places; read them as "Bronze 1".

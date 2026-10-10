@@ -248,7 +248,7 @@ return {
 		SessionEnded = "Your save was opened on another server. Please rejoin.",
 	},
 	-- Ranks: names and the rank's words beside the badge (Progression/Ranks, RankHud, the
-	-- roadmap). A rank is shown as "Gold III", "Reyes" or "Unranked".
+	-- roadmap). A rank is shown as "Gold 3", "Reyes" or "Unranked".
 	Ranks = {
 		Unranked = "Unranked",
 		Tiers = {
@@ -265,8 +265,9 @@ return {
 		},
 		-- A line under a tier's name on the rank roadmap (designer, 2026-10-03).
 		Titles = { Reyes = "The King" } :: { [string]: string },
-		Numerals = { "I", "II", "III", "IV", "V" },
-		Division = "%s %s", -- tier, numeral: "Gold III"
+		-- The division numbers: digits, never Roman numerals (designer, 2026-10-10).
+		Numerals = { "1", "2", "3", "4", "5" },
+		Division = "%s %s", -- tier, number: "Gold 3"
 		XpOf = "%s / %s XP", -- the XP bar: "520 / 1,000 XP"
 		XpOnly = "%s XP", -- Reyes has no top: just the XP past its start
 		OneMoreWin = "ONE MORE WIN!", -- under the XP bar when one win ranks up (GUI lane)
@@ -525,8 +526,8 @@ return {
 		TopRank = "You are at the top!",
 		CurrentRank = "Current Rank", -- the tag over your tier, and under your rank on its card
 		NextRank = "Next Rank", -- the tag over the next tier
-		NextDivision = "Next: %s", -- your next division: "Next: Gold IV"
-		RewardsFor = "Rewards for %s", -- the chosen tier's rewards: "Rewards for Platinum I"
+		NextDivision = "Next: %s", -- your next division: "Next: Gold 4"
+		RewardsFor = "Rewards for %s", -- the chosen tier's rewards: "Rewards for Platinum 1"
 		RewardMoney = "Money",
 		RewardCount = "x%d", -- how many: "x2" (a block's count on NEW RANK!)
 		RewardBlockCount = "%s x%d", -- the roadmap's block tile: "Epic Lucky Block x2"

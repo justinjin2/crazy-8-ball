@@ -781,7 +781,8 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
 
 **Decided**
 - Tiers: **Bronze, Silver, Gold, Platinum, Diamond, Expert, Veteran, Master, Grandmaster,
-  Reyes**. Each has divisions **I to V** (I is the bottom, V the top) except Reyes. Reyes is
+  Reyes**. Each has divisions **1 to 5** (1 is the bottom, 5 the top) except Reyes, always
+  written in digits ("Silver 2", never "Silver II"; designer, 2026-10-10). Reyes is
   named after Efren Reyes (placeholder, check rights before launch).
 - Players are **Unranked** until their first win in a rated match, which makes them Bronze I
   (designer, 2026-10-02; a loss leaves them Unranked).

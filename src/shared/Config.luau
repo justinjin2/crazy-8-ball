@@ -6648,7 +6648,7 @@ Config.UI = {
 			PillWidthPx = 196, -- the pill, from under the badge's centre to its right end
 			PillHeightPx = 44, -- as tall as Roblox's own top-bar buttons
 			PadPx = 6, -- inside the pill: after the badge, and at the right end
-			NameTopPx = 3, -- "Gold III", this far down the pill
+			NameTopPx = 3, -- "Gold 3", this far down the pill
 			NameTextPx = 18,
 			BarHeightPx = 16, -- the XP bar's track
 			BarBottomPx = 6, -- from the track's bottom to the pill's (the pill's outline takes 3)
@@ -6947,7 +6947,7 @@ Config.UI = {
 			BadgePx = 150, -- the new badge
 			RaysShare = 2.2, -- the rays behind it, as a share of the badge
 			RaysTransparency = 0.4, -- the rays at their brightest
-			NameTextPx = 26, -- "Gold IV"
+			NameTextPx = 26, -- "Gold 4"
 			NameHeight = 34,
 			-- The reward chips (RewardChips; brief section 9): the money, each block ("x2"), the
 			-- tier's cue and its chat tag, in centred rows under the name. A row may reach past
