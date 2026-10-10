@@ -1426,7 +1426,8 @@ lines). All in the worktree.
   ability lesson's small hand at PRESS G's right end, the prompt bigger and breathing in every
   match; the offer tile and Daily Challenge a bit smaller, the offer's picture wiggling, its X
   (hidden for the visit); the Starter Pack's window one day. The Daily Rewards' amounts are
-  flagged for economy v5 at the merge (report, DECISIONS).
+  flagged for economy v5 at the merge (report, DECISIONS). Published as test place version 9
+  from `c22a2cd`.
 
 ### Touch list (files outside the tutorial's own modules changed, and why)
 
