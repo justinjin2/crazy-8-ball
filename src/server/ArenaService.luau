@@ -110,6 +110,8 @@ function ArenaService.loadRecord(matchId: string): any?
 			homes = {},
 			ults = ServerStorage:GetAttribute(STUDIO_ULTS_ATTRIBUTE) ~= false,
 			studio = true,
+			-- StudioArenaPractice "Solo" or "Pc": a portal's arena (one player, no pretend ones).
+			practice = ServerStorage:GetAttribute("StudioArenaPractice"),
 			bots = studioBots(size),
 		}
 	end
@@ -200,6 +202,7 @@ local function sendState()
 	end
 	Net.get("ArenaState"):FireAllClients({
 		mode = record and record.mode or 1,
+		practice = record and record.practice, -- "Solo" or "Pc": a portal's arena
 		teams = teams,
 		arrived = arrived,
 		deadline = if begun then nil else arrivalDeadline,
@@ -469,7 +472,24 @@ local function arrive(p: Player)
 	if TableService.seatArena(p, team) then
 		seated[p.UserId] = true
 		sendState()
-		if record.studio then
+		if record.practice and record.studio then
+			record.studio = nil -- no pretend players in a Studio portal arena
+		end
+		if record.practice == "Solo" then
+			-- A Solo portal's arena: they play alone, at once.
+			if TableService.startArenaSolo(p) then
+				begun = true
+				log("solo game started")
+			end
+			sendState()
+		elseif record.practice == "Pc" then
+			-- A Practice portal's arena: a PC bot of their rank walks in, then the game starts.
+			local tier = BotService.tierFor(p)
+			record.bots =
+				{ { team = 2, kind = "Pc", tier = tier, playerTier = tier, rematch = "Instant" } }
+			seatBots()
+			begin()
+		elseif record.studio then
 			task.delay(1.5, function()
 				if not begun then
 					seatBots()
@@ -502,8 +522,14 @@ local function arrivalsDone()
 		return
 	end
 	-- One side never came: whoever did searches again, now, for anyone. Anyone arriving
-	-- after this goes to the lobby instead of starting a game here.
+	-- after this goes to the lobby instead of starting a game here. A portal's arena whose
+	-- game never started sends its player back to the lobby.
 	closed = true
+	if record.practice then
+		home(teammates(1))
+		sendState()
+		return
+	end
 	notice = "NoOpponent"
 	for team = 1, 2 do
 		local side = teammates(team)
@@ -552,6 +578,13 @@ local function onAction(p: Player, kind: string)
 		end
 		clearSearch(going)
 		home(going)
+	elseif kind == "Another" and record.practice then
+		-- A Solo portal's arena: Play another is a new solo game here (Practice's is Rematch).
+		if record.practice == "Solo" and TableService.startArenaSolo(p) then
+			table.clear(decideBy)
+			table.clear(choice)
+			sendState()
+		end
 	elseif kind == "Another" then
 		if choice[p.UserId] == "Another" then
 			return

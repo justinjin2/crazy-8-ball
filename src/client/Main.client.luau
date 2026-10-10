@@ -703,7 +703,7 @@ Net.get("QueueNotice").OnClientEvent:Connect(function(notice: any)
 	if type(notice) ~= "table" then
 		return
 	end
-	if notice.kind == "Found" or notice.kind == "Home" then
+	if notice.kind == "Found" or notice.kind == "Home" or notice.kind == "Portal" then
 		teleportScreen:show(notice.kind)
 	elseif notice.kind == "Local" then
 		-- A match in this server: a moment over the move to the table (or the bot's arrival).
@@ -809,6 +809,7 @@ local function postMatchState(summary: any, now: number): (any?, boolean)
 		if by then
 			state.deadline = by
 		end
+		state.practice = a and a.practice -- a Solo or Practice portal's arena
 		state.leaving = mine == "Lobby"
 			or teleportScreen:isShown()
 			or (leftChoiceAt ~= nil and os.clock() - leftChoiceAt < M.ActionRetrySeconds)

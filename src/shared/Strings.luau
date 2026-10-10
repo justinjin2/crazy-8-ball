@@ -216,6 +216,7 @@ return {
 	GlobalQueue = {
 		FoundTitle = "MATCH FOUND",
 		Joining = "Joining the arena...",
+		ToPortal = "Off to your own table...", -- a Solo or Practice portal (TeleportScreen)
 		ToLobby = "Back to the lobby...",
 		ToTable = "Heading to your table...", -- a match in this server
 		Failed = {
@@ -226,6 +227,14 @@ return {
 		},
 	},
 	-- The arena's card while players arrive (ArenaStatus).
+	-- The Solo and Practice portals' floating words (Portals; designer, 2026-10-10).
+	Portals = {
+		Solo = "SOLO MODE",
+		Pc = "PRACTICE MODE",
+		PcSub = "vs a bot",
+		Money = "Earn money still!",
+		Going = "Teleporting...",
+	},
 	Arena = {
 		WaitingFor = "Waiting for players %d/%d",
 		NoOpponent = "Your opponent couldn't join. Searching again...",

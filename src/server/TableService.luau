@@ -1245,6 +1245,43 @@ function Service.startArena(): boolean
 	return false
 end
 
+--- A Solo portal's arena (ArenaService, the list's `practice` "Solo"): `p` plays the table
+--- alone, now. After a result the table is freed first and they sit down again (Play
+--- another). True when the game started.
+function Service.startArenaSolo(p: Player): boolean
+	local t = tables[1]
+	if not arena or not t then
+		return false
+	end
+	local e = t.engine
+	Service.advance(t, now())
+	if e.phase == "Result" then
+		e.deadline = now()
+		Service.advance(t, now())
+	end
+	if e.phase ~= "Waiting" then
+		return false
+	end
+	if not Engine.seat(e, p.UserId) then
+		if not Engine.join(e, p.UserId, p.Name, p.DisplayName, now(), 1) then
+			return false
+		end
+		seatOf[p.UserId] = e.id
+	end
+	-- An arena's table takes no start from its players (MatchEngine): the server starts it.
+	local fixed = e.fixed
+	e.fixed = nil
+	local ok = Engine.action(
+		e,
+		p.UserId,
+		{ kind = "StartSolo", epoch = e.epoch, turnId = e.turnId },
+		now()
+	)
+	e.fixed = fixed
+	Service.broadcast(t)
+	return ok
+end
+
 --- A player's table vote from the arena's own row (Play another and Lobby also say no to
 --- the rematch). True when the engine took it.
 function Service.arenaDecline(p: Player): boolean

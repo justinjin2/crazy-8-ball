@@ -157,6 +157,8 @@ require(script.Parent:WaitForChild("Bots"):WaitForChild("BotService")).start() -
 if not isArena then
 	-- Every 1v1 search looks in this server first, and plays a bot here at 5 s (tutorial v2).
 	require(script.Parent:WaitForChild("LocalSearch")).start()
+	-- The Solo and Practice portals send a player to a one-table arena of their own.
+	require(script.Parent:WaitForChild("PortalService")).start()
 end
 -- The tutorial lane: rank rewards claimed in Rank, then the first-time tutorial itself.
 require(script.Parent:WaitForChild("RankClaimService")).start()

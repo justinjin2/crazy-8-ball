@@ -61,12 +61,16 @@ function TeleportScreen.new(): any
 	return self
 end
 
---- Show it: "Found" (a match, joining the arena) or "Home" (back to the lobby).
+--- Show it: "Found" (a match, joining the arena), "Portal" (a Solo or Practice portal) or
+--- "Home" (back to the lobby).
 function TeleportScreen.show(self: any, kind: string)
 	self.flashAt = nil
 	self:paint(0)
 	self.title.Visible = kind == "Found"
-	self.line.Text = if kind == "Found" then Copy.Joining else Copy.ToLobby
+	self.line.Text = if kind == "Found"
+		then Copy.Joining
+		elseif kind == "Portal" then Copy.ToPortal
+		else Copy.ToLobby
 	self.gui.Enabled = true
 	self.shownAt = os.clock()
 	pcall(function()

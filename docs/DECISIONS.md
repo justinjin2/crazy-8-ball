@@ -4268,3 +4268,15 @@ timer of a new block stay the designer's call.
 - 2026-10-10 (designer): the hub's Starter Pack tile shows the Starter lucky block alone, bigger
   ("one focus at a time"; no cue or money), has no "!" dot (busy enough), and its X is a tiny bit
   smaller (23 px, 20 on a phone).
+- 2026-10-10 (designer): the Solo and Practice portals. Two cream stone arches with a glowing
+  face, rising sparkles, a light and a round glowing pad in front stand at the front railing in
+  place of the planter beds beside the entrance palms (x = -40 Solo, +40 Practice; the beds are
+  hidden on that player's screen once the portals show). Floating words: "SOLO MODE" /
+  "PRACTICE MODE" "vs a bot", and "Earn money still!". A player sees them once the tutorial is
+  over; the server also needs a won match. Standing on the pad sends them to a one-table arena
+  of their own (GlobalQueue.botMatch with `practice` on its list, the Global arena's rooftop):
+  Solo starts at once alone (Play another = a new solo game, or Lobby); Practice seats a PC bot
+  of their rank (Rematch, the bot always says yes, or Lobby). No XP; the practice money rows.
+  Built from parts and Roblox particles for now (a Blender arch can come later); the tables
+  were not moved: the portals sit in the aisles between table columns, about 8 studs clear of
+  the nearest pad.

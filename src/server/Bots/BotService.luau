@@ -376,6 +376,11 @@ local function playerTier(p: Player): string
 	return forcedTier[p.UserId] or tierOf(p:GetAttribute("RankTier"))
 end
 
+--- The bot tier `p` plays (their rank's, or /botrank's): a Practice portal's bot.
+function BotService.tierFor(p: Player): string
+	return playerTier(p)
+end
+
 -- The average tier of these seats' players (a player not in the server counts as Bronze).
 local function averageTier(seats: { any }): string
 	local sum, n = 0, 0

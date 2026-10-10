@@ -59,6 +59,7 @@ local Purchased = require(script.Parent.Purchased)
 local VipTag = require(script.Parent.VipTag)
 local WinTrack = require(script.Parent.WinTrack)
 local SkyBanner = require(script.Parent.SkyBanner)
+local Portals = require(script.Parent.Portals)
 
 export type Hooks = {
 	-- A pocket of a table, in the ScreenGui's pixels (may be off screen), or nil.
@@ -265,6 +266,7 @@ function Progression.start(screen: ScreenGui, hooks: Hooks)
 	end)
 	winTrack = WinTrack.new(screen) -- the day's win track over the hotbar
 	skyBanner = SkyBanner.new(screen) -- the Sky Lucky Block's clock at the top (economy v6)
+	Portals.start() -- the Solo and Practice portals at the front, once the tutorial is over
 	plates = Nameplates.new()
 	ChatTags.start() -- the [TIER] tag before names in chat
 	-- The tutorial lane's hand points at these (TutorialAnchors).

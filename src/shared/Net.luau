@@ -98,6 +98,8 @@ local REMOTES: { [string]: string } = {
 	-- client -> server (arena only): the post-game choice that is not the table's own vote:
 	-- "Another" (a new opponent), "CancelAnother", "Lobby" (back to the lobby server).
 	ArenaAction = "RemoteEvent",
+	-- client -> server: "Solo" or "Pc", the player stands on that portal's pad (PortalService).
+	Portal = "RemoteEvent",
 	-- server -> everyone in an arena: {mode, teams = {{userId}}, arrived = {userId},
 	-- deadline?, choices = {[userId] = "Another" | "Lobby"}, searching = {[userId] = at},
 	-- notice?}. The arrival card and the post-game row read it.

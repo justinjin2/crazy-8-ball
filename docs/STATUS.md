@@ -70,8 +70,8 @@ One line each; the long form is the 2026-10-08 entry at the top of
   DECISIONS). Open: the designer's look at a tutorial first block and an Uncommon reel.
 - **Trading** is off for the release (`Config.Trade.Enabled`): no Trade button, the server refuses.
 - **The Daily Challenge** is off for the release (`Config.UI.Corners.ChallengeOn`).
-- **Solo and Practice portals**: to plan with the designer (look in Blender, placement), then
-  build; until then practice is only on the dev commands.
+- **Solo and Practice portals** (2026-10-10, DECISIONS): built; checked in Studio (the lobby portals, the solo and
+  practice arenas via StudioArenaPractice). Open: a real teleport on the live game.
 - **The Cues redo** (2026-10-08, `docs/prompts/CUES_LIVELY_PROMPT.md`, in `gui-v4`). Open: the
   see-through reel's verdict, a phone and a gamepad, the numbered card's mark A or B, the copy
   numbers' plan; `shop-lively` is not yet merged into `release`.

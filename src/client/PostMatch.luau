@@ -37,6 +37,7 @@ export type State = {
 	searchingSince: number?, -- server time the search began
 	deadline: number?, -- server time the choosing ends
 	leaving: boolean?, -- you chose Lobby or Leave (or a match was found): everything off
+	practice: string?, -- a Solo or Practice portal's arena ("Solo" | "Pc")
 }
 
 --- The row, built into `parent`. `onChoice(kind)` runs for "Rematch", "Another",
@@ -141,7 +142,13 @@ function PostMatch.set(self: any, state: State, now: number)
 	HudParts.setEnabled(self.another, another == "ready" and not leaving)
 	-- Which buttons stand in the row, left to right.
 	local shown = { self.rematch }
-	if state.arena then
+	if state.practice == "Solo" then
+		-- A Solo portal's arena: Play another (a new solo game) and Lobby.
+		shown = { self.another, self.lobby }
+	elseif state.practice == "Pc" then
+		-- A Practice portal's arena: Rematch (the bot always says yes) and Lobby.
+		table.insert(shown, self.lobby)
+	elseif state.arena then
 		table.insert(shown, if searching then self.cancel else self.another)
 		table.insert(shown, self.lobby)
 	else

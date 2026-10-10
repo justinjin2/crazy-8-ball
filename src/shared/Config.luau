@@ -3390,6 +3390,33 @@ Config.Daily = {
 -- src/shared/Progression/Trade.luau, src/server/Trading.luau. Anyone in the server, no gate.
 -- Cues and ready lucky blocks only, never money; Exclusive cues never except ExclusiveTradable. (tune)
 ---------------------------------------------------------------------------------------------
+-- The Solo and Practice portals (designer, 2026-10-10): two glowing arches at the front of the
+-- lobby, in place of the planter beds beside the entrance palms (PortalService, the client's
+-- Portals). Each stands at the railing facing the tables with a round glowing pad in front;
+-- standing on the pad sends the player to a one-table arena of their own (ArenaService, the
+-- list's `practice`): Solo plays alone, Practice plays a PC bot of their rank. Neither gives
+-- XP; both pay the practice money (Config.Economy). Shown to a player once the tutorial is over
+-- and they have won a match. (tune)
+Config.Portals = {
+	List = {
+		{ Mode = "Solo", X = -40, Z = 78.5 },
+		{ Mode = "Pc", X = 40, Z = 78.5 },
+	},
+	PadRadius = 4.5, -- the round pad's radius (studs), in front of the arch
+	PadAheadStuds = 5.5, -- the pad's centre this far in front of the arch (toward the tables)
+	TriggerRadius = 4, -- standing within this of the pad's centre sends the player
+	ServerSlackStuds = 6, -- the server's check is this much looser (lag)
+	ArchWidth = 9, -- the arch's inside width and height (studs)
+	ArchHeight = 11,
+	PillarStuds = 1.6, -- the arch's frame thickness
+	TextHeightStuds = 16, -- the floating words' height above the floor
+	CooldownSeconds = 6, -- after a try, the pad waits this long before it sends again
+	Colors = { Solo = { 70, 200, 255 }, Pc = { 255, 120, 220 } }, -- each portal's glow
+	FrameColor = { 245, 238, 225 }, -- the arch, like the rooftop's cream stone
+	-- The planter beds the portals stand in place of (Map.Props and Map.Collision.Props).
+	Replaces = { "PlanterBed_42", "PlanterBed_48", "planter_bed_53", "planter_bed_57" },
+}
+
 Config.Trade = {
 	-- Off for the release (designer, 2026-10-10: "unless trading is actually fully functional
 	-- already just leave it in, otherwise id get rid of it"; it was never checked between two
