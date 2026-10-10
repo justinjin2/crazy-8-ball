@@ -10,8 +10,17 @@ return {
 		FineAim = "Fine aim", -- the D-pad, left and right
 		Zoom = "Zoom", -- the right stick, up and down
 		SpinAngle = "Spin & angle", -- hold L1
-		Shoot = "Hold to shoot", -- R2 or A: hold to fill the bar, let go (Config.Input.Gamepad.Shoot)
-		ShootFreeze = "Hold, let go, press to shoot", -- Shoot.Mode "Freeze" (version C)
+		PowerUp = "Power up", -- hold A (Config.Input.Gamepad.Shoot)
+		PowerDown = "Power down", -- hold Y
+		Shoot = "Shoot", -- R2: shoots the power shown
+		-- Calling the 8's pocket:
+		PointPocket = "Point at a pocket", -- the left stick
+		NextPocket = "Next pocket", -- the D-pad
+		PickPocket = "Pick", -- A
+		-- The lobby, a lucky block held:
+		PlaceBlock = "Place", -- R2
+		OpenBlock = "Open", -- R2, a Mystery picked (its upgrade screen)
+		SwitchBlock = "Switch", -- LB / RB
 		-- While L1 holds the spin panel open:
 		Spin = "Spin", -- the left stick
 		Angle = "Angle", -- the right stick, up and down: the cue's angle
@@ -38,7 +47,6 @@ return {
 			NeedsPlayers = "%s needs players!", -- a 2v2 or 3v3 table
 			Join = "Join",
 			Dismiss = "Dismiss",
-			GamepadHint = "Y · Join",
 		},
 		-- The matchmaking bar above the hotbar (MatchBar; designer, 2026-10-07), for everyone
 		-- on a waiting pad. TableSign also reads PlayerCount and Levels.
@@ -51,7 +59,6 @@ return {
 			StartingIn = "Starting in %d", -- the pad is full: the game starts by itself
 			-- The host's one choice, a few seconds after stepping on.
 			NoWait = "Don't want to wait?",
-			NoWaitPad = "Don't want to wait? Y", -- the same, while a gamepad is in use
 			PlayGlobal = "Play Global",
 			Searching = "Searching... %s", -- the search's time, "0:07"
 			MatchFound = "Match found!",
@@ -1739,8 +1746,11 @@ return {
 	-- version per device (Mouse, Touch, Gamepad).
 	-- Tutorial v2 (docs/prompts/TUTORIAL_V2_PROMPT.md; client Tutorial*.luau). Most lines come in
 	-- three: Mouse (keyboard and mouse), Touch, Gamepad. A gamepad line names its buttons as
-	-- {R2}, {A}, {B}, {X}, {L2}, {RB}, {LS} (left stick), {RS} (right stick) and {DPad}: the
-	-- overlay shows Roblox's own button picture there (UserInputService:GetImageForKeyCode).
+	-- {R2}, {A}, {B}, {X}, {Y}, {L2}, {LB}, {RB}, {LS} (left stick), {RS} (right stick), {DPad},
+	-- {DLeft}, {DRight}, {DUp}, {DDown} and {View}: the overlay shows Roblox's own button
+	-- picture there (UserInputService:GetImageForKeyCode). The controller's buttons (designer,
+	-- 2026-10-10): A fills the power, Y takes it back, R2 shoots; Y opens Rank, the D-pad's
+	-- right Cues, X Abilities.
 	-- Numbers and names that can change (spins, codes, block kinds) are %s / %d placeholders.
 	Tutorial = {
 		Skip = "Skip tutorial",
@@ -1756,12 +1766,12 @@ return {
 		Break = {
 			Mouse = "Pull the power bar all the way down!",
 			Touch = "Drag the power bar all the way down!",
-			Gamepad = "Hold {R2} to fill the bar, let go to shoot!",
+			Gamepad = "Hold {A} to fill the bar, then press {R2} to shoot!",
 		},
 		Aim = {
 			Mouse = "Drag to adjust your aim!",
 			Touch = "Swipe to adjust your aim!",
-			Gamepad = "Tilt {LS} to adjust your aim!",
+			Gamepad = "Tilt {LS} to aim, {DLeft}{DRight} to fine-tune!",
 		},
 		Zoom = {
 			Mouse = "Scroll to zoom out and see the angle better!",
@@ -1772,7 +1782,7 @@ return {
 		Shoot = {
 			Mouse = "Now pull the power bar to shoot!",
 			Touch = "Now drag the power bar to shoot!",
-			Gamepad = "Hold {R2}, let go to shoot!",
+			Gamepad = "{A} adds power, {Y} takes it away, {R2} shoots!",
 		},
 		-- The combination (designer, 2026-10-09): the hand points at their two lined-up balls.
 		Combo = "Try a combo! Hit this ball into that one!",
@@ -1791,7 +1801,7 @@ return {
 		Eight = {
 			Mouse = "SELECT WHICH POCKET!",
 			Touch = "SELECT WHICH POCKET!",
-			Gamepad = "SELECT WHICH POCKET! {DPad} to choose, {A} to select.",
+			Gamepad = "SELECT WHICH POCKET! Point {LS} at it, {A} to pick.",
 		},
 		-- After game 1: the result, the first win's block, NEW RANK!.
 		Continue = {
@@ -1820,7 +1830,7 @@ return {
 		Rank = {
 			Mouse = "Open Rank and claim your reward!",
 			Touch = "Tap Rank and claim your reward!",
-			Gamepad = "Select Rank with {A} and claim your reward!",
+			Gamepad = "Press {Y} to open Rank and claim your reward!",
 		},
 		RankClaim = {
 			Mouse = "Click CLAIM!",
@@ -1835,7 +1845,13 @@ return {
 		Mystery = {
 			Mouse = "Click your lucky block!",
 			Touch = "Tap your lucky block!",
-			Gamepad = "Press {RB} to pick your lucky block!",
+			Gamepad = "Press {LB}{RB} to pick your lucky block!",
+		},
+		-- A controller picked it with LB / RB (only a controller gets here).
+		MysteryOpen = {
+			Mouse = "Click your lucky block!",
+			Touch = "Tap your lucky block!",
+			Gamepad = "Press {R2} to open it!",
 		},
 		MysteryPress = {
 			Mouse = "Click to upgrade it!",
@@ -1856,7 +1872,7 @@ return {
 		CuesOpen = {
 			Mouse = "Open Cues!",
 			Touch = "Tap Cues!",
-			Gamepad = "Select Cues with {A}!",
+			Gamepad = "Press {DRight} to open Cues!",
 		},
 		CuesCard = {
 			Mouse = "Click your new cue!",
@@ -1876,7 +1892,7 @@ return {
 		AbilitiesOpen = {
 			Mouse = "Open Abilities!",
 			Touch = "Tap Abilities!",
-			Gamepad = "Select Abilities with {A}!",
+			Gamepad = "Press {X} to open Abilities!",
 		},
 		-- The code (Config.Ults.CodeBanner.ActiveCode) and its spins (Config's code row).
 		Code = {
@@ -1912,7 +1928,7 @@ return {
 			Aim = {
 				Mouse = "Drag to aim, then pull the power bar to shoot!",
 				Touch = "Swipe to aim, then drag the power bar to shoot!",
-				Gamepad = "Tilt {LS} to aim, hold {R2} and let go to shoot!",
+				Gamepad = "Tilt {LS} to aim, hold {A} for power, {R2} to shoot!",
 			},
 			Zoom = {
 				Mouse = "Scroll to zoom in and out!",

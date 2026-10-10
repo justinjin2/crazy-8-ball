@@ -5,6 +5,38 @@ when `docs/STATUS.md` became current state only. Finished work moves here from S
 on top. Read it only to answer "when or why did X change"; it is not part of the read-first list.
 An entry marked "(latest)" was the latest when written.
 
+**2026-10-10 (evening): moved from STATUS** (the controller pass trimmed STATUS; each still
+has its open items there). What these steps built, as STATUS said it:
+
+- **The tutorial on phones, and the spin screen** (2026-10-10, DECISIONS): every highlight,
+  hand and ring now lands on its button on a notched phone; the small Skip (under Roblox's
+  menu on a phone), smaller centred lines that keep off other words, the two-hand pinch, the
+  hotbar pin; Auto Spin removed, Skip renamed Fast spin (VIP), the phone spin screen's odds
+  list and code box. Checked in Studio's phone emulator through two fresh runs of the whole
+  tutorial and the soft part. Open: the designer's real phone, a PC window, a controller;
+  Painicane's Studio save (a Studio-only store) is at the Soft part.
+- **Daily rewards rework on `gui-v4`** (2026-10-10, DECISIONS): one thing a day, the Week One
+  Cue only for 7 days in a row (else an Epic block), Claim All 499 / 449 / 399 and 99 / 79 / 49
+  R$ (synced), playtime $7,500 a day, VIP's daily Mystery block, the restock without its odds
+  line and sorted by rarity, the rank HUD's phone label. Lint and tests pass. Open: the
+  designer's look in Studio on phone, PC and controller.
+- **Economy v5.1 "Lively" on `gui-v4`** (approved 2026-10-09 evening; plan section 15): a
+  Mystery turns into a real block (its roll 30 / 25 / 10 / 5%) that then climbs; $19,900 / 9 R$
+  (synced on Roblox); the 15-minute gift $2,000; pity counts the final cue. Screenshots for the
+  designer's OK in `~/Desktop/8ball-refs/economy-v5-gui/v5.1`. Open: that OK; the tutorial
+  session's scripted first Mystery (hand-off lines in DECISIONS.md).
+- **Economy v5.2 on `gui-v4`** (designer, 2026-10-09: only the Mystery has upgrade chances):
+  every other block waits its own name's timer and climbs as it opens, the reel showing that
+  climb's odds (a Rare block: Rare 8.2% and Epic 1.8% cards); the odds are unchanged. "Open
+  all" reels any Standard or Uncommon block that climbed to Rare or better. Checked in Studio on
+  PC (a Rare block gave an Epic cue through the reel). Open: phone and gamepad; live servers
+  need "Restart Servers for Updates" after the publish.
+- **The Cues redo** (2026-10-08, `docs/prompts/CUES_LIVELY_PROMPT.md`, on `shop-lively`, in
+  `gui-v4`): the new cue card, the Cues menu, the CUES icon, the smooth money chip, the reel and
+  YOU GOT, checked in Studio. Still open: the see-through reel trial's verdict, a phone and a
+  gamepad, the numbered card's mark A or B, the copy numbers' own plan. `shop-lively` is not
+  yet merged into `release`.
+
 **2026-10-10: moved from STATUS** (settled; their phone and controller checks are in STATUS's
 "Not yet checked"). The GUI hand-off after economy v4 (2026-10-08, branch `gui-v4`; the
 designer's picks on https://claude.ai/artifact/Q79pcvwxeos8AB7o8357Lw, prompts and pictures in

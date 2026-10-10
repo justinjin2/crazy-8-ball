@@ -11,7 +11,9 @@
 -- A stand-in in the kit's style: the GUI lane may restyle or move it (keep the CLAIM call and
 -- the TutorialAnchors line). What is pending is worked out here from the attributes
 -- RankClaimed and PeakDivision (Tutorial/RankClaim, the server's own rule); the server pays
--- only what its save says.
+-- only what its save says. On a controller CLAIM takes the selection as the card shows, so A
+-- claims (the roadmap's own focus is a tier; designer's controller pass, 2026-10-10).
+local GuiService = game:GetService("GuiService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -27,6 +29,7 @@ local ChatTags = require(script.Parent.ChatTags)
 local CueThumb = require(script.Parent.CueThumb)
 local GuiQA = require(script.Parent.GuiQA)
 local HudParts = require(script.Parent.HudParts)
+local PadMode = require(script.Parent.PadMode)
 local RewardChips = require(script.Parent.RewardChips)
 local RewardsFlyer = require(script.Parent.RewardsFlyer)
 local TutorialAnchors = require(script.Parent.TutorialAnchors)
@@ -174,6 +177,7 @@ function RankClaimBlock.update(self: any)
 	if not show then
 		if self.card.Visible then
 			self.card.Visible = false
+			self:letGo()
 		end
 		self.key = ""
 		return
@@ -191,6 +195,16 @@ function RankClaimBlock.update(self: any)
 	HudParts.setEnabled(self.button, not self.waiting)
 	if not self.card.Visible then
 		UIAnim.popIn(self.card)
+		if PadMode.active() then
+			GuiService.SelectedObject = self.button
+		end
+	end
+end
+
+-- The card hid: a controller's selection on CLAIM goes (Menus puts back what was before).
+function RankClaimBlock.letGo(self: any)
+	if GuiService.SelectedObject == self.button then
+		GuiService.SelectedObject = nil
 	end
 end
 
@@ -216,6 +230,7 @@ function RankClaimBlock.onReply(self: any, reply: any)
 	local from = self.button.AbsolutePosition + self.button.AbsoluteSize / 2
 	UISound.play("Claim")
 	self.card.Visible = false
+	self:letGo()
 	self.close()
 	local blocks: { [string]: number } = if type(reply.blocks) == "table"
 		then table.clone(reply.blocks)

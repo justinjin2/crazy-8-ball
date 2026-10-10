@@ -137,7 +137,9 @@ Aim, Simulation), `Rules/` (Rules state machine, ShotJudge; pure, to be written)
 `CueStickBuilder`,
 `AvatarPose` (rig, measurements, IK pose), and the pure stance modules `CueShape`,
 `CueClearance` (the drawn cue's visual pitch), `ShooterStance` (where the body stands,
-stretches or kneels, and where both hands hold the cue), `PoseMath`, `AimStream`; `ShotInput` (validation/seed
+stretches or kneels, and where both hands hold the cue), `PoseMath`, `AimStream`, `PadMath`
+(the controller's pure maths: the power level A and Y move at a steady rate, the pocket the
+stick points at, the pocket a D-pad step reaches; tested in Lune); `ShotInput` (validation/seed
 quantization), `Strings` (HUD copy), `Catalog`
 (item data rows, to be written). The hub map: `MapBuilder` (Edit-mode setup of the imported
 map), `MapMotion` (the boats' paths, pure), `LightCycle` (the day/sunset cycle: server
@@ -152,7 +154,12 @@ Server (`src/server`): `Bootstrap` (builds the tables, publishes assets), `Table
 back on the spawn mat at once, the last resort against falling out of the map).
 
 Client (`src/client`): `Main` (wiring), `Match` (replays shots), `BallRenderer`, `Input`
-(mouse, touch, gamepad), `SpinSelector`, `Guideline`, `Camera`, `Avatar` (the local
+(mouse, touch, gamepad: on a pad one power level, A up and Y down, R2 fires it, B zeroes it),
+`PadMode` (whether a controller is the input now, the button pictures, Studio's forced
+mode), `HubPad` (the lobby's controller keys: Y Rank, L2 Play Global / Join, D-pad left the
+right side, B leave; and it keeps the left stick walking by dropping stray selections),
+`MatchTargets` (the 8's pocket rings; on a pad the stick points and A calls, bound at High + 1),
+`PadGuide` (the controller guide strip), `SpinSelector`, `Guideline`, `Camera`, `Avatar` (the local
 shooter), `ShooterPoser` (one character's aim/stroke/idle states), `WatchedShooters` (other
 shooters), `BackCue` (everyone's equipped cue on their back), `UI` (the shared ScreenGui), `Audio`, `Effects`, `Hub` (one Match per table,
 seats), `MatchHUD` (the top bar, beside Roblox's own buttons when it fits, the foul popup,

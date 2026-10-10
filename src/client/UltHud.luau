@@ -47,6 +47,7 @@ local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local Catalog = require(Shared:WaitForChild("Ults"):WaitForChild("Catalog"))
 local HudParts = require(script.Parent.HudParts)
+local PadMode = require(script.Parent.PadMode)
 local UIAnim = require(script.Parent.UIAnim)
 local UltBar = require(script.Parent.UltBar)
 local TutorialAnchors = require(script.Parent.TutorialAnchors)
@@ -85,7 +86,7 @@ end
 -- Which prompt fits the input in use now: "pad", "tap" or "key".
 local function inputMode(): string
 	local last = UserInputService:GetLastInputType()
-	if last.Name:match("^Gamepad") then
+	if PadMode.active() then
 		return "pad"
 	elseif last == Enum.UserInputType.Touch then
 		return "tap"
@@ -100,10 +101,7 @@ local function inputMode(): string
 end
 
 local function padGlyph(): string
-	local ok, image = pcall(function()
-		return UserInputService:GetImageForKeyCode((Enum.KeyCode :: any)[U.GamepadKey])
-	end)
-	return if ok and type(image) == "string" then image else ""
+	return PadMode.glyph((Enum.KeyCode :: any)[U.GamepadKey])
 end
 
 --- True while `snapshot`'s ult is still arming (its cutscene and the wait): a shot now would
@@ -254,10 +252,7 @@ function UltHud.new(screen: ScreenGui, activate: () -> ()): any
 	screen:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
 		self:layout()
 	end)
-	UserInputService.LastInputTypeChanged:Connect(function()
-		self:refreshPrompt()
-	end)
-	UserInputService.GamepadConnected:Connect(function()
+	PadMode.Changed:Connect(function()
 		self:refreshPrompt()
 	end)
 	return self

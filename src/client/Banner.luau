@@ -159,6 +159,7 @@ function Banner.new(screen: ScreenGui, opts: Options?): any
 		end
 	end, "Green")
 	button.Name = "Action"
+	button.Selectable = false -- a lobby button is never a gamepad stop (it takes the stick)
 	button.AnchorPoint = Vector2.new(1, 0.5)
 	button.ZIndex = 3
 	button.Visible = false

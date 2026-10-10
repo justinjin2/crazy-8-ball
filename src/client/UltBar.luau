@@ -296,13 +296,28 @@ function UltBar.new(parent: Instance): any
 	keyLetter.ZIndex = 9
 	keyLetter.Parent = keycap
 	self.keycap = keycap
-	local glyph = Instance.new("ImageLabel")
+	-- The controller's button on an ink disc: Roblox's PlayStation pictures are white and
+	-- vanished on the white pill (the designer saw "PRESS TO ACTIVATE" with no button,
+	-- 2026-10-10).
+	local glyph = Instance.new("Frame")
 	glyph.Name = "Glyph"
-	glyph.BackgroundTransparency = 1
-	glyph.ScaleType = Enum.ScaleType.Fit
+	glyph.BackgroundColor3 = tone("Ink")
+	glyph.BorderSizePixel = 0
 	glyph.ZIndex = 8
 	glyph.Parent = prompt
+	HudParts.corner(glyph, 999)
+	local glyphImage = Instance.new("ImageLabel")
+	glyphImage.Name = "Image"
+	glyphImage.BackgroundTransparency = 1
+	glyphImage.ScaleType = Enum.ScaleType.Fit
+	glyphImage.AnchorPoint = Vector2.new(0.5, 0.5)
+	glyphImage.Position = UDim2.fromScale(0.5, 0.5)
+	glyphImage.Size =
+		UDim2.fromScale(Config.UI.Kit.PadBack.GlyphShare, Config.UI.Kit.PadBack.GlyphShare)
+	glyphImage.ZIndex = 9
+	glyphImage.Parent = glyph
 	self.glyph = glyph
+	self.glyphImage = glyphImage
 
 	self:setArt()
 	return self
@@ -425,7 +440,7 @@ function UltBar.setPrompt(self: any, mode: string?, image: string?, dim: boolean
 	self.after.Text = if at then string.sub(copy, at + 2) else ""
 	self.keycap.Visible = mode == "key"
 	self.glyph.Visible = mode == "pad"
-	self.glyph.Image = image or ""
+	self.glyphImage.Image = image or ""
 	local fade = if dim then U.PromptDimTransparency else 0
 	self.prompt.BackgroundTransparency = fade
 	self.before.TextTransparency = fade

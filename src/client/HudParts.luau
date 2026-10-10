@@ -10,9 +10,9 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TextService = game:GetService("TextService")
 local TweenService = game:GetService("TweenService")
-local UserInputService = game:GetService("UserInputService")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
+local PadMode = require(script.Parent.PadMode)
 local UIAnim = require(script.Parent.UIAnim)
 local S = Config.Multiplayer.Style
 local K = Config.UI.Kit
@@ -660,18 +660,22 @@ function HudParts.tile(
 	return button
 end
 
---- Put the controller's back button (Circle, or B on Xbox: Roblox's own picture) on close button
---- `button`'s bottom-left corner, shown only while a gamepad is the last input (Kit.PadBack).
---- Only on a close that B really closes. It follows the controller in use and goes with the button.
-function HudParts.padBack(button: GuiButton): Frame
-	local cfg = K.PadBack
+--- Put a controller button's picture (Roblox's own, PlayStation or Xbox to match the pad) on
+--- `button`'s corner: an ink disc, shown only while a gamepad is the input in use, so a
+--- controller player sees which button does it (designer, 2026-10-10). `cfg` places it
+--- (Kit.PadKey rows: Share of the button, GlyphShare of the disc, At its centre in shares of
+--- the button; Kit.PadBack by default). It follows the controller in use and goes with the
+--- button.
+function HudParts.padKey(button: GuiObject, key: Enum.KeyCode, cfg: any?): Frame
+	local place = cfg or K.PadBack
 	local disc = Instance.new("Frame")
-	disc.Name = "PadBack"
+	disc.Name = "PadKey"
 	disc.BackgroundColor3 = INK
 	disc.BorderSizePixel = 0
 	disc.AnchorPoint = Vector2.new(0.5, 0.5)
-	disc.Position = UDim2.fromScale(cfg.At[1], cfg.At[2])
-	disc.Size = UDim2.fromScale(cfg.Share, cfg.Share)
+	disc.Position = UDim2.fromScale(place.At[1], place.At[2])
+	disc.Size = UDim2.fromScale(place.Share, place.Share)
+	disc.SizeConstraint = Enum.SizeConstraint.RelativeYY
 	disc.ZIndex = button.ZIndex + 6
 	disc.Visible = false
 	HudParts.corner(disc, 999)
@@ -681,34 +685,27 @@ function HudParts.padBack(button: GuiButton): Frame
 	glyph.ScaleType = Enum.ScaleType.Fit
 	glyph.AnchorPoint = Vector2.new(0.5, 0.5)
 	glyph.Position = UDim2.fromScale(0.5, 0.5)
-	glyph.Size = UDim2.fromScale(cfg.GlyphShare, cfg.GlyphShare)
+	glyph.Size = UDim2.fromScale(place.GlyphShare, place.GlyphShare)
 	glyph.ZIndex = disc.ZIndex + 1
 	glyph.Parent = disc
 	disc.Parent = button
 	local function refresh()
-		local pad = string.sub(UserInputService:GetLastInputType().Name, 1, 7) == "Gamepad"
-		local image = ""
-		if pad then
-			local ok, found = pcall(function()
-				return UserInputService:GetImageForKeyCode(Enum.KeyCode.ButtonB)
-			end)
-			image = if ok and type(found) == "string" then found else ""
-		end
+		local image = if PadMode.active() then PadMode.glyph(key) else ""
 		glyph.Image = image
 		disc.Visible = image ~= ""
 	end
-	local connections = {
-		UserInputService.LastInputTypeChanged:Connect(refresh),
-		UserInputService.GamepadConnected:Connect(refresh),
-		UserInputService.GamepadDisconnected:Connect(refresh),
-	}
+	local connection = PadMode.Changed:Connect(refresh)
 	button.Destroying:Connect(function()
-		for _, connection in connections do
-			connection:Disconnect()
-		end
+		connection:Disconnect()
 	end)
 	refresh()
 	return disc
+end
+
+--- The controller's back button (Circle, or B on Xbox) on close button `button`'s bottom-left
+--- corner (Kit.PadBack). Only on a close that B really closes.
+function HudParts.padBack(button: GuiButton): Frame
+	return HudParts.padKey(button, Enum.KeyCode.ButtonB)
 end
 
 --- Give a small button a touch area of at least `minPx` square, centred on it, without

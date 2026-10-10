@@ -20,6 +20,7 @@ local Net = require(Shared.Net)
 local Strings = require(Shared.Strings)
 local Steps = require(Shared.Tutorial.Steps)
 local TutorialAnchors = require(script.Parent.TutorialAnchors)
+local PadMode = require(script.Parent.PadMode)
 local TutorialOverlay = require(script.Parent.TutorialOverlay)
 local TutorialHand = require(script.Parent.TutorialHand)
 local TutorialArrow = require(script.Parent.TutorialArrow)
@@ -73,7 +74,7 @@ function Tutorial.device(): string
 		return forcedDevice
 	end
 	local last = UserInputService:GetLastInputType()
-	if last.Name:match("^Gamepad") then
+	if PadMode.active() then
 		return "gamepad"
 	elseif last == Enum.UserInputType.Touch then
 		return "touch"
@@ -212,10 +213,32 @@ local function lineOnly(text: string?)
 	overlay:say(text)
 end
 
+-- A new scene's anchor the gamepad's selection goes to once it is on screen (a menu's cue
+-- card only shows after the menu has unrolled; the menu's own focus lands first).
+local selectWanted: string? = nil
+
+-- On a gamepad, a new scene (`fresh`) puts the selection on `anchor` as soon as it is on
+-- screen and a stop, so A presses what the line names.
+local function selectOn(anchor: string, device: string, fresh: boolean)
+	if fresh then
+		selectWanted = if device == "gamepad" then anchor else nil
+	end
+	local object = TutorialAnchors.get(anchor)
+	if
+		selectWanted == anchor
+		and object
+		and object.Selectable
+		and TutorialAnchors.showing(anchor)
+	then
+		selectWanted = nil
+		GuiService.SelectedObject = object
+	end
+end
+
 -- Points at a GUI anchor with the dim and the line (at `place`, see TutorialOverlay.say), the
--- gamepad's selection on it when the scene is new. Nothing while the anchor is not on screen.
--- `clear`: no dim, only the gold ring, and the hand from the side, so what is round the anchor
--- stays in full view.
+-- gamepad's selection on it when the scene is new (as soon as it is on screen). Nothing while
+-- the anchor is not on screen. `clear`: no dim, only the gold ring, and the hand from the
+-- side, so what is round the anchor stays in full view.
 local function pointAt(
 	anchor: string,
 	text: string,
@@ -224,6 +247,7 @@ local function pointAt(
 	place: string?,
 	clear: boolean?
 )
+	selectOn(anchor, device, fresh)
 	if not TutorialAnchors.showing(anchor) then
 		lineOnly(nil)
 		return
@@ -236,10 +260,6 @@ local function pointAt(
 	end
 	hand:point(target, clear)
 	overlay:say(text, place)
-	local object = TutorialAnchors.get(anchor)
-	if fresh and device == "gamepad" and object and object.Selectable then
-		GuiService.SelectedObject = object
-	end
 end
 
 ---------------------------------------------------------------------------------------------
@@ -285,10 +305,13 @@ local function lessonPocket(): (number?, number?)
 	return nil, nil
 end
 
--- The shoot prompt: the hand on the bar (or R2 held), the device's line.
+-- The controller's power button (A: hold it to fill the bar; R2 shoots).
+local POWER_UP = PadMode.key(Config.Input.Gamepad.Shoot.Up) :: Enum.KeyCode
+
+-- The shoot prompt: the hand on the bar (or A held), the device's line.
 local function shootPrompt(device: string)
 	if device == "gamepad" then
-		hand:gesture("hold", Enum.KeyCode.ButtonR2)
+		hand:gesture("hold", POWER_UP)
 	else
 		hand:gesture("pull", TutorialOverlay.guiTarget("PowerBar"))
 	end
@@ -411,8 +434,9 @@ local function game1Scene(device: string, fresh: boolean): string
 	end
 	if lesson == "Break" then
 		if device == "gamepad" then
-			overlay:dim(nil)
-			hand:gesture("hold", Enum.KeyCode.ButtonR2)
+			-- The bar lit as on a computer: A fills it (the hand holds A), R2 shoots.
+			overlay:dim(TutorialOverlay.guiTarget("PowerBar"))
+			hand:gesture("hold", POWER_UP)
 		else
 			local bar = TutorialOverlay.guiTarget("PowerBar")
 			overlay:dim(bar)
@@ -527,8 +551,16 @@ local function rankScene(device: string, fresh: boolean): string
 	if pending then
 		if open then
 			-- The rewards stay lit and uncovered: they see what they claim (the designer).
-			pointAt("RankClaim", words(Copy.RankClaim, device), device, fresh, "Near", true)
-			return "rankClaim" .. device
+			local key = "rankClaim" .. device
+			pointAt(
+				"RankClaim",
+				words(Copy.RankClaim, device),
+				device,
+				shownKey ~= key,
+				"Near",
+				true
+			)
+			return key
 		end
 		if busy() then
 			lineOnly(nil)
@@ -568,6 +600,12 @@ local function mysteryScene(device: string, fresh: boolean): string
 	if slot == nil then
 		lineOnly(nil)
 		return "mysteryNone"
+	end
+	if LuckyClient.aimedKind() == Config.Tutorial.MysteryKind then
+		-- A controller picked it (LB / RB): R2 opens its upgrade screen.
+		local key = "mysteryOpen" .. slot .. device
+		pointAt("HotbarSlot" .. slot, words(Copy.MysteryOpen, device), device, false)
+		return key
 	end
 	local key = "mystery" .. slot .. device
 	pointAt("HotbarSlot" .. slot, words(Copy.Mystery, device), device, fresh or shownKey ~= key)
@@ -647,15 +685,16 @@ local function codeInput(): TextBox?
 end
 
 -- Abilities: open it, type the code, Redeem, SPIN, close.
-local function abilitiesScene(device: string, fresh: boolean): string
+local function abilitiesScene(device: string): string
 	local open = Menus.isOpen(ULTS)
 	local code: string = Config.Ults.CodeBanner.ActiveCode
 	local row = Config.Daily.Codes[code]
 	local spins = if row and row.Spins then row.Spins else 0
 	if Tutorial.marked("Spun") then
 		if open and not TutorialAnchors.flag("UltSpinning") then
-			pointAt("SpinBack", words(Copy.AbilitiesClose, device), device, fresh, "Near")
-			return "abilitiesClose" .. device
+			local key = "abilitiesClose" .. device
+			pointAt("SpinBack", words(Copy.AbilitiesClose, device), device, shownKey ~= key, "Near")
+			return key
 		elseif not open then
 			reportDone("AbilitiesClosed")
 			lineOnly(nil)
@@ -678,8 +717,9 @@ local function abilitiesScene(device: string, fresh: boolean): string
 		return "abilitiesSpinning"
 	end
 	if Tutorial.marked("Redeemed") then
-		pointAt("SpinButton", words(Copy.Spin, device), device, fresh, "Near")
-		return "abilitiesSpin" .. device
+		local key = "abilitiesSpin" .. device
+		pointAt("SpinButton", words(Copy.Spin, device), device, shownKey ~= key, "Near")
+		return key
 	end
 	-- The box comes filled in on a controller (no typing there), and for anyone once the step's
 	-- fallback time is up; the hand then moves to Redeem.
@@ -698,12 +738,15 @@ local function abilitiesScene(device: string, fresh: boolean): string
 	if
 		(TutorialAnchors.flag("CodeFocused") or filled) and TutorialAnchors.showing("CodeRedeem")
 	then
-		-- The box was clicked: no dim (it is typed into), the gold ring and the hand on Redeem.
+		-- The box was clicked: no dim (it is typed into), the gold ring and the hand on Redeem
+		-- (a controller's selection on it).
+		local key = "abilitiesRedeem" .. device
 		local target = TutorialOverlay.guiTarget("CodeRedeem")
 		overlay:dim(target, false, true)
 		hand:point(target)
 		overlay:say(words(Copy.CodeRedeem, device), "Near")
-		return "abilitiesRedeem" .. device
+		selectOn("CodeRedeem", device, shownKey ~= key)
+		return key
 	end
 	local text = if device == "gamepad"
 		then words(Copy.Code, device):format(spins)
@@ -775,7 +818,7 @@ local function scene(step: string, device: string): string
 	elseif step == "Cues" then
 		return cuesScene(device)
 	elseif step == "Abilities" then
-		return abilitiesScene(device, fresh)
+		return abilitiesScene(device)
 	end
 	-- Pad, Soft: nothing guided on screen (the first-time hints may draw in the soft part).
 	if fresh then

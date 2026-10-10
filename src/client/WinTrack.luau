@@ -235,6 +235,7 @@ function WinTrack.new(screen: ScreenGui): any
 	local fold = Instance.new("TextButton")
 	fold.Name = "Fold"
 	fold.Text = ""
+	fold.Selectable = false -- a lobby button is never a gamepad stop (it takes the stick)
 	fold.AutoButtonColor = false
 	fold.BorderSizePixel = 0
 	fold.BackgroundColor3 = rgb(T.PillColor)
@@ -262,6 +263,7 @@ function WinTrack.new(screen: ScreenGui): any
 	local mini = Instance.new("TextButton")
 	mini.Name = "Folded"
 	mini.Text = ""
+	mini.Selectable = false
 	mini.AutoButtonColor = false
 	mini.BorderSizePixel = 0
 	mini.BackgroundColor3 = rgb(T.PillColor)

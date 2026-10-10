@@ -58,6 +58,7 @@ function VipTag.new(money: any): any
 	local tag = Instance.new("TextButton")
 	tag.Name = "VipTag"
 	tag.Text = ""
+	tag.Selectable = false -- a lobby button is never a gamepad stop (it takes the stick)
 	tag.AutoButtonColor = false
 	tag.BorderSizePixel = 0
 	tag.BackgroundColor3 = rgb(V.Color)

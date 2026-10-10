@@ -76,7 +76,8 @@ Rewritten 2026-09-20; reordered 2026-09-26 to the designer's road to release (be
   - [ ] Free Reward: the Lucky 8 Block for the favorite.
   - [ ] Upgrade ideas for Abilities and Ranked (concepts; built only if approved).
 - [ ] The Shop's Blocks, Money and Passes pages with the `lively-gui` skill.
-- [ ] Physical controller hold acceptance; save the updated place and publish its templates.
+- [ ] Physical controller acceptance of the 2026-10-10 button map (A / Y power, R2 shoots, GDD
+  section 5) through the whole tutorial; save the updated place and publish its templates.
 
 ---
 

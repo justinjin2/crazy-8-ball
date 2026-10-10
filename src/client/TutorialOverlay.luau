@@ -11,9 +11,10 @@
 --   the hole. The frames never take input: everything under them still works. The tutorial's
 --   dim is a deliberate exception to UI_STYLE's "popups never darken" (designer, 2026-10-03).
 -- - The small Skip tutorial button (a phone's right under Roblox's menu, a computer's top
---   right; the next free spot when one of our panels covers it) and its Yes / No confirm.
+--   right; the next free spot when one of our panels covers it) and its Yes / No confirm; a
+--   controller's View button asks.
 -- - The Next button under the line: a step's fallback when its action did not happen
---   (tutorial v2 7.1: never stuck).
+--   (tutorial v2 7.1: never stuck); a controller's R3 presses it (never the selection).
 --
 -- A target is a function giving its centre and size in this layer's pixels, or nil when it is
 -- not on screen; TutorialOverlay.guiTarget and worldTarget make them. This layer covers the
@@ -36,6 +37,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared.Config)
 local Strings = require(Shared.Strings)
 local HudParts = require(script.Parent.HudParts)
+local PadMode = require(script.Parent.PadMode)
 local UIAnim = require(script.Parent.UIAnim)
 local TutorialAnchors = require(script.Parent.TutorialAnchors)
 local ScreenLayout = require(Shared.Tutorial.ScreenLayout)
@@ -335,6 +337,24 @@ function TutorialOverlay.new(): Overlay
 	nextButton.AnchorPoint = Vector2.new(0.5, 0)
 	nextButton.ZIndex = 6
 	nextButton.Visible = false
+	-- Never a controller stop (a selected button takes the left stick from walking and the
+	-- D-pad from the menus' route): R3 presses it instead, its picture on it.
+	nextButton.Selectable = false
+	local nextKey = PadMode.key(Config.Input.Gamepad.Hub.Next) :: Enum.KeyCode
+	HudParts.padKey(nextButton, nextKey, Config.UI.Kit.PadKey.Button)
+	ContextActionService:BindActionAtPriority(
+		"TutorialNext",
+		function(_, state: Enum.UserInputState)
+			if state == Enum.UserInputState.Begin and nextButton.Visible and self.onNext then
+				self.onNext()
+				return Enum.ContextActionResult.Sink
+			end
+			return Enum.ContextActionResult.Pass
+		end,
+		false,
+		Enum.ContextActionPriority.High.Value + 30,
+		nextKey
+	)
 	self.nextButton = nextButton
 	RunService.RenderStepped:Connect(function(dt: number)
 		self:update(dt)
@@ -350,6 +370,9 @@ function TutorialOverlay.buildSkip(self: Overlay)
 	skip.Name = "SkipTutorial"
 	skip.ZIndex = 6
 	skip.Visible = false
+	skip.Selectable = false -- the controller's View button asks instead (its picture on it)
+	local skipKey = PadMode.key(Config.Input.Gamepad.Hub.Skip) :: Enum.KeyCode
+	HudParts.padKey(skip, skipKey, Config.UI.Kit.PadKey.Skip)
 	self.skip = skip
 
 	local card = HudParts.card(self.gui, "SkipConfirm")
@@ -378,25 +401,43 @@ function TutorialOverlay.buildSkip(self: Overlay)
 	no.Size = UDim2.fromScale(0.38, 0.3)
 	self.confirm = card
 
-	-- A gamepad opens it with the View (Select) button; the confirm takes the selection.
-	ContextActionService:BindAction("TutorialSkip", function(_, state: Enum.UserInputState)
-		if state == Enum.UserInputState.Begin and self.skip.Visible then
-			self:askSkip(not self.confirm.Visible)
-			return Enum.ContextActionResult.Sink
-		end
-		return Enum.ContextActionResult.Pass
-	end, false, Enum.KeyCode.ButtonSelect)
+	-- A gamepad opens it with the View (Select) button (Config.Input.Gamepad.Hub.Skip); the
+	-- confirm takes the selection, and B answers No while it is up.
+	ContextActionService:BindActionAtPriority(
+		"TutorialSkip",
+		function(_, state: Enum.UserInputState)
+			if state == Enum.UserInputState.Begin and self.skip.Visible then
+				self:askSkip(not self.confirm.Visible)
+				return Enum.ContextActionResult.Sink
+			end
+			return Enum.ContextActionResult.Pass
+		end,
+		false,
+		Enum.ContextActionPriority.High.Value + 30,
+		skipKey
+	)
 end
 
 function TutorialOverlay.askSkip(self: Overlay, open: boolean)
+	local was = self.confirm.Visible
 	self.confirm.Visible = open
 	if open then
 		UIAnim.popIn(self.confirm)
-		if UserInputService.GamepadEnabled then
+		if PadMode.active() or UserInputService.GamepadEnabled then
 			GuiService.SelectedObject = self.confirm:FindFirstChild("No") :: GuiObject
 		end
 	elseif GuiService.SelectedObject and GuiService.SelectedObject:IsDescendantOf(self.confirm) then
 		GuiService.SelectedObject = nil
+	end
+	if open and not was then
+		ContextActionService:BindActionAtPriority("TutorialSkipNo", function(_, state)
+			if state == Enum.UserInputState.Begin then
+				self:askSkip(false)
+			end
+			return Enum.ContextActionResult.Sink
+		end, false, Enum.ContextActionPriority.High.Value + 30, Enum.KeyCode.ButtonB)
+	elseif was and not open then
+		ContextActionService:UnbindAction("TutorialSkipNo")
 	end
 end
 
@@ -450,6 +491,11 @@ local TOKENS: { [string]: Enum.KeyCode } = {
 	LS = Enum.KeyCode.Thumbstick1,
 	RS = Enum.KeyCode.Thumbstick2,
 	DPad = Enum.KeyCode.DPadUp,
+	DLeft = Enum.KeyCode.DPadLeft,
+	DRight = Enum.KeyCode.DPadRight,
+	DUp = Enum.KeyCode.DPadUp,
+	DDown = Enum.KeyCode.DPadDown,
+	View = Enum.KeyCode.ButtonSelect,
 }
 
 --- `text` with each {token} as a plain word (for where no picture can go).
@@ -492,7 +538,7 @@ local function fillRow(self: Overlay, text: string, px: number)
 		end
 		word((string.gsub(string.sub(text, at, a - 1), "%s+$", "")))
 		local key = TOKENS[name :: string]
-		local image = if key then UserInputService:GetImageForKeyCode(key) else ""
+		local image = if key then PadMode.glyph(key) else ""
 		if image ~= "" then
 			order += 1
 			-- On a dark disc, like the words' outline: Roblox's light pictures vanish on a
@@ -529,19 +575,14 @@ local function fillRow(self: Overlay, text: string, px: number)
 	end
 end
 
---- Shows or hides the Next button (a step's fallback); `onNext` runs when it is pressed. A
---- gamepad's selection moves onto it when it first shows.
+--- Shows or hides the Next button (a step's fallback); `onNext` runs when it is pressed (a
+--- click, a tap, or the controller's R3: Config.Input.Gamepad.Hub.Next).
 function TutorialOverlay.setNext(self: Overlay, visible: boolean, onNext: (() -> ())?)
 	local was = self.nextButton.Visible
 	self.nextButton.Visible = visible
 	self.onNext = if visible then onNext else nil
 	if visible and not was then
 		UIAnim.popIn(self.nextButton)
-		if UserInputService.GamepadEnabled and GuiService.SelectedObject == nil then
-			GuiService.SelectedObject = self.nextButton
-		end
-	elseif not visible and GuiService.SelectedObject == self.nextButton then
-		GuiService.SelectedObject = nil
 	end
 end
 

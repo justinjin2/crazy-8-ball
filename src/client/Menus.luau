@@ -8,8 +8,10 @@
 -- outside the panel (MenuFrame routes both to Menus.close). The roadmap still handles its own
 -- X, backdrop, B and Escape; this module reads its state from its handle, so it never goes
 -- stale. The gamepad's selection from before the first menu opened (GuiService.SelectedObject)
--- comes back when the last one closes, and switching from one menu to another hands the next
--- one that same selection, never a button inside the menu that just closed.
+-- comes back when the last one closes, if it is still a stop on screen (a lobby button handed
+-- back would take the left stick from walking: the designer was stuck after Rank, 2026-10-10),
+-- and switching from one menu to another hands the next one that same selection, never a
+-- button inside the menu that just closed.
 --
 -- B is bound at a priority above the table's own B (Leave) and the roadmap's, only while a
 -- menu is open, so B closes the menu before anything else hears it. Escape while typing in a
@@ -101,8 +103,27 @@ local function blocked(): boolean
 	return ok and result == true
 end
 
+-- Whether `object` can still hold the gamepad's selection: in the game, a stop, and drawn
+-- (every frame up to its ScreenGui shown).
 local function valid(object: GuiObject?): boolean
-	return object ~= nil and object:IsDescendantOf(game)
+	if object == nil or not object:IsDescendantOf(game) or not object.Selectable then
+		return false
+	end
+	local at: Instance? = object
+	while at and not at:IsA("PlayerGui") do
+		if at:IsA("GuiObject") and not at.Visible then
+			return false
+		elseif at:IsA("LayerCollector") and not at.Enabled then
+			return false
+		end
+		at = at.Parent
+	end
+	return true
+end
+
+--- Whether `object` can hold the gamepad's selection now (a stop, drawn, in the game).
+function Menus.selectable(object: GuiObject?): boolean
+	return valid(object)
 end
 
 -- The selection goes back to where it was before the menus, if it is still there.

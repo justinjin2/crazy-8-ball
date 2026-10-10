@@ -12,11 +12,11 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local GuiService = game:GetService("GuiService")
 local TextService = game:GetService("TextService")
 local TweenService = game:GetService("TweenService")
-local UserInputService = game:GetService("UserInputService")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local HudParts = require(script.Parent.HudParts)
+local PadMode = require(script.Parent.PadMode)
 local UIAnim = require(script.Parent.UIAnim)
 local RankBadge = require(script.Parent.RankBadge)
 local Engine = require(Shared:WaitForChild("Rules"):WaitForChild("MatchEngine"))
@@ -1515,7 +1515,7 @@ function MatchHUD.update(self: any, now: number)
 		self.setup.Visible = placementVisible
 		self:layout()
 	end
-	local gamepad = UserInputService:GetLastInputType() == Enum.UserInputType.Gamepad1
+	local gamepad = PadMode.active()
 	local hint = if self.frozenAim
 		then Copy.TimeStopHint
 		elseif self.placingBlocked then Copy.PlacementBlocked

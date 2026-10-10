@@ -4163,3 +4163,22 @@ timer of a new block stay the designer's call.
   (no Odds button) and the code box right there under it; Fast spin sits by Back.
 - 2026-10-10: the top banner ("New in your Index ...") keeps under the rank HUD's goal line
   as well as its pill (on a phone the line sits under the pill).
+- 2026-10-10 (designer's controller pass with a PS4 pad: "instead of using r2 to set the
+  amount to shoot ... (x) on ps4 or (a) on xbox ... to increase power, the triangle or Y ... to
+  decrease the power, and then use r2 to release"; "the pull ... should just be constant and
+  faster"): one button map for the whole game (GDD section 5). The Hold / Depth / Freeze
+  shooting modes are gone: hold A to raise the power and Y to lower it, linear, full in 1 s;
+  R2 shoots; B zeroes it; the power stays while aiming. The 8's pocket: the stick points, A
+  picks (no GUI selection, which never landed and stuck the tutorial). Y is Rank only (it was
+  also the queue and Join): Play Global and Join moved to L2. D-pad left (the designer's
+  pick) jumps to the right side (Daily Challenge, offer, Settings, Invite, Plus, player list),
+  outlined in gold; View is Skip tutorial and R3 the tutorial's Next. "Add the cue on the right
+  side back": the power bar's cue shows on a pad too. Stuck after Rank: lobby HUD buttons are
+  never controller stops (the Rank badge was, and Menus handed its selection back, so the stick
+  hopped between Rank and money); Menus only hands back a selection still on screen, HubPad
+  drops stray ones, and the tutorial's Next no longer takes the selection. Every button's
+  picture is Roblox's own on an ink disc (PlayStation's white art), on the Rank badge, the
+  Daily Challenge, Play Global, Join, Skip, Next, the ability prompt and the guide strip. The
+  tutorial's controller lines name the new buttons (A fills, R2 shoots, D-pad fine aim, Y
+  Rank, LB / RB then R2 for the Mystery block, R2 to place), and its pointing selects what
+  the line names (CLAIM, the new cue, Redeem, SPIN) once it is on screen.

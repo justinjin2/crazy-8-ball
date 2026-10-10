@@ -29,12 +29,13 @@
 --
 -- Gamepad (overnight assumption, 2026-09-28): a selected GUI button takes the left stick from
 -- walking, so the tiles are never selectable; in the hub the D-pad opens them instead (up Shop,
--- right Inventory, down Free Reward, left the player list: Progression.padRoute), and while a
--- gamepad is the
--- last input each tile shows its D-pad glyph (Roblox's own, so it matches the controller). The
--- D-pad's four directions are taken, so Ults is gamepad X (Config.UI.UltScreen.Column.PadKey;
+-- right Inventory, down Free Reward: Progression.padRoute; left is the right side, HubPad), and
+-- while a gamepad is the last input each tile shows its D-pad glyph (Roblox's own, so it
+-- matches the controller). The D-pad's four directions are taken, so Ults is gamepad X (Config.UI.UltScreen.Column.PadKey;
 -- overnight assumption, 2026-09-28: X is the ult button in a match, so X means "ult"
--- everywhere). The column listens for it itself, only while the D-pad route is live.
+-- everywhere). The column listens for it itself, only while the D-pad route is live, and not
+-- while an open prompt on X shows (a placed lucky block's or a gift's: holding X opens it;
+-- designer's controller pass, 2026-10-10).
 --
 -- Hidden until the save loads, in a match, and while the result screen, NEW RANK!, a lucky
 -- block's reel or the teleport screen is up (Progression.update calls setVisible every frame).
@@ -55,6 +56,7 @@
 -- and size, stays there over the blur for Column.LingerSeconds playing its press (the CUES
 -- strike), pops out, and goes home to the column.
 local Players = game:GetService("Players")
+local ProximityPromptService = game:GetService("ProximityPromptService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TextService = game:GetService("TextService")
 local UserInputService = game:GetService("UserInputService")
@@ -66,6 +68,7 @@ local Strings = require(Shared:WaitForChild("Strings"))
 local CuesStrike = require(script.Parent.CuesStrike)
 local GuiQA = require(script.Parent.GuiQA)
 local HudParts = require(script.Parent.HudParts)
+local PadMode = require(script.Parent.PadMode)
 local ItemState = require(script.Parent.ItemState)
 local LuckyClient = require(script.Parent.LuckyClient)
 local UIAnim = require(script.Parent.UIAnim)
@@ -141,7 +144,7 @@ local function round(n: number): number
 end
 
 local function isGamepad(): boolean
-	return string.sub(UserInputService:GetLastInputType().Name, 1, 7) == "Gamepad"
+	return PadMode.active()
 end
 
 -- "23:59:12" under a day, "6d 4h" from a day.
@@ -220,10 +223,7 @@ function MenuColumn.new(screen: ScreenGui, opts: Options): any
 			end
 		end
 	end
-	connect(UserInputService.LastInputTypeChanged, function()
-		self:refreshGlyphs()
-	end)
-	connect(UserInputService.GamepadConnected, function()
+	connect(PadMode.Changed, function()
 		self:refreshGlyphs()
 	end)
 	local player = Players.LocalPlayer
@@ -264,11 +264,31 @@ function MenuColumn.new(screen: ScreenGui, opts: Options): any
 	connect(TutorialAnchors.Changed, function()
 		self:refreshUlts()
 	end)
+	-- The open prompts on X showing now (a placed block's, a gift's): X is theirs meanwhile.
+	local promptsOnX: { [ProximityPrompt]: boolean } = {}
+	connect(ProximityPromptService.PromptShown, function(prompt: ProximityPrompt)
+		if prompt.GamepadKeyCode == ULT_KEY then
+			promptsOnX[prompt] = true
+		end
+	end)
+	connect(ProximityPromptService.PromptHidden, function(prompt: ProximityPrompt)
+		promptsOnX[prompt] = nil
+	end)
+	-- One still up (a prompt destroyed while shown, its block opened, is dropped here).
+	local function promptOnX(): boolean
+		for prompt in promptsOnX do
+			if prompt:IsDescendantOf(workspace) and prompt.Enabled then
+				return true
+			end
+			promptsOnX[prompt] = nil
+		end
+		return false
+	end
 	connect(UserInputService.InputBegan, function(input: InputObject, processed: boolean)
 		if processed or ULT_KEY == nil or input.KeyCode ~= ULT_KEY then
 			return
 		end
-		if not self.routeLive or not self.showing or not self:ultsShown() then
+		if not self.routeLive or not self.showing or not self:ultsShown() or promptOnX() then
 			return
 		end
 		if UserInputService:GetFocusedTextBox() ~= nil then

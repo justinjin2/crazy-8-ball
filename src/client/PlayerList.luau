@@ -17,7 +17,8 @@
 -- It stays clear of the Settings gear (`avoid`). Not shown on a phone for now (the HUD screen
 -- under Multiplayer.Style.ShortHeight; designer 2026-10-07: it took too much of the screen).
 -- Hidden in a match and under the popups (Progression). Gamepad: the D-pad's left in the hub
--- focuses the list (Progression.padRoute); B leaves it. Sizes in Config.UI.PlayerList.
+-- goes to the right side's buttons (HubCorners.focusPad) and the stick goes up from there onto
+-- the list's header and rows; B goes back to walking (HubPad). Sizes in Config.UI.PlayerList.
 local GuiService = game:GetService("GuiService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -677,24 +678,6 @@ function PlayerList.setVisible(self: any, visible: boolean)
 		self:refresh()
 		self:layout()
 	end
-end
-
---- The D-pad's left: open the list and put the selection on its first row. False when the
---- list is not on screen (a phone).
-function PlayerList.focus(self: any): boolean
-	if not self.showing or self.phone then
-		return false
-	end
-	if not self.open then
-		self.open = true
-		self.touched = true
-		SettingsState.set("ListOpen", true)
-		self:refresh()
-		self:layout(true)
-	end
-	local first = self.rows[1]
-	GuiService.SelectedObject = if first and first.button.Visible then first.button else self.header
-	return true
 end
 
 return PlayerList

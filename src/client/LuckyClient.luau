@@ -727,6 +727,16 @@ function LuckyClient.start(screen: ScreenGui)
 		end
 		return false
 	end)
+	-- A controller press on the hotbar (LB, RB, R2, L3: what onInput hears from a real pad).
+	-- Returns the held block's kind and the picked Mystery's kind.
+	GuiQA.add("blockPad", function(keyName: string): (string?, string?)
+		local fake: any = {
+			KeyCode = (Enum.KeyCode :: any)[keyName],
+			UserInputType = Enum.UserInputType.Gamepad1,
+		}
+		onInput(fake, false)
+		return LuckyClient.heldKind(), LuckyClient.aimedKind()
+	end)
 	GuiQA.add("throwHeld", function(): boolean
 		throw()
 		return heldId ~= nil or throwing
@@ -945,6 +955,12 @@ end
 --- The tutorial: the held block's kind, or nil.
 function LuckyClient.heldKind(): string?
 	local entry = find(heldId)
+	return if entry then entry.kind else nil
+end
+
+--- A Mystery the gamepad's LB / RB picked (R2 opens its screen): its kind, or nil.
+function LuckyClient.aimedKind(): string?
+	local entry = if heldId == nil then find(aimedId) else nil
 	return if entry then entry.kind else nil
 end
 

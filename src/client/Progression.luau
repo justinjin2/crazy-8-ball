@@ -413,9 +413,9 @@ function Progression.dropChoices()
 	end
 end
 
---- Gamepad Y in the hub (Main): open the roadmap, or close it if it is up (designer,
---- 2026-09-27). Through Menus, so it closes any other menu first. Returns whether it did
---- anything.
+--- Gamepad Y in the hub (HubPad): open the roadmap, or close it if it is up (designer,
+--- 2026-09-27). Through Menus, so it closes any other menu first; never while the tutorial
+--- still hides the Rank HUD. Returns whether it did anything.
 function Progression.toggleRank(): boolean
 	if not started then
 		return false
@@ -424,28 +424,31 @@ function Progression.toggleRank(): boolean
 		Menus.close(RANKED)
 		return true
 	end
+	if TutorialAnchors.hidden("Rank") or not rankHud.showing then
+		return false
+	end
 	return Menus.open(RANKED)
 end
 
---- The D-pad in the hub (Main, for a press no GUI took): up, right and down open the Shop,
+-- Whether the lobby's D-pad routes are live: the column shows, no match, menu, popup or typing.
+local function routeLive(): boolean
+	return started
+		and not lastState.inMatch
+		and not Menus.isOpen()
+		and not popupUp()
+		and UserInputService:GetFocusedTextBox() == nil
+		and column:isShown()
+end
+
+--- The D-pad in the hub (HubPad, for a press no GUI took): up, right and down open the Shop,
 --- Inventory and Free Reward (the Daily Challenge while the tutorial hides it), as the left
---- column's tiles; left focuses the player list (GUI lane, 2026-10-03). Never in a match (the D-pad
---- aims there), while a menu is open (the D-pad moves its selection), while a text box has
---- focus, or while the column is hidden. Returns whether it took the press.
+--- column's tiles. Never in a match (the D-pad aims there), while a menu is open (the D-pad
+--- moves its selection), while a text box has focus, or while the column is hidden. Returns
+--- whether it took the press.
 function Progression.padRoute(key: Enum.KeyCode): boolean
 	local name = PAD_ROUTE[key]
-	if not name or not started or lastState.inMatch then
+	if not name or not routeLive() then
 		return false
-	end
-	if Menus.isOpen() or popupUp() or UserInputService:GetFocusedTextBox() ~= nil then
-		return false
-	end
-	if not column:isShown() then
-		return false
-	end
-	-- Left focuses the player list.
-	if name == "PlayerList" then
-		return playerList:focus()
 	end
 	-- Down is Free Reward while its tile is up (the tutorial brings it in), else the Daily
 	-- Challenge.
@@ -455,6 +458,37 @@ function Progression.padRoute(key: Enum.KeyCode): boolean
 	end
 	column:press(name)
 	return true
+end
+
+--- The D-pad's left in the hub (HubPad; designer, 2026-10-10): the controller onto the right
+--- side's buttons (HubCorners.focusPad: the Daily Challenge first, the offer, Settings, Invite,
+--- Plus; the stick reaches the player list too). Returns whether it took the press.
+function Progression.padSide(): boolean
+	if not routeLive() then
+		return false
+	end
+	return corners:focusPad()
+end
+
+--- Whether the controller is on the right side now (padSide), and `object` (the selection)
+--- is one of its stops or in the player list.
+function Progression.padSideHolds(object: Instance?): boolean
+	return started
+		and corners.padFocused
+		and object ~= nil
+		and (corners:padFocusedOn(object) or object:IsDescendantOf(playerList.gui))
+end
+
+--- Whether the right side has the controller (padSide) at all.
+function Progression.padSideOn(): boolean
+	return started and corners.padFocused == true
+end
+
+--- Back to walking from the right side.
+function Progression.padSideBlur()
+	if started then
+		corners:blurPad()
+	end
 end
 
 --- Where something earned elsewhere flies to: a column tile's centre in absolute pixels

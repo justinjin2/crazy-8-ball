@@ -80,6 +80,7 @@ function LuckClover.new(money: any, vipTag: any): any
 	local badge = Instance.new("TextButton")
 	badge.Name = "LuckClover"
 	badge.Text = ""
+	badge.Selectable = false -- a lobby button is never a gamepad stop (it takes the stick)
 	badge.AutoButtonColor = false
 	badge.BorderSizePixel = 0
 	badge.BackgroundColor3 = rgb(C.Color)

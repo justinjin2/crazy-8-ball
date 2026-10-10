@@ -18,8 +18,12 @@
 --   invite's launch data, Progression/Social.launchData) and Roblox Plus (the Store's Plus
 --   prompt; hidden for members and where the shop does not offer Plus).
 -- - Top left, right of the rank HUD: the Settings gear (GUI lane, C10; SettingsMenu).
--- Sizes in Config.UI.Corners; words in Strings.Corners. Never gamepad stops (a selected button
--- would take the left stick from walking); the D-pad reaches the challenge.
+-- Sizes in Config.UI.Corners; words in Strings.Corners. Not gamepad stops while the player walks
+-- (a selected button takes the left stick from walking): the D-pad's left (HubPad, designer
+-- 2026-10-10) makes them stops and lands on the Daily Challenge (its picture on the
+-- challenge's corner); the stick moves between them and the player list, A presses, B goes
+-- back to walking (focusPad, blurPad).
+local GuiService = game:GetService("GuiService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TextService = game:GetService("TextService")
@@ -32,6 +36,7 @@ local CueThumb = require(script.Parent.CueThumb)
 local GuiQA = require(script.Parent.GuiQA)
 local HudParts = require(script.Parent.HudParts)
 local InvitePrompt = require(script.Parent.InvitePrompt)
+local PadMode = require(script.Parent.PadMode)
 local ItemState = require(script.Parent.ItemState)
 local Menus = require(script.Parent.Menus)
 local ShopCards = require(script.Parent.ShopCards)
@@ -59,8 +64,24 @@ local function round(n: number): number
 	return math.floor(n + 0.5)
 end
 
+-- The look of a controller's selection on a corner button: a gold outline round it (Roblox
+-- draws it at the selected button's size).
+local function padRing(): Frame
+	local ring = Instance.new("Frame")
+	ring.Name = "PadRing"
+	ring.BackgroundTransparency = 1
+	ring.Size = UDim2.fromScale(1, 1)
+	HudParts.corner(ring, C.PadRingCornerPx)
+	local stroke = Instance.new("UIStroke")
+	stroke.Color = HudParts.color(K.Colors.Gold)
+	stroke.Thickness = C.PadRingPx
+	stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	stroke.Parent = ring
+	return ring
+end
+
 -- An icon button with the candy's hover, squish and bounce but no box (like the column's tiles),
--- its word across the icon's lower edge.
+-- its word across the icon's lower edge; a controller's selection outlines it in gold.
 local function corner(
 	parent: Instance,
 	name: string,
@@ -71,6 +92,7 @@ local function corner(
 	local button = HudParts.candy(parent, "", press, "Blue", nil)
 	button.Name = name
 	button.Selectable = false
+	button.SelectionImageObject = padRing()
 	local parts = HudParts.candyParts(button)
 	parts.face.Visible = false
 	local icon = HudParts.icon(parts.body, iconKey, "Art")
@@ -186,6 +208,12 @@ function HubCorners.new(screen: ScreenGui, deps: any): any
 		TutorialAnchors.notePress("Challenge") -- the soft part's click-once "!" goes
 		self:pressChallenge()
 	end)
+	HudParts.padKey(
+		HudParts.candyParts(self.challenge.button).body,
+		PadMode.key(Config.Input.Gamepad.Hub.Side) :: Enum.KeyCode,
+		K.PadKey.Corner
+	)
+	self.padFocused = false
 	self.inviteTile = corner(root, "Invite", "Invite", W.Invite, function()
 		UISound.play("Click")
 		TutorialAnchors.notePress("Invite")
@@ -728,6 +756,7 @@ function HubCorners.setVisible(self: any, visible: boolean)
 		end
 	else
 		self.root.Visible = false
+		self:blurPad()
 	end
 end
 
@@ -755,6 +784,73 @@ end
 
 function HubCorners.isShown(self: any): boolean
 	return self.showing
+end
+
+-- The corner buttons a controller may land on while the right side is focused, shown ones only.
+function HubCorners.padStops(self: any): { GuiObject }
+	local stops: { GuiObject } = {}
+	for _, button in
+		{
+			self.challenge.button,
+			self.offerTile.button,
+			self.offerDismiss,
+			self.gearTile.button,
+			self.inviteTile.button,
+			self.plusTile.button,
+		}
+	do
+		if button.Visible then
+			table.insert(stops, button)
+		end
+	end
+	return stops
+end
+
+--- The controller onto the corner buttons (HubPad, the D-pad's left): they become stops and the
+--- selection lands on the Daily Challenge (or the first one shown). False when none shows.
+function HubCorners.focusPad(self: any): boolean
+	if not self.showing then
+		return false
+	end
+	local stops = self:padStops()
+	if #stops == 0 then
+		return false
+	end
+	for _, button in stops do
+		button.Selectable = true
+	end
+	self.padFocused = true
+	GuiService.SelectedObject = stops[1]
+	return true
+end
+
+--- Back to walking: the corner buttons stop being stops, a selection on one is dropped.
+function HubCorners.blurPad(self: any)
+	if not self.padFocused then
+		return
+	end
+	self.padFocused = false
+	local selected = GuiService.SelectedObject
+	for _, button in
+		{
+			self.challenge.button,
+			self.offerTile.button,
+			self.offerDismiss,
+			self.gearTile.button,
+			self.inviteTile.button,
+			self.plusTile.button,
+		}
+	do
+		button.Selectable = false
+		if selected == button then
+			GuiService.SelectedObject = nil
+		end
+	end
+end
+
+--- Whether the controller is on the corner buttons now (focusPad).
+function HubCorners.padFocusedOn(self: any, object: Instance?): boolean
+	return self.padFocused and object ~= nil and object:IsDescendantOf(self.root)
 end
 
 --- The Daily Challenge: a "Soon" bubble beside it (a press, or the D-pad's down).

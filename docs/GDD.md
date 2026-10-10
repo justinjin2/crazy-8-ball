@@ -85,7 +85,7 @@ Every feature is checked against these. If it serves none, it waits.
   (`Config.Input.TouchPull`). A mouse pulls as before.
 - A small zoom guide sits over the spin button during your turn: a mouse-wheel icon (computer)
   or a pinching hand (touch) and "Zoom In/Out", greyed out like a control guide (designer,
-  2026-09-26; the tutorial explains more). Gamepad guidance comes later. The first zoom hides
+  2026-09-26; the tutorial explains more). A gamepad gets the controller guide instead. The first zoom hides
   it for the rest of the session; it comes back when the player rejoins (designer, 2026-09-27).
 - Spin UI: a larger cue-ball button sits at the left middle. Drag anywhere across the white
   selector to choose spin; its full disc represents the available physics range. Keep only
@@ -103,12 +103,33 @@ Every feature is checked against these. If it serves none, it waits.
   also draws the flight itself (2026-10-02): dots through the air along every hop, live with
   the pull, a faint shadow line on the cloth under each, and the aim line from where the
   ball settles.
-- Gamepad: left stick aims, up and down on the right stick (or triggers) zooms, a hold-and-
-  release button shoots with power, the spin selector is a stick target. Exact bindings are a
-  milestone task, not a design question. Decided with a PS5 pad (designer, 2026-09-27):
-  holding L1, the left stick moves the spin and the right stick raises or lowers the cue;
-  moving the stick or the D-pad during a pull calls the shot off; Y in the hub opens or
-  closes Ranked; choosing the 8's pocket, the stick goes to the ring that way on screen.
+- **Gamepad: one button, one job** (the designer's controller pass with a PS4 pad,
+  2026-10-10; it replaces the Hold / Depth / Freeze shooting modes). Every button's picture is
+  Roblox's own, so PlayStation players see Cross, Triangle and so on.
+  - **Your turn:** left stick aims, D-pad left / right fine-aims, right stick up / down zooms.
+    **Hold A (Cross) to raise the power and Y (Triangle) to lower it**, at a steady, linear rate
+    (empty to full in 1 s); **R2 shoots** at the power shown (nothing under the smallest shot).
+    The power stays while you aim, so A and Y adjust it any time; B sets it back to zero, and
+    with no power B is Leave (its confirm). L1 held: the left stick moves the spin, the right
+    stick raises or lowers the cue, Y centres the spin. L2 held plus the left stick moves the
+    ball in hand. X (Square) is the ability.
+  - **Calling the 8's pocket:** point the left stick at a pocket (the ring that way from the
+    table's centre lights up) and press A; the D-pad also steps round. Nothing else to press.
+  - **The lobby:** the sticks and A walk, look and jump as in any Roblox game. D-pad up / right /
+    down open the Shop, Cues and Free Reward; **D-pad left jumps to the right side** (the Daily
+    Challenge first, then the offer, Settings, Invite, Plus and the player list; the stick
+    moves, A presses, B or D-pad left goes back to walking). **Y opens and closes Rank** (its
+    picture on the Rank badge). X opens Abilities (but holding X at a placed lucky block or a
+    gift opens that). LB / RB pick a lucky block, R2 places it (or opens a picked Mystery), L3
+    the bag. **L2 is Play Global** on a waiting pad (again stops the search) and Join on an
+    opponent's ask. B leaves a pad and closes menus. **View (Share or the touchpad on PS) is
+    Skip tutorial** and **R3 (the right stick pressed in) is the tutorial's Next**.
+  - **The stick always walks** unless the player chose a button: nothing in the lobby HUD is a
+    controller stop, a menu hands back only a selection still on screen, and a hard push that
+    hits the edge of the right side's buttons lets go.
+  - The controller guide (a faint strip at the bottom left, its button pictures on small dark
+    discs) lists the turn's controls, the pocket call's, and in the lobby "R2 Place / L1 R1
+    Switch" while a block is held.
 - Aim ticks: a soft tick sound on every step of rotation; a stretch sound while pulling the
   power bar back (GamePigeon style, original audio).
 - **Camera:** one 3D orbit view (no toggle; top-down only while calling the 8-ball pocket). It
@@ -1246,8 +1267,8 @@ helpers, `src/server/TutorialService.luau`, `TutorialGames`, `TutorialBot`, `Tut
   spin, no spin for Bronze, the first daily free spin the next day) until RELEASE gives 3;
   Bronze's block waits in Rank; every reel pauses on its cards before it spins; "x2!" (and up)
   beside NICE SHOT! for two or more of your balls in one shot; the new search (section 6: this
-  server first, the global queue, a bot here at 5 s); controller shooting (hold R2 or A to
-  fill, let go to shoot; B cancels); VIP and Starter Pack share one tile (the Starter Pack
+  server first, the global queue, a bot here at 5 s); controller shooting (hold A to raise
+  the power, Y to lower it, R2 to shoot; B zeroes it: section 5, 2026-10-10); VIP and Starter Pack share one tile (the Starter Pack
   drawn as the Shop's card: its block, cue and money), which with the Daily Challenge is bigger
   than the left column's tiles and reads as a deal (rainbow rays behind it; "x2 VALUE!" or
   "50% OFF!", then "ONLY" and the price); the Daily Challenge wears a "!" until pressed; the new arrow look; the rank HUD's
@@ -1263,8 +1284,6 @@ helpers, `src/server/TutorialService.luau`, `TutorialGames`, `TutorialBot`, `Tut
   gift came back as the Gift lucky block (designer, 2026-10-07; section 12).
 
 **Open**
-- The controller's shooting mode: Hold (default), Depth or Freeze
-  (`Config.Input.Gamepad.Shoot.Mode`), after the designer tries a real controller.
 - Max Players: 24 (the plan) or 20 (no new player ever waits for a table, half the arena
   teleports). Set in the Creator Hub.
 - Whether the VIP Cue's finder's money should pay a VIP player on their very first join.

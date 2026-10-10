@@ -1,42 +1,47 @@
 --!strict
--- PadGuide: the controller guide (designer, 2026-09-27). While it is your turn to aim and the
--- last input was a gamepad, a faint strip at the bottom left, just above the money HUD, shows
--- what the controller does:
+-- PadGuide: the controller guide (designer, 2026-09-27; the shot and the 8's call, 2026-10-10).
+-- While it is your turn to aim and the last input was a gamepad, a faint strip at the bottom
+-- left, just above the money HUD, shows what the controller does:
 --
 --   (L-stick) <> Turn   (D-pad) <> Fine aim   (R-stick) ^v Zoom
---   (L1) Spin & angle   (R2)(X) Hold to shoot   (Square) Ult  <- "Ult" only while the ult bar is ready
+--   (A) Power up   (Y) Power down   (R2) Shoot
+--   (L1) Spin & angle   (Square) Ability  <- "Ability" only while the ult bar is ready
 --
 -- and while L1 holds the spin panel open (designer, 2026-09-27), the spin controls instead:
 --
 --   (L-stick) Spin   (R-stick) ^v Angle   (Y) Center spin
 --
--- and while an ability's pick is owed (UltPick), its controls: (L-stick) Move, (D-pad) Next
+-- while the 8's pocket is called: (L-stick) Point at a pocket, (D-pad) Next pocket, (A) Pick;
+-- while an ability's pick is owed (UltPick), its controls: (L-stick) Move, (D-pad) Next
 -- ball, (A) Pick, (X) Confirm for a ball; (L-stick) Move, (A) Place, (Y) Switch portal, (L1)
--- Reset, (X) Confirm for portals;
+-- Reset, (X) Confirm for portals; in the lobby while a lucky block is held: (R2) Place,
+-- (LB)(RB) Switch (a Mystery picked: (R2) Open);
 --
 -- and a Circle beside the Leave door in the top bar. The button pictures are Roblox's own
--- (UserInputService:GetImageForKeyCode), so they are PlayStation or Xbox glyphs to match the
--- controller in use; the arrows beside the sticks are the kit's white chevrons (separate
--- images: a turned image does not draw turned inside the strip's list layout).
+-- (PadMode.glyph), so they are PlayStation or Xbox glyphs to match the controller in use; the
+-- arrows beside the sticks are the kit's white chevrons (separate images: a turned image does
+-- not draw turned inside the strip's list layout).
 --
 -- Like the zoom guide it is not a kit card (UI_STYLE's decided exception): icons and outlined
 -- words with nothing behind them, lightly greyed, so it reads as a guide and not a button.
 -- It takes no input. The zoom guide stays hidden on a gamepad; this one covers zoom.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local UserInputService = game:GetService("UserInputService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local HudParts = require(script.Parent.HudParts)
+local PadMode = require(script.Parent.PadMode)
 
 local P = Config.UI.PadGuide
 local Copy = Strings.PadGuide
 local PickCopy = Strings.Ults.Pick.Pad
+local SHOT = Config.Input.Gamepad.Shoot
 
 type Item = {
-	-- "aim" (the turn), "spin" (while L1 holds the spin panel open), "pickBall" or
-	-- "pickPortals" (UltPick.padSet)
+	-- "aim" (the turn), "spin" (while L1 holds the spin panel open), "call" (the 8's pocket),
+	-- "pickBall" or "pickPortals" (UltPick.padSet), "block" (the lobby, a lucky block held),
+	-- "mystery" (the lobby, a Mystery picked)
 	set: string,
 	row: number,
 	keys: { Enum.KeyCode },
@@ -67,19 +72,19 @@ local ITEMS: { Item } = {
 		arrows = "updown",
 		words = Copy.Zoom,
 	},
-	{ set = "aim", row = 2, keys = { Enum.KeyCode.ButtonL1 }, words = Copy.SpinAngle },
+	{ set = "aim", row = 2, keys = { PadMode.key(SHOT.Up) :: Enum.KeyCode }, words = Copy.PowerUp },
 	{
 		set = "aim",
 		row = 2,
-		keys = { Enum.KeyCode.ButtonR2, Enum.KeyCode.ButtonA },
-		words = if Config.Input.Gamepad.Shoot.Mode == "Freeze"
-			then Copy.ShootFreeze
-			else Copy.Shoot,
+		keys = { PadMode.key(SHOT.Down) :: Enum.KeyCode },
+		words = Copy.PowerDown,
 	},
+	{ set = "aim", row = 2, keys = { PadMode.key(SHOT.Fire) :: Enum.KeyCode }, words = Copy.Shoot },
+	{ set = "aim", row = 3, keys = { Enum.KeyCode.ButtonL1 }, words = Copy.SpinAngle },
 	-- The ult (UltHud binds this button only while its bar is ready; Config.UI.Ults.GamepadKey).
 	{
 		set = "aim",
-		row = 2,
+		row = 3,
 		keys = { (Enum.KeyCode :: any)[Config.UI.Ults.GamepadKey] },
 		words = Copy.Ult,
 		ult = true,
@@ -93,6 +98,31 @@ local ITEMS: { Item } = {
 		words = Copy.Angle,
 	},
 	{ set = "spin", row = 1, keys = { Enum.KeyCode.ButtonY }, words = Copy.CenterSpin },
+	-- Calling the 8's pocket (MatchTargets).
+	{ set = "call", row = 1, keys = { Enum.KeyCode.Thumbstick1 }, words = Copy.PointPocket },
+	{
+		set = "call",
+		row = 1,
+		keys = { Enum.KeyCode.DPadLeft, Enum.KeyCode.DPadRight },
+		words = Copy.NextPocket,
+	},
+	{ set = "call", row = 1, keys = { Enum.KeyCode.ButtonA }, words = Copy.PickPocket },
+	-- The lobby with a lucky block held (LuckyClient): R2 places it, LB / RB switch; a
+	-- Mystery picked: R2 opens its upgrade screen.
+	{ set = "block", row = 1, keys = { Enum.KeyCode.ButtonR2 }, words = Copy.PlaceBlock },
+	{
+		set = "block",
+		row = 1,
+		keys = { Enum.KeyCode.ButtonL1, Enum.KeyCode.ButtonR1 },
+		words = Copy.SwitchBlock,
+	},
+	{ set = "mystery", row = 1, keys = { Enum.KeyCode.ButtonR2 }, words = Copy.OpenBlock },
+	{
+		set = "mystery",
+		row = 1,
+		keys = { Enum.KeyCode.ButtonL1, Enum.KeyCode.ButtonR1 },
+		words = Copy.SwitchBlock,
+	},
 	-- The ability pick view (UltPick): Heat Seeker's ball ...
 	{ set = "pickBall", row = 1, keys = { Enum.KeyCode.Thumbstick1 }, words = PickCopy.Move },
 	{
@@ -113,10 +143,6 @@ local ITEMS: { Item } = {
 
 local PadGuide = {}
 PadGuide.__index = PadGuide
-
-local function isGamepad(): boolean
-	return UserInputService:GetLastInputType().Name:match("^Gamepad") ~= nil
-end
 
 local function tint(): Color3
 	return HudParts.color(P.Tint)
@@ -194,9 +220,14 @@ function PadGuide.new(screen: ScreenGui): any
 			table.insert(self.arrows, arrow(entry, "ChevronLeft", nextOrder()))
 		end
 		for _, key in item.keys do
+			-- On an ink disc (as HudParts.padKey): PlayStation's pictures are white and vanish on
+			-- the pale floor without it.
 			local glyph = Instance.new("ImageLabel")
 			glyph.Name = key.Name
-			glyph.BackgroundTransparency = 1
+			glyph.BackgroundColor3 = HudParts.color(Config.UI.Kit.Colors.Ink)
+			glyph.BackgroundTransparency = P.DiscTransparency
+			glyph.BorderSizePixel = 0
+			HudParts.corner(glyph, 999)
 			glyph.ScaleType = Enum.ScaleType.Fit
 			glyph.ImageTransparency = P.GlyphTransparency
 			glyph.LayoutOrder = nextOrder()
@@ -232,12 +263,9 @@ function PadGuide.new(screen: ScreenGui): any
 
 	self:refreshGlyphs()
 	self:layout()
-	UserInputService.LastInputTypeChanged:Connect(function()
+	PadMode.Changed:Connect(function()
 		self:refreshGlyphs()
 		self:apply()
-	end)
-	UserInputService.GamepadConnected:Connect(function()
-		self:refreshGlyphs()
 	end)
 	screen:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
 		self:layout()
@@ -249,22 +277,33 @@ end
 --- or the input changes.
 function PadGuide.refreshGlyphs(self: any)
 	for glyph, key in self.glyphs do
-		local ok, image = pcall(function()
-			return UserInputService:GetImageForKeyCode(key)
-		end)
-		glyph.Image = if ok and type(image) == "string" then image else ""
+		glyph.Image = PadMode.glyph(key)
 	end
 	local hint = self.leaveHint
 	if hint then
-		local ok, image = pcall(function()
-			return UserInputService:GetImageForKeyCode(Enum.KeyCode.ButtonB)
-		end)
-		hint.Image = if ok and type(image) == "string" then image else ""
+		hint.Image = PadMode.glyph(Enum.KeyCode.ButtonB)
 	end
 end
 
+-- The money HUD's top in the screen's pixels: over the VIP tag or the luck's clover while one
+-- shows on the money pill (as MenuColumn.moneyTop), else from its Config size.
+local function moneyTop(screen: ScreenGui, margin: number, icon: number): number
+	local root = screen:FindFirstChild("MoneyHud")
+	if root and root:IsA("GuiObject") and root.AbsoluteSize.Y > 0 then
+		local top = root.AbsolutePosition.Y
+		for _, name in { "VipTag", "LuckClover" } do
+			local tag = root:FindFirstChild(name)
+			if tag and tag:IsA("GuiObject") and tag.Visible and tag.AbsoluteSize.Y > 0 then
+				top = math.min(top, tag.AbsolutePosition.Y)
+			end
+		end
+		return top - screen.AbsolutePosition.Y
+	end
+	return screen.AbsoluteSize.Y - margin - icon
+end
+
 --- Size it for the screen (smaller on a phone on its side) and sit it just above the money
---- HUD at the bottom left.
+--- HUD at the bottom left (above the VIP tag or the clover while one shows).
 function PadGuide.layout(self: any)
 	local short = self.screen.AbsoluteSize.Y < Config.Multiplayer.Style.ShortHeight
 	local glyph = if short then P.ShortGlyphPx else P.GlyphPx
@@ -286,11 +325,12 @@ function PadGuide.layout(self: any)
 	local money = Config.UI.Progress.MoneyHud
 	local margin = if short then money.ShortMarginPx else money.MarginPx
 	local moneyIcon = if short then money.ShortIconSizePx else money.IconSizePx
-	self.root.Position = UDim2.new(0, margin, 1, -(margin + moneyIcon + P.AboveMoneyPx))
+	local top = moneyTop(self.screen, margin, moneyIcon)
+	self.root.Position = UDim2.fromOffset(margin, top - P.AboveMoneyPx)
 end
 
 function PadGuide.apply(self: any)
-	local gamepad = isGamepad()
+	local gamepad = PadMode.active()
 	self.root.Visible = self.wanted and gamepad
 	if self.leaveHint then
 		self.leaveHint.Visible = gamepad
@@ -298,7 +338,9 @@ function PadGuide.apply(self: any)
 end
 
 --- Which controls to show: "aim" for the turn, "spin" while L1 holds the spin panel open,
---- "pickBall" or "pickPortals" while an ability's pick is owed.
+--- "call" while the 8's pocket is called, "pickBall" or "pickPortals" while an ability's pick
+--- is owed, "block" in the lobby while a lucky block is held, "mystery" while a Mystery is
+--- picked.
 function PadGuide.setSet(self: any, set: string)
 	if self.set == set then
 		return
@@ -307,14 +349,19 @@ function PadGuide.setSet(self: any, set: string)
 	for line, lineSet in self.rowSets do
 		line.Visible = lineSet == set
 	end
+	self:layout()
 end
 
---- Shown while it is the player's turn to aim (Main), and only on a gamepad.
+--- Shown while it is the player's turn (or a lucky block is held in the lobby; Main), and only
+--- on a gamepad.
 function PadGuide.setVisible(self: any, visible: boolean)
 	if self.wanted == visible then
 		return
 	end
 	self.wanted = visible
+	if visible then
+		self:layout() -- the VIP tag or the clover may have come or gone since
+	end
 	self:apply()
 end
 

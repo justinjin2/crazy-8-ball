@@ -6,7 +6,7 @@
 --   drag on the table (anywhere not on a button)  -> rotate the aim, slow drags are finer
 --   press the power bar, pull down, release        -> shoot with that power
 --
--- Gamepad (GDD section 5 leaves the exact bindings to the milestone):
+-- Gamepad (GDD section 5; the shot and the 8's call, designer 2026-10-10):
 --   left stick X        -> aim, finer near centre
 --   D-pad left/right    -> tiny fixed aim steps
 --   right stick Y       -> zoom
@@ -15,21 +15,13 @@
 --                          left for spin, right for angle); L1 + D-pad up/down steps it too,
 --                          where the pad's D-pad is not taken by Roblox's own menus
 --   hold L2 + left stick  -> move the cue ball in hand (only while placing is allowed);
---                          the triggers and A are ignored while L2 is held
---   R2 or ButtonA       -> the shot (tutorial v2 4.10, Config.Input.Gamepad.Shoot): by
---                          default hold to fill the bar (slow at first, full after
---                          FillSeconds, held there), let go to shoot; any press of the trigger
---                          counts (its depth is never read: it jumped from 0 to 100%). A tap
---                          shorter than TapIgnoreSeconds does nothing. Two more versions for
---                          the designer to try with a real controller: "Depth" (version B: the
---                          trigger's depth, smoothed, letting go shoots at its recent peak)
---                          and "Freeze" (version C: hold to fill, let go to freeze, press
---                          again to shoot; a frozen bar is called off after a while)
---   moving the left stick (past Gamepad.CancelStickPush from where it was), the D-pad left or
---   right, L2 or ButtonB during a pull cancels it; the button's release then does nothing
---   ButtonB             -> leave the table (when no pull is under way)
---
--- The sticks and the ramp are advanced from Input.update, which the client's render loop
+--                          the shot buttons are ignored while L2 is held
+--   hold A / hold Y     -> the power goes up / down at one steady rate (Config.Input.Gamepad
+--                          .Shoot.FillSeconds, PadMath.stepPower) and stays where it is let go,
+--                          through aiming, spin and ball in hand
+--   R2                  -> shoot at the power shown (nothing below the smallest shot)
+--   ButtonB             -> empty the power; with none set, leave the table
+-- The sticks and the power are advanced from Input.update, which the client's render loop
 -- calls. They cannot be event-driven: InputChanged fires only while a stick MOVES, so a
 -- stick held hard over sends nothing and the aim would stop dead.
 
@@ -41,6 +33,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Cue = require(Shared:WaitForChild("Physics"):WaitForChild("Cue"))
 local ShotInput = require(Shared:WaitForChild("ShotInput"))
+local PadMath = require(Shared:WaitForChild("PadMath"))
 
 local TutorialAnchors = require(script.Parent.TutorialAnchors)
 
@@ -82,15 +75,10 @@ export type Input = typeof(setmetatable(
 		stickSpinX: number,
 		stickSpinY: number,
 		spinModifier: boolean,
-		buttonPower: number?,
-		pullStickX: number, -- the left stick's X when the pull began (a push away cancels it)
-		pullKey: Enum.KeyCode?, -- the button the pull is held on (R2 or A)
-		pullAt: number, -- os.clock when it began
-		frozen: number?, -- version C: the power frozen when the button was let go
-		frozenAt: number,
-		depth: number, -- version B: the trigger's depth now (0-1) and smoothed
-		depthSmooth: number,
-		peaks: { { t: number, p: number } }, -- version B: the power over the last moment
+		level: number, -- the controller's power (0-1): A raises it, Y lowers it, R2 shoots it
+		levelUp: boolean, -- A held
+		levelDown: boolean, -- Y held
+		padPower: boolean, -- the power shown is the controller's level (not a pointer's pull)
 		nudgeDir: number,
 		nudgeTime: number,
 		nudgeNext: number,
@@ -141,15 +129,10 @@ function Input.new(): Input
 		stickSpinX = 0,
 		stickSpinY = 0,
 		spinModifier = false,
-		buttonPower = nil,
-		pullStickX = 0,
-		pullKey = nil,
-		pullAt = 0,
-		frozen = nil,
-		frozenAt = 0,
-		depth = 0,
-		depthSmooth = 0,
-		peaks = {},
+		level = 0,
+		levelUp = false,
+		levelDown = false,
+		padPower = false,
 		nudgeDir = 0,
 		nudgeTime = 0,
 		nudgeNext = 0,
@@ -296,7 +279,7 @@ function Input.setSpinEditing(self: Input, editing: boolean)
 		return
 	end
 	self.spinEditing = editing
-	if editing and self.power ~= nil and self.buttonPower == nil then
+	if editing and self.power ~= nil and not self.padPower then
 		-- PowerCue owns its active pointer. Ignore that old drag through modal close until
 		-- its release arrives, so closing the selector cannot revive the cancelled pull.
 		self.powerSuppressed = true
@@ -312,7 +295,9 @@ function Input.setSpinEditing(self: Input, editing: boolean)
 	self.stickElevation = 0
 	self.elevationAccum = nil
 	self.nudgeDir = 0
-	self.buttonPower = nil
+	-- The controller's level is kept (it shows again when the panel closes), its buttons let go.
+	self.levelUp, self.levelDown = false, false
+	self.padPower = false
 	if self.power ~= nil then
 		self.power = nil
 		for _, listener in self.powerListeners do
@@ -339,7 +324,9 @@ function Input.setEnabled(self: Input, enabled: boolean)
 		-- turning the aim, and a button released afterwards fires a second shot.
 		self.stickAim = 0
 		self.stickZoom = 0
-		self.buttonPower = nil
+		self.level = 0
+		self.levelUp, self.levelDown = false, false
+		self.padPower = false
 		self.nudgeDir = 0
 		endPlace(self)
 		if self.power ~= nil then
@@ -490,20 +477,61 @@ end
 -- ButtonB from firing "leave" at someone who is just wandering the hub.
 local GAMEPAD_ACTION = "8ballGamepad"
 
+local SHOT = Config.Input.Gamepad.Shoot
+local POWER_UP = (Enum.KeyCode :: any)[SHOT.Up] :: Enum.KeyCode
+local POWER_DOWN = (Enum.KeyCode :: any)[SHOT.Down] :: Enum.KeyCode
+local FIRE = (Enum.KeyCode :: any)[SHOT.Fire] :: Enum.KeyCode
+
 local GAMEPAD_KEYS = {
 	Enum.KeyCode.Thumbstick1,
 	Enum.KeyCode.Thumbstick2,
 	Enum.KeyCode.ButtonL2,
-	Enum.KeyCode.ButtonR2,
-	Enum.KeyCode.ButtonA,
 	Enum.KeyCode.ButtonB,
 	Enum.KeyCode.ButtonL1,
-	Enum.KeyCode.ButtonY,
+	POWER_UP,
+	POWER_DOWN,
+	FIRE,
+	Enum.KeyCode.ButtonY, -- centres the spin while L1 holds the panel open
 	Enum.KeyCode.DPadLeft,
 	Enum.KeyCode.DPadRight,
 	Enum.KeyCode.DPadUp,
 	Enum.KeyCode.DPadDown,
 }
+
+-- Show the controller's level on the bar (and the cue drawn back), or take it off at zero.
+local function showLevel(self: Input)
+	if self.level > 0 then
+		self:setPower(self.level)
+		self.padPower = self.power ~= nil
+	elseif self.padPower then
+		self.padPower = false
+		if self.power ~= nil then
+			self.power = nil
+			for _, l in self.powerListeners do
+				l(nil)
+			end
+		end
+	end
+end
+
+-- R2: shoot at the level, if it is enough. Under the tutorial's break floor the level stays
+-- (the line shakes: TutorialAnchors.noteWeakRelease) so they can add to it.
+local function fire(self: Input)
+	local level = self.level
+	if level < Config.Input.MinPowerToShoot then
+		return
+	end
+	local least = TutorialAnchors.minPower()
+	if least and level < least then
+		TutorialAnchors.noteWeakRelease()
+		return
+	end
+	self.level = 0
+	self.levelUp, self.levelDown = false, false
+	self:setPower(level)
+	self.padPower = false
+	self:releasePower()
+end
 
 function Input.handleGamepad(
 	self: Input,
@@ -528,10 +556,8 @@ function Input.handleGamepad(
 			end
 			self.placeModifier = true
 			self.stickAim = 0
-			-- The shot buttons are sunk while L2 is held, so their release would never reach
-			-- the handlers below: drop a pull already under way rather than leave it ramping
-			-- to full and fire on the next tap.
-			self:cancelPull()
+			-- The power holds still while the ball moves (its buttons are sunk meanwhile).
+			self.levelUp, self.levelDown = false, false
 			return sink
 		end
 		return if self.placeModifier then sink else Enum.ContextActionResult.Pass
@@ -541,7 +567,10 @@ function Input.handleGamepad(
 			self.stickPlaceX = if ended then 0 else obj.Position.X
 			self.stickPlaceY = if ended then 0 else obj.Position.Y
 			return sink
-		elseif code == Enum.KeyCode.ButtonA or code == Enum.KeyCode.ButtonR2 then
+		elseif code == POWER_UP or code == POWER_DOWN or code == FIRE then
+			if ended then
+				self.levelUp, self.levelDown = false, false
+			end
 			return sink
 		end
 	end
@@ -585,14 +614,21 @@ function Input.handleGamepad(
 		-- Stored, not acted on: Input.update reads it every frame. See the note at the top.
 		self.stickAim = if ended then 0 else obj.Position.X
 		return sink
-	elseif code == Enum.KeyCode.ButtonA or code == Enum.KeyCode.ButtonR2 then
-		self:shotButton(code, state, obj)
+	elseif code == POWER_UP then
+		self.levelUp = not ended
+		return sink
+	elseif code == POWER_DOWN then
+		self.levelDown = not ended
+		return sink
+	elseif code == FIRE then
+		if state == Enum.UserInputState.Begin then
+			fire(self)
+		end
 		return sink
 	elseif code == Enum.KeyCode.DPadLeft or code == Enum.KeyCode.DPadRight then
 		if ended then
 			self.nudgeDir = 0
 		elseif state == Enum.UserInputState.Begin then
-			self:cancelPull() -- a fine turn means the player is not ready to shoot
 			-- Screen-left turns the aim clockwise, matching the on-screen nudge buttons.
 			self.nudgeDir = if code == Enum.KeyCode.DPadLeft then 1 else -1
 			self.nudgeTime = 0
@@ -602,8 +638,8 @@ function Input.handleGamepad(
 		return sink
 	elseif code == Enum.KeyCode.ButtonB then
 		if state == Enum.UserInputState.Begin then
-			if self.buttonPower ~= nil or self.frozen ~= nil then
-				self:cancelPull() -- B during a pull calls it off instead of leaving
+			if self.level > 0 then
+				self:clearLevel() -- B with power set empties it instead of leaving
 			else
 				for _, l in self.leaveListeners do
 					l()
@@ -613,78 +649,6 @@ function Input.handleGamepad(
 		return sink
 	end
 	return Enum.ContextActionResult.Pass
-end
-
--- Starts a gamepad pull on `code` (R2 or A).
-local function startPull(self: Input, code: Enum.KeyCode)
-	self.pullKey = code
-	self.pullAt = os.clock()
-	self.pullStickX = self.stickAim
-	self.depthSmooth = 0
-	table.clear(self.peaks)
-	self.buttonPower = 0
-	self:setPower(0)
-end
-
--- Shoots at `power` (the pull's end).
-local function shootAt(self: Input, power: number)
-	self.buttonPower = nil
-	self.pullKey = nil
-	self.frozen = nil
-	self:setPower(power)
-	self:releasePower()
-end
-
---- The shot buttons (R2 and A) in the version Config.Input.Gamepad.Shoot.Mode names.
-function Input.shotButton(
-	self: Input,
-	code: Enum.KeyCode,
-	state: Enum.UserInputState,
-	obj: InputObject
-)
-	local S = Config.Input.Gamepad.Shoot
-	local ended = state == Enum.UserInputState.End or state == Enum.UserInputState.Cancel
-	local began = state == Enum.UserInputState.Begin
-	if S.Mode == "Depth" and code == Enum.KeyCode.ButtonR2 then
-		-- Version B: the trigger's depth (Position.Z), smoothed in update.
-		self.depth = if ended then 0 else obj.Position.Z
-		if self.buttonPower == nil and not ended and self.depth > S.DepthStartAbove then
-			startPull(self, code)
-		elseif self.pullKey == code and (ended or self.depth < S.DepthReleaseBelow) then
-			local peak = 0
-			for _, sample in self.peaks do
-				peak = math.max(peak, sample.p)
-			end
-			if state == Enum.UserInputState.Cancel then
-				self:cancelPull()
-			else
-				shootAt(self, peak)
-			end
-		end
-		return
-	end
-	if S.Mode == "Freeze" and self.frozen ~= nil then
-		-- Version C: a frozen bar shoots on the next press.
-		if began then
-			shootAt(self, self.frozen :: number)
-		end
-		return
-	end
-	if began and self.buttonPower == nil then
-		startPull(self, code)
-	elseif ended and self.pullKey == code and self.buttonPower ~= nil then
-		local held = os.clock() - self.pullAt
-		if state == Enum.UserInputState.Cancel or held < S.TapIgnoreSeconds then
-			self:cancelPull() -- a stray tap does nothing
-		elseif S.Mode == "Freeze" then
-			self.frozen = self.buttonPower
-			self.frozenAt = os.clock()
-			self.buttonPower = nil
-			self.pullKey = nil
-		else
-			shootAt(self, self.buttonPower :: number)
-		end
-	end
 end
 
 function Input.bindGamepad(self: Input)
@@ -712,7 +676,7 @@ function Input.unbindGamepad(self: Input)
 end
 
 --- Advance everything that has to be sampled rather than waited for: the sticks, the D-pad
---- repeat and the ButtonA power ramp. The client's render loop calls this every frame.
+--- repeat and the controller's power. The client's render loop calls this every frame.
 function Input.update(self: Input, dt: number)
 	if not self.enabled or dt <= 0 then
 		return
@@ -766,15 +730,6 @@ function Input.update(self: Input, dt: number)
 		end
 	end
 
-	-- Moving the stick during a pull calls the shot off (designer, 2026-09-27), measured
-	-- from where the stick was when the pull began, so aiming and pressing at once is fine.
-	if
-		(self.buttonPower ~= nil or self.frozen ~= nil)
-		and math.abs(self.stickAim - self.pullStickX) > G.CancelStickPush
-	then
-		self:cancelPull()
-	end
-
 	local aim = if self.placeModifier then 0 else deadZone(self.stickAim, G.AimDeadZone)
 	if aim ~= 0 then
 		-- Curve the response so a small push is a fine adjustment, the way a slow drag is.
@@ -800,47 +755,31 @@ function Input.update(self: Input, dt: number)
 		end
 	end
 
-	local S = G.Shoot
-	if self.buttonPower ~= nil then
-		local power: number
-		if S.Mode == "Depth" and self.pullKey == Enum.KeyCode.ButtonR2 then
-			-- Version B: the depth, smoothed, squared; the last moment's samples kept for the
-			-- peak a release shoots at.
-			local k = 1 - math.exp(-dt / S.DepthSmoothSeconds)
-			self.depthSmooth += (self.depth - self.depthSmooth) * k
-			power = math.clamp(self.depthSmooth, 0, 1) ^ S.DepthCurve
-			local now = os.clock()
-			table.insert(self.peaks, { t = now, p = power })
-			while #self.peaks > 0 and now - self.peaks[1].t > S.PeakHoldSeconds do
-				table.remove(self.peaks, 1)
-			end
-		else
-			-- Held time, slow at first (a soft shot is easy), full after FillSeconds and held.
-			local held = os.clock() - self.pullAt
-			power = math.clamp(held / S.FillSeconds, 0, 1) ^ S.Curve
-		end
-		self.buttonPower = power
-		self:setPower(power)
-	elseif self.frozen ~= nil and os.clock() - self.frozenAt > S.FrozenCancelSeconds then
-		self:cancelPull() -- version C: a frozen bar left alone is called off
+	-- The controller's power: A and Y move it in a straight line; it shows again after the spin
+	-- panel or a pointer's pull took the bar.
+	local level = PadMath.stepPower(self.level, self.levelUp, self.levelDown, dt, SHOT.FillSeconds)
+	if level ~= self.level then
+		self.level = level
+		showLevel(self)
+	elseif level > 0 and self.power == nil then
+		showLevel(self)
 	end
 end
 
---- Call off a gamepad pull under way (or a frozen one): the power bar empties and the
---- button's release does nothing; a fresh press starts a new pull.
-function Input.cancelPull(self: Input)
-	if self.buttonPower == nil and self.frozen == nil then
+--- Empty the controller's power (B, or the turn ending): the bar empties and the cue comes
+--- forward again; A starts again from nothing.
+function Input.clearLevel(self: Input)
+	self.levelUp, self.levelDown = false, false
+	if self.level == 0 then
 		return
 	end
-	self.buttonPower = nil
-	self.pullKey = nil
-	self.frozen = nil
-	if self.power ~= nil then
-		self.power = nil
-		for _, l in self.powerListeners do
-			l(nil)
-		end
-	end
+	self.level = 0
+	showLevel(self)
+end
+
+--- Whether the controller's power is moving now (A or Y held): the cue is being drawn.
+function Input.levelMoving(self: Input): boolean
+	return self.padPower and (self.levelUp or self.levelDown)
 end
 
 --- Called by the power bar UI while the player pulls. pull is 0..1.
@@ -849,6 +788,7 @@ function Input.setPower(self: Input, pull: number)
 		return
 	end
 	self.dragInput = nil
+	self.padPower = false -- a pointer's pull (showLevel marks the controller's own)
 	self.power = math.clamp(pull, 0, 1)
 	for _, l in self.powerListeners do
 		l(self.power)

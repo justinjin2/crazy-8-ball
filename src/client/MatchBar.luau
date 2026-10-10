@@ -24,13 +24,12 @@
 -- corner everywhere: on a pad it hides Play Global until the next step-on.
 --
 -- What it says is PadBar's (pure, Lune-tested); this module only draws it. Every press is a
--- request the server checks. Gamepad: Y puts the selection on Play Global (or the X) and B
--- lets go (Main); the stick is never taken while the player can walk.
+-- request the server checks. Gamepad (designer, 2026-10-10): L2 presses Play Global, or the X
+-- while the search runs (HubPad, padPress), its picture on the button; nothing is selected, so
+-- the stick never stops walking.
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local GuiService = game:GetService("GuiService")
 local TweenService = game:GetService("TweenService")
-local UserInputService = game:GetService("UserInputService")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
@@ -38,6 +37,7 @@ local PadBar = require(Shared:WaitForChild("Matchmaking"):WaitForChild("PadBar")
 local Net = require(Shared:WaitForChild("Net"))
 local BottomLift = require(script.Parent.BottomLift)
 local HudParts = require(script.Parent.HudParts)
+local PadMode = require(script.Parent.PadMode)
 local UIAnim = require(script.Parent.UIAnim)
 local TutorialAnchors = require(script.Parent.TutorialAnchors)
 local GuiQA = require(script.Parent.GuiQA)
@@ -148,6 +148,9 @@ function MatchBar.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 	self.global.Visible = false
 	HudParts.setButtonTextSize(self.global, B.GlobalTextPx)
 	HudParts.setMinHit(self.global, Config.Multiplayer.Style.TouchTargetPx)
+	self.global.Selectable = false
+	local padKey = PadMode.key(Config.Input.Gamepad.Hub.Queue) :: Enum.KeyCode
+	HudParts.padKey(self.global, padKey, Config.UI.Kit.PadKey.Button)
 	TutorialAnchors.set("GlobalQueue", self.global)
 	-- Its small red X on the top-right corner: "I'd rather keep waiting".
 	self.dismiss = HudParts.candy(self.global, "", function()
@@ -159,8 +162,7 @@ function MatchBar.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 	self.dismiss.Size = UDim2.fromOffset(B.DismissPx, B.DismissPx)
 	self.dismiss.ZIndex = 12
 	HudParts.setMinHit(self.dismiss, Config.Multiplayer.Style.TouchTargetPx)
-	self.global.NextSelectionRight = self.dismiss
-	self.dismiss.NextSelectionLeft = self.global
+	self.dismiss.Selectable = false
 	self.ask = HudParts.text(bar, "Ask", B.AskTextPx, Copy.NoWait)
 	self.ask.AnchorPoint = Vector2.new(0.5, 1)
 	self.ask.Position = UDim2.fromOffset(
@@ -180,6 +182,8 @@ function MatchBar.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 	self.cancel.ZIndex = 3
 	self.cancel.Visible = false
 	HudParts.setMinHit(self.cancel, Config.Multiplayer.Style.TouchTargetPx)
+	self.cancel.Selectable = false
+	HudParts.padKey(self.cancel, padKey, Config.UI.Kit.PadKey.Button)
 	self:addTestHooks()
 	return self
 end
@@ -342,30 +346,19 @@ function MatchBar.setAway(self: any, away: boolean)
 	end
 end
 
---- Whether a gamepad is on the bar now.
-function MatchBar.focused(self: any): boolean
-	local selected = GuiService.SelectedObject
-	return selected ~= nil and selected:IsDescendantOf(self.root)
-end
-
---- Put the gamepad on the bar's button (Play Global or the X), if one shows.
-function MatchBar.focus(self: any)
-	if not self.open then
-		return
+--- The controller's L2: Play Global, or the X while the search runs, whichever shows. Returns
+--- whether it pressed one.
+function MatchBar.padPress(self: any): boolean
+	if not self.open or not self.root.Visible then
+		return false
 	end
 	for _, object in { self.global, self.cancel } do
-		if self.root.Visible and object.Visible then
-			GuiService.SelectedObject = object
-			return
+		if object.Visible then
+			UIAnim.bounce(object)
+			return HudParts.pressCandy(object)
 		end
 	end
-end
-
---- Take the gamepad off the bar, so the stick walks again.
-function MatchBar.blur(self: any)
-	if self:focused() then
-		GuiService.SelectedObject = nil
-	end
+	return false
 end
 
 -- Play Global and its question appear (popping in, then a soft pulse) or go.
@@ -541,18 +534,6 @@ function MatchBar.update(self: any, now: number)
 			elseif cancel then B.CancelPx - B.GlobalOverlapPx
 			else 0
 	)
-	-- The gamepad's way in, asked on the question line itself.
-	local gamepad = UserInputService:GetLastInputType() == Enum.UserInputType.Gamepad1
-	local ask = if gamepad and not self:focused() then Copy.NoWaitPad else Copy.NoWait
-	if self.ask.Text ~= ask then
-		self.ask.Text = ask
-	end
-	-- A selection left on a button that just went would keep the stick off the character.
-	local selected = GuiService.SelectedObject
-	if selected and selected:IsDescendantOf(self.root) and not (selected :: GuiObject).Visible then
-		GuiService.SelectedObject = nil
-		self:focus()
-	end
 	self:place()
 end
 

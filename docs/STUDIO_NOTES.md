@@ -506,15 +506,28 @@ Then put B in a different table's box and have both shoot. What to look for:
 Stop with the **Cleanup** button in the same group, not by closing the windows.
 
 **Gamepad.** Plug in any controller before pressing Play; Roblox picks up Xbox and
-PlayStation pads without setup. `UserInputService.GamepadEnabled` should read true. Walk into
-a box, press Y to put the selection on the queue menu (B takes it off), start a solo game,
-then check: left stick turns the aim (and keeps turning while held, rather than only
-while it moves), D-pad left/right nudges it a hair, right stick zooms, holding R2 (or A) fills
-the power bar (slow at first, full after about 1.4 s, held there) and letting go shoots, a
-quick tap does nothing, B during a pull calls it off and otherwise leaves the table. The
-bindings are in `Config.Input.Gamepad`; `Shoot.Mode` switches to the two other versions the
-designer is trying (2026-10-09: "Depth" = the trigger's depth, "Freeze" = let go to freeze,
-press again to shoot). The trigger's depth is read only in "Depth".
+PlayStation pads without setup. `UserInputService.GamepadEnabled` should read true. The button
+map is GDD section 5 (2026-10-10). Start a solo game, then check: left stick turns the aim
+(and keeps turning while held), D-pad left/right nudges it a hair, right stick zooms, holding
+A raises the power and Y lowers it at a steady rate (full in 1 s, `Config.Input.Gamepad.Shoot`),
+R2 shoots, B zeroes the power and otherwise leaves the table. In the lobby: Y opens and closes
+Rank and the character walks right after; D-pad left lands on the Daily Challenge (gold ring);
+L2 on a waiting pad is Play Global. PlayStation's button pictures are white art: they sit on
+small ink discs (`HudParts.padKey`, the controller guide), or they vanish on the pale floor.
+
+**Without a pad (the MCP cannot press one):** `PlayerScripts.GuiQA:Invoke("padMode", true)`
+forces the controller look (button pictures, the gamepad tutorial lines; Studio only, `nil`
+goes back to the real input), and `GuiQA:Invoke("pad", "ButtonA", "Begin")` presses a key
+through the same handlers a pad reaches, in their priority order (the 8's call, an ability's
+pick, the ability's X, the table, then the lobby's HubPad); a stick is
+`("pad", "Thumbstick1", "Change", x, y)`. It returns who took it. The hotbar's keys are
+`GuiQA:Invoke("blockPad", "ButtonR1")` (LB, RB, R2, L3). Screens that bind their own A (the
+result screen, NEW RANK!, the reels) are not reached by it: use their own hooks
+(`resultContinue`, `newRankContinue`, `luckyReelPeek` with `true`, `mysteryTap`). Roblox's
+own selection (A on a selected button) needs `GuiQA:Invoke("press", anchor)` or the screen's
+hook; `GuiService.SelectedObject` read from the Client datamodel shows where a pad would be.
+Game code that checks `GetLastInputType()` directly (MenuFrame, UltScreen, ResultScreen)
+does not see the forced mode, so its own focus does not move in these checks.
 
 Studio's device emulator has a gamepad mode as a fallback, but a real pad is the honest test.
 

@@ -25,6 +25,7 @@ local Progression = Shared:WaitForChild("Progression")
 local Ranks = require(Progression:WaitForChild("Ranks"))
 local Format = require(Progression:WaitForChild("Format"))
 local HudParts = require(script.Parent.HudParts)
+local PadMode = require(script.Parent.PadMode)
 local RankBadge = require(script.Parent.RankBadge)
 local UIAnim = require(script.Parent.UIAnim)
 local UISound = require(script.Parent.UISound)
@@ -216,7 +217,8 @@ function RankHud.new(screen: ScreenGui, onOpen: () -> ()): any
 	oneMore.Visible = false
 	self.oneMore = oneMore
 	self.oneMoreLoops = nil :: { any }?
-	-- The pill presses and hovers the badge too; only the badge is a gamepad stop.
+	-- The pill presses and hovers the badge too. Neither is a gamepad stop (a selected button
+	-- takes the left stick from walking): Y opens Rank (HubPad), its picture on the badge.
 	local pillButton = Instance.new("TextButton")
 	pillButton.Name = "Press"
 	pillButton.BackgroundTransparency = 1
@@ -266,9 +268,12 @@ function RankHud.new(screen: ScreenGui, onOpen: () -> ()): any
 	self.pendingDot = pending
 	self.pendingPulse = nil :: UIAnim.Handle?
 	local button = badge.button :: GuiButton
-	-- Nothing is above or left of it on screen: a stick pushed that way stays on it.
-	button.NextSelectionUp = button
-	button.NextSelectionLeft = button
+	button.Selectable = false
+	HudParts.padKey(
+		badge.root,
+		PadMode.key(Config.Input.Gamepad.Hub.Rank) :: Enum.KeyCode,
+		K.PadKey.Rank
+	)
 
 	local function connect(signal: RBXScriptSignal, handler: (...any) -> ())
 		table.insert(self.connections, signal:Connect(handler))
@@ -295,12 +300,6 @@ function RankHud.new(screen: ScreenGui, onOpen: () -> ()): any
 	end)
 	connect(button.MouseLeave, function()
 		hover("badge", false)
-	end)
-	connect(button.SelectionGained, function()
-		hover("gamepad", true)
-	end)
-	connect(button.SelectionLost, function()
-		hover("gamepad", false)
 	end)
 	connect(pillButton.Activated, function()
 		badge:press()
@@ -766,11 +765,6 @@ function RankHud.bounceOnce(self: any)
 		tween:Play()
 	end
 	nextStep()
-end
-
---- The badge's button, for gamepad selection.
-function RankHud.button(self: any): GuiButton
-	return self.badge.button :: GuiButton
 end
 
 function RankHud.destroy(self: any)

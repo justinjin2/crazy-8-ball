@@ -9,15 +9,16 @@
 -- pad filled, the host left, played solo or cancelled the request), or you sit down anywhere.
 --
 -- A white card at the bottom centre with the host's headshot, shrunk on narrow screens.
--- Gamepad: Y puts the selection on Join (Main), so the stick never stops walking by itself.
+-- Gamepad (designer, 2026-10-10): L2 joins and B dismisses (HubPad), their pictures on the two
+-- buttons; nothing is selected, so the stick never stops walking.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local GuiService = game:GetService("GuiService")
-local UserInputService = game:GetService("UserInputService")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local BottomLift = require(script.Parent.BottomLift)
 local HudParts = require(script.Parent.HudParts)
+local PadMode = require(script.Parent.PadMode)
 local UIAnim = require(script.Parent.UIAnim)
 local Copy = Strings.Match.Request
 local M = Config.Multiplayer
@@ -81,11 +82,15 @@ function OpponentPrompt.new(screen: ScreenGui, onJoin: (number, number) -> ()): 
 	-- Small to look at, still a full touch target (docs/UI_STYLE.md section 5).
 	HudParts.setMinHit(self.join, S.TouchTargetPx)
 	HudParts.setMinHit(self.dismiss, S.TouchTargetPx)
-	-- The gamepad's way in, over the card's top edge.
-	self.hint = HudParts.note(root, "GamepadHint", K.Text.Min, Copy.GamepadHint)
-	self.hint.AnchorPoint = Vector2.new(0.5, 1)
-	self.hint.Position = UDim2.new(0.5, 0, 0, -4)
-	self.hint.Size = UDim2.new(1, 0, 0, K.Text.Min + 2)
+	-- The controller's buttons for them (HubPad).
+	self.join.Selectable = false
+	self.dismiss.Selectable = false
+	HudParts.padKey(
+		self.join,
+		PadMode.key(Config.Input.Gamepad.Hub.Queue) :: Enum.KeyCode,
+		K.PadKey.Button
+	)
+	HudParts.padKey(self.dismiss, Enum.KeyCode.ButtonB, K.PadKey.Button)
 	return self
 end
 
@@ -128,11 +133,22 @@ function OpponentPrompt.isOpen(self: any): boolean
 	return self.open
 end
 
---- Put the gamepad on Join.
-function OpponentPrompt.focus(self: any)
-	if self.open then
-		GuiService.SelectedObject = self.join
+--- Join the ask on show (the controller's L2). Returns whether there was one.
+function OpponentPrompt.padJoin(self: any): boolean
+	if not self.open or self.ask == nil then
+		return false
 	end
+	HudParts.pressCandy(self.join)
+	return true
+end
+
+--- Dismiss it (the controller's B). Returns whether one was open.
+function OpponentPrompt.padDismiss(self: any): boolean
+	if not self.open then
+		return false
+	end
+	HudParts.pressCandy(self.dismiss)
+	return true
 end
 
 --- Step it. `snapshotFor` gives a table's latest snapshot; `seated` is true once the local
@@ -164,9 +180,6 @@ function OpponentPrompt.update(
 	local width = if screen then screen.AbsoluteSize.X else S.PromptWidth
 	self.scale.Scale = math.clamp((width - 2 * S.HeaderMargin) / S.PromptWidth, S.PromptMinScale, 1)
 	self.root.Position = UDim2.new(0.5, 0, 1, -S.PromptBottom - BottomLift.get())
-	local gamepad = UserInputService:GetLastInputType() == Enum.UserInputType.Gamepad1
-	local selected = GuiService.SelectedObject
-	self.hint.Visible = gamepad and not (selected and selected:IsDescendantOf(self.root))
 end
 
 return OpponentPrompt

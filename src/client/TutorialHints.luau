@@ -196,7 +196,8 @@ local HINTS: { Hint } = {
 		draw = function(view: View, device: string): string
 			view.overlay:dim(nil)
 			if device == "gamepad" then
-				view.hand:gesture("hold", Enum.KeyCode.ButtonR2)
+				-- A fills the bar (R2 shoots, the line says).
+				view.hand:gesture("hold", (Enum.KeyCode :: any)[Config.Input.Gamepad.Shoot.Up])
 			else
 				view.hand:gesture("pull", TutorialOverlay.guiTarget("PowerBar"))
 			end

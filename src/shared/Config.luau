@@ -1590,35 +1590,32 @@ Config.Input = {
 		-- Zoom is applied as exp(stick * rate * dt), so it is smooth and frame-rate
 		-- independent: a full push takes about e^1 = 2.7x per second.
 		ZoomRatePerSecond = 1.0,
-		-- The shot on a controller (tutorial v2 4.10, src/client/Input.luau): R2 or A. Mode
-		-- picks the version for the designer to try with a real controller:
-		--   "Hold"   (the default): hold to fill, let go to shoot. Any press of the trigger
-		--            counts (its depth is never read: it jumped from 0 to 100%).
-		--   "Depth"  (version B): R2's depth, smoothed and squared; letting go shoots at the
-		--            highest power of the last PeakHoldSeconds. A works as in Hold.
-		--   "Freeze" (version C): hold to fill, let go to freeze, press again to shoot; a
-		--            frozen bar is called off after FrozenCancelSeconds untouched.
-		-- B during a pull calls it off (instead of Leave), as moving the stick, the D-pad and
-		-- L2 do.
+		-- The shot on a controller (designer, 2026-10-10; src/client/Input.luau, PadMath): A
+		-- held raises the power, Y held lowers it, R2 shoots what the bar shows. One steady
+		-- rate both ways (a straight line, no slow start), and the power stays put while the
+		-- player aims, fine-aims, spins or moves the ball. B empties it (with nothing set, B is
+		-- Leave). The KeyCode names: Config has no Enum.
 		Shoot = {
-			Mode = "Hold",
-			FillSeconds = 1.4, -- held this long, the bar is full (and stays full)
-			Curve = 2, -- power = (held / FillSeconds) ^ Curve: half the hold gives a quarter
-			TapIgnoreSeconds = 0.1, -- a press shorter than this does nothing (a stray tap)
-			DepthSmoothSeconds = 0.15, -- version B: the depth's smoothing
-			DepthCurve = 2,
-			DepthStartAbove = 0.05, -- the trigger pressed past this starts a pull
-			DepthReleaseBelow = 0.03, -- ... and let go under this shoots
-			PeakHoldSeconds = 0.2,
-			FrozenCancelSeconds = 5, -- version C
+			FillSeconds = 1.0, -- A held this long fills an empty bar (and Y empties a full one)
+			Up = "ButtonA",
+			Down = "ButtonY",
+			Fire = "ButtonR2",
 		},
-		-- A pull (A held) is called off when the left stick moves this far (0-1) from
-		-- where it was as the pull began (designer, 2026-09-27: change your mind by aiming).
-		CancelStickPush = 0.3,
-		-- Y in the hub can leave the selection on the host menu or the opponent prompt, and
-		-- a selected button takes the left stick from walking. A push harder than this that
-		-- has not moved the selection after FreeStickSeconds (it hit the menu's edge) lets go
-		-- of the menu so the player walks again.
+		-- Calling the 8 (MatchTargets): the left stick points from the table's middle at a
+		-- pocket, A calls it, the D-pad steps round. A push under this (0-1) picks nothing.
+		PocketDeadZone = 0.35,
+		-- The lobby's buttons (HubPad; designer, 2026-10-10). The D-pad's up, right and down
+		-- are Config.UI.Menu.Column.PadKeys; X is the Abilities tile's.
+		Hub = {
+			Rank = "ButtonY", -- open or close Rank
+			Queue = "ButtonL2", -- Play Global on a waiting pad (again: stop the search); Join an opponent's ask
+			Side = "DPadLeft", -- the right side: Daily Challenge, the offer, the player list, Settings
+			Skip = "ButtonSelect", -- Skip tutorial (View on Xbox, Share or the touchpad on PlayStation)
+			Next = "ButtonR3", -- the tutorial's Next (a step's fallback): pressing the right stick in
+		},
+		-- A selected button takes the left stick from walking (the match bar, an opponent's
+		-- ask, the right side). A push harder than this that has not moved the selection after
+		-- FreeStickSeconds (it hit the edge) lets go so the player walks again.
 		FreeStickPush = 0.8,
 		FreeStickSeconds = 0.25,
 	},
@@ -6406,6 +6403,7 @@ Config.UI = {
 		-- As the zoom guide: a light grey, clearly readable, but a guide rather than a button.
 		Tint = { 238, 238, 242 }, -- the arrows and words
 		GlyphTransparency = 0.1,
+		DiscTransparency = 0.25, -- the ink disc behind each button picture (white art on a pale floor)
 		IconTransparency = 0.1,
 		TextTransparency = 0.05,
 		OutlineTransparency = 0.25,
@@ -7189,6 +7187,15 @@ Config.UI = {
 		-- HudParts.padBack): an ink disc (Roblox's white pictures vanish on the pale header) its
 		-- size as a share of the X, the picture's share of the disc, its centre in shares of the X.
 		PadBack = { Share = 0.8, GlyphShare = 0.92, At = { 0.02, 0.88 } },
+		-- The same disc on the lobby's buttons that have a controller button of their own
+		-- (designer, 2026-10-10; HudParts.padKey): its size a share of the button's height, the
+		-- picture's share of the disc, its centre in shares of the button.
+		PadKey = {
+			Rank = { Share = 0.44, GlyphShare = 0.92, At = { 0.14, 0.86 } }, -- Y on the Rank badge, bottom left (the wins line starts right of it; the top is the screen edge)
+			Corner = { Share = 0.42, GlyphShare = 0.92, At = { 0.12, 0.12 } }, -- the Daily Challenge's D-pad left
+			Button = { Share = 0.7, GlyphShare = 0.92, At = { 0, 0.5 } }, -- Play Global, Join, Next: on the left end
+			Skip = { Share = 1.05, GlyphShare = 0.86, At = { -0.13, 0.5 } }, -- Skip tutorial is small: its View picture bigger, just left of it
+		},
 		Buttons = {
 			Green = { Top = { 140, 240, 160 }, Mid = { 61, 214, 107 }, Lip = { 30, 150, 70 } },
 			Red = { Top = { 255, 150, 150 }, Mid = { 255, 77, 77 }, Lip = { 196, 38, 56 } },
@@ -7910,9 +7917,10 @@ Config.Multiplayer = {
 		OpponentBallFill = { 70, 74, 82 }, -- grey wash over the other group's balls
 		OpponentBallFillTransparency = 0.5, -- clearly dimmed, still recognisable
 		TargetSize = 44, -- minimum pocket hit target
-		-- Choosing a pocket with the stick (MatchTargets.linkPockets): a ring off to the side
+		-- Calling the 8 with the D-pad (MatchTargets, PadMath.stepToward): a ring off to the side
 		-- of a push counts this many times its sideways distance, so the straight one wins.
 		PocketNavAcrossWeight = 2,
+		PadPickScale = 1.2, -- the pocket the controller has lit is drawn this much bigger
 		-- After the call, the chosen pocket's marker sits inside its hole while you shoot, so it
 		-- never covers the jaws (designer, 2026-09-27): its outer edge (ink included) spans this
 		-- share of the hole's narrow way on screen, before the pulse (TargetPulse) adds 15%.
@@ -9202,13 +9210,12 @@ Config.UI.Menu = {
 		DaysFromSeconds = 86400, -- from a day left the timer reads "6d 4h", else "23:59:12"
 		-- Each tile's D-pad direction (UserInputService KeyCode names; Config has no Enum):
 		-- in the hub the D-pad opens that menu (overnight assumption, 2026-09-28).
-		-- GUI lane: down is Free Reward (the Daily Challenge when it is gone); left focuses the
-		-- player list (PlayerList, no tile).
+		-- GUI lane: down is Free Reward (the Daily Challenge when it is gone). Left goes to the
+		-- right side's buttons (Config.Input.Gamepad.Hub.Side; designer, 2026-10-10).
 		PadKeys = {
 			Shop = "DPadUp",
 			Inventory = "DPadRight",
 			FreeReward = "DPadDown",
-			PlayerList = "DPadLeft",
 		},
 		-- Hover (or a gamepad resting on a tile): the kit's small sway plus sun rays fading in
 		-- behind the icon (Kit.Motion.SunRays; designer, 2026-10-03: no hard shake).
@@ -15452,6 +15459,10 @@ Config.UI.Corners = {
 	StarterCue = { 0.52, 0.46, 0.98 },
 	SmallPx = 46, -- Invite and Plus (a computer)
 	ShortSmallPx = 38,
+	-- A controller on a corner button (the D-pad's left): the kit's thick gold outline round it
+	-- (UI_STYLE), since the buttons have no face of their own to outline.
+	PadRingPx = 4,
+	PadRingCornerPx = 18,
 	SmallGapPx = 8, -- between them, and from the money HUD
 	WordPx = 13, -- the word under each
 	ShortWordPx = 11,

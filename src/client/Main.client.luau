@@ -49,6 +49,9 @@ local PowerCue = require(script.Parent.PowerCue)
 local SpinSelector = require(script.Parent.SpinSelector)
 local ZoomHint = require(script.Parent.ZoomHint)
 local PadGuide = require(script.Parent.PadGuide)
+local PadMode = require(script.Parent.PadMode)
+local HubPad = require(script.Parent.HubPad)
+local LuckyClient = require(script.Parent.LuckyClient)
 local UltHud = require(script.Parent.UltHud)
 local UltPick = require(script.Parent.UltPick)
 local UltCutscene = require(script.Parent.UltCutscene)
@@ -1105,38 +1108,27 @@ UserInputService.InputBegan:Connect(function(key, processed)
 	if processed then
 		return
 	end
-	-- The D-pad in the hub opens the left column's menus (Shop, Inventory, Rewards, Trade);
-	-- never in a match, while a menu is open (its D-pad moves the selection) or while a text
-	-- box has focus (Progression.padRoute). B closing an open menu is Menus' own binding.
-	if Progression.padRoute(key.KeyCode) then
-		return
-	end
-	if
-		(
-			key.KeyCode == Enum.KeyCode.L
-			or (key.KeyCode == Enum.KeyCode.ButtonB and not input.enabled)
-		)
-		and snapshot
-		and not Progression.isBusy()
-	then
+	if key.KeyCode == Enum.KeyCode.L and snapshot and not Progression.isBusy() then
 		leave()
 	elseif key.KeyCode == Enum.KeyCode.Escape and hud:isModal() then
 		hud:closeModal()
-	elseif
-		key.KeyCode == Enum.KeyCode.ButtonY
-		and snapshot
-		and snapshot.phase == "Waiting"
-		and not Progression.isBusy()
-	then
-		matchBar:focus()
-	elseif key.KeyCode == Enum.KeyCode.ButtonY and not snapshot and opponentPrompt:isOpen() then
-		opponentPrompt:focus()
-	elseif key.KeyCode == Enum.KeyCode.ButtonY and not snapshot then
-		Progression.toggleRank() -- opens the roadmap, or closes it
 	elseif key.KeyCode == Enum.KeyCode.F3 then
 		UI.toggleStatus()
 	end
 end)
+-- The controller in the lobby (Rank, the D-pad's menus and right side, Play Global, Join,
+-- leaving a pad): HubPad. At the table, Input has the pad while it is your turn.
+HubPad.start({
+	snapshot = function(): any?
+		return snapshot
+	end,
+	playing = function(): boolean
+		return input.enabled
+	end,
+	leave = leave,
+	matchBar = matchBar,
+	opponentPrompt = opponentPrompt,
+})
 local zones = workspace:WaitForChild("TableZones")
 local padEffects = PadEffects.new(zones)
 local mapAmbience = MapAmbience.new() -- the map's drifting sailboats
@@ -1187,41 +1179,6 @@ local function padUnder(root: BasePart, margin: number): number?
 		end
 	end
 	return nil
-end
--- Y in the hub can leave the gamepad's selection on the host menu or the opponent prompt,
--- and a selected button takes the left stick from walking. A hard push that has not moved
--- the selection after Gamepad.FreeStickSeconds (it hit the menu's edge) lets go of the menu
--- so the player walks again.
-local freeStick = { at = nil :: number?, from = nil :: GuiObject?, moved = false }
-local function freeStickFromMenu()
-	local G = Config.Input.Gamepad
-	local selected = GuiService.SelectedObject
-	local inMenu = selected ~= nil
-		and (matchBar:focused() or selected:IsDescendantOf(opponentPrompt.root))
-	local push = 0
-	if inMenu then
-		for _, state in UserInputService:GetGamepadState(Enum.UserInputType.Gamepad1) do
-			if state.KeyCode == Enum.KeyCode.Thumbstick1 then
-				push = Vector2.new(state.Position.X, state.Position.Y).Magnitude
-			end
-		end
-	end
-	if push < G.FreeStickPush then
-		freeStick.at, freeStick.from, freeStick.moved = nil, nil, false
-		return
-	end
-	local now = os.clock()
-	if freeStick.at == nil then
-		freeStick.at, freeStick.from, freeStick.moved = now, selected, false
-		return
-	end
-	if selected ~= freeStick.from then
-		freeStick.moved = true -- this push went somewhere in the menu: it is navigating
-	end
-	if not freeStick.moved and now - freeStick.at >= G.FreeStickSeconds then
-		GuiService.SelectedObject = nil
-		freeStick.at, freeStick.from, freeStick.moved = nil, nil, false
-	end
 end
 -- In a match the gamepad plays, and a selected button would take its sticks (the input is
 -- off while anything is selected). Starting a game from the host menu with the gamepad hides
@@ -1472,10 +1429,16 @@ local function renderFrame(dt: number)
 	})
 	-- The ult bar: it fades while the cue is pulled back, the bottom lines sit above it, and the
 	-- controller guide lists "Ult" while it offers its press.
-	ultHud:update(dt, currentPull > 0)
+	-- A controller's power left resting is not a pull: the ability can still be pressed.
+	ultHud:update(dt, currentPull > 0 and (not input.padPower or input:levelMoving()))
 	hud:setUltReserve(ultHud:reservedBottom())
 	padGuide:setUlt(ultHud:promptShown())
 	if not snapshot or not match then
+		-- The lobby: the controller guide only while a lucky block is held (R2 places it) or a
+		-- Mystery is picked (R2 opens it).
+		local aimed = LuckyClient.aimedKind() ~= nil
+		padGuide:setSet(if aimed then "mystery" else "block")
+		padGuide:setVisible((aimed or LuckyClient.heldKind() ~= nil) and not Progression.isBusy())
 		return
 	end
 	-- hub:update has dispatched this frame's events; show any ball they dropped.
@@ -1551,9 +1514,12 @@ local function renderFrame(dt: number)
 	local step = player:GetAttribute("TutorialStep")
 	local guided = TutorialSteps.guided(if type(step) == "string" then step else nil)
 	zoomHint:setVisible(canShoot() and not modal and not guided)
-	padGuide:setVisible((canShoot() or picking) and not modal)
-	padGuide:setSet(ultPick:padSet() or (if input.spinEditing then "spin" else "aim"))
-	freeStickFromMenu()
+	local calling = targets:canCall()
+	padGuide:setVisible((canShoot() or picking or calling) and not modal)
+	padGuide:setSet(
+		ultPick:padSet() or (if calling then "call" elseif input.spinEditing then "spin" else "aim")
+	)
+	HubPad.update()
 	dropStrayMatchSelection()
 	input:update(dt)
 	if controlled then
@@ -1736,6 +1702,48 @@ require(script.Parent.GuiQA).add("camera", function(cf: CFrame?)
 	Camera.setOverride(if typeof(cf) == "CFrame" then cf else nil, 1)
 	return cf ~= nil
 end)
+-- The controller's Studio checks (the MCP cannot press a real pad): "padMode" forces the
+-- controller look on (true), off (false) or back to the real input (nil); "pad" presses `key`
+-- (a KeyCode name) in `state` ("Begin", "End"; a stick's "Change" with x, y) through the same
+-- handlers Roblox would reach, in their priority order: the 8's call, an ability's pick, the
+-- ability's X, the table's controls, then the lobby (HubPad). Returns who took it.
+require(script.Parent.GuiQA).add("padMode", function(on: boolean?)
+	PadMode.force(on)
+	return PadMode.active()
+end)
+require(script.Parent.GuiQA).add(
+	"pad",
+	function(keyName: string, stateName: string?, x: number?, y: number?)
+		local key = PadMode.key(keyName)
+		if key == nil then
+			return "unknown key"
+		end
+		local state = (Enum.UserInputState :: any)[stateName or "Begin"] :: Enum.UserInputState
+		local fake: any = {
+			KeyCode = key,
+			Position = Vector3.new(x or 0, y or 0, 0),
+			UserInputType = Enum.UserInputType.Gamepad1,
+		}
+		local sink = Enum.ContextActionResult.Sink
+		if targets.padBound and targets:handlePad(state, fake) == sink then
+			return "call"
+		elseif ultPick.bound and ultPick:handlePad(state, fake) == sink then
+			return "pick"
+		elseif
+			ultHud.bound
+			and key == (Enum.KeyCode :: any)[Config.UI.Ults.GamepadKey]
+			and state == Enum.UserInputState.Begin
+		then
+			ultHud:press()
+			return "ability"
+		elseif input.gamepadBound and input:handleGamepad(state, fake) == sink then
+			return "table"
+		elseif state == Enum.UserInputState.Begin and HubPad.press(key) then
+			return "lobby"
+		end
+		return "nobody"
+	end
+)
 -- One thing at a time: a full menu hides the rest of the HUD (HudFocus).
 require(script.Parent.HudFocus).start()
 -- The lively Shop's motion spike (Studio only; GuiQA "spike").
