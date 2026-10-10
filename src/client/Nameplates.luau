@@ -227,16 +227,27 @@ function Nameplates.new(): any
 		self:add(player)
 	end
 	-- Bots get the same plate (the Bots lane: People's stand-in carries the same attributes).
+	-- People's events cross a BindableEvent, which hands over a copy of the stand-in, so a plate
+	-- is kept under People's own stand-in and a gone bot's plate is found by its seat id (it
+	-- stayed floating where the bot stood: launch bug, 2026-10-10).
 	table.insert(
 		self.connections,
 		People.botAdded:Connect(function(bot)
-			self:add(bot)
+			self:add(People.owner(bot.UserId) or bot)
 		end)
 	)
 	table.insert(
 		self.connections,
 		People.botRemoved:Connect(function(bot)
-			self:remove(bot)
+			local gone = {}
+			for key in self.plates do
+				if type(key) == "table" and key.IsBot == true and key.UserId == bot.UserId then
+					table.insert(gone, key)
+				end
+			end
+			for _, key in gone do
+				self:remove(key)
+			end
 		end)
 	)
 	for _, bot in People.bots() do
