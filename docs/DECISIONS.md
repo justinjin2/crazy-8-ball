@@ -4182,3 +4182,15 @@ timer of a new block stay the designer's call.
   tutorial's controller lines name the new buttons (A fills, R2 shoots, D-pad fine aim, Y
   Rank, LB / RB then R2 for the Mystery block, R2 to place), and its pointing selects what
   the line names (CLAIM, the new cue, Redeem, SPIN) once it is on screen.
+- 2026-10-10 (designer, "it spawns in ONLY the first time a player tabs out of the game to give
+  them a reward before they leave the game ... if they leave the game anyway the second time
+  they come back add the cutscene again ... 'Wait... what is this?'"; picks: right away, line
+  then title, 12 h from the tab-out, the first leave kept as a backup): the Gift lucky block is
+  earned the first time a player tabs out after the tutorial (the client tells the server when
+  its window loses focus; the server decides, once per 5 s at most) and falls at once while
+  they are away; never mid-game at their table or over a menu (it waits). A player who never
+  tabbed out earns it on their first leave, as before. Not picked up: the cutscene plays again
+  every visit. The bottom bar reads "Wait... what is this?" while it falls, then "A GIFT FELL
+  FROM THE SKY!" and "Pick it up!" ("Thanks for coming back" dropped). The save keeps its key
+  (GiftLeftAt, now "earned at"), so a Gift owed under the old rule still falls. /giftdrop forgets
+  it (the next tab-out drops it); /giftdrop now drops it at once.

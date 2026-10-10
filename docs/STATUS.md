@@ -40,8 +40,9 @@ One line each; the long form is the 2026-10-08 entry at the top of
   tablet next. **Coin flip tokens, phone letterbox bars, the Mystery screen** (2026-10-09):
   Studio's phone emulator only.
 - **Lighting** day 10 min, sunset 5. **Pull cutscenes**: Mythic and Secret wait a redo.
-- **Our own lucky blocks**, **the Gift drop** (`/giftdrop`; a test Gift in the designer's
-  Studio save), **the Mystery upgrade screen**: not yet on a phone or at full frame rate.
+- **Our own lucky blocks** and **the Mystery upgrade screen**: not yet on a phone or at full
+  frame rate. **The Gift drop on the first tab-out** (2026-10-10, DECISIONS): `/giftdrop`, then
+  click out of the game window; not yet on a phone (switching apps) or a controller.
 
 ## Open, waiting on the designer
 

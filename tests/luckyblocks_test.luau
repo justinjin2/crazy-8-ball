@@ -318,26 +318,37 @@ return {
 			H.expect(request == nil and why == "BadRequest", "refused: " .. tostring(args[1]))
 		end
 	end,
-	["the Gift falls once: the first leave starts its 12 hours, picking it up ends the drop"] = function()
+	["the Gift falls once: the first tab-out starts its 12 hours, picking it up ends the drop"] = function()
 		local LuckyBlocks = load()
 		local state = LuckyBlocks.fresh()
 		LuckyBlocks.add(state, "Standard", 100)
 		local flags: { [string]: any } = {}
-		H.expect(not LuckyBlocks.giftPending(flags), "nothing before a leave")
+		H.expect(not LuckyBlocks.giftPending(flags), "nothing before a tab-out")
 		H.expect(LuckyBlocks.landGift(state, flags) == nil and #state.List == 1, "no gift yet")
-		H.expect(LuckyBlocks.noteLeave(flags, 1000), "the first leave is noted")
-		H.expect(not LuckyBlocks.noteLeave(flags, 5000), "a later leave changes nothing")
+		H.expect(LuckyBlocks.noteGift(flags, 1000), "the first tab-out earns it")
+		H.expect(not LuckyBlocks.noteGift(flags, 5000), "a later tab-out or leave changes nothing")
 		H.expect(flags.GiftLeftAt == 1000 and LuckyBlocks.giftPending(flags), "waiting")
 		local gift = LuckyBlocks.landGift(state, flags)
 		H.expect(gift ~= nil and gift.Kind == "Gift", "picked up")
 		H.expect(state.List[1] == gift, "first in the hotbar")
-		H.expect((gift :: any).ReadyAt == 1000 + 12 * 3600, "12 h from the leave")
+		H.expect((gift :: any).ReadyAt == 1000 + 12 * 3600, "12 h from the tab-out")
 		H.expect(not LuckyBlocks.giftPending(flags) and flags.GiftLanded == true, "done")
+		H.expect(not LuckyBlocks.noteGift(flags, 9000), "never earned again")
 		H.expect(LuckyBlocks.landGift(state, flags) == nil and #state.List == 2, "only once")
 		local vipFlags: { [string]: any } = {}
-		LuckyBlocks.noteLeave(vipFlags, 0)
+		LuckyBlocks.noteGift(vipFlags, 0)
 		local fast = LuckyBlocks.landGift(state, vipFlags, true)
 		H.expect(fast ~= nil and fast.ReadyAt == 0, "VIP: no timer, like every block")
+	end,
+	["a save that owes the Gift from the old first-leave rule still gets it"] = function()
+		local LuckyBlocks = load()
+		local state = LuckyBlocks.fresh()
+		-- Written before 2026-10-10: the leave's time under the same key, not yet landed.
+		local flags: { [string]: any } = { GiftLeftAt = 4000 }
+		H.expect(LuckyBlocks.giftPending(flags), "still waiting to fall")
+		H.expect(not LuckyBlocks.noteGift(flags, 8000), "a tab-out now does not restart it")
+		local gift = LuckyBlocks.landGift(state, flags)
+		H.expect(gift ~= nil and (gift :: any).ReadyAt == 4000 + 12 * 3600, "12 h from that leave")
 	end,
 
 	["only a Mystery needs its upgrade screen; every other block climbs as it opens (v5.2)"] = function()

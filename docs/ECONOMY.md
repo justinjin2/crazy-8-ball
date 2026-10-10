@@ -686,7 +686,7 @@ The kinds:
 | Standard, Uncommon, Rare, Epic, Legendary, Mythic | its own tier | the win track, rewards, rank rewards, the restock |
 | Sky | Standard | Lucky Rain (planned, 10.6) |
 | Lucky 8 | Uncommon | the favorite reward (10.4) |
-| Gift | Uncommon, after a 12-hour wait from the leave | once, the first time a player leaves the game; it falls from the sky on their next visit |
+| Gift | Uncommon, after a 12-hour wait from when it was earned | once, the first time a player tabs out of the game (it falls from the sky at once), or the first time they leave it if they never tabbed out (it falls on their next visit) |
 | Grand Opening | never climbs: Rare 81.84%, Epic 10%, Legendary 1.6% (1 in 63), Mythic 0.15% (1 in 667), Secret 0.01% (1 in 10,000), **the Firework Cue 6%, the Beta Cue 0.4%** (1 in 250), capped and per player (9.2); opens at once | the shop, while it runs (9.2) |
 | Starter | never climbs: Rare 90%, Epic 9%, Legendary 0.9% (1 in 111), Mythic 0.09% (1 in 1,111), Secret 0.01% (1 in 10,000); opens at once | the Starter Pack (11.4) |
 
@@ -828,7 +828,7 @@ one step and gives that step's block or money (v5, 2026-10-09; `Config.BlockOdds
 **Every block waits its own name's timer** (v5.2; `Config.LuckyBlocks.Kinds[kind].Timer`):
 Standard at once, Uncommon 1 minute, Rare 5 minutes, Epic 30 minutes, Legendary 6 hours, Mythic
 12 hours, whatever it climbs to when it opens (v5: the tier it climbed to). The Mystery, Sky,
-Lucky 8, Grand Opening and Starter blocks have none (the Gift: its 12-hour comeback wait); a
+Lucky 8, Grand Opening and Starter blocks have none (the Gift: its 12-hour wait from the tab-out); a
 block a Mystery turned into waits that block's timer from the turn.
 
 - Timers start by themselves when the block lands in its slot. They all run at once;
@@ -1194,8 +1194,8 @@ five gifts stay, because the Free Reward screen shows five tiles (plan 2.5).
   The inviter's reward comes once ever (their first invited friend's first win;
   `InviterOnce`), within the **5 a month** cap; an offline inviter gets theirs on their next
   join. Every invited friend still gets their own block.
-- **The first leave**: a Gift block (an Uncommon start, after a 12-hour wait from the leave),
-  once (7.2).
+- **The first tab-out** (or, as a backup, the first leave): a Gift block (an Uncommon start,
+  after a 12-hour wait from then), once (7.2).
 - **Codes** (case-insensitive, once per player, an optional end date):
 
 | Code | Gives |

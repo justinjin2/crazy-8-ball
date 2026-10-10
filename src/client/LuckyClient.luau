@@ -750,7 +750,7 @@ function LuckyClient.start(screen: ScreenGui)
 		end
 		return false
 	end)
-	GiftDrop.start() -- the Gift's fall from the sky, the first time back after leaving
+	GiftDrop.start() -- the Gift's fall from the sky: the first tab-out, or the visit after a leave
 	Net.get("BlockState").OnClientEvent:Connect(function(payload: any)
 		if type(payload) ~= "table" or type(payload.blocks) ~= "table" then
 			return

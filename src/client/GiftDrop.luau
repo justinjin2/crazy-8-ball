@@ -1,20 +1,26 @@
 --!strict
--- GiftDrop: the Gift block falling from the sky, the first time a player comes back after
--- leaving (designer, 2026-10-07; the server decides, GiftDropService).
+-- GiftDrop: the Gift block falling from the sky (designer, 2026-10-07; the first tab-out,
+-- 2026-10-10; the server decides, GiftDropService).
 --
--- When the server sends { at = CFrame }: black letterbox bars slide in, the rest of the HUD
+-- The window losing focus (a tab-out, or a phone switching apps) is told to the server
+-- ({ away = true }): the first one after the tutorial earns the Gift and drops it at once,
+-- while the player is away. A Gift not picked up falls again on the next visit.
+--
+-- When the server sends { at = CFrame } (and no menu, popup or reel is up: setBusy): black
+-- letterbox bars slide in with "Wait... what is this?" in the bottom one, the rest of the HUD
 -- steps aside and the player stands still. The camera, behind the player, looks up at the sky:
 -- the Gift streaks down on a slant with a glowing gold trail, sparks and a glint, spinning, and
 -- crashes at `at` with a white flash, a camera shake, a shockwave ring and bursts of dust and
--- gold confetti, bouncing as it lands. A title shows in the bottom bar; the camera holds on
--- the block, then blends back, the bars slide away and everything comes back. The block (only
--- on this screen) idles there with a Pick up prompt (hold E, the gamepad's X, or touch); the
--- server checks and adds it to the hotbar, and it shrinks away in a puff. Tuning in
+-- gold confetti, bouncing as it lands. The bar's line gives way to the title; the camera holds
+-- on the block, then blends back, the bars slide away and everything comes back. The block
+-- (only on this screen) idles there with a Pick up prompt (hold E, the gamepad's X, or touch);
+-- the server checks and adds it to the hotbar, and it shrinks away in a puff. Tuning in
 -- Config.LuckyBlocks.GiftDrop.
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
@@ -43,6 +49,10 @@ type Drop = {
 local current: Drop? = nil
 local playing = false
 local started = false
+local waiting = false -- a drop is waiting for a menu, popup or reel to close
+local busy: () -> boolean = function()
+	return false
+end
 local shake = Random.new()
 
 local function rgb(c: { number }): Color3
@@ -349,6 +359,7 @@ type Screen = {
 	gui: ScreenGui,
 	bars: { Frame },
 	flash: Frame,
+	wonder: TextLabel,
 	title: TextLabel,
 	sub: TextLabel,
 	hidden: { ScreenGui },
@@ -394,6 +405,15 @@ local function makeScreen(): Screen?
 	flash.Size = UDim2.fromScale(1, 1)
 	flash.ZIndex = 1
 	flash.Parent = gui
+	-- While it falls, a line in the bottom bar (designer, 2026-10-10); the title replaces it at
+	-- the crash.
+	local wonder = HudParts.text(bars[2], "Wonder", 28, W.GiftWonder)
+	wonder.AnchorPoint = Vector2.new(0.5, 0.5)
+	wonder.Position = UDim2.fromScale(0.5, 0.5)
+	wonder.Size = UDim2.new(1, -32, 0.42, 0)
+	wonder.TextScaled = true
+	wonder.TextTransparency = 1
+	wonder.ZIndex = 3
 	-- The title sits in the bottom bar.
 	local title = HudParts.text(bars[2], "Title", 30, W.GiftTitle)
 	title.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -410,25 +430,39 @@ local function makeScreen(): Screen?
 	sub.TextScaled = true
 	sub.TextTransparency = 1
 	sub.ZIndex = 3
-	for _, label in { title, sub } do
+	for _, label in { wonder, title, sub } do
 		local stroke = label:FindFirstChildOfClass("UIStroke")
 		if stroke then
 			stroke.Transparency = 1
 		end
 	end
 	gui.Parent = playerGui
-	return { gui = gui, bars = bars, flash = flash, title = title, sub = sub, hidden = hidden }
+	return {
+		gui = gui,
+		bars = bars,
+		flash = flash,
+		wonder = wonder,
+		title = title,
+		sub = sub,
+		hidden = hidden,
+	}
 end
 
-local function showText(screen: Screen, on: boolean)
+-- Fades bar words in or out (their outlines with them).
+local function fade(labels: { TextLabel }, on: boolean)
 	local info = TweenInfo.new(0.35)
-	for _, label in { screen.title, screen.sub } do
+	for _, label in labels do
 		TweenService:Create(label, info, { TextTransparency = if on then 0 else 1 }):Play()
 		local stroke = label:FindFirstChildOfClass("UIStroke")
 		if stroke then
 			TweenService:Create(stroke, info, { Transparency = if on then 0 else 1 }):Play()
 		end
 	end
+end
+
+-- The title and the line under it.
+local function showText(screen: Screen, on: boolean)
+	fade({ screen.title, screen.sub }, on)
 end
 
 local function barsTo(screen: Screen, share: number)
@@ -629,6 +663,7 @@ local function play(at: CFrame)
 	cam.CameraType = Enum.CameraType.Scriptable
 	if screen then
 		barsTo(screen, G.BarsShare)
+		fade({ screen.wonder }, true)
 	end
 
 	local begin = os.clock()
@@ -663,6 +698,7 @@ local function play(at: CFrame)
 						TweenInfo.new(G.FlashSeconds),
 						{ BackgroundTransparency = 1 }
 					):Play()
+					fade({ screen.wonder }, false)
 					showText(screen, true)
 				end
 			end
@@ -731,6 +767,26 @@ local function play(at: CFrame)
 	end)
 end
 
+-- Plays the drop once nothing else holds the screen (a menu, a popup, a reel: setBusy).
+local function playWhenFree(at: CFrame)
+	if waiting then
+		return
+	end
+	waiting = true
+	task.spawn(function()
+		while busy() do
+			task.wait(0.25)
+		end
+		waiting = false
+		play(at)
+	end)
+end
+
+--- What keeps the drop waiting (Main: a menu, a popup, the result screen or a reel is up).
+function GiftDrop.setBusy(fn: () -> boolean)
+	busy = fn
+end
+
 function GiftDrop.start()
 	if started then
 		return
@@ -741,10 +797,21 @@ function GiftDrop.start()
 			return
 		end
 		if typeof(payload.at) == "CFrame" then
-			play(payload.at)
+			playWhenFree(payload.at)
 		elseif payload.picked ~= nil then
 			answered(payload)
 		end
+	end)
+	-- The window lost focus (a tab-out, or a phone switching apps): the server decides whether
+	-- this one earns the Gift (the first after the tutorial). Never more often than it listens.
+	local lastAway = -math.huge
+	UserInputService.WindowFocusReleased:Connect(function()
+		local now = os.clock()
+		if now - lastAway < G.AwayCooldownSeconds then
+			return
+		end
+		lastAway = now
+		Net.get("GiftDrop"):FireServer({ away = true })
 	end)
 end
 

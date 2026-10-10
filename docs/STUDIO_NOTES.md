@@ -801,3 +801,16 @@ basics (glb textures, face direction, axes, texture alpha) are under "Uploading 
   (1 by default) shows the card again; it fades after `Config.Multiplayer.CoinSeconds` (3 s) of
   the phase whatever `seconds` says, so screenshot within about 2 s (a `"phase"` call with
   CoinFlip replays it). Table 9 is a 2v2 for the team wording.
+
+## The Gift's tab-out drop (2026-10-10)
+
+- `/giftdrop` (the designer's account) forgets the Gift; then click anywhere outside the game
+  view (another Studio pane counts: Studio fires `WindowFocusReleased`) and it falls about half
+  a second later. `/giftdrop now` drops it at once without a tab-out. The tutorial's guided
+  steps ignore tab-outs (the Soft part and later count).
+- Without chat, from the MCP: `ServerStorage.TutorialQA:Invoke("flag", userId, "GiftLeftAt",
+  nil)` and the same for `"GiftLanded"` forget it; then, from the Client datamodel,
+  `ReplicatedStorage.Net.GiftDrop:FireServer({ away = true })` is what the window
+  losing focus sends (the remotes are shared across the MCP's VM; module state is not).
+- Stop Play with it still on the floor and start again: it falls again on join (the visit path,
+  3 s after the character is in).

@@ -1057,12 +1057,18 @@ approves the v5 proposal (ECONOMY.md section 11).
   and spins. **Everything is claimed in the Rewards menu**: nothing is given by itself on join
   or at a playtime mark, and there are no reward popups, reminder toasts or come-back screens
   (designer, 2026-10-04), except the **Daily Rewards popup** once in the tutorial's soft part
-  (designer, 2026-10-09: day 1 to claim, day 7's prize on show). The other exception is the **Gift lucky block** (designer, 2026-10-07):
-  given once, the first time a player leaves the game (not a teleport to a match), with a
-  12-hour wait that runs from that leave (then it climbs from Uncommon). On their next visit to a lobby (after the tutorial) it falls
-  from the sky in a short cutscene: black bars, a glowing gold trail, a crash with a flash,
-  shake, shockwave and particles. It waits on the floor until they pick it up (hold E, X or touch).
-  Not picked up: it falls again next visit.
+  (designer, 2026-10-09: day 1 to claim, day 7's prize on show). The other exception is the **Gift lucky block** (designer, 2026-10-07; the tab-out,
+  2026-10-10): given once, **the first time a player tabs out of the game** after the tutorial
+  (a phone switching apps counts when Roblox reports it), to catch them before they leave. It
+  falls from the sky **right away**, while they are away, so it is waiting when they look back
+  (never in the middle of a game at their table: then once the table is free; never over a
+  menu: once it closes). A player who never tabbed out gets it the first time they leave the
+  game instead (the backup; not a teleport to a match) and it falls on their next lobby visit.
+  Its 12-hour wait runs from when it was earned (then it climbs from Uncommon). The cutscene:
+  black bars with "Wait... what is this?" in the bottom one, a glowing gold trail, a crash with
+  a flash, shake, shockwave and particles, then "A GIFT FELL FROM THE SKY!" and "Pick it up!".
+  It waits on the floor until they pick it up (hold E, X or touch). Not picked up: it falls
+  again, with the cutscene, on every visit until it is.
   ECONOMY.md section 10.
 - **Ult spins** ("Ability Spins" to players; designer, 2026-09-28, section 9): the spin
   screen gives ults; spins come from play (starter, daily, VIP's extra daily spin, rank-ups,
@@ -1281,7 +1287,8 @@ helpers, `src/server/TutorialService.luau`, `TutorialGames`, `TutorialBot`, `Tut
 - **Daily streak and playtime gifts:** in the Rewards menu, claimed there and never given by
   themselves; numbers in ECONOMY.md section 10.
 - **No reminders** (designer, 2026-10-04): the Rewards dot is the only nudge. The first-leave
-  gift came back as the Gift lucky block (designer, 2026-10-07; section 12).
+  gift came back as the Gift lucky block (designer, 2026-10-07; the first tab-out since
+  2026-10-10; section 12).
 
 **Open**
 - Max Players: 24 (the plan) or 20 (no new player ever waits for a table, half the arena

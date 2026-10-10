@@ -1259,9 +1259,18 @@ function DevCommands.start()
 	command("GiveCue", D.GiveCue, giveCue)
 	command("GiveBlock", D.GiveBlock, giveBlock)
 	command("Cutscene", D.Cutscene, cutscene)
-	command("GiftDrop", D.GiftDrop, function(player: Player)
-		local ok = require(script.Parent.GiftDropService).dev(player)
-		tell(player, if ok then Dev.GiftDrop else Dev.GiftDropBusy)
+	command("GiftDrop", D.GiftDrop, function(player: Player, args: { string })
+		local word = if args[1] then string.lower(args[1]) else nil
+		if word ~= nil and word ~= "now" then
+			try(player, "GiftDrop")
+			return
+		end
+		local now = word == "now"
+		local ok = require(script.Parent.GiftDropService).dev(player, now)
+		tell(
+			player,
+			if not ok then Dev.GiftDropBusy elseif now then Dev.GiftDropNow else Dev.GiftDrop
+		)
 	end)
 	command("Inv", D.Inv, showInventory)
 	command("ClearInv", D.ClearInv, clearInventory)

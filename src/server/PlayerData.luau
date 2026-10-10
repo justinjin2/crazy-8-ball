@@ -3670,15 +3670,15 @@ function PlayerData.setFlag(player: Player, key: string, value: any): boolean
 	return true
 end
 
---- The player is leaving the game (not a teleport): the first time, the save notes it and the
---- Gift block waits to fall from the sky on their next visit (LuckyBlocks.noteLeave). True
---- when this was the first leave.
-function PlayerData.noteLeave(player: Player): boolean
+--- The player earned the Gift: their first tab-out (GiftDropService), or their first leave of
+--- the game when they never tabbed out. The save notes when, once, and the Gift waits to fall
+--- from the sky (LuckyBlocks.noteGift). True when this was the first time.
+function PlayerData.noteGift(player: Player): boolean
 	local data = peek(player)
-	if data == nil or not LuckyBlocks.noteLeave(data.Flags, os.time()) then
+	if data == nil or not LuckyBlocks.noteGift(data.Flags, os.time()) then
 		return false
 	end
-	commit(player, data, "noteLeave")
+	commit(player, data, "noteGift")
 	return true
 end
 
@@ -3688,7 +3688,7 @@ function PlayerData.giftPending(player: Player): boolean
 	return data ~= nil and LuckyBlocks.giftPending(data.Flags)
 end
 
---- The Gift was picked up: it goes first in the hotbar, its timer running from the leave
+--- The Gift was picked up: it goes first in the hotbar, its timer running from when it was earned
 --- (LuckyBlocks.landGift). False when none is waiting, the hotbar is full or not loaded.
 function PlayerData.landGift(player: Player): boolean
 	local op = "landGift"
@@ -3707,14 +3707,15 @@ function PlayerData.landGift(player: Player): boolean
 	return true
 end
 
---- /giftdrop (the designer's test): forgets the Gift was picked up and notes a leave now.
-function PlayerData.resetGift(player: Player): boolean
+--- /giftdrop (the designer's test): forgets the Gift entirely, so the next tab-out earns it
+--- again (`now`: earned at once instead, for an immediate drop).
+function PlayerData.resetGift(player: Player, now: boolean?): boolean
 	local data = liveData("resetGift", player)
 	if data == nil then
 		return false
 	end
 	local F = LuckyBlocks.GiftFlags
-	data.Flags[F.LeftAt] = os.time()
+	data.Flags[F.LeftAt] = if now then os.time() else nil
 	data.Flags[F.Landed] = nil
 	commit(player, data, "resetGift")
 	return true

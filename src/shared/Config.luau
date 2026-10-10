@@ -2370,13 +2370,19 @@ Config.LuckyBlocks = {
 		-- on a block's frame slide sideways, one rainbow every StudsPerTile studs.
 		Scroll = { Tag = "LuckyScroll", StudsPerTile = 6, StudsPerSecond = 1.2 }, -- slower (designer)
 	},
-	-- The Gift block (designer, 2026-10-07): given once, the first time a player leaves the
-	-- game (not a teleport to a match); its timer (Kinds.Gift.Timer) runs from that leave. The
-	-- next time they are in a lobby (after the tutorial) it falls from the sky in a short
-	-- cutscene (black bars, a glowing trail, a crash with a shockwave and a burst of particles)
-	-- and waits on the floor to be picked up (GiftDropService, client GiftDrop).
+	-- The Gift block (designer, 2026-10-07; 2026-10-10): given once, the first time a player
+	-- tabs out of the game after the tutorial (or, for one who never tabbed out, the first time
+	-- they leave the game; not a teleport to a match); its timer (Kinds.Gift.Timer) runs from
+	-- then. A tab-out in a lobby drops it at once, while they are away; otherwise it falls on
+	-- their next lobby visit, again each visit until picked up: a short cutscene (black bars,
+	-- "Wait... what is this?", a glowing trail, a crash with a shockwave and a burst of
+	-- particles) and it waits on the floor to be picked up (GiftDropService, client GiftDrop).
 	GiftDrop = {
-		DelaySeconds = 3, -- after the player's character is in, before it falls
+		DelaySeconds = 3, -- on a visit: after the player's character is in, before it falls
+		AwayDelaySeconds = 0.5, -- on the first tab-out: this soon after it (right away)
+		-- A client's "tabbed out" heard at most this often per player (the server's check; the
+		-- client sends no more often either).
+		AwayCooldownSeconds = 5,
 		AheadStuds = 12, -- it lands this far in front of the player
 		PickupStuds = 16, -- the server's check: the player this close to where it landed
 		SizeStuds = 4.5, -- the block's edge on the floor (its bow on top)

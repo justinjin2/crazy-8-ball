@@ -472,14 +472,16 @@ function LuckyBlocks.count(state: State, kind: string): number
 	return n
 end
 
--- The Gift block's first-leave drop (designer, 2026-10-07): the save's Flags hold when the
--- player first left the game (GiftLeftAt, unix seconds) and whether the Gift has landed and been
--- picked up (GiftLanded). Its timer runs from the leave, so a player back the next day finds it
--- ready (Config.LuckyBlocks.GiftDrop).
+-- The Gift block's drop (designer, 2026-10-07; the first tab-out, 2026-10-10): the save's Flags
+-- hold when the player earned it (GiftLeftAt, unix seconds: their first tab-out, or their first
+-- leave of the game when they never tabbed out; the key keeps its first name) and whether the
+-- Gift has landed and been picked up (GiftLanded). Its timer runs from when it was earned, so a
+-- player back the next day finds it ready (Config.LuckyBlocks.GiftDrop).
 LuckyBlocks.GiftFlags = table.freeze({ LeftAt = "GiftLeftAt", Landed = "GiftLanded" })
 
---- Notes the player's first leave at `now`: true when this leave is the first (the flag was set).
-function LuckyBlocks.noteLeave(flags: { [string]: any }, now: number): boolean
+--- Notes the Gift earned at `now` (the first tab-out, or the first leave): true only the first
+--- time (the flag was set).
+function LuckyBlocks.noteGift(flags: { [string]: any }, now: number): boolean
 	if flags[LuckyBlocks.GiftFlags.LeftAt] ~= nil then
 		return false
 	end
@@ -487,14 +489,14 @@ function LuckyBlocks.noteLeave(flags: { [string]: any }, now: number): boolean
 	return true
 end
 
---- Whether a Gift is waiting to fall from the sky (left once, not yet picked up).
+--- Whether a Gift is waiting to fall from the sky (earned once, not yet picked up).
 function LuckyBlocks.giftPending(flags: { [string]: any }): boolean
 	return type(flags[LuckyBlocks.GiftFlags.LeftAt]) == "number"
 		and flags[LuckyBlocks.GiftFlags.Landed] ~= true
 end
 
---- The Gift is picked up: it goes first in the list, its timer running from the leave, and the
---- drop is marked done. Nil (nothing changed) when no Gift is waiting.
+--- The Gift is picked up: it goes first in the list, its timer running from when it was
+--- earned, and the drop is marked done. Nil (nothing changed) when no Gift is waiting.
 function LuckyBlocks.landGift(state: State, flags: { [string]: any }, vip: boolean?): Block?
 	if not LuckyBlocks.giftPending(flags) then
 		return nil

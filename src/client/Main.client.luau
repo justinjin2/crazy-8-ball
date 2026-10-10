@@ -50,6 +50,7 @@ local SpinSelector = require(script.Parent.SpinSelector)
 local ZoomHint = require(script.Parent.ZoomHint)
 local PadGuide = require(script.Parent.PadGuide)
 local PadMode = require(script.Parent.PadMode)
+local GiftDrop = require(script.Parent.GiftDrop)
 local HubPad = require(script.Parent.HubPad)
 local LuckyClient = require(script.Parent.LuckyClient)
 local UltHud = require(script.Parent.UltHud)
@@ -1129,6 +1130,10 @@ HubPad.start({
 	matchBar = matchBar,
 	opponentPrompt = opponentPrompt,
 })
+-- The Gift's fall waits while a menu, a popup (the result screen, NEW RANK!) or a reel is up.
+GiftDrop.setBusy(function(): boolean
+	return Progression.isBusy() or LuckyClient.busy()
+end)
 local zones = workspace:WaitForChild("TableZones")
 local padEffects = PadEffects.new(zones)
 local mapAmbience = MapAmbience.new() -- the map's drifting sailboats
