@@ -1,9 +1,8 @@
 --!strict
 -- UltSpinState: the client's copy of the ult spin screen's state (docs/prompts/ULTIMATES_PROMPT.md
 -- sections 8-10; the server is src/server/UltSpins.luau, the payload Ults/SpinView.Payload).
--- It listens to UltState (the snapshot, on load and after every change) and UltAuto (Fast
--- Open's Auto Spin, one message per spin and one when it stops), keeps the latest snapshot and
--- asks through the UltRequest RemoteFunction. It never decides anything: every spin, slot,
+-- It listens to UltState (the snapshot, on load and after every change), keeps the latest
+-- snapshot and asks through the UltRequest RemoteFunction. It never decides anything: every spin, slot,
 -- lock and purchase is the server's, and a request names a kind and its choices only.
 --
 -- Started early by MenuColumn (and by UltScreen), so the snapshot sent on load is heard:
@@ -20,12 +19,9 @@ export type Reply = { [string]: any }
 local UltSpinState = {}
 
 local changed = Instance.new("BindableEvent")
-local auto = Instance.new("BindableEvent")
 
 --- Fires with the new snapshot whenever one arrives (UltState, or a reply that carried one).
 UltSpinState.Changed = changed.Event
---- Fires with each UltAuto message ({ kind = "Spin", ... } or { kind = "Stop", ... }).
-UltSpinState.Auto = auto.Event
 
 local started = false
 local latest: any = nil
@@ -39,7 +35,7 @@ local function take(payload: any)
 	changed:Fire(payload)
 end
 
---- Listen to UltState and UltAuto (once; each remote is waited for in its own thread).
+--- Listen to UltState (once; the remote is waited for in its own thread).
 function UltSpinState.start()
 	if started then
 		return
@@ -51,22 +47,6 @@ function UltSpinState.start()
 			remote.OnClientEvent:Connect(take)
 		else
 			warn("[8ball] UltSpinState: no UltState remote")
-		end
-	end)
-	task.spawn(function()
-		local ok, remote = pcall(Net.get, "UltAuto")
-		if ok and typeof(remote) == "Instance" and remote:IsA("RemoteEvent") then
-			remote.OnClientEvent:Connect(function(message: any)
-				if type(message) ~= "table" then
-					return
-				end
-				if type(message.state) == "table" then
-					take(message.state)
-				end
-				auto:Fire(message)
-			end)
-		else
-			warn("[8ball] UltSpinState: no UltAuto remote")
 		end
 	end)
 end
@@ -103,7 +83,7 @@ end
 --- time, "Busy" when another request of ours is still on its way). A reply's `state` becomes
 --- the latest snapshot.
 function UltSpinState.request(kind: string, args: any?): Reply
-	if inFlight and kind ~= "AutoStop" then
+	if inFlight then
 		return { ok = false, reason = "Busy" }
 	end
 	local got, remote = pcall(Net.get, "UltRequest")
@@ -111,10 +91,7 @@ function UltSpinState.request(kind: string, args: any?): Reply
 		return { ok = false, reason = "Network" }
 	end
 	local fn = remote :: RemoteFunction
-	local mine = kind ~= "AutoStop"
-	if mine then
-		inFlight = true
-	end
+	inFlight = true
 	local done = false
 	local answer: any = nil
 	local signal = Instance.new("BindableEvent")
@@ -137,9 +114,7 @@ function UltSpinState.request(kind: string, args: any?): Reply
 		signal.Event:Wait()
 	end
 	signal:Destroy()
-	if mine then
-		inFlight = false
-	end
+	inFlight = false
 	if type(answer) ~= "table" then
 		return { ok = false, reason = "Network" }
 	end

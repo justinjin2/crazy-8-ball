@@ -1,7 +1,7 @@
 --!strict
 -- The ult spin service's pure half (Ults/SpinView; docs/prompts/ULTIMATES_PROMPT.md sections
 -- 8-12): one spin into the selected slot, locks and slot passes, the daily free spin, the
--- replace confirmation, money packs and PolicyService, forged requests, Auto Spin's stops, the
+-- replace confirmation, money packs and PolicyService, forged requests (Auto Spin is gone), the
 -- UltState payload; and where spins come from: codes, receipts (once per purchase id), rank-ups,
 -- streak day 7 and the day's last playtime gift. The server (src/server/UltSpins.luau,
 -- PlayerData's ult mutations) is thin over these.
@@ -181,7 +181,6 @@ return {
 		local r2, why2 = SpinView.spin(v, opts())
 		H.expect(r2 == nil and why2 == "NotOwned", "spin refused")
 		H.expect(Slots.equipped(v, NONE) == U.Default, "plays as Magnet")
-		H.expect(SpinView.autoStop(v, false, DAY, NONE) == "NotOwned", "Auto Spin too")
 	end,
 
 	["the daily free spin works once a day and never stacks"] = function()
@@ -222,7 +221,6 @@ return {
 		local result, why, current = SpinView.spin(u, opts())
 		H.expect(result == nil and why == "Confirm" and current == "BlackFlash", "asks")
 		H.expect(same(u, before), "nothing rolled, used or counted")
-		H.expect(SpinView.autoStop(u, false, DAY, NONE) == "Confirm", "Auto Spin stops before it")
 		local yes = SpinView.spin(u, opts({ confirm = true })) :: any
 		H.expect(yes ~= nil and yes.replaced == "BlackFlash", "replaced once confirmed")
 		-- A Rare asks nothing.
@@ -285,9 +283,9 @@ return {
 		H.expect(refused("BuyProduct", { product = "Pack7" }), "not a spin product")
 		H.expect(refused("BuyProduct", { product = "Vip" }), "not a spin product")
 		H.expect(refused("BuyProduct", { product = 5 }), "not a string")
-		H.expect(refused("AutoStart", { stopAt = "Common", lucky = false }), "stopAt Common")
-		H.expect(refused("AutoStart", { stopAt = "Mythic", lucky = false }), "stopAt Mythic")
-		H.expect(refused("AutoStart", { stopAt = "Rare" }), "no lucky")
+		-- Auto Spin was removed (designer, 2026-10-10): its kinds are unknown now.
+		H.expect(refused("AutoStart", { stopAt = "Epic", lucky = false }), "no AutoStart")
+		H.expect(refused("AutoStop", {}), "no AutoStop")
 		-- And the honest ones pass, carrying only their own fields.
 		local spin = SpinView.parse("Spin", { lucky = true, id = "BlackHole", rarity = "Mythic" })
 		H.expect(spin and spin.kind == "Spin" and spin.lucky == true and spin.confirm == false, "")
@@ -297,8 +295,6 @@ return {
 		for _, key in SpinView.productKeys() do
 			H.expect(SpinView.parse("BuyProduct", { product = key }) ~= nil, key)
 		end
-		H.expect(SpinView.parse("AutoStart", { stopAt = "Epic", lucky = false }) ~= nil, "Epic+")
-		H.expect(SpinView.parse("AutoStop", "anything") ~= nil, "AutoStop ignores its argument")
 	end,
 
 	["spam is limited by the token bucket"] = function()
@@ -313,23 +309,6 @@ return {
 		H.expect(taken == U.RequestBurst, "a burst, then TooFast")
 		H.expect(Requests.take(bucket, U.RequestCooldownSeconds, U.RequestBurst, rate), "refills")
 		H.expect(not Requests.take(bucket, U.RequestCooldownSeconds, U.RequestBurst, rate), "one")
-	end,
-
-	["Auto Spin stops at the rarity chosen, with no spins, or on a locked slot"] = function()
-		H.expect(SpinView.reached("Rare", "Rare") and SpinView.reached("Mythic", "Rare"), "Rare+")
-		H.expect(not SpinView.reached("Uncommon", "Rare"), "below")
-		H.expect(not SpinView.reached("Epic", "Legendary"), "Epic below Legendary+")
-		H.expect(not SpinView.reached("Mythic", "Nope"), "a bad stop never reaches")
-		local u = Slots.fresh()
-		H.expect(SpinView.autoStop(u, false, DAY, NONE) == nil, "may spin")
-		H.expect(SpinView.autoStop(u, true, DAY, NONE) == "NoLucky", "no Lucky Spins")
-		Slots.setSpins(u, 0)
-		u.FreeSpinDay = DAY
-		H.expect(SpinView.autoStop(u, false, DAY, NONE) == "NoSpins", "out of spins")
-		Slots.addSpins(u, 1)
-		Slots.setLock(u, 1, true, NONE)
-		H.expect(SpinView.autoStop(u, false, DAY, NONE) == "Locked", "never into a locked slot")
-		H.expect(table.find(U.AutoStopChoices, "Common") == nil, "no stop at Common")
 	end,
 
 	["codes grant spins once"] = function()
@@ -533,7 +512,7 @@ return {
 		H.expect(p.live and not p.restricted and not p.vip and not p.devAll, "flags")
 		H.expect(p.moneyPerSpin == 12500 and #p.moneyPacks == 4, "money")
 		H.expect(p.code.active == "RELEASE" and p.code.nextGoalLikes == 100, "the code box")
-		H.expect(not p.auto.running and p.auto.count == 0 and #p.autoStopChoices == 3, "auto")
+		H.expect((p :: any).auto == nil and (p :: any).autoStopChoices == nil, "no Auto Spin")
 		for _, key in SpinView.productKeys() do
 			local product = p.products[key]
 			H.expect(
@@ -552,7 +531,7 @@ return {
 		H.expect(r.products.Spin5.reason == "Restricted" and not r.products.Spin5.canBuy, "")
 		H.expect(r.products.UltSlot3.reason == "ComingSoon", "a slot pass is not random")
 		H.expect(r.products.Spin5.robux == 45, "the live price")
-		-- Passes, a locked Legendary, the developer flag and a running Auto Spin.
+		-- Passes, a locked Legendary and the developer flag.
 		local u = Slots.fresh()
 		Slots.select(u, 3, ALL)
 		u.Slots[3] = "BlackFlash"
@@ -562,13 +541,12 @@ return {
 			passes = ALL,
 			devAll = true,
 			vip = true,
-			auto = { stopAt = "Epic", lucky = false, count = 4 },
 		}))
 		H.expect(q.owned[3] and q.selected == 3 and q.locked[3], "slot 3")
 		H.expect(q.equipped == "BlackFlash" and q.needsConfirm, "a placeholder plays with the flag")
 		H.expect(not q.canSpin and q.spinReason == "Locked", "SPIN greys out: Slot locked")
 		H.expect(q.products.UltSlot3.owned and q.products.UltSlot3.reason == "Owned", "")
-		H.expect(q.auto.running and q.auto.stopAt == "Epic" and q.auto.count == 4, "auto")
+		H.expect(q.vip, "VIP (Fast spin)")
 		local flagged = 0
 		for _, row in q.odds.normal.ults do
 			flagged += 1

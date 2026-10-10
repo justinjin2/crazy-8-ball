@@ -3,7 +3,7 @@
 -- docs/prompts/ULTIMATES_PROMPT.md sections 8-10). Checking an UltRequest's arguments (the
 -- client sends a kind and a small table of choices, never an amount, price, rarity, ult id to
 -- grant or a result), one spin start to finish on a save's `Ults` table (the core of
--- PlayerData's spin mutation), Auto Spin's stop rules, the money price of a spin pack, and the
+-- PlayerData's spin mutation), the money price of a spin pack, and the
 -- UltState payload the spin screen draws. Pure: no Instances, no Roblox APIs, no clocks (the
 -- caller passes the UTC day, Daily.dayOf) and no randomness of its own (the caller passes
 -- `rng`, a function giving numbers in [0, 1)); every list is walked as an array. Lune-tested
@@ -35,11 +35,9 @@ SpinView.Kinds = table.freeze({
 	"Lock", -- { slot, locked: boolean }
 	"BuySpins", -- { pack: one of Config.Ults.Earn.MoneyPacks, currency: "Money" }
 	"BuyProduct", -- { product: a spin pack, Lucky pack or ult slot pass key }
-	"AutoStart", -- { stopAt: one of Config.Ults.AutoStopChoices, lucky: boolean }
-	"AutoStop", -- no arguments
 })
 
---- Every reason a refused UltRequest (or an Auto Spin's stop) may answer, for the client's
+--- Every reason a refused UltRequest may answer, for the client's
 --- words (Strings.Ults.Spins.Reasons). Short PascalCase words.
 SpinView.Reasons = table.freeze({
 	"BadRequest", -- an unknown kind, a wrong type, a slot of 9, a pack of -5, a currency "free"
@@ -54,8 +52,6 @@ SpinView.Reasons = table.freeze({
 	"NoLucky", -- no Lucky Spins left
 	"LuckyClosed", -- no Uncommon or better ult is in the game yet, so a Lucky Spin has nothing to land
 	"Confirm", -- the spin would replace an Epic or better: the reply adds `current`, `rarity`
-	"AutoRunning", -- Spin or Select while Auto Spin runs (AutoStop first)
-	"NoVip", -- AutoStart needs VIP
 	"Restricted", -- paid random items are restricted here: no buying spins or Lucky Spins
 	"NotEnoughMoney", -- BuySpins: the reply adds `need` and `price`
 	"TooMany", -- BuySpins: the spins would pass Config.Ults.Earn.MaxSpins
@@ -64,25 +60,15 @@ SpinView.Reasons = table.freeze({
 	"Error", -- anything else (logged on the server): try again
 })
 
---- Why an Auto Spin stopped (UltAuto's `reason`), besides SpinView.Reasons' "NotOwned",
---- "Locked", "NoSpins", "NoLucky", "Confirm" (it stops BEFORE replacing an Epic+), "NotLive"
---- and "Error".
-SpinView.AutoStops = table.freeze({
-	"Reached", -- the stop rarity or better landed
-	"Stopped", -- the player sent AutoStop (or opened another request that ends it)
-	"Closing", -- the server is shutting down
-})
-
 -- One checked request. Only the fields its kind uses are set.
 export type Request = {
 	kind: string,
-	lucky: boolean?, -- Spin, AutoStart
+	lucky: boolean?, -- Spin
 	confirm: boolean?, -- Spin
 	slot: number?, -- Select, Lock
 	locked: boolean?, -- Lock
 	pack: number?, -- BuySpins: spins in the pack
 	product: string?, -- BuyProduct: a Config.Products key
-	stopAt: string?, -- AutoStart: a rarity
 }
 
 -- The products the spin screen sells, in its order: the spin packs, the Lucky packs, then the
@@ -132,16 +118,12 @@ end
 
 --- An UltRequest's kind and arguments table checked: the Request, or nil and "BadRequest".
 --- Every field is checked for type and range (a slot of 9, 0, 1.5 or "2"; a pack of -5 or 7;
---- a currency other than "Money"; lucky "yes"; stopAt "Common"); fields a kind does not use
---- are ignored. AutoStop takes no table (anything sent is ignored).
+--- a currency other than "Money"; lucky "yes"); fields a kind does not use are ignored.
 function SpinView.parse(kind: any, args: any): (Request?, string?)
 	if type(kind) ~= "string" or table.find(SpinView.Kinds, kind) == nil then
 		return nil, "BadRequest"
 	end
 	local request: Request = { kind = kind }
-	if kind == "AutoStop" then
-		return request, nil
-	end
 	if type(args) ~= "table" then
 		return nil, "BadRequest"
 	end
@@ -177,24 +159,12 @@ function SpinView.parse(kind: any, args: any): (Request?, string?)
 		end
 		request.pack = pack
 		return request, nil
-	elseif kind == "BuyProduct" then
+	else -- BuyProduct
 		local product = args.product
 		if type(product) ~= "string" or table.find(PRODUCT_KEYS, product) == nil then
 			return nil, "BadRequest"
 		end
 		request.product = product
-		return request, nil
-	else -- AutoStart
-		local stopAt, lucky = args.stopAt, args.lucky
-		if
-			type(stopAt) ~= "string"
-			or table.find(U.AutoStopChoices, stopAt) == nil
-			or type(lucky) ~= "boolean"
-		then
-			return nil, "BadRequest"
-		end
-		request.stopAt = stopAt
-		request.lucky = lucky
 		return request, nil
 	end
 end
@@ -298,30 +268,6 @@ function SpinView.spin(ults: any, opts: SpinOptions): (SpinResult?, string?, str
 end
 
 ---------------------------------------------------------------------------------------------
--- Auto Spin (VIP, section 9.6)
----------------------------------------------------------------------------------------------
-
---- Whether Auto Spin may make its next spin: nil when it may, else why it stops: Slots.canSpin's
---- reasons ("NotOwned", "Locked", "NoSpins", "NoLucky"...) or "Confirm" (the selected slot
---- holds an Epic or better: it stops BEFORE replacing it). It never spins into a locked slot.
-function SpinView.autoStop(ults: any, lucky: boolean, day: number, passes: Slots.Passes?): string?
-	local ok, why = Slots.canSpin(ults, lucky, day, passes)
-	if not ok then
-		return why
-	end
-	if Slots.needsConfirm(ults) then
-		return "Confirm"
-	end
-	return nil
-end
-
---- True when `rarity` is `stopAt` or rarer (Auto Spin's "stop at Rare+").
-function SpinView.reached(rarity: any, stopAt: any): boolean
-	local at = Catalog.rarityIndex(stopAt)
-	return at > 0 and Catalog.rarityIndex(rarity) >= at
-end
-
----------------------------------------------------------------------------------------------
 -- The UltState payload
 ---------------------------------------------------------------------------------------------
 
@@ -333,9 +279,8 @@ export type Context = {
 	devAll: boolean?, -- the developer flag for this player
 	live: boolean, -- the screen is open to them (Config.Ults.ScreenLive, Studio, or devAll)
 	restricted: boolean, -- paid random items restricted (or PolicyService not answered yet)
-	vip: boolean, -- VIP (Skip and Auto Spin)
+	vip: boolean, -- VIP (Fast spin)
 	prices: { [string]: number }?, -- product key -> live Robux price (missing: Config's)
-	auto: { stopAt: string, lucky: boolean, count: number }?, -- Auto Spin running
 }
 
 export type ProductView = {
@@ -382,9 +327,6 @@ export type Payload = {
 	luckyPacks: { string },
 	products: { [string]: ProductView },
 	code: { active: string, nextGoalLikes: number },
-	autoStopChoices: { string },
-	autoSpinSeconds: number,
-	auto: { running: boolean, stopAt: string?, lucky: boolean?, count: number },
 }
 
 -- The slot a pass key unlocks, or nil.
@@ -466,7 +408,6 @@ function SpinView.state(ctx: Context): Payload
 	for _, key in PRODUCT_KEYS do
 		products[key] = productView(key, ctx)
 	end
-	local auto = ctx.auto
 	return {
 		slots = slots,
 		selected = if Slots.isSlot(source.Selected) then source.Selected else 1,
@@ -500,11 +441,6 @@ function SpinView.state(ctx: Context): Payload
 		luckyPacks = table.clone(E.LuckyPacks),
 		products = products,
 		code = { active = U.CodeBanner.ActiveCode, nextGoalLikes = U.CodeBanner.NextGoalLikes },
-		autoStopChoices = table.clone(U.AutoStopChoices),
-		autoSpinSeconds = U.AutoSpinSeconds,
-		auto = if auto ~= nil
-			then { running = true, stopAt = auto.stopAt, lucky = auto.lucky, count = auto.count }
-			else { running = false, count = 0 },
 	}
 end
 

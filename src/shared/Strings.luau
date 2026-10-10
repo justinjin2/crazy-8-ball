@@ -1125,7 +1125,7 @@ return {
 		CopyOf = "#%d of %d", -- a capped Unique's copy: "#4 of 100"
 		OnlyEver = "only %s ever", -- "only 100 ever"
 		VipPerks = "2x money · no timers · a Mystery Lucky Block every day · +1 spin a day · "
-			.. "Skip and Auto Spin · the VIP restock slot · the VIP Cue",
+			.. "Fast spin · the VIP restock slot · the VIP Cue",
 		VipRestrictedNote = "Where Lucky Blocks can't be bought, the daily block is $5,000.",
 		StarterRestricted = "$40,000 + 1 hour of 2x money",
 	},
@@ -1476,7 +1476,7 @@ return {
 				Default = "You can't use your ability right now",
 			},
 		},
-		-- The spin service's answers (UltRequest and UltAuto; the codes are listed in Net.luau
+		-- The spin service's answers (UltRequest; the codes are listed in Net.luau
 		-- and Ults/SpinView.Reasons). Anything unknown says Strings.Menus.Reasons.Default.
 		Spins = {
 			Reasons = {
@@ -1492,24 +1492,12 @@ return {
 				NoLucky = "No Lucky Spins left.",
 				LuckyClosed = "Lucky Spins open once rarer abilities are in the game.",
 				Confirm = "Replace %s?", -- the ability's name, upper case in its rarity colour
-				AutoRunning = "Stop Auto Spin first.",
-				NoVip = "Auto Spin needs VIP.",
 				Restricted = "Buying spins isn't available where you live. Free spins still work.",
 				NotEnoughMoney = "Not enough money.",
 				TooMany = "You hold the most spins allowed.",
 				Owned = "You already own this slot.",
 				ComingSoon = "Coming soon!",
 				Error = "Something went wrong. Try again soon.",
-			},
-			-- Why Auto Spin stopped (UltAuto's reason); the others use Reasons above.
-			AutoStops = {
-				Reached = "Auto Spin: got %s!", -- the ability's name
-				Stopped = "Auto Spin stopped.",
-				Closing = "Auto Spin stopped: the server is restarting.",
-				Confirm = "Auto Spin stopped before replacing %s.", -- the ability's name
-				Locked = "Auto Spin stopped: the slot is locked.",
-				NoSpins = "Auto Spin stopped: no spins left.",
-				NoLucky = "Auto Spin stopped: no Lucky Spins left.",
 			},
 			Bought = "+%d spins!", -- money spins bought: "+5 spins!"
 		},
@@ -1548,7 +1536,7 @@ return {
 			-- the bars is gone): "Pity: 3 / 100 · Epic or better".
 			Pity = "Pity: %s / %s · %s or better",
 			-- The buy panel, bottom right: four Robux buttons and one money button.
-			BuySpins = "Buy spins", -- the phone's button and the popup's title
+			BuySpins = "Buy spins", -- the phone's button and its popup's title
 			Buy = "Buy %d", -- over a Robux button's price
 			MoneySpin = "%s - 1 spin", -- the money button: "$12,500 - 1 spin"
 			BoughtOne = "+1 spin!", -- a money spin bought (more: Spins.Bought)
@@ -1558,14 +1546,8 @@ return {
 			ReplaceYes = "Replace",
 			ReplaceNo = "Keep",
 			PityHit = "PITY!", -- over the name when the pity spin landed
-			-- VIP's Skip and Auto Spin (section 9.6).
-			Skip = "Skip",
-			AutoSpin = "Auto Spin",
-			AutoStop = "Stop (%d)", -- Auto Spin running: spins made so far
-			AutoTitle = "Auto Spin",
-			AutoText = "Spin until you get:",
-			AutoStopAt = "%s+", -- a rarity: "Epic+"
-			AutoLucky = "Use Lucky Spins",
+			-- VIP's Fast spin (section 9.6; designer, 2026-10-10: was Skip): the spin lands at once.
+			FastSpin = "Fast spin",
 		},
 		-- Catch-a-Ball's popups over the catch ball (CatchABallFx).
 		Catch = {

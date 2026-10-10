@@ -5,6 +5,13 @@ when `docs/STATUS.md` became current state only. Finished work moves here from S
 on top. Read it only to answer "when or why did X change"; it is not part of the read-first list.
 An entry marked "(latest)" was the latest when written.
 
+**2026-10-10: moved from STATUS** (settled; their phone and controller checks are in STATUS's
+"Not yet checked"). The GUI hand-off after economy v4 (2026-10-08, branch `gui-v4`; the
+designer's picks on https://claude.ai/artifact/Q79pcvwxeos8AB7o8357Lw, prompts and pictures in
+`~/Desktop/8ball-refs/gui-mocks-v4`): its screens done and checked in Studio on PC; still to see
+on a phone, a controller and with a real purchase; Trade is not built (not in the release). The
+lively Shop is in `release` (2026-10-06); other menus take its frame as rebuilt.
+
 **2026-10-10: tutorial v2 closed** (branch `tutorial-v2`, `docs/prompts/TUTORIAL_V2_REPORT.md`
 and the brief's Notes). Rebuilt the first session (the arrow, any table, the walking bot, the
 rigged game 1 with its lessons, the chain to Rank, the Mystery block, Cues and Abilities, the

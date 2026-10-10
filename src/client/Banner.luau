@@ -480,6 +480,18 @@ function Banner.hide(self: any)
 end
 
 -- Its size from its words, its top under anything it would overlap.
+-- Whether `gui` shows: it and every frame over it Visible.
+local function shows(gui: GuiObject): boolean
+	local at: Instance? = gui
+	while at and at:IsA("GuiObject") do
+		if not at.Visible then
+			return false
+		end
+		at = at.Parent
+	end
+	return true
+end
+
 function Banner.layout(self: any)
 	local screen: ScreenGui = self.screen
 	local size = screen.AbsoluteSize
@@ -522,7 +534,7 @@ function Banner.layout(self: any)
 		table.insert(obstacles, status)
 	end
 	for _, other in obstacles do
-		if other.Visible and other.AbsoluteSize.Y > 0 then
+		if shows(other) and other.AbsoluteSize.Y > 0 then
 			local x0 = other.AbsolutePosition.X - origin.X
 			local x1 = x0 + other.AbsoluteSize.X
 			local bottom = other.AbsolutePosition.Y + other.AbsoluteSize.Y - origin.Y

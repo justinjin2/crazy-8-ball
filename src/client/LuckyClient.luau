@@ -877,52 +877,69 @@ function LuckyClient.bumpHotbar()
 	end
 end
 
---- The tutorial: the hotbar slot (1-9) showing a block of `kind`, the one not ready first
---- when `waiting` (the Rare block on its timer), or nil.
-function LuckyClient.slotOf(kind: string, waiting: boolean?): number?
+-- The tutorial's hand points at a block in the bar: the first block `fits` takes, in the bar's
+-- visible slots, or else pinned into slot 1 (a phone shows only PhoneHotbarSlots, so a block
+-- further along would leave the hand nothing, or another block, to point at).
+local function slotWhere(
+	fits: (entry: Entry) -> boolean,
+	fallback: ((entry: Entry) -> boolean)?
+): number?
 	if not started then
 		return nil
 	end
-	local fallback: number? = nil
-	for i = 1, hotbar:slotCount() do
-		local entry = hotbar:slotEntry(i)
-		if entry and entry.kind == kind then
-			if not waiting or entry.readyAt > serverNow() then
+	local tests: { (entry: Entry) -> boolean } = { fits }
+	if fallback then
+		table.insert(tests, fallback)
+	end
+	for _, test in tests do
+		for i = 1, hotbar:slotCount() do
+			local entry = hotbar:slotEntry(i)
+			if entry and test(entry) then
 				return i
 			end
-			fallback = fallback or i
 		end
 	end
-	return fallback
-end
-
---- The tutorial's soft part: the hotbar slot (1-9) of a ready block of `kind`, or nil.
-function LuckyClient.readySlot(kind: string): number?
-	if not started then
-		return nil
-	end
-	for i = 1, hotbar:slotCount() do
-		local entry = hotbar:slotEntry(i)
-		if entry and entry.kind == kind and entry.readyAt <= serverNow() then
-			return i
+	for _, test in tests do
+		for _, entry in entries do
+			if not liveIds[entry.id] and test(entry) then
+				hotbar:pin(entry.id)
+				return nil -- slot 1 from the next look, once the bar is rebuilt
+			end
 		end
 	end
 	return nil
 end
 
+--- The tutorial: the hotbar slot (1-9) showing a block of `kind`, the one not ready first
+--- when `waiting` (the Rare block on its timer), or nil.
+function LuckyClient.slotOf(kind: string, waiting: boolean?): number?
+	return slotWhere(
+		function(entry: Entry): boolean
+			return entry.kind == kind and (not waiting or entry.readyAt > serverNow())
+		end,
+		if waiting
+			then function(entry: Entry): boolean
+				return entry.kind == kind
+			end
+			else nil
+	)
+end
+
+--- The tutorial's soft part: the hotbar slot (1-9) of a ready block of `kind`, or nil.
+function LuckyClient.readySlot(kind: string): number?
+	return slotWhere(function(entry: Entry): boolean
+		return entry.kind == kind and entry.readyAt <= serverNow()
+	end)
+end
+
 --- The first-time hints: the first hotbar slot (1-9) with a ready block of a kind other than
 --- `except`, and its kind; nil when none.
 function LuckyClient.firstReady(except: string?): (number?, string?)
-	if not started then
-		return nil, nil
-	end
-	for i = 1, hotbar:slotCount() do
-		local entry = hotbar:slotEntry(i)
-		if entry and entry.kind ~= except and entry.readyAt <= serverNow() then
-			return i, entry.kind
-		end
-	end
-	return nil, nil
+	local slot = slotWhere(function(entry: Entry): boolean
+		return entry.kind ~= except and entry.readyAt <= serverNow()
+	end)
+	local entry = if slot then hotbar:slotEntry(slot) else nil
+	return slot, if entry then entry.kind else nil
 end
 
 --- The tutorial: the held block's kind, or nil.

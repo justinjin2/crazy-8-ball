@@ -5,7 +5,7 @@
 -- (Config.UI.UltScreen.Spin), with the block reel's tick per change, and lands on the result
 -- with the reel's sting for its tier. Epic and up get a 1 s build-up before landing (the reel's
 -- whoosh, the names teasing the top rarities), a screen flash and the bigger sting; Legendary
--- and up confetti too. A tap, a click or gamepad A skips to the result; VIP's Skip lands
+-- and up confetti too. A tap, a click or gamepad A skips to the result; VIP's Fast spin lands
 -- at once. The screen (UltScreen) does the rest on landing: the aura's burst, the avatar's hop,
 -- the new state drawn.
 local ContextActionService = game:GetService("ContextActionService")
@@ -173,7 +173,7 @@ function UltSpinAnim.pick(self: any, last: string?, top: boolean): string
 	return list[1]
 end
 
---- Play a spin that landed on `result`. `instant` (VIP's Skip) lands at once. `done`
+--- Play a spin that landed on `result`. `instant` (VIP's Fast spin) lands at once. `done`
 --- runs once it has landed (false) or was cut short silently by cancel (true).
 function UltSpinAnim.play(self: any, result: Result, instant: boolean, done: (boolean) -> ())
 	self:cancel()
@@ -349,17 +349,6 @@ function UltSpinAnim.cancel(self: any)
 	self.done = nil
 	if done then
 		done(true)
-	end
-end
-
---- An Auto Spin result, shown quickly: the name pops; Rare and up play their sting, the rest
---- the tick.
-function UltSpinAnim.quick(self: any, result: Result)
-	self.hooks.showName(result.id, true)
-	if atLeast(result.rarity, SP.AutoStingFrom) then
-		UISound.play(STINGS[result.rarity] or STINGS.Default)
-	else
-		UISound.play("ReelTick")
 	end
 end
 

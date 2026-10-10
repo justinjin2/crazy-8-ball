@@ -3698,8 +3698,8 @@ Config.Products = {
 	BestValue = "Pack7",
 	List = {
 		-- Game passes.
-		-- VIP (399 R$, economy v4 2026-10-08: was 499; no block timers, fast reveals, Auto Spin,
-		-- an Uncommon block a day: Config.Daily.VipBlocks). The live price is read from Roblox;
+		-- VIP (399 R$, economy v4 2026-10-08: was 499; no block timers, fast reveals, Fast spin,
+		-- a Mystery block a day: Config.Daily.VipBlocks). The live price is read from Roblox;
 		-- tools/roblox_products.py --sync sets it. The Quick Cases pass (id 2006144658) was
 		-- retired into VIP 2026-10-04.
 		Vip = { Kind = "Pass", Id = 2005370712, Robux = 399 },
@@ -4262,9 +4262,6 @@ Config.Ults = {
 	-- The code box on the spin screen (section 9.3): the designer edits these two in one place.
 	-- The code itself is a row in Config.Daily.Codes (Spins = 3).
 	CodeBanner = { ActiveCode = "RELEASE", NextGoalLikes = 100 },
-	-- VIP's Auto Spin (section 9.6): one spin this often, server-checked.
-	AutoSpinSeconds = 0.4,
-	AutoStopChoices = { "Rare", "Epic", "Legendary" },
 	-- The PC opponent (section 4): it activates when its bar is full and it is behind, or when
 	-- its shot finder sees no easy shot.
 	Pc = { WhenBehind = true, WhenNoEasyShot = true },
@@ -13336,7 +13333,7 @@ Config.UI.UltScreen = {
 	DisplayOrderAbove = 10, -- its ScreenGui sits this far over the HUD's (with the menus)
 	-- Other HUD ScreenGuis put away while the screen is open (PoolHud always is), by name.
 	HideGuis = { "RankHud" },
-	-- A popup on the screen (Odds, Buy spins, Auto Spin): its B over ContextActionPriority.High,
+	-- A popup on the screen (Buy spins on a phone): its B over ContextActionPriority.High,
 	-- above Menus' own B (+20), so B closes the popup first.
 	PopupPriorityAbove = 30,
 	-- The left column's 5th tile (MenuColumn), after the others. In the hub gamepad X opens it
@@ -13420,21 +13417,15 @@ Config.UI.UltScreen = {
 		MoneyButtonHeightPx = 42,
 		MoneyButtonTextPx = 20,
 		PriceTextPx = 16, -- the note where paid random items are restricted
-		-- VIP's Skip and Auto Spin, between Back and SPIN; Auto Spin's switch at its right.
+		-- VIP's Fast spin (designer, 2026-10-10: was Skip), between Back and SPIN.
 		FastWidthPx = 200,
 		FastHeightPx = 40,
 		FastTextPx = 18,
-		AutoTrackWidthPx = 38,
-		AutoTrackHeightPx = 22,
-		-- A popup (Auto Spin here; Odds and Buy spins on a phone).
+		-- A popup (Buy spins on a phone).
 		PopupWidthPx = 440,
 		PopupTitleTextPx = 22,
 		PopupCloseInsetPx = 22, -- the red X's middle this far in from the card's corner
 		PopupClosePx = 36,
-		-- The buttons that open the Odds and Buy spins popups (phones only).
-		OpenWidthPx = 150,
-		OpenHeightPx = 40,
-		OpenTextPx = 18,
 	},
 	Short = {
 		DesignPx = { 750, 361 },
@@ -13461,22 +13452,26 @@ Config.UI.UltScreen = {
 		SlotStripPx = 4,
 		SlotIconPx = 30,
 		LockPx = 22,
-		OddsWidthPx = 380,
-		OddsHeaderPx = 30,
-		OddsTitleTextPx = 18,
+		-- The right column (designer, 2026-10-10: the odds listed like a computer's, the code
+		-- box typed into right there): the odds panel from the top, the code box under it, the
+		-- pity pill and Buy spins; under OddsMinHeightPx of room the code box goes into the list.
+		OddsWidthPx = 200,
+		OddsMinHeightPx = 90,
+		OddsHeaderPx = 26,
+		OddsTitleTextPx = 16,
 		OddsPadPx = 6,
 		PityPillHeightPx = 26,
 		SwitchHeightPx = 30,
-		BarHeightPx = 32,
-		BarGapPx = 6,
-		BarTextPx = 16,
-		RowHeightPx = 26,
-		RowTextPx = 14,
-		RowIconPx = 24,
-		CodeTextPx = 16,
-		CodeBoxPx = 36,
-		RedeemWidthPx = 90,
-		CodeNoteTextPx = 14,
+		BarHeightPx = 28,
+		BarGapPx = 5,
+		BarTextPx = 15,
+		RowHeightPx = 24,
+		RowTextPx = 13,
+		RowIconPx = 22,
+		CodeTextPx = 13,
+		CodeBoxPx = 30,
+		RedeemWidthPx = 76,
+		CodeNoteTextPx = 12,
 		LuckyWidthPx = 200,
 		LuckyHeightPx = 30,
 		LuckyTextPx = 16,
@@ -13496,17 +13491,14 @@ Config.UI.UltScreen = {
 		MoneyButtonHeightPx = 34,
 		MoneyButtonTextPx = 16,
 		PriceTextPx = 14,
-		FastWidthPx = 136,
-		FastHeightPx = 34,
-		FastTextPx = 16,
-		AutoTrackWidthPx = 28,
-		AutoTrackHeightPx = 16,
+		FastWidthPx = 132, -- under the slot cards, as wide as they are
+		FastHeightPx = 32,
+		FastTextPx = 15,
 		PopupWidthPx = 420,
 		PopupTitleTextPx = 18,
 		PopupCloseInsetPx = 18,
 		PopupClosePx = 30,
-		OpenWidthPx = 136, -- as wide as Skip and Auto Spin under the Odds button
-		OpenHeightPx = 36,
+		OpenHeightPx = 36, -- Buy spins (it opens the buy buttons' popup), as wide as the column
 		OpenTextPx = 16,
 	},
 	-- LUCKY SPINS' green-to-teal gradient, left to right, over the green candy.
@@ -13522,8 +13514,8 @@ Config.UI.UltScreen = {
 	BuyShineStaggerSeconds = 0.35, -- the four Robux buttons' shines follow one another this far apart
 	-- The open (pick "abilities A", 2026-10-08; no animatic: the Shop's timings, Studio first
 	-- look): no panel to unroll, the title, the cards and panels, then their buttons stagger in;
-	-- the hero is SPIN, last, with a gold burst. Pieces only on a phone (the Odds and Buy spins
-	-- buttons) or only for a VIP (Skip, Auto) just stay hidden when absent.
+	-- the hero is SPIN, last, with a gold burst. Pieces only on a phone (Buy spins) or only for
+	-- a VIP (Fast spin) just stay hidden when absent.
 	Open = {
 		OpenSeconds = 0.91,
 		-- The pieces wait this long, hidden, while the camera flies in (Stage.FlySeconds), and
@@ -13543,8 +13535,8 @@ Config.UI.UltScreen = {
 				Stagger = 1,
 			},
 			{ Ids = { "Buy1", "Buy2", "Buy3", "Buy4", "BuyMoney" }, Kind = "Pop", At = 0.2 },
-			{ Ids = { "OddsButton", "BuyButton" }, Kind = "Pop", At = 0.2 },
-			{ Ids = { "Back", "Skip", "Auto" }, Kind = "Pop", At = 0.28 },
+			{ Ids = { "BuyButton" }, Kind = "Pop", At = 0.2 },
+			{ Ids = { "Back", "FastSpin" }, Kind = "Pop", At = 0.28 },
 			{ Ids = { "Pity" }, Kind = "Pop", At = 0.38 },
 			{ Ids = { "Spin" }, Kind = "Pop", At = 0.4, Burst = "Gold" },
 			{ Ids = { "SpinsLeft" }, Kind = "Fade", At = 0.48, Length = 0.15 },
@@ -13565,7 +13557,6 @@ Config.UI.UltScreen = {
 		FlashSeconds = 0.5, -- its fade
 		ConfettiFrom = "Legendary", -- this rarity and up: confetti from the name
 		ConfettiScale = 1.3,
-		AutoStingFrom = "Rare", -- Auto Spin: only this rarity and up plays its sting (the rest tick)
 		HintTextPx = { 14, 18 }, -- "Tap to skip" under the name (phone, computer)
 		-- The tier ticking under the name in its colour, like a slot window (GUI lane, step 13,
 		-- reference 10): it ticks with every name and slams on the result.
@@ -14437,6 +14428,10 @@ Config.Tutorial = {
 		PromptHandPadPx = 12,
 		BlockPadPx = 28, -- the ring round the thrown block on the floor, past its outline (px)
 		ZoomedOut = 0.85, -- the zoom lesson is done at this zoom or wider (Camera: 1 is all out)
+		-- ... or once the zoom has moved by this ratio either way from where the lesson found it:
+		-- any real pinch, or one wheel notch (Input.ZoomStep 1.12) (designer, 2026-10-10: the
+		-- line stayed after they had zoomed).
+		ZoomMovedRatio = 1.1,
 		ZoomDoneSeconds = 2.5, -- "You can zoom in and out any time." shows this long
 		ComboShootSeconds = 5, -- the combination's pointer, then the line says to shoot
 		-- Ball in hand lined up for the combination: "drag the white ball" shows this long (or
@@ -14531,26 +14526,37 @@ Config.Tutorial = {
 
 		Mouse = "rbxassetid://82136605713937",
 	},
-	-- The screen layer (src/client/TutorialOverlay.luau). Pixels unless named.
+	-- The screen layer (src/client/TutorialOverlay.luau; placed by src/shared/Tutorial/
+	-- ScreenLayout.luau inside the play area: in from a phone's notch, under Roblox's top bar).
+	-- Pixels unless named. Designer, 2026-10-10, after the tutorial on an Android phone: the
+	-- line was too big, off centre and under Skip; Skip far too big.
 	Overlay = {
 		DisplayOrder = 40, -- over the HUD and menus, under the teleport screen
 		PhoneBelowPx = 500, -- a screen whose short side is under this is a phone
-		LineTextPx = 40, -- the instruction line (UI_STYLE 3: big white Fredoka, ink outline)
-		LinePhoneTextPx = 30, -- a phone's, in a line with button pictures
-		RowGapPx = 8, -- between the words and pictures of such a line
+		LineTextPx = 34, -- the instruction line (UI_STYLE 3: white Fredoka, ink outline; was 40)
+		LinePhoneTextPx = 24, -- a phone's (was 40, and 30 only with button pictures)
+		LineLines = 2, -- a long line wraps to this many lines, then shrinks to fit them
+		RowGapPx = 8, -- between the words and pictures of a line with button pictures
 		KeyScale = 1.25, -- a button picture's size against the text
 		KeyBackTransparency = 0.25, -- its dark disc (so a light picture shows on a white background)
 		KeyPictureShare = 0.86, -- the picture's size on its disc
-		BigTextPx = 96, -- the big text in the middle ("Place it!")
-		BigPhoneTextPx = 64,
-		BigYScale = 0.3, -- its height on the screen (a share from the top)
-		LineHeightPx = 56,
-		LinePhoneHeightPx = 40,
-		LineWidthScale = 0.8, -- of the screen's width, at most LineMaxWidthPx
-		LineMaxWidthPx = 900,
-		LineTopGapPx = 10, -- under Roblox's top bar
+		BigTextPx = 72, -- the big text in the middle ("Place it!"; was 96)
+		BigPhoneTextPx = 44, -- (was 64)
+		BigYShare = 0.3, -- its middle this far down the play area
+		BigWidthShare = 0.8, -- of the play area's width
+		LineWidthShare = 0.7, -- the line's widest, a share of the play area's width ...
+		LineMaxWidthPx = 760, -- ... and in pixels
+		LineMinWidthPx = 260, -- narrower than this beside Skip: the line goes under Skip instead
+		LineBandPx = 90, -- the line's band under the top bar, for keeping clear of Skip
+		LineSkipGapPx = 10, -- between the line and Skip
+		LineTopGapPx = 4, -- under Roblox's top bar (the play area's top)
 		LineLowGapPx = 80, -- a low line clears a screen's own title (Heat Seeker's pick pill)
 		LineNearGapPx = 80, -- a "Near" line's gap over the lit hole: clears the hand
+		-- A line whose words would sit on a screen's own words (the rank HUD's goal line under
+		-- its pill on a phone, a popup's title) tries up to this many steps lower, each its
+		-- height plus LineStepGapPx (designer, 2026-10-10).
+		LineSteps = 3,
+		LineStepGapPx = 4,
 		LineAvoidPx = 40, -- a line kept off a point (a glowing pocket): moved this far under it
 		-- The light dim (designer, 2026-10-03: light): black at this transparency.
 		DimTransparency = 0.65,
@@ -14564,10 +14570,20 @@ Config.Tutorial = {
 		RingPulseSeconds = 1.1,
 		-- "Roblox_UI_Bright_Click" (Roblox, 0.37 s): a soft sound with each new line.
 		Ding = { Id = "rbxassetid://15675059323", Volume = 0.35 },
-		SkipHeightPx = 38,
-		SkipPhoneHeightPx = 32,
-		SkipWidthRatio = 4.2, -- the Skip button's width as a multiple of its height
-		SkipEdgePx = 12,
+		-- Skip tutorial (designer, 2026-10-10: "very very small"; was 38 and 32 tall). A phone's
+		-- sits right under Roblox's menu, a computer's top right (ScreenLayout.skipSpots).
+		SkipHeightPx = 26,
+		SkipPhoneHeightPx = 22,
+		-- Its words, small enough to sit inside it (designer, 2026-10-10: at the buttons' 14 px
+		-- floor they spilled past a phone's pill); the pill is as wide as its words need
+		-- (HudParts.candyWidth), SkipWidthRatio x its height before they are measured.
+		SkipTextPx = 15,
+		SkipPhoneTextPx = 12,
+		SkipWidthRatio = 4.2,
+		SkipEdgePx = 8, -- in from the play area's side
+		SkipTopGapPx = 4, -- under Roblox's top bar
+		SkipCheckSeconds = 0.25, -- how often Skip looks whether a panel of ours covers its spot
+		SkipRowStepPx = 24, -- along the top bar row, the next spot tried past a covered one
 		ConfirmSize = { 300, 150 },
 		ConfirmTextPx = 22,
 		-- The Next button (a step's fallback), centred under the line.
@@ -14612,8 +14628,15 @@ Config.Tutorial = {
 		GhostBallTransparency = 0.45,
 		NudgeSeconds = 0.45, -- the re-prompt's grow and settle
 		NudgeGrow = 0.3, -- ... by this share at its top
-		PinchApart = 0.6, -- the "pinch" fingertips start this far apart (against the hand)
-		PinchArrowShare = 0.9, -- an arrow by each fingertip, against the fingertip
+		-- The "pinch" (zoom out on a phone): two pointing hands, fingertips toward each other on
+		-- a diagonal, closing in (designer, 2026-10-10: the two circles and arrows didn't read as
+		-- fingers). Each tip starts PinchFarShare of the hand from the middle and ends
+		-- PinchNearShare from it; each hand is PinchHandShare of the pointer's size; the
+		-- diagonal rises PinchSlope per unit across.
+		PinchFarShare = 0.7,
+		PinchNearShare = 0.1,
+		PinchHandShare = 0.85,
+		PinchSlope = 0.55,
 		-- The up-and-down sign (scroll and the zoom stick; the designer's reference, 2026-10-09):
 		-- its height against the mouse (or glyph), its width against its height, its centre
 		-- this far right of the mouse's (against the mouse), the arrowheads' bob, the dashes.

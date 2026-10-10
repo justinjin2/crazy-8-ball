@@ -583,9 +583,9 @@ price, rarity, ult id to grant or a result.
 - `SaveSchema` v3: `Ults = { Slots, Selected, Locked, Spins, LuckySpins, Pity, FreeSpinDay,
   SpinsDone, QueueUlts }`, migrated from v2 with Magnet in slot 1 and 3 starter spins.
 - Server: `UltService` (UltActivate, the gains after each flushed shot through
-  `TableService.onFlush`, UltNotice, the dev and QA hooks), `UltSpins` (UltRequest, UltState,
-  UltAuto; spins, locks, money packs, Robux through `Store`, the daily free spin, Auto Spin,
-  the developer flag; started from `Rewards.start()`), `PlayerData` (every ult mutation:
+  `TableService.onFlush`, UltNotice, the dev and QA hooks), `UltSpins` (UltRequest, UltState;
+  spins, locks, money packs, Robux through `Store`, the daily free spin, the developer flag;
+  Auto Spin removed 2026-10-10; started from `Rewards.start()`), `PlayerData` (every ult mutation:
   `ultSpin`, `ultSelect`, `ultLock`, `buyUltSpins`, `addUltSpins`, `addUltLucky`, the dev
   setters), `Store` (the Spin and Lucky products, the UltSlot2/3 passes). Spins also come
   from rewards: a reward row carries `spins` and `lucky` (`Progression/Daily`: streak day 7,
@@ -612,8 +612,8 @@ client steps the same pull. A new ult with physics is one `Effects/<Id>.luau` pl
 catalog row's `Effect`.
 
 **Remotes** (`Net`): `UltActivate` (no arguments), `UltGain`, `UltNotice` for the match;
-`UltRequest` (RemoteFunction: Spin, Select, Lock, BuySpins, BuyProduct, AutoStart, AutoStop),
-`UltState` and `UltAuto` for the spin screen. The protocol is written next to each.
+`UltRequest` (RemoteFunction: Spin, Select, Lock, BuySpins, BuyProduct) and `UltState` for
+the spin screen (VIP's Fast spin is a client setting). The protocol is written next to each.
 
 **Attributes** (server-set): on the player `UltSpins`, `UltLucky`, `UltFreeSpin` (the column's
 red dot), `UltEquipped` (the equipped ult id), `UltDevAll` (the developer flag).

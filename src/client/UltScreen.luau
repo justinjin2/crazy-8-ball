@@ -15,9 +15,11 @@
 -- at its foot and the code box (UltOdds), and under it the buy panel: four green Robux buttons
 -- and the gold money button (UltBuy); bottom centre the big gold SPIN (FREE SPIN while today's
 -- free spin is unused, SLOT LOCKED greyed while the selected slot is locked) and "Spins left";
--- bottom left the red Back, with VIP's Skip and Auto Spin beside it (UltFast). On a phone (Short,
--- section 9.5) the slots are a compact column, the odds open from an "Odds" button and the buy
--- buttons from "Buy spins", each in a popup; the pity pill sits over Buy spins.
+-- bottom left the red Back, with VIP's Fast spin beside it (UltFast). On a phone (Short, section
+-- 9.5) the slots are a compact column with Fast spin under them; the right column holds the
+-- odds list from the top (every rarity, scrolling), the code box under it, the pity pill and
+-- "Buy spins", whose buttons open in a popup (designer, 2026-10-10: the code typed right there,
+-- the odds listed like a computer's; Auto Spin removed from the game).
 --
 -- The open (Config.UI.UltScreen.Open, Stage, the Shop's timings): the title, the cards and the
 -- panels, then their buttons stagger in, SPIN last with a gold burst. The Robux buttons shine
@@ -158,7 +160,6 @@ function UltScreen.start(screen: ScreenGui): any
 			self:purchaseSlot(slot)
 		end,
 	})
-	self.oddsPopup = Parts.popup(root, "OddsPopup", W.Odds)
 	self.odds = UltOdds.new(content, {
 		redeem = function(text: string, done: (string, string) -> ())
 			self:redeem(text, done)
@@ -167,15 +168,6 @@ function UltScreen.start(screen: ScreenGui): any
 			self:layout()
 		end,
 	})
-	self.oddsButton = HudParts.candy(content, W.Odds, function()
-		UISound.play("Click")
-		self:layout()
-		self.oddsPopup.open(self.odds:first())
-	end, "Blue", "Odds")
-	self.oddsButton.Name = "OddsButton"
-	self.oddsButton.ZIndex = 5
-	TutorialAnchors.set("UltOddsButton", self.oddsButton) -- the tutorial lane's hand (phone)
-	HudParts.setMinHit(self.oddsButton, C.TouchPx)
 
 	self.buyPopup = Parts.popup(root, "BuyPopup", W.BuySpins)
 	self.buy = UltBuy.new(content, {
@@ -197,17 +189,7 @@ function UltScreen.start(screen: ScreenGui): any
 	self.buyButton.ZIndex = 5
 	HudParts.setMinHit(self.buyButton, C.TouchPx)
 
-	self.fast = UltFast.new(content, root, {
-		start = function(stopAt: string, lucky: boolean)
-			self:autoStart(stopAt, lucky)
-		end,
-		stop = function()
-			self:autoStop()
-		end,
-		geo = function(): Parts.Geo?
-			return self.geo
-		end,
-	})
+	self.fast = UltFast.new(content)
 	self:buildSpin(content)
 	self.back = HudParts.candy(content, W.Back, function()
 		UISound.play("Click")
@@ -245,9 +227,6 @@ function UltScreen.start(screen: ScreenGui): any
 
 	UltSpinState.Changed:Connect(function(state: any)
 		self:onState(state)
-	end)
-	UltSpinState.Auto:Connect(function(message: any)
-		self:onAuto(message)
 	end)
 	gui:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
 		self:queueLayout()
@@ -372,11 +351,9 @@ function UltScreen.buildReveal(self: any)
 				else nil
 		)
 	end
-	reveal:add("OddsButton", self.oddsButton)
 	reveal:add("BuyButton", self.buyButton)
 	reveal:add("Back", self.back)
-	reveal:add("Skip", self.fast.skip.button)
-	reveal:add("Auto", self.fast.autoButton)
+	reveal:add("FastSpin", self.fast.switch.button)
 	reveal:add("Spin", self.spinButton, function()
 		self.spinLanded = true
 		if self.opened and self.latest and not self.spinning then
@@ -507,8 +484,8 @@ function UltScreen.enter(self: any)
 	end
 end
 
--- Close (Menus' handle): a spin still cycling is cut short (its result is saved already), a
--- running Auto Spin is stopped, the camera, the HUD and the controls come back.
+-- Close (Menus' handle): a spin still cycling is cut short (its result is saved already), the
+-- camera, the HUD and the controls come back.
 function UltScreen.leave(self: any)
 	if not self.opened then
 		return
@@ -520,12 +497,7 @@ function UltScreen.leave(self: any)
 		self.dialog.cancel()
 		self.dialog = nil
 	end
-	self.oddsPopup.close()
 	self.buyPopup.close()
-	self.fast:closePopup()
-	if self.fast.running then
-		task.spawn(UltSpinState.request, "AutoStop")
-	end
 	if self.pulse then
 		self.pulse.stop()
 		self.pulse = nil
@@ -684,10 +656,6 @@ function UltScreen.spin(self: any, lucky: boolean, confirm: boolean)
 	if not self.opened or self.spinning or type(state) ~= "table" then
 		return
 	end
-	if self.fast.running then
-		self:notice(SPINS.Reasons.AutoRunning, "Ink")
-		return
-	end
 	local can = if lucky then state.canLucky else state.canSpin
 	local why = if lucky then state.luckyReason else state.spinReason
 	if can ~= true and why ~= nil and why ~= "Confirm" then
@@ -728,7 +696,7 @@ function UltScreen.spin(self: any, lucky: boolean, confirm: boolean)
 	end
 	self.descLabel.Visible = false
 	local result = { id = reply.id, rarity = reply.rarity, wasPity = reply.wasPity == true }
-	self.anim:play(result, self.fast:skipping(), function(silent: boolean)
+	self.anim:play(result, self.fast:isOn(), function(silent: boolean)
 		self.spinning = false
 		if not self.opened then
 			return
@@ -801,7 +769,7 @@ function UltScreen.openBuy(self: any)
 end
 
 --------------------------------------------------------------------------------------------
--- Slots, buying, codes, Auto Spin
+-- Slots, buying, codes
 --------------------------------------------------------------------------------------------
 
 function UltScreen.select(self: any, slot: number)
@@ -883,47 +851,6 @@ function UltScreen.redeem(_self: any, text: string, done: (string, string) -> ()
 	end)
 end
 
-function UltScreen.autoStart(self: any, stopAt: string, lucky: boolean)
-	if self.spinning then
-		return
-	end
-	task.spawn(function()
-		local reply = UltSpinState.request("AutoStart", { stopAt = stopAt, lucky = lucky })
-		if reply.ok then
-			self.fast:setRunning(true, 0)
-		else
-			self:notice(Parts.reason(reply), "Red")
-		end
-	end)
-end
-
-function UltScreen.autoStop(_self: any)
-	task.spawn(UltSpinState.request, "AutoStop")
-end
-
--- Auto Spin's messages: each result shown quickly, and why it stopped.
-function UltScreen.onAuto(self: any, message: any)
-	if message.kind == "Spin" then
-		self.fast:setRunning(true, if type(message.n) == "number" then message.n else 0)
-		if self.opened and type(message.id) == "string" and Catalog.exists(message.id) then
-			local rarity = Catalog.rarity(message.id) or "Common"
-			self.anim:quick({ id = message.id, rarity = rarity })
-			self.stage:setRarity(rarity, true)
-			self.stage:bounce()
-		end
-	elseif message.kind == "Stop" then
-		self.fast:setRunning(false, 0)
-		local reason = if type(message.reason) == "string" then message.reason else "Stopped"
-		local stops: { [string]: string } = SPINS.AutoStops :: any
-		local words = stops[reason]
-		local name = if type(message.id) == "string" then Catalog.name(message.id) else ""
-		local text = if words
-			then (if string.find(words, "%s", 1, true) then words:format(name) else words)
-			else Parts.reason(reason)
-		self:notice(text, if reason == "Reached" then "Green" else "Ink")
-	end
-end
-
 --------------------------------------------------------------------------------------------
 -- Layout
 --------------------------------------------------------------------------------------------
@@ -1002,9 +929,7 @@ function UltScreen.layout(self: any)
 	-- Top centre: "CURRENT ABILITY:" in its pill, the name, the description (the skip hint in
 	-- its place).
 	local oddsW = g.px("OddsWidthPx")
-	local openW, openH = g.px("OpenWidthPx"), g.px("OpenHeightPx")
-	local sideRoom = if g.short then openW else oddsW
-	local titleRoom = math.max(160, W_ - 2 * (m + sideRoom + gap))
+	local titleRoom = math.max(160, W_ - 2 * (m + oddsW + gap))
 	local rowRoom = math.max(160, 2 * (math.min(cx - g.freeLeft, g.freeRight - cx) - m))
 	local y = g.px("TitleTopPx")
 	local currentText = g.text("CurrentTextPx")
@@ -1044,55 +969,53 @@ function UltScreen.layout(self: any)
 	self.descLabel.Size = UDim2.fromOffset(descW, 2 * (descText + 4))
 	self.anim:layout(Vector2.new(cx, y), descW, g.short)
 
-	-- The right side: the odds panel over the buy panel (computer), or the Odds and Buy spins
-	-- buttons that open them in popups, the pity pill over Buy spins (phone).
+	-- The right side, OddsWidthPx wide: on a computer the odds panel over the buy panel; on a
+	-- phone the odds panel, the code box under it, the pity pill and "Buy spins" (its buttons in
+	-- a popup). The odds start at the top where Roblox's top bar row is free on the right.
 	local fastW = g.px("FastWidthPx")
 	local popupW = math.min(g.px("PopupWidthPx"), W_ - 2 * m - 40)
 	local odds = self.odds
+	local oddsX = W_ - m - oddsW
+	local oddsTop = if g.freeRight >= W_ - m then m else topRow + m
+	odds.scroll.Parent = odds.panel
+	odds.panel.Visible = true
+	local fastH = self.fast:layout(g, fastW)
 	if g.short then
-		odds.panel.Visible = false
 		self.buy.panel.Visible = false
-		-- Odds button top right under Roblox's row, VIP's Skip under it.
-		self.oddsButton.Visible = true
-		self.oddsButton.Position = UDim2.fromOffset(W_ - m - openW, topRow + 4)
-		self.oddsButton.Size = UDim2.fromOffset(openW, openH)
-		HudParts.setButtonTextSize(self.oddsButton, g.text("OpenTextPx"))
-		self.fast:layout(g, openW)
-		self.fast.holder.Position = UDim2.fromOffset(W_ - m - openW, topRow + 4 + openH + gap)
-		-- The odds in their popup.
-		local body = self.oddsPopup.body
-		odds.scroll.Parent = body
-		odds.codeCard.Parent = odds.scroll
-		local bodyH = math.max(120, H - 2 * m - g.px("PopupClosePx") - 3 * (gap + 4) - 8)
-		odds.scroll.Position = UDim2.fromOffset(0, 0)
-		odds.scroll.Size = UDim2.fromOffset(popupW, bodyH)
-		odds:layout(g, popupW)
-		self.oddsPopup.place(popupW, bodyH, g)
-		-- Buy spins bottom right, the pity pill over it; the buttons in their popup.
+		-- Buy spins at the foot, the pity pill over it.
+		local openH = g.px("OpenHeightPx")
 		self.buyButton.Visible = true
 		local buyY = H - m - openH
-		self.buyButton.Position = UDim2.fromOffset(W_ - m - openW, buyY)
-		self.buyButton.Size = UDim2.fromOffset(openW, openH)
+		self.buyButton.Position = UDim2.fromOffset(oddsX, buyY)
+		self.buyButton.Size = UDim2.fromOffset(oddsW, openH)
 		HudParts.setButtonTextSize(self.buyButton, g.text("OpenTextPx"))
 		odds.pity.Parent = self.content
-		local pityPillW = math.max(openW, odds:pityWidth(g))
-		local pityH = odds:layoutPity(g, pityPillW)
-		odds.pity.Position = UDim2.fromOffset(W_ - m - pityPillW, buyY - gap - pityH)
+		local pityH = odds:layoutPity(g, oddsW)
+		local pityY = buyY - gap - pityH
+		odds.pity.Position = UDim2.fromOffset(oddsX, pityY)
+		-- The code box over the pity pill, typed into right there; the odds fill the rest (with
+		-- too little room for them, the code box goes back under the bars in their list).
+		local card: Frame = odds.codeCard
+		card.Parent = self.content
+		local cardH = odds:layoutCode(g, oddsW)
+		local cardY = pityY - gap - cardH
+		if cardY - gap - oddsTop < g.px("OddsMinHeightPx") then
+			card.Parent = odds.scroll
+			cardY = pityY
+		else
+			card.Position = UDim2.fromOffset(oddsX, cardY)
+		end
+		odds:layoutPanel(g, oddsX, oddsTop, oddsW, math.max(60, cardY - gap - oddsTop))
 		self.buy.rows.Parent = self.buyPopup.body
 		self.buy.rows.Position = UDim2.fromOffset(0, 0)
 		local rowsW = math.min(popupW, self.buy:width(g) + 2 * gap)
 		local rowsH = self.buy:layoutRows(g, rowsW)
 		self.buyPopup.place(rowsW, rowsH, g)
 	else
-		self.oddsButton.Visible = false
 		self.buyButton.Visible = false
-		if self.oddsPopup.isOpen() then
-			self.oddsPopup.close()
-		end
 		if self.buyPopup.isOpen() then
 			self.buyPopup.close()
 		end
-		odds.panel.Visible = true
 		self.buy.panel.Visible = true
 		-- The buy panel in the bottom right corner.
 		local buySize = self.buy:layoutPanel(g, W_ - m, H - m)
@@ -1105,25 +1028,24 @@ function UltScreen.layout(self: any)
 		local codeOwn = codeRoom >= g.px("CodeCardMinWidthPx")
 		odds.codeCard.Parent = if codeOwn then self.content else odds.scroll
 		-- The odds panel from the top right down to the buy panel, the pity pill at its foot.
-		local oddsTop = if g.freeRight >= W_ - m then m else topRow + m
-		odds.scroll.Parent = odds.panel
 		odds.pity.Parent = odds.panel
-		odds:layoutPanel(g, W_ - m - oddsW, oddsTop, oddsW, math.max(120, buyTop - gap - oddsTop))
-		-- VIP's Skip between Back and SPIN, or over Back when that is too tight.
-		local fastH = self.fast:layout(g, fastW)
-		local fastX = m + backW + 2 * gap
-		local spinLeft = cx - math.floor(spinW / 2)
-		if fastX + fastW <= spinLeft - 2 * gap then
-			self.fast.holder.Position = UDim2.fromOffset(fastX, H - m - fastH)
-		else
-			self.fast.holder.Position = UDim2.fromOffset(m, backY - gap - fastH)
-		end
+		odds:layoutPanel(g, oddsX, oddsTop, oddsW, math.max(120, buyTop - gap - oddsTop))
+	end
+	-- VIP's Fast spin between Back and SPIN, or over Back when that is too tight (a narrow
+	-- phone: under the slot cards).
+	local fastX = m + backW + 2 * gap
+	local spinLeft = cx - math.floor(spinW / 2)
+	if fastX + fastW <= spinLeft - 2 * gap then
+		self.fast.holder.Position = UDim2.fromOffset(fastX, H - m - fastH)
+	else
+		self.fast.holder.Position = UDim2.fromOffset(m, backY - gap - fastH)
 	end
 
-	-- Left: the slot cards, between the title row and Back (and VIP's Skip over it).
+	-- Left: the slot cards, centred between the title row and Back (and VIP's Fast spin over
+	-- it). Centred on a phone too, so the tutorial's small Skip under Roblox's menu clears them.
 	local slotsTop = topRow + m
 	local slotsBottom = backY - gap
-	if not g.short and self.fast.holder.Visible then
+	if self.fast.holder.Visible then
 		local fastY = self.fast.holder.Position.Y.Offset
 		if self.fast.holder.Position.X.Offset <= m then
 			slotsBottom = fastY - gap
@@ -1131,16 +1053,14 @@ function UltScreen.layout(self: any)
 	end
 	local count = Config.Ults.Slots
 	local slotsH = count * g.px("SlotHeightPx") + (count - 1) * g.px("SlotGapPx")
-	local slotsY = if g.short
-		then slotsTop
-		else math.max(slotsTop, math.floor(slotsTop + (slotsBottom - slotsTop - slotsH) / 2))
+	local slotsY = math.max(slotsTop, math.floor(slotsTop + (slotsBottom - slotsTop - slotsH) / 2))
 	self.slots:layout(g, m, slotsY)
 
-	-- The code box on its own: centred left to right between the slot cards and the SPIN
-	-- stack, and top to bottom between the third card's top and SPIN's bottom (above Skip and
-	-- Auto Spin when they sit in the same gap).
+	-- The code box on its own (a computer): centred left to right between the slot cards and
+	-- the SPIN stack, and top to bottom between the third card's top and SPIN's bottom (above
+	-- Fast spin when it sits in the same gap).
 	local card: Frame = odds.codeCard
-	if card.Parent == self.content then
+	if card.Parent == self.content and not g.short then
 		local left = m + g.px("SlotWidthPx") + 2 * gap
 		local right = cx - math.floor(stackW / 2) - 2 * gap
 		local cardW = math.min(g.px("CodeCardWidthPx"), right - left)

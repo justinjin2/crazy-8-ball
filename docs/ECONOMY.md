@@ -1315,7 +1315,8 @@ on Roblox (never deleted) so an old receipt still pays.
 - **A Mystery block every day** (2026-10-10; v5: an Uncommon block; v4: a Rare block), added
   to the day's login claim;
   **$5,000** where paid random items are restricted (10.5).
-- **Skip and Auto Spin** on the ability spin screen (11.8; without VIP they answer "NoVip").
+- **Fast spin** on the ability spin screen (11.8): the result lands at once, shown to VIPs only
+  (was Skip; Auto Spin was removed from the game, designer 2026-10-10).
 - **+1 free ability spin a day** (added to the day's login claim, 10.1).
 - **The VIP restock slot**: a third slot every restock, Rare 40% / Epic 40% / Legendary 16% /
   Mythic 4% (9.1).
@@ -1460,7 +1461,7 @@ held ones into plain spins). Their rows below are history.
 **Getting spins:** no starter spin (2026-10-09); 1 free spin a day from a new save's second
 UTC day (never stacks); VIP +1 a day (10.1); rank-ups (+1 for Silver and Gold; +2 Platinum and Diamond; +3 from Expert up); +2 on login
 day 7; +1 with the 60-minute playtime gift; codes (RELEASE 3; LIKES10K 3, LIKES100K 5); VIP adds
-Skip and Auto Spin.
+Fast spin.
 
 **Prices** (v4, 2026-10-08: 22-50% lower; "one by one" is the same count at the single price):
 

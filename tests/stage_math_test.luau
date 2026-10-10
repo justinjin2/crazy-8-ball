@@ -273,10 +273,10 @@ return {
 			byId[e.id] = e
 		end
 		local wanted = { "Current", "UltIcon", "UltName", "Description", "OddsPanel", "BuyPanel" }
-		for _, id in { "Code", "Pity", "BuyMoney", "OddsButton", "BuyButton", "Back", "Skip" } do
+		for _, id in { "Code", "Pity", "BuyMoney", "BuyButton", "Back", "FastSpin" } do
 			table.insert(wanted, id)
 		end
-		for _, id in { "Auto", "Spin", "SpinsLeft" } do
+		for _, id in { "Spin", "SpinsLeft" } do
 			table.insert(wanted, id)
 		end
 		for slot = 1, Config.Ults.Slots do

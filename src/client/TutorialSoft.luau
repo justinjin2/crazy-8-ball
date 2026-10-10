@@ -250,9 +250,10 @@ local function setRing(name: string, want: boolean, clock: number, shape: string
 		rings[name] = r
 	end
 	local made = r :: Ring
-	local inset = GuiService:GetGuiInset()
+	-- Places in this layer: AbsolutePositions less the layer's own (right with a phone's notch).
 	local page = object:FindFirstAncestorWhichIsA("ScrollingFrame")
-	local clipAt = if page then page.AbsolutePosition + inset else Vector2.zero
+	local base = if page then page.AbsolutePosition else gui.AbsolutePosition
+	local clipAt = base - gui.AbsolutePosition
 	local clipSize = if page then page.AbsoluteSize else gui.AbsoluteSize
 	made.clip.Position = UDim2.fromOffset(clipAt.X, clipAt.Y)
 	made.clip.Size = UDim2.fromOffset(clipSize.X, clipSize.Y)
@@ -265,7 +266,7 @@ local function setRing(name: string, want: boolean, clock: number, shape: string
 		)
 	end
 	local pad = if shape == "Card" and not words then -S.RingThicknessPx else S.RingThicknessPx * 2
-	local centre = object.AbsolutePosition + inset + object.AbsoluteSize / 2 - clipAt
+	local centre = object.AbsolutePosition + object.AbsoluteSize / 2 - base
 	made.ring.Position = UDim2.fromOffset(centre.X, centre.Y)
 	made.ring.Size = UDim2.fromOffset(size.X + pad * 2, size.Y + pad * 2)
 	local wave = 0.5 + 0.5 * math.sin(2 * math.pi * clock / S.GlowSeconds)
@@ -284,14 +285,15 @@ local BANNER = TutorialOverlay.guiTarget("Banner", 0)
 local function placeQuest()
 	local px = if phone() then S.QuestPhoneTextPx else S.QuestTextPx
 	HudParts.setTextSize(quest, px)
-	local inset = GuiService:GetGuiInset()
-	local top = inset.Y + S.QuestTopGapPx
+	-- Centred on the play area (in from a phone's notch), under Roblox's top bar or a banner.
+	local play = TutorialOverlay.areas().play
+	local top = play.y + S.QuestTopGapPx
 	local centre, size = BANNER()
 	if centre and size then
 		top = math.max(top, centre.Y + size.Y / 2 + S.QuestTopGapPx)
 	end
-	quest.Position = UDim2.new(0.5, 0, 0, top)
-	quest.Size = UDim2.new(1, -2 * S.QuestTopGapPx, 0, px + 8)
+	quest.Position = UDim2.fromOffset(play.x + play.w / 2, top)
+	quest.Size = UDim2.fromOffset(play.w - 2 * S.QuestTopGapPx, px + 8)
 end
 
 local function showQuest(text: string, slam: boolean)

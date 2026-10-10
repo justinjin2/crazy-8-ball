@@ -345,17 +345,13 @@ local REMOTES: { [string]: string } = {
 	-- server rolled and saved before this answer; refused "Confirm" adds current, rarity);
 	-- "Select" { slot }, "Lock" { slot, locked } -> { ok, state }; "BuySpins" { pack (1, 5, 10,
 	-- 50), currency = "Money" } -> { ok, pack, price, state } (NotEnoughMoney adds need,
-	-- price); "BuyProduct" { product } -> { ok } once the Robux prompt is up; "AutoStart" {
-	-- stopAt ("Rare" | "Epic" | "Legendary"), lucky } -> { ok, state }; "AutoStop" -> { ok }.
-	-- Reasons: SpinView.Reasons (worded in Strings.Ults.Spins.Reasons).
+	-- price); "BuyProduct" { product } -> { ok } once the Robux prompt is up. Reasons:
+	-- SpinView.Reasons (worded in Strings.Ults.Spins.Reasons). Auto Spin (and its UltAuto
+	-- remote) was removed, designer 2026-10-10.
 	UltRequest = "RemoteFunction",
 	-- server -> one player: the spin screen's snapshot (SpinView.state; its fields are written
 	-- in SpinView.Payload), on load and after every change it shows.
 	UltState = "RemoteEvent",
-	-- server -> one player: Auto Spin (VIP). Each spin: { kind = "Spin", n, id, rarity,
-	-- replaced, wasPity, used, slot, pity, state }; the end: { kind = "Stop", reason, n, id? }
-	-- (reason: SpinView.AutoStops or a SpinView reason; id: the ult it stopped on or before).
-	UltAuto = "RemoteEvent",
 	-- The bots (the Bots lane). server -> all: a bot "says" something (the tutorial bot's
 	-- AUGHHHH!): (bot seat id, text); every client shows a chat bubble over its head and a chat
 	-- line in its name, like a person's.

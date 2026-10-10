@@ -8,6 +8,7 @@
 -- Config.Tutorial.Glow.
 local Config = require(game:GetService("ReplicatedStorage"):WaitForChild("Shared").Config)
 local TutorialAnchors = require(script.Parent.TutorialAnchors)
+local TutorialOverlay = require(script.Parent.TutorialOverlay)
 
 local G = Config.Tutorial.Glow
 local INCH = Config.Table.StudsPerInch
@@ -133,15 +134,17 @@ function TutorialGlow.update(self: Glow, dt: number)
 	disc.Parent = workspace
 	-- The ring: on screen where the pocket is, RingScale times as wide as the disc looks or
 	-- RingPx, whichever is wider.
-	local centre, onScreen = camera:WorldToViewportPoint(at)
+	-- In the overlay's pixels (GUI space less the overlay's place: right with a phone's notch).
+	local centre, onScreen = camera:WorldToScreenPoint(at)
 	if not onScreen then
 		self.ring.Visible = false
 		return
 	end
-	local edge = camera:WorldToViewportPoint(at + camera.CFrame.RightVector * width / 2)
+	local edge = camera:WorldToScreenPoint(at + camera.CFrame.RightVector * width / 2)
 	local looks = 2 * (Vector2.new(edge.X, edge.Y) - Vector2.new(centre.X, centre.Y)).Magnitude
 	local size = math.max(G.RingPx, looks * G.RingScale) * (1 + G.RingPulse * wave)
-	self.ring.Position = UDim2.fromOffset(centre.X, centre.Y)
+	local spot = TutorialOverlay.toLayer(Vector2.new(centre.X, centre.Y))
+	self.ring.Position = UDim2.fromOffset(spot.X, spot.Y)
 	self.ring.Size = UDim2.fromOffset(size, size)
 	self.stroke.Transparency = G.RingTransparency * (1 - wave)
 	self.ring.Visible = true

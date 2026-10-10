@@ -273,6 +273,7 @@ local lastLesson = ""
 -- glows), "zoomed" ("You can zoom in and out any time."), "shoot"; and when it began.
 local aimPart = "aim"
 local aimPartAt = 0
+local zoomFrom = 0 -- the zoom when the zoom lesson began
 
 -- The table and pocket of a lesson's pot (TutorialAimPocket), or nil.
 local function lessonPocket(): (number?, number?)
@@ -310,9 +311,12 @@ local function aimLesson(device: string, fresh: boolean): string
 	if aimPart == "aim" and TutorialAnchors.turned() >= L.AimTurnedDegrees then
 		Tutorial.report("Lesson", "Aimed")
 		aimPart, aimPartAt = "zoom", now
+		zoomFrom = Camera.getZoom()
 	end
 	if aimPart == "zoom" then
-		if Camera.getZoom() >= L.ZoomedOut then
+		local zoom = Camera.getZoom()
+		local moved = math.max(zoom / math.max(zoomFrom, 1e-3), zoomFrom / math.max(zoom, 1e-3))
+		if zoom >= L.ZoomedOut or moved >= L.ZoomMovedRatio then
 			Tutorial.report("Lesson", "Zoomed")
 			aimPart, aimPartAt = "zoomed", now
 		elseif now - aimPartAt >= Timing.ZoomSkipSeconds then
@@ -427,8 +431,7 @@ local function game1Scene(device: string, fresh: boolean): string
 				TutorialAnchors.suggestAim(angle)
 			end
 		end
-		local button = TutorialOverlay.guiTarget("UltButton")
-		overlay:dim(button)
+		overlay:dim(TutorialOverlay.guiTargets({ "UltButton", "UltPrompt" }))
 		if device == "gamepad" then
 			hand:gesture("hold", (Enum.KeyCode :: any)[Config.UI.Ults.GamepadKey])
 		else
@@ -445,11 +448,11 @@ local function game1Scene(device: string, fresh: boolean): string
 			hand:gesture("drag", from, function(): (Vector2?, Vector2?)
 				-- Toward the middle of the screen (the table), DragPx long.
 				local centre, size = from()
-				local camera = workspace.CurrentCamera
-				if centre == nil or camera == nil then
+				if centre == nil then
 					return nil, nil
 				end
-				local toMiddle = camera.ViewportSize / 2 - centre
+				local play = TutorialOverlay.areas().play
+				local toMiddle = Vector2.new(play.x + play.w / 2, play.y + play.h / 2) - centre
 				local long = Vector2.new(L.DragPx[1], L.DragPx[2]).Magnitude
 				if toMiddle.Magnitude < long / 2 then
 					return centre + Vector2.new(L.DragPx[1], L.DragPx[2]), size
@@ -705,11 +708,9 @@ local function abilitiesScene(device: string, fresh: boolean): string
 	local text = if device == "gamepad"
 		then words(Copy.Code, device):format(spins)
 		else words(Copy.Code, device):format(code, spins)
-	if TutorialAnchors.showing("CodeBox") then
-		pointAt("CodeBox", text, device, false, "Near")
-	else
-		pointAt("UltOddsButton", text, device, fresh, "Near")
-	end
+	-- The code box itself, on every screen (a phone's sits in the right column since
+	-- 2026-10-10, no longer inside the Odds popup).
+	pointAt("CodeBox", text, device, false, "Near")
 	return "abilitiesCode" .. device
 end
 
@@ -858,8 +859,6 @@ local function breakDown(err: any, part: string)
 end
 
 local function update(dt: number)
-	-- The Abilities screen fills the screen with its odds top right: Skip goes top left.
-	overlay.skipLeft = Menus.isOpen(ULTS)
 	pcall(glow.update, glow, dt)
 	pcall(ghost.update, ghost, dt)
 	pcall(refreshHidden)
@@ -977,6 +976,35 @@ local function startQA()
 				next = overlay.nextButton.Visible,
 				blockBusy = LuckyClient.busy(),
 				cuesShown = TutorialAnchors.showing("Inventory"),
+			}
+		elseif op == "align" then
+			-- The lit hole round anchor `a`: how far its middle sits from the anchor's, in pixels
+			-- (0 when the layer's screen math holds on this screen, a notch or not); false
+			-- when the anchor is not on screen.
+			overlay:dim(TutorialOverlay.guiTarget(a))
+			task.wait(0.1)
+			local target = TutorialAnchors.get(a)
+			local ring = overlay.ring
+			if target == nil or not ring.Visible then
+				return false
+			end
+			local mid = ring.AbsolutePosition + ring.AbsoluteSize / 2
+			return (mid - (target.AbsolutePosition + target.AbsoluteSize / 2)).Magnitude
+		elseif op == "areas" then
+			-- The layer's areas (TutorialOverlay.areas) and where Skip and the line are.
+			local skip, line = overlay.skip, overlay.line
+			return {
+				areas = TutorialOverlay.areas(),
+				skip = {
+					at = skip.AbsolutePosition,
+					size = skip.AbsoluteSize,
+					spot = overlay.skipSpot,
+				},
+				line = {
+					at = line.AbsolutePosition,
+					size = line.AbsoluteSize,
+					words = line.TextBounds,
+				},
 			}
 		elseif op == "big" then
 			overlay:bigText(a)

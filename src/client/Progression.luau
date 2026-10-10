@@ -311,7 +311,8 @@ function Progression.start(screen: ScreenGui, hooks: Hooks)
 	-- The list keeps clear of the Settings gear and its word in the top row.
 	playerList =
 		PlayerList.new(screen, { avoid = { corners.gearTile.button, corners.gearTile.word } })
-	banner = Banner.new(screen, { avoid = { rankHud.holder } })
+	-- The banner keeps under the rank HUD and its next-goal line (under the pill on a phone).
+	banner = Banner.new(screen, { avoid = { rankHud.holder, rankHud.oneMore } })
 	TutorialAnchors.set("Banner", banner.root) -- the tutorial's line keeps under it
 	Menus.setBlocker(function(): boolean
 		return lastState.inMatch or popupUp()

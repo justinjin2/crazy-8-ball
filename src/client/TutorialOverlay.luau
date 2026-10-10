@@ -10,13 +10,19 @@
 --   ball), built far past the screen's edges so no edge ever shows, and a pulsing ring round
 --   the hole. The frames never take input: everything under them still works. The tutorial's
 --   dim is a deliberate exception to UI_STYLE's "popups never darken" (designer, 2026-10-03).
--- - The small Skip tutorial button (top right) and its Yes / No confirm.
+-- - The small Skip tutorial button (a phone's right under Roblox's menu, a computer's top
+--   right; the next free spot when one of our panels covers it) and its Yes / No confirm.
 -- - The Next button under the line: a step's fallback when its action did not happen
 --   (tutorial v2 7.1: never stuck).
 --
--- A target is a function giving its centre and size in this layer's pixels (the whole window:
--- IgnoreGuiInset), or nil when it is not on screen; TutorialOverlay.guiTarget and worldTarget
--- make them.
+-- A target is a function giving its centre and size in this layer's pixels, or nil when it is
+-- not on screen; TutorialOverlay.guiTarget and worldTarget make them. This layer covers the
+-- whole screen (ScreenInsets None), so its (0, 0) is the screen's corner, past any notch. Every
+-- ScreenGui's AbsolutePosition (and Camera:WorldToScreenPoint) shares one space whatever its
+-- insets: a place in this layer is that minus the layer's own AbsolutePosition (toLayer), and
+-- the pieces sit in the play area measured by two empty probe ScreenGuis (areas;
+-- src/shared/Tutorial/ScreenLayout.luau places them). Designer, 2026-10-10: on a phone with a
+-- notch every hole sat beside its button while this added Roblox's top bar inset instead.
 local GuiService = game:GetService("GuiService")
 local TextService = game:GetService("TextService")
 local Players = game:GetService("Players")
@@ -32,6 +38,7 @@ local Strings = require(Shared.Strings)
 local HudParts = require(script.Parent.HudParts)
 local UIAnim = require(script.Parent.UIAnim)
 local TutorialAnchors = require(script.Parent.TutorialAnchors)
+local ScreenLayout = require(Shared.Tutorial.ScreenLayout)
 
 local O = Config.Tutorial.Overlay
 local S = Strings.Tutorial
@@ -48,6 +55,7 @@ export type Overlay = typeof(setmetatable(
 		row: Frame, -- the line with button pictures (a gamepad line's tokens)
 		rowFit: UIScale,
 		lineText: string?,
+		linePx: number, -- the line's text size now (a phone's or a computer's)
 		big: TextLabel,
 		bigShown: string?,
 		linePlace: string, -- "Top", "Low" (under a screen's own title) or "Near" (over the hole)
@@ -62,7 +70,14 @@ export type Overlay = typeof(setmetatable(
 		lastCentre: Vector2?, -- the hole's last place, kept while a lost target fades out
 		lastSize: Vector2?,
 		skip: TextButton,
-		skipLeft: boolean, -- the Skip button top left (a full-screen menu's own panel is top right)
+		skipSpot: number, -- which of ScreenLayout.skipSpots Skip is on (the first one free)
+		skipCheckedAt: number, -- self.clock when that was last looked at
+		skipPx: number, -- Skip's text size now (0 before the first layout)
+		skipWidth: number?, -- its pill's width for its words at that size
+		linePick: number, -- which of ScreenLayout.lineTops the line is on
+		lineCheckedAt: number, -- self.clock when that was last looked at
+		nextPick: number, -- which of ScreenLayout.nextSpots Next is on
+		nextCheckedAt: number,
 		confirm: Frame,
 		onSkip: (() -> ())?,
 		nextButton: TextButton,
@@ -80,7 +95,47 @@ local function phone(): boolean
 	return camera ~= nil and math.min(camera.ViewportSize.X, camera.ViewportSize.Y) < O.PhoneBelowPx
 end
 
---- A target on a GuiObject (or the anchor of that name), padded by `pad` pixels each side.
+-- The layer and its two probes (module level: targets are made before any overlay is).
+local layer: ScreenGui? = nil
+local playProbe: ScreenGui? = nil -- CoreUISafeInsets: in from the notch, under the top bar
+local barProbe: ScreenGui? = nil -- TopbarSafeInsets: Roblox's top bar row right of its buttons
+
+local function origin(): Vector2
+	return if layer then layer.AbsolutePosition else Vector2.zero
+end
+
+--- A point in the shared GUI space (an AbsolutePosition, Camera:WorldToScreenPoint) in this
+--- layer's pixels.
+function TutorialOverlay.toLayer(point: Vector2): Vector2
+	return point - origin()
+end
+
+local function rectOf(gui: ScreenGui?, fallback: ScreenLayout.Rect): ScreenLayout.Rect
+	if gui == nil or gui.Parent == nil or gui.AbsoluteSize.X <= 0 then
+		return fallback
+	end
+	local at = gui.AbsolutePosition - origin()
+	return ScreenLayout.rect(at.X, at.Y, gui.AbsoluteSize.X, gui.AbsoluteSize.Y)
+end
+
+--- The screen's areas in this layer's pixels: the whole screen, the play area (in from a
+--- phone's notch, under Roblox's top bar) and the top bar row right of Roblox's buttons.
+function TutorialOverlay.areas(): ScreenLayout.Areas
+	local camera = workspace.CurrentCamera
+	local size = if layer and layer.AbsoluteSize.X > 0
+		then layer.AbsoluteSize
+		elseif camera then camera.ViewportSize
+		else Vector2.new(1280, 720)
+	local inset = GuiService:GetGuiInset()
+	return {
+		full = ScreenLayout.rect(0, 0, size.X, size.Y),
+		play = rectOf(playProbe, ScreenLayout.rect(0, inset.Y, size.X, size.Y - inset.Y)),
+		topbar = rectOf(barProbe, ScreenLayout.rect(0, 0, size.X, inset.Y)),
+	}
+end
+
+--- A target on a GuiObject (or the anchor of that name), padded by `pad` pixels each side. It
+--- reads the object every frame, so the hole follows it as it moves, grows or animates.
 function TutorialOverlay.guiTarget(object: GuiObject | string, pad: number?): Target
 	return function(): (Vector2?, Vector2?)
 		local gui: GuiObject? = if type(object) == "string"
@@ -89,12 +144,43 @@ function TutorialOverlay.guiTarget(object: GuiObject | string, pad: number?): Ta
 		if gui == nil or not gui.Visible then
 			return nil, nil
 		end
-		-- AbsolutePosition is measured from under Roblox's top bar for every ScreenGui (one that
-		-- ignores the inset just starts above 0); the overlay's own origin is the screen's top.
-		local size = gui.AbsoluteSize
-		local centre = gui.AbsolutePosition + GuiService:GetGuiInset() + size / 2
-		local grow = (pad or O.HolePadPx) * 2
-		return centre, size + Vector2.new(grow, grow)
+		local at, size, o = gui.AbsolutePosition, gui.AbsoluteSize, origin()
+		local hole = ScreenLayout.hole(at.X, at.Y, size.X, size.Y, o.X, o.Y, pad or O.HolePadPx)
+		return Vector2.new(hole.x + hole.w / 2, hole.y + hole.h / 2), Vector2.new(hole.w, hole.h)
+	end
+end
+
+-- Whether `gui` shows: it and every frame over it Visible, its ScreenGui on.
+local function shown(gui: GuiObject): boolean
+	local at: Instance? = gui
+	while at and not at:IsA("LayerCollector") do
+		if at:IsA("GuiObject") and not at.Visible then
+			return false
+		end
+		at = at.Parent
+	end
+	return at ~= nil and (not at:IsA("ScreenGui") or at.Enabled)
+end
+
+--- A target round every shown anchor of `names` together (a button and its prompt pill): one
+--- hole over all of them, padded `pad` (default HolePadPx).
+function TutorialOverlay.guiTargets(names: { string }, pad: number?): Target
+	return function(): (Vector2?, Vector2?)
+		local low: Vector2?, high: Vector2? = nil, nil
+		for _, name in names do
+			local gui = TutorialAnchors.get(name)
+			if gui and shown(gui) and gui.AbsoluteSize.X > 0 then
+				local a, b = gui.AbsolutePosition, gui.AbsolutePosition + gui.AbsoluteSize
+				low = if low then (low :: Vector2):Min(a) else a
+				high = if high then (high :: Vector2):Max(b) else b
+			end
+		end
+		if low == nil or high == nil then
+			return nil, nil
+		end
+		local size, o = high - low, origin()
+		local hole = ScreenLayout.hole(low.X, low.Y, size.X, size.Y, o.X, o.Y, pad or O.HolePadPx)
+		return Vector2.new(hole.x + hole.w / 2, hole.y + hole.h / 2), Vector2.new(hole.w, hole.h)
 	end
 end
 
@@ -114,16 +200,16 @@ function TutorialOverlay.worldTarget(
 		if camera == nil or point == nil then
 			return nil, nil
 		end
-		local v, onScreen = camera:WorldToViewportPoint(point)
+		local v, onScreen = camera:WorldToScreenPoint(point)
 		if not onScreen then
 			return nil, nil
 		end
 		local r = radius
 		if studs then
-			local edge = camera:WorldToViewportPoint(point + camera.CFrame.RightVector * studs)
+			local edge = camera:WorldToScreenPoint(point + camera.CFrame.RightVector * studs)
 			r = math.max(r, (Vector2.new(edge.X, edge.Y) - Vector2.new(v.X, v.Y)).Magnitude)
 		end
-		return Vector2.new(v.X, v.Y), Vector2.new(r * 2, r * 2)
+		return TutorialOverlay.toLayer(Vector2.new(v.X, v.Y)), Vector2.new(r * 2, r * 2)
 	end
 end
 
@@ -148,7 +234,21 @@ function TutorialOverlay.new(): Overlay
 	gui.ResetOnSpawn = false
 	gui.DisplayOrder = O.DisplayOrder
 	gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-	gui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
+	local playerGui = Players.LocalPlayer:WaitForChild("PlayerGui")
+	gui.Parent = playerGui
+	layer = gui
+	-- Two empty ScreenGuis that only measure: the play area and the top bar row.
+	local function probe(name: string, insets: Enum.ScreenInsets, ignore: boolean): ScreenGui
+		local p = Instance.new("ScreenGui")
+		p.Name = name
+		p.ScreenInsets = insets
+		p.IgnoreGuiInset = ignore
+		p.ResetOnSpawn = false
+		p.Parent = playerGui
+		return p
+	end
+	playProbe = probe("TutorialPlayArea", Enum.ScreenInsets.CoreUISafeInsets, false)
+	barProbe = probe("TutorialTopbarArea", Enum.ScreenInsets.TopbarSafeInsets, true)
 
 	local frames = {}
 	for _, name in { "DimTop", "DimBottom", "DimLeft", "DimRight" } do
@@ -187,6 +287,7 @@ function TutorialOverlay.new(): Overlay
 		row = nil :: any,
 		rowFit = nil :: any,
 		lineText = nil,
+		linePx = O.LineTextPx,
 		big = nil :: any,
 		bigShown = nil,
 		linePlace = "Top",
@@ -201,7 +302,14 @@ function TutorialOverlay.new(): Overlay
 		lastCentre = nil,
 		lastSize = nil,
 		skip = nil :: any,
-		skipLeft = false,
+		skipSpot = 1,
+		skipCheckedAt = -math.huge,
+		skipPx = 0,
+		skipWidth = nil,
+		linePick = 1,
+		lineCheckedAt = -math.huge,
+		nextPick = 1,
+		nextCheckedAt = -math.huge,
 		confirm = nil :: any,
 		onSkip = nil,
 		nextButton = nil :: any,
@@ -240,7 +348,6 @@ function TutorialOverlay.buildSkip(self: Overlay)
 		self:askSkip(true)
 	end, "Grey")
 	skip.Name = "SkipTutorial"
-	skip.AnchorPoint = Vector2.new(1, 0)
 	skip.ZIndex = 6
 	skip.Visible = false
 	self.skip = skip
@@ -448,14 +555,14 @@ function TutorialOverlay.say(self: Overlay, text: string?, place: string?)
 		return
 	end
 	self.lineText = text
+	self.lineCheckedAt = -math.huge
 	self.line.Visible = false
 	self.row.Visible = false
 	if text == nil or text == "" then
 		return
 	end
 	if string.find(text, "{%w+}") then
-		local px = if phone() then O.LinePhoneTextPx else O.LineTextPx
-		fillRow(self, text, px)
+		fillRow(self, text, if phone() then O.LinePhoneTextPx else O.LineTextPx)
 		UIAnim.popIn(self.row)
 	else
 		self.line.Text = text
@@ -541,53 +648,176 @@ local function layout(self: Overlay, centre: Vector2?, size: Vector2?, view: Vec
 		UDim.new(0, math.min(O.RingCornerPx, math.min(size.X, size.Y) / 2))
 end
 
+-- Whether `point` (GUI space) is on the letters of `object` (words with a box round them:
+-- only where the letters are).
+local function onWords(object: GuiObject, point: Vector2): boolean
+	local any: any = object
+	if not (object:IsA("TextLabel") or object:IsA("TextButton") or object:IsA("TextBox")) then
+		return false
+	end
+	if any.Text == "" or any.TextTransparency >= 0.6 then
+		return false
+	end
+	local words: Vector2 = any.TextBounds
+	local share = Vector2.new(
+		if any.TextXAlignment == Enum.TextXAlignment.Left
+			then 0
+			elseif any.TextXAlignment == Enum.TextXAlignment.Right then 1
+			else 0.5,
+		if any.TextYAlignment == Enum.TextYAlignment.Top
+			then 0
+			elseif any.TextYAlignment == Enum.TextYAlignment.Bottom then 1
+			else 0.5
+	)
+	local from = object.AbsolutePosition + (object.AbsoluteSize - words) * share
+	return point.X >= from.X
+		and point.Y >= from.Y
+		and point.X <= from.X + words.X
+		and point.Y <= from.Y + words.Y
+end
+
+-- Whether `object`, found under `point` (GUI space), is something of ours Skip should not sit
+-- on: a solid piece of another ScreenGui (words count where their letters are, not their whole
+-- box). Screen-sized backdrops and the tutorial's layers don't count.
+local function solid(object: GuiObject, point: Vector2, full: ScreenLayout.Rect): boolean
+	if layer and object:IsDescendantOf(layer) then
+		return false
+	end
+	local screen = object:FindFirstAncestorWhichIsA("ScreenGui")
+	if screen == nil or not screen.Enabled or screen.Name == "TutorialSoftGui" then
+		return false
+	end
+	local size = object.AbsoluteSize
+	if size.X >= full.w * 0.9 and size.Y >= full.h * 0.9 then
+		return false
+	end
+	local any: any = object
+	if object.BackgroundTransparency < 0.6 then
+		return true
+	end
+	if (object:IsA("ImageLabel") or object:IsA("ImageButton")) and any.Image ~= "" then
+		return any.ImageTransparency < 0.6
+	end
+	return onWords(object, point)
+end
+
+-- How much of `spot` (this layer's pixels) our panels cover: how many of its corners and middle
+-- have something solid under them (0: free).
+local function covered(self: Overlay, spot: ScreenLayout.Rect, full: ScreenLayout.Rect): number
+	local playerGui = self.gui.Parent
+	if playerGui == nil or not playerGui:IsA("PlayerGui") then
+		return 0
+	end
+	local o = origin()
+	local e = 2
+	local count = 0
+	for _, point in
+		{
+			Vector2.new(spot.x + e, spot.y + e),
+			Vector2.new(spot.x + spot.w - e, spot.y + e),
+			Vector2.new(spot.x + e, spot.y + spot.h - e),
+			Vector2.new(spot.x + spot.w - e, spot.y + spot.h - e),
+			Vector2.new(spot.x + spot.w / 2, spot.y + spot.h / 2),
+		}
+	do
+		local at = point + o
+		for _, object in (playerGui :: PlayerGui):GetGuiObjectsAtPosition(at.X, at.Y) do
+			if solid(object, at, full) then
+				count += 1
+				break
+			end
+		end
+	end
+	return count
+end
+
+-- How many points of `rect` (this layer's pixels) sit on another screen's words: fifteen
+-- points across the line's words (0: clear).
+local function wordsUnder(self: Overlay, rect: ScreenLayout.Rect): number
+	local playerGui = self.gui.Parent
+	if playerGui == nil or not playerGui:IsA("PlayerGui") then
+		return 0
+	end
+	local o = origin()
+	local count = 0
+	for _, yShare in { 0.2, 0.5, 0.8 } do
+		for _, xShare in { 0.1, 0.3, 0.5, 0.7, 0.9 } do
+			local at = Vector2.new(rect.x + rect.w * xShare, rect.y + rect.h * yShare) + o
+			for _, object in (playerGui :: PlayerGui):GetGuiObjectsAtPosition(at.X, at.Y) do
+				local screen = object:FindFirstAncestorWhichIsA("ScreenGui")
+				local ours = (layer ~= nil and object:IsDescendantOf(layer))
+					or screen == nil
+					or not screen.Enabled
+					or screen.Name == "TutorialSoftGui"
+				if not ours and onWords(object, at) then
+					count += 1
+					break
+				end
+			end
+		end
+	end
+	return count
+end
+
+-- The line's height for its words at `px` in `width`: the lines they wrap to, at most
+-- LineLines (longer words shrink to fit those).
+local measured: { [string]: number } = {}
+local function lineHeight(self: Overlay, width: number, px: number): number
+	if self.row.Visible then
+		return math.ceil(px * 1.3)
+	end
+	local text = self.lineText or ""
+	local key = ("%d|%d|%s"):format(math.floor(width), px, text)
+	local h = measured[key]
+	if h == nil then
+		local one = TextService:GetTextSize("Ag", px, self.line.Font, Vector2.new(10000, 10000)).Y
+		local all = TextService:GetTextSize(text, px, self.line.Font, Vector2.new(width, 10000)).Y
+		h = math.ceil(math.min(all, one * O.LineLines) + 4)
+		measured[key] = h
+	end
+	return h
+end
+
 function TutorialOverlay.update(self: Overlay, dt: number)
 	self.clock += dt
 	local camera = workspace.CurrentCamera
 	if camera == nil then
 		return
 	end
-	local view = camera.ViewportSize
+	local areas = TutorialOverlay.areas()
+	local full = areas.full
+	local view = Vector2.new(full.w, full.h)
 	local small = phone()
-	-- The line: under Roblox's top bar, centred, wide enough for long translations.
-	local inset = GuiService:GetGuiInset()
-	local width = math.min(view.X * O.LineWidthScale, O.LineMaxWidthPx)
-	local height = if small then O.LinePhoneHeightPx else O.LineHeightPx
-	local gap = if self.linePlace == "Low" then O.LineLowGapPx else O.LineTopGapPx
-	if self.linePlace == "Top" then
-		-- A banner at the top (a find, a Money Party) keeps its place: the line goes under it.
-		local at, size = BANNER()
-		if at and size then
-			gap = math.max(gap, at.Y + size.Y / 2 + O.LineTopGapPx - inset.Y)
+
+	-- Skip: its words at their small size, the pill as wide as they need; on the first of its
+	-- spots none of our panels covers, else the least covered (looked at every
+	-- SkipCheckSeconds).
+	local skipPx = if small then O.SkipPhoneTextPx else O.SkipTextPx
+	if skipPx ~= self.skipPx then
+		self.skipPx = skipPx
+		HudParts.setButtonTextSize(self.skip, skipPx, math.floor(skipPx * 0.75))
+		local h = if small then O.SkipPhoneHeightPx else O.SkipHeightPx
+		self.skipWidth = HudParts.candyWidth(self.skip, h, skipPx) + 2
+	end
+	local spots = ScreenLayout.skipSpots(areas, small, self.skipWidth)
+	if self.skip.Visible and self.clock - self.skipCheckedAt >= O.SkipCheckSeconds then
+		self.skipCheckedAt = self.clock
+		local pick, least = 1, math.huge
+		for i, spot in spots do
+			local count = covered(self, spot, full)
+			if count < least then
+				pick, least = i, count
+			end
+			if count == 0 then
+				break
+			end
 		end
+		self.skipSpot = pick
 	end
-	self.line.Position = UDim2.fromOffset(view.X / 2, inset.Y + gap)
-	self.line.Size = UDim2.fromOffset(width, height)
-	self.row.Size = UDim2.fromOffset(width, height)
-	if self.row.Visible then
-		local fit = self.row:FindFirstChild("Fit")
-		local layout = if fit then fit:FindFirstChildOfClass("UIListLayout") else nil
-		local content = if layout
-			then layout.AbsoluteContentSize.X / math.max(self.rowFit.Scale, 0.01)
-			else 0
-		self.rowFit.Scale = if content > width then width / content else 1
-	end
-	-- The big text: in the middle, breathing.
-	local bigPx = if small then O.BigPhoneTextPx else O.BigTextPx
-	self.big.Position = UDim2.fromOffset(view.X / 2, view.Y * O.BigYScale)
-	self.big.Size = UDim2.fromOffset(view.X * 0.9, bigPx * 1.3)
-	-- The Skip button, top right under the bar (top left while skipLeft).
-	local skipH = if small then O.SkipPhoneHeightPx else O.SkipHeightPx
-	self.skip.AnchorPoint = Vector2.new(if self.skipLeft then 0 else 1, 0)
-	self.skip.Position = UDim2.fromOffset(
-		if self.skipLeft then O.SkipEdgePx else view.X - O.SkipEdgePx,
-		inset.Y + O.SkipEdgePx
-	)
-	self.skip.Size = UDim2.fromOffset(skipH * O.SkipWidthRatio, skipH)
-	-- The Next button, centred under the line.
-	local nextH = if small then O.NextPhoneHeightPx else O.NextHeightPx
-	self.nextButton.Position = UDim2.fromOffset(view.X / 2, inset.Y + gap + height + O.NextGapPx)
-	self.nextButton.Size = UDim2.fromOffset(nextH * O.NextWidthRatio, nextH)
+	local skipRect = spots[math.min(self.skipSpot, #spots)]
+	self.skip.Position = UDim2.fromOffset(skipRect.x, skipRect.y)
+	self.skip.Size = UDim2.fromOffset(skipRect.w, skipRect.h)
+
 	-- The hole's target this frame; a target that has gone (its button hid) fades the dim out
 	-- round where it was, rather than darkening everything.
 	local centre, size = nil, nil
@@ -612,33 +842,77 @@ function TutorialOverlay.update(self: Overlay, dt: number)
 		f.BackgroundTransparency = alpha
 	end
 	layout(self, centre, size, view)
-	if self.linePlace == "Near" and centre and size then
-		-- Over the hole (under it when the hole is near the top), never under the top bar.
-		local above = centre.Y - size.Y / 2 - O.LineNearGapPx
-		local y = if above - height >= inset.Y + O.LineTopGapPx
-			then above - height
-			else centre.Y + size.Y / 2 + O.LineNearGapPx
-		self.line.Position = UDim2.fromOffset(view.X / 2, y)
+
+	-- The line: centred on the play area just under Roblox's top bar (under a banner showing
+	-- there; lower for "Low"; by the hole for "Near"), clear of Skip, in as many lines as its
+	-- words need up to LineLines.
+	local px = if small then O.LinePhoneTextPx else O.LineTextPx
+	if px ~= self.linePx then
+		self.linePx = px
+		HudParts.setTextSize(self.line, px)
+		HudParts.setTextSize(self.big, if small then O.BigPhoneTextPx else O.BigTextPx)
 	end
-	-- Points to keep clear (a glowing pocket at the far end, the combination's balls: they sit
-	-- right where the line is): the line moves just below the lowest one it would cover.
-	local spots: { Vector3 } = {}
-	if self.avoid then
-		spots = self.avoid()
-	end
-	local ys = {}
-	for _, spot in spots do
-		local v, onScreen = camera:WorldToViewportPoint(spot)
-		if onScreen then
-			table.insert(ys, v.Y)
+	local top: number? = nil
+	if self.linePlace == "Low" then
+		top = areas.play.y + O.LineLowGapPx
+	elseif self.linePlace == "Top" then
+		-- A banner at the top (a find, a Money Party) keeps its place: the line goes under it.
+		local at, bannerSize = BANNER()
+		if at and bannerSize then
+			top = at.Y + bannerSize.Y / 2 + O.LineTopGapPx
 		end
 	end
-	local top = self.line.Position.Y.Offset
+	local box = ScreenLayout.line(areas, if self.skip.Visible then skipRect else nil, top)
+	local height = lineHeight(self, box.w, px)
+	box.h = height
+	-- Where it goes: by the hole for "Near" and for a line that would cover the hole (a button
+	-- at the top, like the rank HUD: under it, clear of the hand), else its usual place or a
+	-- step or two lower; the first spot whose words sit on none of a screen's own (looked at
+	-- every SkipCheckSeconds), else the least covered.
+	local hole = if centre and size
+		then ScreenLayout.rect(centre.X - size.X / 2, centre.Y - size.Y / 2, size.X, size.Y)
+		else nil
+	-- The words' own box (centred in the line's; a line of button pictures fills it): what
+	-- must keep off the hole and off other words.
+	local wordsW = if self.row.Visible
+		then box.w
+		else math.min(box.w, math.max(self.line.TextBounds.X, box.w * 0.3))
+	local words = ScreenLayout.rect(box.x + (box.w - wordsW) / 2, box.y, wordsW, height)
+	local near = hole ~= nil and (self.linePlace == "Near" or ScreenLayout.overlaps(words, hole))
+	local tops = ScreenLayout.lineTops(areas, words, hole, near)
+	if self.clock - self.lineCheckedAt >= O.SkipCheckSeconds then
+		self.lineCheckedAt = self.clock
+		local pick, least = 1, math.huge
+		for i, y in tops do
+			local count = wordsUnder(self, ScreenLayout.rect(words.x, y, wordsW, height))
+			if count < least then
+				pick, least = i, count
+			end
+			if count == 0 then
+				break
+			end
+		end
+		self.linePick = pick
+	end
+	box.y = tops[math.min(self.linePick, #tops)]
+	-- Points to keep clear (a glowing pocket at the far end, the combination's balls: they sit
+	-- right where the line is): the line moves just below the lowest one it would cover.
+	local spots3: { Vector3 } = {}
+	if self.avoid then
+		spots3 = self.avoid()
+	end
+	local ys = {}
+	for _, spot in spots3 do
+		local v, onScreen = camera:WorldToScreenPoint(spot)
+		if onScreen then
+			table.insert(ys, TutorialOverlay.toLayer(Vector2.new(v.X, v.Y)).Y)
+		end
+	end
 	for _ = 1, #ys do
 		local moved = false
 		for _, y in ys do
-			if y > top - O.LineAvoidPx and y < top + height + O.LineAvoidPx then
-				top = y + O.LineAvoidPx
+			if y > box.y - O.LineAvoidPx and y < box.y + height + O.LineAvoidPx then
+				box.y = y + O.LineAvoidPx
 				moved = true
 			end
 		end
@@ -646,15 +920,49 @@ function TutorialOverlay.update(self: Overlay, dt: number)
 			break
 		end
 	end
-	self.line.Position = UDim2.fromOffset(view.X / 2, top)
+	local x = box.x + box.w / 2
 	-- The shake: a quick side-to-side that dies away.
 	local shook = self.clock - self.shakeAt
 	if shook < O.ShakeSeconds then
 		local fade = 1 - shook / O.ShakeSeconds
-		local dx = math.sin(shook * O.ShakeHz * 2 * math.pi) * O.ShakePx * fade
-		self.line.Position += UDim2.fromOffset(dx, 0)
+		x += math.sin(shook * O.ShakeHz * 2 * math.pi) * O.ShakePx * fade
 	end
+	self.line.Position = UDim2.fromOffset(x, box.y)
+	self.line.Size = UDim2.fromOffset(box.w, height)
 	self.row.Position = self.line.Position
+	self.row.Size = UDim2.fromOffset(box.w, height)
+	if self.row.Visible then
+		local fit = self.row:FindFirstChild("Fit")
+		local list = if fit then fit:FindFirstChildOfClass("UIListLayout") else nil
+		local content = if list
+			then list.AbsoluteContentSize.X / math.max(self.rowFit.Scale, 0.01)
+			else 0
+		self.rowFit.Scale = if content > box.w then box.w / content else 1
+	end
+	-- The Next button, centred under the line, or beside its words when that covers a
+	-- screen's words (else the spot covering fewest).
+	local nextSpots = ScreenLayout.nextSpots(areas, box, small, wordsW)
+	if self.nextButton.Visible and self.clock - self.nextCheckedAt >= O.SkipCheckSeconds then
+		self.nextCheckedAt = self.clock
+		local pick, least = 1, math.huge
+		for i, spot in nextSpots do
+			local count = wordsUnder(self, spot)
+			if count < least then
+				pick, least = i, count
+			end
+			if count == 0 then
+				break
+			end
+		end
+		self.nextPick = pick
+	end
+	local nextBox = nextSpots[math.min(self.nextPick, #nextSpots)]
+	self.nextButton.Position = UDim2.fromOffset(nextBox.x + nextBox.w / 2, nextBox.y)
+	self.nextButton.Size = UDim2.fromOffset(nextBox.w, nextBox.h)
+	-- The big text: in the middle of the play area's upper part, breathing.
+	local big = ScreenLayout.big(areas, small)
+	self.big.Position = UDim2.fromOffset(big.x + big.w / 2, big.y + big.h / 2)
+	self.big.Size = UDim2.fromOffset(big.w, big.h)
 	self.ringStroke.Transparency = if self.ringOnly and centre then 0 else 1 - self.dimAlpha
 end
 

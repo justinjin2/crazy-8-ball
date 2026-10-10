@@ -21,8 +21,10 @@
 --     "drag"  (from, to)      from one target to another, carrying a ghost cue ball;
 --     "scroll"                the mouse with the up-and-down sign beside it (its arrows bob
 --                             apart, its dashes run down; zoom on a computer);
---     "pinch"                 two fingertips closing in, an arrow by each (zoom out on a
---                             phone: fingers spreading would zoom in).
+--     "pinch"                 two pointing hands, fingertips closing in on a diagonal (zoom
+--                             out on a phone: fingers spreading would zoom in).
+-- Everything sits in the overlay's pixels (TutorialOverlay: targets, the play area), so it
+-- lines up on any screen, a phone's notch included.
 -- The up-and-down sign (the designer's reference, 2026-10-09): an arrowhead, a column of
 -- dashes, an arrowhead pointing down (the arrow's own head art).
 -- - nudge(): the re-prompt, a quick grow and settle.
@@ -33,7 +35,9 @@ local UserInputService = game:GetService("UserInputService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared.Config)
+local ScreenLayout = require(Shared.Tutorial.ScreenLayout)
 local HudParts = require(script.Parent.HudParts)
+local TutorialOverlay = require(script.Parent.TutorialOverlay)
 
 local H = Config.Tutorial.Hand
 local ART = Config.Tutorial.Art
@@ -48,6 +52,7 @@ export type Hand = typeof(setmetatable(
 	{} :: {
 		root: Frame,
 		hand: ImageLabel,
+		hand2: ImageLabel, -- the pinch's second hand
 		rays: ImageLabel, -- the tap lines, laid over the hand
 		scale: UIScale,
 		mouse: ImageLabel,
@@ -60,7 +65,6 @@ export type Hand = typeof(setmetatable(
 		signUp: ImageLabel,
 		signDown: ImageLabel,
 		signDashes: { Frame },
-		pinchArrows: { ImageLabel },
 		mode: string?,
 		target: Target?,
 		other: Target?,
@@ -101,6 +105,9 @@ function TutorialHand.new(gui: ScreenGui): Hand
 	hand.ZIndex = 9
 	local scale = Instance.new("UIScale")
 	scale.Parent = hand
+	local hand2 = image(root, "Hand2", ART.Hand)
+	hand2.AnchorPoint = hand.AnchorPoint
+	hand2.ZIndex = 9
 	local rays = image(root, "Rays", ART.HandRays)
 	rays.AnchorPoint = hand.AnchorPoint
 	rays.ZIndex = 9
@@ -161,11 +168,11 @@ function TutorialHand.new(gui: ScreenGui): Hand
 		edge.Parent = d
 		table.insert(dashes, d)
 	end
-	local pinchArrows = { arrowHead(root, "PinchArrow1"), arrowHead(root, "PinchArrow2") }
 
 	local self = setmetatable({
 		root = root,
 		hand = hand,
+		hand2 = hand2,
 		rays = rays,
 		scale = scale,
 		mouse = mouse,
@@ -178,7 +185,6 @@ function TutorialHand.new(gui: ScreenGui): Hand
 		signUp = signUp,
 		signDown = signDown,
 		signDashes = dashes,
-		pinchArrows = pinchArrows,
 		mode = nil,
 		target = nil,
 		small = false,
@@ -246,6 +252,7 @@ local function reset(self: Hand)
 	self.hand.Rotation = 0
 	self.rays.Rotation = 0
 	self.hand.Visible = false
+	self.hand2.Visible = false
 	self.rays.Visible = false
 	self.mouse.Visible = false
 	self.glyph.Visible = false
@@ -253,9 +260,6 @@ local function reset(self: Hand)
 	self.ghost2.Visible = false
 	self.bar.Visible = false
 	self.sign.Visible = false
-	for _, a in self.pinchArrows do
-		a.Visible = false
-	end
 end
 
 -- The up-and-down sign `height` tall at `at`, at `phase` (0..1) of its loop: the arrowheads
@@ -295,6 +299,24 @@ local function placeHand(self: Hand, at: Vector2, size: number, transparency: nu
 	self.hand.ImageTransparency = transparency
 end
 
+-- A hand turned so its finger points along `toward`, its fingertip on `tip`. A GuiObject turns
+-- about its middle, so the hand shifts by where the turned tip lands.
+local function aimHand(hand: ImageLabel, tip: Vector2, toward: Vector2, size: number, alpha: number)
+	local d = toward.Unit
+	-- Upright the finger points up (0, -1); turned by a (clockwise on screen) it points along
+	-- (sin a, -cos a).
+	local a = math.atan2(d.X, -d.Y)
+	local dx, dy = (H.TipX - 0.5) * size, (H.TipY - 0.5) * size
+	local turned =
+		Vector2.new(dx * math.cos(a) - dy * math.sin(a), dx * math.sin(a) + dy * math.cos(a))
+	local at = tip - turned + Vector2.new(dx, dy)
+	hand.Visible = true
+	hand.Size = UDim2.fromOffset(size, size)
+	hand.Position = UDim2.fromOffset(at.X, at.Y)
+	hand.Rotation = math.deg(a)
+	hand.ImageTransparency = alpha
+end
+
 function TutorialHand.update(self: Hand, dt: number)
 	self.clock += dt
 	reset(self)
@@ -306,7 +328,13 @@ function TutorialHand.update(self: Hand, dt: number)
 	if camera == nil then
 		return
 	end
-	local view = camera.ViewportSize
+	local areas = TutorialOverlay.areas()
+	local view = Vector2.new(areas.full.w, areas.full.h)
+	-- The gestures' places: shares of the play area (in from a notch, under the top bar).
+	local function spot(xShare: number, yShare: number): Vector2
+		local x, y = ScreenLayout.at(areas, xShare, yShare)
+		return Vector2.new(x, y)
+	end
 	local since = os.clock() - self.nudgedAt
 	local grow = if since < H.NudgeSeconds then math.sin(since / H.NudgeSeconds * math.pi) else 0
 	local shrink = if self.small then H.SmallShare else 1
@@ -376,9 +404,9 @@ function TutorialHand.update(self: Hand, dt: number)
 		local bottom = centre.Y + rect.Y * 0.42
 		placeHand(self, Vector2.new(centre.X, top + (bottom - top) * move), size, alpha)
 	elseif mode == "swipe" then
-		local y = view.Y * H.SwipeHeightShare
+		local y = spot(0.5, H.SwipeHeightShare).Y
 		local x0, x1 =
-			view.X * (0.5 - H.SwipeWidthShare / 2), view.X * (0.5 + H.SwipeWidthShare / 2)
+			spot(0.5 - H.SwipeWidthShare / 2, 0).X, spot(0.5 + H.SwipeWidthShare / 2, 0).X
 		-- Left to right, then back (two moves a loop).
 		local there = smooth(math.clamp(phase / 0.45, 0, 1))
 		local back = smooth(math.clamp((phase - 0.5) / 0.45, 0, 1))
@@ -396,7 +424,7 @@ function TutorialHand.update(self: Hand, dt: number)
 		if key == nil then
 			return
 		end
-		local at = Vector2.new(view.X / 2, view.Y * H.GlyphHeightShare)
+		local at = spot(0.5, H.GlyphHeightShare)
 		local g = size * H.GlyphShare
 		self.glyph.Visible = true
 		self.glyph.Image = UserInputService:GetImageForKeyCode(key)
@@ -424,7 +452,7 @@ function TutorialHand.update(self: Hand, dt: number)
 		end
 	elseif mode == "scroll" then
 		-- The mouse at the middle, the up-and-down sign beside it (no hand: it hid the wheel).
-		local at = Vector2.new(view.X / 2, view.Y * H.GlyphHeightShare)
+		local at = spot(0.5, H.GlyphHeightShare)
 		local m = size * H.MouseShare * 1.4
 		self.mouse.Visible = true
 		self.mouse.Size = UDim2.fromOffset(m, m)
@@ -433,30 +461,14 @@ function TutorialHand.update(self: Hand, dt: number)
 		local signH = m * H.SignShare
 		placeSign(self, at + Vector2.new(m * H.SignBesideShare, m * 0.3), signH, phase)
 	elseif mode == "pinch" then
-		-- Two fingertips closing in at the middle of the screen (zoom out), an arrow by each
-		-- pointing in; they meet, hold, fade, and start apart again.
-		local centre = Vector2.new(view.X / 2, view.Y * H.GlyphHeightShare)
-		local ball = size * H.GhostBallShare
-		local apart = math.max(size * H.PinchApart * (1 - move), ball * 0.5)
-		for i, ghost in { self.ghost, self.ghost2 } do
-			local side = if i == 1 then -1 else 1
-			local dir = Vector2.new(side, -side * 0.4).Unit -- out from the middle
-			local spot = centre + dir * apart
-			ghost.Visible = true
-			ghost.Size = UDim2.fromOffset(ball, ball)
-			ghost.Position = UDim2.fromOffset(spot.X, spot.Y)
-			ghost.BackgroundTransparency = H.GhostBallTransparency
-				+ (1 - H.GhostBallTransparency) * out
-			-- The arrow just outside it, pointing in (the head art points up).
-			local arrow = self.pinchArrows[i]
-			local a = ball * H.PinchArrowShare
-			local behind = spot + dir * (ball / 2 + a * 0.6)
-			arrow.Visible = true
-			arrow.Size = UDim2.fromOffset(a, a)
-			arrow.Position = UDim2.fromOffset(behind.X, behind.Y)
-			arrow.Rotation = math.deg(math.atan2(-dir.X, dir.Y))
-			arrow.ImageTransparency = out
-		end
+		-- Two hands on a diagonal through the middle of the play area, fingertips toward each
+		-- other, closing in (zoom out); they meet, hold, fade, and start apart again.
+		local centre = spot(0.5, H.GlyphHeightShare)
+		local handPx = size * H.PinchHandShare
+		local apart = handPx * (H.PinchFarShare + (H.PinchNearShare - H.PinchFarShare) * move)
+		local dir = Vector2.new(1, -H.PinchSlope).Unit -- toward the upper right hand
+		aimHand(self.hand, centre - dir * apart, dir, handPx, alpha)
+		aimHand(self.hand2, centre + dir * apart, -dir, handPx, alpha)
 	elseif mode == "drag" then
 		local from = if self.target then (self.target()) else nil
 		local to = if self.other then (self.other()) else nil

@@ -686,8 +686,8 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   **Lucky Spins** (Robux only) never roll Common. Spins come from the code RELEASE (a new player
   has none before it, 2026-10-09), a free spin every day (from a new save's second day),
   rank-up rewards from Silver, the first week's day 3 and the later weeks' day 2 (2026-10-10),
-  the day's last playtime gift, codes, Robux packs (1 for 15 R$ up to 50 for 449) and money ($1,750 a spin). VIP adds Skip and Auto
-  Spin (the Quick Cases pass was retired into VIP, 2026-10-04). Paid spins are paid random items: odds shown, and blocked
+  the day's last playtime gift, codes, Robux packs (1 for 15 R$ up to 50 for 449) and money ($1,750 a spin). VIP adds Fast spin
+  (the result lands at once; was Skip, and Auto Spin was removed from the game, 2026-10-10; the Quick Cases pass was retired into VIP, 2026-10-04). Paid spins are paid random items: odds shown, and blocked
   where PolicyService restricts them (ECONOMY.md 11.7-11.8). The live screen stays hidden
   (`Config.Ults.ScreenLive`) was hidden until more ults than Magnet were built; it is live
   since all 13 were (2026-09-29).
@@ -1053,8 +1053,8 @@ approves the v5 proposal (ECONOMY.md section 11).
 - **VIP** (one-time pass, **399 R$** *(tune)*; v4, 2026-10-08: was 499, and 599 before the
   Quick Cases pass retired into it): 2x money, **no block timers** (every block opens at once;
   designer, 2026-10-07), **an Uncommon lucky block every day** (v5, 2026-10-09; a Rare block in v4; $5,000
-  where paid random items are restricted), Skip and Auto Spin on the spin
-  screen, +1 free ability spin a day, the VIP slot in the restock shop (a third block every
+  where paid random items are restricted), Fast spin on the spin
+  screen (2026-10-10: Skip renamed, Auto Spin removed), +1 free ability spin a day, the VIP slot in the restock shop (a third block every
   restock since v5), the VIP Cue, a [VIP] chat tag before the rank tag ("[VIP] [GOLD] Name"; the name
   in chat keeps Roblox's colour) and a rainbow name over the head whose colours drift slowly
   (designer, 2026-09-28). Never better odds, no XP boost, no discount, no extra win-track
@@ -1176,10 +1176,20 @@ helpers, `src/server/TutorialService.luau`, `TutorialGames`, `TutorialBot`, `Tut
 **Decided**
 - **Who gets it:** a brand-new save. A save with any match or win never enters it; a save from
   before v2 has every first-time hint marked done.
-- **The look:** big white text with an ink outline, a light dim with a lit hole round the
+- **The look:** white text with an ink outline, a light dim with a lit hole round the
   target, the white cartoon hand, and the device's own words and gesture (mouse, touch,
-  controller with Roblox's button pictures). A small **Skip tutorial** button (Yes / No
-  confirm) is always on screen (top left while the Abilities screen is open).
+  controller with Roblox's button pictures; a pinch is two hands sliding apart). A very small
+  **Skip tutorial** button (Yes / No confirm) is always on screen: on a phone right under
+  Roblox's menu, on a computer or tablet top right; when one of our panels covers that spot it
+  moves to the next free one (designer, 2026-10-10).
+- **Every screen shape (designer, 2026-10-10, after a phone run):** the lit hole, hand and
+  rings sit exactly on the real button wherever it is (read every frame, in the layer's own
+  pixels, so a notch or a cutout never shifts them); the line and big text are centred on the
+  free play area (inside the notch, under Roblox's top bar), smaller, at the top, and never on
+  Skip, the lit button or a screen's own words (they step lower or move by the hole). A block
+  step lights the block of its kind wherever it sits in the hotbar (pinned into view if it is
+  past a phone's visible slots). `src/shared/Tutorial/ScreenLayout.luau` holds the rect math,
+  tested across phone, tablet and computer shapes.
 - **Joining game 1:** none of the menu icons show yet. A white arrow with a black outline runs
   from the player's chest to the nearest empty 1v1 table's pad (an edge arrow when it is off
   screen). Stepping onto **any** empty 1v1 table makes it the tutorial table. When every 1v1
@@ -1190,7 +1200,8 @@ helpers, `src/server/TutorialService.luau`, `TutorialGames`, `TutorialBot`, `Tut
   0.5-2 s after the player. If they step off before the game, it gets up and strolls nearby.
 - **Path S, the rigged game 1** (whoever sits down alone): the break with the aim locked
   (under half power the bar springs back; half or more plays the fixed break: 2 solids, the
-  second creeping in); turn 2's aim lesson (a small turn, the zoom out with the pocket glowing);
+  second creeping in); turn 2's aim lesson (a small turn, then a zoom with the pocket glowing: any pinch or wheel
+  notch either way ends it, and the HUD's own zoom hint stays hidden in the guided part);
   the combination (two of their balls lined up, shown as a ghost replay on the table: a
   see-through cue strikes, the cue ball rolls into the first ball, it into the second, that one
   into the glowing pocket; NICE SHOT!); the ability lesson (a full bar,

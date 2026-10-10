@@ -6,7 +6,7 @@
    "kind": "Pass",
    "name": "VIP",
    "robux": 399,
-   "description": "2x money from every match, no lucky block timers, a Mystery Lucky Block every day (where paid random items aren't allowed, $5,000 instead), 1 free Ability Spin every day, a VIP slot in the restock shop, the VIP Cue, a gold [VIP] chat tag and a gold name. Adds Skip and Auto Spin to Ability Spins."
+   "description": "2x money from every match, no lucky block timers, a Mystery Lucky Block every day (where paid random items aren't allowed, $5,000 instead), 1 free Ability Spin every day, a VIP slot in the restock shop, the VIP Cue, a gold [VIP] chat tag and a gold name. Adds Fast spin to Ability Spins."
   },
   {
    "key": "UltSlot2",

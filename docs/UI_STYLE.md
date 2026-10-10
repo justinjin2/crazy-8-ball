@@ -1098,16 +1098,18 @@ player's first win shows its Rare block).
   over the price, shining one after the other; under them the gold money button with its cash
   stack, "$12,500 - 1 spin". No R$ / $ toggle, no struck-through prices, no money pill. Short
   of money, the money button opens the Shop's Money tab with what is missing.
-- **Bottom**: red Back with its arrow; VIP's Skip (white, two blue arrowheads; blue with the
-  check while on) and Auto Spin (blue, a small on/off switch at its right; red "Stop (N)" with
-  the switch on while it runs); the big gold FREE SPIN / SPIN, breathing while free, and
-  "Spins left: 16" under it.
+- **Bottom**: red Back with its arrow; VIP's Fast spin (white, two blue arrowheads; blue with
+  the check while on; was "Skip", and Auto Spin is gone from the game, designer 2026-10-10);
+  the big gold FREE SPIN / SPIN, breathing while free, and "Spins left: 16" under it.
 - **The open** (the Shop's timings, no panel to unroll): the title pill, the name, the slot
   cards and the panels, the bars and buttons staggered, SPIN last with a gold burst; the shines
   and the breathing start as their pieces land.
-- **On a phone**: the slots a compact column, the Odds and Buy spins buttons at the right
-  (Skip and Auto Spin under Odds), the pity pill over Buy spins; the odds and the buy buttons
-  open in their popups.
+- **On a phone** (designer, 2026-10-10): the slots a compact column, centred top to bottom
+  (the tutorial's small Skip sits over them, under Roblox's menu); Fast spin between Back and
+  SPIN, or under the slots when that is too tight. The right column shows what a computer
+  does: the odds panel with every rarity in its scroller (no Odds button), the code box under
+  it to type in right there (back into the odds list when there is too little room), the pity
+  pill, and Buy spins at the foot (its buttons in a popup).
 
 ## 25. The Mystery block's upgrade screen, the Track (designer's pick "mystery_reveal B", 2026-10-08)
 

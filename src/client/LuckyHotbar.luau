@@ -286,6 +286,7 @@ function Hotbar.new(screen: ScreenGui, handlers: Handlers): any
 	self.heldId = nil :: number?
 	self.hiddenIds = {} :: { [number]: boolean } -- a thrown block on the floor: not in the bar meanwhile
 	self.masked = {} :: { [number]: boolean } -- a Mystery block out on its upgrade screen
+	self.pinId = nil :: number? -- the tutorial's block, shown in slot 1 when it would sit past the bar
 	self.visible = false
 	self.slots = {} :: { Tile }
 	self.tiles = {} :: { Tile } -- the bag's
@@ -462,7 +463,28 @@ function Hotbar.shown(self: any): ({ Entry }, number)
 	local slots = if phone(self.gui)
 		then math.min(L.HotbarSlots, U.PhoneHotbarSlots)
 		else L.HotbarSlots
+	-- The tutorial's block (pin) moves to slot 1 when it would sit past the bar's slots.
+	for i, entry in list do
+		if entry.id == self.pinId then
+			if i > slots then
+				table.remove(list, i)
+				table.insert(list, 1, entry)
+			end
+			break
+		end
+	end
 	return list, math.min(#list, slots)
+end
+
+--- The tutorial: block `id` shows in slot 1 when it would sit past the bar's visible slots (a
+--- phone shows only PhoneHotbarSlots), so its hand always has that very block to point at; the
+--- others keep their order. Nil lets go.
+function Hotbar.pin(self: any, id: number?)
+	if id == self.pinId then
+		return
+	end
+	self.pinId = id
+	self:rebuild()
 end
 
 --- The player's blocks (BlockState's list), the held block's id and the thrown one's (hidden

@@ -24,6 +24,7 @@ local RunService = game:GetService("RunService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared.Config)
+local TutorialOverlay = require(script.Parent.TutorialOverlay)
 
 local A = Config.Tutorial.Arrow
 
@@ -377,14 +378,16 @@ local function placeEdge(self: Arrow, goal: Vector3)
 		self.edge.Visible = false
 		return
 	end
-	local v, onScreen = camera:WorldToViewportPoint(goal)
+	-- In the overlay's pixels, kept inside the play area (in from a phone's notch).
+	local v, onScreen = camera:WorldToScreenPoint(goal)
 	local view = camera.ViewportSize
 	if onScreen and v.Z > 0 then
 		self.edge.Visible = false
 		return
 	end
-	local centre = view / 2
-	local d = Vector2.new(v.X, v.Y) - centre
+	local play = TutorialOverlay.areas().play
+	local middle = Vector2.new(play.x + play.w / 2, play.y + play.h / 2)
+	local d = TutorialOverlay.toLayer(Vector2.new(v.X, v.Y)) - middle
 	if v.Z < 0 then
 		d = -d -- behind the camera: the projection is mirrored
 	end
@@ -394,14 +397,14 @@ local function placeEdge(self: Arrow, goal: Vector3)
 	local small = math.min(view.X, view.Y) < Config.Tutorial.Overlay.PhoneBelowPx
 	local size = if small then A.Edge.PhoneSizePx else A.Edge.SizePx
 	local margin = A.Edge.MarginPx + size / 2
-	local half = centre - Vector2.new(margin, margin)
+	local half = Vector2.new(play.w / 2 - margin, play.h / 2 - margin)
 	local scale =
 		math.min(half.X / math.max(math.abs(d.X), 1e-3), half.Y / math.max(math.abs(d.Y), 1e-3))
 	local unit = d.Unit
 	local bob = (if self.urgent then 2 else 1)
 		* A.Edge.BobPx
 		* (0.5 + 0.5 * math.sin(self.clock * math.pi * 2 / A.Edge.BobSeconds))
-	local at = centre + d * scale - unit * bob
+	local at = middle + d * scale - unit * bob
 	self.edge.Visible = true
 	self.edge.Size = UDim2.fromOffset(size, size)
 	self.edge.Position = UDim2.fromOffset(at.X, at.Y)

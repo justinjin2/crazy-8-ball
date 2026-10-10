@@ -4132,3 +4132,34 @@ timer of a new block stay the designer's call.
   the rank since longer text like platinum or grandmaster will get covered"): on a phone the
   rank HUD's "3 WINS TO GO!" is back to 12 px, under the pill and centred under the XP bar
   (clear of the menu column under the badge), no longer in the name row.
+- 2026-10-10 (designer, after the tutorial on an Android phone: "for ALL of the darken and
+  highlight screens they are offset ... come up with a foolproof solution"): the tutorial layer
+  places everything in its own pixels (a target's AbsolutePosition minus the layer's own, a
+  world point through WorldToScreenPoint), never Roblox's inset added; that inset is why every
+  hole sat beside its button on a notched phone. The line, big text, Skip, Next and gestures
+  are laid out on the measured play area (inside the notch, under Roblox's top bar) by
+  `src/shared/Tutorial/ScreenLayout.luau`, tested across iPhone, Android, iPhone SE, iPad and
+  laptop shapes. The line also keeps off the lit hole and off a screen's own words (it tries
+  over or under the hole, its own place, a few steps lower), and so does Next.
+- 2026-10-10 (designer, "skip tutorial button is way too big should be very very small ... for
+  mobile put it on the left top right under the roblox menu"; "make skip tutorial smaller so it
+  fits inside the text box"): Skip is 22 px tall on a phone (26 elsewhere) with 12 px words
+  (15) and as wide as they need, under Roblox's menu on a phone and top right on a computer or
+  tablet (designer's pick); when one of our panels covers its spot it moves to the next free
+  one along the top bar row. The old "top left while Abilities is open" switch is gone; on a
+  phone the spin screen's slot cards are centred top to bottom so Skip clears them.
+- 2026-10-10 (designer): the line is smaller (phone 24 px), at most 70% of the play area
+  wide, centred on it; the big text is smaller and higher. The pinch demo is two hands
+  sliding apart (no circles); the zoom lesson ends on any pinch or wheel notch either way,
+  and the HUD's zoom hint stays hidden during the guided tutorial.
+- 2026-10-10 (designer, "what if the player gets a lucky block earlier in the hotbar"): a
+  block step finds the block by its kind; one past a phone's visible slots is pinned into the
+  first slot for the step. The ability lesson lights the bar and its prompt (not the HUD's
+  padded canvas, which ran off a phone's foot).
+- 2026-10-10 (designer, "get rid of auto spin and only keep in skip but rename it to just Fast
+  spin"; "VIP only" picked): Auto Spin is removed from the game (client, server, remote,
+  Config, Strings); Skip is now **Fast spin**, still VIP only. VIP's product text says "Adds
+  Fast spin to Ability Spins." On a phone the spin screen shows the odds list with every rarity
+  (no Odds button) and the code box right there under it; Fast spin sits by Back.
+- 2026-10-10: the top banner ("New in your Index ...") keeps under the rank HUD's goal line
+  as well as its pill (on a phone the line sits under the pill).

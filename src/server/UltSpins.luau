@@ -1,7 +1,7 @@
 --!strict
 -- UltSpins: the ult spin screen's server (docs/prompts/ULTIMATES_PROMPT.md sections 8-10; the
--- protocol is written next to UltRequest, UltState and UltAuto in src/shared/Net.luau). The
--- pure half is Ults/SpinView (argument checks, one spin, Auto Spin's stops, the payload); the
+-- protocol is written next to UltRequest and UltState in src/shared/Net.luau). The pure half
+-- is Ults/SpinView (argument checks, one spin, the payload); the
 -- save changes are PlayerData's ult mutations (one mutation per spin: take, roll, place, pity
 -- and SpinsDone together). Started by Rewards.start.
 --
@@ -10,17 +10,15 @@
 --   what it was sent. The order of the checks: the player's token bucket
 --   (Config.Ults.RequestBurst, refilled one every RequestCooldownSeconds), the arguments
 --   (SpinView.parse), the save (loaded, not handed off), then one request per player at a time
---   (a lock shared with Auto Spin, so two spins can never race).
+--   (a lock, so two spins can never race).
 -- - Spins and money packs need the screen to be live (Config.Ults.ScreenLive, Studio, or the
 --   player's developer flag); selecting and locking slots always work.
 -- - PolicyService (ECONOMY 11.7, 13): where paid random items are restricted (Items'
 --   PaidRandomRestricted), money spins, the R$ spin packs and Lucky Spins are refused; a player
 --   PolicyService has not answered yet is refused "NotLoaded". Free spins, codes and grants
 --   still work.
--- - Auto Spin (VIPs): one loop per player, one spin every Config.Ults.AutoSpinSeconds
---   through the same lock, each result on UltAuto; it stops when the stop rarity or better
---   lands, spins run out, the slot is locked or not owned, the next spin would replace an Epic
---   or better (before it), the player sends AutoStop, leaves, or the server shuts down.
+-- - Auto Spin was removed from the game (designer, 2026-10-10); VIP's Fast spin is the
+--   client's alone (the result lands at once).
 -- - A Legendary roll is a banner in this server, a Mythic one in every server (Announce.ult).
 -- - The developer flag (`/ultsall on`, UltSpins.setDevAll; or Config.Ults.DevAllUlts): every
 --   ult rolls and plays. Mirrored on the player attribute UltDevAll. PlayerData.setUltAccess
@@ -47,12 +45,10 @@ local Announce = require(script.Parent.Announce)
 
 local U = Config.Ults
 local IS_STUDIO = RunService:IsStudio()
-local VIP_ATTR = "Vip" -- the Store's attribute: VIP (Auto Spin and fast reveals are VIP perks)
+local VIP_ATTR = "Vip" -- the Store's attribute: VIP (Fast spin and fast reveals are VIP perks)
 local DEV_ALL_ATTR = "UltDevAll" -- on the player: the developer flag is on for them
 
 export type Reply = { [string]: any }
-
-type Auto = { stopAt: string, lucky: boolean, count: number }
 
 local UltSpins = {}
 
@@ -61,7 +57,6 @@ local closing = false
 local rng = Random.new()
 local buckets: { [Player]: Requests.Bucket } = {}
 local busy: { [Player]: boolean } = {}
-local autos: { [Player]: Auto } = {}
 local devAll: { [Player]: boolean } = {}
 local dirty: { [Player]: boolean } = {}
 local lastSent: { [Player]: string } = {}
@@ -144,7 +139,6 @@ local function build(player: Player): SpinView.Payload?
 	if ults == nil then
 		return nil
 	end
-	local auto = autos[player]
 	return SpinView.state({
 		ults = ults,
 		day = today(),
@@ -154,9 +148,6 @@ local function build(player: Player): SpinView.Payload?
 		restricted = restrictedOf(player) ~= false,
 		vip = player:GetAttribute(VIP_ATTR) == true,
 		prices = Store.prices(),
-		auto = if auto ~= nil
-			then { stopAt = auto.stopAt, lucky = auto.lucky, count = auto.count }
-			else nil,
 	})
 end
 
@@ -270,7 +261,7 @@ local function spinOnce(player: Player, lucky: boolean, confirm: boolean): (bool
 	return true, result, nil
 end
 
--- A spin result as a reply or an UltAuto message (the caller adds its own fields).
+-- A spin result as a reply (the caller adds its own fields).
 local function resultFields(result: SpinView.SpinResult, player: Player): Reply
 	return {
 		id = result.id,
@@ -285,81 +276,6 @@ local function resultFields(result: SpinView.SpinResult, player: Player): Reply
 end
 
 ---------------------------------------------------------------------------------------------
--- Auto Spin
----------------------------------------------------------------------------------------------
-
--- Ends the player's Auto Spin `auto` (if it is still theirs) and tells them why.
-local function finish(player: Player, auto: Auto, reason: string, id: string?)
-	if autos[player] ~= auto then
-		return
-	end
-	autos[player] = nil
-	if player.Parent == Players then
-		local remote = Net.get("UltAuto") :: RemoteEvent
-		remote:FireClient(player, { kind = "Stop", reason = reason, n = auto.count, id = id })
-		mark(player)
-	end
-end
-
--- One Auto Spin loop: a spin every Config.Ults.AutoSpinSeconds while `auto` is the player's.
-local function autoLoop(player: Player, auto: Auto)
-	while autos[player] == auto do
-		task.wait(U.AutoSpinSeconds)
-		if autos[player] ~= auto then
-			return
-		elseif closing or PlayerData.isClosing() then
-			finish(player, auto, "Closing")
-			return
-		elseif player.Parent ~= Players then
-			autos[player] = nil
-			return
-		elseif not ready(player) then
-			finish(player, auto, "NotLoaded")
-			return
-		elseif not isLive(player) then
-			finish(player, auto, "NotLive")
-			return
-		end
-		if not busy[player] then
-			local ults = PlayerData.ults(player)
-			local why = SpinView.autoStop(ults, auto.lucky, today(), passesOf(player))
-			if why ~= nil then
-				local selected = if ults ~= nil then ults.Slots[ults.Selected] else nil
-				finish(player, auto, why, if why == "Confirm" then selected else nil)
-				return
-			end
-			busy[player] = true
-			local called, ok, result = pcall(function(): (boolean, any)
-				local spun, outcome = spinOnce(player, auto.lucky, false)
-				return spun, outcome
-			end)
-			busy[player] = nil
-			if autos[player] ~= auto then
-				return -- stopped while it spun (the spin itself landed and is in the save)
-			end
-			if not called then
-				log(("an Auto Spin of %s failed: %s"):format(who(player), tostring(ok)))
-				finish(player, auto, "Error")
-				return
-			elseif not ok then
-				finish(player, auto, result)
-				return
-			end
-			auto.count += 1
-			local message = resultFields(result, player)
-			message.kind = "Spin"
-			message.n = auto.count
-			local remote = Net.get("UltAuto") :: RemoteEvent
-			remote:FireClient(player, message)
-			if SpinView.reached(result.rarity, auto.stopAt) then
-				finish(player, auto, "Reached", result.id)
-				return
-			end
-		end
-	end
-end
-
----------------------------------------------------------------------------------------------
 -- UltRequest
 ---------------------------------------------------------------------------------------------
 
@@ -368,8 +284,6 @@ local HANDLERS: { [string]: (Player, SpinView.Request) -> Reply } = {}
 function HANDLERS.Spin(player: Player, r: SpinView.Request): Reply
 	if not isLive(player) then
 		return refuse("NotLive")
-	elseif autos[player] ~= nil then
-		return refuse("AutoRunning")
 	end
 	local ok, result, current = spinOnce(player, r.lucky == true, r.confirm == true)
 	if not ok then
@@ -384,9 +298,6 @@ function HANDLERS.Spin(player: Player, r: SpinView.Request): Reply
 end
 
 function HANDLERS.Select(player: Player, r: SpinView.Request): Reply
-	if autos[player] ~= nil then
-		return refuse("AutoRunning")
-	end
 	local ok, reason = PlayerData.ultSelect(player, r.slot :: number, passesOf(player))
 	if not ok then
 		return refuse(reasonFrom(reason))
@@ -396,7 +307,6 @@ function HANDLERS.Select(player: Player, r: SpinView.Request): Reply
 end
 
 function HANDLERS.Lock(player: Player, r: SpinView.Request): Reply
-	-- Allowed during Auto Spin: locking the slot it spins into stops it before the next spin.
 	local ok, reason =
 		PlayerData.ultLock(player, r.slot :: number, r.locked == true, passesOf(player))
 	if not ok then
@@ -454,33 +364,6 @@ function HANDLERS.BuyProduct(player: Player, r: SpinView.Request): Reply
 	return { ok = true }
 end
 
-function HANDLERS.AutoStart(player: Player, r: SpinView.Request): Reply
-	if not isLive(player) then
-		return refuse("NotLive")
-	elseif player:GetAttribute(VIP_ATTR) ~= true then
-		return refuse("NoVip")
-	elseif autos[player] ~= nil then
-		return refuse("AutoRunning")
-	end
-	local lucky = r.lucky == true
-	local why = SpinView.autoStop(PlayerData.ults(player), lucky, today(), passesOf(player))
-	if why ~= nil then
-		return refuse(why)
-	end
-	local auto: Auto = { stopAt = r.stopAt :: string, lucky = lucky, count = 0 }
-	autos[player] = auto
-	task.spawn(autoLoop, player, auto)
-	return { ok = true, state = build(player) }
-end
-
-function HANDLERS.AutoStop(player: Player, _r: SpinView.Request): Reply
-	local auto = autos[player]
-	if auto ~= nil then
-		finish(player, auto, "Stopped")
-	end
-	return { ok = true }
-end
-
 -- One request, start to finish. `skipBucket` is the Studio QA hook's. Never errors.
 local function handle(player: Player, kind: any, args: any, skipBucket: boolean?): Reply
 	if not skipBucket then
@@ -503,10 +386,7 @@ local function handle(player: Player, kind: any, args: any, skipBucket: boolean?
 	elseif closing then
 		return refuse("Error")
 	end
-	-- AutoStop never waits for the lock (the loop may hold it for a spin).
-	if request.kind == "AutoStop" then
-		return HANDLERS.AutoStop(player, request)
-	elseif busy[player] then
+	if busy[player] then
 		return refuse("Busy")
 	end
 	busy[player] = true
@@ -551,14 +431,6 @@ function UltSpins.refresh(player: Player)
 	mark(player)
 end
 
---- Stops the player's Auto Spin, if one runs (reason "Stopped").
-function UltSpins.stopAuto(player: Player)
-	local auto = autos[player]
-	if auto ~= nil then
-		finish(player, auto, "Stopped")
-	end
-end
-
 -- Studio only: ServerStorage.UltSpinsQA, a BindableFunction that runs inside this module
 -- (clients cannot reach ServerStorage; nothing is made in a live server). Invoke(op, userId,
 -- ...):
@@ -567,7 +439,6 @@ end
 --                                token bucket skipped)
 --   "grant", spins, lucky?    -> adds spins and Lucky Spins (PlayerData.addUltSpins/Lucky)
 --   "setDevAll", on           -> as /ultsall
---   "auto"                    -> { stopAt, lucky, count } of the running Auto Spin, or nil
 --   "equipped"                -> UltSpins.equipped
 local function startQA()
 	if not IS_STUDIO then
@@ -597,9 +468,6 @@ local function startQA()
 		elseif op == "setDevAll" then
 			UltSpins.setDevAll(player, a == true)
 			return devAllOf(player)
-		elseif op == "auto" then
-			local auto = autos[player]
-			return if auto ~= nil then table.clone(auto) else nil
 		elseif op == "equipped" then
 			return UltSpins.equipped(player)
 		end
@@ -643,7 +511,6 @@ local function onLoaded(player: Player)
 end
 
 local function onPlayerRemoving(player: Player)
-	autos[player] = nil
 	buckets[player] = nil
 	busy[player] = nil
 	devAll[player] = nil
@@ -690,16 +557,6 @@ function UltSpins.start()
 	end
 	game:BindToClose(function()
 		closing = true
-		local list: { Player } = {}
-		for player in autos do
-			table.insert(list, player)
-		end
-		for _, player in list do
-			local auto = autos[player]
-			if auto ~= nil then
-				pcall(finish, player, auto, "Closing")
-			end
-		end
 	end)
 	startQA()
 end

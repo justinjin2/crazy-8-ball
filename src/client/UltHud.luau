@@ -207,10 +207,12 @@ function UltHud.new(screen: ScreenGui, activate: () -> ()): any
 	canvas.Visible = false
 	canvas.Parent = holder
 	self.canvas = canvas
-	TutorialAnchors.set("UltButton", canvas) -- the tutorial lane's hand taps it
 	local content = HudParts.frame(canvas, "Content")
 	self.content = content
 	self.bar = UltBar.new(content)
+	-- The tutorial's ability lesson lights the bar and its prompt together (not the canvas: it
+	-- has room round them for the glow, and the hole ran off a phone's foot, 2026-10-10).
+	TutorialAnchors.set("UltButton", self.bar.root)
 	TutorialAnchors.set("UltPrompt", self.bar.prompt) -- PRESS G TO ACTIVATE: pointed at from its side
 	self.armed = wordPill(content, "Armed")
 	self.opponent = wordPill(content, "OpponentArmed")

@@ -11,8 +11,8 @@ Updated 2026-10-10 (tutorial v2 closed and in `gui-v4`; work goes on in `~/Deskt
 - **Branch `release`** is the integration branch, and every lane of the parallel build is
   merged into it (Bots, Economy, GUI and cutscenes, Tutorial, Unique cues). Stage 5 of the
   road to release (`docs/ROADMAP.md`): tutorial, funnel, performance, game page.
-- **Lint and tests (2026-10-10, branch `tutorial-v2` with `gui-v4` merged in):** lint OK (three
-  old LocalShadow warnings); all 1185 Lune tests pass.
+- **Lint and tests (2026-10-10, `gui-v4`):** lint OK (four old LocalShadow warnings); all 1193
+  Lune tests pass.
 - **In the game:** server-owned tables with our own physics and 8-ball rules; 1v1, 2v2, 3v3
   and solo; the global queue and arena with rematch; bots (ten tiers, Play against PC, lobby
   bots, disguised bots); ranks (XP only from winning) and money; economy v5.1 and its screens
@@ -48,6 +48,13 @@ One line each; the long form is the 2026-10-08 entry at the top of
 
 ## Open, waiting on the designer
 
+- **The tutorial on phones, and the spin screen** (2026-10-10, DECISIONS): every highlight,
+  hand and ring now lands on its button on a notched phone; the small Skip (under Roblox's
+  menu on a phone), smaller centred lines that keep off other words, the two-hand pinch, the
+  hotbar pin; Auto Spin removed, Skip renamed Fast spin (VIP), the phone spin screen's odds
+  list and code box. Checked in Studio's phone emulator through two fresh runs of the whole
+  tutorial and the soft part. Open: the designer's real phone, a PC window, a controller;
+  Painicane's Studio save was reset for the runs (now at the Rank step).
 - **Daily rewards rework on `gui-v4`** (2026-10-10, DECISIONS): one thing a day, the Week One
   Cue only for 7 days in a row (else an Epic block), Claim All 499 / 449 / 399 and 99 / 79 / 49
   R$ (synced), playtime $7,500 a day, VIP's daily Mystery block, the restock without its odds
@@ -77,11 +84,6 @@ One line each; the long form is the 2026-10-08 entry at the top of
   `tools/roblox_products.py --sync` (Starter Pack 19 R$ on Roblox, Config 29; Lucky1 and Lucky3
   off sale). This account sees Robux prices at about 0.8x (regional pricing). Lucky Shot, Golden
   Shot, Lucky Rain and the stay bonus are planned only. Backup: `before-economy-v5`.
-- **The GUI hand-off after economy v4** (2026-10-08, branch `gui-v4`; the designer's picks on
-  https://claude.ai/artifact/Q79pcvwxeos8AB7o8357Lw, prompts and pictures in
-  `~/Desktop/8ball-refs/gui-mocks-v4`): its screens are done and checked in Studio on PC (the
-  list moved to `docs/archive/STATUS_HISTORY.md`, 2026-10-09); still to see on a phone, a
-  controller and with a real purchase. Trade is not built (not in the release).
 - **The Cues redo** (2026-10-08, `docs/prompts/CUES_LIVELY_PROMPT.md`, on `shop-lively`, in
   `gui-v4`): the new cue card, the Cues menu, the CUES icon, the smooth money chip, the reel and
   YOU GOT, checked in Studio. Still open: the see-through reel trial's verdict, a phone and a
@@ -91,7 +93,6 @@ One line each; the long form is the 2026-10-08 entry at the top of
   the abilities themselves are in GDD and ECONOMY): not yet checked on phone and controller,
   the sounds by ear, the tutorial spin's reveal, the sneak with two players, the designer's
   voice lines. The one-by-one review (since 2026-09-30) goes on; unreviewed ones are provisional.
-- **The lively Shop** is in `release` (2026-10-06); other menus take its frame as rebuilt.
 - **Decision still open:** whether the VIP cue pays finder's money on the first join.
 - **Tutorial v2: approved and closed** (2026-10-10; in `gui-v4`; `docs/prompts/TUTORIAL_V2_REPORT.md`,
   its last section lists what is open). Still open: the first session's money rescale
