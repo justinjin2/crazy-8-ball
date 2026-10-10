@@ -32,6 +32,7 @@ local HudParts = require(script.Parent.HudParts)
 local InvitePrompt = require(script.Parent.InvitePrompt)
 local ItemState = require(script.Parent.ItemState)
 local Menus = require(script.Parent.Menus)
+local ShopCards = require(script.Parent.ShopCards)
 local ShopParts = require(script.Parent.ShopParts)
 local TutorialAnchors = require(script.Parent.TutorialAnchors)
 local UIAnim = require(script.Parent.UIAnim)
@@ -135,6 +136,31 @@ local function starterArt(tile: Corner): Frame
 	return holder
 end
 
+local function showDot(dot: Frame?, on: boolean)
+	if dot == nil or dot.Visible == on then
+		return
+	end
+	if on then
+		UIAnim.popIn(dot)
+	else
+		dot.Visible = false
+	end
+end
+
+-- The Starter Pack's worth over its price, in whole times ("x2 VALUE!"): its money at the
+-- smallest money pack's rate plus its block at the Rare restock price (where paid random items
+-- are restricted: more money, no block); its cue and its hour of 2x money are not counted.
+local function starterTimes(price: number, restricted: boolean): number
+	local list: any = Config.Products.List
+	local pack = list.Pack1
+	local money = if restricted
+		then Config.Shop.StarterRestrictedMoney
+		else Config.Shop.StarterMoney
+	local worth = money / pack.Money * pack.Robux
+		+ (if restricted then 0 else list.RestockRare.Robux)
+	return if price > 0 then math.max(1, math.floor(worth / price)) else 1
+end
+
 --- Build the corners into `screen` (the HUD ScreenGui), hidden until setVisible(true). `deps`:
 --- money (MoneyHud: Invite and Plus sit right of it).
 function HubCorners.new(screen: ScreenGui, deps: any): any
@@ -145,6 +171,8 @@ function HubCorners.new(screen: ScreenGui, deps: any): any
 	self.showing = false
 	self.alive = true
 	self.challengeHidden = false
+	self.challengeDue = true -- its "!" until pressed (refreshChallengeDot)
+	self.freshOn = {} :: { [string]: boolean }
 	self.connections = {} :: { RBXScriptConnection }
 	local root = HudParts.frame(screen, "HubCorners")
 	root.Size = UDim2.fromScale(1, 1)
@@ -173,11 +201,9 @@ function HubCorners.new(screen: ScreenGui, deps: any): any
 	-- The open offers share one tile under the challenge: each offer's window (`key` in
 	-- ShopState.offers), the Shop section a press opens, its icon and word. `openOffers` are
 	-- the ones open now, in this order; `offerIndex` the one shown.
-	local list = Config.Products.List
-	local vipOff = math.floor((1 - list.VipOffer.Robux / list.Vip.Robux) * 100 + 0.5)
 	self.offerSpecs = {
 		{ key = "StarterPack", section = "Offer", icon = "StarterPack", words = W.Starter },
-		{ key = "VipOffer", section = "Vip", icon = "Vip", words = W.Vip:format(vipOff) },
+		{ key = "VipOffer", section = "Vip", icon = "Vip", words = W.VipName },
 	}
 	self.openOffers = {} :: { { spec: any, endsAt: number } }
 	self.offerIndex = 1
@@ -194,12 +220,46 @@ function HubCorners.new(screen: ScreenGui, deps: any): any
 	end)
 	offerTile.button.Visible = false
 	self.starterArt = starterArt(offerTile)
-	local timer = HudParts.text(HudParts.candyParts(offerTile.button).body, "Timer", C.TimerPx, "")
+	local offerBody = HudParts.candyParts(offerTile.button).body
+	-- The deal under the name, as a shop sign (the designer, 2026-10-09): the deal in rainbow
+	-- ("x2 VALUE!", "50% OFF!"), then "ONLY" and the price in Robux green.
+	local deal = HudParts.text(offerBody, "Deal", C.DealPx, "")
+	deal.TextWrapped = false
+	deal.AnchorPoint = Vector2.new(0.5, 0.5)
+	deal.TextColor3 = Color3.new(1, 1, 1)
+	deal.ZIndex = 4
+	UIAnim.rainbow(deal)
+	local price = HudParts.text(offerBody, "Price", C.PricePx, "")
+	price.RichText = true
+	price.TextWrapped = false
+	price.AnchorPoint = Vector2.new(0.5, 0.5)
+	price.ZIndex = 4
+	self.offerDeal, self.offerPrice = deal, price
+	-- The countdown on a gold pill over the tile's top-left corner (as the Shop tile's).
+	local timerPill = HudParts.pill(offerBody, "Timer", HudParts.tone("Gold"))
+	timerPill.AnchorPoint = Vector2.new(0.5, 0.5)
+	timerPill.ZIndex = 5
+	local timer = HudParts.text(timerPill, "Time", C.TimerPx, "")
+	timer.AutoLocalize = false -- a time
 	timer.TextWrapped = false
-	timer.TextColor3 = HudParts.tone("Gold")
-	timer.AnchorPoint = Vector2.new(0.5, 0.5)
-	timer.ZIndex = 4
-	self.offerTile, self.offerTimer = offerTile, timer
+	timer.Size = UDim2.fromScale(1, 1)
+	timer.ZIndex = 6
+	self.offerTile, self.offerTimer, self.offerTimerPill = offerTile, timer, timerPill
+	-- Rainbow sun rays turning behind it (as Free Reward's gold ones), under every tile.
+	local rays = Instance.new("ImageLabel")
+	rays.Name = "OfferRays"
+	rays.BackgroundTransparency = 1
+	rays.Image = K.Art.Rays
+	rays.ImageTransparency = C.OfferRaysTransparency
+	rays.AnchorPoint = Vector2.new(0.5, 0.5)
+	rays.ZIndex = 0
+	rays.Visible = false
+	rays.Parent = root
+	UIAnim.rainbow(rays)
+	UIAnim.loop(rays, function(clock: number)
+		rays.Rotation = (clock * K.Motion.RaysDegreesPerSecond) % 360
+	end)
+	self.offerRays = rays
 
 	-- The soft part's click-once "!" (setFresh): a red dot on a tile's top-right corner.
 	self.fresh = {} :: { [string]: Frame }
@@ -216,6 +276,7 @@ function HubCorners.new(screen: ScreenGui, deps: any): any
 		words.ZIndex = 7
 		self.fresh[key] = dot
 	end
+	self:refreshChallengeDot()
 	-- The tutorial's anchors: the soft part's glows sit behind these.
 	TutorialAnchors.set("Challenge", self.challenge.button)
 	TutorialAnchors.set("Offer", offerTile.button)
@@ -362,15 +423,19 @@ end
 --- The soft part's click-once "!" on the challenge or the offer tile (`key`: "Challenge" or
 --- "Offer").
 function HubCorners.setFresh(self: any, key: string, on: boolean)
-	local dot = self.fresh[key]
-	if dot == nil or dot.Visible == on then
+	self.freshOn[key] = on
+	if key == "Challenge" then
+		self:refreshChallengeDot()
 		return
 	end
-	if on then
-		UIAnim.popIn(dot)
-	else
-		dot.Visible = false
-	end
+	showDot(self.fresh[key], on)
+end
+
+--- The challenge's "!": while today's challenge waits (the designer, 2026-10-09: a nudge to do
+--- it), or the soft part's click-once. Daily challenges are not built yet, so "waits" means
+--- not pressed this session; their service will say when today's is done.
+function HubCorners.refreshChallengeDot(self: any)
+	showDot(self.fresh.Challenge, self.challengeDue or self.freshOn.Challenge == true)
 end
 
 -- Draw `spec`'s icon, word and press on the offer tile.
@@ -380,6 +445,22 @@ local function drawOffer(self: any, spec: any)
 	HudParts.setIcon(self.offerTile.icon, if starter then nil else spec.icon)
 	self.starterArt.Visible = starter
 	self.offerTile.word.Text = spec.words
+	-- The live prices (Roblox's, else Config's), as the Shop shows them.
+	local shop = ItemState.shop()
+	local state: any = if type(shop) == "table" then shop else {}
+	local products = if type(state.products) == "table" then state.products else {}
+	local robux = ShopParts.robuxOf(products[spec.key], spec.key)
+	if starter then
+		self.offerDeal.Text = W.Value:format(starterTimes(robux, state.restricted == true))
+	else
+		local full = ShopParts.robuxOf(products.Vip, "Vip")
+		local off = if full > 0 then math.floor((1 - robux / full) * 100 + 0.5) else 0
+		self.offerDeal.Text = W.Off:format(off)
+	end
+	self.offerPrice.Text = W.Only:format(
+		Color3.fromRGB(C.PriceColor[1], C.PriceColor[2], C.PriceColor[3]):ToHex(),
+		ShopCards.robuxText(robux)
+	)
 end
 
 --- The next open offer on the tile: it narrows to nothing, turns to the other offer and opens
@@ -407,6 +488,7 @@ function HubCorners.flipOffer(self: any)
 		if shown then
 			drawOffer(self, shown.spec)
 			self.offerTimer.Text = ShopParts.timeLeft(shown.endsAt - workspace:GetServerTimeNow())
+			self:sizeTimerPill()
 		end
 		local open = TweenService:Create(
 			body,
@@ -456,14 +538,17 @@ function HubCorners.refreshOffers(self: any)
 		self.offerIndex = 1
 	end
 	local shown = open[self.offerIndex]
+	local drawn = false
 	if shown and shown.spec.key ~= self.offerKey and not self.flipping then
 		drawOffer(self, shown.spec)
+		drawn = true
 	end
-	if setShown(self, self.offerTile.button, shown ~= nil) then
+	if setShown(self, self.offerTile.button, shown ~= nil) or drawn then
 		self:layout()
 	end
 	if shown then
 		self.offerTimer.Text = ShopParts.timeLeft(shown.endsAt - now) -- "6d 4h", "2:59:12"
+		self:sizeTimerPill()
 	end
 end
 
@@ -485,28 +570,62 @@ function HubCorners.layout(self: any)
 	local big = if short then C.ShortChallengePx else C.ChallengePx
 	local small = if short then C.ShortSmallPx else C.SmallPx
 	local wordPx = if short then C.ShortWordPx else C.WordPx
+	-- The challenge's and the offer's words: bigger than the left column's (the designer,
+	-- 2026-10-09).
+	local bigWordPx = if short then C.ShortBigWordPx else C.BigWordPx
+	-- Far enough in from the right edge for the widest word under the two tiles.
+	local font = (Enum.Font :: any)[K.Font]
+	local function wide(text: string, px: number): number
+		local plain = string.gsub(text, "<[^>]*>", "")
+		return TextService:GetTextSize(plain, px, font, Vector2.new(2000, 200)).X
+	end
+	local widest = wide(W.Challenge, bigWordPx)
+	for _, spec in self.offerSpecs do
+		widest = math.max(widest, wide(spec.words, bigWordPx))
+	end
+	widest = math.max(
+		widest,
+		wide(self.offerDeal.Text, if short then C.ShortDealPx else C.DealPx),
+		wide(self.offerPrice.Text, if short then C.ShortPricePx else C.PricePx)
+	)
+	local right = math.max(C.ChallengeRightPx, math.ceil((widest - big) / 2) + C.WordEdgePx)
 	local ch = self.challenge
 	ch.button.AnchorPoint = Vector2.new(1, 0.5)
 	ch.button.Size = UDim2.fromOffset(big, big)
-	ch.button.Position = UDim2.new(1, -C.ChallengeRightPx, C.ChallengeYShare, 0)
+	ch.button.Position = UDim2.new(1, -right, C.ChallengeYShare, 0)
 	-- The word is wider than the icon: it overhangs both sides.
-	ch.word.Size = UDim2.fromOffset(big * 2, wordPx + 4)
-	HudParts.setTextSize(ch.word, wordPx)
+	ch.word.Size = UDim2.fromOffset(big * 2, bigWordPx + 4)
+	HudParts.setTextSize(ch.word, bigWordPx)
 
-	-- The offer tile under the challenge, centred on it.
+	-- The offer tile under the challenge, centred on it; its deal and price under its word.
 	local offerPx = if short then C.ShortOfferPx else C.OfferPx
 	local timerPx = if short then C.ShortTimerPx else C.TimerPx
-	local centreX = -C.ChallengeRightPx - big / 2
-	local offerY = size.Y * C.ChallengeYShare + big / 2 + C.OfferGapPx + offerPx / 2
+	local dealPx = if short then C.ShortDealPx else C.DealPx
+	local pricePx = if short then C.ShortPricePx else C.PricePx
+	local centreX = -right - big / 2
+	local offerY = size.Y * C.ChallengeYShare + big / 2 + bigWordPx + C.OfferGapPx + offerPx / 2
 	local offer = self.offerTile
 	offer.button.AnchorPoint = Vector2.new(0.5, 0.5)
 	offer.button.Size = UDim2.fromOffset(offerPx, offerPx)
 	offer.button.Position = UDim2.new(1, round(centreX), 0, round(offerY))
-	offer.word.Size = UDim2.fromOffset(round(offerPx * 2.4), wordPx + 4)
-	HudParts.setTextSize(offer.word, wordPx)
-	self.offerTimer.Position = UDim2.new(0.5, 0, 0.92, wordPx + 2)
-	self.offerTimer.Size = UDim2.fromOffset(offerPx * 2, timerPx + 4)
+	offer.word.Size = UDim2.fromOffset(round(offerPx * 2.4), bigWordPx + 4)
+	HudParts.setTextSize(offer.word, bigWordPx)
+	local wordBottom = 0.92 * offerPx + bigWordPx / 2 + 2
+	self.offerDeal.Position = UDim2.fromOffset(round(offerPx / 2), round(wordBottom + dealPx / 2))
+	self.offerDeal.Size = UDim2.fromOffset(round(offerPx * 2.4), dealPx + 4)
+	HudParts.setTextSize(self.offerDeal, dealPx)
+	self.offerPrice.Position =
+		UDim2.fromOffset(round(offerPx / 2), round(wordBottom + dealPx + 2 + pricePx / 2))
+	self.offerPrice.Size = UDim2.fromOffset(round(offerPx * 2.4), pricePx + 4)
+	HudParts.setTextSize(self.offerPrice, pricePx)
+	self.timerPx, self.timerPillPx = timerPx, if short then C.ShortTimerPillPx else C.TimerPillPx
+	self.offerTimerPill.Position = UDim2.fromScale(C.TimerPillAt[1], C.TimerPillAt[2])
 	HudParts.setTextSize(self.offerTimer, timerPx, timerPx)
+	self:sizeTimerPill()
+	local raysPx = round(offerPx * C.OfferRaysShare)
+	self.offerRays.Size = UDim2.fromOffset(raysPx, raysPx)
+	self.offerRays.Position = offer.button.Position
+	self.offerRays.Visible = offer.button.Visible
 	for _, dot in self.fresh do
 		dot.Size = UDim2.fromOffset(wordPx + 12, wordPx + 8)
 	end
@@ -589,6 +708,18 @@ function HubCorners.setChallengeHidden(self: any, hidden: boolean)
 	self:refreshOffers()
 end
 
+--- The countdown's pill as wide as its words.
+function HubCorners.sizeTimerPill(self: any)
+	local timerPx, pillH = self.timerPx or C.TimerPx, self.timerPillPx or C.TimerPillPx
+	local width = TextService:GetTextSize(
+		self.offerTimer.Text,
+		timerPx,
+		(Enum.Font :: any)[K.Font],
+		Vector2.new(400, 100)
+	).X
+	self.offerTimerPill.Size = UDim2.fromOffset(math.max(pillH * 2, math.ceil(width) + 14), pillH)
+end
+
 function HubCorners.isShown(self: any): boolean
 	return self.showing
 end
@@ -599,6 +730,8 @@ function HubCorners.pressChallenge(self: any)
 		return
 	end
 	UISound.play("Click")
+	self.challengeDue = false
+	self:refreshChallengeDot()
 	local button = self.challenge.button
 	UIAnim.bounce(button)
 	UIAnim.glowBurst(self.challenge.icon, HudParts.tone("Gold"), 0.5)

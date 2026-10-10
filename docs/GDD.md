@@ -1178,7 +1178,9 @@ helpers, `src/server/TutorialService.luau`, `TutorialGames`, `TutorialBot`, `Tut
   beside NICE SHOT! for two or more of your balls in one shot; the new search (section 6: this
   server first, the global queue, a bot here at 5 s); controller shooting (hold R2 or A to
   fill, let go to shoot; B cancels); VIP and Starter Pack share one tile (the Starter Pack
-  drawn as the Shop's card: its block, cue and money); the new arrow look; the rank HUD's
+  drawn as the Shop's card: its block, cue and money), which with the Daily Challenge is bigger
+  than the left column's tiles and reads as a deal (rainbow rays behind it; "x2 VALUE!" or
+  "50% OFF!", then "ONLY" and the price); the Daily Challenge wears a "!" until pressed; the new arrow look; the rank HUD's
   next goal.
 - **Funnels:** the onboarding funnel (16 steps), PathS, PathR, Game2 and Social, the Shop,
   Block and Ability spins funnels, and custom events (Hint, TutorialSkipped, StepTime,

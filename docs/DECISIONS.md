@@ -3968,3 +3968,11 @@ timer of a new block stay the designer's call.
   reads as a lot and misleads about the pace after; the buildup should be slower. The next win
   reward (Mystery, wins 2/10) is not appetizing after so many Mystery blocks: maybe an Epic, if
   the economy allows.
+- 2026-10-09 (designer): the right side's Starter Pack / VIP tile and the Daily Challenge are
+  bigger than the left column's tiles, words too, and the offer reads as a deal: rainbow sun
+  rays turning behind it, "x2 VALUE!" for the Starter Pack (its money at the smallest money
+  pack's rate plus a Rare block's restock price, over its live price; the cue and the hour of
+  2x money not counted) or "50% OFF!" for VIP's welcome offer, then "ONLY" and the live Robux
+  price. The Daily Challenge itself is untouched (not built) but wears a "!" until pressed. The
+  Starter Pack's price stays 29 R$ (the designer's "ONLY 19R$" note is a reprice for them to
+  decide; at 19 the same sum reads "x4 VALUE!").

@@ -14906,17 +14906,20 @@ Config.UI.Blur = {
 Config.UI.Corners = {
 	-- The Daily Challenge target (a computer; a phone's is ShortChallengePx): about the left
 	-- column's tiles or a bit bigger (tutorial v2 4.11, 2026-10-09; it was 70 and 50).
-	ChallengePx = 84,
-	ShortChallengePx = 56,
-	ChallengeRightPx = 14, -- from the right edge
+	-- Bigger than the left column's, words too (the designer, 2026-10-09: "bigger than the left
+	-- side gui"; was 84 and 56).
+	ChallengePx = 108,
+	ShortChallengePx = 70,
+	ChallengeRightPx = 14, -- from the right edge, at least
+	WordEdgePx = 8, -- ... and further in so the widest word under it ends this far from the edge
 	ChallengeYShare = 0.42, -- its middle this far down the screen
 	ChallengeFlashSeconds = 1.2, -- one flash of its glow
 	-- The Starter Pack tile's picture (the Shop card's block, cue and money; the designer,
 	-- 2026-10-09): a halo in the Starter card's blue behind it, this much of the icon wide, so
 	-- the silver cue reads on the pale floor (a gold halo lost it); the cue a little more in
 	-- the middle than on the card, clear of the "!" dot (centre x, y, size, of the icon).
-	StarterGlowScale = 1.7,
-	StarterGlowTransparency = 0,
+	StarterGlowScale = 1.4, -- softer since the rainbow rays came behind it (2026-10-09)
+	StarterGlowTransparency = 0.45,
 	StarterGlowTint = { 60, 130, 255 },
 	StarterCue = { 0.52, 0.46, 0.98 },
 	SmallPx = 46, -- Invite and Plus (a computer)
@@ -14930,13 +14933,31 @@ Config.UI.Corners = {
 	-- Challenge, with its countdown: never a popup (designer, 2026-10-03). With both open it
 	-- flips from one to the other every OfferFlipSeconds (tutorial v2 4.11, 2026-10-09: one tile
 	-- as big as the challenge's; each had its own 58 px tile).
-	OfferPx = 84, -- the tile's icon (a computer)
-	ShortOfferPx = 56,
+	OfferPx = 108, -- the tile's icon (a computer; was 84, the designer 2026-10-09)
+	ShortOfferPx = 70,
 	OfferFlipSeconds = 4,
 	OfferFlipHalfSeconds = 0.14, -- each half of the flip (it narrows to nothing, then opens)
-	OfferGapPx = 26, -- under the challenge (room for its word) and under each offer's countdown
-	TimerPx = 12, -- the countdown under each offer's word
-	ShortTimerPx = 10,
+	OfferGapPx = 8, -- between the challenge's word and the offer tile
+	-- The challenge's and the offer's words (the left column's are 18 and 14).
+	BigWordPx = 21,
+	ShortBigWordPx = 15,
+	-- The offer as a shop sign (the designer, 2026-10-09, after a "STARTER PACK! ONLY 9 R$"
+	-- reference): under its word the deal in rainbow ("x2 VALUE!", "50% OFF!"), then "ONLY" and
+	-- the price, the Robux in PriceColor.
+	DealPx = 20,
+	ShortDealPx = 15,
+	PricePx = 24,
+	ShortPricePx = 17,
+	PriceColor = { 92, 226, 112 }, -- Robux green
+	-- Its countdown on a gold pill over the tile's top-left corner (as the Shop tile's).
+	TimerPx = 13,
+	ShortTimerPx = 11,
+	TimerPillPx = 22,
+	ShortTimerPillPx = 18,
+	TimerPillAt = { 0.12, 0.06 }, -- its centre, of the tile
+	-- Rainbow sun rays turning behind it (Free Reward's gold ones are Column.FreeRaysShare).
+	OfferRaysShare = 2.1, -- of the tile
+	OfferRaysTransparency = 0,
 }
 
 -- Settings (SettingsMenu, src/server/Settings.luau; GUI lane, designer 2026-10-03, C10): each

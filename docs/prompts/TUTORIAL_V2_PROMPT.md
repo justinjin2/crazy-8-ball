@@ -1411,6 +1411,12 @@ lines). All in the worktree.
   (too much money and too many blocks by the end, the next win's reward) are in the report for
   economy v5.1; nothing in the economy changed.
 - **Published** test place version 7 from `d488579` (the notes above, the saves reset there).
+- **The offer corner (designer, 2026-10-09):** the Starter Pack / VIP tile and the Daily
+  Challenge bigger than the left column's tiles (108 px, words 21 px), the tile read as a deal
+  after the designer's "STARTER PACK! ONLY 9 R$" reference: rainbow rays turning behind it,
+  "x2 VALUE!" (its money at the smallest pack's rate plus a Rare block, over its price) or
+  "50% OFF!" in rainbow, "ONLY" and the live Robux price in green, the countdown on a gold pill
+  on its corner; the Daily Challenge's "!" until pressed (until daily challenges exist).
 
 ### Touch list (files outside the tutorial's own modules changed, and why)
 
@@ -1542,6 +1548,9 @@ lines). All in the worktree.
     `UI.Corners.Starter*`, `UI.Reel.Reel.StillSeconds` 0.2, `Tutorial.Ghost`,
     `Tutorial.Hand.SideInsetPx`, `Tutorial.Soft` (BounceScale, BounceSeconds,
     DailyAfterSeconds).
+  - The offer corner: `src/client/HubCorners.luau`, `Config.UI.Corners` (sizes, Deal, Price,
+    TimerPill, OfferRays, WordEdgePx), `Strings.Corners` (Starter, VipName, Value, Off, Only;
+    the words in capitals).
 
 ---
 

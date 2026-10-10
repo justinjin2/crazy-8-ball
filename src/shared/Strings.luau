@@ -1288,15 +1288,20 @@ return {
 	},
 	-- The hub's small corner buttons (HubCorners; GUI lane, C2).
 	Corners = {
-		Challenge = "Daily Challenge",
+		Challenge = "DAILY CHALLENGE",
 		ChallengeSoon = "Daily Challenges are coming soon!",
 		Invite = "Invite",
 		InviteFailed = "Invites are not available right now.",
 		Plus = "Plus",
 		Settings = "Settings",
 		-- The open offers under the Daily Challenge (no popups; designer 2026-10-03).
-		Starter = "Starter Pack",
-		Vip = "VIP %d%% OFF", -- VIP's welcome offer: "VIP 50% OFF"
+		Starter = "STARTER PACK!",
+		VipName = "VIP", -- VIP's welcome offer
+		-- Under the offer's name, as a shop sign (the designer, 2026-10-09): the deal, then the
+		-- price ("ONLY" white, the Robux price in green: a colour's hex, the price).
+		Value = "x%d VALUE!", -- the Starter Pack's worth over its price
+		Off = "%d%% OFF!", -- VIP's welcome offer against VIP's price
+		Only = 'ONLY <font color="#%s">%s</font>',
 	},
 	-- The banner at the top middle (Banner). Names are players' usernames.
 	Banner = {
