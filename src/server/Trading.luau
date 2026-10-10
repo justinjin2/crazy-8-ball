@@ -391,6 +391,9 @@ local function onRequest(player: Player, action: any, arg: any): Reply
 	if type(action) ~= "string" or not ACTIONS[action] then
 		return refused("BadRequest")
 	end
+	if not T.Enabled then
+		return refused("Off")
+	end
 	if not loaded(player) then
 		return refused("NotLoaded")
 	end

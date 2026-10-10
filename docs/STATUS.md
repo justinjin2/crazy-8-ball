@@ -68,6 +68,7 @@ One line each; the long form is the 2026-10-08 entry at the top of
   the products at about 0.8x their price (regional pricing or price optimization).
 - **Reel skip on Standard blocks only; the tutorial reel's Legendary near miss** (2026-10-10,
   DECISIONS). Open: the designer's look at a tutorial first block and an Uncommon reel.
+- **Trading** is off for the release (`Config.Trade.Enabled`): no Trade button, the server refuses.
 - **The Daily Challenge** is off for the release (`Config.UI.Corners.ChallengeOn`).
 - **Solo and Practice portals**: to plan with the designer (look in Blender, placement), then
   build; until then practice is only on the dev commands.

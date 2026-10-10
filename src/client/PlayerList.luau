@@ -204,7 +204,11 @@ function PlayerList.new(screen: ScreenGui, opts: Options?): any
 	popName.ZIndex = 4
 	self.popName = popName
 	self.popButtons = {}
-	for index, key in { "Trade", "AddFriend", "Profile" } do
+	-- Trade only while trading is on (Config.Trade.Enabled).
+	local keys: { string } = if Config.Trade.Enabled
+		then { "Trade", "AddFriend", "Profile" }
+		else { "AddFriend", "Profile" }
+	for index, key in keys do
 		local tone = if key == "Trade"
 			then "Green"
 			elseif key == "AddFriend" then "Blue"
@@ -219,7 +223,7 @@ function PlayerList.new(screen: ScreenGui, opts: Options?): any
 		button.ZIndex = 5
 		table.insert(self.popButtons, button)
 	end
-	pop.Size = UDim2.fromOffset(P.PopoutWidthPx, P.TextPx + 22 + 3 * (P.PopoutButtonPx + 6))
+	pop.Size = UDim2.fromOffset(P.PopoutWidthPx, P.TextPx + 22 + #keys * (P.PopoutButtonPx + 6))
 
 	-- Data in: players and bots.
 	local function soon()

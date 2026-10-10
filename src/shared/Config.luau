@@ -3391,6 +3391,11 @@ Config.Daily = {
 -- Cues and ready lucky blocks only, never money; Exclusive cues never except ExclusiveTradable. (tune)
 ---------------------------------------------------------------------------------------------
 Config.Trade = {
+	-- Off for the release (designer, 2026-10-10: "unless trading is actually fully functional
+	-- already just leave it in, otherwise id get rid of it"; it was never checked between two
+	-- players since economy v5 and v6 changed the blocks it trades). Off: no Trade button in the
+	-- player list and the server refuses every trade request. The code stays for later.
+	Enabled = false,
 	-- Items one side may offer (the history keeps as many: Config.Save.MaxTradeSideItems).
 	MaxSideItems = Config.Save.MaxTradeSideItems,
 	-- Both accept, then this long before the swap; any change starts it over on both sides.

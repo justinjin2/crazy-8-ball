@@ -189,7 +189,8 @@ shows Roblox's live price.
 
 ## 8. Trading
 
-Unchanged rules (archive 12) plus **the trade gate**: trading unlocks after **10 real wins**
+**Trading is off for the release** (`Config.Trade.Enabled = false`, designer 2026-10-10); when it
+comes back: unchanged rules (archive 12) plus **the trade gate**: trading unlocks after **10 real wins**
 (practice and solo never count); both players need it. The lopsided warning's fallback worths were
 refit for v6 (Config.Trade.BlockExists, ClimbedExists).
 

@@ -4259,3 +4259,9 @@ timer of a new block stay the designer's call.
   has arrived counts as over even before its Result snapshot does, so a slow connection no
   longer stops the result cutscene before the result screen opens (the tutorial's missing
   results), and the tutorial's Result step waits for that cutscene.
+- 2026-10-10 (designer, "unless trading is actually fully functional already just leave it in,
+  otherwise id get rid of it"): trading is off for the release (`Config.Trade.Enabled = false`:
+  the player list's card has no Trade button and the server refuses every trade request). It had
+  been live by mistake (the 2026-10-08 and 10-09 decisions had taken it out of the release, with
+  no switch), and a trade between two players was never checked after economy v5 and v6 changed
+  the blocks it trades. The code, the 10-win gate and the tests stay for when it comes back.

@@ -1361,6 +1361,7 @@ return {
 			NoSession = "This trade is over",
 			-- The trade gate (economy v6: Config.Trade.MinWins real wins; %d is that number).
 			NeedWins = "Win %d matches to unlock trading",
+			Off = "Trading is coming soon!", -- Config.Trade.Enabled off
 			TheyNeedWins = "They need %d wins to trade",
 			Full = "You asked for enough already",
 			TooFast = "Slow down a little",
