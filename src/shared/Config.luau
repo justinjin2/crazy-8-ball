@@ -15642,8 +15642,8 @@ Config.Music = {
 		"rbxassetid://140492661889585",
 	},
 	-- Each track's volume: very low, background only, never in focus (designer, 2026-10-10:
-	-- "VERY VERY low volume"; Roblox's default is 0.5).
-	Volume = 0.06,
+	-- "VERY VERY low volume"; Roblox's default is 0.5; then up 3 points, was 0.06).
+	Volume = 0.09,
 	GapSeconds = 1.5, -- silence between two tracks
 	FadeInSeconds = 2, -- a track comes in this softly
 	LoadTimeoutSeconds = 10, -- a track that hasn't loaded by then is skipped
