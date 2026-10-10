@@ -362,7 +362,7 @@ return {
 	["playtime gifts at 5, 15, 30, 45 and 60 minutes"] = function()
 		local expected = {
 			{ 5, "$1000" },
-			{ 15, "Mystery x1" },
+			{ 15, "$2000" },
 			{ 30, "$2500" },
 			{ 45, "$3500" },
 			{ 60, "$5000 Spins x1" },
@@ -906,7 +906,7 @@ return {
 		)
 		H.expect(first.reward.money == 1000, "$1,000")
 		H.expect(not second.ready and math.abs(second.progress - 11 / 15) < 1e-9, "15 min at 11/15")
-		H.expect(second.reward.blocks[1].kind == "Mystery", "a Mystery block")
+		H.expect(second.reward.money == 2000 and #second.reward.blocks == 0, "$2,000 (v5.1)")
 		H.expect(RewardView.readyKey(daily) == "10000-0", "the first gift ready")
 		daily.PlaytimeClaimed["1"] = true
 		H.expect(RewardView.readyKey(daily) == "00000-0", "claimed: none ready")

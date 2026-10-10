@@ -152,6 +152,15 @@
       "Rare": 1500,
       "Secret": 25000000,
       "Uncommon": 400
+    },
+    "Turn": {
+      "Steps": {
+        "Epic": 50000,
+        "Rare": 100000,
+        "Standard": 300000,
+        "Uncommon": 250000
+      },
+      "Top": "Legendary"
     }
   },
   "Daily": {
@@ -259,10 +268,8 @@
         "Money": 1000
       },
       {
-        "Blocks": {
-          "Mystery": 1
-        },
-        "Minutes": 15
+        "Minutes": 15,
+        "Money": 2000
       },
       {
         "Minutes": 30,
@@ -501,8 +508,8 @@
         "Idle": "rbxassetid://126596744037463",
         "Model": "MysteryBlock",
         "Pity": true,
-        "Roll": true,
-        "Timer": 0
+        "Timer": 0,
+        "Turns": true
       },
       "Mythic": {
         "Climb": "Mythic",
@@ -749,7 +756,7 @@
       "Robux": 49
     },
     "Mystery1": {
-      "Robux": 7
+      "Robux": 9
     },
     "Mystery10": {
       "Retired": true,
@@ -760,7 +767,7 @@
       "Robux": 160
     },
     "Mystery5": {
-      "Robux": 29
+      "Robux": 39
     },
     "Pack1": {
       "Money": 10000,
@@ -1104,7 +1111,7 @@
       "Mystery": {
         "Kind": "Mystery",
         "Money": [
-          14900
+          19900
         ],
         "Products": [
           "Mystery1"
@@ -1118,8 +1125,8 @@
     },
     "Mystery": {
       "BulkCount": 5,
-      "BulkPrice": 66900,
-      "Price": 14900
+      "BulkPrice": 89900,
+      "Price": 19900
     },
     "Restock": {
       "Announce": {

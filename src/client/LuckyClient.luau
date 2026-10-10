@@ -15,7 +15,8 @@
 --   top of its rise, the reel plays (and a Rare or better cue's pull cutscene, LuckyOpening).
 -- - An unclimbed block (economy v5: every new block) is never held as it is: its slot says
 --   OPEN! and a tap, a click or its key opens its climb screen (MysteryReveal), where it
---   becomes the climbed block of a tier and jumps back into its slot (a climb to the Secret
+--   becomes the climbed block of a tier (a Mystery: the unclimbed block its roll turned it
+--   into, economy v5.1) and jumps back into its slot (a climb to the Secret
 --   goes straight to the Secret's pull instead: there is no Secret block). On a gamepad LB / RB
 --   pick its slot and R2 opens it.
 -- The tutorial (Tutorial.luau) reads which slot holds a kind (slotOf), what is held and what
@@ -279,7 +280,8 @@ local function requestSkip(id: number)
 end
 
 -- An unclimbed block's climb screen: its icon jumps out of its slot (MysteryReveal asks the
--- server, which turns it into its tier's climbed block before anything is shown).
+-- server, which turns it into its tier's climbed block, or a Mystery into the unclimbed block
+-- its roll reached, before anything is shown).
 local function revealBlock(id: number)
 	if not visible or throwing or opening:isOpen() or reveal:isBusy() then
 		return

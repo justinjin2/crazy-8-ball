@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Economy model for Crazy 8 Ball (economy v5, "every block climbs"): a 60-day player-population
+"""Economy model for Crazy 8 Ball (economy v5.1, "every block climbs"): a 60-day player-population
 simulation that reads every game number from src/shared/Config.luau (through tools/economy_config.json).
 
-    python3 tools/economy_model.py                # v5 at day 7, 30 and 60, against the plan's numbers
+    python3 tools/economy_model.py                # v5.1 at day 7, 30 and 60, against the plan's numbers
     python3 tools/economy_model.py --built-only   # the same without the planned, not yet built features
     python3 tools/economy_model.py --compare      # before v4, v4 (frozen), v5 built only and v5 side by side
     python3 tools/economy_model.py --sell         # v5 with finder's money, the Index rows and selling back
@@ -16,9 +16,10 @@ simulation that reads every game number from src/shared/Config.luau (through too
 
 Sources modelled: the 10-step daily win track (blocks and money steps; wins 11+ pay money and XP
 only), the climb (economy v5: every block climbs from its name on one ladder, Config.BlockOdds.Climb,
-with the Grand Opening Luck for its first days; the Mystery block from Standard with pity and its
-head start, bought blocks too; a climbed block gives exactly its tier's rarity, the Secret climb its
-cue), the Grand Opening and Starter blocks' own rows, the first week (any 7 login days within 14 of
+with the Grand Opening Luck for its first days; a climbed block gives exactly its tier's rarity,
+the Secret climb its cue), the Mystery (economy v5.1: its roll, Config.BlockOdds.Turn, turns it into
+an unclimbed block that then climbs; pity with its head start, bought ones too, counted on the cue
+it finally gives), the Grand Opening and Starter blocks' own rows, the first week (any 7 login days within 14 of
 joining; day 7 the Week One Cue) and the later weeks, the 28-day track, playtime gifts, VIP's daily
 block, the group, favorite, invites, launch codes and the first-leave Gift, rank rewards, the
 restock shop (money and Robux; slot 1 its own table), the Grand Opening block (window, copy caps,
@@ -181,6 +182,14 @@ def per_block(plan, kind, launch=False):
     cl = plan.get("climb")
     if kind == "Mystery":
         tier = plan["tier_launch"] if launch and plan.get("tier_launch") else plan["tier"]
+        if plan.get("unified"):
+            # Economy v5.1: the block it turns into, then that block's own climb.
+            out = {r: 0.0 for r in RAR}
+            for t, pt in tier.items():
+                if pt:
+                    for r, pr in per_block(plan, t, launch).items():
+                        out[r] += pt / 100 * pr
+            return out
     elif cl and kind in cl["starts"]:
         tier = chain_dist(cl["launch_chain"] if launch else cl["chain"], kind)
     else:
@@ -240,7 +249,7 @@ def plan_from_config(c, built_only=False):
     bulk_key = f"Mystery{bulk}" if f"Mystery{bulk}" in prod else "Mystery10"
     start = drop.get("PityStart") or {}
     plan = {
-        "name": ("v5" if v5 else "v4") + (" built only" if built_only else ""),
+        "name": ("v5.1" if "Turn" in bo else "v5" if v5 else "v4") + (" built only" if built_only else ""),
         "rows": rows,
         "pity": {"Rare": drop["PityRare"], "Epic": drop["PityEpic"]},
         # A new save's pity counters (economy v5: a head start; v4: none).
@@ -306,8 +315,19 @@ def plan_from_config(c, built_only=False):
         luck = dict(chain, **{t: v / total for t, v in cl["Luck"]["Steps"].items()})
         plan["climb"] = {"chain": chain, "launch_chain": luck,
                          "starts": [t for t in TIERS if (kinds.get(t) or {}).get("Climb") == t]}
-        plan["tier"] = chain_dist(chain, "Standard")  # the Mystery block: a Standard start, with pity
-        plan["tier_launch"] = chain_dist(luck, "Standard")
+        turn = bo.get("Turn")
+        if turn:
+            # Economy v5.1: the Mystery's roll (its own steps up to Top; the luck never lifts it)
+            # turns it into an unclimbed block, which climbs from its name. Pity forces the
+            # block and counts the cue the Mystery finally gives.
+            top = TIERS.index(turn["Top"])
+            steps = {t: (turn["Steps"].get(t, 0) / total if TIERS.index(t) < top else 0.0) for t in TIERS}
+            plan["tier"] = chain_dist(steps, "Standard")
+            plan["tier_launch"] = plan["tier"]
+            plan["unified"], plan["pity_final"] = True, True
+        else:
+            plan["tier"] = chain_dist(chain, "Standard")  # v5: a Standard start, with pity
+            plan["tier_launch"] = chain_dist(luck, "Standard")
         plan["luck_days"] = cl["Luck"]["Seconds"] / 86400 if cl["Luck"]["With"] == "GrandOpening" else 0
         # Kinds that climb from another kind's start (Lucky 8, the Gift, the Sky block).
         plan["alias"] = {k: row["Climb"] for k, row in kinds.items()
@@ -392,6 +412,8 @@ def cum(table, keys):
 
 def per_mystery(plan):
     """Each outcome's chance per Mystery block, no pity (percent)."""
+    if plan.get("unified"):
+        return per_block(plan, "Mystery")
     p = {r: 0.0 for r in RAR}
     for t in TIERS:
         for r in RAR:
@@ -519,6 +541,8 @@ class Sim:
         spent = [0.0] * N  # money spent (so money earned = money + spent)
         snaps = {}
 
+        pity_paid_ok = [True]  # whether the Mystery being opened counts pity (roll_tier sets it)
+
         def luck_on():
             return P.get("luck_days") and day_now[0] < P["luck_days"]
 
@@ -552,6 +576,10 @@ class Sim:
                 if r in (7, 8):
                     unique_made[r] += 1
             owned[i][r] += 1
+            if recv == "Mystery" and P.get("pity_final") and (pity_paid_ok[0]):
+                # Economy v5.1: the counters count the cue the Mystery finally gave.
+                rare_p[i] = 0 if r >= 2 else rare_p[i] + 1
+                epic_p[i] = 0 if r >= 3 else epic_p[i] + 1
             source[src][r] += 1
             opened[kind] = opened.get(kind, 0) + 1
             if r >= 2 and first_seen[r][i] is None:
@@ -590,14 +618,16 @@ class Sim:
         def roll_tier(i, paid):
             tc = self.tier_cum_launch if luck_on() else self.tier_cum
             t = min(bisect.bisect_right(tc, loot.random() * 100.0), len(TIERS) - 1)
-            if paid and not P["pity_paid"]:
+            pity_paid_ok[0] = not paid or P["pity_paid"]
+            if not pity_paid_ok[0]:
                 return TIERS[t]
             if t < 3 and epic_p[i] + 1 >= P["pity"]["Epic"]:
                 t = 3
             elif t < 2 and rare_p[i] + 1 >= P["pity"]["Rare"]:
                 t = 2
-            rare_p[i] = 0 if t >= 2 else rare_p[i] + 1
-            epic_p[i] = 0 if t >= 3 else epic_p[i] + 1
+            if not P.get("pity_final"):
+                rare_p[i] = 0 if t >= 2 else rare_p[i] + 1
+                epic_p[i] = 0 if t >= 3 else epic_p[i] + 1
             return TIERS[t]
 
         def give(i, reward, src, paid=False):
@@ -611,7 +641,7 @@ class Sim:
                     continue
                 for _ in range(n):
                     if k == "Mystery":
-                        open_row(i, roll_tier(i, paid), src, recv="Mystery", climbed=True)
+                        open_row(i, roll_tier(i, paid), src, recv="Mystery", climbed=not P.get("unified"))
                     else:
                         open_row(i, k, src)
 
@@ -838,14 +868,15 @@ class Sim:
 # ------------------------------------------------------------------------------------------------
 # Reports
 # ------------------------------------------------------------------------------------------------
-# Economy v5 (the approved plan, docs/prompts/ECONOMY_V5_PLAN.md 7.1, simulated by
-# economy_v5_sim.py --only plan): share of players active in the last 7 days who own one
+# Economy v5.1 (the designer's approved "Lively", 2026-10-09, docs/prompts/ECONOMY_V5_PLAN.md
+# section 15; this model on that Config): share of players active in the last 7 days who own one
 # (percent), as (low, high) within about the simulation's noise. Legendary is from blocks; the
-# Week One Cue is apart.
+# Week One Cue is apart. (v5, plan 7.1: Epic 58.9 / 67.3 / 65.0, Legendary 13.8 / 21.2 / 17.9,
+# Mythic 2.41 / 4.63 / 4.34, Secret 0.08 / 0.14 / 0.12.)
 PLAN_V5 = {
-    7: {"Epic": 58.9, "Legendary": 13.8, "Mythic": 2.41, "Secret": 0.08, "WeekOne": 0.18},
-    30: {"Epic": 67.3, "Legendary": 21.2, "Mythic": 4.63, "Secret": 0.14, "WeekOne": 15.8},
-    60: {"Epic": 65.0, "Legendary": 17.9, "Mythic": 4.34, "Secret": 0.12, "WeekOne": 29.0},
+    7: {"Epic": 60.9, "Legendary": 14.8, "Mythic": 2.57, "Secret": 0.10, "WeekOne": 0.18},
+    30: {"Epic": 69.2, "Legendary": 22.2, "Mythic": 4.80, "Secret": 0.17, "WeekOne": 15.8},
+    60: {"Epic": 66.7, "Legendary": 18.7, "Mythic": 4.58, "Secret": 0.16, "WeekOne": 29.0},
 }
 TARGETS = {d: {r: (v - (1.5 if v >= 10 else 0.5 if v >= 1 else 0.05), v + (1.5 if v >= 10 else 0.5 if v >= 1 else 0.05))
                for r, v in row.items() if r != "WeekOne"} for d, row in PLAN_V5.items()}
@@ -904,7 +935,8 @@ def tables(plan):
                 v = row[r]
                 cells.append(f"{r} {v:g}%" + (f" (1 in {100 / v:,.0f})" if v < 1 else ""))
         print(f"  {k:13s} " + ", ".join(cells))
-    print("\n  Mystery block, final tier: " + ", ".join(f"{t} {plan['tier'][t]:g}%" for t in TIERS))
+    print("\n  Mystery block, " + ("turns into" if plan.get("unified") else "final tier") + ": "
+          + ", ".join(f"{t} {plan['tier'][t]:g}%" for t in TIERS if plan["tier"][t] or not plan.get("unified")))
     pm = per_mystery(plan)
     print("  Mystery block, per cue rarity: " + ", ".join(f"{r} {pm[r]:.4g}%" + (f" (1 in {100 / pm[r]:,.0f})" if pm[r] < 1 else "") for r in RAR))
     print(f"  Ends above Standard: {100 - plan['tier']['Standard']:g}%   pity: Rare by {plan['pity']['Rare']}, Epic by {plan['pity']['Epic']}"
@@ -1067,7 +1099,7 @@ def summary(rows):
             cells.append("/".join(f"{out[d][r][0] * 100:.2f}" for d in REPORT) + "%")
         cells.append("/".join(f"{out[d]['WeekOne'] * 100:.2f}" for d in REPORT) + "%" if "WeekOne" in out[REPORT[0]] else "-")
         print(f"  {label:16s} " + " ".join(f"{c:>24s}" for c in cells))
-    print("\n  The plan's numbers (economy v5 plan 7.1, about the simulation's noise either side):")
+    print("\n  The plan's numbers (economy v5.1, 2026-10-09, about the simulation's noise either side):")
     for r in ("Epic", "Legendary", "Mythic", "Secret"):
         print(f"    {r:10s} " + "  ".join(f"day {d}: {TARGETS[d][r][0]:g}-{TARGETS[d][r][1]:g}%" for d in REPORT))
     print("    WeekOne    " + "  ".join(f"day {d}: {PLAN_V5[d]['WeekOne']:g}%" for d in REPORT))

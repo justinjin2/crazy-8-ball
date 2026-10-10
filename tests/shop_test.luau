@@ -1207,8 +1207,8 @@ return {
 			Pack5 = 399,
 			Pack6 = 799,
 			Pack7 = 1699,
-			Mystery1 = 7,
-			Mystery5 = 29,
+			Mystery1 = 9,
+			Mystery5 = 39,
 			Mystery10 = 45,
 			RestockEpic = 149,
 			RestockLegendary = 599,
@@ -1250,7 +1250,7 @@ return {
 		H.expect(L.GrandOpening10.Was == 10 * L.GrandOpening1.Robux, "190 one by one")
 		H.expect(L.Spin5.Was == 5 * L.Spin1.Robux and L.Spin50.Was == 50 * L.Spin1.Robux, "")
 		H.expect(L.Lucky3.Was == 3 * L.Lucky1.Robux, "75 one by one")
-		H.expect(L.Mystery5.Was == 5 * L.Mystery1.Robux, "35 one by one")
+		H.expect(L.Mystery5.Was == 5 * L.Mystery1.Robux, "45 one by one")
 		-- Retired with the cases (2026-10-04): Quick Cases, Fast Open and the timer skips.
 		for _, key in { "FastOpen", "QuickCases", "Skip1h", "Skip6h", "Skip24h", "Skip48h" } do
 			H.expect(Shop.product(key) == nil, key .. " is gone")

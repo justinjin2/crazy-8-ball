@@ -624,3 +624,56 @@ skip below, which you already approved: the build makes that product. The rule f
   `economy_v5_tune.json`.
 - The review: `03-economy-v5-review.md`, its page `economy-v5-review.html` (built by
   `build_v5_page.py`), research in `research-2026-10-09/`.
+
+---
+
+## 15. Economy v5.1, "Lively" (approved 2026-10-09 evening)
+
+The designer's question that evening: a Mystery that stopped on Rare could never give more than
+a Rare, so it had no suspense, against their Mystery design of 7 October ("even a Standard can
+reach Legendary"). Their aims for the fix: upgrades happen more often, blocks are opened less
+often, no block is limited to its name, even a Standard can reach Legendary, Mythic and the
+Secret, and the whole a little more generous than v5. They approved "Lively" on the plan page
+(https://claude.ai/artifact/Ay5viRk4YeU7Rs7N1PS45Q) with "everything yes".
+
+**The rule.** A Mystery turns into a real lucky block first, the same block the restock, the
+win track and the rewards give, and that block then climbs from its name like any other.
+
+| | v5.1 | v5 |
+|---|---|---|
+| The Mystery's roll (its 4-press screen; `Config.BlockOdds.Turn`) | 30 / 25 / 10 / 5% a step, Standard up to Legendary | none: one climb from Standard |
+| It turns into | Standard 70%, Uncommon 22.5%, Rare 6.75%, Epic 0.7125%, Legendary 0.0375% | - |
+| Both steps: Epic+ / Legendary+ / Mythic+ / Secret | 1 in 18 / 169 / 1,125 / 45,007 | 1 in 32 / 317 / 2,116 / 84,656 |
+| The same in the launch month | 1 in 12 / 81 | 1 in 21 / 141 |
+| Upgrades a player watches per Mystery | 0.99 (its roll 0.38) | 0.71 |
+| Money price | **$19,900**, 5 for **$89,900** | $14,900, 5 for $66,900 |
+| Robux | **9 R$**, 5 for **39 R$** (45 one by one) | 7, 5 for 29 |
+| Playtime, 15 minutes | **$2,000** | a Mystery |
+| Worth per Robux (restock: 2.75 to 4.18) | 3.83 | 2.89 |
+
+- **Pity** stays Rare by the 10th and Epic by the 40th with the 2/10 and 10/40 head start, but
+  counts the cue a Mystery finally gives. It is checked at the roll: a due Mystery turns into a
+  Rare (or Epic) block, which can still climb. A roll that lands on a Rare-or-better block
+  resets that counter at once; the rest ride on the block and count at its climb. Counting the
+  block instead gave about 20% more Legendaries in the model.
+- The Grand Opening Luck boosts every climb, never the roll. Timers, skips, VIP, the restock,
+  the win track, logins, the 28-day track, rank rewards, the Week One Cue and every other
+  product stay as v5.
+- The tutorial's scripted first Mystery (on `tutorial-v2`) needs its own scripted climb now;
+  a hand-off note for that session is in DECISIONS.md.
+
+**What it does** (`python3 tools/economy_model.py`, the same model and Config as the game;
+players active in the last 7 days who own one, day 7 / 30 / 60):
+
+| | Epic | Legendary | Mythic | Secret |
+|---|---|---|---|---|
+| v5.1 | 60.86 / 69.21 / 66.66% | 14.83 / 22.24 / 18.65% | 2.57 / 4.80 / 4.58% | 0.10 / 0.17 / 0.16% |
+| v5 | 58.05 / 66.59 / 64.53% | 13.57 / 20.69 / 17.49% | 2.38 / 4.72 / 4.36% | 0.08 / 0.14 / 0.13% |
+
+A free 1-hour player opens about 5.2 blocks a day (v5: 6.7), 3.2 of them Mysteries, and climbs
+to Legendary or better about 2.6 times in the launch month and 1.3 times a month after (v5: 2.5
+and 1.1). Without the higher price and the playtime change, Legendary owners would reach about
+24.5% at day 30 and the Mystery would be worth 4.92 per Robux, a better buy than every restock
+block. The runs and the other variants (a literal "Rare stays Rare plus a climb", Balanced at 15
+/ 15 / 10 / 5%) are in `~/Desktop/8ball-refs/economy/economy_v5_unified.py` and
+`unified_final.txt`.

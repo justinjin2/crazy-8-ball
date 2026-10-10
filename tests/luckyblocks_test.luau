@@ -368,6 +368,40 @@ return {
 		H.expect(not pcall(L.climb, state, other.Id, "Secret", 400), "the Secret has no block")
 	end,
 
+	["turn: a Mystery's roll makes it an unclimbed block of that tier, ready to climb"] = function()
+		local L, Config = load()
+		H.expect(Config.LuckyBlocks.Kinds.Mystery.Turns == true and L.turns("Mystery"), "turns")
+		H.expect(not L.turns("Rare") and not L.turns("Lucky8") and not L.turns("Nope"), "only it")
+		local state = L.fresh()
+		L.add(state, "Standard", 100)
+		local mystery = L.add(state, "Mystery", 100, nil, true)
+		local block = L.turn(state, mystery.Id, "Rare", 200, "Epic") :: any
+		H.expect(block ~= nil and block.Id == mystery.Id, "same id")
+		H.expect(state.List[2] == block and block.Kind == "Rare", "same place, now a Rare block")
+		H.expect(block.Climbed == nil and L.unclimbed(block), "its climb is still ahead")
+		H.expect(block.ReadyAt == 200 and L.isReady(block, 200), "ready at once")
+		H.expect(block.Paid == true and block.Pity == "Epic", "paid origin kept; pity carried")
+		H.expect(L.opened(state, "Mystery") == 1, "the open is counted for the Mystery")
+		H.expect(
+			not pcall(L.turn, state, block.Id, "Epic", 300),
+			"a turned block never turns again"
+		)
+		-- Its climb clears the pity mark (the server counts it then) and counts a Rare open.
+		local done = L.climb(state, block.Id, "Epic", 300) :: any
+		H.expect(done.Pity == nil and done.From == "Rare" and done.Kind == "Epic", "climbed")
+		H.expect(L.opened(state, "Rare") == 1, "the climb counts for the Rare block")
+		-- Only "Rare" or "Epic" is carried.
+		local other = L.add(state, "Mystery", 100)
+		H.expect((L.turn(state, other.Id, "Legendary", 300, nil) :: any).Pity == nil, "none")
+		local odd = L.add(state, "Mystery", 100)
+		H.expect((L.turn(state, odd.Id, "Standard", 300, "Purple") :: any).Pity == nil, "bad")
+		H.expect(L.turn(state, 999, "Rare", 300) == nil, "no such block")
+		local rare = L.add(state, "Rare", 100)
+		H.expect(not pcall(L.turn, state, rare.Id, "Epic", 300), "a Rare block does not turn")
+		local again = L.add(state, "Mystery", 100)
+		H.expect(not pcall(L.turn, state, again.Id, "Secret", 300), "the Secret has no block")
+	end,
+
 	["reveal: parse takes a Reveal of a whole id"] = function()
 		local L = load()
 		local r = L.parse("Reveal", 7)
@@ -419,14 +453,18 @@ return {
 	["the 1 in N: that exact cue's chance from the block it started as (plan 3.9)"] = function()
 		local L = load()
 		local Format = H.require("Progression.Format")
-		-- From a Mystery block (a Standard start): the plan's three examples.
-		H.expect(L.oneIn("ChromaCue", "Mystery") == 2610, tostring(L.oneIn("ChromaCue", "Mystery")))
-		H.expect(L.oneIn("ApexCue", "Mystery") == 6510, tostring(L.oneIn("ApexCue", "Mystery")))
-		H.expect(L.oneIn("EclipseCue", "Mystery") == 84700, "the Secret")
+		-- From a Mystery (its roll, then that block's climb; economy v5.1).
+		H.expect(L.oneIn("ChromaCue", "Mystery") == 1390, tostring(L.oneIn("ChromaCue", "Mystery")))
+		H.expect(L.oneIn("ApexCue", "Mystery") == 3460, tostring(L.oneIn("ApexCue", "Mystery")))
+		H.expect(L.oneIn("EclipseCue", "Mystery") == 45000, "the Secret")
+		-- The block a Mystery turned into counts from itself, like any block of its name.
+		H.expect(L.oneIn("ChromaCue", "Standard") == 2610, "a Standard block: the plan's 3.9")
+		H.expect(L.oneIn("ApexCue", "Standard") == 6510, "its Mythic")
+		H.expect(L.oneIn("EclipseCue", "Standard") == 84700, "its Secret")
 		-- A climbed block keeps the kind it started as: a Lucky 8 climbs from Uncommon.
 		H.expect(L.oneIn("ChromaCue", "Lucky8") < 2610, "an Uncommon start is likelier")
 		-- With the Grand Opening Luck live at the climb, likelier still.
-		H.expect(L.oneIn("ChromaCue", "Mystery", true) < 2610, "the luck")
+		H.expect(L.oneIn("ChromaCue", "Mystery", true) < 1390, "the luck")
 		-- A kind that never climbs: its own row (the Starter block's Secret).
 		H.expect(L.oneIn("EclipseCue", "Starter") ~= nil, "the Starter row")
 		H.expect(L.oneIn("WeekOneCue", "Mystery") == nil, "never from a block")

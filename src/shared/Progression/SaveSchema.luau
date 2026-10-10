@@ -1120,7 +1120,8 @@ end
 --- errors, whatever it is given.
 -- Lucky blocks: Next a whole number; List a gapless array of at most Config.LuckyBlocks
 -- .MaxBlocks blocks, each { Id (1..Next, unique), Kind (a known kind), ReadyAt (unix), Paid,
--- Climbed? (only on a block tier's block), From? (a known kind), Luck? }. A block that cannot be
+-- Climbed? (only on a block tier's block), From? (a known kind), Luck?, Pity? ("Rare" or "Epic",
+-- only on an unclimbed block tier's block: economy v5.1) }. A block that cannot be
 -- read is dropped (it never becomes a block of another kind); a ReadyAt out of range is
 -- clamped, so a block is never lost to a clock bug. Credits: a whole count per skip product
 -- (a Config.Products key).
@@ -1182,6 +1183,11 @@ local function fixLuckyBlocks(blocks: { [any]: any }, fixes: { string })
 				Climbed = if climbed then true else nil,
 				From = if climbed and LuckyBlocks.kind(from) ~= nil then from else nil,
 				Luck = if climbed and block.Luck == true then true else nil,
+				Pity = if not climbed
+						and table.find(Config.BlockOdds.Order, kind) ~= nil
+						and (block.Pity == "Rare" or block.Pity == "Epic")
+					then block.Pity
+					else nil,
 			})
 			if blocks.Next < id then
 				blocks.Next = id

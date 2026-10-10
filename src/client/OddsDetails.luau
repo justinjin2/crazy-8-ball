@@ -44,11 +44,9 @@ local UISound = require(script.Parent.UISound)
 local O = Config.UI.OddsDetails
 local K = Config.UI.Kit
 local KINDS: { [string]: any } = Config.LuckyBlocks.Kinds :: any
-local SECRET = Config.LuckyBlocks.Reveal.Secret
 local COPY: { [string]: string } = Strings.OddsDetails :: any
 local NAMES: { [string]: string } = Strings.LuckyBlocks.Names
 local RARITIES: { [string]: string } = Strings.Items.Rarities :: any
-local SHORT: { [string]: string } = Strings.LuckyBlocks.Short
 local CUES: { [string]: string } = Strings.Items.Cues :: any
 local PRIORITY = Enum.ContextActionPriority.High.Value + 30 -- over the menus' B, like a dialog
 local ZINDEX = 52 -- as the Gift Player popup's: over the pages, under notices and dialogs
@@ -419,18 +417,6 @@ local function uniquesOf(oddsId: string): { [string]: any }
 	return out
 end
 
--- A tier without a block (the Secret): one group, its rarity's pool, 100% split evenly.
-local function secretGroups(tier: string, rarity: string): { BlockOdds.CueGroup }
-	local ids = {}
-	for _, cue in BlockDrop.pool(tier) do
-		table.insert(ids, cue.Id)
-	end
-	if #ids == 0 then
-		return {}
-	end
-	return { { rarity = rarity, percent = 100, each = 100 / #ids, cues = ids, closed = false } }
-end
-
 --- A lucky block's list (a Config.LuckyBlocks.Kinds key; `climbed`: a climbed block's, its one
 --- rarity): see the top of this file.
 function OddsDetails.blockSpec(kind: string, climbed: boolean?): Spec
@@ -470,8 +456,13 @@ function OddsDetails.blockSpec(kind: string, climbed: boolean?): Spec
 			self:add("Head", NAMES[kind] or kind)
 			-- A block that still climbs lists its climb from its name (live during the Grand
 			-- Opening Luck); a climbed one, or a kind that never climbs, its own row.
+			-- A Mystery (economy v5.1): over both steps, the blocks it turns into, climbed (the
+			-- menus with its full list provide it instead, ShopMysteryOdds).
+			local opts = if row and row.Turns
+				then { mystery = true, luck = luck() }
+				else { start = if row then row.Climb else nil, luck = luck() }
 			local groups: { BlockOdds.CueGroup } = if climbs and row
-				then BlockDrop.cueGroups(nil, { start = row.Climb, luck = luck() })
+				then BlockDrop.cueGroups(nil, opts)
 				else BlockOdds.cueGroups(oddsId, closed)
 			for _, group in groups do
 				if group.rarity == "Unique" then
@@ -502,45 +493,6 @@ function OddsDetails.block(self: any, kind: string, climbed: boolean?)
 	local spec = self.blockSpecs[key]
 	if spec == nil then
 		spec = OddsDetails.blockSpec(kind, climbed)
-		self.blockSpecs[key] = spec
-	end
-	self:show(spec)
-end
-
---- A climb tier's list (a row's dice on the shop's Mystery card; a Config.BlockOdds.Climb.Tiers
---- key): the cues a Mystery climb that ends on `tier` gives, under "Epic cues" and the line "If
---- your Mystery block climbs to Epic, you get one of these:", so it never reads as a block of
---- that tier (whose own list climbs from it; designer, 2026-10-09). The Secret, which has no
---- block, lists its pool.
-function OddsDetails.tierSpec(tier: string): Spec
-	local row = KINDS[tier]
-	local secret = not BlockDrop.isBlockTier(tier)
-	local rarity = BlockDrop.rarityOf(tier) or tier
-	local oddsId: string = if row and type(row.Odds) == "string" then row.Odds else tier
-	return {
-		icon = if secret then SECRET.Icon elseif row then row.Icon else nil,
-		tint = if secret then ShopCards.rgb(SECRET.Tint) else nil,
-		key = function(): string
-			return "tier|" .. tier
-		end,
-		paint = function(self: any)
-			self:add("Head", COPY.TierHead:format(RARITIES[rarity] or rarity))
-			self:add("Note", COPY.TierLine:format(SHORT[tier] or tier))
-			local groups = if secret
-				then secretGroups(tier, rarity)
-				else BlockOdds.cueGroups(oddsId, {})
-			self:cues(groups, true)
-			self:finish()
-		end,
-	}
-end
-
---- Open a climb tier's list (OddsDetails.tierSpec).
-function OddsDetails.tier(self: any, tier: string)
-	local key = "tier|" .. tier
-	local spec = self.blockSpecs[key]
-	if spec == nil then
-		spec = OddsDetails.tierSpec(tier)
 		self.blockSpecs[key] = spec
 	end
 	self:show(spec)

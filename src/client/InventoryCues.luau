@@ -175,7 +175,7 @@ end
 -- live during the Grand Opening Luck.
 local function percentWords(rarity: string): string
 	local luck = BlockDrop.luckLive(workspace:GetServerTimeNow())
-	local p = BlockDrop.rarityPercent(rarity, { luck = luck })
+	local p = BlockDrop.rarityPercent(rarity, { mystery = true, luck = luck })
 	if p <= 0 then
 		return "0%"
 	elseif p >= 10 then

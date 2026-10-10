@@ -2095,21 +2095,24 @@ end
 
 --- The climb (economy v5 plan 3.5; the Mystery block's upgrade screen since 2026-10-07, made
 --- general): the unclimbed block `id` rolls its final tier from its kind's start
---- (BlockDrop.climbRoll, with the Grand Opening Luck while it runs; a Mystery block with its
---- pity, counted, BlockDrop.roll) and the path its presses show (BlockDrop.path), in one change.
---- A block tier: the block becomes that tier's climbed block (same id, same place, its origin
---- kept, From and Luck noted) on the tier's timer (none for a paid block or a VIP). The Secret
---- (no block): the block goes and the Secret cue is given at once (paid origin if the block
---- was bought; a first find pays its finder's money). Answers (true, { tiers, kind?, readyAt?,
---- pity?, from, luck, secret?, cue?, rarity?, new?, count?, found? }) or (false, reason):
---- "NotOwned", "NotReady" (the Gift's wait), "NotMystery" (nothing to climb: a climbed block or
---- a kind that never climbs), "NotLoaded", "Invalid". `pity` (a Mystery block's) is
---- BlockDrop.pityLeft as it stood before this block (this one counted in it, so it never gives
---- the result away), for the climb screen's counters. `stay` (the tutorial's game-1 block):
---- no roll, the block stays at its start tier, climbed and ready at once. `forced` (the
---- tutorial's scripted first block): that final tier instead of a roll, at or above the
---- start (a Mystery block still counts pity), the climbed block ready at once; a tier below
---- the start is ignored (a normal roll, warned). BlockDrop.climbFor decides.
+--- (BlockDrop.climbRoll, with the Grand Opening Luck while it runs) and the path its presses
+--- show (BlockDrop.path), in one change. A block tier: the block becomes that tier's climbed
+--- block (same id, same place, its origin kept, From and Luck noted) on the tier's timer (none
+--- for a paid block or a VIP). The Secret (no block): the block goes and the Secret cue is
+--- given at once (paid origin if the block was bought; a first find pays its finder's money).
+--- A block a Mystery turned into settles the pity counters it carries (BlockDrop.countClimb).
+--- A Mystery (economy v5.1, Turns) rolls instead which block it turns into
+--- (BlockDrop.turnFor, with pity, counted): it becomes an unclimbed block of that tier (same
+--- id, same place, its origin kept, LuckyBlocks.turn) and answers `turned` with `pity`
+--- (BlockDrop.pityLeft as it stood before this Mystery, for the screen's counters). Answers
+--- (true, { tiers, kind?, readyAt?, turned?, pity?, from, luck, secret?, cue?, rarity?, new?,
+--- count?, found? }) or (false, reason): "NotOwned", "NotReady" (the Gift's wait),
+--- "NotMystery" (nothing to climb: a climbed block or a kind that never climbs), "NotLoaded",
+--- "Invalid". `stay` (the tutorial's game-1 block): no roll, the block stays at its start
+--- tier, climbed and ready at once (a Mystery: a Standard block, no pity counted). `forced`
+--- (the tutorial's scripted first block): that final tier instead of a roll, at or above the
+--- start, the climbed block ready at once (a Mystery: the block it turns into, pity still
+--- counted); a tier it can't reach is ignored (a normal roll, warned).
 function PlayerData.climbBlock(
 	player: Player,
 	id: number,
@@ -2142,10 +2145,39 @@ function PlayerData.climbBlock(
 	if forced ~= nil and type(forced) ~= "string" then
 		forced = nil
 	end
-	-- Every Mystery block counts and gets pity, bought ones too (economy v4; plan 3.6).
-	local pity = if kind.Pity then BlockDrop.readPity(data.Drops) else nil
-	local tier, after, luck, ready = BlockDrop.climbFor(start, dropRoll, {
-		pity = pity,
+	if kind.Turns then
+		-- The Mystery's roll (economy v5.1): it turns into an unclimbed block of the tier
+		-- reached, which climbs from its name later. Every Mystery counts and gets pity, bought
+		-- ones too (plan 3.6); the counters it can't settle yet ride on the block (Pity).
+		local pity = BlockDrop.readPity(data.Drops)
+		local tier, after, waits, scripted = BlockDrop.turnFor(pity, dropRoll, {
+			stay = stay,
+			forced = forced,
+		})
+		if forced ~= nil and not scripted then
+			warn(
+				("[8ball] PlayerData.climbBlock: a Mystery can't turn into the scripted tier %s; rolled instead"):format(
+					tostring(forced)
+				)
+			)
+		end
+		data.Drops.SinceRare = math.min(after.SinceRare, S.StatCap)
+		data.Drops.SinceEpic = math.min(after.SinceEpic, S.StatCap)
+		data.Drops.Total = math.min(after.Total, S.StatCap)
+		local turned = LuckyBlocks.turn(data.LuckyBlocks, id, tier, now, waits) :: LuckyBlocks.Block
+		commit(player, data, op)
+		return true,
+			{
+				tiers = BlockDrop.path(tier, dropRoll, start),
+				kind = turned.Kind,
+				turned = true,
+				readyAt = turned.ReadyAt,
+				pity = BlockDrop.pityLeft(pity),
+				from = from,
+				luck = false,
+			}
+	end
+	local tier, luck, ready = BlockDrop.climbFor(start, dropRoll, {
 		luck = BlockDrop.luckLive(now),
 		stay = stay,
 		forced = forced,
@@ -2158,12 +2190,11 @@ function PlayerData.climbBlock(
 			)
 		)
 	end
-	local before = nil
-	if pity and after then
-		before = BlockDrop.pityLeft(pity)
+	-- A block a Mystery turned into settles the pity counters it carries on its final tier.
+	if block.Pity ~= nil then
+		local after = BlockDrop.countClimb(BlockDrop.readPity(data.Drops), block.Pity, tier)
 		data.Drops.SinceRare = math.min(after.SinceRare, S.StatCap)
 		data.Drops.SinceEpic = math.min(after.SinceEpic, S.StatCap)
-		data.Drops.Total = math.min(after.Total, S.StatCap)
 	end
 	local tiers = BlockDrop.path(tier, dropRoll, start)
 	if BlockDrop.isBlockTier(tier) then
@@ -2184,7 +2215,6 @@ function PlayerData.climbBlock(
 				tiers = tiers,
 				kind = climbed.Kind,
 				readyAt = climbed.ReadyAt,
-				pity = before,
 				from = from,
 				luck = luck,
 			}
@@ -2205,7 +2235,6 @@ function PlayerData.climbBlock(
 	return true,
 		{
 			tiers = tiers,
-			pity = before,
 			from = from,
 			luck = luck,
 			secret = true,

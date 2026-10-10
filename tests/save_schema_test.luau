@@ -770,10 +770,10 @@ return {
 		end
 	end,
 
-	["a climbed block keeps its mark, its start and its luck; a bad mark goes"] = function()
+	["a climbed block keeps its mark, its start and its luck; a turned one its pity; bad marks go"] = function()
 		local Config, SaveSchema = setup()
 		local save = SaveSchema.template()
-		save.LuckyBlocks.Next = 4
+		save.LuckyBlocks.Next = 9
 		save.LuckyBlocks.List = {
 			{
 				Id = 1,
@@ -787,6 +787,12 @@ return {
 			{ Id = 2, Kind = "Mystery", ReadyAt = 5, Paid = false, Climbed = true, From = "Rare" },
 			{ Id = 3, Kind = "Rare", ReadyAt = 5, Paid = false, Climbed = true, From = "Purple" },
 			{ Id = 4, Kind = "Rare", ReadyAt = 5, Paid = false, From = "Mystery", Luck = true },
+			-- A Mystery's turned blocks (v5.1) carry the pity counters waiting on their climb.
+			{ Id = 5, Kind = "Standard", ReadyAt = 5, Paid = false, Pity = "Rare" },
+			{ Id = 6, Kind = "Rare", ReadyAt = 5, Paid = false, Pity = "Epic" },
+			{ Id = 7, Kind = "Epic", ReadyAt = 5, Paid = false, Climbed = true, Pity = "Rare" },
+			{ Id = 8, Kind = "Uncommon", ReadyAt = 5, Paid = false, Pity = "Purple" },
+			{ Id = 9, Kind = "Mystery", ReadyAt = 5, Paid = false, Pity = "Rare" },
 		}
 		save.LuckyBlocks.Credits = { LuckyBlockSkip = 2, Pack1 = 0, Nope = 4, LuckyBlockSkip9 = -1 }
 		local out = SaveSchema.validate(save)
@@ -795,6 +801,9 @@ return {
 		H.expect(list[2].Climbed == nil and list[2].From == nil, "a Mystery is never climbed")
 		H.expect(list[3].Climbed == true and list[3].From == nil, "an unknown start goes")
 		H.expect(list[4].Climbed == nil and list[4].From == nil and list[4].Luck == nil, "")
+		H.expect(list[5].Pity == "Rare" and list[6].Pity == "Epic", "the pity marks kept")
+		H.expect(list[7].Pity == nil, "a climbed block has counted its pity")
+		H.expect(list[8].Pity == nil and list[9].Pity == nil, "a bad mark, or on a Mystery, goes")
 		local credits = out.LuckyBlocks.Credits
 		H.expect(credits.LuckyBlockSkip == 2 and credits.Nope == nil, "products only")
 		H.expect(credits.Pack1 == nil and credits.LuckyBlockSkip9 == nil, "counts above 0")

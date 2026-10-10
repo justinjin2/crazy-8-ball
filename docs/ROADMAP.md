@@ -468,8 +468,12 @@ daily rewards, trading's gates, Roblox policy): `docs/ECONOMY.md`.*
   climb screen for every block and the Secret rung, the quick reveal, "Open all", Odds &
   Details with each cue and the pity bars, the clover, the shop's Mystery card and restock, the
   win track's money tiles and the result line, the first week's day 7 cue, the Index line).
-  Still to do: the phone and gamepad checks with the designer, the merge with `tutorial-v2`
-  (when the tutorial is done), the place saved and published, the release clicks.
+  Progress 2026-10-09 evening (v5.1 "Lively", plan section 15): a Mystery turns into a real
+  block (its roll 30 / 25 / 10 / 5%) that then climbs; the Mystery at $19,900 (5 for $89,900)
+  and 9 R$ (5 for 39 R$); the 15-minute gift $2,000; pity on the final cue; the model, Config,
+  tests (1164) and docs; checked in Studio on PC. Still to do: the phone and gamepad checks with
+  the designer, the merge with `tutorial-v2` (when the tutorial is done; it needs the hand-off
+  in DECISIONS.md), the place saved and published, the release clicks.
 
 ---
 

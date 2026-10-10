@@ -1133,25 +1133,26 @@ return {
 		-- its chance goes to the block's lowest rarity): its bar says why.
 		UniqueOwned = "%s · Owned",
 		UniqueGone = "%s · All found",
-		-- The Mystery block's (ShopMysteryOdds): the final tiers first, then pity as two meters
-		-- (designer, 2026-10-08: "pity make it easier to explain and show ... like 99/100").
+		-- The Mystery block's (ShopMysteryOdds): the blocks it turns into first (economy v5.1),
+		-- then pity as two meters (designer, 2026-10-08: "pity make it easier to explain and
+		-- show ... like 99/100").
 		Pity = "Pity", -- the head over the pity meters (designer, 2026-10-09: nothing after it)
-		-- A meter's word (economy v5: pity gives exactly that rarity, Rare by the 10th Mystery
-		-- block, Epic by the 40th).
+		-- A meter's word (economy v5.1: a Rare block by the 10th Mystery block without a Rare or
+		-- better cue, an Epic block by the 40th; each still climbs).
 		PityRare = "Rare guaranteed",
 		PityEpic = "Epic guaranteed",
 		PityCount = "%d/%d", -- the blocks opened since the last one, the count: "3/10"
-		Live = "Your next Mystery block is %s!", -- the tier's name (exactly it, economy v5)
-		Tiers = "Final tier",
-		TiersLive = "Final tier, with pity",
+		Live = "Your next Mystery block turns into a %s block!", -- the tier's name (v5.1)
+		Tiers = "Turns into",
+		TiersLive = "Turns into, with pity",
+		-- Under the blocks it turns into (economy v5.1): the second step, and what the cue list
+		-- below counts.
+		TurnNote = "Then that block climbs from its name, the same as anywhere else. Each cue below counts both steps.",
+		Ends = "Ends with a cue that is", -- the head over each rarity's chance, both steps (v5.1)
 		-- Every block's list: each cue on its own line (economy v5 plan 3.3) under this head,
 		-- its chance and "1 in N" ("0.29% · 1 in 345").
 		EachCue = "Each cue",
 		CueChance = "%s · 1 in %s",
-		-- A row's dice on the shop's Mystery card: the cues a climb ending on that tier gives (the
-		-- rarity's name: "Epic cues"), with its line, so it never reads as that tier's block.
-		TierHead = "%s cues",
-		TierLine = "If your Mystery block climbs to %s, you get one of these:",
 	},
 
 	-- The lucky block reel's skip hint (LuckyOpening, UltSpinAnim, PullCutscene, ResultCutscene).

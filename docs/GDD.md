@@ -901,25 +901,28 @@ approves the v5 proposal (ECONOMY.md section 11).
   Rare block always gives Rare or better), and every block climbs from it, one step at a time,
   on **one ladder: Standard to Uncommon 50%, to Rare 35%, to Epic 18%, to Legendary 10%, to
   Mythic 15%, to the Secret 2.5%**. The tier it ends on is the cue's rarity; the reel only picks
-  which cue of it. The Mystery block and the Sky block start at Standard, Lucky 8 and the Gift
-  at Uncommon, each tier block at its own tier; the Grand Opening and Starter blocks keep their
-  own odds and never climb. A Mystery block reaches Epic or better 1 in 32, Legendary or better
-  1 in 317, Mythic or better 1 in 2,116, the Secret 1 in 84,656. ECONOMY.md section 7.
+  which cue of it. The Sky block starts at Standard, Lucky 8 and the Gift at Uncommon, each
+  tier block at its own tier; the Grand Opening and Starter blocks keep their own odds and never
+  climb. **The Mystery turns into a real block first** (v5.1 "Lively", designer 2026-10-09):
+  its roll steps up 30 / 25 / 10 / 5% (Standard 70%, Uncommon 22.5%, Rare 6.75%, Epic 0.7125%,
+  Legendary 0.0375%), and that block, the same as the restock's, then climbs from its name, so
+  even a Standard can reach the Secret. Both steps together: Epic or better 1 in 18, Legendary
+  or better 1 in 169, Mythic or better 1 in 1,125, the Secret 1 in 45,007. ECONOMY.md 7.2, 7.4.
 - **The climb screen** (like Star Drop, our own look): a new block arrives **unclimbed**, with no
   timer; its slot says **OPEN!** and a tap opens the climb screen, **4 presses** (designer,
   2026-10-09): the first shows its start, each of the other 3 lifts it one tier or not, never
-  down. The server rolls the final tier first (with the luck and, for a Mystery block, pity),
-  so the shown odds are the real odds and nothing fizzles. The block then jumps back into its
-  slot as that tier's **climbed** block, on that tier's timer, and opens with the reel. A Secret
-  climb gives the Secret cue at once (there is no Secret block). Until the GUI session builds it
-  for every block, today's screen opens Mystery blocks and other blocks climb on the server
-  when held. ECONOMY.md section 7.1.
+  down. The server rolls the final tier first (with the luck), so the shown odds are the real
+  odds and nothing fizzles. The block then jumps back into its slot as that tier's **climbed**
+  block, on that tier's timer, and opens with the reel. A Secret climb gives the Secret cue at
+  once (there is no Secret block). A Mystery's screen is its roll: the same 4 presses end on the
+  block it turns into, which jumps back unclimbed (OPEN!). ECONOMY.md section 7.1.
 - **The Grand Opening Luck** (designer, 2026-10-09): for 30 days from the Grand Opening's start,
   Rare to Epic is 27% and Epic to Legendary 15%, free for everyone, dated, with a countdown; a
   clover next to the money and VIP bars shows it. ECONOMY.md section 7.3.
-- **Pity, Mystery blocks only** (v5): exactly Rare by the 10th Mystery block without a Rare or
-  better, exactly Epic by the 40th without an Epic or better, never a Legendary; a new save's
-  bars start at 2/10 and 10/40. ECONOMY.md section 7.4.
+- **Pity, Mystery blocks only**: Rare by the 10th Mystery without a Rare-or-better cue, Epic by
+  the 40th without an Epic-or-better; a due Mystery turns into a Rare (or Epic) block, which can
+  still climb (v5.1: pity counts the cue it finally gives); a new save's bars start at 2/10 and
+  10/40. ECONOMY.md section 7.4.
 - **Timers belong to the climbed block**: Standard at once, Uncommon 1 min, Rare 5 min, Epic
   30 min, Legendary 6 h, Mythic 12 h, all running at once (the Gift waits 12 h before its
   climb); VIP has no timers at all (designer, 2026-10-07); a bought block opens at once. A
@@ -945,7 +948,7 @@ approves the v5 proposal (ECONOMY.md section 11).
   The Legendary has no sky effect (its gold aurora was dropped, 2026-10-05).
 - **The player stands still through every pull cutscene** (designer, 2026-10-05): no walking
   or jumping, and no turning with the camera, even with shift lock on.
-- **What money buys** (v5 prices, 2026-10-09): **Mystery blocks** ($14,900; 5 for $66,900),
+- **What money buys** (v5 prices, 2026-10-09): **Mystery blocks** ($19,900; 5 for $89,900; v5.1),
   the **Grand Opening block** while it runs ($24,900; 3 for $69,900; 10 for $219,000), the
   **restock shop** (new blocks every 10 minutes on the clock, the same in every server: **two
   slots, the first always Epic or better**, the second Rare, Epic, Legendary or Mythic, and a
@@ -1002,8 +1005,8 @@ approves the v5 proposal (ECONOMY.md section 11).
   block, $10,000, a Mystery block, $15,000, a Mystery block, a Rare block + 2 ability spins;
   one free streak freeze a week); **Claim All** buys the rest of a 7-day row with Robux; a
   **28-day track** of total days (day 8 $50,000, day 14 a Rare block, day 21 $150,000, day 28
-  an Epic block); **playtime gifts**, all within the first hour (5 min $1,000, 15 min a
-  Mystery block, 30 min $2,500, 45 min $3,500, 60 min $5,000 + 1 spin); **VIP's Uncommon
+  an Epic block); **playtime gifts**, all within the first hour (5 min $1,000, 15 min $2,000
+  (v5.1), 30 min $2,500, 45 min $3,500, 60 min $5,000 + 1 spin); **VIP's Uncommon
   block** each day; the game's **group** (Join and Claim: 2 Mystery blocks once, +10% match
   money while a member); a **favorite** reward ($10,000 + a Lucky 8 block); six **like codes**
   the designer switches on live at like milestones; **invites** (a brand-new friend's first
@@ -1043,8 +1046,8 @@ approves the v5 proposal (ECONOMY.md section 11).
   price **1,699 R$**, one phone Robux pack; the v5 prices are a proposal the designer approves
   first): 3 game passes (VIP, Ability Slot 2 and 3 at 49 and 79 R$) and 41 developer products
   on Roblox: VIP offer, Starter Pack, 7 money packs 25 to 1,699 R$ (the first-pack double is
-  off; "Best value" is the biggest), Mystery blocks (5 R$; the v5 5-pack is not made yet and
-  the 10-pack is retired), Grand Opening blocks (19 / 49 / 149 R$), the restock Rare, Epic,
+  off; "Best value" is the biggest), Mystery blocks (9 R$ and the 5-pack 39 R$ since v5.1; the
+  10-pack is retired), Grand Opening blocks (19 / 49 / 149 R$), the restock Rare, Epic,
   Legendary and Mythic blocks (15 / 99 / 599 / 1,699 R$), four timer skips (1 / 4 / 9 / 15 R$;
   the 1 R$ one made 2026-10-09), Money Party (49 R$), six Claim All products, 4 spin packs, and
   the retired Lucky Spin packs and release-sale copies (kept, never deleted), plus a Get Roblox

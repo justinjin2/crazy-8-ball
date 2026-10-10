@@ -2,10 +2,10 @@
 -- ShopMystery: the Shop's Mystery Lucky Block card under "- BLOCKS -" (the designer's pick A on
 -- the mock page, 2026-10-08). On a pale panel with its navy title pill: the block (its purple
 -- glow, turning rays and twinkles; the dice opens its "Odds & Details", ShopMysteryOdds: the
--- final tier, pity and each cue's chance), the ladder of the seven tiers it can climb to with
--- their chances (BlockDrop.tiers, live during the Grand Opening Luck; the Secret on top, the
--- Mythic block darkened as on the climb screen), the small dice after each row's name opening
--- that tier's climbed block's odds (its one rarity; designer, 2026-10-09), the x1 and x5
+-- blocks it turns into, pity and each cue's chance over both steps), the rows of the blocks it
+-- can turn into with their chances (economy v5.1, BlockDrop.turnTiers: Standard to Legendary),
+-- the small dice after each row's name opening that block's own odds, the same list as the
+-- restock's (it climbs from its name; designer, 2026-10-09), the x1 and x5
 -- columns (the purple gift square and the green Robux price, then the gold money price; on x5
 -- "35 R$ one by one" and the launch bonus's "6 for 5!" ribbon while it runs) and the pity strip:
 -- Rare by the 10th and Epic by the 40th side by side, each with its bar (the server's pity
@@ -31,7 +31,6 @@ local B = Config.UI.ShopBlocks
 local M = B.Mystery
 local P = B.Panel
 local DEAL = Config.Shop.Deals.Mystery
-local SECRET = Config.LuckyBlocks.Reveal.Secret
 local DROP = Config.BlockOdds.Drop
 local KINDS: { [string]: any } = Config.LuckyBlocks.Kinds :: any
 local COPY: { [string]: any } = (Strings.Menus.Shop :: any).Blocks
@@ -112,8 +111,7 @@ function ShopMystery.new(parent: Instance, actions: Actions): any
 	self.ladder = ladder
 	self.rows = {} :: { Row }
 	local count = rgb(Config.UI.Kit.Numbers.Count)
-	self.luck = false -- the Grand Opening Luck the ladder shows
-	for index, tier in BlockDrop.tiers() do
+	for index, tier in BlockDrop.turnTiers() do
 		local strip = HudParts.frame(ladder.frame, "Row" .. index)
 		strip.BackgroundTransparency = 0
 		strip.BackgroundColor3 = rgb(M.RowColor)
@@ -121,16 +119,7 @@ function ShopMystery.new(parent: Instance, actions: Actions): any
 		strip.ZIndex = 4
 		local corner = HudParts.corner(strip, 0)
 		local row = KINDS[tier.tier]
-		local secret = tier.tier == "Secret" -- no block: the Mythic one darkened
-		local icon = ShopCards.image(
-			strip,
-			"Icon",
-			if secret then SECRET.Icon elseif row then row.Icon else "",
-			5
-		)
-		if secret then
-			icon.ImageColor3 = rgb(SECRET.Tint)
-		end
+		local icon = ShopCards.image(strip, "Icon", if row then row.Icon else "", 5)
 		local name = ShopCards.label(
 			strip,
 			"Name",
@@ -408,17 +397,6 @@ function ShopMystery.refresh(self: any, state: any)
 	local mystery = if type(state.mystery) == "table" then state.mystery else {}
 	local bonus = if type(state.launchBonus) == "table" then state.launchBonus else {}
 	local restricted = state.restricted == true
-	-- The ladder's chances, live during the Grand Opening Luck.
-	local luck = BlockDrop.luckLive(workspace:GetServerTimeNow())
-	if luck ~= self.luck then
-		self.luck = luck
-		for index, tier in BlockDrop.tiers(nil, { luck = luck }) do
-			local row = self.rows[index]
-			if row then
-				setText(row.value, tier.display)
-			end
-		end
-	end
 	-- The live Robux price (ShopState: what Roblox charges this player).
 	local function robuxOf(key: string): number
 		local product = products[key]

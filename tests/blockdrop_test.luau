@@ -1,7 +1,7 @@
 --!strict
 -- BlockDrop (Progression/BlockDrop): the climb (economy v5 plan, 2026-10-09, section 3): one
--- ladder for every block, the Grand Opening Luck, the Mystery block's pity with its head start,
--- every block's odds lists, the climb screen's path from any start, the "1 in N", and the daily
+-- ladder for every block, the Grand Opening Luck, the Mystery's roll into a block (v5.1) and its
+-- pity with the head start, every block's odds lists, the climb screen's path from any start, the "1 in N", and the daily
 -- win track with its money steps (section 4), and whether a win moves it at all (the anti-farm
 -- rules, ECONOMY 3.6).
 
@@ -76,6 +76,13 @@ end
 -- An rng that always climbs (the bottom of every draw).
 local function always(_n: number): number
 	return 1
+end
+
+-- One whole Mystery: its roll, then that block's climb. (the block, the cue's tier, the counters).
+local function mystery(BlockDrop: any, pity: any, rng: (number) -> number): (string, string, any)
+	local block, after, waits = BlockDrop.turnRoll(pity, rng)
+	local final = BlockDrop.climbRoll(block, rng)
+	return block, final, BlockDrop.countClimb(after, waits, final)
 end
 
 -- 1 in N as the plan prints it: a whole number from 10 up, one decimal under 10.
@@ -302,63 +309,96 @@ return {
 		end
 	end,
 
-	["pity: the 10th Mystery block without a Rare ends on exactly Rare"] = function()
+	["pity: the 10th Mystery without a Rare turns into a Rare block"] = function()
 		local BlockDrop = load()
 		local pity = fresh()
 		for i = 1, 9 do
-			local tier
-			tier, pity = BlockDrop.roll(pity, never)
-			H.expect(tier == "Standard", "Mystery block " .. i)
+			local block, final
+			block, final, pity = mystery(BlockDrop, pity, never)
+			H.expect(block == "Standard" and final == "Standard", "Mystery " .. i)
 		end
 		H.expect(pity.SinceRare == 9 and pity.SinceEpic == 9 and pity.Total == 9, "counted")
 		H.expect(BlockDrop.pityLeft(pity).rare == 1, "the next one is guaranteed")
-		local tier
-		tier, pity = BlockDrop.roll(pity, never)
-		H.expect(tier == "Rare", "the 10th: " .. tier)
-		H.expect(pity.SinceRare == 0 and pity.SinceEpic == 10, "a Rare resets only its count")
-		H.expect(BlockDrop.pityLeft(pity).rare == 10, "10 to go again")
+		local block, after, waits = BlockDrop.turnRoll(pity, never)
+		H.expect(block == "Rare" and waits == "Epic", "the 10th: " .. block)
+		H.expect(after.SinceRare == 0 and after.SinceEpic == 9, "the Rare count resets at the roll")
+		after = BlockDrop.countClimb(after, waits, BlockDrop.climbRoll(block, never))
+		H.expect(after.SinceRare == 0 and after.SinceEpic == 10, "the Epic one counts at the climb")
+		H.expect(BlockDrop.pityLeft(after).rare == 10, "10 to go again")
 	end,
 
-	["pity: the 40th without an Epic ends on exactly Epic, never more or less"] = function()
+	["pity: the 40th without an Epic turns into an Epic block, never more or less"] = function()
 		local BlockDrop = load()
 		local pity = { SinceRare = 0, SinceEpic = 38, Total = 38 }
-		local tier
-		tier, pity = BlockDrop.roll(pity, never)
-		H.expect(tier == "Standard" and pity.SinceEpic == 39, "the 39th climbs as usual")
-		tier, pity = BlockDrop.roll(pity, never)
-		H.expect(tier == "Epic", "the 40th: " .. tier)
-		H.expect(pity.SinceRare == 0 and pity.SinceEpic == 0, "an Epic resets both")
+		local block, final
+		block, final, pity = mystery(BlockDrop, pity, never)
+		H.expect(block == "Standard" and final == "Standard", "the 39th rolls as usual")
+		H.expect(pity.SinceEpic == 39 and pity.SinceRare == 1, "counted at its climb")
+		local after, waits
+		block, after, waits = BlockDrop.turnRoll(pity, never)
+		H.expect(block == "Epic" and waits == nil, "the 40th: " .. block)
+		H.expect(after.SinceRare == 0 and after.SinceEpic == 0, "an Epic block resets both")
 		-- Both due at once: Epic wins.
-		tier = BlockDrop.roll({ SinceRare = 9, SinceEpic = 39, Total = 200 }, never)
-		H.expect(tier == "Epic", "Epic over Rare")
-		-- A higher climb is never lowered by pity.
-		tier = BlockDrop.roll({ SinceRare = 9, SinceEpic = 39, Total = 200 }, always)
-		H.expect(tier == "Secret", "the top climb stays")
-		-- A natural Rare or better before the limit resets the count.
+		block = BlockDrop.turnRoll({ SinceRare = 9, SinceEpic = 39, Total = 200 }, never)
+		H.expect(block == "Epic", "Epic over Rare")
+		-- A higher roll is never lowered by pity.
+		block = BlockDrop.turnRoll({ SinceRare = 9, SinceEpic = 39, Total = 200 }, always)
+		H.expect(block == "Legendary", "the top roll stays")
+		-- A natural Rare block before the limit resets the Rare count; the Epic one waits.
 		local draws, i = { 1, 1, 1000000 }, 0
-		local natural, after = BlockDrop.roll(
+		local natural
+		natural, after, waits = BlockDrop.turnRoll(
 			{ SinceRare = 5, SinceEpic = 5, Total = 5 },
 			function(n)
 				i += 1
 				return draws[i] or n
 			end
 		)
-		H.expect(natural == "Rare", "a natural Rare: " .. natural)
-		H.expect(after.SinceRare == 0 and after.SinceEpic == 6, "its counts")
-		-- The live floors' lists match what a due roll does, seeded.
+		H.expect(natural == "Rare" and waits == "Epic", "a natural Rare: " .. natural)
+		H.expect(after.SinceRare == 0 and after.SinceEpic == 5, "its counts")
+		-- The live floor's cue list matches what a due Mystery does, seeded.
 		local rng = seeded(31)
 		local n = 200000
 		local counts: { [string]: number } = {}
 		for _ = 1, n do
-			local t = BlockDrop.roll({ SinceRare = 0, SinceEpic = 39, Total = 0 }, rng)
+			local _, t = mystery(BlockDrop, { SinceRare = 0, SinceEpic = 39, Total = 0 }, rng)
 			counts[t] = (counts[t] or 0) + 1
 		end
-		for t, p in BlockDrop.chances("Epic") do
+		for t, p in BlockDrop.chances("Epic", { mystery = true }) do
 			H.expect(
 				math.abs((counts[t] or 0) - n * p) <= 4 * math.sqrt(n * p * (1 - p)) + 1,
 				t .. " under the Epic floor"
 			)
 		end
+	end,
+
+	["pity: Mysteries rolled while pity is due are lifted once; held blocks count later"] = function()
+		local BlockDrop = load()
+		-- The 10th lifts to Rare and resets at once, so a second roll before its climb is not.
+		local due = { SinceRare = 9, SinceEpic = 5, Total = 9 }
+		local first, after = BlockDrop.turnRoll(due, never)
+		local second = BlockDrop.turnRoll(after, never)
+		H.expect(first == "Rare" and second == "Standard", "one lift, not two")
+		-- Standard blocks held unopened count when they climb, so pity is late, never lost.
+		local pity = { SinceRare = 8, SinceEpic = 8, Total = 8 }
+		local a, afterA, waitsA = BlockDrop.turnRoll(pity, never)
+		local b, afterB, waitsB = BlockDrop.turnRoll(afterA, never)
+		H.expect(a == "Standard" and b == "Standard", "neither is due yet")
+		H.expect(afterB.SinceRare == 8 and afterB.Total == 10, "the counts wait")
+		pity = BlockDrop.countClimb(afterB, waitsA, "Uncommon")
+		pity = BlockDrop.countClimb(pity, waitsB, "Standard")
+		H.expect(pity.SinceRare == 10 and pity.SinceEpic == 10, "both counted at their climbs")
+		H.expect(BlockDrop.turnRoll(pity, never) == "Rare", "the next is lifted")
+		-- A climb's cue resets what it carried; nothing else changes.
+		local reset = BlockDrop.countClimb(pity, "Rare", "Epic")
+		H.expect(reset.SinceRare == 0 and reset.SinceEpic == 0, "an Epic cue resets both")
+		local rare = BlockDrop.countClimb(pity, "Rare", "Rare")
+		H.expect(rare.SinceRare == 0 and rare.SinceEpic == 11, "a Rare cue resets the Rare one")
+		local epicOnly = BlockDrop.countClimb(pity, "Epic", "Rare")
+		H.expect(epicOnly.SinceRare == 10 and epicOnly.SinceEpic == 11, "only the Epic one")
+		local none = BlockDrop.countClimb(pity, nil, "Standard")
+		H.expect(none.SinceRare == 10 and none.SinceEpic == 10, "nothing carried")
+		H.expect(none.Total == pity.Total, "the total counts at the roll only")
 	end,
 
 	["pity's head start: a new save begins at 2 / 10 and 10 / 40"] = function()
@@ -367,26 +407,118 @@ return {
 		H.expect(start.SinceRare == 2 and start.SinceEpic == 10 and start.Total == 0, "the counts")
 		local left = BlockDrop.pityLeft(start)
 		H.expect(left.rare == 8 and left.epic == 30, "8 and 30 to go")
-		-- The first Epic is guaranteed by the 30th Mystery block.
-		local pity, tier = start, ""
+		-- The first Epic block is guaranteed by the 30th Mystery.
+		local pity, block = start, ""
 		for i = 1, 30 do
-			tier, pity = BlockDrop.roll(pity, never)
+			block, _, pity = mystery(BlockDrop, pity, never)
 			if i < 30 then
-				H.expect(tier == "Standard" or tier == "Rare", ("block %d: %s"):format(i, tier))
+				H.expect(
+					block == "Standard" or block == "Rare",
+					("Mystery %d: %s"):format(i, block)
+				)
 			end
 		end
-		H.expect(tier == "Epic", "the 30th: " .. tier)
+		H.expect(block == "Epic", "the 30th: " .. block)
 		H.expect(Config.BlockOdds.Drop.PityStart.SinceRare == 2, "Config")
 	end,
 
-	["the first win's forced Rare skips the roll and still counts"] = function()
+	["a forced turn skips the roll and still counts"] = function()
 		local BlockDrop = load()
-		local tier, pity = BlockDrop.roll(fresh(), function(_n: number): number
-			error("no roll for a forced drop")
+		local tier, pity, waits = BlockDrop.turnRoll(fresh(), function(_n: number): number
+			error("no roll for a forced turn")
 		end, "Rare")
-		H.expect(tier == "Rare" and pity.SinceRare == 0 and pity.SinceEpic == 1, "forced")
-		H.expect(pity.Total == 1, "counted")
-		H.expect(not pcall(BlockDrop.roll, fresh(), never, "Nope"), "an unknown tier")
+		H.expect(tier == "Rare" and waits == "Epic", "forced")
+		H.expect(pity.SinceRare == 0 and pity.SinceEpic == 0 and pity.Total == 1, "counted")
+		H.expect(not pcall(BlockDrop.turnRoll, fresh(), never, "Nope"), "an unknown tier")
+		H.expect(not pcall(BlockDrop.turnRoll, fresh(), never, "Mythic"), "above the top")
+	end,
+
+	["the Mystery's roll: 30 / 25 / 10 / 5, up to a Legendary block"] = function()
+		local BlockDrop, Config = load()
+		local T = Config.BlockOdds.Turn
+		H.expect(T.Top == "Legendary", "the top")
+		H.expect(T.Steps.Standard == 300000 and T.Steps.Uncommon == 250000, "the first two")
+		H.expect(T.Steps.Rare == 100000 and T.Steps.Epic == 50000, "the last two")
+		H.expect(
+			BlockDrop.turnParts("Legendary") == 0 and BlockDrop.turnParts("Mythic") == 0,
+			"top"
+		)
+		local want = {
+			Standard = 0.7,
+			Uncommon = 0.225,
+			Rare = 0.0675,
+			Epic = 0.007125,
+			Legendary = 0.000375,
+		}
+		local turn = BlockDrop.turnChances()
+		local total = 0
+		for tier, p in turn do
+			H.near(p, want[tier] or -1, 1e-12, tier)
+			total += p
+		end
+		H.near(total, 1, 1e-12, "adds to 1")
+		H.expect(turn.Mythic == nil and turn.Secret == nil, "never a Mythic block")
+		-- Under a floor the tiers below it move into it.
+		local floored = BlockDrop.turnChances("Rare")
+		H.near(floored.Rare, 0.9925, 1e-12, "Rare takes Standard and Uncommon")
+		H.expect(floored.Standard == nil and floored.Uncommon == nil, "gone")
+		H.near(floored.Epic, 0.007125, 1e-15, "Epic as before")
+		local rows = BlockDrop.turnTiers()
+		H.expect(#rows == 5 and rows[1].tier == "Standard" and rows[5].tier == "Legendary", "rows")
+		-- A seeded roll lands on those odds.
+		local rng = seeded(19)
+		local n = 200000
+		local counts: { [string]: number } = {}
+		for _ = 1, n do
+			local t = BlockDrop.turnClimb(rng)
+			counts[t] = (counts[t] or 0) + 1
+		end
+		for t, p in turn do
+			H.expect(
+				math.abs((counts[t] or 0) - n * p) <= 4 * math.sqrt(n * p * (1 - p)) + 1,
+				t .. " rolled"
+			)
+		end
+		H.expect(BlockDrop.isTurnTier("Legendary") and not BlockDrop.isTurnTier("Mythic"), "turns")
+		H.expect(not BlockDrop.isTurnTier("Nope") and not BlockDrop.isTurnTier(nil), "broken")
+	end,
+
+	["a Mystery's cue odds: its roll, then that block's climb (the plan's 1 in N)"] = function()
+		local BlockDrop = load()
+		local m = BlockDrop.chances(nil, { mystery = true })
+		local turn = BlockDrop.turnChances()
+		for _, tier in BlockDrop.ladder() do
+			local want = 0
+			for from, p in turn do
+				want += p * (BlockDrop.chances(nil, { start = from })[tier] or 0)
+			end
+			H.near(m[tier] or 0, want, 1e-15, tier .. ": the sum over the roll")
+		end
+		H.near(m.Standard, 0.35, 1e-12, "a Common half the time Standard climbs")
+		local function orBetter(from: string): number
+			local sum = 0
+			for tier, p in m do
+				if BlockDrop.rank(tier) >= BlockDrop.rank(from) then
+					sum += p
+				end
+			end
+			return sum
+		end
+		-- The plan page (2026-10-09): 1 in 18, 169, 1,125 and 45,007 (v5: 32, 317, 2,116, 84,656).
+		H.expect(printed(orBetter("Epic") * 100) == 18, "Epic or better")
+		H.expect(printed(orBetter("Legendary") * 100) == 169, "Legendary or better")
+		H.expect(printed(orBetter("Mythic") * 100) == 1125, "Mythic or better")
+		H.expect(printed(m.Secret * 100) == 45007, "the Secret")
+		-- Every block a Mystery can turn into can still reach the Secret.
+		for tier in turn do
+			H.expect(BlockDrop.chances(nil, { start = tier }).Secret > 0, tier .. " reaches it")
+		end
+		-- The luck lifts its climbs, never its roll.
+		local lucky = BlockDrop.chances(nil, { mystery = true, luck = true })
+		H.expect(lucky.Legendary > m.Legendary, "the luck counts")
+		H.near(lucky.Standard, m.Standard, 1e-15, "the roll is the same")
+		-- A Mystery is never worse than a Standard block.
+		H.expect(orBetter("Rare") > BlockDrop.chances().Rare, "better than Standard")
 	end,
 
 	["pity left and a broken pity table"] = function()
@@ -677,11 +809,11 @@ return {
 	end,
 	["climbFor: no plan rolls like climbRoll, with the luck noted"] = function()
 		local BlockDrop = load()
-		local tier, after, luck, ready = BlockDrop.climbFor("Uncommon", never, {})
-		H.expect(tier == "Uncommon" and after == nil, "never climbs: stays at its start")
+		local tier, luck, ready = BlockDrop.climbFor("Uncommon", never, {})
+		H.expect(tier == "Uncommon", "never climbs: stays at its start")
 		H.expect(luck == false and ready == false, "no luck, on its timer")
-		tier, after, luck, ready = BlockDrop.climbFor("Rare", always, { luck = true })
-		H.expect(tier == "Secret" and after == nil, "always climbs: the top")
+		tier, luck, ready = BlockDrop.climbFor("Rare", always, { luck = true })
+		H.expect(tier == "Secret", "always climbs: the top")
 		H.expect(luck == true and ready == false, "the luck counted")
 		local rng = seeded(7)
 		local same = seeded(7)
@@ -691,25 +823,11 @@ return {
 		end
 		H.expect(not pcall(BlockDrop.climbFor, "Nope", never, {}), "an unknown start")
 	end,
-	["climbFor: a Mystery block's roll counts pity and pity sets it"] = function()
+	["climbFor: stay keeps the block at its start, ready at once"] = function()
 		local BlockDrop = load()
-		local tier, after, luck, ready = BlockDrop.climbFor(
-			"Standard",
-			never,
-			{ pity = { SinceRare = 9, SinceEpic = 5, Total = 4 } }
-		)
-		H.expect(tier == "Rare" and ready == false and luck == false, "the 10th: Rare by pity")
-		H.expect(after ~= nil and after.SinceRare == 0 and after.SinceEpic == 6, "counted")
-		H.expect((after :: any).Total == 5, "every Mystery block counts")
-	end,
-	["climbFor: stay keeps the block at its start, ready at once, nothing counted"] = function()
-		local BlockDrop = load()
-		local tier, after, luck, ready = BlockDrop.climbFor(
-			"Uncommon",
-			always,
-			{ stay = true, luck = true, pity = fresh(), forced = "Epic" }
-		)
-		H.expect(tier == "Uncommon" and after == nil, "no climb, no pity counted (stay wins)")
+		local tier, luck, ready =
+			BlockDrop.climbFor("Uncommon", always, { stay = true, luck = true, forced = "Epic" })
+		H.expect(tier == "Uncommon", "no climb (stay wins)")
 		H.expect(luck == false and ready == true, "ready at once, no luck")
 	end,
 	["climbFor: a scripted tier ends the climb there, ready at once"] = function()
@@ -719,50 +837,55 @@ return {
 			calls += 1
 			return n
 		end
-		-- The tutorial's first block: a Mystery block (pity, the head start) scripted to Uncommon.
-		local start = BlockDrop.freshPity()
-		local tier, after, luck, ready = BlockDrop.climbFor(
-			"Standard",
-			counted,
-			{ pity = start, luck = true, forced = "Uncommon" }
-		)
+		local tier, luck, ready =
+			BlockDrop.climbFor("Standard", counted, { luck = true, forced = "Uncommon" })
 		H.expect(tier == "Uncommon" and ready == true and luck == false, "Uncommon, ready, no luck")
 		H.expect(calls == 0, "nothing rolled")
-		H.expect(after ~= nil, "a Mystery block still counts pity")
-		local a = after :: any
-		H.expect(
-			a.SinceRare == start.SinceRare + 1 and a.SinceEpic == start.SinceEpic + 1,
-			"counted"
-		)
-		H.expect(a.Total == 1, "the open counted")
 		-- Its presses climb Standard to Uncommon.
 		local path = BlockDrop.path(tier, seeded(3), "Standard")
 		H.expect(path[1] == "Standard" and path[#path] == "Uncommon", "the screen's presses")
-		-- A forced Rare or better resets its pity counters like a rolled one.
-		local _, reset = BlockDrop.climbFor("Standard", never, { pity = start, forced = "Epic" })
-		H.expect(
-			reset ~= nil and (reset :: any).SinceRare == 0 and (reset :: any).SinceEpic == 0,
-			"reset"
-		)
-		-- A kind without pity: the tier alone.
-		tier, after, luck, ready =
-			BlockDrop.climbFor("Rare", always, { forced = "Epic", luck = true })
-		H.expect(
-			tier == "Epic" and after == nil and luck == false and ready == true,
-			"no pity kind"
-		)
+		tier, luck, ready = BlockDrop.climbFor("Rare", always, { forced = "Epic", luck = true })
+		H.expect(tier == "Epic" and luck == false and ready == true, "from Rare")
 		-- The Secret can be scripted too (it gives its cue at once, no block).
 		tier = BlockDrop.climbFor("Mythic", never, { forced = "Secret" })
 		H.expect(tier == "Secret", "the Secret")
 	end,
 	["climbFor: a scripted tier below the start or off the ladder is ignored"] = function()
 		local BlockDrop = load()
-		local tier, _, _, ready = BlockDrop.climbFor("Rare", never, { forced = "Uncommon" })
+		local tier, _, ready = BlockDrop.climbFor("Rare", never, { forced = "Uncommon" })
 		H.expect(tier == "Rare" and ready == false, "below the start: a normal roll")
-		tier, _, _, ready = BlockDrop.climbFor("Standard", never, { forced = "Nope" })
+		tier, _, ready = BlockDrop.climbFor("Standard", never, { forced = "Nope" })
 		H.expect(tier == "Standard" and ready == false, "not a tier: a normal roll")
-		local _, after, _, ready2 =
-			BlockDrop.climbFor("Standard", never, { pity = fresh(), forced = "Gold" })
-		H.expect(ready2 == false and after ~= nil and (after :: any).Total == 1, "pity as a roll")
+	end,
+	["turnFor: a Mystery's roll with pity; stay and a scripted block (the tutorial)"] = function()
+		local BlockDrop = load()
+		local rng, same = seeded(11), seeded(11)
+		for _ = 1, 200 do
+			local p = { SinceRare = 3, SinceEpic = 7, Total = 3 }
+			local a, afterA, waitsA, scripted = BlockDrop.turnFor(p, rng, {})
+			local b, afterB, waitsB = BlockDrop.turnRoll(p, same)
+			H.expect(a == b and waitsA == waitsB and not scripted, "the same roll")
+			H.expect(afterA.SinceRare == afterB.SinceRare and afterA.Total == 4, "the same counts")
+		end
+		-- Stay: a Standard block, nothing counted, nothing waiting.
+		local start = BlockDrop.freshPity()
+		local tier, after, waits, scripted =
+			BlockDrop.turnFor(start, always, { stay = true, forced = "Epic" })
+		H.expect(tier == "Standard" and waits == nil and scripted, "stay")
+		H.expect(after.SinceRare == 2 and after.SinceEpic == 10 and after.Total == 0, "uncounted")
+		-- Forced: that block, nothing rolled, the Mystery counted.
+		local calls = 0
+		local counted = function(n: number): number
+			calls += 1
+			return n
+		end
+		tier, after, waits, scripted = BlockDrop.turnFor(start, counted, { forced = "Uncommon" })
+		H.expect(tier == "Uncommon" and waits == "Rare" and scripted, "forced Uncommon")
+		H.expect(calls == 0 and after.Total == 1 and after.SinceRare == 2, "waits for its climb")
+		-- A block it can't turn into: a normal roll.
+		for _, bad in { "Mythic", "Secret", "Nope" } do
+			tier, _, _, scripted = BlockDrop.turnFor(fresh(), never, { forced = bad })
+			H.expect(tier == "Standard" and not scripted, bad)
+		end
 	end,
 }

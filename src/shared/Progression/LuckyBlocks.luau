@@ -2,12 +2,14 @@
 -- LuckyBlocks (designer, 2026-10-03; Config.LuckyBlocks): the rules of the lucky blocks a
 -- player holds. The save keeps them as { Next, List }: List is a gapless array in hotbar order
 -- (the first Config.LuckyBlocks.HotbarSlots are the hotbar's slots 1..9, the rest wait in the
--- bag), each { Id, Kind, ReadyAt, Paid?, Climbed?, From?, Luck? }; Next is the last id given,
--- so ids never repeat in a save. Economy v5 (2026-10-09): a block of a climbing kind arrives
--- unclimbed (no timer but the Gift's Wait) and its climb (`climb`, rolled by
+-- bag), each { Id, Kind, ReadyAt, Paid?, Climbed?, From?, Luck?, Pity? }; Next is the last id
+-- given, so ids never repeat in a save. Economy v5 (2026-10-09): a block of a climbing kind
+-- arrives unclimbed (no timer but the Gift's Wait) and its climb (`climb`, rolled by
 -- BlockDrop.climbRoll) makes it the climbed block of the tier it reached, on that tier's timer;
 -- a climbed block's cue is rolled from its tier's row (exactly that rarity). From: the kind it
--- started as; Luck: the Grand Opening Luck ran at its climb (both for the "1 in N").
+-- started as; Luck: the Grand Opening Luck ran at its climb (both for the "1 in N"). Economy
+-- v5.1: a Mystery's roll (`turn`) makes it an unclimbed block of the tier reached, the same as
+-- any other; Pity: the pity counters still waiting on that block's climb.
 --
 -- Pure: no Instances, no Roblox APIs, no clocks (the caller passes `now`, unix seconds) and no
 -- randomness; Lune-tested (tests/luckyblocks_test.luau). PlayerData calls the changes on the live
@@ -22,7 +24,8 @@ local L = Config.LuckyBlocks
 export type Kind = {
 	Odds: string?, -- the Config.BlockOdds row a climbed (or never-climbing) block of it rolls
 	Climb: string?, -- the tier it climbs from (economy v5); nil: it never climbs
-	Pity: boolean?, -- the Mystery block: its climb uses the pity counters
+	Turns: boolean?, -- the Mystery (v5.1): its screen turns it into a block (BlockDrop.turnRoll)
+	Pity: boolean?, -- the Mystery block: its roll uses the pity counters
 	Timer: number,
 	Wait: number?, -- seconds an unclimbed block waits before it can climb (the Gift)
 	Model: string,
@@ -46,6 +49,9 @@ export type Block = {
 	Climbed: boolean?, -- it climbed (a block tier's climbed block); nil: unclimbed
 	From: string?, -- the kind it started as (a climbed block)
 	Luck: boolean?, -- the Grand Opening Luck ran at its climb
+	-- A block a Mystery turned into (unclimbed): the pity counters still waiting on its climb,
+	-- "Rare" (both) or "Epic" (the Epic one; BlockDrop.countClimb). nil: none.
+	Pity: string?,
 }
 -- Opened: how many blocks of each kind this player has opened (the Guarantee's count).
 export type State = {
@@ -88,7 +94,7 @@ LuckyBlocks.Reasons = table.freeze({
 	"TooFar", -- Open: too far from the block
 	"NotLanded", -- Open: it is still flying
 	"Reveal", -- Hold: a Mystery block is opened on its upgrade screen, never held
-	"NotMystery", -- Reveal: that block has no climb ahead (climbed, or a kind that never climbs)
+	"NotMystery", -- Reveal: that block has no climb or roll ahead (climbed, or a kind that never climbs)
 	"Climb", -- Open: an unclimbed block climbs first (economy v5)
 	"NoneReady", -- OpenAll: no ready climbed Standard or Uncommon block (economy v5)
 	"Error", -- anything else (logged on the server)
@@ -156,6 +162,12 @@ function LuckyBlocks.unclimbed(block: Block): boolean
 	return block.Climbed ~= true and LuckyBlocks.climbs(block.Kind)
 end
 
+--- Whether blocks of `kind` turn into another block on their screen (the Mystery, v5.1).
+function LuckyBlocks.turns(kind: string): boolean
+	local row = LuckyBlocks.kind(kind)
+	return row ~= nil and row.Turns == true
+end
+
 --- How many blocks of `kind` this player has opened.
 function LuckyBlocks.opened(state: State, kind: string): number
 	local opened = state.Opened
@@ -200,6 +212,8 @@ function LuckyBlocks.oneIn(cueId: string, from: string, luck: boolean?): number?
 	local row = LuckyBlocks.kind(from)
 	if row == nil then
 		return nil
+	elseif row.Turns == true then
+		return BlockDrop.oneIn(BlockDrop.cuePercent(cueId, { mystery = true, luck = luck }))
 	elseif row.Climb ~= nil then
 		return BlockDrop.oneIn(BlockDrop.cuePercent(cueId, { start = row.Climb, luck = luck }))
 	elseif row.Odds ~= nil then
@@ -445,7 +459,40 @@ function LuckyBlocks.climb(
 	block.Kind = tier
 	block.Climbed = true
 	block.Luck = if luck == true then true else nil
+	block.Pity = nil
 	block.ReadyAt = if block.Paid then now else now + LuckyBlocks.timer(tier, vip)
+	return block
+end
+
+--- A Mystery's roll turned the unclimbed Mystery block `id` into an unclimbed block of `tier`
+--- (economy v5.1): the same block the restock and the rewards give. It keeps its id, its place
+--- and its origin (a bought one opens at once after its climb), carries `waits` (the pity
+--- counters still waiting on its climb: "Rare" or "Epic", else none) and can climb at once.
+--- The open is counted for the Mystery. Returns the block, or nil when there is no such block.
+--- Errors on a tier that has no block or a block that is not an unclimbed turning kind.
+function LuckyBlocks.turn(
+	state: State,
+	id: number,
+	tier: string,
+	now: number,
+	waits: string?
+): Block?
+	assert(
+		table.find(Config.BlockOdds.Order, tier) ~= nil,
+		"LuckyBlocks.turn: no block of tier " .. tostring(tier)
+	)
+	local block = LuckyBlocks.find(state, id)
+	if block == nil then
+		return nil
+	end
+	assert(
+		block.Climbed ~= true and LuckyBlocks.turns(block.Kind),
+		"LuckyBlocks.turn: the block does not turn"
+	)
+	LuckyBlocks.noteOpened(state, block.Kind)
+	block.Kind = tier
+	block.ReadyAt = now
+	block.Pity = if waits == "Rare" or waits == "Epic" then waits else nil
 	return block
 end
 
@@ -565,6 +612,9 @@ function LuckyBlocks.validate(): { string }
 			end
 			if row.Pity and row.Climb == nil then
 				table.insert(problems, id .. ": Pity without Climb")
+			end
+			if row.Turns and (row.Climb ~= Config.BlockOdds.Climb.Tiers[1] or not row.Pity) then
+				table.insert(problems, id .. ": Turns needs a Standard Climb and Pity")
 			end
 			if
 				row.Wait ~= nil

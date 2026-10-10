@@ -552,4 +552,8 @@ block", 1789-1791 (RareBlock), 1834 (BlockReady). Put what you find into the han
   `OddsDetails.tierSpec`: "Epic cues", the line "If your Mystery block climbs to Epic, you get
   one of these:", then the cues (the Secret row's: "Secret cues", the Eclipse Cue). A real block
   keeps its own name and its climb. New GuiQA hook `tierOdds` (tier). Checked on PC; 1160 tests.
+- **Superseded the same evening by economy v5.1** (`ECONOMY_V5_PLAN.md` section 15): a Mystery
+  turns into a real block, so the card's rows are the five blocks it turns into and a row's dice
+  opens that block's own Odds & Details again (`OddsDetails.tierSpec` removed; `tierOdds` now
+  opens the block's popup). Screenshots in `~/Desktop/8ball-refs/economy-v5-gui/v5.1`.
 

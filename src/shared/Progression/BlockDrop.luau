@@ -1,13 +1,15 @@
 --!strict
--- BlockDrop: the climb and the win's block (economy v5, 2026-10-09, plan sections 3 and 4).
--- Every lucky block of a climbing kind climbs from its name (Config.LuckyBlocks.Kinds[kind]
--- .Climb) one step at a time on one ladder (Config.BlockOdds.Climb): the server rolls every
--- step first (climbRoll; the Mystery block's `roll` adds pity), then the climb screen only
--- plays the path (path). The tier a block ends on is its cue's rarity. This module is the
--- climb, the Grand Opening Luck's window, the pity counters, every block's odds lists (the
--- tiers, the rarities and the cues, live during the luck and while pity is due), the presses'
--- path, and the rule that says whether a win moves the daily win track at all (the anti-farm
--- rules, ECONOMY 3.6).
+-- BlockDrop: the climb, the Mystery's roll and the win's block (economy v5, 2026-10-09, plan
+-- sections 3 and 4; v5.1 the same day). Every lucky block of a climbing kind climbs from its
+-- name (Config.LuckyBlocks.Kinds[kind].Climb) one step at a time on one ladder
+-- (Config.BlockOdds.Climb): the server rolls every step first (climbRoll), then the climb
+-- screen only plays the path (path). The tier a block ends on is its cue's rarity. The Mystery
+-- block instead rolls which block it turns into (Config.BlockOdds.Turn, with pity: turnRoll),
+-- an unclimbed block that then climbs like any other. This module is the climb, the roll, the
+-- Grand Opening Luck's window, the pity counters, every block's odds lists (the tiers, the
+-- rarities and the cues, live during the luck and while pity is due; the Mystery's over both
+-- steps), the presses' path, and the rule that says whether a win moves the daily win track
+-- at all (the anti-farm rules, ECONOMY 3.6).
 --
 -- Pure: no Instances, no clocks (the caller passes `now` or `luck`), no randomness of its own
 -- (the caller passes rng(n) -> 1..n). Every list walks Config.BlockOdds.Climb.Tiers or
@@ -25,17 +27,20 @@ local STEPS: { [string]: number } = CL.Steps :: any
 local LUCK_STEPS: { [string]: number } = CL.Luck.Steps :: any
 local RARITY: { [string]: string } = CL.Rarity :: any
 local WIN_TRACK: { string } = D.WinTrack :: any
+local TURN: { [string]: number } = C.Turn.Steps :: any
 
 -- The drop counters the save keeps (save.Drops): Mystery blocks in a row without a
--- Rare-or-better climb and without an Epic-or-better climb, and every Mystery block ever.
+-- Rare-or-better cue and without an Epic-or-better cue (economy v5.1: counted on the cue its
+-- block finally gives, BlockDrop.countClimb), and every Mystery block ever.
 export type Pity = { SinceRare: number, SinceEpic: number, Total: number }
 
 export type TierOdds = { tier: string, weight: number, percent: number, display: string }
 export type RarityOdds = { rarity: string, percent: number, display: string }
 
--- Which climb an odds list is for: `start` the tier it climbs from (nil: Standard, the Mystery
--- block's), `luck` true while the Grand Opening Luck runs (BlockDrop.luckLive).
-export type ClimbOpts = { start: string?, luck: boolean? }
+-- Which climb an odds list is for: `start` the tier it climbs from (nil: Standard), `luck` true
+-- while the Grand Opening Luck runs (BlockDrop.luckLive), `mystery` true for a Mystery block:
+-- its roll and then its block's climb (economy v5.1; `start` is ignored).
+export type ClimbOpts = { start: string?, luck: boolean?, mystery: boolean? }
 
 -- What the drop rule needs to know about a settled match, for one winner.
 export type DropContext = {
@@ -68,6 +73,7 @@ for i, id in TIERS do
 	RANK[id] = i
 end
 local TOP = #TIERS
+local TURN_TOP: number = RANK[C.Turn.Top] or 0
 
 local function whole(value: any): number
 	if type(value) ~= "number" or value ~= value or value < 0 or value == math.huge then
@@ -163,10 +169,87 @@ local function chancesOf(start: string?, luck: boolean?, floor: string?): { [str
 	return chances
 end
 
+---------------------------------------------------------------------------------------------
+-- The Mystery's roll (Config.BlockOdds.Turn; economy v5.1)
+---------------------------------------------------------------------------------------------
+
+--- The chance (parts of OddsTotal) of the roll's step up from `tier`: 0 at its Top or for
+--- anything else.
+function BlockDrop.turnParts(tier: string): number
+	local rank = RANK[tier]
+	if rank == nil or rank >= TURN_TOP then
+		return 0
+	end
+	return TURN[tier] or 0
+end
+
+--- Each block tier's chance (0..1) that a Mystery turns into it, with pity's `floor` (Rare or
+--- Epic: every tier under it turns into it instead). Tiers it can't turn into are nil.
+function BlockDrop.turnChances(floor: string?): { [string]: number }
+	local chances: { [string]: number } = {}
+	local reach = 1
+	for i = 1, TURN_TOP do
+		local tier = TIERS[i]
+		local up = BlockDrop.turnParts(tier) / C.OddsTotal
+		chances[tier] = reach * (1 - up)
+		reach *= up
+	end
+	local floorRank = if floor ~= nil then RANK[floor] else nil
+	if floorRank ~= nil and floorRank > 1 and floorRank <= TURN_TOP then
+		local moved = 0
+		for i = 1, floorRank - 1 do
+			moved += chances[TIERS[i]] or 0
+			chances[TIERS[i]] = nil
+		end
+		chances[floor :: string] = (chances[floor :: string] or 0) + moved
+	end
+	for tier, chance in chances do
+		if chance <= 0 then
+			chances[tier] = nil
+		end
+	end
+	return chances
+end
+
+--- The blocks a Mystery turns into with their chances, lowest first: { tier, weight (parts of
+--- OddsTotal), percent, display }. `floor`: while pity guarantees that tier.
+function BlockDrop.turnTiers(floor: string?): { TierOdds }
+	local list = {}
+	local chances = BlockDrop.turnChances(floor)
+	for _, id in TIERS do
+		local chance = chances[id]
+		if chance ~= nil then
+			local percent = chance * 100
+			table.insert(list, {
+				tier = id,
+				weight = chance * C.OddsTotal,
+				percent = percent,
+				display = BlockOdds.percentText(percent),
+			})
+		end
+	end
+	return list
+end
+
+-- A Mystery's final tiers over both steps: each block it turns into times that block's climb.
+local function mysteryChances(floor: string?, luck: boolean?): { [string]: number }
+	local out: { [string]: number } = {}
+	for tier, share in BlockDrop.turnChances(floor) do
+		for final, chance in chancesOf(tier, luck, nil) do
+			out[final] = (out[final] or 0) + share * chance
+		end
+	end
+	return out
+end
+
 --- Each final tier's chance (0..1) for a climb: `opts.start` (nil: Standard), `opts.luck`, and
---- pity's `floor` (the Mystery block's; BlockDrop.floorOf). Tiers it can't end on are nil.
+--- pity's `floor` (BlockDrop.floorOf). `opts.mystery`: a Mystery block over both steps, its
+--- roll (with `floor`) then its block's climb. Tiers it can't end on are nil.
 function BlockDrop.chances(floor: string?, opts: ClimbOpts?): { [string]: number }
 	local o: ClimbOpts = opts or {}
+	if o.mystery == true then
+		return mysteryChances(floor, o.luck)
+	end
 	return chancesOf(o.start, o.luck, floor)
 end
 
@@ -186,8 +269,8 @@ end
 
 --- The final tiers with their chances, the start first: { tier, weight (parts of OddsTotal,
 --- not rounded), percent, display }. `floor`: the live odds while pity guarantees that tier (the
---- Mystery block's; the tiers under it are left out). `opts`: the start and the luck (nil: a
---- Mystery block's climb, without the luck).
+--- tiers under it are left out). `opts`: the start, the luck and `mystery` (nil: a climb from
+--- Standard, without the luck).
 function BlockDrop.tiers(floor: string?, opts: ClimbOpts?): { TierOdds }
 	local list = {}
 	local chances = BlockDrop.chances(floor, opts)
@@ -208,7 +291,7 @@ end
 
 --- Each rarity's chance per block for a climb (the tier it ends on is the rarity): bottom
 --- rarity first, only rarities it can give; the percents add to 100 (within float rounding).
---- The cue cards show the Mystery block's ("EPIC · 2.8%"). `floor` and `opts`: as
+--- The cue cards show the Mystery block's ("EPIC · 5%", `mystery`). `floor` and `opts`: as
 --- BlockDrop.tiers.
 function BlockDrop.rarityOdds(floor: string?, opts: ClimbOpts?): { RarityOdds }
 	local list = {}
@@ -298,7 +381,7 @@ function BlockDrop.cueChances(floor: string?, opts: ClimbOpts?): { [string]: num
 end
 
 --- One rarity's chance per block in percent (0 for a rarity the climb never gives). `opts`:
---- the start and the luck (nil: a Mystery block's climb without the luck).
+--- the start, the luck and `mystery` (nil: a climb from Standard without the luck).
 function BlockDrop.rarityPercent(rarity: string, opts: ClimbOpts?): number
 	for _, entry in BlockDrop.rarityOdds(nil, opts) do
 		if entry.rarity == rarity then
@@ -308,8 +391,9 @@ function BlockDrop.rarityPercent(rarity: string, opts: ClimbOpts?): number
 	return 0
 end
 
---- The chance in percent that a climb from `opts.start` gives exactly cue `cueId` (the "1 in N"
---- of the Legendary-or-better messages, plan 3.9), or 0 for a cue no climb gives.
+--- The chance in percent that a climb from `opts.start` (or a Mystery, `opts.mystery`) gives
+--- exactly cue `cueId` (the "1 in N" of the Legendary-or-better messages, plan 3.9), or 0 for
+--- a cue no climb gives.
 function BlockDrop.cuePercent(cueId: string, opts: ClimbOpts?): number
 	return BlockDrop.cueChances(nil, opts)[cueId] or 0
 end
@@ -326,7 +410,7 @@ function BlockDrop.oneIn(percent: number): number?
 end
 
 ---------------------------------------------------------------------------------------------
--- Pity (the Mystery block's; plan 3.6)
+-- Pity (the Mystery block's; plan 3.6, economy v5.1: counted on the cue it finally gives)
 ---------------------------------------------------------------------------------------------
 
 --- A new save's counters: the head start (Config.BlockOdds.Drop.PityStart).
@@ -348,7 +432,7 @@ function BlockDrop.readPity(drops: any): Pity
 	}
 end
 
---- Mystery blocks left until a Rare and an Epic are guaranteed (1: the next one is).
+--- Mystery blocks left until a Rare and an Epic block are guaranteed (1: the next one is).
 function BlockDrop.pityLeft(pity: Pity): { rare: number, epic: number }
 	return {
 		rare = math.max(D.PityRare - pity.SinceRare, 1),
@@ -380,23 +464,53 @@ function BlockDrop.climbRoll(start: string, rng: (number) -> number, luck: boole
 	return TIERS[at]
 end
 
---- Rolls one Mystery block's climb: (final tier, the counters after it). `forced` skips the
---- roll. Otherwise it climbs from Standard (BlockDrop.climbRoll, with the luck while `luck`),
---- then pity sets it: exactly Epic on the PityEpic-th Mystery block in a row without an
---- Epic-or-better climb, else exactly Rare on the PityRare-th without a Rare-or-better. Every
---- Mystery block counts, forced ones too. `rng(n)` returns 1..n.
-function BlockDrop.roll(
+--- Whether `tier` is one a Mystery can turn into (Standard up to Config.BlockOdds.Turn.Top).
+function BlockDrop.isTurnTier(tier: any): boolean
+	local rank = if type(tier) == "string" then RANK[tier] else nil
+	return rank ~= nil and rank <= TURN_TOP
+end
+
+--- Rolls which block a Mystery turns into (Config.BlockOdds.Turn): each step up from Standard
+--- is one rng(OddsTotal) draw at or under its chance, until a step fails or Top is reached.
+--- `rng(n)` returns 1..n.
+function BlockDrop.turnClimb(rng: (number) -> number): string
+	local at = 1
+	while at < TURN_TOP do
+		local pick = rng(C.OddsTotal)
+		assert(
+			pick >= 1 and pick <= C.OddsTotal and pick == math.floor(pick),
+			"BlockDrop.turnClimb: rng out of range"
+		)
+		if pick > BlockDrop.turnParts(TIERS[at]) then
+			break
+		end
+		at += 1
+	end
+	return TIERS[at]
+end
+
+--- Rolls one Mystery block's roll: (the block tier it turns into, the counters after the roll,
+--- the counters still waiting on that block's climb: "Rare" both, "Epic" the Epic one, nil
+--- none). `forced` (a turn tier) skips the roll. Otherwise BlockDrop.turnClimb, then pity
+--- lifts it: an Epic block when this would be the PityEpic-th Mystery in a row without an
+--- Epic-or-better cue, else a Rare block on the PityRare-th without a Rare-or-better. A block
+--- of Rare or better promises that rarity, so its counter resets now (a pity block resets
+--- before its climb, so a second Mystery rolled meanwhile is not lifted too); the rest wait
+--- for the block's climb (BlockDrop.countClimb). Every Mystery counts, forced ones too.
+function BlockDrop.turnRoll(
 	pity: Pity,
 	rng: (number) -> number,
-	forced: string?,
-	luck: boolean?
-): (string, Pity)
+	forced: string?
+): (string, Pity, string?)
 	local tier: string
 	if forced ~= nil then
-		assert(RANK[forced] ~= nil, "BlockDrop.roll: unknown tier " .. tostring(forced))
+		assert(
+			BlockDrop.isTurnTier(forced),
+			"BlockDrop.turnRoll: not a turn tier " .. tostring(forced)
+		)
 		tier = forced
 	else
-		tier = BlockDrop.climbRoll(TIERS[1], rng, luck)
+		tier = BlockDrop.turnClimb(rng)
 		if pity.SinceEpic + 1 >= D.PityEpic and RANK[tier] < RANK.Epic then
 			tier = "Epic"
 		elseif pity.SinceRare + 1 >= D.PityRare and RANK[tier] < RANK.Rare then
@@ -405,47 +519,77 @@ function BlockDrop.roll(
 	end
 	local rank = RANK[tier]
 	local after: Pity = {
-		SinceRare = if rank >= RANK.Rare then 0 else pity.SinceRare + 1,
-		SinceEpic = if rank >= RANK.Epic then 0 else pity.SinceEpic + 1,
+		SinceRare = if rank >= RANK.Rare then 0 else pity.SinceRare,
+		SinceEpic = if rank >= RANK.Epic then 0 else pity.SinceEpic,
 		Total = pity.Total + 1,
 	}
-	return tier, after
+	local waits = if rank >= RANK.Epic then nil elseif rank >= RANK.Rare then "Epic" else "Rare"
+	return tier, after, waits
 end
 
--- How one climb is decided (BlockDrop.climbFor): `pity` a Mystery block's counters (nil: a
--- kind without pity), `luck` the Grand Opening Luck live at the roll, `stay` true keeps the
--- block at its start (the tutorial's stay hook), `forced` the final tier a script names (the
--- tutorial's scripted first block, LuckyBlockService.setOpenHooks; nil: a normal roll).
-export type ClimbPlan = { pity: Pity?, luck: boolean?, stay: boolean?, forced: string? }
+--- The counters after a Mystery's block finished its climb on `final`, for the counters it
+--- still carried (`waits`: "Rare" both, "Epic" the Epic one; anything else none): each resets
+--- on a cue of its rarity or better, or counts one more Mystery without.
+function BlockDrop.countClimb(pity: Pity, waits: any, final: string): Pity
+	local rank = RANK[final] or 0
+	local after: Pity =
+		{ SinceRare = pity.SinceRare, SinceEpic = pity.SinceEpic, Total = pity.Total }
+	if waits == "Rare" then
+		after.SinceRare = if rank >= RANK.Rare then 0 else pity.SinceRare + 1
+	end
+	if waits == "Rare" or waits == "Epic" then
+		after.SinceEpic = if rank >= RANK.Epic then 0 else pity.SinceEpic + 1
+	end
+	return after
+end
 
---- Decides one climb from `start` (a ladder tier): (the final tier, the pity counters after it
---- or nil, whether the luck counted, whether the climbed block is ready at once). `stay` keeps
---- it at `start` (no pity counted, no luck). A `forced` tier at or above `start` is the final
---- tier (no luck; a Mystery block still counts pity, BlockDrop.roll's `forced`). Either lands
---- the block ready at once. Anything else rolls: BlockDrop.roll with pity, else
---- BlockDrop.climbRoll. A `forced` tier below `start` or off the ladder is ignored (a normal
---- roll). `rng(n)` returns 1..n.
+-- How one climb is decided (BlockDrop.climbFor): `luck` the Grand Opening Luck live at the
+-- roll, `stay` true keeps the block at its start (the tutorial's stay hook), `forced` the
+-- final tier a script names (the tutorial's scripted first block,
+-- LuckyBlockService.setOpenHooks; nil: a normal roll).
+export type ClimbPlan = { luck: boolean?, stay: boolean?, forced: string? }
+
+--- Decides one climb from `start` (a ladder tier): (the final tier, whether the luck counted,
+--- whether the climbed block is ready at once). `stay` keeps it at `start` (no luck). A
+--- `forced` tier at or above `start` is the final tier (no luck). Either lands the block ready
+--- at once. Anything else rolls (BlockDrop.climbRoll). A `forced` tier below `start` or off the
+--- ladder is ignored (a normal roll). `rng(n)` returns 1..n.
 function BlockDrop.climbFor(
 	start: string,
 	rng: (number) -> number,
 	plan: ClimbPlan
-): (string, Pity?, boolean, boolean)
+): (string, boolean, boolean)
 	assert(RANK[start] ~= nil, "BlockDrop.climbFor: unknown start " .. tostring(start))
 	if plan.stay == true and BlockDrop.isBlockTier(start) then
-		return start, nil, false, true
+		return start, false, true
 	end
 	local forced = plan.forced
 	if forced ~= nil and (RANK[forced] == nil or RANK[forced] < RANK[start]) then
 		forced = nil
 	end
-	local luck = forced == nil and plan.luck == true
-	if plan.pity ~= nil then
-		local tier, after = BlockDrop.roll(plan.pity, rng, forced, luck)
-		return tier, after, luck, forced ~= nil
-	elseif forced ~= nil then
-		return forced, nil, false, true
+	if forced ~= nil then
+		return forced, false, true
 	end
-	return BlockDrop.climbRoll(start, rng, luck), nil, luck, false
+	local luck = plan.luck == true
+	return BlockDrop.climbRoll(start, rng, luck), luck, false
+end
+
+--- Decides one Mystery's roll (economy v5.1): (the block tier it turns into, the counters
+--- after the roll, the counters still waiting on that block's climb, whether a script chose
+--- it). `stay` turns it into a Standard block without counting pity; a `forced` turn tier is
+--- the result (pity still counted, BlockDrop.turnRoll); anything else rolls with pity. A
+--- `forced` tier it can't turn into is ignored (a normal roll).
+function BlockDrop.turnFor(
+	pity: Pity,
+	rng: (number) -> number,
+	plan: { stay: boolean?, forced: string? }
+): (string, Pity, string?, boolean)
+	if plan.stay == true then
+		return TIERS[1], pity, nil, true
+	end
+	local forced = if BlockDrop.isTurnTier(plan.forced) then plan.forced else nil
+	local tier, after, waits = BlockDrop.turnRoll(pity, rng, forced)
+	return tier, after, waits, forced ~= nil
 end
 
 ---------------------------------------------------------------------------------------------
@@ -580,6 +724,16 @@ function BlockDrop.validate(): { string }
 	end
 	if type(UP.Clicks) ~= "number" or UP.Clicks < 2 or UP.Clicks ~= math.floor(UP.Clicks) then
 		problem("Drop.Upgrade.Clicks must be a whole number of at least 2")
+	end
+	if TURN_TOP < 2 or not BlockDrop.isBlockTier(C.Turn.Top) then
+		problem("Turn.Top must be a block tier above Standard")
+	end
+	for tier, parts in TURN do
+		if RANK[tier] == nil or RANK[tier] >= TURN_TOP then
+			problem(("Turn.Steps has %s, not a tier below Top"):format(tostring(tier)))
+		elseif not isPart(parts) then
+			problem(("Turn.Steps.%s is not a whole part of OddsTotal"):format(tier))
+		end
 	end
 	table.sort(problems)
 	return problems

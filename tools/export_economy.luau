@@ -35,6 +35,7 @@ local out = {
 		OddsTotal = Config.BlockOdds.OddsTotal,
 		List = Config.BlockOdds.List, -- each odds row's Odds (a block tier's: its climbed block)
 		Climb = Config.BlockOdds.Climb, -- the climb ladder and the Grand Opening Luck (economy v5)
+		Turn = Config.BlockOdds.Turn, -- the Mystery's roll into a block (economy v5.1)
 		Drop = Config.BlockOdds.Drop, -- pity, its head start, the first win's kind, the win track
 		SellBack = Config.BlockOdds.SellBack,
 	},

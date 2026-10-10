@@ -1797,7 +1797,7 @@ Config.Ranks = {
 			Master = 80000,
 			Grandmaster = 150000,
 		},
-		-- Blocks: lucky blocks by kind (a Mystery block rolls its tier with pity when opened).
+		-- Blocks: lucky blocks by kind (a Mystery block turns into a block with pity when opened).
 		-- Bronze's block is given at once with the first win (the tutorial's Standard block);
 		-- everything else waits until the player claims it in Rank (designer, 2026-10-03).
 		-- Economy v4 (2026-10-08, plan section 7): Platinum and up pay better blocks, the first
@@ -1998,7 +1998,7 @@ Config.BlockOdds = {
 			Secret = "Secret",
 		},
 		-- The chance of each step up from a tier, in parts of OddsTotal (plan 3.2): 50 / 35 /
-		-- 18 / 10 / 15 / 2.5%. A Mystery block reaches Epic or better 1 in 32, Legendary or
+		-- 18 / 10 / 15 / 2.5%. A Standard block reaches Epic or better 1 in 32, Legendary or
 		-- better 1 in 317, Mythic or better 1 in 2,116 and the Secret 1 in 84,656.
 		Steps = {
 			Standard = 500000, -- to Uncommon
@@ -2020,6 +2020,24 @@ Config.BlockOdds = {
 				Epic = 150000, -- Epic to Legendary 15% (10% without)
 			},
 		},
+	},
+	-- The Mystery block's roll (economy v5.1, designer 2026-10-09: "Lively"): on its screen
+	-- (4 presses, Drop.Upgrade) a Mystery turns into an unclimbed block of the tier its roll
+	-- reaches, the same block the restock and the rewards give, which then climbs from its
+	-- name (Climb). Each step up from a tier, in parts of OddsTotal: 30 / 25 / 10 / 5%, so it
+	-- turns into a Standard block 70%, Uncommon 22.5%, Rare 6.75%, Epic 0.7125% and Legendary
+	-- 0.0375% (1 in 2,667); Top is as high as the roll goes. Both steps together, a Mystery
+	-- gives Epic or better 1 in 18, Legendary or better 1 in 169, Mythic or better 1 in 1,125
+	-- and the Secret 1 in 45,007 (launch luck: 1 in 12.5 and 1 in 81). The Grand Opening Luck
+	-- boosts the climbs, never the roll.
+	Turn = {
+		Steps = {
+			Standard = 300000, -- to Uncommon
+			Uncommon = 250000, -- to Rare
+			Rare = 100000, -- to Epic
+			Epic = 50000, -- to Legendary
+		},
+		Top = "Legendary",
 	},
 	-- The climbed block's row (economy v5): a block that climbed to a tier gives a cue of
 	-- exactly that tier's rarity (Climb.Rarity), every cue of it equally likely. The Grand
@@ -2057,14 +2075,15 @@ Config.BlockOdds = {
 	-- The win's block (economy v5 plan section 4): a real win moves the day's win track
 	-- (WinTrack) and gives that step's block or money. The first win ever gives a FirstWin
 	-- block (Progression/BlockDrop). Pity, for Mystery blocks only, bought ones too (plan
-	-- 3.6): the PityRare-th Mystery block in a row without a Rare-or-better climb ends on
-	-- exactly Rare; the PityEpic-th without an Epic-or-better on exactly Epic; pity never gives
-	-- Legendary.
+	-- 3.6; economy v5.1): pity counts the cue a Mystery finally gives, after its block's own
+	-- climb. The PityRare-th Mystery block in a row without a Rare-or-better cue turns into a
+	-- Rare block, the PityEpic-th without an Epic-or-better into an Epic block (each still
+	-- climbs); a block still held counts once it is opened (LuckyBlocks' Pity mark).
 	Drop = {
 		PityRare = 10,
 		PityEpic = 40, -- v5 (v4: 100)
 		-- A new save's head start (plan 3.6): the counters begin here, so the bars show 2/10 and
-		-- 10/40 from the first day and the first Epic is guaranteed by the 30th Mystery block.
+		-- 10/40 from the first day and the first Epic block is guaranteed by the 30th Mystery.
 		-- Old saves keep their counters.
 		PityStart = { SinceRare = 2, SinceEpic = 10 },
 		FirstWin = "Rare",
@@ -2147,14 +2166,16 @@ Config.LuckyBlocks = {
 		VoidLava = "Epic",
 		GoldKing = "Legendary",
 	},
-	-- Climb (economy v5): the tier the block climbs from (its name is its floor; Mystery and
-	-- Sky Standard, Lucky 8 and the Gift Uncommon, each tier block its own tier). A new block
+	-- Climb (economy v5): the tier the block climbs from (its name is its floor; Sky Standard,
+	-- Lucky 8 and the Gift Uncommon, each tier block its own tier). A new block
 	-- of a climbing kind arrives unclimbed, with no timer (Wait: the Gift's comeback wait
 	-- before its climb); its climb (BlockDrop.climbRoll) turns it into the climbed block of
 	-- the tier it reached, which waits on that tier's Timer, then opens to a cue of exactly
 	-- that rarity (its Odds row); every unclimbed block climbs on the climb screen
-	-- (MysteryReveal) from its hotbar slot's OPEN!. Pity: the Mystery block's pity counters
-	-- apply. Odds: the Config.BlockOdds row a climbed block (or a block that
+	-- (MysteryReveal) from its hotbar slot's OPEN!. Turns (the Mystery, economy v5.1): its
+	-- screen is a roll (Config.BlockOdds.Turn) that turns it into an unclimbed block of the
+	-- tier reached, instead of a climb; Climb is then only where its presses start. Pity: the
+	-- Mystery block's pity counters apply. Odds: the Config.BlockOdds row a climbed block (or a block that
 	-- never climbs: the Grand Opening and Starter blocks) rolls. Timer: seconds after a
 	-- climbed (or never-climbing) block lands until it can be opened (0: at once); a bought
 	-- block (Paid) opens at once, and so does every block of a VIP (VipTimerFactor 0). Model:
@@ -2227,13 +2248,14 @@ Config.LuckyBlocks = {
 			IconScale = 2.2,
 			Rainbow = true, -- the client cycles its icon's aura through the rainbow
 		},
-		-- The Mystery block (v5 plan 3.1): a Standard start with pity. Its hotbar slot says OPEN!;
-		-- a tap opens the climb screen (MysteryReveal), where it becomes the climbed block of
-		-- the tier it reached (Config.BlockOdds.Drop.Upgrade), which lands back in its slot on
-		-- that tier's own timer.
+		-- The Mystery block (economy v5.1): its hotbar slot says OPEN!; a tap opens its screen
+		-- (MysteryReveal, 4 presses from Standard), where its roll (Config.BlockOdds.Turn, with
+		-- pity) turns it into an unclimbed block of that tier, the same block the restock sells,
+		-- which lands back in its slot showing OPEN! and climbs from its name when opened.
 		Mystery = {
 			Icon = "rbxassetid://76412774878315",
 			Climb = "Standard",
+			Turns = true,
 			Pity = true,
 			Timer = 0,
 			Model = "MysteryBlock", -- frame C (flush rims), the moving rainbow
@@ -3015,8 +3037,8 @@ Config.LuckyBlocks = {
 -- A bot's equipped cue (src/shared/Progression/BotCues.luau; the Bots lane's Look.cue calls
 -- it): its rarity matches what real players at that rank own (the approved economy plan,
 -- 2026-10-02, section 3). Each row is the chance the cue is that rarity or better; the rest
--- (Common, Uncommon, Rare) is spread by the Mystery block's odds. Mythic+ is a Mythic: a bot
--- never shows the Secret cue (lane decision, 2026-10-03). (tune)
+-- (Common, Uncommon, Rare) is spread by the Mystery's odds (its roll and climb, economy v5.1).
+-- Mythic+ is a Mythic: a bot never shows the Secret cue (lane decision, 2026-10-03). (tune)
 ---------------------------------------------------------------------------------------------
 Config.BotCues = {
 	-- Economy v4 (2026-10-08, plan section 11): from the simulation's real players at day 60
@@ -3238,11 +3260,12 @@ Config.Daily = {
 	WeekBonus = { Blocks = { Epic = 1 } },
 	-- Playtime gifts: minutes played in a day, across sessions, each claimable once that day
 	-- (v4 plan 6.3: all within the first hour; Roblox ranks playtime up to 60 minutes a day).
-	-- Economy v5 (plan section 4): one Mystery at 15 minutes, money after it (v4: a Mystery at
-	-- 15, 30 and 45, a Rare block at 60).
+	-- Economy v5 (plan section 4): money only (v4: a Mystery at 15, 30 and 45, a Rare block at
+	-- 60). Economy v5.1 (designer, 2026-10-09): $2,000 at 15 minutes (v5: a Mystery), part of
+	-- what pays for the better Mystery.
 	Playtime = {
 		{ Minutes = 5, Money = 1000 },
-		{ Minutes = 15, Blocks = { Mystery = 1 } },
+		{ Minutes = 15, Money = 2000 },
 		{ Minutes = 30, Money = 2500 },
 		{ Minutes = 45, Money = 3500 },
 		{ Minutes = 60, Money = 5000, Spins = 1 },
@@ -3320,29 +3343,29 @@ Config.Trade = {
 	-- odds, a climbed block's from its tier). BlockExists (an unclimbed block, or a kind that
 	-- never climbs) and ClimbedExists (a climbed block of each tier) are the fallback until the
 	-- counters load: 1 / worth from the model at day 30 (tools/economy_model.py exists, economy
-	-- v5, 2026-10-09). Only READY blocks trade (Progression/Trade).
+	-- v5.1, 2026-10-09). Only READY blocks trade (Progression/Trade).
 	LopsidedRatio = 4,
 	MinExists = 10,
 	BlockExists = {
-		Standard = 61000,
-		Uncommon = 47000,
-		Rare = 31000,
-		Epic = 11000,
-		Legendary = 2600,
+		Standard = 47000,
+		Uncommon = 46000,
+		Rare = 32000,
+		Epic = 12000,
+		Legendary = 2800,
 		Mythic = 1100,
-		Mystery = 61000, -- a Standard start
+		Mystery = 44000, -- its roll, then that block's climb (v5.1)
 		GrandOpening = 7800,
-		Lucky8 = 47000, -- an Uncommon start
-		Sky = 61000, -- a Standard start
-		Starter = 36000,
-		Gift = 47000, -- an Uncommon start
+		Lucky8 = 46000, -- an Uncommon start
+		Sky = 47000, -- a Standard start
+		Starter = 38000,
+		Gift = 46000, -- an Uncommon start
 	},
 	ClimbedExists = {
-		Standard = 86000,
-		Uncommon = 67000,
-		Rare = 49000,
-		Epic = 18000,
-		Legendary = 3400,
+		Standard = 48000,
+		Uncommon = 60000,
+		Rare = 50000,
+		Epic = 19000,
+		Legendary = 3800,
 		Mythic = 1400,
 	},
 	-- The ledger: each player's trades written before their saves change, replayed on a load
@@ -3480,11 +3503,12 @@ Config.Shop = {
 	-- A deal with StartsAt runs StartsAt..StartsAt + Seconds only (0: off until the designer
 	-- sets it, right before the release is published; the release sale follows it).
 	Deals = {
-		-- Economy v5 (plan 6.1): $14,900, 5 for $66,900 (v4: $4,900, 10 for $44,100). The
-		-- Robux 5-pack (Mystery5) shows "Coming soon" until the designer approves its price.
+		-- What the server charges. Economy v5.1 (designer, 2026-10-09): $19,900, 5 for $89,900
+		-- (v5: $14,900 and $66,900; v4: $4,900, 10 for $44,100); keep it the same as
+		-- Config.Shop.Mystery, which the shop card shows.
 		Mystery = {
 			Kind = "Mystery",
-			Money = { [1] = 14900, [5] = 66900 },
+			Money = { [1] = 19900, [5] = 89900 },
 			Products = { [1] = "Mystery1", [5] = "Mystery5" },
 		},
 		GrandOpening = {
@@ -3499,10 +3523,12 @@ Config.Shop = {
 			VaultedSeconds = 7 * 86400, -- the "Vaulted" card stays this long after the end
 		},
 	},
-	-- The Mystery block's money price (the shop's Mystery band reads it). Economy v5 (plan 6.1):
-	-- each v5 Mystery is 8x as likely to reach Epic or better as v4's, so $14,900 is v4's value
-	-- per dollar; the bundle is 5 (was 10 for $44,100).
-	Mystery = { Price = 14900, BulkCount = 5, BulkPrice = 66900 },
+	-- The Mystery block's money price as the shop card shows it (Deals.Mystery.Money is what the
+	-- server charges; keep the two the same). Economy v5.1 (designer,
+	-- 2026-10-09): $19,900 and 5 for $89,900 (v5: $14,900 and $66,900). Each Mystery is worth
+	-- 1.7x v5's (it turns into a block that still climbs); the price keeps its value per Robux
+	-- inside the restock's range.
+	Mystery = { Price = 19900, BulkCount = 5, BulkPrice = 89900 },
 	-- The restock shop (plan section 12; Progression/Restock): new blocks every SlotSeconds on
 	-- the clock (UTC :00, :10 ...), the same in every server (picked from the slot number).
 	-- Slots shared slots each roll one block kind (parts of ChanceTotal): slot i by SlotOdds[i]
@@ -3664,11 +3690,11 @@ Config.Products = {
 		-- Lucky blocks by the count (Config.Shop.Deals): Blocks = { Kind, Count }, paid origin
 		-- (they open at once). The Grand Opening ones sell inside their deal's window only. Was:
 		-- the same count bought one at a time (a true saving; the shop shows "57 R$ one by one").
-		-- Economy v5 Robux prices (the designer approved the proposal, 2026-10-09): 7 R$ (was 5).
+		-- Economy v5.1 (designer, 2026-10-09): 9 R$ (v5: 7, before it 5).
 		Mystery1 = {
 			Kind = "Product",
 			Id = 3716158359,
-			Robux = 7,
+			Robux = 9,
 			Blocks = { Kind = "Mystery", Count = 1 },
 			Random = true,
 		},
@@ -3682,13 +3708,14 @@ Config.Products = {
 			Random = true,
 			Retired = true,
 		},
-		-- Economy v5's bundle: 5 Mystery blocks for 29 R$ (made 2026-10-09; 6 during the launch
-		-- bonus, Config.Shop.LaunchBonus.MysteryBulkCount). Was: five singles today.
+		-- Economy v5's bundle: 5 Mystery blocks (made 2026-10-09; 6 during the launch bonus,
+		-- Config.Shop.LaunchBonus.MysteryBulkCount). Economy v5.1: 39 R$, crossed out 45 (v5: 29
+		-- and 35).
 		Mystery5 = {
 			Kind = "Product",
 			Id = 3717476154,
-			Robux = 29,
-			Was = 35,
+			Robux = 39,
+			Was = 45,
 			Blocks = { Kind = "Mystery", Count = 5 },
 			Random = true,
 		},
@@ -9613,8 +9640,6 @@ Config.UI.Shop.Open = {
 				"MysteryRow3",
 				"MysteryRow4",
 				"MysteryRow5",
-				"MysteryRow6",
-				"MysteryRow7",
 			},
 			Kind = "Pop",
 			At = 0.33,
@@ -10002,7 +10027,8 @@ Config.UI.ShopBlocks = {
 	ShineStaggerSeconds = 0.35, -- the next Robux button's shine starts this much later
 	ShineMinRate = 0.25, -- Lower effects never spaces the shines out more than 4x
 	CornerTagDegrees = -6, -- the "13 for 10!" ribbon's tilt
-	-- The Mystery Lucky Block (pick A): the block, its six tiers with their chances, x1 and x10.
+	-- The Mystery Lucky Block (pick A): the block, the five blocks it turns into with their
+	-- chances, x1 and x5.
 	Mystery = {
 		Units = { 1275, 494 }, -- the panel
 		Block = { 182, 226, 276 }, -- centre x, centre y, size
@@ -10011,19 +10037,19 @@ Config.UI.ShopBlocks = {
 		OddsBadge = { 286, 338, 50 }, -- centre x, centre y, size
 		GlowTint = { 196, 132, 255 }, -- the Mystery block's purple
 		Ladder = { 344, 44, 452, 374 }, -- left, top, width, height
-		-- The seven rows fill the ladder (designer, 2026-10-09: the climb line under them is gone;
-		-- economy v5: the Secret on top, so the rows are a little smaller than the six's 58).
-		RowTop = 12, -- the first row's top inside the ladder
-		RowUnits = 50, -- a row's step
-		RowHeightUnits = 44,
+		-- The five rows fill the ladder (designer, 2026-10-09: the climb line under them is gone;
+		-- economy v5.1: Standard to Legendary, the blocks a Mystery turns into).
+		RowTop = 18, -- the first row's top inside the ladder
+		RowUnits = 70, -- a row's step
+		RowHeightUnits = 58,
 		RowInsetUnits = 12, -- the row strips' inset from the ladder's sides
 		RowCornerUnits = 14,
 		RowColor = { 242, 248, 255 },
-		IconUnits = 36,
+		IconUnits = 44,
 		RowIconLeftUnits = 8, -- a row's tier icon from the strip's left
-		RowNameGapUnits = 8, -- between the icon and the tier's name
-		NameUnits = 25,
-		PercentUnits = 25,
+		RowNameGapUnits = 10, -- between the icon and the tier's name
+		NameUnits = 27,
+		PercentUnits = 27,
 		ValueUnits = 110, -- the percent column, at the strip's right
 		ValueRightUnits = 12, -- its room from the strip's right
 		-- Each row's dice (that tier block's odds; designer, 2026-10-09), this far after the

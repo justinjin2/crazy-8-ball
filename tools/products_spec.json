@@ -89,15 +89,15 @@
    "key": "Mystery1",
    "kind": "Product",
    "name": "Mystery Lucky Block",
-   "robux": 7,
-   "description": "One Mystery Lucky Block: it starts as Standard and climbs when you open it, as high as the Secret. Odds are shown in the game."
+   "robux": 9,
+   "description": "One Mystery Lucky Block: it turns into a lucky block from Standard to Legendary, which then climbs when you open it, as high as the Secret. Odds are shown in the game."
   },
   {
    "key": "Mystery5",
    "kind": "Product",
    "name": "5 Mystery Lucky Blocks",
-   "robux": 29,
-   "description": "Five Mystery Lucky Blocks, each climbing on its own, with the same odds and pity as a free one. Odds are shown in the game."
+   "robux": 39,
+   "description": "Five Mystery Lucky Blocks, each turning into its own lucky block and climbing, with the same odds and pity as a free one. Odds are shown in the game."
   },
   {
    "key": "Mystery10",

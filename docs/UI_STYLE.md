@@ -854,12 +854,12 @@ band, restock tiles and pass bands.
 - **Each section** sits on a pale blue panel, its navy title pill (gold words, a thin gold
   rim) across the panel's top edge; white boxes inside.
 - **The Mystery block (A)**: the rainbow block with a purple glow, turning rays and twinkles
-  (the picture stays still) and the sky-blue dice at its corner; the seven tiers (economy v5:
-  the tier's block, its name in its colour, the chance in sky blue, live with the Grand
-  Opening Luck; the Secret on top, the Mythic block darkened) filling the box, a small dice
-  after each name (opening "Epic cues": "If your Mystery block climbs to Epic, you get one of
-  these:" and the cues; never titled as that tier's block, whose own list climbs); x1 and x5
-  columns: the count in gold, "35 R$ one by one" under x5 (the live single price times five),
+  (the picture stays still) and the sky-blue dice at its corner; the five blocks it turns into
+  (economy v5.1: Standard to Legendary, each the tier's block, its name in its colour and the
+  chance in sky blue: 70%, 22%, 6.8%, 0.71%, 0.04%) filling the box, a small dice after each
+  name opening that block's own Odds & Details, the same popup as the restock's (it is the same
+  block); x1 and x5 columns: the count in gold, "45 R$ one by one" under x5 (the live single
+  price times five),
   the purple gift square and the green Robux button (the live price; greyed when off sale), the
   gold money button under; the red "6 for 5!" ribbon, tilted and shaking, on x5 while the
   launch bonus runs; the pity strip under everything: "Rare guaranteed in 10" and "Epic
@@ -867,14 +867,16 @@ band, restock tiles and pass bands.
   with the blocks opened ("Your next one is Rare!" once it is the very next).
 - **The Mystery block's "Odds & Details"** (economy v4 plan 3.2, hand-off item 13,
   `ShopMysteryOdds` in the shared popup below; designer, 2026-10-08: "show the block tiers
-  first, then pity"): **Final tier** first, each tier as a rarity bar with its block over the
-  bar's left end and its chance (Standard in Common's grey; the Secret's bar wears the darkened
-  Mythic block); then **Pity** (the head says just that; designer, 2026-10-09) as two meters, a
-  pale track filling with the rarity's bar ("Rare guaranteed" 3/10, "Epic guaranteed" 12/40:
-  v5's pity gives exactly that rarity); once a guarantee is the very next block a gold line
-  says "Your next Mystery block is Epic!" and the lists show the odds with pity; then **Each
-  cue**, every cue on its own line in its rarity's colour with its chance and "1 in N"; then
-  the one line. No description line. A Mystery day's dice in Free Reward opens the same list.
+  first, then pity"): **Turns into** first (economy v5.1), each block it can turn into as a
+  rarity bar with its block over the bar's left end and its chance (Standard in Common's grey),
+  then the small line "Then that block climbs from its name, the same as anywhere else. Each
+  cue below counts both steps."; then **Ends with a cue that is**, each rarity's chance over
+  both steps as plain rarity bars; then **Pity** (the head says just that; designer,
+  2026-10-09) as two meters, a pale track filling with the rarity's bar ("Rare guaranteed"
+  3/10, "Epic guaranteed" 12/40); once a guarantee is the very next block a gold line says
+  "Your next Mystery block turns into a Rare block!" and the lists show the odds with pity;
+  then **Each cue**, every cue on its own line in its rarity's colour with its chance and "1 in
+  N" over both steps; then the one line. No description line. A Mystery day's dice in Free Reward opens the same list.
 - **The restock (B)**: "RESTOCK", a stopwatch and the time in its pill; three slot cards
   across the band (economy v5), each the block big in its rarity's glow with the dice at the top
   right, "**Rare** Lucky Block", a navy "x2 left" pill, the green Robux button over the gold

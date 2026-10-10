@@ -3,18 +3,20 @@
 The one place that says how the game's economy works and every number in it. Rewritten
 2026-10-09 for **economy v5, "every block climbs"**: the plan the designer approved on
 2026-10-09 (`docs/prompts/ECONOMY_V5_PLAN.md`, from their answers on the review page, two
-follow-ups in chat and a 60-day population simulation), on top of economy v4 (2026-10-08,
+follow-ups in chat and a 60-day population simulation), with **v5.1 "Lively"** the same evening
+(the Mystery turns into a real block that then climbs; plan section 15), on top of economy v4 (2026-10-08,
 `docs/prompts/ECONOMY_V4_PLAN.md`), the first economy plan (2026-10-02) and the lucky blocks that
 replaced cases (2026-10-04). GDD sections 11 and 12 point here. Every number is a starting value
 *(tune)*: it lives in `src/shared/Config.luau` and changes after playtests. Change a number here
 and in Config together, then re-run the model.
 
-**The v5 Robux prices are live** (approved and synced 2026-10-09; section 11): the Mystery block
-7 R$, a 5-pack 29 R$, restock 39 / 149 / 599 / 1,699 R$, the 1 R$ timer skip. The reasoning is
-`~/Desktop/8ball-refs/economy/05-economy-v5-robux.md`.
+**The v5 Robux prices are live** (approved and synced 2026-10-09; section 11): restock 39 / 149
+/ 599 / 1,699 R$, the 1 R$ timer skip, and since v5.1 the Mystery block **9 R$** and a 5-pack
+**39 R$** (v5: 7 and 29). The reasoning is `~/Desktop/8ball-refs/economy/05-economy-v5-robux.md`
+and the v5.1 plan page (plan section 15).
 
 ```bash
-python3 tools/economy_model.py                 # v5 at day 7, 30 and 60, against the plan
+python3 tools/economy_model.py                 # v5.1 at day 7, 30 and 60, against the plan
 python3 tools/economy_model.py --built-only    # without the planned features (section 10.6)
 python3 tools/economy_model.py --compare       # before v4, v4, v5 built only, v5
 python3 tools/economy_model.py --sell          # with finder's money, the Index rows and selling back
@@ -29,7 +31,8 @@ python3 tools/economy_model.py ranks           # a year of players on the rank l
 
 The model reads every game number from Config (through `tools/export_economy.luau` and
 `tools/economy_config.json`); only how players behave is assumed. Its v5 runs of 2026-10-09 are
-in `~/Desktop/8ball-refs/economy/v5-build/`.
+in `~/Desktop/8ball-refs/economy/v5-build/`; the v5.1 comparison (`economy_v5_unified.py`,
+`unified_final.txt`) is beside them.
 
 **Built for a small launch, ready to grow.** Nothing assumes the game blows up. The ranks, blocks
 and rewards work the same with 200 players online as with 20,000; the few things that should
@@ -47,14 +50,19 @@ zero. A tiny chance also shows **"1 in N" beside its %** (0.0001%, 1 in 1,000,00
 - **Every block climbs** (economy v5, designer 2026-10-09): **a block's name is its floor** (a
   Rare block always gives Rare or better), and every block climbs from it on **one ladder:
   50 / 35 / 18 / 10 / 15 / 2.5%** (Standard to Uncommon ... Mythic to the Secret). The tier it
-  ends on *is* the cue's rarity; the reel only picks which cue of it. A Mystery block reaches
-  Epic or better **1 in 32**, Legendary or better **1 in 317**, Mythic or better 1 in 2,116 and
-  the Secret 1 in 84,656 (section 7).
+  ends on *is* the cue's rarity; the reel only picks which cue of it. A Standard block reaches
+  Epic or better 1 in 32, Legendary or better 1 in 317 (section 7).
+- **The Mystery turns into a real block first** (v5.1 "Lively", designer 2026-10-09): its own
+  roll on its 4-press screen, **30 / 25 / 10 / 5%** a step, turns it into a Standard (70%),
+  Uncommon (22.5%), Rare (6.75%), Epic (0.7125%) or Legendary (0.0375%) block, the same block
+  the restock sells, which then climbs from its name. Both steps together: Epic or better
+  **1 in 18**, Legendary or better **1 in 169**, Mythic or better 1 in 1,125, the Secret 1 in
+  45,007 (7.4).
 - **The Grand Opening Luck**: for the first 30 days, Rare to Epic 27% and Epic to Legendary 15%
-  (x1.5). A Mystery block then reaches Epic or better 1 in 21 and Legendary or better 1 in 141.
-  A clover next to the money shows it (7.3).
-- **Fewer, better blocks**: a free player who plays an hour a day opens about 6.7 blocks a day
-  (v4: 14.8).
+  (x1.5), on every climb, never the Mystery's roll. A Mystery then reaches Epic or better 1 in
+  12 and Legendary or better 1 in 81. A clover next to the money shows it (7.3).
+- **Fewer, better blocks**: a free player who plays an hour a day opens about 5.2 blocks a day
+  (v5: 6.7, v4: 14.8), about 3.2 of them Mysteries.
 - **One bar: rank XP.** No Levels. XP is never lost and comes only from winning: **100 XP a
   win, 0 a loss** (designer, 2026-10-02). Rank is the main way to show status.
 - **Money**: $100 a ball, $500 for a win, $150 for a loss, and from STREAK x3 a small bonus on
@@ -65,15 +73,17 @@ zero. A tiny chance also shows **"1 in N" beside its %** (0.0001%, 1 in 1,000,00
   money and XP only. The first win ever is a Rare block. **Every daily thing resets at 08:00
   UTC** (section 7.5).
 - **Pity, for Mystery blocks only**: Rare by the 10th, **Epic by the 40th**, and a new player's
-  bars start at 2/10 and 10/40 (7.4).
+  bars start at 2/10 and 10/40. Since v5.1 it counts the cue a Mystery finally gives, and a due
+  Mystery turns into a Rare (or Epic) block that can still climb (7.4).
 - **The first week**: any 7 login days within 14 days of joining, each with a finished match.
   Day 2 a **Rare block**; **day 7 the Week One Cue**, a Legendary cue no block ever drops,
   tradable and sellable (section 10.1).
-- **Money buys** Mystery blocks (**$14,900, or 5 for $66,900**), the **restock shop** (2 slots
-  every 10 minutes, the first always Epic or better, plus VIP's slot), the Grand Opening block
-  while it runs ($24,900) and ability spins ($12,500). Timers are skipped for Robux only, **1 /
-  4 / 9 / 15 R$** by time left (1 R$ for 5 minutes or less: every Uncommon and Rare block).
-- **Robux** (v5, live 2026-10-09): Mystery block **7 R$**, 5 for **29 R$**, restock **39 / 149 /
+- **Money buys** Mystery blocks (**$19,900, or 5 for $89,900**; v5: $14,900 and $66,900), the
+  **restock shop** (2 slots every 10 minutes, the first always Epic or better, plus VIP's slot),
+  the Grand Opening block while it runs ($24,900) and ability spins ($12,500). Timers are
+  skipped for Robux only, **1 / 4 / 9 / 15 R$** by time left (1 R$ for 5 minutes or less: every
+  Uncommon and Rare block).
+- **Robux**: Mystery block **9 R$**, 5 for **39 R$** (v5.1; v5: 7 and 29), restock **39 / 149 /
   599 / 1,699 R$**; the Robux route stays about 2.5 times better value than money (section 11).
 - **VIP** (399 R$): 2x money, no timers and an **Uncommon block every day** ($5,000 where paid
   random items are restricted).
@@ -88,7 +98,7 @@ zero. A tiny chance also shows **"1 in N" beside its %** (0.0001%, 1 in 1,000,00
 
 ---
 
-## 1. The designer's targets, and how v5 meets them
+## 1. The designer's targets, and how v5.1 meets them
 
 **The metric** (designer, 2026-10-02): the share of players active in the last 7 days who own
 at least one cue of a rarity.
@@ -98,59 +108,63 @@ to each to their own feel rewarding to own, not too common where everyone walks 
 but not impossible (achievable easier through means of robux obviously, or lots of grinding)."*
 Their answers set the shape: a Legendary about once a month for a 1-hour player after the
 launch month (answer 1, "Strict"), Mythic and the Secret as goals grinders can reach (answer 2)
-and a more generous launch (answer 3, the Grand Opening Luck). The plan's simulated shares
-(plan 7.1) are the targets now; they replace v4's ranges.
+and a more generous launch (answer 3, the Grand Opening Luck). v5.1 (2026-10-09 evening) asked
+for more upgrades, fewer blocks opened, no tier capped at its name and a little more than v5;
+its simulated shares are the targets now.
 
-The model (`python3 tools/economy_model.py`, re-run 2026-10-09 on the numbers in Config; the
-plan's own run in brackets, about a point of noise either side):
+The model (`python3 tools/economy_model.py`, re-run 2026-10-09 on the numbers in Config; v5's
+own run in brackets):
 
 | Rarity | Day 7 | Day 30 | Day 60 | v4 (day 7 / 30 / 60) | Before v4 |
 |---|---|---|---|---|---|
-| Epic | **58.05%** (59) | **66.59%** (67) | **64.53%** (65) | 18.37 / 32.39 / 42.40% | 2.73 / 5.75 / 10.09% |
-| Legendary (from blocks) | **13.57%** (13.8) | **20.69%** (21.2) | **17.49%** (17.9) | 2.29 / 8.10 / 12.92% | 0.43 / 0.84 / 1.90% |
-| The Week One Cue | 0.18% (0.2) | 15.77% (15.8) | 28.99% (29.0) | - | - |
-| A Legendary or the Week One Cue | 13.68% (13.9) | 28.57% (28.9) | 35.11% (35.3) | | |
-| Mythic | **2.38%** (2.4) | **4.72%** (4.6) | **4.36%** (4.3) | 0.30 / 0.95 / 1.74% | 0.06 / 0.14 / 0.23% |
-| Secret | **0.08%** (0.08) | **0.14%** (0.14) | **0.13%** (0.12) | 0.03 / 0.11 / 0.18% | 0.02 / 0.01 / 0.02% |
+| Epic | **60.86%** (58.05) | **69.21%** (66.59) | **66.66%** (64.53) | 18.37 / 32.39 / 42.40% | 2.73 / 5.75 / 10.09% |
+| Legendary (from blocks) | **14.83%** (13.57) | **22.24%** (20.69) | **18.65%** (17.49) | 2.29 / 8.10 / 12.92% | 0.43 / 0.84 / 1.90% |
+| The Week One Cue | 0.18% | 15.77% | 28.99% | - | - |
+| A Legendary or the Week One Cue | 14.91% (13.68) | 29.56% (28.57) | 35.59% (35.11) | | |
+| Mythic | **2.57%** (2.38) | **4.80%** (4.72) | **4.58%** (4.36) | 0.30 / 0.95 / 1.74% | 0.06 / 0.14 / 0.23% |
+| Secret | **0.10%** (0.08) | **0.17%** (0.14) | **0.16%** (0.13) | 0.03 / 0.11 / 0.18% | 0.02 / 0.01 / 0.02% |
 
-**Every number is within about a point of the plan.** Without the planned features (section
-10.6; `--built-only`): Epic 56.01 / 65.61 / 63.08%, Legendary 13.23 / 19.76 / 16.50%, Mythic
-2.30 / 4.23 / 3.98%, Secret 0.04 / 0.12 / 0.14%.
+**Slightly more generous than v5 everywhere, as asked.** Without the planned features (section
+10.6; `--built-only`): Epic 58.59 / 67.29 / 64.90%, Legendary 14.00 / 20.94 / 17.87%, Mythic
+2.37 / 4.64 / 4.35%, Secret 0.08 / 0.13 / 0.13%.
 
 - **Epic** is the good pull most players get every few days.
 - **Legendary** is generous in the launch month, then settles at about 1.4 times v4's owners. A
-  free 1-hour player climbs to Legendary or better about 2.5 times in the launch month and about
-  1.1 times a month after it (plan 7.2).
+  free 1-hour player climbs to Legendary or better about 2.6 times in the launch month and about
+  1.3 times a month after it (v5: 2.5 and 1.1).
 - **Mythic** is a grinder's goal (about 4-5% of active players).
 - **The Secret** stays the trophy, rarer than v4's by day 60.
 - **The shares dip after day 30** because the Grand Opening Luck ends then.
 
 **With finder's money, the Index rows and selling** (`--sell`: every duplicate Common and
 Uncommon sold, Rare 90%, Epic 60%, Legendary 40%, Mythic and the Secret 25%, and 3 owners in 10
-sell the Week One Cue): Epic 58.61 / 68.20 / 65.95%, Legendary 14.77 / 22.79 / 19.07%, Mythic
-2.56 / 5.05 / 4.78%, Secret 0.08 / 0.15 / 0.13%; the Week One Cue is held by 11.10% (day 30) and
-20.29% (day 60). Over 60 days that money adds up to 1.7 times all match money (finder's money
-85%, the Index rows 21%, sell-back 39%, Week One Cues sold 24%), but it mostly buys Mystery
+sell the Week One Cue): Epic 62.08 / 70.58 / 68.02%, Legendary 14.94 / 24.11 / 20.56%, Mythic
+2.91 / 5.37 / 5.12%, Secret 0.12 / 0.15 / 0.15%; the Week One Cue is held by 11.03% (day 30) and
+20.23% (day 60). Over 60 days that money adds up to 1.7 times all match money (finder's money
+86%, the Index rows 18%, sell-back 38%, Week One Cues sold 24%), but it mostly buys Mystery
 blocks, a small share of the good copies, so the shares move only 1 to 2 points.
 
 **How sure is this?** The model assumes a very strong game: 1,700 new players on day 0, growing
 5.5% a day for 40 days (about 500 peak players online in week 1, about 5,000 by day 45-60), and
 about 28% of new players back the next day, more than Roblox's top 1% (22%; the median game
 keeps 10.3%, GameAnalytics 2026). With typical retention (`--retention typical`, about 12% next
-day): Epic 51.97 / 57.07 / 50.55%, Legendary 10.48 / 14.35 / 9.79%, Mythic 2.01 / 2.81 / 2.13%,
-Secret 0.05 / 0.09 / 0.05%, the Week One Cue 0.03 / 5.13 / 10.04% (day 7 / 30 / 60): about
+day): Epic 55.78 / 59.80 / 53.50%, Legendary 11.42 / 15.54 / 10.76%, Mythic 2.01 / 3.02 / 2.30%,
+Secret 0.06 / 0.08 / 0.05%, the Week One Cue 0.03 / 5.13 / 10.04% (day 7 / 30 / 60): about
 two-thirds of the Legendary and Mythic shares. The plan keeps the strong assumption every past
 plan used; watch the real numbers after launch (section 14).
 
 **Where the Epic-and-up copies come from** (day 30, Epic / Legendary / Mythic): the win track
-41 / 41 / 43%; the group, favorite, invites, codes and the Gift 12 / 12 / 12%; login and the
-28-day track 12 / 12 / 12%; playtime 7 / 7 / 6%; rank rewards 7 / 7 / 7%; the Grand Opening
-block 6 / 6 / 4%; Mystery blocks bought with money 4%; the restock with money 4%; Lucky Rain 4%;
-the Lucky and Golden Shot 2%; Mystery blocks bought with Robux 1%. No single gift is a leak:
-almost every Legendary-or-better copy comes from a climb above the block's promise (v4: 53% of
-day-30 Legendaries came from two calendar gifts). **Cues entering the game per day** (average of
-the week before, day 30): Rare about 30,300, Epic 10,000, Legendary 1,470, Mythic 256, Secret 7
-(v4: Rare 31,800, Epic 2,800, Legendary 410, Mythic 47, Secret 4).
+41 / 41 / 42%; login and the 28-day track 15 / 15 / 17%; the group, favorite, invites, codes and
+the Gift 13 / 13 / 12%; rank rewards 8 / 8 / 8%; the Grand Opening block 6 / 7 / 4%; Mystery
+blocks bought with money 5 / 4 / 5%; the restock with money 4%; Lucky Rain 3-4%; the Lucky and
+Golden Shot 2-3%; Mystery blocks bought with Robux 1%. Playtime gives no blocks since v5.1 (its
+15-minute Mystery became $2,000). About a third of all Epic-and-up copies come out of Mysteries,
+wherever the Mystery came from. No single gift is a leak: almost every Legendary-or-better copy
+comes from a climb above the block's promise (v4: 53% of day-30 Legendaries came from two
+calendar gifts). **Cues entering the game per day** (average of the week before, day 30): Rare
+about 30,800, Epic 10,600, Legendary 1,600, Mythic 261, Secret 8 (v5: Rare 30,300, Epic 10,000,
+Legendary 1,470, Mythic 256, Secret 7; v4: Rare 31,800, Epic 2,800, Legendary 410, Mythic 47,
+Secret 4).
 
 **What a player gets** (`players`: 1,000 identical players each, 50% win rate, every day from
 launch, so the launch luck is on for the whole month; free players spend 70% of their money on
@@ -158,16 +172,17 @@ Mystery blocks and spins):
 
 | Player | Own one at day 7 (Epic / Legendary / Mythic / Secret) | Day 30 | Money earned by day 30 |
 |---|---|---|---|
-| Free, 30 min a day | 91% / 27% / 5.2% / 0.1% | 100% / 75% / 23% / 0.5% | $667,000 |
-| Free, 1 h a day | 99.6% / 37% / 6.9% / 0.1% | 100% / 87% / 29% / 0.8% | $1,208,000 |
-| Free, 3 h a day | 100% / 76% / 23% / 0.6% | 100% / 100% / 70% / 2.8% | $2,279,000 |
-| VIP, 1 h a day | 99.8% / 42% / 8.0% / 0.0% | 100% / 93% / 36% / 1.1% | $1,502,000 |
-| Small spender: VIP, 1 h, 500 R$ a month | 99.6% / 47% / 11% / 0.3% | 100% / 94% / 41% / 1.4% | $1,686,000 |
-| Big spender: VIP, 3 h, 5,000 R$ a month | 100% / 94% / 37% / 1.4% | 100% / 100% / 91% / 7.0% | $4,938,000 |
+| Free, 30 min a day | 91% / 30% / 6.2% / 0.2% | 100% / 77% / 23% / 0.8% | $727,000 |
+| Free, 1 h a day | 98% / 40% / 10% / 0.1% | 100% / 88% / 34% / 0.7% | $1,268,000 |
+| Free, 3 h a day | 100% / 78% / 21% / 0.7% | 100% / 100% / 74% / 2.5% | $2,339,000 |
+| VIP, 1 h a day | 99% / 48% / 10% / 0.0% | 100% / 95% / 39% / 0.4% | $1,562,000 |
+| Small spender: VIP, 1 h, 500 R$ a month | 99.4% / 51% / 11% / 0.1% | 100% / 94% / 41% / 1.1% | $1,746,000 |
+| Big spender: VIP, 3 h, 5,000 R$ a month | 100% / 96% / 41% / 1.2% | 100% / 100% / 91% / 6.6% | $4,998,000 |
 
 These players never skip a day; most real players do, which is why the whole-game shares above
 are far lower. Money earned roughly doubles against v4 ($571,000 for the 1-hour player): the
-playtime gifts and the win track's money steps replaced blocks with money.
+playtime gifts and the win track's money steps replaced blocks with money. (v5.1 run; the
+Secret column moves a few tenths between runs, about 1 owner in 1,000 players.)
 
 **Other targets (still true):**
 
@@ -198,15 +213,15 @@ except the tutorial's blocks):
 | The first finished match | first-week day 1 can be claimed: **$5,000 + a Mystery block** (a login day counts once a match is finished that day). |
 | 5 minutes | playtime gift: $1,000 |
 | The second and third wins | $1,000 each (win track steps 2 and 3); the third win is **Bronze II**: $1,000 |
-| 15 minutes | playtime gift: 1 Mystery block |
+| 15 minutes | playtime gift: **$2,000** (v5.1; v5: a Mystery block) |
 | The fourth win | a Mystery block (step 4) |
 | 30 and 45 minutes | playtime gifts: $2,500 and $3,500 |
 | 60 minutes | playtime gift: **$5,000 + 1 ability spin** |
 
 Every new cue also pays finder's money the first time (section 18). The model's first 20
-minutes (the tutorial, then the group, the favorite and the launch codes): about **7 Mystery
+minutes (the tutorial, then the group, the favorite and the launch codes): about **6 Mystery
 blocks, an Uncommon block** (ROOFTOP), the first win's Rare block and the Lucky 8 block, about
-**$29,000** earned, and during the launch luck about **half already own an Epic** and 1 in 10 a
+**$31,000** earned, and during the launch luck about **55% already own an Epic** and 1 in 10 a
 Legendary. **Login day 2 is a Rare block.** Silver comes after about 6 hours of play (21 wins).
 The Starter Pack offer appears after the first block opening (section 11.4).
 
@@ -578,14 +593,16 @@ climbed block's row `Config.BlockOdds.List` (`Progression/BlockOdds.luau`).
 - **A block's name is its floor.** A Rare block always gives Rare or better.
 - **Every block climbs**, one step at a time, on one ladder (7.2). The tier it ends on is the
   cue's rarity; then the reel picks which cue of that rarity, every cue equally likely.
-- **Where each kind starts**: the Mystery block and the Sky block (Lucky Rain) from Standard;
-  Lucky 8 and the Gift from Uncommon; each tier block from its own tier. **The Grand Opening and
-  Starter blocks keep their approved odds and never climb** (7.2). Rank rewards keep their
-  blocks, which follow these rules (Expert's Legendary block is a guaranteed Legendary).
+- **Where each kind starts**: the Sky block (Lucky Rain) from Standard; Lucky 8 and the Gift
+  from Uncommon; each tier block from its own tier. **The Mystery turns into one of those tier
+  blocks first** (v5.1, 7.4), which then climbs from its name. **The Grand Opening and Starter
+  blocks keep their approved odds and never climb** (7.2). Rank rewards keep their blocks, which
+  follow these rules (Expert's Legendary block is a guaranteed Legendary).
 - **Unclimbed, then climbed.** A new block arrives **unclimbed**: no timer, and its slot says
   **OPEN!**. A tap opens the **climb screen** (like Brawl Stars' Starr Drop) with **4 presses**
   (`Drop.Upgrade.Clicks`; designer: "just 4"). The server rolls the final tier first (with the
-  launch luck and, for a Mystery block, pity); the presses only reveal it. The first press shows
+  launch luck); the presses only reveal it. A Mystery's screen is its roll instead (7.4): the
+  same 4 presses end on the block it turns into, which jumps back to the hotbar showing OPEN!. The first press shows
   the start: the block's own tier, or higher when the 3 later presses couldn't reach the final
   tier otherwise (the higher of the block's tier and the final tier minus 3;
   `BlockDrop.startOf`). Each later press climbs one tier or doesn't, every choice equally likely
@@ -599,10 +616,9 @@ climbed block's row `Config.BlockOdds.List` (`Progression/BlockOdds.luau`).
 - **Honest by construction**: the shown odds are the real odds. The screen never shows a fake
   near-miss or a "chance per press" (it isn't a fixed number).
 
-**Today's client** (shims until the GUI session's screens land; section 19): the climb screen
-(`MysteryReveal`) opens Mystery blocks only. Holding or throwing any other unclimbed block
-climbs it on the server first, then it opens as usual; the Reveal shows a Secret as Mythic, and
-the Secret's reel plays right after it.
+**The client** (checked in Studio 2026-10-09): the climb screen (`MysteryReveal`) opens every
+unclimbed block from its slot's OPEN!, a Mystery's roll included; a climb that reaches the
+Secret hands over to the Secret's pull.
 
 ### 7.2 The ladder, and what each block gives
 
@@ -620,18 +636,20 @@ The cue's rarity from each block over its whole climb, in percent (each row adds
 
 | Block | Common | Uncommon | Rare | Epic | Legendary | Mythic | Secret |
 |---|---|---|---|---|---|---|---|
-| Mystery, Sky (and a Standard block) | 50 | 32.5 | 14.35 | 2.835 | 0.26775 | 0.0460688 | 0.00118125 |
+| Standard, Sky | 50 | 32.5 | 14.35 | 2.835 | 0.26775 | 0.0460688 | 0.00118125 |
 | Uncommon, Lucky 8, Gift | - | 65 | 28.7 | 5.67 | 0.5355 | 0.0921375 | 0.0023625 |
 | Rare | - | - | 82 | 16.2 | 1.53 | 0.26325 | 0.00675 |
 | Epic | - | - | - | 90 | 8.5 | 1.4625 | 0.0375 |
 | Legendary | - | - | - | - | 85 | 14.625 | 0.375 |
 | Mythic | - | - | - | - | - | 97.5 | 2.5 |
+| **Mystery** (v5.1: its roll, then that block's climb; 7.4) | 35 | 37.375 | 22.0375 | 4.995 | 0.503625 | 0.0866531 | 0.0022219 |
 
 The same as "or better":
 
 | Block | Epic or better | Legendary or better | Mythic or better | Secret |
 |---|---|---|---|---|
-| Mystery | 3.15% (1 in 32) | 0.315% (1 in 317) | 0.04725% (1 in 2,116) | 1 in 84,656 |
+| **Mystery** (v5.1) | 5.5875% (1 in 18) | 0.5925% (1 in 169) | 0.088875% (1 in 1,125) | 1 in 45,007 |
+| Standard (v5's Mystery) | 3.15% (1 in 32) | 0.315% (1 in 317) | 0.04725% (1 in 2,116) | 1 in 84,656 |
 | Uncommon | 6.3% (1 in 16) | 0.63% (1 in 159) | 0.0945% (1 in 1,058) | 1 in 42,328 |
 | Rare | 18% (1 in 5.6) | 1.8% (1 in 56) | 0.27% (1 in 370) | 1 in 14,815 |
 | Epic | 100% | 10% (1 in 10) | 1.5% (1 in 67) | 1 in 2,667 |
@@ -642,7 +660,7 @@ The kinds:
 
 | Block | Climbs from | Comes from |
 |---|---|---|
-| Mystery | Standard, with pity (7.4) | the win track, the shop, rewards |
+| Mystery | turns into a Standard to Legendary block first, with pity (7.4) | the win track, the shop, rewards |
 | Standard, Uncommon, Rare, Epic, Legendary, Mythic | its own tier | the win track, rewards, rank rewards, the restock |
 | Sky | Standard | Lucky Rain (planned, 10.6) |
 | Lucky 8 | Uncommon | the favorite reward (10.4) |
@@ -679,15 +697,17 @@ The designer's answer 3 (2026-10-09): x1.5 on Rare to Epic and Epic to Legendary
 
 | Block | Common | Uncommon | Rare | Epic | Legendary | Mythic | Secret |
 |---|---|---|---|---|---|---|---|
-| Mystery, Sky (and a Standard block) | 50 | 32.5 | 12.775 | 4.01625 | 0.6024375 | 0.1036547 | 0.0026578 |
+| Standard, Sky | 50 | 32.5 | 12.775 | 4.01625 | 0.6024375 | 0.1036547 | 0.0026578 |
 | Uncommon, Lucky 8, Gift | - | 65 | 25.55 | 8.0325 | 1.204875 | 0.2073094 | 0.0053156 |
 | Rare | - | - | 73 | 22.95 | 3.4425 | 0.5923125 | 0.0151875 |
 | Epic | - | - | - | 85 | 12.75 | 2.19375 | 0.05625 |
 | Legendary | - | - | - | - | 85 | 14.625 | 0.375 |
 | Mythic | - | - | - | - | - | 97.5 | 2.5 |
 
-- A Mystery block: Epic or better 4.725% (1 in 21), Legendary or better 0.70875% (1 in 141),
-  Mythic or better 1 in 941, the Secret 1 in 37,625.
+- A Mystery (v5.1; the luck lifts its block's climb, never its roll): Common 35%, Uncommon
+  37.375%, Rare 19.61875%, Epic 6.7734375%, Legendary 1.0478906%, Mythic 0.1802988%, the Secret
+  0.004623%: Epic or better 8.00625% (1 in 12), Legendary or better 1.232812% (1 in 81), Mythic
+  or better 1 in 541, the Secret 1 in 21,631 (v5's Mystery: 1 in 21, 141, 941 and 37,625).
 - It is free, the same for everyone, dated and shown with a countdown. Every odds screen shows
   the boosted odds while it runs (Roblox requires live odds). When it ends, the event ends;
   nobody's odds get cut. A climb uses the luck live at the moment the server rolls it.
@@ -696,23 +716,53 @@ The designer's answer 3 (2026-10-09): x1.5 on Rare to Epic and Epic to Legendary
   countdown and the two boosted steps (Rare to Epic 18% to 27%, Epic to Legendary 10% to 15%).
   It is the GUI session's; the odds screens already read the live luck.
 
-### 7.4 Pity (Mystery blocks only)
+### 7.4 The Mystery: its roll and pity
 
-- For Mystery blocks only, bought ones too. **Rare by the 10th** Mystery block in a row without
-  a Rare-or-better climb; **Epic by the 40th** without an Epic-or-better (`Drop.PityRare`,
-  `PityEpic`; v4: the 100th). A pity result is exactly that rarity (v4's Epic pity gave a Rare
-  cue 77% of the time). Pity never gives a Legendary.
+**The roll** (economy v5.1 "Lively", designer 2026-10-09; `Config.BlockOdds.Turn`,
+`BlockDrop.turnRoll`): v5 made a Mystery's climb final, so a Mystery that stopped on Rare could
+never go higher. Since v5.1 a Mystery **turns into a real lucky block** first, the same block
+the restock, the win track and the rewards give, and that block then climbs from its name like
+any other.
+
+- On the Mystery's screen (4 presses, the dots) each step up is one chance: Standard to Uncommon
+  **30%**, Uncommon to Rare **25%**, Rare to Epic **10%**, Epic to Legendary **5%**; it stops at
+  the first miss and never goes past Legendary (`Turn.Top`). It turns into a **Standard block
+  70%**, Uncommon 22.5%, Rare 6.75%, Epic 0.7125% (1 in 140) or Legendary 0.0375% (1 in 2,667).
+- The block it becomes keeps the Mystery's slot and origin (a bought one still opens at once
+  after its climb), arrives **unclimbed** (OPEN!, no timer) and climbs on its own screen with
+  that block's own odds (7.2). Every block can still reach the Secret, a Standard one too.
+- The Grand Opening Luck boosts the climb, never the roll.
+- The shop's Mystery card lists the five blocks it turns into; each row's dice opens that
+  block's normal odds. Its Odds & Details shows the roll, what it ends with over both steps,
+  pity and each cue's chance over both steps.
+- Worth: about 1.7 times v5's Mystery, which is why the price rose to $19,900 / 9 R$ and the
+  15-minute playtime Mystery became $2,000 (9.1, 10.3). Its value per Robux (3.83) stays inside
+  the restock's range (2.75 to 4.18).
+
+**Pity**:
+
+- For Mystery blocks only, bought ones too. **Rare by the 10th** Mystery in a row without a
+  Rare-or-better cue; **Epic by the 40th** without an Epic-or-better (`Drop.PityRare`,
+  `PityEpic`; v4: the 100th). Pity is checked at the roll: a due Mystery turns into a **Rare
+  (or Epic) block**, which can still climb. Pity never gives a Legendary block.
+- **It counts the cue the Mystery finally gives** (v5.1), after its block's climb. A roll that
+  lands on a Rare-or-better block resets that counter at once (the block promises it), so two
+  Mysteries rolled while pity is due are never both lifted. The counters a roll can't settle yet
+  ride on the block as a hidden mark (`Block.Pity`) and count when it climbs; a block still held
+  counts once it is opened, so pity can come late but is never lost. Counting the block instead
+  would hand out a Rare block almost every 10th Mystery (about 20% more Legendaries).
 - **The head start**: a new save starts the counters at 2 (Rare) and 10 (Epic)
   (`Drop.PityStart`), so the bars show 2/10 and 10/40 on the first day and the first Epic is
   guaranteed by the 30th Mystery block. Old saves keep their counters (the save's
   `Drops.SinceRare` and `SinceEpic`).
-- **Shown as bars with the number** ("Epic guaranteed in 23 blocks") **in Odds & Details and on
-  the shop's Mystery card only**, never on the climb screen (designer, 2026-10-09: it stays
-  clean). When pity is due, the odds screen shows the guaranteed tier (as v4).
-- How often it fires (plan 3.6): among players who open that many Mystery blocks, about 4 in 10
-  get their first Epic from pity at block 30 (1 in 4 during the launch); after that about 3 in
-  10 each time (1 in 7 during the launch). The Rare pity fires for about 1 player in 4 the
-  first time.
+- **Shown as bars with the number** ("Epic guaranteed in 23") **in Odds & Details and on the
+  shop's Mystery card only**, never on the climb screen (designer, 2026-10-09: it stays clean);
+  the card's bars update as soon as a Mystery rolls or its block climbs. When pity is due, the
+  odds screen shows the block it turns into (as v4).
+- How often it fires (plan 3.6, v5's numbers; v5.1's better roll makes it fire a little less):
+  among players who open that many Mystery blocks, about 4 in 10 get their first Epic from pity
+  at block 30 (1 in 4 during the launch); after that about 3 in 10 each time (1 in 7 during the
+  launch). The Rare pity fires for about 1 player in 4 the first time.
 
 ### 7.5 The daily win track
 
@@ -748,9 +798,9 @@ one step and gives that step's block or money (v5, 2026-10-09; `Config.BlockOdds
   (`wins = { given, kinds }`, a money step's kind "Money") for the bar above the hotbar ("Lucky
   Blocks today 7/10"). The server decides everything before any reel starts; the reel only
   shows it.
-- A free player who plays every day and wins half their matches opens about 4.8 blocks a day at
-  30 minutes, 6.7 at 1 hour and 11.7 at 3 hours, about 70% of them ending Common or Uncommon
-  (plan 7.2; v4: about 15 a day at 1 hour).
+- A free player who plays every day and wins half their matches opens about 3.5 blocks a day at
+  30 minutes, 5.2 at 1 hour and 9.4 at 3 hours, about 70% of them ending Common or Uncommon
+  (v5.1; v5: 4.8, 6.7 and 11.7; v4: about 15 a day at 1 hour).
 
 ### 7.6 Timers, the skip, the quick reveal and "Open all"
 
@@ -801,16 +851,18 @@ came out. The button and its summary are the GUI session's; the words are ready 
 ### 7.7 Odds screen and per-cue odds
 
 Every cue of a rarity in a block has an equal share: **cue % = the rarity's % from that block
-(7.2) / cues of that rarity**. From a Mystery block each Legendary cue is 0.26775 / 7 = 0.03825%
-(1 in 2,610), each Mythic 1 in 6,510 and the one Secret 1 in 84,656. The shop's block cards and
+(7.2) / cues of that rarity**. From a Mystery (v5.1, both steps) each Legendary cue is
+0.503625 / 7 = 0.0719% (1 in 1,390), each Mythic 1 in 3,460 and the one Secret 1 in 45,007; from
+a Standard block 1 in 2,610, 6,510 and 84,656. The shop's block cards and
 the reel show the odds; an **"Odds & Details"** button (words, not just an icon) lists every
 outcome with its % and "1 in N" and totals exactly 100%. An unclimbed block's list is its climb's
-odds with the live luck (and the guaranteed tier when pity is due); a climbed block's list is the
-cues of its one rarity. The Grand Opening's odds are the player's own (9.2). **The Week One Cue
+odds with the live luck; the Mystery's adds the blocks it turns into (with the guaranteed block
+when pity is due) and counts both steps (7.4); a climbed block's list is the cues of its one
+rarity. The Grand Opening's odds are the player's own (9.2). **The Week One Cue
 is in no block's list.**
 
-**Cue cards** show the rarity, **its % per Mystery block and "N exist"**, for example "EPIC ·
-0.315% · 1,284 exist" (2.835% / 9 Epic cues). A cue's own % from other blocks shows only in the
+**Cue cards** show the rarity, **its % per Mystery and "N exist"**, for example "EPIC · 0.555%
+· 1,284 exist" (4.995% / 9 Epic cues; v5.1, both steps). A cue's own % from other blocks shows only in the
 Odds list. "N exist" reads "fewer than 10" until there are 10 copies. The Week One Cue shows no
 % (the GUI session adds "Day 7 of your first week").
 
@@ -823,8 +875,9 @@ Odds list. "N exist" reads "fewer than 10" until there are 10 copies. The Week O
 - **The "1 in N"** (v5, answer 14): the message carries the chance of that exact cue from the
   block it started as, with the odds live at the climb (the launch luck if it was on; pity left
   out), rounded to 3 significant figures (`LuckyBlocks.oneIn`, `Strings.Banner.OneIn`): from a
-  Mystery block, a Legendary cue "1 in 2,610", a Mythic cue "1 in 6,510", the Secret "1 in
-  84,700". A block that never climbs uses its own row.
+  Standard block, a Legendary cue "1 in 2,610", a Mythic cue "1 in 6,510", the Secret "1 in
+  84,700". Since v5.1 a Mystery's cue counts from the block it turned into, the block that
+  climbed. A block that never climbs uses its own row.
 - **A Legendary or Mythic block in the restock** is announced in every server ("A MYTHIC block
   is in the restock for 9:41!"; `Config.Shop.Restock.Announce`).
 - **Retired (vaulted) cues never come back** (plan, 2026-10-02). Odds screens update the moment a
@@ -854,12 +907,12 @@ Selling also removes cues from the game, which keeps the ones that stay worth mo
 only from a lucky block, a trade or (the Week One Cue) the first week. That keeps every block a
 chance at something money can't simply buy, and gives trading its purpose.
 
-Money prices (v5, 2026-10-09; "hours of play" is Classic match money, about $7,750 an hour; a
-1-hour player earns about $40,000 a day with every reward):
+Money prices (v5, 2026-10-09; the Mystery v5.1; "hours of play" is Classic match money, about
+$7,750 an hour; a 1-hour player earns about $40,000 a day with every reward):
 
 | Item | Price | Hours of play | v4 |
 |---|---|---|---|
-| Mystery block | **$14,900**; 5 for **$66,900** (10% off) | 1.9; 8.6 for 5 | $4,900; 10 for $44,100 |
+| Mystery block | **$19,900**; 5 for **$89,900** (10% off; v5: $14,900 and $66,900) | 2.6; 11.6 for 5 | $4,900; 10 for $44,100 |
 | Grand Opening block | $24,900; 3 for $69,900; 10 for $219,000 | 3.2 for one | same |
 | Restock Rare / Epic / Legendary / Mythic | **$49,900 / $249,000 / $1,290,000 / $4,990,000** | 6.4 / 32 / 166 / 644 | $19,900 / $199,000 / $1,490,000 / $4,990,000 |
 | Ability spin | $12,500 each (buy 1, 5, 10 or 50; no bulk discount) | 1.6 | same |
@@ -871,18 +924,19 @@ packs with the smallest pack that covers the gap highlighted. Never right after 
 
 ### 9.1 Mystery blocks and the restock shop
 
-**Mystery blocks** (v5, the designer's answer 10 and plan 2.1): **$14,900, or 5 for $66,900**
-(`Config.Shop.Mystery`, `Config.Shop.Deals.Mystery`). The bundle is 10% off like v4's 10-pack,
-and 5 instead of 10 keeps it within reach (about 1.7 days of a 1-hour player's money; 10 would
-be 3.4). Each v5 Mystery block is 8 times as likely to reach Epic or better as v4's, so $14,900
-is the same value per dollar as $4,900 was. A 1-hour player buys about 2.3 a day with match
-money.
+**Mystery blocks** (economy v5.1, designer 2026-10-09): **$19,900, or 5 for $89,900**
+(`Config.Shop.Deals.Mystery.Money` is what the server charges, `Config.Shop.Mystery` what the
+card shows; keep them the same). v5 was $14,900 and 5 for $66,900 (the designer's answer 10 and
+plan 2.1). The bundle is 10% off like v4's 10-pack, and 5 instead of 10 keeps it within reach.
+A v5.1 Mystery is worth about 1.7 times v5's (it turns into a block that still climbs, 7.4), so
+the price rose by a third and the 15-minute playtime Mystery became money (10.3); together they
+keep the economy just above v5, as asked.
 
-- **With Robux** (live 2026-10-09): Mystery1 **7 R$** (was 5) and the **Mystery5** 5-pack **29
-  R$** (5.8 a block, "35 R$ one by one"; **6** during the launch bonus, 11.1). The Robux 10-pack
-  (Mystery10) is retired: off sale on Roblox, never deleted; an old receipt still pays 10.
-- A bought block is paid origin and climbs like any other (pity included); its climbed block
-  opens at once. They are paid random items (section 13).
+- **With Robux** (v5.1): Mystery1 **9 R$** (v5: 7) and the **Mystery5** 5-pack **39 R$** (7.8 a
+  block, "45 R$ one by one"; **6** during the launch bonus, 11.1). The Robux 10-pack (Mystery10)
+  is retired: off sale on Roblox, never deleted; an old receipt still pays 10.
+- A bought Mystery is paid origin; the block it turns into keeps that and climbs like any other
+  (pity included); its climbed block opens at once. They are paid random items (section 13).
 
 **The restock shop** (v5, the designer's answers 12 and 13) restocks every **10 minutes on the
 clock** (UTC :00, :10, ...). Every server shows the same blocks (picked from the time slot's
@@ -1048,11 +1102,13 @@ playtime up to 60 minutes a day):
 
 | | 5 min | 15 min | 30 min | 45 min | 60 min |
 |---|---|---|---|---|---|
+| v5.1 | $1,000 | **$2,000** | $2,500 | $3,500 | $5,000 + 1 ability spin |
 | v5 | $1,000 | 1 Mystery block | **$2,500** | **$3,500** | **$5,000** + 1 ability spin |
 | v4 | $1,000 | 1 Mystery block | 1 Mystery block | 1 Mystery block | a Rare block + 1 ability spin |
 
-Fewer blocks (v5): one Mystery block instead of three and a Rare block. The five gifts stay,
-because the Free Reward screen shows five tiles (plan 2.5).
+Fewer blocks (v5): one Mystery block instead of three and a Rare block. **v5.1 (designer,
+2026-10-09) made the 15-minute gift $2,000** to pay for the better Mystery: playtime now gives
+money only. The five gifts stay, because the Free Reward screen shows five tiles (plan 2.5).
 
 ### 10.4 Group, likes, invites and codes
 
@@ -1249,8 +1305,8 @@ on Roblox (13).
 | 4 | VipOffer | Product, once | **199** | 249 | 11.3 |
 | 5 | StarterPack | Product, once | **29** | 99 | 11.4 |
 | 6-12 | Pack1-Pack7 | Products | **25 / 49 / 99 / 199 / 399 / 799 / 1,699** | 49 ... 4,999 | 11.1 |
-| 13 | Mystery1 | Product | **7** (v5; v4 5) | 25 | 1 Mystery block |
-| 14 | Mystery5 | Product (3717476154, v5) | **29** (35 one by one) | new | 5 Mystery blocks (6 during the launch bonus) |
+| 13 | Mystery1 | Product | **9** (v5.1; v5 7, v4 5) | 25 | 1 Mystery block |
+| 14 | Mystery5 | Product (3717476154, v5) | **39** (45 one by one; v5 29) | new | 5 Mystery blocks (6 during the launch bonus) |
 | 15 | Mystery10 | Product, **retired** (off sale, never deleted) | 45 | 229 | 10 Mystery blocks (an old receipt still pays) |
 | 16-18 | GrandOpening1, GrandOpening3, GrandOpening10 | Products | **19 / 49 / 149** (57 / 190 one by one) | 49 / 129 / 349 | Grand Opening blocks, only while it runs (9.2) |
 | 19 | RestockRare | Product | **39** (v5; v4 15) | 99 (never created) | the restock Rare block, while in stock |
@@ -1400,16 +1456,17 @@ dollars at the phone price of Robux, 400 R$ for $4.99):
 |---|---|---|---|---|---|---|---|
 | Ladder | 1 R$ | 3 R$ | 30 R$ ($0.37) | 250 R$ ($3) | 1,500 R$ ($19) | 6,000 R$ ($75) | 50,000 R$ ($624) |
 | The designer's feel (2026-10-08) | | | 8-80 R$, under $1 | 80-400 R$, "a few dollars" | 400-2,400 R$ | 800-8,000 R$, "tens of dollars" | 8,000-80,000 R$, "$100 or more" |
-| Cheapest pull with Robux (that rarity or better, v5 prices) | | | 16 R$ (Grand Opening; 33 R$ from the 5-pack after it) | 127 R$ (Grand Opening; 149 R$ restock Epic after it) | 599 R$ (restock Legendary) | 1,699 R$ (restock Mythic) | 67,960 R$ (restock Mythic) |
+| Cheapest pull with Robux (that rarity or better, v5.1 prices) | | | 16 R$ (Grand Opening; 28 R$ from the 5-pack after it) | 127 R$ (Grand Opening; 140 R$ from the 5-pack after it) | 599 R$ (restock Legendary) | 1,699 R$ (restock Mythic) | 67,960 R$ (restock Mythic) |
 
-**Every product against the ladder** (worth of what it gives / its price; v5 prices): Mystery
-block 2.89, the 5-pack 3.49 (4.2 during the launch bonus), Grand Opening 5.9 (the launch gift),
+**Every product against the ladder** (worth of what it gives / its price; v5.1 prices): Mystery
+block 3.83, the 5-pack 4.41 (5.3 during the launch bonus), Grand Opening 5.9 (the launch gift),
 restock Rare / Epic / Legendary / Mythic 2.75 / 3.08 / 3.91 / 4.18, the Starter Pack's block 2.5,
-the Golden Shot about 2.3. At v4's Robux prices v5's blocks were worth 4 to 7 times their price
+the Golden Shot about 2.3. v5's Mystery was 2.89 (7 R$); without its higher price v5.1's would
+be 4.92, a better buy than every restock block. At v4's Robux prices v5's blocks were worth 4 to 7 times their price
 (the Mystery 4.05, the restock Rare 7.15); under v4 every product sat between 1.07 and 2.4.
 
 **How many times more the money route costs** than buying directly with Robux (money at the
-biggest pack's rate): Mystery block 2.4x, the 5-pack 2.6x, Grand Opening block 1.5x, restock
+biggest pack's rate): Mystery block 2.5x, the 5-pack 2.6x, Grand Opening block 1.5x, restock
 Rare 1.4x, Epic 1.9x, Legendary 2.4x, Mythic 3.3x. The rule stays v4's (designer: "about 3x, you
 set the final ratio", 2026-10-08): **the Robux route is about 2.5-3 times better value than money**
 for the everyday blocks; the restock's Rare and Epic blocks sit lower on purpose, because their
@@ -1452,12 +1509,14 @@ Built on the server (2026-10-03; the trade screen is the GUI lane's): `Progressi
   `Config.Trade.MinExists`); the Week One Cue too, by its own copies. **A lucky block's worth
   is worked out live** (`Trade.blockWorth`): an unclimbed block by its climb's odds from its
   start, a climbed block by exactly its tier's cues, the Grand Opening and Starter blocks by
-  their own rows; each cue worth 1 / its live copies. Until the counters load, fallback tables
-  from the v5 model at day 30 (`python3 tools/economy_model.py exists`): **unclimbed and
-  never-climbing blocks** (`Config.Trade.BlockExists`): Standard, Mystery and Sky 61,000,
-  Uncommon, Lucky 8 and Gift 47,000, Rare 31,000, Epic 11,000, Legendary 2,600, Mythic 1,100,
-  Grand Opening 7,800, Starter 36,000; **climbed blocks** (`ClimbedExists`): Standard 86,000,
-  Uncommon 67,000, Rare 49,000, Epic 18,000, Legendary 3,400, Mythic 1,400. With supply growing
+  their own rows; each cue worth 1 / its live copies. An unclimbed Mystery by its roll and
+  climb together (v5.1); a block a Mystery turned into is an ordinary unclimbed block of its
+  tier (traded, it loses its hidden pity mark). Until the counters load, fallback tables from
+  the v5.1 model at day 30 (`python3 tools/economy_model.py exists`): **unclimbed and
+  never-climbing blocks** (`Config.Trade.BlockExists`): Standard and Sky 47,000, Uncommon,
+  Lucky 8 and Gift 46,000, Mystery 44,000, Rare 32,000, Epic 12,000, Legendary 2,800, Mythic
+  1,100, Grand Opening 7,800, Starter 38,000; **climbed blocks** (`ClimbedExists`): Standard
+  48,000, Uncommon 60,000, Rare 50,000, Epic 19,000, Legendary 3,800, Mythic 1,400. With supply growing
   about 5x between day 30 and day 60, fixed numbers would go stale within weeks.
 - **History**: the last **50 trades** per player (designer, 2026-10-03).
 
@@ -1550,8 +1609,8 @@ accounts (alts).
 A bot's equipped cue matches what real players at its rank own (`Config.BotCues`,
 `BotCues.pick(tier, roll)`; kept from v4 by v5, to re-fit later (section 17); v4: from the simulation's real players at day 60, Master and up
 extrapolated). Each column is the chance the cue is that rarity or better; Common, Uncommon and
-Rare are spread by the Mystery block's odds, and the cue is then one block cue of that rarity,
-each equally likely.
+Rare are spread by the Mystery's odds (v5.1: its roll and climb together), and the cue is then
+one block cue of that rarity, each equally likely.
 
 | Bot tier | Epic+ | Legendary+ | Mythic+ | Before v4 |
 |---|---|---|---|---|
@@ -1610,8 +1669,10 @@ Limited cues.
 - **How items are saved** (save version 11, 2026-10-09): a count per cue id for block and
   Exclusive cues, with how many of them are paid origin; Unique cues keep their copy number
   (#412) and a paid flag; lucky blocks as a list (`LuckyBlocks.List`, each `{ Id, Kind,
-  ReadyAt, Paid?, Climbed?, From?, Luck? }`: `Climbed` marks a climbed block, `From` the kind it
-  climbed from and `Luck` whether the launch luck was on, for the "1 in N") plus skip credits
+  ReadyAt, Paid?, Climbed?, From?, Luck?, Pity? }`: `Climbed` marks a climbed block, `From` the
+  kind it climbed from and `Luck` whether the launch luck was on, for the "1 in N"; `Pity`, since
+  v5.1 with no version bump, the pity counters a block a Mystery turned into still owes, "Rare"
+  or "Epic", kept only on an unclimbed tier block) plus skip credits
   per product (`LuckyBlocks.Credits`). **Version 11** (economy v5) counts every block already
   held as unclimbed (a tier block's running timer ends; the Gift keeps its wait), moves the old
   tiered credits to their products (`SkipCredits1` to LuckyBlockSkip, `SkipCredits2` to
@@ -1698,6 +1759,26 @@ The approved plan is `docs/prompts/ECONOMY_V5_PLAN.md`; the build's report is
   and the v5 Robux prices (the plan's run used v4's); the ownership shares move by noise only
   (`v5-build/robux_sim.txt`).
 
+**Economy v5.1** (designer, 2026-10-09 evening; plan section 15). Claude's calls, each a dated
+line in DECISIONS.md:
+
+- **Pity is checked at the roll and counts the final cue.** A roll that lands on a Rare-or-better
+  block resets that counter at once; the rest ride on the block (`Block.Pity`, "Rare" or "Epic",
+  kept by the save fixer only on an unclimbed tier block) and count at its climb. No save
+  version bump: an old save has no marks.
+- **The roll is the same 4-press screen**, ending on the block (no Secret rung for a Mystery);
+  the block lands back in its slot unclimbed and ready.
+- **The tutorial's scripted first Mystery** (on `tutorial-v2`) now turns it into a block that
+  needs its own climb; the `forced` hook names the block it turns into (pity still counted), and
+  `stay` turns it into a Standard block with no pity counted. Hand-off note for the tutorial
+  session in DECISIONS.md.
+- **The shop's pity bars refresh** after a Mystery rolls or a marked block climbs (they used to
+  wait for the next ShopState).
+- **Odds & Details for the Mystery** adds "Ends with a cue that is" (each rarity over both
+  steps), as the plan page promised.
+- **The money price lives in two places** (`Shop.Deals.Mystery.Money`, charged, and
+  `Shop.Mystery`, shown); a test keeps them equal.
+
 **Shims**: the GUI run (`docs/prompts/ECONOMY_V5_GUI_PROMPT.md`, 2026-10-09) removed shims 1-5
 and 7-9 as their screens were updated (the climb screen for every block, the Secret rung, Odds
 & Details, the result screen's own "Win track" line, the Week One Cue's card, the restock's
@@ -1718,5 +1799,6 @@ added to the day's login claim (lane, 2026-10-03).
 **Built by the GUI run** (2026-10-09): the climb screen for every block, the unclimbed mark, the
 Secret rung and reveal, the quick reveal, "Open all" and its summary, every block's Odds &
 Details with each cue's "1 in N" and the pity bars, the Grand Opening Luck's clover, the
-Mystery card's 7 rows and pity bars, the restock's three cards, the 5-pack, the win track's
-money tiles, the first week's day 7 cue and the Index's Week One Cue line.
+Mystery card's rows (5 since v5.1: the blocks it turns into) and pity bars, the restock's three
+cards, the 5-pack, the win track's money tiles, the first week's day 7 cue and the Index's Week
+One Cue line.

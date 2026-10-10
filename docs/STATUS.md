@@ -12,10 +12,10 @@ Updated 2026-10-09.
   merged into it (Bots, Economy, GUI and cutscenes, Tutorial, Unique cues). Stage 5 of the
   road to release (`docs/ROADMAP.md`): tutorial, funnel, performance, game page.
 - **Lint and tests (2026-10-09, branch `gui-v4`):** lint OK (three old LocalShadow warnings);
-  all 1160 Lune tests pass.
+  all 1164 Lune tests pass.
 - **In the game:** server-owned tables with our own physics and 8-ball rules; 1v1, 2v2, 3v3
   and solo; the global queue and arena with rematch; bots (ten tiers, Play against PC, lobby
-  bots, disguised bots); ranks (XP only from winning) and money; economy v5 and its screens
+  bots, disguised bots); ranks (XP only from winning) and money; economy v5.1 and its screens
   (on `gui-v4`); saves at version 11;
   13 abilities (Ultimates) with the spin screen; cue skins with VFX and outlines; lucky blocks
   as the only gacha (cases, the Magic 8 Ball and reward popups are gone); the Free Reward menu
@@ -48,6 +48,13 @@ One line each; the long form is the 2026-10-08 entry at the top of
 
 ## Open, waiting on the designer
 
+- **Economy v5.1 "Lively" on `gui-v4`** (approved 2026-10-09 evening; plan section 15): a
+  Mystery turns into a real block (its roll 30 / 25 / 10 / 5%) that then climbs; $19,900 / 9 R$;
+  the 15-minute gift $2,000; pity counts the final cue. Built, 1164 tests, checked in Studio on
+  PC; screenshots for the designer's OK in `~/Desktop/8ball-refs/economy-v5-gui/v5.1`. Open:
+  the designer's OK on those; Mystery1 and Mystery5 at 9 and 39 R$ on Roblox (until then the
+  shop shows Roblox's live 7 / 29); the tutorial session's scripted first Mystery (hand-off
+  line in DECISIONS.md).
 - **Economy v5 and its screens on `gui-v4`** (2026-10-09; `docs/prompts/ECONOMY_V5_PLAN.md`,
   roadmap 7.9). The GUI run (`docs/prompts/ECONOMY_V5_GUI_PROMPT.md`, its Notes say what each
   step built) updated every screen and checked each on PC; screenshots for review in
@@ -70,16 +77,12 @@ One line each; the long form is the 2026-10-08 entry at the top of
   YOU GOT, checked in Studio. Still open: the see-through reel trial's verdict, a phone and a
   gamepad, the numbered card's mark A or B, the copy numbers' own plan. `shop-lively` is not
   yet merged into `release`.
-- **The abilities rework** (in `gui-v4` since 2026-10-08, `docs/prompts/ABILITIES_REWORK_PLAN.md`):
-  Fire Shot is the starter (2x speed, full orange guideline lines, a flame trail, scorch
-  marks that fade in about a second); Super Bounce is back as a third Common; Verity
-  (Rare) eats then shoves; Catch-a-Ball (Epic) catches two; Look Over There! (Rare) sneaks;
-  Steel Ball (Legendary) pots one and lines up one, as Gyro's lime two-hexagon ball.
-  Not yet checked: phone and controller, the sounds by
-  ear, the tutorial spin's reveal, the sneak with two players, the designer's voice lines. The
-  one-by-one review (since 2026-09-30) goes on; abilities not yet reviewed are provisional.
+- **The abilities rework** (in `gui-v4` since 2026-10-08, `docs/prompts/ABILITIES_REWORK_PLAN.md`;
+  the abilities themselves are in GDD and ECONOMY): not yet checked on phone and controller,
+  the sounds by ear, the tutorial spin's reveal, the sneak with two players, the designer's
+  voice lines. The one-by-one review (since 2026-09-30) goes on; unreviewed ones are provisional.
 - **The lively Shop** is in `release` (2026-10-06); other menus take its frame as rebuilt.
-- **Decision still open:** whether the VIP cue pays finder's money on the first join.
+  **Decision still open:** whether the VIP cue pays finder's money on the first join.
 - **The cue rarity rework** continues after the Unique cues (Beta, Grand Opening, Eclipse,
   Celestial Dragon, Kitsune). Apex's first look was reverted.
 - **The place file:** save `place/8ball.rbxl` and publish once this milestone is done (lucky

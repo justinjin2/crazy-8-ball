@@ -249,8 +249,11 @@ return {
 	["the Mystery deal's money prices; the case timer skips are gone"] = function()
 		local Shop = H.require("Progression.Shop")
 		H.expect(Shop.skipPrice == nil and Shop.skipProduct == nil, "no case timer skips")
-		-- Economy v5 (plan 6.1): $14,900, 5 for $66,900.
-		H.expect(Shop.mysteryPrice(1) == 14900 and Shop.mysteryPrice(5) == 66900, "Mystery")
+		-- Economy v5.1 (designer, 2026-10-09): $19,900, 5 for $89,900, the same as the card shows.
+		H.expect(Shop.mysteryPrice(1) == 19900 and Shop.mysteryPrice(5) == 89900, "Mystery")
+		local card = H.require("Config").Shop.Mystery
+		H.expect(card.Price == Shop.mysteryPrice(1), "the card's price")
+		H.expect(card.BulkPrice == Shop.mysteryPrice(card.BulkCount), "the card's bundle")
 		H.expect(Shop.mysteryPrice(10) == nil, "the 10-pack is retired")
 		H.expect(Shop.mysteryPrice(2) == nil and Shop.mysteryPrice("1") == nil, "other counts")
 	end,

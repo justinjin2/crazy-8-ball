@@ -567,7 +567,9 @@ function Trade.blockWorth(kind: string, copies: { [string]: number }, climbed: b
 	end
 	if row.Climb ~= nil and climbed ~= true then
 		local total = 0
-		for _, group in BlockDrop.cueGroups(nil, { start = row.Climb }) do
+		-- A Mystery (economy v5.1) is worth both its steps: the blocks it turns into, climbed.
+		local opts = if row.Turns then { mystery = true } else { start = row.Climb }
+		for _, group in BlockDrop.cueGroups(nil, opts) do
 			for _, cue in group.cues do
 				local w = cueWorth(cue, copies)
 				if w == nil then

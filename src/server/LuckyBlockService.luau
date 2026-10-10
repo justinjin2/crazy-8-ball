@@ -42,6 +42,7 @@ local Requests = require(Shared.Progression.Requests)
 local Announce = require(script.Parent.Announce)
 local Counters = require(script.Parent.Counters)
 local PlayerData = require(script.Parent.PlayerData)
+local Store = require(script.Parent.Store)
 
 local L = Config.LuckyBlocks
 
@@ -719,10 +720,11 @@ end
 -- server rolls the final tier and the path of its presses and turns the block into that tier's
 -- climbed block at once (PlayerData.climbBlock), so leaving mid-screen loses nothing; the
 -- client only plays the path. Every unclimbed block climbs this way (the climb screen,
--- MysteryReveal); the tutorial's stay and script hooks apply. The answer: { id, path, kind,
--- readyAt, pity, from, luck }, and for a Secret climb { secret = true, cue, rarity, new,
--- found, count } (no block: no kind, no readyAt). `path` is one tier per press, the Secret on
--- top of the ladder.
+-- MysteryReveal); the tutorial's stay and script hooks apply. A Mystery's roll turns it into an
+-- unclimbed block instead (economy v5.1): `turned`, its `kind` the block it became. The
+-- answer: { id, path, kind, readyAt, turned, pity, from, luck }, and for a Secret climb
+-- { secret = true, cue, rarity, new, found, count } (no block: no kind, no readyAt). `path` is
+-- one tier per press, the Secret on top of the ladder.
 function HANDLERS.Reveal(player: Player, r: LuckyBlocks.Request, data: any): Reply
 	local id = r.id :: number
 	local h = held[player]
@@ -735,8 +737,10 @@ function HANDLERS.Reveal(player: Player, r: LuckyBlocks.Request, data: any): Rep
 	end
 	local block = LuckyBlocks.find(data.LuckyBlocks, id)
 	local stay, forced = false, nil
+	local carried = false -- a block a Mystery turned into, with pity counters to settle
 	if block then
 		stay, forced = climbHooks(player, block.Kind)
+		carried = block.Pity ~= nil
 	end
 	local ok, result = PlayerData.climbBlock(player, id, stay, forced)
 	if not ok then
@@ -752,6 +756,9 @@ function HANDLERS.Reveal(player: Player, r: LuckyBlocks.Request, data: any): Rep
 	if result.secret then
 		climbedSecret(player, result)
 	end
+	if result.turned or carried then
+		Store.refresh(player) -- the shop card's pity bars (ShopState) moved
+	end
 	if L.Test.Refill and isTester(player) then
 		PlayerData.giveLuckyBlocks(player, result.from, 1)
 	end
@@ -761,6 +768,7 @@ function HANDLERS.Reveal(player: Player, r: LuckyBlocks.Request, data: any): Rep
 		path = result.tiers,
 		kind = result.kind,
 		readyAt = result.readyAt,
+		turned = result.turned, -- a Mystery became an unclimbed block of `kind` (v5.1)
 		pity = result.pity, -- { rare, epic }: Mystery blocks to each pity, as before this one
 		from = result.from,
 		luck = result.luck,

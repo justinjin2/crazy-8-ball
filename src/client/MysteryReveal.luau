@@ -19,15 +19,18 @@
 -- under the block fills per press in the colour that press showed; the white Tap! button under
 -- the dots says what to do. After the last press "Tap to collect" (or a few seconds) shrinks
 -- the screen and the block jumps back into its hotbar slot, the climbed block on its tier's
--- timer. A climb that reached the Secret leaves no block: a moment after its last press the
+-- timer. A Mystery's presses are its roll instead (economy v5.1): it lands back as the
+-- unclimbed block it turned into, showing OPEN!, and climbs when that block is opened. A climb
+-- that reached the Secret leaves no block: a moment after its last press the
 -- screen hands over to the Secret's pull cutscene (deps.secret). Sounds (designer, 2026-10-09): a
 -- whoosh as it opens, a rising shimmer on a press that lifts the tier, a soft shimmer on one
 -- that only shakes it (Config.Audio.Ui.Mystery*).
 --
 -- The server decides everything first (BlockRequest "Reveal": the tier, with a Mystery block's
 -- pity, and the path of the presses, BlockDrop.path: one entry per press, the start then
--- climbs only) and the block is already that tier's climbed block in the save (or the Secret
--- cue the player's); this screen only plays the path. Leaving or closing early loses nothing.
+-- climbs only) and the block is already that tier's climbed block in the save (a Mystery's: the
+-- unclimbed block it turned into; or the Secret cue the player's); this screen only plays the
+-- path. Leaving or closing early loses nothing.
 local ContextActionService = game:GetService("ContextActionService")
 local GuiService = game:GetService("GuiService")
 local Players = game:GetService("Players")
