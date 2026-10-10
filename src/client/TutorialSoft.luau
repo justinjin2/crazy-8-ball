@@ -40,6 +40,7 @@ local Config = require(Shared.Config)
 local Net = require(Shared.Net)
 local Strings = require(Shared.Strings)
 local CueThumb = require(script.Parent.CueThumb)
+local InventoryCard = require(script.Parent.InventoryCard)
 local HudParts = require(script.Parent.HudParts)
 local InvitePrompt = require(script.Parent.InvitePrompt)
 local ItemState = require(script.Parent.ItemState)
@@ -399,9 +400,11 @@ local function layoutPopup()
 		y += fit.Y + 4 + S.InviteGapPx
 	end
 	line("Title", if phone() then S.InvitePhoneTitlePx else S.InviteTitlePx)
-	local block = popup:FindFirstChild("Block") :: Frame
+	local block = popup:FindFirstChild("Block") :: GuiObject
+	local units: { number } = Config.UI.CueCard.Units :: any
+	block.AnchorPoint = Vector2.new(0.5, 0.5)
 	block.Position = UDim2.fromOffset(w / 2, y + S.InviteBlockPx / 2)
-	block.Size = UDim2.fromOffset(S.InviteBlockPx, S.InviteBlockPx)
+	block.Size = UDim2.fromOffset(S.InviteBlockPx * units[1] / units[2], S.InviteBlockPx)
 	y += S.InviteBlockPx + S.InviteGapPx
 	line("Body", S.InviteBodyPx)
 	line("When", S.InviteSmallPx)
@@ -671,12 +674,15 @@ function TutorialSoft.start()
 	popup.Visible = false
 	local title = HudParts.text(popup, "Title", S.InviteTitlePx, Copy.InviteTitle)
 	title.ZIndex = 6
-	-- The invite cue's card picture (economy v6: the Candy Cane Cue).
+	-- The invite cue's own card (economy v6: the Candy Cane Cue; its rarity's frame, name and
+	-- bar, as in Cues and the Index).
 	local cueId = Config.Social.InviteCue
-	local block = CueThumb.new(popup, cueId)
-	block.Name = "Block"
-	block.AnchorPoint = Vector2.new(0.5, 0.5)
-	block.ZIndex = 6
+	local card = InventoryCard.new(popup, { name = "Block", onPress = function() end })
+	card.button.Interactable = false
+	card.button.Selectable = false
+	card.button.ZIndex = 6
+	InventoryCard.set(card, { cueId = cueId, bare = true })
+	local block = card.button
 	UIAnim.bob(block)
 	local body = HudParts.note(
 		popup,

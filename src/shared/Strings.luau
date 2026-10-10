@@ -1017,9 +1017,9 @@ return {
 			Sky = { Title = "A LUCKY BLOCK FELL FROM THE SKY!", Sub = "Pick it up!" },
 		},
 		-- The Sky Lucky Block's banner at the top (economy v6; SkyBanner): the time left
-		-- ("12:34"), before the day's first finished match, and once today's has fallen.
+		-- ("12:34"; nothing shows before the day's first finished match), and once today's
+		-- has fallen.
 		SkyNext = "Next Sky Lucky Block in %s",
-		SkyNeedsMatch = "Finish a match to start the Sky Lucky Block timer",
 		SkyDone = "Sky Lucky Block: come back tomorrow!",
 		-- The kinds' short names (the Mystery block's odds list).
 		Short = {
@@ -1220,7 +1220,7 @@ return {
 		FirstWeekTitle = "FIRST WEEK",
 		StreakTitle = "DAILY STREAK",
 		Day = "DAY %d",
-		Op = "OP!",
+		Op = "RARE!", -- day 7's tilted sticker (was "OP!": misleading, designer 2026-10-10)
 		InRowTag = "7 IN A ROW!", -- day 7's tag while the first week is still in a row
 		-- What comes with day 7's block: "+2 Ability Spins", "+$5,000", "+1 Rare Lucky Block".
 		HeroSpins = "+%d Ability Spins",

@@ -34,6 +34,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local CueThumb = require(script.Parent.CueThumb)
+local InventoryCard = require(script.Parent.InventoryCard)
 local FreeHeroes = require(script.Parent.FreeHeroes)
 local FreeParts = require(script.Parent.FreeParts)
 local HudParts = require(script.Parent.HudParts)
@@ -182,12 +183,14 @@ function FreeSocial.new(parent: Instance, ctx: any): any
 	self.envelope = HudParts.icon(art, "Invite", "Envelope")
 	self.envelope.AnchorPoint = Vector2.new(0.5, 0.5)
 	self.envelope.ZIndex = 4
-	-- The invite cue's card picture (economy v6: the Candy Cane Cue), in the block's old place.
-	local cue = CueThumb.new(art, Config.Social.InviteCue)
-	cue.Name = "Cue"
-	cue.AnchorPoint = Vector2.new(0.5, 0.5)
-	cue.ZIndex = 5
-	self.block = cue
+	-- The invite cue's own card (economy v6: the Candy Cane Cue; its rarity's frame, name and
+	-- bar, as in Cues and the Index), beside the envelope.
+	local cue = InventoryCard.new(art, { name = "Cue", onPress = function() end })
+	cue.button.Interactable = false
+	cue.button.Selectable = false
+	cue.button.ZIndex = 5
+	InventoryCard.set(cue, { cueId = Config.Social.InviteCue, bare = true })
+	self.block = cue.button
 	self.inviteTitle = leftLabel(inviteCard, "InviteTitle", rgb(K.Numbers.Money), 6)
 	self.inviteTitle.Text = W.InviteTitle
 	self.inviteLine = leftNote(inviteCard, "Line", 5)
@@ -417,11 +420,13 @@ function FreeSocial.layout(self: any, width: number, k: number, y: number): numb
 	ShopCards.put(self.invite.frame, k, Wd / 2, iy + ih / 2, Wd, ih)
 	ShopCards.sizeBox(self.invite, k, P.CornerUnits, P.EdgeUnits)
 	local Ic, Bl = I.Icon, I.Block
-	-- The art's holder spans the envelope and the block.
-	local left = math.min(Ic[1] - Ic[3] / 2, Bl[1] - Bl[3] / 2)
-	local right = math.max(Ic[1] + Ic[3] / 2, Bl[1] + Bl[3] / 2)
-	local top = math.min(Ic[2] - Ic[3] / 2, Bl[2] - Bl[3] / 2)
-	local bottom = math.max(Ic[2] + Ic[3] / 2, Bl[2] + Bl[3] / 2)
+	-- The art's holder spans the envelope and the cue's card (at the card's own shape).
+	local units: { number } = Config.UI.CueCard.Units :: any
+	local bw, bh = Bl[3] * units[1] / units[2], Bl[3]
+	local left = math.min(Ic[1] - Ic[3] / 2, Bl[1] - bw / 2)
+	local right = math.max(Ic[1] + Ic[3] / 2, Bl[1] + bw / 2)
+	local top = math.min(Ic[2] - Ic[3] / 2, Bl[2] - bh / 2)
+	local bottom = math.max(Ic[2] + Ic[3] / 2, Bl[2] + bh / 2)
 	ShopCards.put(
 		self.inviteArt,
 		k,
@@ -431,7 +436,7 @@ function FreeSocial.layout(self: any, width: number, k: number, y: number): numb
 		bottom - top
 	)
 	ShopCards.put(self.envelope, k, Ic[1] - left, Ic[2] - top, Ic[3], Ic[3])
-	ShopCards.put(self.block, k, Bl[1] - left, Bl[2] - top, Bl[3], Bl[3])
+	ShopCards.put(self.block, k, Bl[1] - left, Bl[2] - top, bw, bh)
 	self:layoutInviteWords()
 	local Bt = I.Button
 	self.inviteButton.Position = UDim2.fromOffset(round(Bt.X * k), round(Bt.Y * k))

@@ -6394,13 +6394,18 @@ Config.Effects = {
 
 Config.UI = {
 	-- The Sky Lucky Block's clock at the top of the lobby (src/client/SkyBanner.luau; economy
-	-- v6): an Ink pill TopGapPx under Roblox's top bar, the block's icon and its words. (tune)
+	-- v6): an Ink pill with the block's icon and its words, in Roblox's top bar row centred on
+	-- the screen, in line with Roblox's buttons (designer, 2026-10-10: "at the top top of the
+	-- screen"); TopGapPx under the row when the row's HUD leaves no room there (a phone). (tune)
 	SkyBanner = {
 		TextPx = 18,
 		PhoneTextPx = 14,
 		PadPx = 8,
 		GapPx = 6,
 		IconShare = 1.1, -- of the pill's height (the wings poke out a little)
+		RowButtonTopPx = 12, -- Roblox's top-bar buttons start this far down the row
+		RowButtonPx = 44, -- and are this tall: the pill is centred on them
+		ClearPx = 8, -- kept clear of the rank HUD, the Settings gear and the Players list
 		TopGapPx = 6,
 		BackTransparency = 0.25,
 	},
@@ -14837,7 +14842,7 @@ Config.Tutorial = {
 		InviteSmallPx = 14,
 		InviteButtonPx = 22, -- its words; the button is twice as tall (a touch target at least)
 		InviteButtonShare = 0.55, -- of the card's width
-		InviteBlockPx = 96, -- the invite's block picture
+		InviteBlockPx = 150, -- the invite cue's card: its height (its width at the card's shape)
 		InviteClosePx = 54, -- the big X, on the card's top-right corner...
 		InviteCloseInsetPx = 6, -- ...its centre this far in from it
 	},
@@ -15146,7 +15151,7 @@ Config.UI.FreeReward = {
 			Art = { 160, 170 }, -- the best block: centre y, size
 			Glow = 290,
 			Rays = 340,
-			Op = { 278, 92, 128, 60, 44 }, -- the tilted "OP!": centre x, y, width, height, text
+			Op = { 266, 92, 156, 60, 40 }, -- the tilted "RARE!": centre x, y, width, height, text
 			OpDegrees = -12,
 			-- The first week's "7 IN A ROW!" while its days are still in a row (day 7 then gives
 			-- its cue; a missed day makes it Config.Daily.FirstWeekMissed): centre x, y, width,
@@ -15252,8 +15257,8 @@ Config.UI.FreeReward = {
 		},
 		Invite = {
 			Units = { 1275, 220 },
-			Icon = { 120, 104, 130 }, -- the envelope: centre x, y, size
-			Block = { 196, 142, 96 }, -- the Rare block beside it
+			Icon = { 80, 110, 108 }, -- the envelope: centre x, y, size
+			Block = { 214, 110, 196 }, -- the invite cue's card beside it: centre x, y, height
 			Title = { 300, 52 },
 			TitleUnits = 42,
 			LineY = 104,

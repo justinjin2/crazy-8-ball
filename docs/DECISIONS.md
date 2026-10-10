@@ -4237,3 +4237,10 @@ timer of a new block stay the designer's call.
   card just past the stop (`Config.Tutorial.ReelNearMiss`), even when the prize is a Legendary
   too (two side by side). The opening spread (Mythic and Legendary at the start) and the Secret
   flashing past just before it slows stay.
+- 2026-10-10 (designer): day 7's Chroma Cue and the invite's Candy Cane Cue show as their own
+  cue cards (the rarity's frame, name and bar, as in Cues and the Index), day 7's filling the
+  tile; day 7's sticker says "RARE!" (OP! was misleading). The Sky banner shows nothing before
+  the day's first finished match (no "Finish a match..." line) and sits in Roblox's top bar row,
+  centred on the screen (just under the row when the row's HUD leaves no room). The match top
+  bar is centred on the screen (the clock in the middle) whenever that clears Roblox's buttons
+  (computers, tablets); a phone keeps it in the room beside them.

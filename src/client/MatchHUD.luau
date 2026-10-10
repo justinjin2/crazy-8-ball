@@ -721,7 +721,17 @@ function MatchHUD.layout(self: any)
 	self.barScale.Scale = scale
 	self.topBar.Size = UDim2.fromOffset(natural, height)
 	local top = self:barTop()
-	self.topBar.Position = UDim2.fromOffset(menuLeft + (room - natural * scale) / 2, top)
+	-- Centred on the screen (the clock in the middle; solo's one row as a whole) when that
+	-- clears Roblox's buttons, as on a computer or tablet; else centred in the room beside
+	-- them, as on a phone (designer, 2026-10-10: "on pc tablets bigger screens should be
+	-- centered").
+	local barLeft = menuLeft + (room - natural * scale) / 2
+	local middle = if solo then natural / 2 else clockLeft + d.clockWidth / 2
+	local centred = width / 2 - middle * scale
+	if centred >= menuLeft and centred + natural * scale <= width - menuRight then
+		barLeft = centred
+	end
+	self.topBar.Position = UDim2.fromOffset(barLeft, top)
 	self.headerBottom = top + height * scale
 	for i, team in self.teams do
 		team.root.Position = UDim2.fromOffset(if i == 1 then 0 else otherLeft, 0)
