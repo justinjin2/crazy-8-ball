@@ -4527,11 +4527,11 @@ Config.Ults = {
 		},
 		VerityGulp = { Id = "rbxassetid://9113859745", Volume = 0.6, Length = 0.5 },
 		VerityBonk = { Id = "rbxassetid://9113863528", Volume = 0.4 },
-		-- Look Over There!: only the vine boom, as the opponents turn back (the designer's
-		-- second rework round, 2026-10-08: the shout, the Metal Gear alert, the whoosh and the
-		-- sneaky sting went). A public fan upload, the meme's own sound; the licensed backup is
-		-- ProSoundEffects 9125404320.
-		LookBoom = { Id = "rbxassetid://140367458608473", Volume = 0.55 },
+		-- Look Over There!: one sound, as the opponents turn back and catch on. The Metal Gear
+		-- Solid "!" alert (designer, 2026-10-10: "like the snake ! exclamation sound"; it
+		-- replaces the vine boom of the 2026-10-08 round). A public Creator Store upload
+		-- (1011639456, 1.75 s), loads in this experience; the vine boom was 140367458608473.
+		LookBoom = { Id = "rbxassetid://1011639456", Volume = 0.5 },
 		-- Fire Shot (the designer's third rework round, 2026-10-08; ProSoundEffects library
 		-- clips, each measured in Studio with an AudioAnalyzer: peak, the level most of it
 		-- stays under (p90) and length, at volume 1): the ignition at the arming moment,

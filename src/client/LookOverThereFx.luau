@@ -13,8 +13,8 @@
 --     joint, the head tilted up. An opponent on this screen is locked in first person: their
 --     camera eases to their own eyes (their body hidden on their screen, their walking held)
 --     and whips round to look away and up. At the reveal it whips back to the cue ball where it
---     is now, the view narrowed to fit the table, the vine boom plays as it lands (the only
---     sound), it holds, then hands back.
+--     is now, the view narrowed to fit the table, the Metal Gear "!" alert plays as it lands
+--     (the only sound), it holds, then hands back.
 --   * The shooter moves the cue ball with ball in hand's own drag in the overhead view
 --     (MatchTargets and Main, while Engine.sneakOpen); here only the countdown pill at the top
 --     of their screen.
@@ -750,7 +750,7 @@ local function stepScene(self: LookOverThereFx, scene: Scene, m: any, snap: any?
 	end
 	stepCamera(self, scene, m, t, now)
 
-	-- The vine boom as they turn back: the only sound (the designer's second round).
+	-- The Metal Gear "!" alert as they turn back: the only sound (Config.Ults.Audio.LookBoom).
 	if revealAt and moment(scene, "boom", now - revealAt, F.BoomAfter) then
 		local involved = kit.screen.involved(self.hub, scene.id)
 		if involved then
