@@ -312,7 +312,7 @@ local function buildPad(t: any, folder: Instance)
 	light.Color = rgb(Kit.Colors.White)
 	light.Shadows = false
 	light.Parent = pad
-	t.pad, t.countText = pad, count
+	t.pad, t.countText, t.modeText = pad, count, mode
 end
 
 local function setText(object: TextLabel, text: string)
@@ -1469,11 +1469,51 @@ function Service.placeOnPad(t: any, p: Player): boolean
 	return false
 end
 
+--- Switches table `t` to `teamSize` a side while it is free (waiting, nobody seated, no
+--- search): the tutorial's backup (tutorial v2 4.12) plays game 1 as a 1v1 on a free team
+--- table, then gives the table back its own mode (Placement.teamSizeOf). A fresh engine, as a
+--- game's reset makes one (the same table object, so references stay good), and the pad's
+--- mode, capacity and words follow. False when the table is not free.
+function Service.setMode(t: any, teamSize: number): boolean
+	local e = t.engine
+	if e.teamSize == teamSize then
+		return true
+	end
+	if
+		e.phase ~= "Waiting"
+		or Engine.count(e) > 0
+		or e.search
+		or t.search
+		or e.fixed
+		or t.pad == nil
+	then
+		return false
+	end
+	local fresh = Engine.new(e.id, teamSize, newSeed())
+	fresh.epoch = e.epoch + 1
+	fresh.revision = e.revision + 1
+	table.clear(e)
+	for key, value in fresh do
+		e[key] = value
+	end
+	t.pad:SetAttribute("TeamSize", teamSize)
+	t.pad:SetAttribute("Capacity", teamSize * 2)
+	setText(t.modeText, Strings.Match.Mode:format(teamSize, teamSize))
+	Service.broadcast(t)
+	return true
+end
+
 --- This server's search (LocalSearch): a table of `teamSize` a side free for a match here,
 --- the nearest to `near` (else the lowest id): waiting, nobody on or standing on its pad, no
---- search, not held for the tutorial nor in `skip` (tables already promised this round).
-function Service.freeTable(teamSize: number, near: Vector3?, skip: { [any]: boolean }?): any?
-	local best, bestGap = nil, math.huge
+--- search, not held for the tutorial nor in `skip` (tables already promised this round). Nil
+--- while no more than `spare` such tables are free (they stay for new players).
+function Service.freeTable(
+	teamSize: number,
+	near: Vector3?,
+	skip: { [any]: boolean }?,
+	spare: number?
+): any?
+	local best, bestGap, count = nil, math.huge, 0
 	for id = 1, #tables do
 		local t = tables[id]
 		local e = t and t.engine
@@ -1489,13 +1529,14 @@ function Service.freeTable(teamSize: number, near: Vector3?, skip: { [any]: bool
 			and not (skip and skip[t])
 			and not Service.standingOnPad(t)
 		then
+			count += 1
 			local gap = if near then (t.pad.Position - near).Magnitude else id
 			if gap < bestGap then
 				best, bestGap = t, gap
 			end
 		end
 	end
-	return best
+	return if count > (spare or 0) then best else nil
 end
 
 --- The players of table `t`'s waiting search, and when it began (server time); nil when it

@@ -8272,6 +8272,12 @@ Config.GlobalQueue = {
 		{ After = 3.5, Divisions = 12 },
 	},
 	LocalTickSeconds = 0.25, -- this server pairs its own searches this often
+	-- A pair meeting here and the bot here (at SoloSeconds) never take the last this many empty
+	-- 1v1 tables (they go to an arena instead). Off: the tutorial's team-table backup keeps a
+	-- table for new players, and the server model (tools/tutorial_v2_server_model.py,
+	-- `reserve`) showed spare tables alone help little and send many more matches to arenas
+	-- (2026-10-09). A searcher already alone on a 1v1 pad plays at that table either way. (tune)
+	SpareTables = 0,
 	-- A pair's players see "Match found!" this long before they are moved to their table
 	-- (the screen covers the move).
 	LocalLeadSeconds = 0.4,

@@ -3934,3 +3934,10 @@ timer of a new block stay the designer's call.
   spin at the Abilities step is forced to Magnet; the tutorial player's reset in game 1 is not a
   foul (the rigged break stays); a save left at Pad or Game1 with a win resumes at Rank, and a
   v1 save from before game 1 that has played since never starts the tutorial.
+- 2026-10-09 (designer): the tutorial's team-table backup is built: when every 1v1 table is
+  busy, the nearest free 2v2 or 3v3 table plays game 1 as a 1v1 and goes back to its own mode
+  once free (a table switches mode only while nobody is on it). The server model showed spare
+  1v1 tables alone (the in-server bot and pairs leaving the last 2 free) leave 13% of new
+  players without a table at 20 players, against 0% with the backup; the spare-table lever
+  (`Config.GlobalQueue.SpareTables`) stays at 0. Max Players stays the plan's 24 (0.13% of new
+  players wait for a table in a full server; 20 makes it 0% and halves arena teleports).

@@ -1022,6 +1022,9 @@ function TutorialService.start()
 				return TutorialBot.state(player)
 			elseif op == "game1" then
 				return TutorialGames.rigState(player)
+			elseif op == "holdTables" then
+				-- Every free 1v1 table held (a = true) or let go: the team-table backup's test.
+				return TutorialGames.qaHoldTables(a == true)
 			elseif op == "fail" then
 				-- The fail-safe on purpose (QA): ends the tutorial as an error would.
 				TutorialService.fail(player, "QA", "a test failure")

@@ -96,6 +96,7 @@ BASE = dict(
     bot_after=5.0,
     in_window=IN_WINDOW_PROPOSED,
     reserve=0,  # in-server pairs and bots never take the last N empty 1v1 tables (lever)
+    backup=True,  # a new player with no empty 1v1 table may use an empty team table
     # Arenas (reserved servers)
     arena_setup=(15.0, 30.0),  # Match found, teleport, load, stand at the table
     arena_play_another=0.20,
@@ -556,7 +557,7 @@ class Server:
             if meas:
                 M["no_1v1"] += 1
                 M["trace_fail"].append(self.now - self.warm)
-            t = self.find_empty_team()
+            t = self.find_empty_team() if self.P["backup"] else None
         if meas:
             M["new_joins"] += 1
         if t is None:
@@ -571,7 +572,7 @@ class Server:
         self.start_tut(p, t)
 
     def on_tut_retry(self, p):
-        t = self.find_empty("1v1") or self.find_empty_team()
+        t = self.find_empty("1v1") or (self.find_empty_team() if self.P["backup"] else None)
         if t is None:
             self.ptimer(p, self.P["tut_retry_seconds"], "tut_retry")
             return

@@ -1371,6 +1371,19 @@ lines). All in the worktree.
   (Done, hints all done). Not tried by hand: a phone rotation and a real low frame rate (the
   arrow, dim and hand make no new Instances per frame; step 15's live checks).
 - **After the fixes:** lint clean, 1140 tests pass, one more happy-path run clean.
+- **The team-table backup (4.12; promised on the plan page, missed by the Progress list):**
+  re-running the server model without it (`tools/tutorial_v2_server_model.py`, new `backup`
+  switch; `~/Desktop/8ball-refs/tutorial/sim-2026-10-09/spare-tables/`) showed spare 1v1
+  tables alone leave 13% of new players without a table at 20 players (2.4% at 16) and send
+  46% of in-server matches to arenas; with the backup, 0% at 20 and 0.13% at 24. The designer
+  picked the backup. Built: `TableService.setMode` switches a free table's mode in place (a
+  fresh engine as a reset makes; the pad's mode, capacity and words follow); TutorialGames
+  lends the nearest free team table as a 1v1 when no 1v1 table is usable and gives it back to
+  its own mode once it is free again. `Config.GlobalQueue.SpareTables` (the spare-table
+  lever) is in and set to 0. **Verified in Studio:** every 1v1 table held (QA `holdTables`),
+  table 10 (2v2) lent as a 1v1 (pad 1v1, capacity 2), the bot came, the rigged break began on
+  it; after the game it went back to 2v2 (capacity 4). Screenshot:
+  `~/Desktop/8ball-refs/tutorial/step14/team_table_backup_game1.jpg`.
 - Screenshot: `~/Desktop/8ball-refs/tutorial/step14/skip_then_mystery_hint.jpg`.
 
 ### Touch list (files outside the tutorial's own modules changed, and why)
@@ -1487,7 +1500,10 @@ lines). All in the worktree.
 - Step 14 (bug-proofing):
   - `src/shared/Rules/MatchEngine.luau` (`Engine.death`: no reset foul for game 1's player),
     `src/server/RankClaimService.luau` (`claimFor`), `src/server/LocalSearch.luau` (a rigged
-    pad is never paired). `src/shared/Strings.luau`: `Dev.TutorialSeated`.
+    pad is never paired; `SpareTables`). `src/shared/Strings.luau`: `Dev.TutorialSeated`.
+  - `src/server/TableService.luau` (`setMode`, the pad's `modeText`; `freeTable`'s `spare`),
+    `src/shared/Config.luau` (`GlobalQueue.SpareTables` 0), `tools/tutorial_v2_server_model.py`
+    (the `backup` switch).
 
 ---
 

@@ -20,6 +20,8 @@ local RunService = game:GetService("RunService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared.Config)
+local Placement = require(Shared.Placement)
+local Engine = require(Shared.Rules.MatchEngine)
 local Tables = require(script.Parent.TableService)
 local TutorialBot = require(script.Parent.TutorialBot)
 local Funnel = require(script.Parent.Funnel)
@@ -115,6 +117,41 @@ local function hold(player: Player, t: any)
 	log(("%s: table %d reserved"):format(player.Name, t.engine.id))
 end
 
+-- Team tables lent to the tutorial as a 1v1 (the backup, 4.12), until they are free again.
+local borrowed: { [any]: boolean } = {}
+
+-- Whether team table `t` can be lent: waiting, nobody on it or its pad, no search, not held.
+local function lendable(t: any): boolean
+	local e = t.engine
+	return e.teamSize > 1
+		and e.phase == "Waiting"
+		and t.pad ~= nil
+		and Engine.count(e) == 0
+		and not e.search
+		and not t.search
+		and t.reservedFor == nil
+		and not Tables.standingOnPad(t)
+end
+
+-- Every lent table that is free again goes back to its own mode.
+local function giveBack()
+	for t in borrowed do
+		local e = t.engine
+		if
+			t.reservedFor == nil
+			and e.phase == "Waiting"
+			and Engine.count(e) == 0
+			and not e.search
+			and not t.search
+			and not Tables.standingOnPad(t)
+			and Tables.setMode(t, Placement.teamSizeOf(e.id) or 1)
+		then
+			borrowed[t] = nil
+			log(("table %d back to its own mode"):format(e.id))
+		end
+	end
+end
+
 -- Keeps a usable table reserved for the player: the one they have, else the nearest.
 local function reserve(player: Player)
 	local id = reserved[player]
@@ -133,6 +170,23 @@ local function reserve(player: Player)
 			if gap < bestGap then
 				best, bestGap = t, gap
 			end
+		end
+	end
+	if best == nil then
+		-- Every 1v1 table is busy: the nearest free team table plays game 1 as a 1v1.
+		for _, t in Tables.all() do
+			if lendable(t) then
+				local gap = (t.pad.Position - root.Position).Magnitude
+				if gap < bestGap then
+					best, bestGap = t, gap
+				end
+			end
+		end
+		if best and Tables.setMode(best, 1) then
+			borrowed[best] = true
+			log(("table %d lent as a 1v1 for %s"):format(best.engine.id, player.Name))
+		else
+			best = nil
 		end
 	end
 	if best then
@@ -501,6 +555,26 @@ function TutorialGames.rigState(player: Player): any?
 	}
 end
 
+--- Studio QA (TutorialQA "holdTables"): marks every waiting 1v1 table held by nobody (`on`;
+--- a tutorial's reservation too), as if busy, so the team-table backup can be tried; false
+--- lets them go. Answers how many.
+function TutorialGames.qaHoldTables(on: boolean): number
+	local n = 0
+	for _, t in Tables.all() do
+		local e = t.engine
+		if e.teamSize == 1 and not borrowed[t] then
+			if on and e.phase == "Waiting" and (t.reservedFor == nil or t.reservedFor > 0) then
+				t.reservedFor = -1
+				n += 1
+			elseif not on and t.reservedFor == -1 then
+				t.reservedFor = nil
+				n += 1
+			end
+		end
+	end
+	return n
+end
+
 --- Whether the player is on a table's pad or seat.
 function TutorialGames.seated(player: Player): boolean
 	return Tables.tableOf(player) ~= nil
@@ -526,6 +600,10 @@ function TutorialGames.start(tutorial: any)
 			service.guard(player, "Games", function()
 				watch(player)
 			end)
+		end
+		local ok: boolean, err: any = pcall(giveBack :: any)
+		if not ok then
+			warn("[8ball] Tutorial: giving a lent table back failed: " .. tostring(err))
 		end
 	end)
 	Players.PlayerRemoving:Connect(function(player: Player)

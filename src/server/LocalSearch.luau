@@ -190,9 +190,11 @@ end
 local function matchHere(a: Side, b: Side)
 	local t = a.t or b.t
 	if t == nil then
-		t = Tables.freeTable(1, rootPosition(a.player), promised)
+		t = Tables.freeTable(1, rootPosition(a.player), promised, G.SpareTables)
 		if t == nil then
-			return -- no free table: both keep searching (the global queue may pair them)
+			-- No free table (the last few stay for new players): both keep searching, and the
+			-- global queue may pair them in an arena.
+			return
 		end
 	end
 	busy[a.player], busy[b.player] = true, true
@@ -252,7 +254,7 @@ end
 local function botHere(side: Side)
 	local player = side.player
 	busy[player] = true
-	local t = side.t or Tables.freeTable(1, rootPosition(player), promised)
+	local t = side.t or Tables.freeTable(1, rootPosition(player), promised, G.SpareTables)
 	if t then
 		promised[t] = true
 	end
