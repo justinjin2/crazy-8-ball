@@ -975,6 +975,7 @@ return {
 			-- The finder's money waiting at the top of the Index (economy v6: claimed, not paid
 			-- at once): the heading, the line under it and its button.
 			FindsTitle = "New cues found!",
+			ClaimCard = "CLAIM!", -- a found cue's card while its finder's money waits
 			FindsLine = "Your finder's money is ready",
 			Collect = "Collect",
 			-- The chosen cue's big card (GUI lane, 2026-10-03).

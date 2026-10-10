@@ -287,6 +287,28 @@ return {
 		H.expect(not again, "once")
 	end,
 
+	-- Each card's CLAIM! (designer, 2026-10-10): one cue's finder's money at a time.
+	["one cue's finder's money is claimed from its card"] = function()
+		local Inventory, _, Config = load()
+		local save = newSave()
+		local F = Config.Index.FindMoney
+		Inventory.addFind(save, "MidnightCue")
+		Inventory.addFind(save, "PhoenixCue")
+		local ids = Inventory.snapshot(save).unclaimed
+		H.expect(
+			#ids == 2 and table.find(ids, "MidnightCue") and table.find(ids, "PhoenixCue"),
+			"listed"
+		)
+		local ok, result = Inventory.claimFinds(save, "MidnightCue")
+		H.expect(ok and result.money == F.Common, "that cue's money only")
+		H.expect(Inventory.unclaimedMoney(save) == F.Legendary, "the other still waits")
+		local twice = Inventory.claimFinds(save, "MidnightCue")
+		H.expect(not twice, "once per cue")
+		local stranger = Inventory.claimFinds(save, "ArcticCue")
+		H.expect(not stranger, "a cue not waiting pays nothing")
+		H.expect(Inventory.snapshot(save).unclaimed[1] == "PhoenixCue", "the list shrinks")
+	end,
+
 	["paid cues: counted on add, sold first, traded last"] = function()
 		local Inventory = load()
 		local save = newSave()

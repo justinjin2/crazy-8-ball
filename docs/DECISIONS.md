@@ -4285,3 +4285,4 @@ timer of a new block stay the designer's call.
 - 2026-10-10: Music is back (was dropped 2026-10-03): three tracks cycle, anchor 9043887091 first, then 139132289200391 and 140492661889585, at a very low volume (0.06, designer: background only). A Music row in Settings turns it off (its own sound group).
 - 2026-10-10: A Solo portal arena's result screen shows Play another and Lobby (it showed Continue, then nothing until the arena sent the player home); the Practice arena keeps Rematch and Lobby.
 - 2026-10-10: Look Over There! plays the Metal Gear Solid "!" alert (1011639456) as it is activated; the vine boom stays as the opponents turn back (designer).
+- 2026-10-10: Index finder's money is claimed per card: a found cue whose money waits shows a breathing CLAIM! in the padlock's place, and pressing the card claims it (the money flies from the card). The "New cues found!" strip with Collect is hidden.

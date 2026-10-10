@@ -197,7 +197,11 @@ function Requests.parse(action: any, a: any, b: any): (Request?, string?)
 		end
 		return { action = action :: string, rarity = a }, nil
 	elseif action == "ClaimIndexFinds" then
-		return { action = action :: string }, nil
+		-- a: one cue's id (its card's CLAIM!), or nil for every waiting one.
+		if a ~= nil and (type(a) ~= "string" or #a > 64) then
+			return nil, "BadRequest"
+		end
+		return { action = action :: string, cueId = a }, nil
 	elseif action == "BuyMystery" then
 		-- The old name of BuyBlocks for the Mystery deal.
 		local count = countOf(a)

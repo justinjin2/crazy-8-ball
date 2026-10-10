@@ -307,8 +307,8 @@ function HANDLERS.ClaimIndexRow(player: Player, r: Requests.Request): Reply
 end
 
 -- Every finder's money waiting in the Index (economy v6).
-function HANDLERS.ClaimIndexFinds(player: Player, _r: Requests.Request): Reply
-	local ok, result = PlayerData.claimIndexFinds(player)
+function HANDLERS.ClaimIndexFinds(player: Player, r: Requests.Request): Reply
+	local ok, result = PlayerData.claimIndexFinds(player, r.cueId)
 	if not ok then
 		return refuse(Requests.reasonFrom(result))
 	end

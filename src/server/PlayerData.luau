@@ -2823,9 +2823,10 @@ function PlayerData.claimIndexRow(player: Player, rarity: string): (boolean, any
 	return true, { money = result.money }
 end
 
---- Claims every finder's money waiting in the Index at once (economy v6; the Index's Collect).
---- Answers (true, { money }) or (false, reason): "Nothing" (none waits), "NotLoaded".
-function PlayerData.claimIndexFinds(player: Player): (boolean, any)
+--- Claims the finder's money of cue `id` (its Index card's CLAIM!), or every waiting one when
+--- `id` is nil (economy v6). Answers (true, { money }) or (false, reason): "Nothing" (none
+--- waits), "NotLoaded".
+function PlayerData.claimIndexFinds(player: Player, id: string?): (boolean, any)
 	local op = "claimIndexFinds"
 	if not isPlayer(player) then
 		return refuseInvalid(op, player, "not a player")
@@ -2834,7 +2835,7 @@ function PlayerData.claimIndexFinds(player: Player): (boolean, any)
 	if data == nil then
 		return false, "NotLoaded"
 	end
-	local ok, result = Inventory.claimFinds(data)
+	local ok, result = Inventory.claimFinds(data, id)
 	if not ok then
 		return false, result
 	end

@@ -57,6 +57,7 @@ export type Snapshot = {
 	rows: { IndexRow },
 	titles: { string },
 	findMoney: number, -- the finder's money waiting to be claimed in the Index (economy v6)
+	unclaimed: { string }, -- the cues whose finder's money waits (each card's CLAIM!)
 }
 
 local Inventory = {}
@@ -226,15 +227,37 @@ function Inventory.unclaimedMoney(save: any): number
 	return total
 end
 
---- Claims every waiting finder's money at once: (true, { money }) and the list emptied, or
+--- Claims the finder's money of cue `id` (its card's CLAIM! in the Index, designer 2026-10-10),
+--- or every waiting one when `id` is nil: (true, { money }) and those taken off the list, or
 --- (false, "Nothing") when none waits.
-function Inventory.claimFinds(save: any): (boolean, any)
+function Inventory.claimFinds(save: any, id: string?): (boolean, any)
+	if id ~= nil then
+		local unclaimed = writeMap(save, "Index", "Unclaimed")
+		local money = if unclaimed[id] == true then Inventory.findMoney(id) else 0
+		unclaimed[id] = nil
+		if money <= 0 then
+			return false, "Nothing"
+		end
+		return true, { money = money }
+	end
 	local money = Inventory.unclaimedMoney(save)
 	if money <= 0 then
 		return false, "Nothing"
 	end
 	table.clear(writeMap(save, "Index", "Unclaimed"))
 	return true, { money = money }
+end
+
+--- The cues whose finder's money waits (catalog order).
+function Inventory.unclaimedIds(save: any): { string }
+	local unclaimed = readMap(save, "Index", "Unclaimed")
+	local out = {}
+	for _, cue in Catalog.list() do
+		if unclaimed[cue.Id] == true and Inventory.findMoney(cue.Id) > 0 then
+			table.insert(out, cue.Id)
+		end
+	end
+	return out
 end
 
 -- Marks a cue ever owned and NEW.
@@ -602,6 +625,7 @@ function Inventory.snapshot(save: any): Snapshot
 		rows = Inventory.indexRows(save),
 		titles = titles,
 		findMoney = Inventory.unclaimedMoney(save),
+		unclaimed = Inventory.unclaimedIds(save),
 	}
 end
 

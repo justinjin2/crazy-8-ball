@@ -2,9 +2,11 @@
 -- InventoryIndex: the Cues menu's Index view (docs/prompts/ECONOMY_UI_PROMPT.md section 11,
 -- ECONOMY section 18; concept 2 of docs/prompts/CUES_LIVELY_PROMPT.md, 2026-10-08).
 --
---   * At the very top, while some waits, the finder's money of the cues found (economy v6,
---     designer 2026-10-10: claimed here, never paid at once; the snapshot's `findMoney`): "New
---     cues found!", the money and Collect (ItemRequest "ClaimIndexFinds"; it breathes).
+--   * The finder's money of the cues found (economy v6, designer 2026-10-10: claimed here,
+--     never paid at once): a found cue whose money waits (the snapshot's `unclaimed`) shows a
+--     breathing CLAIM! where a padlock goes, and pressing its card claims it (ItemRequest
+--     "ClaimIndexFinds", its id); the money flies from the card. The old "New cues found!"
+--     strip with Collect stays built but hidden.
 --   * On top, only for a player who holds one, their titles (gold pills, from the snapshot's
 --     `titles`: the first Reyes'). The rows' "Collector" titles are gone (designer, 2026-09-28).
 --   * Then a card per row: the rarities Common ... Secret, then Exclusive and Unique. Its
@@ -168,6 +170,8 @@ function InventoryIndex.new(page: Frame, ctx: any): any
 	self.findsCollect.ZIndex = 3
 	HudParts.setMinHit(self.findsCollect, TOUCH)
 	self.findMoney = 0
+	self.unclaimed = {} :: { [string]: boolean } -- found cues whose finder's money waits
+	self.claimPulses = {} :: { [string]: any }
 
 	-- The titles held (hidden when none).
 	local titles = InventoryCard.box(scroll, "Titles")
@@ -306,6 +310,9 @@ function InventoryIndex.buildSection(self: any, rarity: string, order: number): 
 				lines = I.CellNameLines,
 				onPress = function()
 					self:choose(id)
+					if self.unclaimed[id] then
+						self:claimCue(id)
+					end
 				end,
 				onSelect = function()
 					self:choose(id)
@@ -437,6 +444,13 @@ function InventoryIndex.redraw(self: any, items: any)
 		end
 	end
 	self.seen = seen
+	local unclaimed: { [string]: boolean } = {}
+	for _, id in list(items.unclaimed) do
+		if type(id) == "string" then
+			unclaimed[id] = true
+		end
+	end
+	self.unclaimed = unclaimed
 	-- The chosen cue stays chosen; else the first one.
 	if not self.chosen or not Catalog.get(self.chosen) then
 		local first = self.sections[1]
@@ -451,7 +465,10 @@ function InventoryIndex.redraw(self: any, items: any)
 			if owned then
 				have += 1
 			end
-			InventoryCard.set(section.cells[i], { cueId = id, locked = not owned })
+			InventoryCard.set(
+				section.cells[i],
+				{ cueId = id, locked = not owned, claim = owned and unclaimed[id] == true }
+			)
 			InventoryCard.setChosen(section.cells[i], id == self.chosen)
 		end
 		local total = #section.ids
@@ -474,7 +491,8 @@ function InventoryIndex.redraw(self: any, items: any)
 
 	-- The finder's money at the very top.
 	self.findMoney = findMoneyOf(items)
-	self.finds.Visible = self.findMoney > 0
+	-- Each card claims its own now (CLAIM!, designer 2026-10-10): the strip stays hidden.
+	self.finds.Visible = false
 	self.findsAmount.Text = "+" .. Format.money(self.findMoney)
 	HudParts.setEnabled(self.findsCollect, not ctx.isHeld(self.findsCollect))
 
@@ -511,7 +529,23 @@ end
 -- Claim breathes while its row can be claimed and the tab shows (and Collect while finder's
 -- money waits).
 function InventoryIndex.refreshPulses(self: any)
-	local collect = self.showing and self.findMoney > 0 and not self.ctx.isHeld(self.findsCollect)
+	-- Each CLAIM! breathes while the tab shows.
+	for _, section in self.sections do
+		for i, id in section.ids do
+			local want = self.showing == true and self.unclaimed[id] == true
+			local pulse = self.claimPulses[id]
+			if want and not pulse then
+				self.claimPulses[id] = UIAnim.pulse(section.cells[i].claimTag)
+			elseif not want and pulse then
+				pulse.stop()
+				self.claimPulses[id] = nil
+			end
+		end
+	end
+	local collect = self.showing
+		and self.finds.Visible
+		and self.findMoney > 0
+		and not self.ctx.isHeld(self.findsCollect)
 	if collect and not self.findsPulse then
 		self.findsPulse = UIAnim.pulse(self.findsCollect)
 	elseif not collect and self.findsPulse then
@@ -530,6 +564,10 @@ function InventoryIndex.refreshPulses(self: any)
 end
 
 function InventoryIndex.stopPulses(self: any)
+	for id, pulse in self.claimPulses do
+		pulse.stop()
+		self.claimPulses[id] = nil
+	end
 	if self.findsPulse then
 		self.findsPulse.stop()
 		self.findsPulse = nil
@@ -875,6 +913,40 @@ function InventoryIndex.collect(self: any)
 		end
 	end)
 	self:refreshPulses()
+end
+
+-- A found cue's CLAIM!: its finder's money flies from its card into the cash.
+function InventoryIndex.claimCue(self: any, id: string)
+	local ctx = self.ctx
+	local cell: any = nil
+	for _, section in self.sections do
+		local i = table.find(section.ids, id)
+		if i then
+			cell = section.cells[i]
+		end
+	end
+	if cell == nil or self.claiming then
+		return
+	end
+	self.claiming = true
+	local pulse = self.claimPulses[id]
+	if pulse then
+		pulse.stop()
+		self.claimPulses[id] = nil
+	end
+	task.spawn(function()
+		local reply = ctx.request("ClaimIndexFinds", id)
+		self.claiming = false
+		if reply.ok then
+			UISound.play("Claim")
+			local money = if type(reply.money) == "number" then reply.money else 0
+			if money > 0 then
+				ctx.flyMoney(money, cell.button, "Reward")
+			end
+		else
+			ctx.refuse(reply)
+		end
+	end)
 end
 
 function InventoryIndex.claim(self: any, section: Section)

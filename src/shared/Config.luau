@@ -11063,6 +11063,11 @@ Config.UI.CueCard = {
 		VeilTransparency = 0.6, -- its (0.45 hid too much of a dark card's colours)
 		LockUnits = 54, -- the padlock's side
 		LockAt = { 0.5, 0.4 }, -- its centre, as shares of the card (over the picture)
+		-- A found cue whose finder's money waits (designer, 2026-10-10): CLAIM! in the padlock's
+		-- place; pressing the card claims it.
+		ClaimUnits = { 168, 44 }, -- the words' box: width, height (inside the card)
+		ClaimColor = "#FFD43B", -- gold
+		ClaimTextPx = { 12, 40 }, -- smallest and largest
 	},
 	-- The moving parts. Seconds are one loop; "Units" sizes scale with the card; shares are of
 	-- the card. Each loop starts at its own phase (from the cue's id), so a grid never moves in

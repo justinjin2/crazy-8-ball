@@ -60,6 +60,7 @@ local EDGE = color(CARD.EdgeColor)
 export type Fields = {
 	cueId: string,
 	locked: boolean?, -- the Index: never found (the whole card, greyed, with a padlock)
+	claim: boolean?, -- the Index: its finder's money waits (CLAIM! where the padlock goes)
 	count: string?, -- "x3", or nil / "" for none
 	copy: string?, -- a copy number over the name: "#412", or nil / "" for none
 	bare: boolean?, -- no pills and no padlock (the big card); the copy number stays
@@ -118,6 +119,7 @@ export type Card = {
 	veil: Frame, -- a never-found card's grey veil
 	veilRound: UICorner,
 	bigLock: ImageLabel, -- and its padlock
+	claimTag: TextLabel, -- CLAIM! (Fields.claim)
 	ring: Frame,
 	ringRound: UICorner,
 	ringStroke: UIStroke,
@@ -265,6 +267,13 @@ function InventoryCard.layout(card: Card)
 	local lockSide = px(LOCKED.LockUnits)
 	card.bigLock.Position = UDim2.fromScale(LOCKED.LockAt[1], LOCKED.LockAt[2])
 	card.bigLock.Size = UDim2.fromOffset(lockSide, lockSide)
+	card.claimTag.Position = card.bigLock.Position
+	card.claimTag.Size = UDim2.fromOffset(px(LOCKED.ClaimUnits[1]), px(LOCKED.ClaimUnits[2]))
+	HudParts.setTextSize(
+		card.claimTag,
+		math.clamp(px(LOCKED.ClaimUnits[2]), LOCKED.ClaimTextPx[1], LOCKED.ClaimTextPx[2]),
+		LOCKED.ClaimTextPx[1]
+	)
 	card.edge.Position = UDim2.fromOffset(edgePx, edgePx)
 	card.edge.Size = UDim2.new(1, -2 * edgePx, 1, -2 * edgePx)
 	card.edgeRound.CornerRadius = UDim.new(0, math.max(0, cornerPx - edgePx))
@@ -557,6 +566,17 @@ function InventoryCard.new(parent: Instance, opts: Options): Card
 	bigLock.AnchorPoint = Vector2.new(0.5, 0.5)
 	bigLock.ZIndex = 6
 	bigLock.Visible = false
+	local claimTag = HudParts.text(
+		body,
+		"Claim",
+		LOCKED.ClaimTextPx[2],
+		Strings.Menus.Inventory.ClaimCard,
+		hex(LOCKED.ClaimColor)
+	)
+	claimTag.AnchorPoint = Vector2.new(0.5, 0.5)
+	claimTag.TextWrapped = false
+	claimTag.ZIndex = 7
+	claimTag.Visible = false
 	local ring, ringRound = layer(body, "Ring", 6)
 	local ringStroke = Instance.new("UIStroke")
 	ringStroke.Name = "Stroke"
@@ -606,6 +626,7 @@ function InventoryCard.new(parent: Instance, opts: Options): Card
 		veil = veil,
 		veilRound = veilRound,
 		bigLock = bigLock,
+		claimTag = claimTag,
 		ring = ring,
 		ringRound = ringRound,
 		ringStroke = ringStroke,
@@ -768,6 +789,7 @@ function InventoryCard.set(card: Card, fields: Fields)
 	card.badge.Visible = ranked
 	card.veil.Visible = locked
 	card.bigLock.Visible = locked
+	card.claimTag.Visible = fields.claim == true and not locked
 	local pills = not locked and fields.bare ~= true
 	local count = if pills then fields.count or "" else ""
 	card.countText.Text = count
