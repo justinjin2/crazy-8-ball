@@ -339,7 +339,7 @@ return {
 			GiveCue = "copies of a cue, by id or name (not Classic or a Unique cue)",
 			GiveBlock = "lucky blocks into your hotbar",
 			Cutscene = "plays a rare pull's cutscene on its own (nothing is given)",
-			GiftDrop = "the Gift again: tab out of the game to make it fall (now: it falls at once)",
+			GiftDrop = "the Gift again: open the Roblox menu (Escape) to make it fall (now: at once)",
 			Inv = "lists your cues, lucky blocks and equipped cue",
 			ClearInv = "takes every cue but Classic and every lucky block",
 			Dupes = "%d copies each of %d random Common and Uncommon cues (to test selling)",
@@ -381,7 +381,7 @@ return {
 		GaveBlock = "Gave %s x%d.",
 		BadBlock = 'No lucky block called "%s". Blocks: %s.',
 		Cutscene = "Playing the %s cutscene.", -- the rarity
-		GiftDrop = "The Gift is reset: tab out of the game to make it fall.",
+		GiftDrop = "The Gift is reset: open the Roblox menu (Escape) to make it fall.",
 		GiftDropNow = "The Gift is falling (its 12 hours run from now).",
 		GiftDropBusy = "No Gift drop here (an arena, or your save is not loaded).",
 		InvEquipped = "Equipped: %s",

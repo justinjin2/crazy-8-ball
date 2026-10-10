@@ -2371,18 +2371,24 @@ Config.LuckyBlocks = {
 		Scroll = { Tag = "LuckyScroll", StudsPerTile = 6, StudsPerSecond = 1.2 }, -- slower (designer)
 	},
 	-- The Gift block (designer, 2026-10-07; 2026-10-10): given once, the first time a player
-	-- tabs out of the game after the tutorial (or, for one who never tabbed out, the first time
-	-- they leave the game; not a teleport to a match); its timer (Kinds.Gift.Timer) runs from
-	-- then. A tab-out in a lobby drops it at once, while they are away; otherwise it falls on
-	-- their next lobby visit, again each visit until picked up: a short cutscene (black bars,
-	-- "Wait... what is this?", a glowing trail, a crash with a shockwave and a burst of
-	-- particles) and it waits on the floor to be picked up (GiftDropService, client GiftDrop).
+	-- opens Roblox's menu after the tutorial (Escape, the menu button, a controller's Start: about
+	-- to leave), or, for one who never opened it, the first time they leave the game (not a
+	-- teleport to a match); its timer (Kinds.Gift.Timer) runs from then. The menu opened in a
+	-- lobby drops it at once, behind the menu; otherwise it falls on their next lobby visit,
+	-- again each visit until picked up: a short cutscene (black bars, "Wait... what is this?"
+	-- at the top, a glowing trail, a crash with a shockwave and a burst of particles) and it
+	-- waits on the floor to be picked up (GiftDropService, client GiftDrop).
 	GiftDrop = {
 		DelaySeconds = 3, -- on a visit: after the player's character is in, before it falls
-		AwayDelaySeconds = 0.5, -- on the first tab-out: this soon after it (right away)
-		-- A client's "tabbed out" heard at most this often per player (the server's check; the
+		MenuDelaySeconds = 0.5, -- on the first opening of Roblox's menu: this soon after (right away)
+		-- A client's "menu opened" heard at most this often per player (the server's check; the
 		-- client sends no more often either).
-		AwayCooldownSeconds = 5,
+		MenuCooldownSeconds = 5,
+		-- "Wait... what is this?" while it falls: big at the top, just under the top bar, like the
+		-- tutorial's line (designer, 2026-10-10: "bigger and higher"; the tutorial's is 34 / 24).
+		WonderTextPx = 46,
+		WonderPhoneTextPx = 30, -- a phone on its side (Config.Multiplayer.Style.ShortHeight)
+		WonderGapPx = 14, -- under the top bar
 		AheadStuds = 12, -- it lands this far in front of the player
 		PickupStuds = 16, -- the server's check: the player this close to where it landed
 		SizeStuds = 4.5, -- the block's edge on the floor (its bow on top)

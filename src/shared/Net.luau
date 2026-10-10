@@ -399,7 +399,7 @@ local REMOTES: { [string]: string } = {
 	BlockState = "RemoteEvent",
 	-- The Gift's drop (GiftDropService, client GiftDrop): server -> one player
 	-- { at = CFrame } (where it lands: the client plays the fall and puts the block there);
-	-- client -> server: { away = true } "the window lost focus" (the first tab-out after the
+	-- client -> server: { menu = true } "Roblox's menu opened" (the first time after the
 	-- tutorial earns the Gift; the server decides), or (no arguments) "picked it up", answered
 	-- back on the same event with { picked = true } or { picked = false, reason }.
 	GiftDrop = "RemoteEvent",

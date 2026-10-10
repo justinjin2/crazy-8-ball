@@ -472,14 +472,14 @@ function LuckyBlocks.count(state: State, kind: string): number
 	return n
 end
 
--- The Gift block's drop (designer, 2026-10-07; the first tab-out, 2026-10-10): the save's Flags
--- hold when the player earned it (GiftLeftAt, unix seconds: their first tab-out, or their first
--- leave of the game when they never tabbed out; the key keeps its first name) and whether the
+-- The Gift block's drop (designer, 2026-10-07; Roblox's menu, 2026-10-10): the save's Flags
+-- hold when the player earned it (GiftLeftAt, unix seconds: the first time they opened Roblox's
+-- menu, or their first leave of the game when they never did; the key keeps its first name) and whether the
 -- Gift has landed and been picked up (GiftLanded). Its timer runs from when it was earned, so a
 -- player back the next day finds it ready (Config.LuckyBlocks.GiftDrop).
 LuckyBlocks.GiftFlags = table.freeze({ LeftAt = "GiftLeftAt", Landed = "GiftLanded" })
 
---- Notes the Gift earned at `now` (the first tab-out, or the first leave): true only the first
+--- Notes the Gift earned at `now` (Roblox's menu first opened, or the first leave): true only the first
 --- time (the flag was set).
 function LuckyBlocks.noteGift(flags: { [string]: any }, now: number): boolean
 	if flags[LuckyBlocks.GiftFlags.LeftAt] ~= nil then

@@ -1,26 +1,28 @@
 --!strict
--- GiftDrop: the Gift block falling from the sky (designer, 2026-10-07; the first tab-out,
+-- GiftDrop: the Gift block falling from the sky (designer, 2026-10-07; the Roblox menu,
 -- 2026-10-10; the server decides, GiftDropService).
 --
--- The window losing focus (a tab-out, or a phone switching apps) is told to the server
--- ({ away = true }): the first one after the tutorial earns the Gift and drops it at once,
--- while the player is away. A Gift not picked up falls again on the next visit.
+-- The player opening Roblox's own menu (Escape, the menu button, a controller's Start: about
+-- to leave) is told to the server ({ menu = true }): the first time after the tutorial earns
+-- the Gift and drops it at once, behind the menu, a reason to stay. A Gift not picked up falls
+-- again on the next visit.
 --
--- When the server sends { at = CFrame } (and no menu, popup or reel is up: setBusy): black
--- letterbox bars slide in with "Wait... what is this?" in the bottom one, the rest of the HUD
--- steps aside and the player stands still. The camera, behind the player, looks up at the sky:
+-- When the server sends { at = CFrame } (and none of our menus, popups or reels is up:
+-- setBusy): black letterbox bars slide in with "Wait... what is this?" big at the top, just
+-- under the top bar (like the tutorial's line), the rest of the HUD steps aside and the player
+-- stands still. The camera, behind the player, looks up at the sky:
 -- the Gift streaks down on a slant with a glowing gold trail, sparks and a glint, spinning, and
 -- crashes at `at` with a white flash, a camera shake, a shockwave ring and bursts of dust and
--- gold confetti, bouncing as it lands. The bar's line gives way to the title; the camera holds
+-- gold confetti, bouncing as it lands. The line gives way to the title in the bottom bar; the camera holds
 -- on the block, then blends back, the bars slide away and everything comes back. The block
 -- (only on this screen) idles there with a Pick up prompt (hold E, the gamepad's X, or touch);
 -- the server checks and adds it to the hotbar, and it shrinks away in a puff. Tuning in
 -- Config.LuckyBlocks.GiftDrop.
+local GuiService = game:GetService("GuiService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
-local UserInputService = game:GetService("UserInputService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
@@ -28,6 +30,7 @@ local Strings = require(Shared:WaitForChild("Strings"))
 local Net = require(Shared:WaitForChild("Net"))
 local HudParts = require(script.Parent.HudParts)
 local Letterbox = require(script.Parent.Letterbox)
+local UIAnim = require(script.Parent.UIAnim)
 
 local L = Config.LuckyBlocks
 local G = L.GiftDrop
@@ -407,11 +410,14 @@ local function makeScreen(): Screen?
 	flash.Parent = gui
 	-- While it falls, a line in the bottom bar (designer, 2026-10-10); the title replaces it at
 	-- the crash.
-	local wonder = HudParts.text(bars[2], "Wonder", 28, W.GiftWonder)
-	wonder.AnchorPoint = Vector2.new(0.5, 0.5)
-	wonder.Position = UDim2.fromScale(0.5, 0.5)
-	wonder.Size = UDim2.new(1, -32, 0.42, 0)
-	wonder.TextScaled = true
+	-- Big, at the top just under the top bar, like the tutorial's line (designer, 2026-10-10).
+	local camera = workspace.CurrentCamera
+	local phone = camera ~= nil and camera.ViewportSize.Y < Config.Multiplayer.Style.ShortHeight
+	local wonderPx = if phone then G.WonderPhoneTextPx else G.WonderTextPx
+	local wonder = HudParts.text(gui, "Wonder", wonderPx, W.GiftWonder)
+	wonder.AnchorPoint = Vector2.new(0.5, 0)
+	wonder.Position = UDim2.new(0.5, 0, 0, Letterbox.px(G.BarsShare) + G.WonderGapPx)
+	wonder.Size = UDim2.new(0.9, 0, 0, math.ceil(wonderPx * 1.3))
 	wonder.TextTransparency = 1
 	wonder.ZIndex = 3
 	-- The title sits in the bottom bar.
@@ -664,6 +670,7 @@ local function play(at: CFrame)
 	if screen then
 		barsTo(screen, G.BarsShare)
 		fade({ screen.wonder }, true)
+		UIAnim.popIn(screen.wonder)
 	end
 
 	local begin = os.clock()
@@ -802,16 +809,17 @@ function GiftDrop.start()
 			answered(payload)
 		end
 	end)
-	-- The window lost focus (a tab-out, or a phone switching apps): the server decides whether
-	-- this one earns the Gift (the first after the tutorial). Never more often than it listens.
-	local lastAway = -math.huge
-	UserInputService.WindowFocusReleased:Connect(function()
+	-- Roblox's menu opened (Escape, the menu button, a controller's Start): the player may be
+	-- leaving. The server decides whether this earns the Gift (the first time after the
+	-- tutorial). Never more often than it listens.
+	local lastMenu = -math.huge
+	GuiService.MenuOpened:Connect(function()
 		local now = os.clock()
-		if now - lastAway < G.AwayCooldownSeconds then
+		if now - lastMenu < G.MenuCooldownSeconds then
 			return
 		end
-		lastAway = now
-		Net.get("GiftDrop"):FireServer({ away = true })
+		lastMenu = now
+		Net.get("GiftDrop"):FireServer({ menu = true })
 	end)
 end
 

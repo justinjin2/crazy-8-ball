@@ -1,22 +1,24 @@
 --!strict
--- GiftDropService: the Gift block's drop from the sky (designer, 2026-10-07; the first tab-out,
--- 2026-10-10).
+-- GiftDropService: the Gift block's drop from the sky (designer, 2026-10-07; the Roblox menu,
+-- 2026-10-10: "whenever the player attempts to leave the game ... retain them ... by giving
+-- them a reward").
 --
--- The Gift is earned once: the first time a player tabs out of the game once the tutorial is
--- behind them (their client says so: { away = true } on the GiftDrop remote), or, as a backup
--- for a player who never tabbed out, the first time they leave the game (a real leave, not a
--- teleport to or from a match). Their save notes when (PlayerData.noteGift), its 12-hour timer
--- running from then. A tab-out in a lobby drops it at once, while they are away, so it waits
--- for them when they look back; in an arena it falls on their next lobby visit. Never while
--- their table's game is on: it waits for the table to be back to waiting.
+-- The Gift is earned once: the first time a player opens Roblox's own menu (Escape, the menu
+-- button, a controller's Start) once the tutorial is behind them (their client says so:
+-- { menu = true } on the GiftDrop remote), or, as a backup for a player who never opened it,
+-- the first time they leave the game (a real leave, not a teleport to or from a match). Their
+-- save notes when (PlayerData.noteGift), its 12-hour timer running from then. The menu opened
+-- in a lobby drops it at once, behind the menu, a reason to stay; in an arena it falls on their
+-- next lobby visit. Never while their table's game is on: it waits for the table to be back to
+-- waiting.
 --
 -- The drop picks a landing spot a little in front of the player and tells their client
 -- ({ at = CFrame }); the client plays the fall and leaves the block on the floor. Picking it up
 -- asks back on the same remote (no arguments): the server checks a drop is waiting and the
 -- player stands near the spot, then adds the Gift (PlayerData.landGift) and answers
 -- { picked = true }. Not picked up before leaving: it falls again on the next visit.
--- /giftdrop (the designer's) forgets it so the next tab-out drops it; /giftdrop now drops it at
--- once. Tuning in Config.LuckyBlocks.GiftDrop.
+-- /giftdrop (the designer's) forgets it so the next menu opening drops it; /giftdrop now drops
+-- it at once. Tuning in Config.LuckyBlocks.GiftDrop.
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -36,7 +38,7 @@ local GiftDropService = {}
 -- leave, or by /giftdrop).
 local landing: { [Player]: Vector3 } = {}
 local dropping: { [Player]: boolean } = {}
-local lastAway: { [Player]: number } = {}
+local lastMenu: { [Player]: number } = {}
 local lobby = false
 local started = false
 
@@ -104,20 +106,20 @@ local function drop(player: Player, delay: number)
 	end)
 end
 
--- The client says the player tabbed out: the first time after the tutorial earns the Gift, and
--- in a lobby it falls at once (while they are away). Once per AwayCooldownSeconds at most.
-local function away(player: Player)
+-- The client says the player opened Roblox's menu: the first time after the tutorial earns the
+-- Gift, and in a lobby it falls at once (behind the menu). Once per MenuCooldownSeconds at most.
+local function menuOpened(player: Player)
 	local now = os.clock()
-	local last = lastAway[player]
-	if last and now - last < G.AwayCooldownSeconds then
+	local last = lastMenu[player]
+	if last and now - last < G.MenuCooldownSeconds then
 		return
 	end
-	lastAway[player] = now
+	lastMenu[player] = now
 	if not PlayerData.isLoaded(player) or TutorialService.guided(player) then
-		return -- a tab-out in the tutorial does not count; the next one after it does
+		return -- the menu opened in the tutorial does not count; the next time after it does
 	end
 	if PlayerData.noteGift(player) then
-		drop(player, G.AwayDelaySeconds)
+		drop(player, G.MenuDelaySeconds)
 	end
 end
 
@@ -142,7 +144,7 @@ local function pickUp(player: Player)
 	Net.get("GiftDrop"):FireClient(player, { picked = reason == nil, reason = reason })
 end
 
---- /giftdrop: forgets the Gift, so the next tab-out earns it and drops it (`now`: earned at
+--- /giftdrop: forgets the Gift, so the next menu opening earns it and drops it (`now`: earned at
 --- once and falling now). False when there is nothing to drop here (an arena, or the save is
 --- not loaded).
 function GiftDropService.dev(player: Player, now: boolean?): boolean
@@ -150,14 +152,14 @@ function GiftDropService.dev(player: Player, now: boolean?): boolean
 		return false
 	end
 	landing[player] = nil
-	lastAway[player] = nil
+	lastMenu[player] = nil
 	if now then
 		drop(player, G.DelaySeconds)
 	end
 	return true
 end
 
---- `isLobby`: drops happen only in a lobby; tab-outs and leaves are noted in every server.
+--- `isLobby`: drops happen only in a lobby; menu openings and leaves are noted in every server.
 function GiftDropService.start(isLobby: boolean)
 	if started then
 		return
@@ -165,8 +167,8 @@ function GiftDropService.start(isLobby: boolean)
 	started = true
 	lobby = isLobby
 	Net.get("GiftDrop").OnServerEvent:Connect(function(player: Player, payload: any)
-		if type(payload) == "table" and payload.away == true then
-			away(player)
+		if type(payload) == "table" and payload.menu == true then
+			menuOpened(player)
 		elseif payload == nil then
 			pickUp(player)
 		end
@@ -181,8 +183,8 @@ function GiftDropService.start(isLobby: boolean)
 	Players.PlayerRemoving:Connect(function(player: Player)
 		landing[player] = nil
 		dropping[player] = nil
-		lastAway[player] = nil
-		-- The backup: a first leave earns it for a player who never tabbed out. A teleport to or
+		lastMenu[player] = nil
+		-- The backup: a first leave earns it for a player who never opened the menu. A teleport to or
 		-- from a match hands the save off first: that is not leaving the game.
 		if not PlayerData.isHandedOff(player) then
 			PlayerData.noteGift(player)

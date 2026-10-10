@@ -4194,3 +4194,12 @@ timer of a new block stay the designer's call.
   FROM THE SKY!" and "Pick it up!" ("Thanks for coming back" dropped). The save keeps its key
   (GiftLeftAt, now "earned at"), so a Gift owed under the old rule still falls. /giftdrop forgets
   it (the next tab-out drops it); /giftdrop now drops it at once.
+- 2026-10-10 (designer, "when i say tab out i meant when the person in game clicks escape or
+  presses the roblox menu ... whenever the player attempts to leave the game the goal is to
+  hopefully retain them"): the Gift is earned the first time a player opens Roblox's own menu
+  after the tutorial (Escape, the Roblox button, a controller's Start: `GuiService.MenuOpened`),
+  not when the window loses focus; it falls at once, behind the menu. The first leave stays the
+  backup. "Wait... what is this?" moved from the bottom bar to the top of the screen, just under
+  the top bar, and grew (46 px, 30 px on a phone), like the tutorial's line; the title and "Pick
+  it up!" stay in the bottom bar after the crash. /giftdrop now means "the next opening of the
+  menu drops it".

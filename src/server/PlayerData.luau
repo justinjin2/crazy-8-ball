@@ -3670,9 +3670,9 @@ function PlayerData.setFlag(player: Player, key: string, value: any): boolean
 	return true
 end
 
---- The player earned the Gift: their first tab-out (GiftDropService), or their first leave of
---- the game when they never tabbed out. The save notes when, once, and the Gift waits to fall
---- from the sky (LuckyBlocks.noteGift). True when this was the first time.
+--- The player earned the Gift: the first time they opened Roblox's menu (GiftDropService), or
+--- their first leave of the game when they never opened it. The save notes when, once, and the
+--- Gift waits to fall from the sky (LuckyBlocks.noteGift). True when this was the first time.
 function PlayerData.noteGift(player: Player): boolean
 	local data = peek(player)
 	if data == nil or not LuckyBlocks.noteGift(data.Flags, os.time()) then
@@ -3707,7 +3707,7 @@ function PlayerData.landGift(player: Player): boolean
 	return true
 end
 
---- /giftdrop (the designer's test): forgets the Gift entirely, so the next tab-out earns it
+--- /giftdrop (the designer's test): forgets the Gift entirely, so the next menu opening earns it
 --- again (`now`: earned at once instead, for an immediate drop).
 function PlayerData.resetGift(player: Player, now: boolean?): boolean
 	local data = liveData("resetGift", player)

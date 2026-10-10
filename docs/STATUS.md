@@ -41,8 +41,9 @@ One line each; the long form is the 2026-10-08 entry at the top of
   Studio's phone emulator only.
 - **Lighting** day 10 min, sunset 5. **Pull cutscenes**: Mythic and Secret wait a redo.
 - **Our own lucky blocks** and **the Mystery upgrade screen**: not yet on a phone or at full
-  frame rate. **The Gift drop on the first tab-out** (2026-10-10, DECISIONS): `/giftdrop`, then
-  click out of the game window; not yet on a phone (switching apps) or a controller.
+  frame rate. **The Gift drop on the first opening of Roblox's menu** (2026-10-10, DECISIONS):
+  `/giftdrop`, then press Escape; not yet by a real Escape press (Studio's test tools cannot
+  press it), on a phone (the Roblox button) or a controller (Start).
 
 ## Open, waiting on the designer
 
