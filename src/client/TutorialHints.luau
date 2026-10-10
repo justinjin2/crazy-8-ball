@@ -293,8 +293,11 @@ local HINTS: { Hint } = {
 	{
 		name = "Cue",
 		when = function(ctx: Ctx): boolean
+			-- Only once the block's reel and its reveal are over: the cue is granted at the open,
+			-- and the hint must not tell what the reel lands on (the designer, 2026-10-09).
 			local cue = attr("TutorialNewCue")
 			return ctx.lobby
+				and not LuckyClient.busy()
 				and type(cue) == "string"
 				and cue ~= attr("EquippedCue")
 				and TutorialAnchors.showing("Inventory")

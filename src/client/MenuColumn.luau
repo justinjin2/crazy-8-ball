@@ -67,6 +67,7 @@ local CuesStrike = require(script.Parent.CuesStrike)
 local GuiQA = require(script.Parent.GuiQA)
 local HudParts = require(script.Parent.HudParts)
 local ItemState = require(script.Parent.ItemState)
+local LuckyClient = require(script.Parent.LuckyClient)
 local UIAnim = require(script.Parent.UIAnim)
 local UISound = require(script.Parent.UISound)
 local UltSpinState = require(script.Parent.UltSpinState)
@@ -696,6 +697,23 @@ end
 --- ult spin is unused.
 function MenuColumn.refreshDots(self: any)
 	local fresh = newCues()
+	-- A cue won from a lucky block counts once its reel and reveal are over (the count would
+	-- tell what the reel lands on; the designer, 2026-10-09). Read again when the opening ends.
+	local shown = self.shownNew or 0
+	if fresh > shown and LuckyClient.busy() then
+		fresh = shown
+		if not self.newWaiting then
+			self.newWaiting = true
+			task.spawn(function()
+				while LuckyClient.busy() do
+					task.wait(C.NewWaitSeconds)
+				end
+				self.newWaiting = false
+				self:refreshDots()
+			end)
+		end
+	end
+	self.shownNew = fresh
 	-- A tile with nothing else to say wears the soft part's click-once "!" (setFresh).
 	local function orNew(name: string, text: string?): string?
 		return text or (if self.freshTiles[name] then COPY.DotReady else nil)

@@ -3995,3 +3995,6 @@ timer of a new block stay the designer's call.
   stops). The Starter Pack's window is one day from the first join (was 7 days).
 - 2026-10-09 (designer, for economy v5 at the merge): the Daily Rewards' seven login days (and
   Claim All) must be rescaled to the new economy; their amounts are v4's today.
+- 2026-10-10 (designer): a skipper's "A new cue! Equip it in Cues." hint waits until a lucky
+  block's reel and reveal are over (the cue is granted at the open), and so does the CUES
+  tile's NEW count, for everyone: neither tells what the reel lands on.

@@ -8732,6 +8732,7 @@ Config.UI.Menu = {
 		DotTextPx = 14,
 		DotInsetPx = 4, -- its centre sits this far inside the tile's top-right corner
 		DotMax = 9, -- a count above this reads "9+"
+		NewWaitSeconds = 0.25, -- a cue won mid-opening: how often CUES checks the opening ended
 		TimerPx = 22, -- the Shop's gold timer pill while an offer window is open
 		ShortTimerPx = 20,
 		TimerTextPx = 14,
