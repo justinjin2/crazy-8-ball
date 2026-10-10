@@ -34,7 +34,7 @@
    "kind": "Product",
    "name": "Starter Pack",
    "robux": 29,
-   "description": "The Starter Cue, the Starter Lucky Block (Rare or better), $25,000 and 1 hour of 2x money. Where paid random items aren't allowed: the Starter Cue, $40,000 and the hour of 2x money. Once per player, in your first 7 days. Odds are shown in the game."
+   "description": "The Starter Cue, the Starter Lucky Block (Rare or better), $25,000 and 1 hour of 2x money. Where paid random items aren't allowed: the Starter Cue, $40,000 and the hour of 2x money. Once per player, in your first day. Odds are shown in the game."
   },
   {
    "key": "Pack1",
@@ -118,14 +118,14 @@
    "key": "RestockEpic",
    "kind": "Product",
    "name": "Restock Epic Lucky Block",
-   "robux": 149,
+   "robux": 199,
    "description": "The Epic Lucky Block in the restock shop, while it is in stock. Odds are shown in the game."
   },
   {
    "key": "RestockLegendary",
    "kind": "Product",
    "name": "Restock Legendary Lucky Block",
-   "robux": 599,
+   "robux": 999,
    "description": "The Legendary Lucky Block in the restock shop, while it is in stock. Odds are shown in the game."
   },
   {
@@ -147,41 +147,41 @@
    "kind": "Product",
    "name": "Claim All Daily Rewards (First Week, 6-7 days)",
    "robux": 499,
-   "description": "Claims the rest of your first week's Daily Rewards at once while your days are still in a row, day 7's Week One Cue included (when 6 or 7 days are left). Lucky block odds are shown in the game."
+   "description": "Claims the rest of your first week's Daily Rewards at once while your days are still in a row, day 7's Chroma Cue included (when 6 or 7 days are left). Lucky block odds are shown in the game."
   },
   {
    "key": "ClaimAllFirst5",
    "kind": "Product",
    "name": "Claim All Daily Rewards (First Week, 3-5 days)",
    "robux": 449,
-   "description": "Claims the rest of your first week's Daily Rewards at once while your days are still in a row, day 7's Week One Cue included (when 3 to 5 days are left). Lucky block odds are shown in the game."
+   "description": "Claims the rest of your first week's Daily Rewards at once while your days are still in a row, day 7's Chroma Cue included (when 3 to 5 days are left). Lucky block odds are shown in the game."
   },
   {
    "key": "ClaimAllFirst2",
    "kind": "Product",
    "name": "Claim All Daily Rewards (First Week, 1-2 days)",
    "robux": 399,
-   "description": "Claims the rest of your first week's Daily Rewards at once while your days are still in a row, day 7's Week One Cue included (when 1 or 2 days are left). Lucky block odds are shown in the game."
+   "description": "Claims the rest of your first week's Daily Rewards at once while your days are still in a row, day 7's Chroma Cue included (when 1 or 2 days are left). Lucky block odds are shown in the game."
   },
   {
    "key": "ClaimAllWeek7",
    "kind": "Product",
    "name": "Claim All Daily Rewards (6-7 days)",
-   "robux": 99,
+   "robux": 49,
    "description": "Claims the rest of this week's Daily Rewards at once (when 6 or 7 days are left). Lucky block odds are shown in the game."
   },
   {
    "key": "ClaimAllWeek5",
    "kind": "Product",
    "name": "Claim All Daily Rewards (3-5 days)",
-   "robux": 79,
+   "robux": 39,
    "description": "Claims the rest of this week's Daily Rewards at once (when 3 to 5 days are left). Lucky block odds are shown in the game."
   },
   {
    "key": "ClaimAllWeek2",
    "kind": "Product",
    "name": "Claim All Daily Rewards (1-2 days)",
-   "robux": 49,
+   "robux": 19,
    "description": "Claims the rest of this week's Daily Rewards at once (when 1 or 2 days are left). Lucky block odds are shown in the game."
   },
   {
@@ -279,23 +279,23 @@
   {
    "key": "LuckyBlockSkip1",
    "kind": "Product",
-   "name": "Lucky Block Timer Skip (5 min)",
+   "name": "Lucky Block Timer Skip (10 min)",
    "robux": 1,
-   "description": "Finish a lucky block timer with 5 minutes or less left. If it has already finished, keep the skip for your next lucky block."
+   "description": "Finish a lucky block timer with 10 minutes or less left. If it has already finished, keep the skip for your next lucky block."
   },
   {
    "key": "LuckyBlockSkip",
    "kind": "Product",
-   "name": "Lucky Block Timer Skip",
+   "name": "Lucky Block Timer Skip (1 h)",
    "robux": 4,
-   "description": "Finish a lucky block timer with 30 minutes or less left. If it has already finished, keep the skip for your next lucky block."
+   "description": "Finish a lucky block timer with 1 hour or less left. If it has already finished, keep the skip for your next lucky block."
   },
   {
    "key": "LuckyBlockSkip9",
    "kind": "Product",
-   "name": "Lucky Block Timer Skip (6 h)",
+   "name": "Lucky Block Timer Skip (12 h)",
    "robux": 9,
-   "description": "Finish a lucky block timer with 6 hours or less left. If it has already finished, keep the skip for your next lucky block."
+   "description": "Finish a lucky block timer with 12 hours or less left. If it has already finished, keep the skip for your next lucky block."
   },
   {
    "key": "LuckyBlockSkip15",
@@ -308,21 +308,21 @@
    "key": "GrandOpening1",
    "kind": "Product",
    "name": "Grand Opening Lucky Block",
-   "robux": 19,
+   "robux": 39,
    "description": "One Grand Opening Lucky Block: each rolls Rare to Secret, with a chance at the numbered Firework Cue (1,000 made) or Beta Cue (100 made). Every outcome's odds are shown in the shop before buying."
   },
   {
    "key": "GrandOpening3",
    "kind": "Product",
    "name": "3 Grand Opening Lucky Blocks",
-   "robux": 49,
+   "robux": 99,
    "description": "3 Grand Opening Lucky Blocks: each rolls Rare to Secret, with a chance at the numbered Firework Cue (1,000 made) or Beta Cue (100 made). Every outcome's odds are shown in the shop before buying."
   },
   {
    "key": "GrandOpening10",
    "kind": "Product",
    "name": "10 Grand Opening Lucky Blocks",
-   "robux": 149,
+   "robux": 299,
    "description": "10 Grand Opening Lucky Blocks: each rolls Rare to Secret, with a chance at the numbered Firework Cue (1,000 made) or Beta Cue (100 made). Every outcome's odds are shown in the shop before buying."
   }
  ]

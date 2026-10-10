@@ -4,7 +4,7 @@
 -- time to the next day), the row's six day tiles (3 x 2, each in its own colours: "DAY 1", the
 -- reward's pictures, "$10,000", its status button) and day 7 tall at the right as the row's
 -- big prize (its best block over gold rays, the tilted rainbow "OP!", what comes with it; the
--- first week's day 7 shows its cue from day 1 instead: economy v5's Week One Cue, its name and
+-- first week's day 7 shows its cue from day 1 instead: economy v6's Chroma Cue, its name and
 -- rarity on the line, as the goal to come back for, with a tilted orange "7 IN A ROW!" while
 -- the first week's days are still in a row; a missed day turns day 7 into
 -- Config.Daily.FirstWeekMissed, an Epic block, 2026-10-10). Each tile shows its day's one
@@ -15,7 +15,7 @@
 -- (Config.Daily.NeedsMatch); once today is claimed the next day reads "Tomorrow". A tile with a
 -- lucky block wears the sky-blue dice opening that block's Odds & Details (Claim All buys them:
 -- a paid random item, Roblox's rule). Under the tiles: the first week's line ("Claim 7 days in
--- a row to win the Week One Cue!", or what day 7 is after a missed day), the later weeks' (the
+-- a row to win the Chroma Cue!", or what day 7 is after a missed day), the later weeks' (the
 -- week's free miss) or "Finish one match today", VIP's gold line, and
 -- Claim All, the green Robux button that claims every day still ahead in this row at once
 -- (RewardState.claimAll; hidden where paid random items are restricted or nothing is left).

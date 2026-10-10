@@ -442,32 +442,32 @@ end
 -- reported (TutorialEvent). Every step also has its fallback (Config.Tutorial.Timing).
 ---------------------------------------------------------------------------------------------
 
--- The chain's block (4.5 steps 6 and 7), on economy v5.2's hooks (LuckyBlockService
--- .setOpenHooks). Each answer is keyed on the step, so no later block (or a skipper's) is
--- touched. Its Mystery's upgrade screen rolls it into a MysteryReveal.Tier block, ready at once
--- (a block on its timer cannot be placed; pity still counted).
-local function scriptedClimb(player: Player, kind: string): string?
+-- The chain's block (4.5 steps 6 and 7), on the hooks of LuckyBlockService.setOpenHooks.
+-- Each answer is keyed on the step, so no later block (or a skipper's) is touched. Economy v6
+-- (designer, 2026-10-10): the first win's Mystery rolls for real (no scripted tier, no forced
+-- cue); the block it turns into is ready at once (a block on its timer cannot be placed; pity
+-- still counted), and the Place step points at it (the TutorialBlock attribute).
+local function readyClimb(player: Player, kind: string): boolean?
 	if kind ~= T.MysteryKind or TutorialService.step(player) ~= "Mystery" then
 		return nil
 	end
 	TutorialService.mark(player, "Revealed")
-	return T.MysteryReveal.Tier
+	return true
 end
 
--- That block's climb, rolled at its open since v5.2, stays on its tier at the Place step (never
--- the Mystery itself: staying on its roll would make it a Standard block)...
-local function stayFor(player: Player, kind: string): boolean
-	return kind == T.MysteryReveal.Tier
-		and kind ~= T.MysteryKind
-		and TutorialService.step(player) == "Place"
+local function revealed(player: Player, kind: string)
+	if TutorialService.step(player) == "Mystery" then
+		player:SetAttribute("TutorialBlock", kind)
+	end
 end
 
--- ...and it opens to the tutorial's cue (an Uncommon cue that block's row can drop).
-local function forcedOpen(player: Player, kind: string): string?
-	if kind ~= T.MysteryReveal.Tier or TutorialService.step(player) ~= "Place" then
+-- The block opened at the Place step plays the tutorial's reel (its glimpse and opening
+-- spread) on its own roll.
+local function tutorialReel(player: Player, kind: string): boolean?
+	if kind == T.MysteryKind or TutorialService.step(player) ~= "Place" then
 		return nil
 	end
-	return T.TutorialCue
+	return true
 end
 
 local function opened(player: Player, kind: string, cueId: string)
@@ -907,19 +907,24 @@ end
 
 function TutorialService.start()
 	LuckyBlockService.setOpenHooks(
-		forcedOpen,
+		tutorialReel,
 		function(player: Player, kind: string, cueId: string)
 			TutorialService.guard(player, "Opened", function()
 				opened(player, kind, cueId)
 			end)
 		end,
-		stayFor,
-		function(player: Player, kind: string): string?
-			local tier = nil
+		nil,
+		function(player: Player, kind: string): boolean?
+			local ready = nil
 			TutorialService.guard(player, "Reveal", function()
-				tier = scriptedClimb(player, kind)
+				ready = readyClimb(player, kind)
 			end)
-			return tier
+			return ready
+		end,
+		function(player: Player, kind: string)
+			TutorialService.guard(player, "Revealed", function()
+				revealed(player, kind)
+			end)
 		end
 	)
 	Items.setEquipHook(function(player: Player, cueId: string)

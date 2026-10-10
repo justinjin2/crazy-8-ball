@@ -307,7 +307,11 @@ function TradeMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 				local reasons: { [string]: string } = W.Reasons :: any
 				local problems: { [string]: string } = W.Problems :: any
 				local key = tostring(reply.reason)
-				frame:notice(reasons[key] or problems[key] or reasons.Default, "Red")
+				local text = reasons[key] or problems[key] or reasons.Default
+				if key == "NeedWins" or key == "TheyNeedWins" then
+					text = text:format(Config.Trade.MinWins) -- the trade gate (economy v6)
+				end
+				frame:notice(text, "Red")
 			end
 		end)
 	end
@@ -697,7 +701,12 @@ function TradeMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 				local reply = ItemState.request("TradeRequest", "Accept", from)
 				if type(reply) == "table" and reply.ok == false then
 					local reasons: { [string]: string } = W.Reasons :: any
-					Menus.notice(reasons[tostring(reply.reason)] or reasons.Default, "Red")
+					local key = tostring(reply.reason)
+					local text = reasons[key] or reasons.Default
+					if key == "NeedWins" or key == "TheyNeedWins" then
+						text = text:format(Config.Trade.MinWins) -- the trade gate (economy v6)
+					end
+					Menus.notice(text, "Red")
 				end
 			end)
 		end

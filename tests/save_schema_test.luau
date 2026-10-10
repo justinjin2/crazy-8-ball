@@ -469,8 +469,8 @@ return {
 		local _, SaveSchema = setup()
 		local t = SaveSchema.template()
 		H.expect(SaveSchema.Version == 11, "version 11")
-		-- The Mystery block's pity starts at the head start (economy v5 plan 3.6).
-		H.expect(t.Drops.SinceRare == 2 and t.Drops.SinceEpic == 10 and t.Drops.Total == 0, "pity")
+		-- No pity head start since economy v6 (2026-10-10).
+		H.expect(t.Drops.SinceRare == 0 and t.Drops.SinceEpic == 0 and t.Drops.Total == 0, "pity")
 		H.expect(type(t.LuckyBlocks.Credits) == "table" and next(t.LuckyBlocks.Credits) == nil, "")
 		H.expect(SaveSchema.WipeBelow == 6, "everything older than 6 is wiped")
 		H.expect(t.Version == SaveSchema.Version, "template carries the current version")
@@ -490,7 +490,9 @@ return {
 		end
 		H.expect(size(t.Inventory) == #inventoryKeys, "Inventory has its five tables")
 		H.expect(next(t.Index.Seen) == nil and next(t.Index.Rows) == nil, "empty Index")
-		H.expect(size(t.Index) == 2, "Index has two maps")
+		-- Economy v6: the finder's money waiting to be claimed.
+		H.expect(next(t.Index.Unclaimed) == nil, "nothing unclaimed")
+		H.expect(size(t.Index) == 3, "Index has three maps")
 		H.expect(next(t.Titles) == nil and next(t.Codes) == nil, "no titles or codes")
 		H.expect(t.Equipped.Cue == "Classic", "Classic is the default cue")
 		local d = t.Daily
@@ -498,7 +500,8 @@ return {
 		H.expect(d.Wins == 0 and d.PcDrops == 0 and d.Disguised == 0 and d.PlaySeconds == 0, "")
 		H.expect(next(d.Opponents) == nil and next(d.PlaytimeClaimed) == nil, "daily maps")
 		H.expect(d.Track == 0 and d.Matches == 0, "no track wins or matches today")
-		H.expect(size(d) == 12, "Daily has twelve fields")
+		H.expect(d.SkySeconds == 0 and d.SkyGiven == 0, "no Sky clock yet (economy v6)")
+		H.expect(size(d) == 14, "Daily has fourteen fields")
 		local l = t.Login
 		H.expect(l.LastDay == 0 and l.StreakDay == 0 and l.Total == 0, "login")
 		H.expect(l.FreezeWeek == 0 and l.FirstWeek == 0, "no freeze used")
@@ -524,7 +527,10 @@ return {
 		H.expect(u.LuckySpins == 0 and u.Pity == 0 and u.FreeSpinDay == 0, "nothing else")
 		H.expect(u.SpinsDone == 0 and u.QueueUlts == true and size(u) == 9, "ults fields")
 		local drops = t.Drops
-		H.expect(drops.SinceRare == 2 and drops.SinceEpic == 10 and drops.Total == 0, "head start")
+		H.expect(
+			drops.SinceRare == 0 and drops.SinceEpic == 0 and drops.Total == 0,
+			"no head start"
+		)
 		H.expect(size(drops) == 3, "Drops has three counters")
 		local social = t.Social
 		H.expect(social.Group == false and social.InvitedBy == 0, "no group, not invited")

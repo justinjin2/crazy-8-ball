@@ -34,7 +34,7 @@ export type LoginView = {
 	firstWeek: boolean, -- today's claim is a first-week day (the days are the first week's)
 	firstWeekDays: number, -- first-week days claimed (today's counts once made)
 	firstWeekLeft: number, -- days left in the first week's window, today included (0: over)
-	-- the first week is still on 7 days in a row, so its day 7 is the Week One Cue (else
+	-- the first week is still on 7 days in a row, so its day 7 is the Chroma Cue (else
 	-- Config.Daily.FirstWeekMissed); false outside the first week (Daily.LoginState)
 	firstInRow: boolean,
 	needsMatch: boolean, -- today's claim waits for a finished match (Config.Daily.NeedsMatch)
@@ -175,7 +175,7 @@ end
 --- A Daily.Reward as a remote carries it: { money, blocks = { { kind, count } }, spins,
 --- lucky, cues } with the blocks in Config.LuckyBlocks.Order (a list, so the client shows and
 --- flies them in a fixed order); spins and lucky are 0 when the reward adds none; cues the
---- cue ids it gives, in order (economy v5: the Week One Cue), empty for none.
+--- cue ids it gives, in order (economy v6: the Chroma Cue), empty for none.
 function RewardView.reward(reward: Daily.Reward): RewardOut
 	local raw: any = reward
 	local cues: { string } = {}
@@ -242,8 +242,14 @@ function RewardView.wins(daily: any, flags: any?): WinsView
 		#WIN_TRACK
 	)
 	local kinds = table.clone(WIN_TRACK)
-	if type(flags) == "table" and flags[RewardView.FirstWinFlag] ~= true and kinds[given + 1] then
-		kinds[given + 1] = Config.BlockOdds.Drop.FirstWin
+	local firstWin = Config.BlockOdds.Drop.FirstWin
+	if
+		firstWin ~= nil
+		and type(flags) == "table"
+		and flags[RewardView.FirstWinFlag] ~= true
+		and kinds[given + 1]
+	then
+		kinds[given + 1] = firstWin
 	end
 	return { given = given, kinds = kinds }
 end
@@ -321,7 +327,6 @@ function RewardView.build(
 	local groupClaimed = soc.Group == true
 	anyReady = anyReady or (member == true and not groupClaimed)
 	local month = Social.monthOf(num(now))
-	local inviteBlock: { [string]: number } = { [Config.Social.InviteBlock] = 1 }
 	return {
 		today = today,
 		resetsAt = Daily.dayStart(today + 1),
@@ -369,12 +374,14 @@ function RewardView.build(
 			boost = Config.Economy.GroupBoost,
 		},
 		invite = {
+			-- The invite cue (economy v6: the Candy Cane Cue, Config.Social.InviteCue).
 			reward = RewardView.reward({
 				money = 0,
-				blocks = inviteBlock,
+				blocks = {},
 				spins = 0,
 				lucky = 0,
-			}),
+				cues = { Config.Social.InviteCue },
+			} :: any),
 			used = if soc.InviteMonth == month
 				then math.max(0, math.floor(num(soc.Invites)))
 				else 0,

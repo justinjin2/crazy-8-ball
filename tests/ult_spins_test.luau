@@ -242,13 +242,13 @@ return {
 		for _, pack in E.MoneyPacks do
 			H.expect(SpinView.moneyPrice(pack) == pack * E.MoneyPerSpin, "no bulk discount")
 			local price, why = SpinView.buyCheck(pack, pack * E.MoneyPerSpin, false)
-			H.expect(price == pack * 12500 and why == nil, "exactly enough")
+			H.expect(price == pack * 10000 and why == nil, "exactly enough")
 			local _, short, need = SpinView.buyCheck(pack, pack * E.MoneyPerSpin - 1, false)
 			H.expect(short == "NotEnoughMoney" and need == 1, "one short")
 			H.expect(select(2, SpinView.buyCheck(pack, 1e9, true)) == "Restricted", "restricted")
 			H.expect(select(2, SpinView.buyCheck(pack, 1e9, nil)) == "NotLoaded", "unanswered")
 		end
-		H.expect(SpinView.moneyPrice(1) == 12500, "$12,500 a spin (economy v4)")
+		H.expect(SpinView.moneyPrice(1) == 10000, "$10,000 a spin (economy v6)")
 		for _, bad in { -5, 0, 2, 7, 1.5, "5", 0 / 0, math.huge, true } do
 			H.expect(SpinView.moneyPrice(bad) == 0, "not a pack: " .. tostring(bad))
 			H.expect(select(2, SpinView.buyCheck(bad, 1e9, false)) == "BadRequest", "refused")
@@ -452,11 +452,11 @@ return {
 		H.expect(none.rewardSpins == 0, "no rank-up, no spins")
 	end,
 
-	["the later weeks' day 2, the first week's day 3 and the 60-minute gift add spins"] = function()
-		-- One thing a day (designer, 2026-10-10): the spins day is the later weeks' day 2 and the
-		-- first week's day 3 (v4 plan section 6 had them on day 7).
+	["the later weeks' days 4 and 5, the first week's day 2 and the 60-minute gift add spins"] = function()
+		-- Economy v6 (designer, 2026-10-10): 1 spin on the later weeks' day 4, 2 on day 5, and 2
+		-- on the first week's day 2.
 		for day = 1, #Config.Daily.FirstWeek do
-			local want = if day == 3 then 3 else 0
+			local want = if day == 2 then 2 else 0
 			H.expect(
 				Daily.firstWeekReward(day, false).spins == want,
 				("first week day %d"):format(day)
@@ -464,7 +464,7 @@ return {
 		end
 		for day = 1, #Config.Daily.Streak do
 			local reward = Daily.streakReward(day)
-			local want = if day == 2 then 1 else 0
+			local want = if day == 4 then 1 elseif day == 5 then 2 else 0
 			H.expect(reward.spins == want, ("day %d"):format(day))
 		end
 		local gifts = Daily.playtimeState({ PlaySeconds = 99999, PlaytimeClaimed = {} })
@@ -481,7 +481,8 @@ return {
 			{},
 			Daily.dayStart(DAY)
 		)
-		H.expect(payload.days[2].reward.spins == 1, "the day 2 tile's chip")
+		H.expect(payload.days[4].reward.spins == 1, "the day 4 tile's chip")
+		H.expect(payload.days[5].reward.spins == 2, "the day 5 tile's chip")
 		H.expect(payload.days[1].reward.spins == 0, "day 1 has none")
 		H.expect(payload.playtime[5].reward.spins == 1, "the gift row's chip")
 	end,
@@ -510,7 +511,7 @@ return {
 			H.near(percent, want / 10000, 1e-9, name .. ": shown as percents adding to 100")
 		end
 		H.expect(p.live and not p.restricted and not p.vip and not p.devAll, "flags")
-		H.expect(p.moneyPerSpin == 12500 and #p.moneyPacks == 4, "money")
+		H.expect(p.moneyPerSpin == 10000 and #p.moneyPacks == 4, "money")
 		H.expect(p.code.active == "RELEASE" and p.code.nextGoalLikes == 100, "the code box")
 		H.expect((p :: any).auto == nil and (p :: any).autoStopChoices == nil, "no Auto Spin")
 		for _, key in SpinView.productKeys() do

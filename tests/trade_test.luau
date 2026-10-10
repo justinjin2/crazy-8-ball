@@ -72,8 +72,8 @@ return {
 		LuckyBlocks.add(a.LuckyBlocks, "Legendary", NOW)
 		H.expect(countOf(Trade.offerable(a, true, NOW), "Block:Legendary") == 0, "on its timer")
 		H.expect(
-			countOf(Trade.offerable(a, true, NOW + 6 * 3600), "Block:Legendary") == 1,
-			"ready after 6 hours"
+			countOf(Trade.offerable(a, true, NOW + 12 * 3600), "Block:Legendary") == 1,
+			"ready after 12 hours (economy v6)"
 		)
 	end,
 	["items: cue ids and ready blocks, at most 8 a side"] = function()
@@ -358,9 +358,9 @@ return {
 		end
 		local rare = Trade.blockWorth("Rare", copies) :: number
 		H.expect(rare ~= nil and rare > 0, "known")
-		-- An unclimbed Rare block climbs from Rare (economy v5): it reaches the Secret
-		-- 18% x 10% x 15% x 2.5% = 0.00675% of the time, every other cue at 1 / 1,000.
-		local secret = 0.18 * 0.10 * 0.15 * 0.025
+		-- An unclimbed Rare block climbs from Rare (economy v6 steps): it reaches the Secret
+		-- 10% x 15% x 10% x 2.5% = 0.00375% of the time, every other cue at 1 / 1,000.
+		local secret = 0.10 * 0.15 * 0.10 * 0.025
 		H.near(rare, (1 - secret) / 1000 + secret / 10, 1e-12, "the Rare climb's worth")
 		-- A climbed Rare block is exactly a Rare cue.
 		H.near(Trade.blockWorth("Rare", copies, true) :: number, 1 / 1000, 1e-15, "climbed Rare")

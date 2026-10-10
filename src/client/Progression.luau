@@ -58,6 +58,7 @@ local LuckyClient = require(script.Parent.LuckyClient)
 local Purchased = require(script.Parent.Purchased)
 local VipTag = require(script.Parent.VipTag)
 local WinTrack = require(script.Parent.WinTrack)
+local SkyBanner = require(script.Parent.SkyBanner)
 
 export type Hooks = {
 	-- A pocket of a table, in the ScreenGui's pixels (may be off screen), or nil.
@@ -99,6 +100,7 @@ local banner: any = nil
 local corners: any = nil
 local playerList: any = nil
 local winTrack: any = nil
+local skyBanner: any = nil
 local vipTag: any = nil
 local started = false
 -- RankEvents (the /newrank preview) held while you shoot or a result screen is up, shown in
@@ -262,6 +264,7 @@ function Progression.start(screen: ScreenGui, hooks: Hooks)
 		Menus.open(RANKED)
 	end)
 	winTrack = WinTrack.new(screen) -- the day's win track over the hotbar
+	skyBanner = SkyBanner.new(screen) -- the Sky Lucky Block's clock at the top (economy v6)
 	plates = Nameplates.new()
 	ChatTags.start() -- the [TIER] tag before names in chat
 	-- The tutorial lane's hand points at these (TutorialAnchors).
@@ -560,6 +563,15 @@ function Progression.update(state: State)
 			and not teleportUp()
 			and menu == nil
 			and state.overHotbar ~= true
+	)
+	skyBanner:setVisible(
+		not state.inMatch
+			and not state.afterMatch
+			and not busy
+			and not reelUp
+			and not teleportUp()
+			and menu == nil
+			and not TutorialAnchors.hidden("Money") -- the guided tutorial still hides the HUD
 	)
 	column:setPadRoute(not state.inMatch and not Menus.isOpen())
 	money:setPlusShown(not state.inMatch) -- no shop trips during a game (designer, 2026-10-06)

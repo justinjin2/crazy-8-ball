@@ -37,6 +37,7 @@ Requests.Actions = table.freeze({
 	"EquipCue",
 	"MarkSeen",
 	"ClaimIndexRow",
+	"ClaimIndexFinds",
 	"BuyLimited",
 	"BuyMystery",
 	"BuyBlocks",
@@ -65,6 +66,7 @@ Requests.Reasons = table.freeze({
 	"Claimed", -- ClaimIndexRow: already claimed
 	"Incomplete", -- ClaimIndexRow: the row is not complete
 	"NoReward", -- ClaimIndexRow: Exclusive and Unique rows pay nothing
+	"Nothing", -- ClaimIndexFinds: no finder's money waits
 	"NotStarted", -- BuyLimited: its window has not opened
 	"Ended", -- BuyLimited: its window has closed
 	"SoldOut", -- BuyLimited: every numbered copy is taken; BuyRestock: none left for you
@@ -194,6 +196,8 @@ function Requests.parse(action: any, a: any, b: any): (Request?, string?)
 			return nil, "BadRequest"
 		end
 		return { action = action :: string, rarity = a }, nil
+	elseif action == "ClaimIndexFinds" then
+		return { action = action :: string }, nil
 	elseif action == "BuyMystery" then
 		-- The old name of BuyBlocks for the Mystery deal.
 		local count = countOf(a)
@@ -264,6 +268,7 @@ local FROM_SAVE: { [string]: string } = {
 	Claimed = "Claimed",
 	Incomplete = "Incomplete",
 	NoReward = "NoReward",
+	Nothing = "Nothing",
 }
 
 --- The reply reason for a PlayerData refusal (sellCue, claimIndexRow): "Error" for

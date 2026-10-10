@@ -4,8 +4,8 @@ Current state only, rewritten in place. Keep it to about two screens (under 100 
 step is finished and verified, move its dated entry to the top of
 `docs/archive/STATUS_HISTORY.md` and keep only what is still true or still open here.
 
-Updated 2026-10-10 (the controller pass; tutorial v2 closed and in `gui-v4`; work goes on in
-`~/Desktop/8ball`).
+Updated 2026-10-10 (economy v6 built for the soft launch; work goes on in `~/Desktop/8ball`,
+branch `gui-v4`).
 
 ## Where the build is
 
@@ -16,8 +16,8 @@ Updated 2026-10-10 (the controller pass; tutorial v2 closed and in `gui-v4`; wor
   Lune tests pass.
 - **In the game:** server-owned tables with our own physics and 8-ball rules; 1v1, 2v2, 3v3
   and solo; the global queue and arena with rematch; bots (ten tiers, Play against PC, lobby
-  bots, disguised bots); ranks (XP only from winning) and money; economy v5.1 and its screens
-  (on `gui-v4`); saves at version 11;
+  bots, disguised bots); ranks (XP only from winning) and money; **economy v6** (docs/ECONOMY.md; every save started
+  over on the `_v2` stores); saves at version 11;
   13 abilities (Ultimates) with the spin screen; cue skins with VFX and outlines; lucky blocks
   as the only gacha (cases, the Magic 8 Ball and reward popups are gone); the Free Reward menu
   (daily, playtime, the 28-day track, group and invites), Cues (My Cues, Index; the Inventory renamed), trading, settings, our own player list and boards; the first-time tutorial;
@@ -58,19 +58,19 @@ One line each; the long form is the 2026-10-08 entry at the top of
   Studio-only store) is at the Soft part.
 - **Daily rewards rework on `gui-v4`** (2026-10-10, DECISIONS). Open: the designer's look in
   Studio on phone, PC and controller.
-- **Economy v5.1 "Lively"** (2026-10-09; screenshots in `~/Desktop/8ball-refs/economy-v5-gui/v5.1`).
-  Open: the designer's OK; the tutorial's scripted first Mystery (hand-off in DECISIONS.md).
-- **Economy v5.2** (2026-10-09: only the Mystery has upgrade chances; checked on PC). Open:
-  phone and gamepad; live servers need "Restart Servers for Updates" after the publish.
-- **The Grand Opening soft launch is on** (2026-10-09, `Deals.GrandOpening.SoftLaunch`): money
-  and Robux, no end date, no luck, no launch bonus. For the release: set `StartsAt`.
-- **Economy v5 and its screens on `gui-v4`** (2026-10-09; `docs/prompts/ECONOMY_V5_PLAN.md`,
-  roadmap 7.9; the GUI run's Notes in `ECONOMY_V5_GUI_PROMPT.md`, screenshots in
-  `~/Desktop/8ball-refs/economy-v5-gui/`). Still open, in order: phone and gamepad checks with
-  the designer (step 13); the release (step 15): place saved and published, the Grand Opening's
-  `StartsAt`, random-item products Not Listed, `tools/roblox_products.py --sync` (Starter Pack
-  19 R$ on Roblox, Config 29; Lucky1 and Lucky3 off sale). Prices here show at about 0.8x
-  (regional). Lucky Shot, Golden Shot, Lucky Rain and the stay bonus are planned only.
+- **Economy v6** (2026-10-10, `docs/prompts/ECONOMY_V6_PLAN.md`): built, Robux prices synced to
+  Roblox, checked in Studio on PC (the real tutorial Mystery and Bronze's block ready at once,
+  a duplicate paid as money, the Index's finder's money, the Sky clock). Open, in order:
+  **publish** (then set `Config.Shop.Deals.GrandOpening.StartsAt` to that moment and publish
+  again, or tell me the time first), "Restart Servers for Updates", the server size 24 in the
+  Creator Dashboard; the designer's look at the Sky banner, the Index's Collect card and the
+  offer tile's new spot on a phone; a Sky block falling for real after 30 minutes. Roblox shows
+  the products at about 0.8x their price (regional pricing or price optimization).
+- **Reel skip on Standard blocks only; the tutorial reel's Legendary near miss** (2026-10-10,
+  DECISIONS). Open: the designer's look at a tutorial first block and an Uncommon reel.
+- **The Daily Challenge** is off for the release (`Config.UI.Corners.ChallengeOn`).
+- **Solo and Practice portals**: to plan with the designer (look in Blender, placement), then
+  build; until then practice is only on the dev commands.
 - **The Cues redo** (2026-10-08, `docs/prompts/CUES_LIVELY_PROMPT.md`, in `gui-v4`). Open: the
   see-through reel's verdict, a phone and a gamepad, the numbered card's mark A or B, the copy
   numbers' plan; `shop-lively` is not yet merged into `release`.
@@ -78,7 +78,6 @@ One line each; the long form is the 2026-10-08 entry at the top of
   the abilities themselves are in GDD and ECONOMY): not yet checked on phone and controller,
   the sounds by ear, the tutorial spin's reveal, the sneak with two players, the designer's
   voice lines. The one-by-one review (since 2026-09-30) goes on; unreviewed ones are provisional.
-- **Decision still open:** whether the VIP cue pays finder's money on the first join.
 - **Tutorial v2** (closed 2026-10-10; open items in the last section of
   `docs/prompts/TUTORIAL_V2_REPORT.md`): the first session's money rescale, two-player paths,
   Max Players, the funnels in the dashboard.

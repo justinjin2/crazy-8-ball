@@ -42,6 +42,11 @@ Rewritten 2026-09-20; reordered 2026-09-26 to the designer's road to release (be
   Opening card, five gates approved; the method saved as the `lively-gui` skill; the Firework
   Cue rename with save v8. Phone, computer and gamepad checked; 1001 tests passed
   (`docs/prompts/SHOP_LIVELY_REPORT.md`).
+- [x] Economy v6 for the soft launch (2026-10-10, `docs/ECONOMY.md`,
+  `docs/prompts/ECONOMY_V6_PLAN.md`): new prices, odds and dev products; the Sky Lucky Block;
+  duplicate Commons and Uncommons pay money; trading after 10 real wins; the Chroma Cue (day 7)
+  and the Candy Cane Cue (invite); every save and store reset to `_v2`; the Daily Challenge off;
+  reel skip only on Standard blocks and the tutorial reel's Legendary near miss.
 - [ ] **Lucky block look, our own blocks (designer, 2026-10-07).** One master block built in
   Blender (glossy bevelled cube, raised "?" faces, corner studs, like the Grand Opening shop
   art), rigged with the pack's `joint1`/`joint2` bones so the uploaded Box Idle plays on it;

@@ -18,6 +18,11 @@
 -- (only on this screen) idles there with a Pick up prompt (hold E, the gamepad's X, or touch);
 -- the server checks and adds it to the hotbar, and it shrinks away in a puff. Tuning in
 -- Config.LuckyBlocks.GiftDrop.
+--
+-- The Sky Lucky Block (economy v6, designer 2026-10-10: "reuse the Gift cutscene") falls the
+-- same way: its server (SkyDropService) sends { at, kind = "Sky" } on the SkyDrop remote, and
+-- its pick up answers there. Each kind has its own block on the floor (a Gift and a Sky block
+-- can both wait there), its own words (Strings.LuckyBlocks.Drops) and its own remote.
 local GuiService = game:GetService("GuiService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -35,12 +40,14 @@ local UIAnim = require(script.Parent.UIAnim)
 local L = Config.LuckyBlocks
 local G = L.GiftDrop
 local W = Strings.LuckyBlocks
-local KIND = "Gift"
 local RENDER = "GiftDropCamera"
+-- The remote each falling kind answers on (its server: GiftDropService, SkyDropService).
+local REMOTES: { [string]: string } = { Gift = "GiftDrop", Sky = "SkyDrop" }
 
 local GiftDrop = {}
 
 type Drop = {
+	kind: string,
 	model: Model,
 	part: BasePart,
 	scale: number,
@@ -49,10 +56,10 @@ type Drop = {
 	idle: AnimationTrack?,
 }
 
-local current: Drop? = nil
+local current: { [string]: Drop } = {} -- the block on the floor, by kind
 local playing = false
 local started = false
-local waiting = false -- a drop is waiting for a menu, popup or reel to close
+local waiting: { [string]: boolean } = {} -- a drop of that kind waits for the screen to be free
 local busy: () -> boolean = function()
 	return false
 end
@@ -74,8 +81,8 @@ end
 -- The Gift's template, scaled so its block is SizeStuds, made the way the floor's blocks are
 -- (LuckyBlockService.makeModel): anchored, touching nothing, its pulsing glow off (its timer
 -- is still running), its other particles and light on.
-local function makeBlock(): Model?
-	local row = L.Kinds[KIND]
+local function makeBlock(kind: string): Model?
+	local row = L.Kinds[kind]
 	local folder = ReplicatedStorage:FindFirstChild(L.ModelFolder)
 	local source = folder and folder:FindFirstChild(row.Model)
 	if not (source and source:IsA("Model")) then
@@ -118,7 +125,7 @@ local function makeBlock(): Model?
 end
 
 local function playIdle(drop: Drop)
-	local row = L.Kinds[KIND]
+	local row = L.Kinds[drop.kind]
 	local id = (row :: any).Idle or L.Anim.BlockIdle
 	local controller = drop.model:FindFirstChildOfClass("AnimationController")
 	local animator = controller and controller:FindFirstChildOfClass("Animator")
@@ -137,9 +144,9 @@ local function playIdle(drop: Drop)
 	end
 end
 
-local function clear()
-	local drop = current
-	current = nil
+local function clear(kind: string)
+	local drop = current[kind]
+	current[kind] = nil
 	if drop then
 		drop.model:Destroy()
 	end
@@ -368,7 +375,7 @@ type Screen = {
 	hidden: { ScreenGui },
 }
 
-local function makeScreen(): Screen?
+local function makeScreen(kind: string): Screen?
 	local player = Players.LocalPlayer
 	local playerGui = player and player:FindFirstChildOfClass("PlayerGui")
 	if playerGui == nil then
@@ -421,7 +428,8 @@ local function makeScreen(): Screen?
 	wonder.TextTransparency = 1
 	wonder.ZIndex = 3
 	-- The title sits in the bottom bar.
-	local title = HudParts.text(bars[2], "Title", 30, W.GiftTitle)
+	local words = (W.Drops :: any)[kind] or W.Drops.Gift
+	local title = HudParts.text(bars[2], "Title", 30, words.Title)
 	title.AnchorPoint = Vector2.new(0.5, 0.5)
 	title.Position = UDim2.fromScale(0.5, 0.38)
 	title.Size = UDim2.new(1, -32, 0.4, 0)
@@ -429,7 +437,7 @@ local function makeScreen(): Screen?
 	title.TextColor3 = rgb(G.TrailColors[1])
 	title.TextTransparency = 1
 	title.ZIndex = 3
-	local sub = HudParts.text(bars[2], "Sub", 20, W.GiftSub)
+	local sub = HudParts.text(bars[2], "Sub", 20, words.Sub)
 	sub.AnchorPoint = Vector2.new(0.5, 0.5)
 	sub.Position = UDim2.fromScale(0.5, 0.75)
 	sub.Size = UDim2.new(1, -32, 0.25, 0)
@@ -524,7 +532,7 @@ local function addPrompt(drop: Drop)
 	local prompt = Instance.new("ProximityPrompt")
 	prompt.Name = "GiftPickUp"
 	prompt.ActionText = W.GiftPickUp
-	prompt.ObjectText = W.Names[KIND] or ""
+	prompt.ObjectText = W.Names[drop.kind] or ""
 	prompt.KeyboardKeyCode = Enum.KeyCode.E
 	prompt.GamepadKeyCode = Enum.KeyCode.ButtonX
 	prompt.HoldDuration = G.PromptHoldSeconds
@@ -533,7 +541,7 @@ local function addPrompt(drop: Drop)
 	prompt.ClickablePrompt = true
 	prompt.Triggered:Connect(function()
 		prompt.Enabled = false
-		Net.get("GiftDrop"):FireServer()
+		Net.get(REMOTES[drop.kind] or "GiftDrop"):FireServer()
 	end)
 	local anchor = Instance.new("Attachment")
 	anchor.Name = "GiftPickUpAnchor"
@@ -545,8 +553,8 @@ local function addPrompt(drop: Drop)
 end
 
 -- The server's answer: picked up (it shrinks away in a puff), or not (the prompt again).
-local function answered(payload: { [string]: any })
-	local drop = current
+local function answered(kind: string, payload: { [string]: any })
+	local drop = current[kind]
 	if drop == nil then
 		return
 	end
@@ -556,7 +564,7 @@ local function answered(payload: { [string]: any })
 		end
 		return
 	end
-	current = nil
+	current[kind] = nil
 	if drop.prompt then
 		drop.prompt:Destroy()
 	end
@@ -609,12 +617,12 @@ end
 -- The scene
 ---------------------------------------------------------------------------------------------
 
-local function play(at: CFrame)
+local function play(at: CFrame, kind: string)
 	if playing then
 		return
 	end
-	clear()
-	local model = makeBlock()
+	clear(kind)
+	local model = makeBlock(kind)
 	local player = Players.LocalPlayer
 	local root = player and player.Character and player.Character:FindFirstChild("HumanoidRootPart")
 	if model == nil or not (root and root:IsA("BasePart")) then
@@ -627,6 +635,7 @@ local function play(at: CFrame)
 	end
 	playing = true
 	local drop: Drop = {
+		kind = kind,
 		model = model,
 		part = part :: BasePart,
 		scale = model:GetScale(),
@@ -634,8 +643,8 @@ local function play(at: CFrame)
 		prompt = nil,
 		idle = nil,
 	}
-	current = drop
-	local screen = makeScreen()
+	current[kind] = drop
+	local screen = makeScreen(kind)
 	local held = holdCharacter()
 	local cam = workspace.CurrentCamera
 	local ownType = cam.CameraType
@@ -768,24 +777,25 @@ local function play(at: CFrame)
 			screen.gui:Destroy()
 		end
 		playing = false
-		if current == drop then
+		if current[kind] == drop then
 			addPrompt(drop)
 		end
 	end)
 end
 
--- Plays the drop once nothing else holds the screen (a menu, a popup, a reel: setBusy).
-local function playWhenFree(at: CFrame)
-	if waiting then
+-- Plays the drop once nothing else holds the screen (a menu, a popup, a reel: setBusy) and no
+-- other drop is falling; one waiting drop per kind.
+local function playWhenFree(at: CFrame, kind: string)
+	if waiting[kind] then
 		return
 	end
-	waiting = true
+	waiting[kind] = true
 	task.spawn(function()
-		while busy() do
+		while busy() or playing do
 			task.wait(0.25)
 		end
-		waiting = false
-		play(at)
+		waiting[kind] = nil
+		play(at, kind)
 	end)
 end
 
@@ -799,16 +809,18 @@ function GiftDrop.start()
 		return
 	end
 	started = true
-	Net.get("GiftDrop").OnClientEvent:Connect(function(payload: any)
-		if type(payload) ~= "table" then
-			return
-		end
-		if typeof(payload.at) == "CFrame" then
-			playWhenFree(payload.at)
-		elseif payload.picked ~= nil then
-			answered(payload)
-		end
-	end)
+	for kind, remote in REMOTES do
+		Net.get(remote).OnClientEvent:Connect(function(payload: any)
+			if type(payload) ~= "table" then
+				return
+			end
+			if typeof(payload.at) == "CFrame" then
+				playWhenFree(payload.at, kind)
+			elseif payload.picked ~= nil then
+				answered(kind, payload)
+			end
+		end)
+	end
 	-- Roblox's menu opened (Escape, the menu button, a controller's Start): the player may be
 	-- leaving. The server decides whether this earns the Gift (the first time after the
 	-- tutorial). Never more often than it listens.

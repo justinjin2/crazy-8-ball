@@ -389,6 +389,20 @@ function Reel.new(
 				opening[index] = list[(used[rarity] - 1) % #list + 1]
 			end
 		end
+		-- The near miss: the card just past the stop is a Config.Tutorial.ReelNearMiss cue (from
+		-- the pool, or any block cue of that rarity when the pool has none).
+		local miss = Config.Tutorial.ReelNearMiss
+		local near: { ReelMath.Cue } = byRarity[miss] or {}
+		if #near == 0 then
+			for _, cue in Catalog.ofRarity(miss) do
+				if cue.Group == "Block" and not cue.Vaulted then
+					table.insert(near, { id = cue.Id, rarity = miss, percent = 0 })
+				end
+			end
+		end
+		if #near > 0 then
+			opening[R.PrizeSlot + 1] = near[rng(#near)]
+		end
 	end
 	self.showcaseAt = showcaseAt
 	self.slots = {} :: { Slot }

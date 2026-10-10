@@ -336,7 +336,7 @@ local function onRewardRequest(player: Player, action: any, a: any): Reply
 	end
 	if action == "ClaimDaily" then
 		local vip, restricted = vipOf(player)
-		-- The copies in existence: a cue the claim gives (the Week One Cue) counts once it lands.
+		-- The copies in existence: a cue the claim gives (the Chroma Cue) counts once it lands.
 		local cues = Daily.rewardCues()
 		local before = PlayerData.read(player)
 		local had: { number } = {}

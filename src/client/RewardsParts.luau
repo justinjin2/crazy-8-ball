@@ -31,7 +31,7 @@ export type Reward = {
 	blocks: { BlockCount },
 	spins: number,
 	lucky: number,
-	cues: { string }?, -- cue ids (economy v5: the first week's day 7, the Week One Cue)
+	cues: { string }?, -- cue ids (economy v5: the first week's day 7, the Chroma Cue)
 }
 
 -- One picture of a reward: an icon key and how many ("x2" shows above 1), or `label` instead
@@ -157,7 +157,7 @@ function RewardsParts.luckyWords(count: number): string
 	return if count == 1 then W.LuckyOne else W.LuckyMany:format(count)
 end
 
--- A reward's cues by name, one part each ("Week One Cue").
+-- A reward's cues by name, one part each ("Chroma Cue").
 local function addCueParts(parts: { string }, reward: Reward)
 	local names: { [string]: string } = Strings.Items.Cues :: any
 	local cues: { string } = reward.cues or {}

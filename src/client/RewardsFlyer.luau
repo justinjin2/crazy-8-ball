@@ -4,7 +4,7 @@
 -- CashFlyer's look and timing) into the money HUD, which counts up as it lands; each lucky
 -- block as its 3D icon (with "x2") on a curve to the hotbar when it shows (deps.hotbarCenter,
 -- bumpHotbar), else the left column's Inventory tile, which bounces (MenuColumn.tileCenter and
--- bump); a cue (its thumbnail: the first week's Week One Cue) to the Inventory tile; ult spins
+-- bump); a cue (its thumbnail: the first week's Chroma Cue) to the Inventory tile; ult spins
 -- and Lucky Spins (their icons with "+2") the same way to the column's Ults button, or the
 -- Rewards tile when the column has no Ults button (RewardsParts.SpinTiles). Everything flies in
 -- its own ScreenGui just over the menus,

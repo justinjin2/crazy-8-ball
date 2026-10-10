@@ -642,7 +642,14 @@ function PlayerList.popAction(self: any, key: string)
 		task.spawn(function()
 			local reply = ItemState.request("TradeRequest", "Invite", player.UserId)
 			local ok = type(reply) == "table" and reply.ok == true
-			self.footer.Text = if ok then W.TradeSent else tostring(reply and reply.reason or "")
+			-- A refusal in words (Strings.Trade.Reasons; the trade gate's with its number).
+			local reasons: { [string]: string } = Strings.Trade.Reasons :: any
+			local key = tostring(reply and reply.reason or "")
+			local why = reasons[key] or reasons.Default
+			if key == "NeedWins" or key == "TheyNeedWins" then
+				why = why:format(Config.Trade.MinWins)
+			end
+			self.footer.Text = if ok then W.TradeSent else why
 			self.footer.Visible = true
 			self:layout()
 			local token = {}

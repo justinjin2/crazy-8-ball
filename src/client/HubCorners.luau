@@ -2,7 +2,8 @@
 -- HubCorners: the hub's small corner buttons (GUI lane, designer 2026-10-03, C2), shown with the
 -- left column (Progression.update: never in a match or under a popup):
 -- - Right edge, a little above the middle: the Daily Challenge target, its glow flashing. Daily
---   challenges are not built yet, so a press only says "Soon" in a bubble beside it. The
+--   challenges are not built yet: off for the release (Config.UI.Corners.ChallengeOn, designer
+--   2026-10-10), and the offer tile takes its place. The
 --   gamepad's D-pad down presses it when the Free Reward tile is gone (Progression.padRoute).
 -- - Under it, while open for this player: the Starter Pack and VIP's welcome offer on one tile
 --   with its countdown, flipping from one to the other every few seconds when both are open
@@ -241,12 +242,7 @@ function HubCorners.new(screen: ScreenGui, deps: any): any
 	self.offerFlippedAt = os.clock()
 	self.flipping = false
 	local offerTile = corner(root, "Offer", "StarterPack", W.Starter, function()
-		local shown = self.openOffers[self.offerIndex]
-		if shown then
-			UISound.play("Click")
-			TutorialAnchors.notePress("Offer")
-			Menus.open("Shop", shown.spec.section)
-		end
+		self:pressOffer()
 	end)
 	offerTile.button.Visible = false
 	self.starterArt = starterArt(offerTile)
@@ -455,7 +451,7 @@ function HubCorners.refreshShown(self: any)
 	local changed = setShown(
 		self,
 		self.challenge.button,
-		not self.challengeHidden and not TutorialAnchors.hidden("Challenge")
+		C.ChallengeOn and not self.challengeHidden and not TutorialAnchors.hidden("Challenge")
 	)
 	changed = setShown(self, self.inviteTile.button, not TutorialAnchors.hidden("Invite"))
 		or changed
@@ -654,7 +650,10 @@ function HubCorners.layout(self: any)
 	local dealPx = if short then C.ShortDealPx else C.DealPx
 	local pricePx = if short then C.ShortPricePx else C.PricePx
 	local centreX = -right - big / 2
-	local offerY = size.Y * C.ChallengeYShare + big / 2 + bigWordPx + C.OfferGapPx + offerPx / 2
+	-- With the challenge off (C.ChallengeOn) the offer takes its place.
+	local offerY = if C.ChallengeOn
+		then size.Y * C.ChallengeYShare + big / 2 + bigWordPx + C.OfferGapPx + offerPx / 2
+		else size.Y * C.ChallengeYShare
 	local offer = self.offerTile
 	offer.button.AnchorPoint = Vector2.new(0.5, 0.5)
 	offer.button.Size = UDim2.fromOffset(offerPx, offerPx)
@@ -854,7 +853,24 @@ function HubCorners.padFocusedOn(self: any, object: Instance?): boolean
 end
 
 --- The Daily Challenge: a "Soon" bubble beside it (a press, or the D-pad's down).
+--- The offer tile's press: the Shop on the shown offer's section.
+function HubCorners.pressOffer(self: any)
+	local shown = self.openOffers[self.offerIndex]
+	if shown then
+		UISound.play("Click")
+		TutorialAnchors.notePress("Offer")
+		Menus.open("Shop", shown.spec.section)
+	end
+end
+
 function HubCorners.pressChallenge(self: any)
+	if not C.ChallengeOn then
+		-- Off for the release: the D-pad's down opens the offer instead, when it shows.
+		if self.offerTile.button.Visible then
+			self:pressOffer()
+		end
+		return
+	end
 	if not self.showing then
 		return
 	end

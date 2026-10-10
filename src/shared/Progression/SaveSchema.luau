@@ -96,7 +96,7 @@ function SaveSchema.freshDaily(day: number): any
 	return {
 		Day = day, -- the UTC day number these belong to
 		SoloMoney = 0, -- money earned in solo today (Config.Economy.SoloDailyCap)
-		PcMoney = 0, -- money earned against PC today (Config.Economy.PcDailyCap)
+		PcMoney = 0, -- money earned against PC today (with SoloMoney: Config.Economy.SoloDailyCap)
 		ShortMoney = 0, -- money from matches that ended before the one-minute mark today
 		Wins = 0, -- real wins today
 		PcDrops = 0, -- PC wins today that dropped a lucky block (Config.Economy.PcDropsPerDay)
@@ -106,6 +106,8 @@ function SaveSchema.freshDaily(day: number): any
 		Opponents = {}, -- [userId as a string] = { Matches, Drops } (anti-farm, ECONOMY 3.6)
 		PlaySeconds = 0, -- time played today (the playtime gifts)
 		PlaytimeClaimed = {}, -- [gift index as a string] = true, the gifts claimed today
+		SkySeconds = 0, -- active play toward the next Sky Lucky Block (Config.SkyBlock)
+		SkyGiven = 0, -- Sky Lucky Blocks earned today
 	}
 end
 
@@ -123,6 +125,8 @@ local DAILY_KEYS = {
 	"Opponents",
 	"PlaySeconds",
 	"PlaytimeClaimed",
+	"SkySeconds",
+	"SkyGiven",
 }
 
 --- A fresh copy of a new player's save. Every call builds new tables, so changing one copy
@@ -160,6 +164,9 @@ function SaveSchema.template(): any
 		Index = {
 			Seen = {}, -- [cueId] = true: ever owned (selling it later keeps it here)
 			Rows = {}, -- [rarity] = true: that Index row's reward is claimed
+			-- [cueId] = true: a find whose finder's money waits to be claimed in the Index
+			-- (economy v6, designer 2026-10-10; Config.Index.FindMoney)
+			Unclaimed = {},
 		},
 		Titles = {}, -- [titleId] = true
 		Equipped = { Cue = Catalog.Default },
@@ -1294,6 +1301,7 @@ function SaveSchema.validate(data: any): (any, { string })
 
 	fixMapAt(data.Index, "Seen", "Index.Seen", cueCap, onlyTrue, fixes)
 	fixMapAt(data.Index, "Rows", "Index.Rows", SaveCfg.MaxSmallEntries, onlyTrue, fixes)
+	fixMapAt(data.Index, "Unclaimed", "Index.Unclaimed", cueCap, onlyTrue, fixes)
 	fixMap(data.Titles, "Titles", SaveCfg.MaxTitleEntries, onlyTrue, fixes)
 
 	-- The equipped cue: a catalog cue the player owns, or Classic (always owned). Checked after
@@ -1343,6 +1351,8 @@ function SaveSchema.validate(data: any): (any, { string })
 		fixes
 	)
 	fixInteger(daily, "PlaySeconds", "Daily.PlaySeconds", SECONDS_PER_DAY, fixes)
+	fixInteger(daily, "SkySeconds", "Daily.SkySeconds", SECONDS_PER_DAY, fixes)
+	fixInteger(daily, "SkyGiven", "Daily.SkyGiven", SaveCfg.StatCap, fixes)
 	fixMapAt(
 		daily,
 		"PlaytimeClaimed",

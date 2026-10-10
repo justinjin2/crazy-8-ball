@@ -56,6 +56,7 @@ export type Snapshot = {
 	seen: { string },
 	rows: { IndexRow },
 	titles: { string },
+	findMoney: number, -- the finder's money waiting to be claimed in the Index (economy v6)
 }
 
 local Inventory = {}
@@ -203,6 +204,37 @@ function Inventory.findMoney(id: any): number
 		return 0
 	end
 	return FIND_MONEY[cue.Rarity] or 0
+end
+
+--- Notes a find's money as waiting to be claimed in the Index (economy v6, designer
+--- 2026-10-10: "new cues' money is claimed in the Index, not paid automatically").
+function Inventory.addFind(save: any, id: string)
+	if Inventory.findMoney(id) > 0 then
+		writeMap(save, "Index", "Unclaimed")[id] = true
+	end
+end
+
+--- The finder's money waiting to be claimed in the Index.
+function Inventory.unclaimedMoney(save: any): number
+	local unclaimed = readMap(save, "Index", "Unclaimed")
+	local total = 0
+	for _, cue in Catalog.list() do
+		if unclaimed[cue.Id] == true then
+			total += Inventory.findMoney(cue.Id)
+		end
+	end
+	return total
+end
+
+--- Claims every waiting finder's money at once: (true, { money }) and the list emptied, or
+--- (false, "Nothing") when none waits.
+function Inventory.claimFinds(save: any): (boolean, any)
+	local money = Inventory.unclaimedMoney(save)
+	if money <= 0 then
+		return false, "Nothing"
+	end
+	table.clear(writeMap(save, "Index", "Unclaimed"))
+	return true, { money = money }
 end
 
 -- Marks a cue ever owned and NEW.
@@ -530,6 +562,7 @@ end
 ---   rows      Inventory.indexRows
 ---   titles    earned title ids Strings knows (the first Reyes'), by id; the old Index rows'
 ---             "Collector" titles stay in old saves but are no longer listed
+---   findMoney the finder's money waiting to be claimed in the Index (Inventory.claimFinds)
 function Inventory.snapshot(save: any): Snapshot
 	local new = readMap(save, "Inventory", "New")
 	local cues = {}
@@ -568,6 +601,7 @@ function Inventory.snapshot(save: any): Snapshot
 		seen = seen,
 		rows = Inventory.indexRows(save),
 		titles = titles,
+		findMoney = Inventory.unclaimedMoney(save),
 	}
 end
 

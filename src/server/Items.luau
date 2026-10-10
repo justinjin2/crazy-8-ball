@@ -306,6 +306,15 @@ function HANDLERS.ClaimIndexRow(player: Player, r: Requests.Request): Reply
 	return { ok = true, rarity = rarity, money = result.money }
 end
 
+-- Every finder's money waiting in the Index (economy v6).
+function HANDLERS.ClaimIndexFinds(player: Player, _r: Requests.Request): Reply
+	local ok, result = PlayerData.claimIndexFinds(player)
+	if not ok then
+		return refuse(Requests.reasonFrom(result))
+	end
+	return { ok = true, money = result.money }
+end
+
 function HANDLERS.BuyLimited(player: Player, r: Requests.Request): Reply
 	local cueId = r.cueId :: string
 	local row = Shop.limitedFor(cueId) :: Shop.LimitedRow

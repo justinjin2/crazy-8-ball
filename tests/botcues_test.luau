@@ -1,6 +1,6 @@
 --!strict
--- BotCues (Progression/BotCues): a bot's cue by its tier, against the economy v4 plan's table
--- (2026-10-08, section 11: the simulation's real players at day 60).
+-- BotCues (Progression/BotCues): a bot's cue by its tier, against economy v6's table
+-- (2026-10-10).
 
 local H = require("./harness")
 
@@ -8,18 +8,18 @@ local function load()
 	return H.require("Progression.BotCues"), H.require("Progression.Catalog"), H.require("Config")
 end
 
--- The plan's table: { Epic+, Legendary+, Mythic+ }.
+-- Economy v6's table (2026-10-10): { Epic+, Legendary+, Mythic+ }.
 local PLAN: { [string]: { number } } = {
-	Bronze = { 0.25, 0.045, 0.005 },
-	Silver = { 0.8, 0.24, 0.03 },
-	Gold = { 0.95, 0.36, 0.045 },
-	Platinum = { 0.98, 0.45, 0.06 },
-	Diamond = { 0.99, 0.58, 0.09 },
-	Expert = { 0.99, 0.75, 0.15 },
-	Veteran = { 0.99, 0.85, 0.25 },
-	Master = { 0.99, 0.92, 0.35 },
-	Grandmaster = { 0.99, 0.96, 0.5 },
-	Reyes = { 0.99, 0.98, 0.65 },
+	Bronze = { 0.15, 0.03, 0.003 },
+	Silver = { 0.55, 0.15, 0.01 },
+	Gold = { 0.85, 0.35, 0.03 },
+	Platinum = { 0.97, 0.55, 0.06 },
+	Diamond = { 0.99, 0.7, 0.1 },
+	Expert = { 0.99, 0.9, 0.15 },
+	Veteran = { 0.99, 0.95, 0.22 },
+	Master = { 0.99, 0.98, 0.3 },
+	Grandmaster = { 0.99, 0.99, 0.6 },
+	Reyes = { 0.99, 0.99, 0.75 },
 }
 
 -- A seeded xorshift32 giving rolls in [0, 1), the same sequence every run.
@@ -101,8 +101,8 @@ return {
 			return BlockDrop.rarityPercent(rarity, mystery)
 		end
 		local weight = percent("Common") + percent("Uncommon") + percent("Rare")
-		H.near(shares[1].share, 0.75 * percent("Common") / weight, 1e-12, "Common")
-		H.near(shares[3].share, 0.75 * percent("Rare") / weight, 1e-12, "Rare")
+		H.near(shares[1].share, 0.85 * percent("Common") / weight, 1e-12, "Common")
+		H.near(shares[3].share, 0.85 * percent("Rare") / weight, 1e-12, "Rare")
 		-- Evenly spaced rolls through the Common band give each Common cue the same count.
 		local commons = 0
 		for _, cue in Catalog.ofRarity("Common") do

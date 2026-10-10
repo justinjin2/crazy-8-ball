@@ -321,7 +321,7 @@ end
 
 --- What comes with a big prize's block (its art shows one `heroKind` block), one entry each:
 --- "+2 Ability Spins", "+$5,000", "+1 Rare Lucky Block". A cue comes first: its name, then its
---- rarity in its colour ("Week One Cue", "Legendary"; rich text: economy v5's first week).
+--- rarity in its colour ("Chroma Cue", "Legendary"; rich text: economy v5's first week).
 function FreeParts.extras(reward: RewardsParts.Reward, heroKind: string?): { string }
 	local parts: { string } = {}
 	local cues: { string } = reward.cues or {}

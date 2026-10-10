@@ -10,8 +10,9 @@
 --   Social.claimGroup), which asks Roblox again and gives Config.Social.GroupReward once.
 -- - Invites: the client's SocialService:PromptGameInvite carries Social.launchData(its own
 --   UserId). A brand-new player joining with it is recorded as invited (PlayerData.
---   setInvitedBy); their first win gives them the invite block (PlayerData.recordMatch) and
---   fires PlayerData.InviteWon, and the inviter's block waits in a DataStore key of theirs
+--   setInvitedBy); their first win gives them the invite cue (Config.Social.InviteCue, the
+--   Candy Cane Cue since economy v6; PlayerData.recordMatch) and fires PlayerData.InviteWon,
+--   and the inviter's cue waits in a DataStore key of theirs
 --   (InviteStore) until a server they are in takes it: on a MessagingService message
 --   (InviteTopic) or on their next join. The inviter gets at most InvitesPerMonth a month.
 --   Studio without DataStores: the waiting list stays in this server's memory.
@@ -26,6 +27,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared.Config)
 local SocialRules = require(Shared.Progression.Social)
 local PlayerData = require(script.Parent.PlayerData)
+local Counters = require(script.Parent.Counters)
 
 local C = Config.Social
 local IS_STUDIO = RunService:IsStudio()
@@ -162,7 +164,10 @@ local function takePending(player: Player)
 		return value
 	end)
 	if ran and #taken > 0 then
-		PlayerData.giveInviteRewards(player, taken)
+		local given = PlayerData.giveInviteRewards(player, taken)
+		if given > 0 then
+			Counters.add(C.InviteCue, given) -- the copies in existence
+		end
 	end
 end
 
@@ -232,6 +237,7 @@ function Social.start()
 		task.spawn(onLoaded, player)
 	end)
 	PlayerData.InviteWon:Connect(function(invitee: Player, inviterId: number)
+		Counters.add(C.InviteCue, 1) -- the invitee's cue, in the copies in existence
 		task.spawn(safely, "an invite reward", onInviteWon, invitee, inviterId)
 	end)
 	Players.PlayerRemoving:Connect(function(player: Player)

@@ -21,14 +21,13 @@ local CASE_CUES = {
 }
 
 return {
-	["46 block cues, 7/9/10/9/7/3/1, all sellable, tradable and dropping from known rows"] = function()
+	["46 block cues, 7/9/10/9/7/3/1, all sellable and tradable; 44 drop from known rows"] = function()
 		local Catalog, Config = load()
 		local total = 0
 		for _, rarity in Config.BlockOdds.Rarities do
 			local cues = {}
 			for _, cue in Catalog.ofRarity(rarity) do
-				-- The Week One Cue (economy v5) is a Legendary in no block: its own test.
-				if cue.Id ~= Catalog.Default and cue.Id ~= "WeekOneCue" then
+				if cue.Id ~= Catalog.Default then
 					table.insert(cues, cue)
 				end
 			end
@@ -43,7 +42,10 @@ return {
 					cue.Id .. " is a block rarity but not in the Block group"
 				)
 				H.expect(cue.Sellable and cue.Tradable, cue.Id .. " must sell and trade")
-				H.expect(#cue.Blocks > 0, cue.Id .. " drops from no odds row")
+				-- The reward cues (economy v6: Chroma for login day 7, Candy Cane for invites) drop
+				-- from no row; every other block cue does.
+				local reward = cue.Id == "ChromaCue" or cue.Id == "CandyCue"
+				H.expect((#cue.Blocks > 0) ~= reward, cue.Id .. " odds rows")
 				for _, caseId in cue.Blocks do
 					H.expect(
 						(Config.BlockOdds.List :: any)[caseId] ~= nil,
@@ -125,41 +127,43 @@ return {
 		)
 
 		local all = Catalog.list()
-		H.expect(#all == 46 + 1 + 12 + 2 + 1, ("%d cues in all, expected 62"):format(#all))
+		H.expect(#all == 46 + 1 + 12 + 2, ("%d cues in all, expected 61"):format(#all))
+		H.expect(Catalog.get("WeekOneCue") == nil, "the Week One Cue is gone (economy v6)")
 	end,
 
-	["the Week One Cue: a Legendary in no block, tradable and sold back like one"] = function()
+	["the reward cues: Chroma (day 7) and Candy Cane (invites) drop from no block, trade and sell"] = function()
 		local Catalog, Config = load()
 		local BlockOdds = H.require("Progression.BlockOdds")
 		local BlockDrop = H.require("Progression.BlockDrop")
-		local cue = Catalog.get("WeekOneCue") :: Catalog.Cue
-		H.expect(cue ~= nil and cue.Rarity == "Legendary" and cue.Group == "Block", "a Legendary")
-		H.expect(cue.Tradable and cue.Sellable and not cue.Vaulted, "trades and sells")
-		H.expect(#cue.Blocks == 0, "no odds row")
-		H.expect(
-			BlockOdds.sellValue("WeekOneCue") == BlockOdds.sellValue("ChromaCue"),
-			"the Legendary sell-back"
-		)
-		-- In no row's pool, the extra rows' (Grand Opening, Starter) whole-pool rule included.
-		local rows = table.clone(Config.BlockOdds.Order)
-		for _, id in Config.BlockOdds.Extra do
-			table.insert(rows, id)
-		end
-		for _, id in rows do
-			for _, other in Catalog.droppable(id, "Legendary") do
-				H.expect(other.Id ~= "WeekOneCue", "not in " .. id .. "'s pool")
+		H.expect(Config.Daily.FirstWeek[7].Cues[1] == "ChromaCue", "day 7's cue")
+		H.expect(Config.Social.InviteCue == "CandyCue", "the invite cue")
+		for id, rarity in { ChromaCue = "Legendary", CandyCue = "Rare" } do
+			local cue = Catalog.get(id) :: Catalog.Cue
+			H.expect(cue ~= nil and cue.Rarity == rarity and cue.Group == "Block", id)
+			H.expect(cue.Tradable and cue.Sellable and not cue.Vaulted, id .. " trades and sells")
+			H.expect(#cue.Blocks == 0, id .. ": no odds row")
+			H.expect(BlockOdds.sellValue(id) > 0, id .. " sells back")
+			-- In no row's pool, the extra rows' (Grand Opening, Starter) whole-pool rule included.
+			local rows = table.clone(Config.BlockOdds.Order)
+			for _, row in Config.BlockOdds.Extra do
+				table.insert(rows, row)
 			end
-			H.expect(not BlockOdds.canDrop(id, "WeekOneCue"), id .. " never drops it")
+			for _, row in rows do
+				for _, other in Catalog.droppable(row, rarity) do
+					H.expect(other.Id ~= id, id .. " not in " .. row .. "'s pool")
+				end
+				H.expect(not BlockOdds.canDrop(row, id), row .. " never drops " .. id)
+			end
+			H.expect(BlockDrop.cuePercent(id) == 0, id .. ": no climb gives it")
+			for _, start in Config.BlockOdds.Order do
+				H.expect(
+					(BlockDrop.cueChances(nil, { start = start }) :: any)[id] == nil,
+					id .. " in no climb's list from " .. start
+				)
+			end
 		end
-		H.expect(BlockDrop.cuePercent("WeekOneCue") == 0, "no climb gives it")
-		for _, start in Config.BlockOdds.Order do
-			H.expect(
-				(BlockDrop.cueChances(nil, { start = start }) :: any).WeekOneCue == nil,
-				"in no climb's list from " .. start
-			)
-		end
-		local legendaries = Catalog.ofRarity("Legendary")
-		H.expect(#legendaries == 8, "counted with the Legendaries (the Index's row)")
+		H.expect(#Catalog.ofRarity("Legendary") == 7, "Chroma counted with the Legendaries")
+		H.expect(#Catalog.ofRarity("Rare") == 10, "Candy Cane counted with the Rares")
 	end,
 
 	["ids are unique and every lookup agrees with the list"] = function()

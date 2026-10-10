@@ -351,12 +351,23 @@ function Opening.startReel(
 )
 	local stage = ReelFx.stage(self.area, "Stage")
 	self.stage = stage
+	-- Only a block whose floor is Standard (a Standard block, a Mystery that became one, the Sky
+	-- block) can be tapped to skip its reel (designer, 2026-10-10: Uncommon and up are opened
+	-- rarely enough to watch every spin; Config.LuckyBlocks.SkipFloor).
+	local row = LuckyBlocks.kind(kind)
+	local floor = if climb then climb.start elseif row then row.Climb else nil
+	self.reelSkippable = floor == Config.LuckyBlocks.SkipFloor
 	local title = HudParts.text(stage.frame, "Title", CO.TitlePx, NAMES[kind] or kind)
 	title.AnchorPoint = Vector2.new(0.5, 0)
 	title.TextWrapped = false
 	title.ZIndex = 4
 	self.title = title
-	local hint = HudParts.text(stage.frame, "Hint", CO.HintPx, hintFor("Reel"))
+	local hint = HudParts.text(
+		stage.frame,
+		"Hint",
+		CO.HintPx,
+		if self.reelSkippable then hintFor("Reel") else ""
+	)
 	hint.AnchorPoint = Vector2.new(0.5, 0)
 	hint.TextWrapped = false
 	hint.ZIndex = 4
@@ -443,7 +454,7 @@ function Opening.layout(self: any)
 	y += reelH + gap
 	self.hint.Position = UDim2.fromOffset(math.floor(natural.X / 2), y)
 	self.hint.Size = UDim2.fromOffset(natural.X, hintH)
-	self.hint.Text = hintFor("Reel")
+	self.hint.Text = if self.reelSkippable then hintFor("Reel") else ""
 end
 
 -- The reel is a second from stopping on the prize: a Rare or better cue's pull cutscene starts
@@ -501,6 +512,9 @@ function Opening.showCard(self: any)
 	end
 	local card = LuckyResult.new(self.stage.frame, self.cueId, self.rarity)
 	card:setHint(hintFor("Card"))
+	if (self.dupMoney or 0) > 0 then
+		card:setDuplicate(self.dupMoney)
+	end
 	self.card = card
 	self:layout()
 	card:show(self.stage.frame)
@@ -511,7 +525,9 @@ function Opening.tap(self: any)
 		return
 	end
 	if self.phase == "Reel" and self.reel then
-		self.reel:skip()
+		if self.reelSkippable then
+			self.reel:skip()
+		end
 	elseif self.phase == "Scene" then
 		PullCutscene.trySkip() -- once the kind has been seen; its own done() shows the card
 	elseif self:canDismiss() then
@@ -530,7 +546,17 @@ function Opening.canDismiss(self: any): boolean
 	return false
 end
 
+--- A duplicate paid as money (economy v6): the result card says "Duplicate · +$200". Call it
+--- after play / quick / pull; it lasts until the opening closes.
+function Opening.setDuplicate(self: any, money: number)
+	self.dupMoney = money
+	if money > 0 and self.card then
+		self.card:setDuplicate(money)
+	end
+end
+
 function Opening.close(self: any)
+	self.dupMoney = 0
 	if not self.open then
 		return
 	end

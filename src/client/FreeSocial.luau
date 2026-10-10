@@ -33,6 +33,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
+local CueThumb = require(script.Parent.CueThumb)
 local FreeHeroes = require(script.Parent.FreeHeroes)
 local FreeParts = require(script.Parent.FreeParts)
 local HudParts = require(script.Parent.HudParts)
@@ -181,7 +182,12 @@ function FreeSocial.new(parent: Instance, ctx: any): any
 	self.envelope = HudParts.icon(art, "Invite", "Envelope")
 	self.envelope.AnchorPoint = Vector2.new(0.5, 0.5)
 	self.envelope.ZIndex = 4
-	self.block = ShopCards.image(art, "Block", FreeParts.blockImage(Config.Social.InviteBlock), 5)
+	-- The invite cue's card picture (economy v6: the Candy Cane Cue), in the block's old place.
+	local cue = CueThumb.new(art, Config.Social.InviteCue)
+	cue.Name = "Cue"
+	cue.AnchorPoint = Vector2.new(0.5, 0.5)
+	cue.ZIndex = 5
+	self.block = cue
 	self.inviteTitle = leftLabel(inviteCard, "InviteTitle", rgb(K.Numbers.Money), 6)
 	self.inviteTitle.Text = W.InviteTitle
 	self.inviteLine = leftNote(inviteCard, "Line", 5)
@@ -517,9 +523,9 @@ function FreeSocial.refresh(self: any, state: any): boolean
 			HudParts.setEnabled(row.button, not self.ctx.busy("Favorite") and not self.favoriting)
 		end
 	end
-	-- The invite card: who gets the block, and the friends who joined this month.
+	-- The invite card: who gets the cue, and the friends who joined this month.
 	local invite = if type(state.invite) == "table" then state.invite else {}
-	local block = RewardsParts.blockInSentence({ kind = Config.Social.InviteBlock, count = 1 })
+	local block = W.InviteCue:format(CueThumb.cueName(Config.Social.InviteCue))
 	setText(
 		self.inviteLine,
 		(if invite.rewarded == true then W.InviteThem else W.InviteBoth):format(block)

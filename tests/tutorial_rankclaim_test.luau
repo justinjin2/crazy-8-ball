@@ -28,15 +28,17 @@ return {
 			p.money == bronze.Money and p.spins == Config.Ults.Earn.RankUp.Bronze,
 			"money, spins"
 		)
-		H.expect(p.blocks.Mystery == bronze.Blocks.Mystery, "its block waits here too")
+		H.expect(p.blocks.Uncommon == 1 and bronze.Blocks.Uncommon == 1, "its block waits here too")
+		-- Economy v6 (2026-10-10): Bronze's Uncommon block comes ready (ReadyTiers), no timer.
+		H.expect(Config.Tutorial.RankClaim.ReadyTiers.Bronze == true, "Bronze is a ready tier")
+		H.expect(p.readyBlocks.Uncommon == 1, "Bronze's block is ready at once")
 		H.expect(#p.cues == 1 and p.cues[1] == "BronzeCue", "the Bronze Cue")
 		local reward = RankClaim.reward(p)
 		H.expect(
-			reward.money == bronze.Money
-				and (reward.spins or 0) == Config.Ults.Earn.RankUp.Bronze
-				and reward.blocks.Mystery == bronze.Blocks.Mystery,
+			reward.money == bronze.Money and (reward.spins or 0) == Config.Ults.Earn.RankUp.Bronze,
 			"the reward (no spins key when none)"
 		)
+		H.expect(reward.blocks.Uncommon == nil and reward.readyBlocks.Uncommon == 1, "given ready")
 		H.expect(reward.cues[1] == "BronzeCue", "the reward's cue")
 		-- Two divisions at once add up, bottom first.
 		local bronze3 = Ranks.indexOf("Bronze", 3) :: number
@@ -62,6 +64,8 @@ return {
 		local p = RankClaim.pending(bronze5, silver1)
 		local want = Config.Ranks.Rewards.Tier.Silver
 		H.expect(p.money == want.Money and p.blocks.Rare == want.Blocks.Rare, "Silver I's rewards")
+		H.expect(next(p.readyBlocks) == nil, "Silver's block is not a ready one")
+		H.expect(RankClaim.reward(p).blocks.Rare == want.Blocks.Rare, "it keeps its timer")
 		H.expect(
 			p.cues[1] == "SilverCue" and p.spins == Config.Ults.Earn.RankUp.Silver,
 			"cue, spins"

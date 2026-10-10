@@ -612,15 +612,17 @@ local function mysteryScene(device: string, fresh: boolean): string
 	return key
 end
 
--- Place: big "Place it!" over the tutorial's block (the Mystery block it became): pick it in
--- the hotbar, place it on the ground, hold to open it (the reel lands the tutorial's cue).
+-- Place: big "Place it!" over the tutorial's block (the block its Mystery became: the server's
+-- TutorialBlock attribute; after a rejoin, Bronze's Uncommon block): pick it in the hotbar,
+-- place it on the ground, hold to open it (the tutorial's reel, the block's own roll).
 local function placeScene(device: string, fresh: boolean): string
 	if busy() then
 		overlay:bigText(nil)
 		lineOnly(nil)
 		return "placeBusy"
 	end
-	local kind = Config.Tutorial.MysteryReveal.Tier
+	local named = player:GetAttribute("TutorialBlock")
+	local kind = if type(named) == "string" then named else Config.Tutorial.PlaceFallbackKind
 	if LuckyClient.livePart(kind) then
 		overlay:bigText(nil)
 		lineOnly(words(Copy.Open, device))
@@ -637,7 +639,7 @@ local function placeScene(device: string, fresh: boolean): string
 		return "placeNone"
 	end
 	local key = "placePick" .. slot .. device
-	pointAt("HotbarSlot" .. slot, words(Copy.Mystery, device), device, fresh or shownKey ~= key)
+	pointAt("HotbarSlot" .. slot, words(Copy.PlacePick, device), device, fresh or shownKey ~= key)
 	return key
 end
 

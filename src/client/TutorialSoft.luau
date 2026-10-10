@@ -18,8 +18,9 @@
 --   ring until the menu closes after it was on the page.
 -- - Play Global wears the gold ring, its spawn pill staying up (Main, MatchBar), until it is
 --   pressed.
--- - After game 2, the first-win Rare block's hotbar slot wears the gold ring once its timer is
---   done (its READY! shows), until it is taken in hand.
+-- - After game 2, a Rare block's hotbar slot wears the gold ring once its timer is done (its
+--   READY! shows), until it is taken in hand (economy v6 gives no first-win Rare block, so it
+--   shows only for a Rare block from elsewhere).
 --
 -- Who gets it: a player in the soft part, or past it (its icons came out: the Icons moment). A
 -- skipper (TutorialWhy "Skip") gets only the "!" dots: the first click on each new icon is a
@@ -38,14 +39,13 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared.Config)
 local Net = require(Shared.Net)
 local Strings = require(Shared.Strings)
-local FreeParts = require(script.Parent.FreeParts)
+local CueThumb = require(script.Parent.CueThumb)
 local HudParts = require(script.Parent.HudParts)
 local InvitePrompt = require(script.Parent.InvitePrompt)
 local ItemState = require(script.Parent.ItemState)
 local LuckyClient = require(script.Parent.LuckyClient)
 local Menus = require(script.Parent.Menus)
 local Progression = require(script.Parent.Progression)
-local RewardsParts = require(script.Parent.RewardsParts)
 local TutorialAnchors = require(script.Parent.TutorialAnchors)
 local TutorialOverlay = require(script.Parent.TutorialOverlay)
 local UIAnim = require(script.Parent.UIAnim)
@@ -399,7 +399,7 @@ local function layoutPopup()
 		y += fit.Y + 4 + S.InviteGapPx
 	end
 	line("Title", if phone() then S.InvitePhoneTitlePx else S.InviteTitlePx)
-	local block = popup:FindFirstChild("Block") :: ImageLabel
+	local block = popup:FindFirstChild("Block") :: Frame
 	block.Position = UDim2.fromOffset(w / 2, y + S.InviteBlockPx / 2)
 	block.Size = UDim2.fromOffset(S.InviteBlockPx, S.InviteBlockPx)
 	y += S.InviteBlockPx + S.InviteGapPx
@@ -671,21 +671,18 @@ function TutorialSoft.start()
 	popup.Visible = false
 	local title = HudParts.text(popup, "Title", S.InviteTitlePx, Copy.InviteTitle)
 	title.ZIndex = 6
-	local kind = Config.Social.InviteBlock
-	local block = Instance.new("ImageLabel")
+	-- The invite cue's card picture (economy v6: the Candy Cane Cue).
+	local cueId = Config.Social.InviteCue
+	local block = CueThumb.new(popup, cueId)
 	block.Name = "Block"
-	block.BackgroundTransparency = 1
-	block.Image = FreeParts.blockImage(kind)
-	block.ScaleType = Enum.ScaleType.Fit
 	block.AnchorPoint = Vector2.new(0.5, 0.5)
 	block.ZIndex = 6
-	block.Parent = popup
 	UIAnim.bob(block)
 	local body = HudParts.note(
 		popup,
 		"Body",
 		S.InviteBodyPx,
-		Copy.InviteBody:format(RewardsParts.blockName(kind))
+		Copy.InviteBody:format(CueThumb.cueName(cueId))
 	)
 	body.TextWrapped = true
 	body.ZIndex = 6

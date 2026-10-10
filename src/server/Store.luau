@@ -641,7 +641,7 @@ local function grantProduct(
 		)
 	end
 	-- The copies in existence: a granted cue (the Starter Cue, a Limited) counts once it lands,
-	-- and so does a cue Claim All gives (the Week One Cue, economy v5).
+	-- and so does a cue Claim All gives (the Chroma Cue, economy v6).
 	local cueBefore = if grant.cue ~= nil then Inventory.count(data, grant.cue) else 0
 	local dayCues: { string } = if grant.claimAll ~= nil then Daily.rewardCues() else {}
 	local dayHad: { number } = {}

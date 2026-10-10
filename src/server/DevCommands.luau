@@ -389,7 +389,7 @@ local function previewResult(player: Player, args: { string })
 	-- The win's block chip (a sample: nothing is given).
 	local block = nil
 	if win and not moneyStep then
-		local kind = if firstWin then Config.BlockOdds.Drop.FirstWin else "Mystery"
+		local kind = if firstWin then Config.BlockOdds.Drop.FirstWin or "Mystery" else "Mystery"
 		local timer = LuckyBlocks.timer(kind, player:GetAttribute("Vip") == true)
 		block = { kind = kind, readyAt = if timer > 0 then os.time() + timer else 0 }
 	end
@@ -621,6 +621,7 @@ local ECON: { string } = {
 	"GiveBlock",
 	"Cutscene",
 	"GiftDrop",
+	"SkyDrop",
 	"Inv",
 	"ClearInv",
 	"Dupes",
@@ -1271,6 +1272,10 @@ function DevCommands.start()
 			player,
 			if not ok then Dev.GiftDropBusy elseif now then Dev.GiftDropNow else Dev.GiftDrop
 		)
+	end)
+	command("SkyDrop", D.SkyDrop, function(player: Player)
+		local ok = require(script.Parent.SkyDropService).dev(player)
+		tell(player, if ok then Dev.SkyDropNow else Dev.GiftDropBusy)
 	end)
 	command("Inv", D.Inv, showInventory)
 	command("ClearInv", D.ClearInv, clearInventory)

@@ -401,7 +401,7 @@ return {
 		-- The launch bonus follows the Grand Opening deal's window.
 		local L = Config.Shop.LaunchBonus
 		H.expect(L.With == "GrandOpening" and L.Percent == 30, "+30% with the Grand Opening")
-		H.expect(L.MysteryBulkCount == 6, "6 Mystery blocks for 5 (economy v5)")
+		H.expect(L.MysteryBulkCount == 5, "no extra Mystery block (economy v6)")
 		H.expect(not Shop.launchBonus(JOIN).open, "off until the deal is scheduled")
 		H.expect(Shop.setDeal("GrandOpening", JOIN, 30 * DAY), "scheduled")
 		local bonus = Shop.launchBonus(JOIN + DAY)
@@ -409,7 +409,7 @@ return {
 		H.expect(Shop.grantFor("Pack1", newShop(), JOIN + DAY, false).money == 13000, "+30%")
 		H.expect(Shop.grantFor("Pack7", newShop(), JOIN + DAY, false).money == 1950000, "+30%")
 		local bulk = Shop.grantFor("Mystery5", newShop(), JOIN + DAY, false)
-		H.expect(bulk.blocks.kind == "Mystery" and bulk.blocks.count == 6, "6 for 5")
+		H.expect(bulk.blocks.kind == "Mystery" and bulk.blocks.count == 5, "5 for 5")
 		-- The retired 10-pack: an old receipt still pays its 10, with no bonus.
 		local old = Shop.grantFor("Mystery10", newShop(), JOIN + DAY, false)
 		H.expect(old.blocks.kind == "Mystery" and old.blocks.count == 10, "an old receipt: 10")
@@ -685,15 +685,15 @@ return {
 		H.expect(player.save.Money == 25000 + 11600, "grants nothing more")
 	end,
 
-	["the Grand Opening block deal: 30 days, vaulted 7 more, off until its date"] = function()
+	["the Grand Opening block deal: 45 days, vaulted 7 more, off until its date"] = function()
 		H.expect(#Shop.limited() == 0 and #Config.Shop.Limited == 0, "no Limited shelf now")
 		H.expect(Shop.limitedFor("FireworkCue") == nil, "the cue comes from the block")
 		H.expect(Shop.limitedFor("BetaCue") == nil, "no Beta row")
 		H.expect(Config.Products.List.FireworkCue == nil, "no Robux Limited product")
 		local row = Shop.dealRow("GrandOpening")
 		H.expect(row ~= nil and row.Kind == "GrandOpening" and row.StartsAt == 0, "off")
-		H.expect(row.Seconds == 30 * DAY and row.VaultedSeconds == 7 * DAY, "30 days, 7 vaulted")
-		H.expect(row.Money[1] == 24900 and row.Money[3] == 69900 and row.Money[10] == 219000, "")
+		H.expect(row.Seconds == 45 * DAY and row.VaultedSeconds == 7 * DAY, "45 days, 7 vaulted")
+		H.expect(row.Money[1] == 100000 and row.Money[3] == 270000 and row.Money[10] == 850000, "")
 		H.expect(row.Products[3] == "GrandOpening3", "the Robux products")
 		-- The soft launch (designer, 2026-10-09): on sale with no end date while StartsAt is 0,
 		-- without the Grand Opening Luck or the launch bonus.
@@ -715,7 +715,7 @@ return {
 		local mystery = Shop.deal("Mystery", JOIN)
 		H.expect(mystery.open and not mystery.timed, "the Mystery deal is always open")
 		H.expect(not Shop.deal("Nope", JOIN).open, "unknown: closed")
-		H.expect(Shop.blockPrice("GrandOpening", 3) == 69900, "3 for $69,900")
+		H.expect(Shop.blockPrice("GrandOpening", 3) == 270000, "3 for $270,000")
 		H.expect(
 			Shop.blockPrice("GrandOpening", 2) == nil and Shop.blockPrice("Nope", 1) == nil,
 			""
@@ -1226,16 +1226,16 @@ return {
 	end,
 
 	["the Dashboard list: 3 game passes and 30 developer products at the plan's prices"] = function()
-		-- Economy v4 (2026-10-08, plan 8.2); economy v5's Robux prices (2026-10-09).
+		-- Economy v4 (2026-10-08, plan 8.2); economy v5 (2026-10-09) and v6 (2026-10-10) prices.
 		local want = {
 			Vip = 399,
 			UltSlot2 = 49,
 			UltSlot3 = 79,
 			VipOffer = 199,
 			StarterPack = 29,
-			GrandOpening1 = 19,
-			GrandOpening3 = 49,
-			GrandOpening10 = 149,
+			GrandOpening1 = 39,
+			GrandOpening3 = 99,
+			GrandOpening10 = 299,
 			RestockRare = 39,
 			RestockMythic = 1699,
 			Pack1 = 25,
@@ -1248,8 +1248,8 @@ return {
 			Mystery1 = 9,
 			Mystery5 = 39,
 			Mystery10 = 45,
-			RestockEpic = 149,
-			RestockLegendary = 599,
+			RestockEpic = 199,
+			RestockLegendary = 999,
 			LuckyBlockSkip1 = 1,
 			LuckyBlockSkip = 4,
 			LuckyBlockSkip9 = 9,
@@ -1284,8 +1284,8 @@ return {
 		end
 		-- A bundle's Was is the same count one at a time (a true saving, never a former price).
 		local L = Config.Products.List
-		H.expect(L.GrandOpening3.Was == 3 * L.GrandOpening1.Robux, "57 one by one")
-		H.expect(L.GrandOpening10.Was == 10 * L.GrandOpening1.Robux, "190 one by one")
+		H.expect(L.GrandOpening3.Was == 3 * L.GrandOpening1.Robux, "117 one by one")
+		H.expect(L.GrandOpening10.Was == 10 * L.GrandOpening1.Robux, "390 one by one")
 		H.expect(L.Spin5.Was == 5 * L.Spin1.Robux and L.Spin50.Was == 50 * L.Spin1.Robux, "")
 		H.expect(L.Lucky3.Was == 3 * L.Lucky1.Robux, "75 one by one")
 		H.expect(L.Mystery5.Was == 5 * L.Mystery1.Robux, "45 one by one")
@@ -1413,7 +1413,7 @@ return {
 				"the soft launch: open, no end date"
 			)
 			local g = p.guarantees.GrandOpening
-			H.expect(g ~= nil and g.cue == "BetaCue" and g.at == 1000 and g.left == 999, "")
+			H.expect(g ~= nil and g.cue == "BetaCue" and g.at == 500 and g.left == 499, "")
 			H.expect(not g.soldOut, "copies left (none found yet)")
 			local u = p.uniques.GrandOpening
 			H.expect(u ~= nil and #u == 2 and u[1].cue == "BetaCue" and u[1].cap == 100, "caps")

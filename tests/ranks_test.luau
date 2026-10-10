@@ -360,22 +360,18 @@ return {
 		)
 	end,
 
-	["PC XP: x0.75 below Expert, x0.5 from Expert"] = function()
+	-- Economy v6 (designer, 2026-10-10): PC is practice, worth no rank XP at any rank.
+	["PC XP: none, below Expert or from it"] = function()
 		local Ranks = load()
 		local pc = { opponent = "PC" }
-		-- 100 x 0.75 = 75; a loss is 0.
-		H.expect(xpAt(Ranks, "Bronze", ctx("Win", pc)) == 75)
+		H.expect(xpAt(Ranks, "Bronze", ctx("Win", pc)) == 0)
 		H.expect(xpAt(Ranks, "Bronze", ctx("Loss", pc)) == 0)
-		-- Diamond V is still the Low share.
-		H.expect(xpAt(Ranks, "Diamond", ctx("Win", pc)) == 75)
 		local diamond5 = Ranks.fromXp(Ranks.toXp("Diamond", 5), true)
 		local _, low = Ranks.matchXp(diamond5, ctx("Win", pc))
-		H.expect(low.pc == 0.75)
-		-- Expert: Classic 100 x 0.5 = 50, Challenger 150 x 0.5 = 75.
-		H.expect(xpAt(Ranks, "Expert", ctx("Win", pc)) == 50)
-		H.expect(xpAt(Ranks, "Expert", ctx("Win", { opponent = "PC", mode = "Challenger" })) == 75)
+		H.expect(low.pc == 0)
+		H.expect(xpAt(Ranks, "Expert", ctx("Win", { opponent = "PC", mode = "Challenger" })) == 0)
 		local _, high = Ranks.matchXp(Ranks.fromXp(Ranks.toXp("Reyes"), true), ctx("Win", pc))
-		H.expect(high.pc == 0.5)
+		H.expect(high.pc == 0)
 	end,
 
 	["boosts: only the win streak, +25% on a win against people"] = function()
@@ -395,7 +391,7 @@ return {
 		local lx, lb = Ranks.matchXp(bronze, ctx("Loss", { boosts = all }))
 		H.expect(lx == 0 and #lb.boosts == 0, "loss boosts")
 		local pcx, pcb = Ranks.matchXp(bronze, ctx("Win", { opponent = "PC", boosts = all }))
-		H.expect(#pcb.boosts == 0 and pcx == 75, "PC: no streak")
+		H.expect(#pcb.boosts == 0 and pcx == 0, "PC: no streak, no XP")
 		-- The top: Expert Challenger on a streak: 150 x 1.25 = 187.5 -> 188.
 		H.expect(xpAt(Ranks, "Expert", ctx("Win", { mode = "Challenger", boosts = all })) == 188)
 	end,
@@ -480,34 +476,32 @@ return {
 		H.expect(top.after.tier == "Reyes" and top.delta == 150, "Reyes keeps going")
 	end,
 
-	-- The approved economy plan (2026-10-02, section 6): every row of the rank rewards table.
+	-- Economy v6 (2026-10-10): every row of the rank rewards table.
 	["rank rewards are the economy plan's table"] = function()
 		local Ranks = load()
 		local steps: { [string]: number } = {
 			Bronze = 1000,
 			Silver = 2000,
-			Gold = 3500,
-			Platinum = 6000,
-			Diamond = 15000,
-			Expert = 30000,
-			Veteran = 50000,
-			Master = 80000,
-			Grandmaster = 150000,
+			Gold = 3000,
+			Platinum = 5000,
+			Diamond = 10000,
+			Expert = 20000,
+			Veteran = 30000,
+			Master = 50000,
+			Grandmaster = 75000,
 		}
-		-- { money, block kind, count, cue } (Bronze's block is a Mystery one: the tutorial's
-		-- Standard block in game 1; cases retired for lucky blocks 2026-10-04)
+		-- { money, blocks, cue } (Bronze's block is an Uncommon one, economy v6)
 		local firsts: { [string]: { any } } = {
-			-- Economy v4 (2026-10-08, plan section 7): Platinum and up pay better blocks.
-			Bronze = { 2500, { Mystery = 1 }, "BronzeCue" },
+			Bronze = { 2500, { Uncommon = 1 }, "BronzeCue" },
 			Silver = { 5000, { Rare = 1 }, "SilverCue" },
-			Gold = { 10000, { Rare = 2 }, "GoldCue" },
+			Gold = { 10000, { Rare = 1 }, "GoldCue" },
 			Platinum = { 20000, { Epic = 1 }, "PlatinumCue" },
-			Diamond = { 50000, { Epic = 2 }, "DiamondCue" },
-			Expert = { 100000, { Legendary = 1 }, "ExpertCue" },
-			Veteran = { 200000, { Legendary = 1, Epic = 1 }, "VeteranCue" },
-			Master = { 400000, { Legendary = 2 }, "MasterCue" },
-			Grandmaster = { 750000, { Mythic = 1 }, "GrandmasterCue" },
-			Reyes = { 2000000, { Mythic = 2 }, "ReyesCue" },
+			Diamond = { 40000, { Epic = 1 }, "DiamondCue" },
+			Expert = { 75000, { Legendary = 1 }, "ExpertCue" },
+			Veteran = { 150000, { Legendary = 1 }, "VeteranCue" },
+			Master = { 250000, { Legendary = 2 }, "MasterCue" },
+			Grandmaster = { 500000, { Mythic = 1 }, "GrandmasterCue" },
+			Reyes = { 1000000, { Mythic = 2 }, "ReyesCue" },
 		}
 		for _, tier in ALL_TIERS do
 			local want = firsts[tier]
@@ -540,17 +534,17 @@ return {
 		for _, r in all do
 			total += r.money
 		end
-		local steps4 = (1000 + 2000 + 3500 + 6000 + 15000 + 30000 + 50000 + 80000 + 150000) * 4
+		local steps4 = (1000 + 2000 + 3000 + 5000 + 10000 + 20000 + 30000 + 50000 + 75000) * 4
 		local firstSum = 2500
 			+ 5000
 			+ 10000
 			+ 20000
-			+ 50000
-			+ 100000
-			+ 200000
-			+ 400000
-			+ 750000
-			+ 2000000
+			+ 40000
+			+ 75000
+			+ 150000
+			+ 250000
+			+ 500000
+			+ 1000000
 		H.expect(total == steps4 + firstSum, "all the rank money")
 		H.expect(#Ranks.rewardsBetween(10, 10) == 0 and #Ranks.rewardsBetween(12, 3) == 0)
 	end,
@@ -565,7 +559,7 @@ return {
 		H.expect(#win.rewards == 1 and win.rewards[1].index == 1)
 		H.expect(win.rewards[1].money == 2500 and win.rewards[1].cue == "BronzeCue")
 		H.expect(win.rewardTotal == 2500 and win.peakAfter == 1)
-		H.expect(sameValue(win.rewardBlocks, { Mystery = 1 }), "Bronze's one block")
+		H.expect(sameValue(win.rewardBlocks, { Uncommon = 1 }), "Bronze's one block")
 		H.expect(sameValue(win.rewardCues, { "BronzeCue" }))
 		H.expect(win.newTier and win.promoted, "Unranked to Bronze is new")
 		-- Two more wins: Bronze II.
@@ -573,10 +567,10 @@ return {
 		local w3 = Ranks.applyMatch(nextSave(w2), ctx("Win"))
 		expectRank(w2.after, "Bronze", 1, 200, "second win")
 		expectRank(w3.after, "Bronze", 2, 0, "third win")
-		-- A first win against PC (x0.75) is Bronze I too.
+		-- A win against PC gives no XP since economy v6: still Unranked.
 		local pc = Ranks.applyMatch(unranked(), ctx("Win", { opponent = "PC" }))
-		expectRank(pc.after, "Bronze", 1, 75, "first PC win")
-		H.expect(pc.ratedMatches == 1 and pc.newTier)
+		H.expect(pc.after.tier == "Unranked" and pc.xpAfter == 0, "first PC win: Unranked")
+		H.expect(pc.ratedMatches == 0 and not pc.newTier and pc.rewardTotal == 0, "PC: uncounted")
 		-- A loss, a forfeit, the tutorial, or a win the anti-farm rule gives no XP leave the
 		-- player Unranked and uncounted.
 		for label, context in
@@ -620,7 +614,7 @@ return {
 		)
 		-- Gold IV to V is a step: money only.
 		local r2 = Ranks.applyMatch(saveAt(Ranks, "Gold", 4, 1450), ctx("Win"))
-		H.expect(r2.rewardTotal == 3500 and r2.promoted and not r2.newTier)
+		H.expect(r2.rewardTotal == 3000 and r2.promoted and not r2.newTier)
 		H.expect(next(r2.rewardBlocks) == nil and #r2.rewardCues == 0)
 		-- A jump from Bronze II to Gold II pays everything passed, in order, merged.
 		local jump = Ranks.applyXp(saveAt(Ranks, "Bronze", 2, 0), 7800 - 300)
@@ -630,8 +624,8 @@ return {
 			table.insert(indexes, r.index)
 		end
 		H.expect(sameValue(indexes, { 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 }), "bottom first")
-		H.expect(jump.rewardTotal == 1000 * 3 + 5000 + 2000 * 4 + 10000 + 3500, "the money")
-		H.expect(sameValue(jump.rewardBlocks, { Rare = 3 }), "Silver's Rare + Gold's two")
+		H.expect(jump.rewardTotal == 1000 * 3 + 5000 + 2000 * 4 + 10000 + 3000, "the money")
+		H.expect(sameValue(jump.rewardBlocks, { Rare = 2 }), "Silver's Rare + Gold's")
 		H.expect(sameValue(jump.rewardCues, { "SilverCue", "GoldCue" }), "cues bottom first")
 		-- Below an old peak (a bad save's) pays nothing until past it.
 		local save = saveAt(Ranks, "Expert", 1, 0, 27)
@@ -639,14 +633,14 @@ return {
 		H.expect(up.promoted and up.after.index == 27 and #up.rewards == 0 and up.rewardTotal == 0)
 		H.expect(up.peakBefore == 27 and up.peakAfter == 27)
 		local past = Ranks.applyXp(nextSave(up), 5000)
-		H.expect(#past.rewards == 1 and past.rewards[1].index == 28 and past.rewardTotal == 30000)
+		H.expect(#past.rewards == 1 and past.rewards[1].index == 28 and past.rewardTotal == 20000)
 		-- The whole ladder at once: every tier's blocks.
 		local everything = Ranks.applyXp(unranked(), 307500)
 		H.expect(everything.after.tier == "Reyes" and #everything.rewards == 46)
 		H.expect(sameValue(everything.rewardBlocks, {
-			Mystery = 1,
-			Rare = 1 + 2,
-			Epic = 1 + 2 + 1,
+			Uncommon = 1,
+			Rare = 1 + 1,
+			Epic = 1 + 1,
 			Legendary = 1 + 1 + 2,
 			Mythic = 1 + 2,
 		}))
@@ -747,7 +741,7 @@ return {
 			H.expect(entry.reward == reward.money and entry.cue == reward.cue)
 			H.expect(sameValue(entry.blocks, reward.blocks))
 		end
-		H.expect(list[46].width == nil and list[46].reward == 2000000 and list[16].reward == 20000)
+		H.expect(list[46].width == nil and list[46].reward == 1000000 and list[16].reward == 20000)
 		H.expect(Ranks.rulesLine == nil and Ranks.floorXp == nil, "the loss rules are gone")
 	end,
 

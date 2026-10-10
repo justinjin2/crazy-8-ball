@@ -12,19 +12,20 @@
 -- every object ball counts there. A shot that sinks the 8 early on an open table leaves no
 -- group and so pays nothing, as the match's bonus stings (Rules/MatchEngine `Engine.awards`).
 -- Each counting ball also pays the shooter a nice-shot bonus (Rules/NiceShot), except on the
--- break (the client never shows NICE SHOT! there either) and in solo (ECONOMY 3.2). From the
--- ball streak's BallStreakFrom-th ball in a row (Rules/Streak), each counting ball also pays
--- the shooter a streak bonus, never in solo or at a flat after-cap pay.
+-- break (the client never shows NICE SHOT! there either) and in practice (solo or against PC;
+-- ECONOMY 3.2). From the ball streak's BallStreakFrom-th ball in a row (Rules/Streak), each
+-- counting ball also pays the shooter a streak bonus, never in practice or at a flat
+-- after-cap pay.
 --
 -- The order every amount is worked out in (ECONOMY 3.5, then the caps of 3.2 and 3.6):
 --   1. base x difficulty x (1 + boost) x anti-farm (boosts add, then multiply);
---   2. the opponent's share: solo SoloShare, PC past its daily cap PcAfterCapShare, else 1;
+--   2. the opponent's share: practice (solo, PC) SoloShare, else 1;
 --   3. round half up, and never below $1;
 --   4. a flat after-cap pay replaces all of it: the short-match cap (ShortAfterCapPay) and
---      solo past its daily cap (SoloAfterCapPay), a ball each and no nice-shot bonus.
+--      practice past its daily cap (SoloAfterCapPay), a ball each and no nice-shot bonus.
 -- The daily counters (solo, PC) count the money actually paid, boosts included, and include
 -- what this shot paid so far: the ball that crosses a cap pays in full, what comes after it
--- (its own nice shot too) at the capped rate.
+-- at the capped rate. Solo and PC share one cap (economy v6): SoloDailyCap of the two together.
 local Config = require(script.Parent.Parent.Config)
 local NiceShot = require(script.Parent.Parent.Rules.NiceShot)
 local Streak = require(script.Parent.Parent.Rules.Streak)
@@ -93,7 +94,6 @@ export type BonusContext = {
 	gap: number?, -- Ranks.gapFactor for this player; the win bonus only (default 1)
 	boost: number?, -- VIP + Money Party + Starter + group (Money.boost), default 0
 	farm: number?, -- the anti-farm bonus multiplier (Money.farmRow().Bonus), default 1
-	pcCapped: boolean?, -- the PC daily cap was reached before this bonus
 }
 
 -- One row of Config.Economy.SameOpponent (Money.farmRow).
@@ -188,10 +188,11 @@ function Money.shotPay(input: ShotInput): ShotPay
 	local total, balls, nice, streaks = 0, 0, 0, 0
 	local solo = input.opponent == "Solo"
 	local pc = input.opponent == "PC"
+	-- Practice (economy v6): solo and PC pay the same small money under one shared cap.
+	local practice = solo or pc
 	local shooter = input.isShooter ~= false
 	local shortCapped = input.shortCapped == true
-	local soloToday = factor(input.soloEarnedToday, 0)
-	local pcToday = factor(input.pcEarnedToday, 0)
+	local practiceToday = factor(input.soloEarnedToday, 0) + factor(input.pcEarnedToday, 0)
 	local scale = factor(input.multiplier, 1)
 		* (1 + factor(input.boost, 0))
 		* factor(input.farmBalls, 1)
@@ -203,16 +204,13 @@ function Money.shotPay(input: ShotInput): ShotPay
 	local function flat(): number?
 		if shortCapped then
 			return E.ShortAfterCapPay
-		elseif solo and soloToday + total >= E.SoloDailyCap then
+		elseif practice and practiceToday + total >= E.SoloDailyCap then
 			return E.SoloAfterCapPay
 		end
 		return nil
 	end
 	local function amount(base: number, by: number?): number
-		local share = if solo
-			then E.SoloShare
-			elseif pc and pcToday + total >= E.PcDailyCap then E.PcAfterCapShare
-			else 1
+		local share = if practice then E.SoloShare else 1
 		return math.max(1, Money.round(base * (by or scale) * share))
 	end
 	for _, drop in input.drops do
@@ -233,7 +231,7 @@ function Money.shotPay(input: ShotInput): ShotPay
 			balls += 1
 			local kind = if input.breakShot
 					or not shooter
-					or solo
+					or practice
 				then nil
 				else NiceShot.kind(input.events, drop.ball, drop.index, input.pockets)
 			if kind and flat() == nil then
@@ -256,7 +254,7 @@ function Money.shotPay(input: ShotInput): ShotPay
 				type(level) == "number"
 				and level >= E.BallStreakFrom
 				and shooter
-				and not solo
+				and not practice
 				and flat() == nil
 			then
 				local base = E.BallPay * E.BallStreakShare * (level - E.BallStreakFrom + 1)
@@ -287,9 +285,9 @@ function Money.shotPay(input: ShotInput): ShotPay
 end
 
 --- The end-of-match bonus (ECONOMY 3.1, 3.2, 3.6, 4.4). Win or loss bonus by opponent (people
---- WinBonus/LossBonus, PC PcWinBonus/PcLossBonus), x difficulty x (1 + boost) x anti-farm; the
---- win bonus also x the gap factor clamped to [WinBonusGapFloor, Config.Ranks.Gap.Max]; PC past
---- its daily cap x PcAfterCapShare. Rounded half up, never below $1. The player who forfeited
+--- WinBonus/LossBonus, PC PcWinBonus/PcLossBonus: 0 since economy v6), x difficulty x
+--- (1 + boost) x anti-farm; the win bonus also x the gap factor clamped to
+--- [WinBonusGapFloor, Config.Ranks.Gap.Max]. Rounded half up, never below $1. The player who forfeited
 --- or left gets nothing, nobody is paid for a match that was not real (under the one-minute
 --- mark), and a draw or solo pays nothing.
 function Money.matchBonus(ctx: BonusContext): number
@@ -312,13 +310,11 @@ function Money.matchBonus(ctx: BonusContext): number
 	local gap = if win
 		then math.clamp(factor(fields.gap, 1), E.WinBonusGapFloor, Config.Ranks.Gap.Max)
 		else 1
-	local share = if pc and fields.pcCapped == true then E.PcAfterCapShare else 1
 	local amount = base
 		* factor(fields.multiplier, 1)
 		* (1 + factor(fields.boost, 0))
 		* factor(fields.farm, 1)
 		* gap
-		* share
 	return math.max(1, Money.round(amount))
 end
 

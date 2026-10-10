@@ -867,6 +867,17 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
 
 ## 12. Economy
 
+**Economy v6 (designer, 2026-10-10, the soft-launch morning):** the whole economy was rebuilt
+from scratch; every number is in [ECONOMY.md](ECONOMY.md) (the v5 document is in
+`docs/archive/ECONOMY_V5.md` for the rules v6 kept). Where a number below disagrees with
+ECONOMY.md, ECONOMY.md wins. In short: fewer and rarer good cues (about 3.4 blocks a day for a
+1-hour player), timers 5 min / 10 min / 1 h / 12 h / 24 h, a Mystery $25,000, the win track
+Mystery / Mystery / Rare at wins 1 / 5 / 10, the Sky Lucky Block (30 min of play, 1 a day), the
+Chroma Cue on the first week's day 7, the Candy Cane Cue for invites, finder's money claimed in
+the Index, duplicate Commons and Uncommons paid as money, trading after 10 wins, practice and
+solo small money only, no launch luck, the Grand Opening block for 45 days from publish, and
+every save started over.
+
 **Lucky-block test presentation (designer, 2026-10-03):** the current test blocks use a
 Roblox native owner-only hold prompt (0.5 s), large two-handed models and vivid colours in
 the world and hotbar/bag. Their opening spin starts fast and lasts 1.4 s; the cue reveal

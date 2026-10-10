@@ -36,6 +36,7 @@ local TRANSACTION: { [string]: string } = {
 	Favorite = "Onboarding", -- GUI lane: the Free Reward page's favorite reward
 	Purchase = "IAP",
 	SellBack = "Shop",
+	Duplicate = "Shop", -- a duplicate Common or Uncommon paid as its sell money (economy v6)
 	Blocks = "Shop",
 	Mystery = "Shop",
 	Restock = "Shop",

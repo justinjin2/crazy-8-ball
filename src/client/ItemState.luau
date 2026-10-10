@@ -228,10 +228,14 @@ function ItemState.indexRowReady(row: any): boolean
 		and type(row.reward) == "table"
 end
 
---- Whether any Index row can be claimed now (the Inventory's Index tab claims it; the server's
---- RewardReady, the Rewards tile's dot, counts it too).
+--- Whether any Index row can be claimed now, or finder's money waits (the Inventory's Index
+--- tab claims it; the server's RewardReady, the Rewards tile's dot, counts the rows too).
 function ItemState.indexReady(): boolean
 	local items = latest.Items
+	-- Finder's money waiting to be collected (economy v6) counts too.
+	if type(items) == "table" and type(items.findMoney) == "number" and items.findMoney > 0 then
+		return true
+	end
 	for _, row in list(items and items.rows) do
 		if ItemState.indexRowReady(row) then
 			return true

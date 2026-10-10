@@ -21,13 +21,13 @@ return {
 		local L, Config = load()
 		for _, row in
 			{
-				-- The designer's timers (2026-10-07), each block on its own name's (v5.2).
+				-- The designer's timers (economy v6, 2026-10-10), each block on its own name's.
 				{ "Standard", "Standard", 0 },
-				{ "Uncommon", "Uncommon", 60 },
-				{ "Rare", "Rare", 300 },
-				{ "Epic", "Epic", 1800 }, -- economy v4 (2026-10-08): 30 minutes
-				{ "Legendary", "Legendary", 21600 },
-				{ "Mythic", "Mythic", 43200 },
+				{ "Uncommon", "Uncommon", 300 },
+				{ "Rare", "Rare", 600 },
+				{ "Epic", "Epic", 3600 },
+				{ "Legendary", "Legendary", 43200 },
+				{ "Mythic", "Mythic", 86400 },
 			}
 		do
 			H.expect(L.kind(row[1]).Odds == row[2] and L.timer(row[1]) == row[3], row[1])
@@ -47,7 +47,7 @@ return {
 		-- Mystery block rolls a tier first (no odds row of its own).
 		H.expect(Config.LuckyBlocks.VipTimerFactor == 0, "no VIP timers")
 		H.expect(L.timer("Rare", true) == 0 and L.timer("Standard", true) == 0, "VIP: none")
-		H.expect(L.timer("Mythic", true) == 0 and L.timer("Mythic") == 43200, "12 h, or none")
+		H.expect(L.timer("Mythic", true) == 0 and L.timer("Mythic") == 86400, "24 h, or none")
 		-- Everything else has no timer, the Mystery block too.
 		for _, kind in { "Mystery", "GrandOpening", "Starter", "Sky", "Lucky8" } do
 			H.expect(L.timer(kind) == 0, kind .. " opens at once")
@@ -62,7 +62,7 @@ return {
 		-- A new block of a climbing kind arrives unclimbed, on its own name's timer (v5.2).
 		local fresh = L.add(state, "Mythic", 500)
 		H.expect(fresh.Climbed == nil and L.unclimbed(fresh), "unclimbed")
-		H.expect(fresh.ReadyAt == 500 + 43200, "on the Mythic timer")
+		H.expect(fresh.ReadyAt == 500 + 86400, "on the Mythic timer")
 		H.expect(L.add(state, "Mythic", 500, nil, nil, true).ReadyAt == 500, "VIP: none")
 		H.expect(L.add(state, "Mythic", 500, nil, true).ReadyAt == 500, "paid: at once")
 		H.expect(L.add(state, "Mystery", 500).ReadyAt == 500, "a Mystery at once")
@@ -74,7 +74,7 @@ return {
 		H.expect(L.current("Yellow") == "Standard" and L.current("GoldKing") == "Legendary", "")
 		H.expect(L.kind("Blue").Odds == "Rare" and L.current("Rare") == "Rare", "renamed")
 	end,
-	["the Grand Opening block's guarantee: the 1,000th open gives the Beta Cue if none"] = function()
+	["the Grand Opening block's guarantee: the 500th open gives the Beta Cue if none"] = function()
 		local L = load()
 		local state = L.fresh()
 		local function none(_: string): boolean
@@ -85,16 +85,13 @@ return {
 		end
 		H.expect(L.opened(state, "GrandOpening") == 0, "none opened")
 		H.expect(L.guaranteed(state, "GrandOpening", none) == nil, "the first: a roll")
-		for _ = 1, 998 do
+		for _ = 1, 498 do
 			L.noteOpened(state, "GrandOpening")
 		end
-		H.expect(L.opened(state, "GrandOpening") == 998, "counted")
-		H.expect(L.guaranteed(state, "GrandOpening", none) == nil, "the 999th: a roll")
+		H.expect(L.opened(state, "GrandOpening") == 498, "counted")
+		H.expect(L.guaranteed(state, "GrandOpening", none) == nil, "the 499th: a roll")
 		L.noteOpened(state, "GrandOpening")
-		H.expect(
-			L.guaranteed(state, "GrandOpening", none) == "BetaCue",
-			"the 1,000th: the Beta Cue"
-		)
+		H.expect(L.guaranteed(state, "GrandOpening", none) == "BetaCue", "the 500th: the Beta Cue")
 		H.expect(L.guaranteed(state, "GrandOpening", has) == nil, "owned already: a roll")
 		H.expect(L.guaranteed(state, "Standard", none) == nil, "no guarantee")
 		-- A paid block is ready at once and keeps its paid origin.
@@ -106,7 +103,7 @@ return {
 		local b = climbed(L, L.fresh(), "Legendary", 1000)
 		H.expect(not L.canOpen(b, 1001, 1234), "another account cannot bypass")
 		H.expect(L.canOpen(b, 1001, 544959133), "designer can open")
-		H.expect(b.ReadyAt == 22600, "bypass does not erase the timer")
+		H.expect(b.ReadyAt == 44200, "bypass does not erase the timer")
 	end,
 	["late skip receipt preserves value and saved target across reconnect"] = function()
 		local L = load()
@@ -133,11 +130,11 @@ return {
 		local again = Schema.validate(restored)
 		H.expect(L.find(again.LuckyBlocks, nextBlock.Id).Paid, "paid origin survives save repair")
 	end,
-	["the skip by time left: 1 R$ up to 5 minutes, 4 up to 30, 9 up to 6 hours, 15 beyond"] = function()
+	["the skip by time left: 1 R$ up to 10 minutes, 4 up to an hour, 9 up to 12 h, 15 beyond"] = function()
 		local L, Config = load()
 		local skips = Config.LuckyBlocks.Skips
-		H.expect(#skips == 4 and skips[1].UpTo == 300 and skips[2].UpTo == 1800, "")
-		H.expect(skips[3].UpTo == 6 * 3600 and skips[4].UpTo == nil, "")
+		H.expect(#skips == 4 and skips[1].UpTo == 600 and skips[2].UpTo == 3600, "")
+		H.expect(skips[3].UpTo == 12 * 3600 and skips[4].UpTo == nil, "")
 		local robux = {}
 		for _, row in skips do
 			table.insert(robux, Config.Products.List[row.Product].Robux)
@@ -145,30 +142,30 @@ return {
 		H.expect(table.concat(robux, " ") == "1 4 9 15", "the designer's 1 / 4 / 9 / 15 R$")
 		H.expect(Config.LuckyBlocks.SkipProduct == "LuckyBlockSkip1", "the cheapest")
 		local state = L.fresh()
-		-- Every climbed Uncommon (1 minute) and Rare (5 minutes) block: the 1 R$ skip.
+		-- Every climbed Uncommon (5 minutes) and Rare (10 minutes) block: the 1 R$ skip.
 		local uncommon = climbed(L, state, "Uncommon", 1000)
 		local rare = climbed(L, state, "Rare", 1000)
-		H.expect(L.skipProduct(uncommon, 1000) == "LuckyBlockSkip1", "1 min left: 1 R$")
-		H.expect(L.skipProduct(rare, 1000) == "LuckyBlockSkip1", "5 min left: 1 R$")
-		local epic = climbed(L, state, "Epic", 1000) -- 30 minutes
-		local mythic = climbed(L, state, "Mythic", 1000) -- 12 hours
-		H.expect(L.skipProduct(epic, 1000) == "LuckyBlockSkip", "30 min left: 4 R$")
-		H.expect(L.skipProduct(epic, 1000 + 1500) == "LuckyBlockSkip1", "5 min left: 1 R$")
-		H.expect(L.skipProduct(mythic, 1000) == "LuckyBlockSkip15", "12 h left: 15 R$")
-		H.expect(L.skipProduct(mythic, 1000 + 6 * 3600) == "LuckyBlockSkip9", "6 h left: 9 R$")
-		H.expect(L.skipProduct(mythic, 1000 + 12 * 3600 - 1800) == "LuckyBlockSkip", "30 min")
-		H.expect(L.skipProduct(epic, 1000 + 1800) == nil, "ready: no skip")
+		H.expect(L.skipProduct(uncommon, 1000) == "LuckyBlockSkip1", "5 min left: 1 R$")
+		H.expect(L.skipProduct(rare, 1000) == "LuckyBlockSkip1", "10 min left: 1 R$")
+		local epic = climbed(L, state, "Epic", 1000) -- 1 hour
+		local mythic = climbed(L, state, "Mythic", 1000) -- 24 hours
+		H.expect(L.skipProduct(epic, 1000) == "LuckyBlockSkip", "1 h left: 4 R$")
+		H.expect(L.skipProduct(epic, 1000 + 3000) == "LuckyBlockSkip1", "10 min left: 1 R$")
+		H.expect(L.skipProduct(mythic, 1000) == "LuckyBlockSkip15", "24 h left: 15 R$")
+		H.expect(L.skipProduct(mythic, 1000 + 12 * 3600) == "LuckyBlockSkip9", "12 h left: 9 R$")
+		H.expect(L.skipProduct(mythic, 1000 + 24 * 3600 - 1800) == "LuckyBlockSkip", "30 min")
+		H.expect(L.skipProduct(epic, 1000 + 3600) == nil, "ready: no skip")
 		H.expect(L.skipTierOf("LuckyBlockSkip9") == 3 and L.skipTierOf("Pack1") == nil, "")
-		-- A 1 R$ credit never skips more than 5 minutes; a 4 R$ one still covers 5 minutes.
+		-- A 1 R$ credit never skips more than 10 minutes.
 		L.grantSkip(state, 1000, "LuckyBlockSkip1")
 		H.expect(L.credits(state, "LuckyBlockSkip1") == 1, "a 1 R$ credit kept")
-		H.expect(not L.useSkip(state, epic.Id, 1000), "not on 30 minutes")
-		H.expect(L.useSkip(state, rare.Id, 1000), "on 5 minutes")
+		H.expect(not L.useSkip(state, epic.Id, 1000), "not on an hour")
+		H.expect(L.useSkip(state, rare.Id, 1000), "on 10 minutes")
 		-- A credit never skips a longer timer than it was bought for.
 		L.grantSkip(state, 1000, "LuckyBlockSkip") -- no target: a 4 R$ credit kept
 		H.expect(L.credits(state, "LuckyBlockSkip") == 1, "kept as a short credit")
-		H.expect(not L.useSkip(state, mythic.Id, 1000), "not on 12 hours")
-		H.expect(L.useSkip(state, epic.Id, 1000), "on 30 minutes")
+		H.expect(not L.useSkip(state, mythic.Id, 1000), "not on 24 hours")
+		H.expect(L.useSkip(state, epic.Id, 1000), "on an hour")
 		L.grantSkip(state, 1000, "LuckyBlockSkip15")
 		H.expect(L.credits(state, "LuckyBlockSkip15") == 1, "a top credit")
 		H.expect(L.useSkip(state, mythic.Id, 1000), "the top one")
@@ -183,8 +180,8 @@ return {
 		-- Floor instances are transient; the serialized save keeps both unopened ids and times.
 		local restored = Schema.validate(save)
 		H.expect(#restored.LuckyBlocks.List == 2, "both returned in inventory")
-		H.expect(L.find(restored.LuckyBlocks, a.Id).ReadyAt == 1300, "countdown unchanged")
-		H.expect(L.find(restored.LuckyBlocks, b.Id).ReadyAt == 22600, "long timer unchanged")
+		H.expect(L.find(restored.LuckyBlocks, a.Id).ReadyAt == 1600, "countdown unchanged")
+		H.expect(L.find(restored.LuckyBlocks, b.Id).ReadyAt == 44200, "long timer unchanged")
 		H.expect(L.find(restored.LuckyBlocks, a.Id).Climbed == true, "still climbed")
 	end,
 
@@ -212,7 +209,7 @@ return {
 		)
 		H.expect(LuckyBlocks.timer("Standard") == 0, "Standard opens at once")
 		H.expect(LuckyBlocks.kind("Rare").Odds == "Rare", "Rare rolls the Rare odds")
-		H.expect(LuckyBlocks.timer("Rare") == 300, "Rare waits 5 minutes")
+		H.expect(LuckyBlocks.timer("Rare") == 600, "Rare waits 10 minutes")
 		H.expect(LuckyBlocks.kind("Purple") == nil and LuckyBlocks.kind(5) == nil, "unknown: nil")
 		-- The extra tables roll the whole core pool; the Grand Opening block's Unique rows. The
 		-- Sky block climbs from Standard now (economy v5): no table of its own.
@@ -228,9 +225,9 @@ return {
 		local standard = LuckyBlocks.add(state, "Standard", 1000, nil, nil, nil, true)
 		local rare = LuckyBlocks.add(state, "Rare", 1000, nil, nil, nil, true)
 		H.expect(LuckyBlocks.isReady(standard, 1000), "Standard is ready at once")
-		H.expect(not LuckyBlocks.isReady(rare, 1299), "Rare is not ready a second early")
-		H.expect(LuckyBlocks.isReady(rare, 1300), "Rare is ready after 5 minutes")
-		H.expect(LuckyBlocks.secondsLeft(rare, 1017.5) == 283, "seconds left round up")
+		H.expect(not LuckyBlocks.isReady(rare, 1599), "Rare is not ready a second early")
+		H.expect(LuckyBlocks.isReady(rare, 1600), "Rare is ready after 10 minutes")
+		H.expect(LuckyBlocks.secondsLeft(rare, 1017.5) == 583, "seconds left round up")
 		H.expect(LuckyBlocks.secondsLeft(rare, 5000) == 0, "never below 0")
 	end,
 
@@ -278,7 +275,7 @@ return {
 		H.expect(#copy == 2, "both")
 		H.expect(copy[1].kind == "Standard" and copy[1].id == 2, "Standard first")
 		H.expect(copy[1].climbed == nil, "an unclimbed block says nothing")
-		H.expect(copy[2].kind == "Rare" and copy[2].readyAt == 310, "Rare with its ready time")
+		H.expect(copy[2].kind == "Rare" and copy[2].readyAt == 610, "Rare with its ready time")
 		H.expect(copy[2].climbed == true, "a climbed block says so")
 	end,
 
@@ -392,7 +389,7 @@ return {
 		)
 		-- An unpaid one starts its tier's timer (economy v5.2); a VIP's has none.
 		local plain = L.add(state, "Mystery", 100)
-		H.expect((L.turn(state, plain.Id, "Rare", 200) :: any).ReadyAt == 200 + 300, "5 min")
+		H.expect((L.turn(state, plain.Id, "Rare", 200) :: any).ReadyAt == 200 + 600, "10 min")
 		local vip = L.add(state, "Mystery", 100)
 		H.expect((L.turn(state, vip.Id, "Epic", 200, nil, true) :: any).ReadyAt == 200, "VIP")
 		-- Only "Rare" or "Epic" is carried.
@@ -434,20 +431,24 @@ return {
 		local L = load()
 		local Format = H.require("Progression.Format")
 		-- From a Mystery (its roll, then that block's climb; economy v5.1).
-		H.expect(L.oneIn("ChromaCue", "Mystery") == 1390, tostring(L.oneIn("ChromaCue", "Mystery")))
-		H.expect(L.oneIn("ApexCue", "Mystery") == 3460, tostring(L.oneIn("ApexCue", "Mystery")))
-		H.expect(L.oneIn("EclipseCue", "Mystery") == 45000, "the Secret")
+		-- Economy v6 (2026-10-10): the Chroma Cue is a reward cue, so the Phoenix is the Legendary.
+		H.expect(
+			L.oneIn("PhoenixCue", "Mystery") == 1550,
+			tostring(L.oneIn("PhoenixCue", "Mystery"))
+		)
+		H.expect(L.oneIn("ApexCue", "Mystery") == 7150, tostring(L.oneIn("ApexCue", "Mystery")))
+		H.expect(L.oneIn("EclipseCue", "Mystery") == 92900, "the Secret")
 		-- The block a Mystery turned into counts from itself, like any block of its name.
-		H.expect(L.oneIn("ChromaCue", "Standard") == 2610, "a Standard block: the plan's 3.9")
-		H.expect(L.oneIn("ApexCue", "Standard") == 6510, "its Mythic")
-		H.expect(L.oneIn("EclipseCue", "Standard") == 84700, "its Secret")
+		H.expect(L.oneIn("PhoenixCue", "Standard") == 3700, "a Standard block")
+		H.expect(L.oneIn("ApexCue", "Standard") == 17100, "its Mythic")
+		H.expect(L.oneIn("EclipseCue", "Standard") == 222000, "its Secret")
 		-- A climbed block keeps the kind it started as: a Lucky 8 climbs from Uncommon.
-		H.expect(L.oneIn("ChromaCue", "Lucky8") < 2610, "an Uncommon start is likelier")
-		-- With the Grand Opening Luck live at the climb, likelier still.
-		H.expect(L.oneIn("ChromaCue", "Mystery", true) < 1390, "the luck")
+		H.expect(L.oneIn("PhoenixCue", "Lucky8") < 3700, "an Uncommon start is likelier")
+		-- The Grand Opening Luck is off in v6 (Luck.Seconds 0): the same steps, the same odds.
+		H.expect(L.oneIn("PhoenixCue", "Mystery", true) == 1550, "no luck")
 		-- A kind that never climbs: its own row (the Starter block's Secret).
 		H.expect(L.oneIn("EclipseCue", "Starter") ~= nil, "the Starter row")
-		H.expect(L.oneIn("WeekOneCue", "Mystery") == nil, "never from a block")
+		H.expect(L.oneIn("ChromaCue", "Mystery") == nil, "a reward cue: never from a block")
 		H.expect(L.oneIn("ChromaCue", "Nope") == nil, "unknown kind")
 		-- The words: commas from 100 up, 3 figures below.
 		H.expect(Format.oneIn(2610) == "2,610" and Format.oneIn(84700) == "84,700", "commas")

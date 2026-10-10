@@ -17,9 +17,11 @@
 --   (UserId), BlockId, Kind, Phase ("Flying", "Landed", "Rising", "Burst") and PhaseAt (server
 --   time), plus To (its landing CFrame). The server moves it to To when the flight ends.
 -- - BlockState (a RemoteEvent): the player's blocks after every save change (deduped).
--- - The tutorial's hooks (setOpenHooks): a forced cue for the tutorial's block, a call after
---   every open, a block kept from climbing and a scripted climb's final tier (TutorialService;
---   its first Mystery rolls to an Uncommon block that opens to its cue, with the glimpse).
+-- - The tutorial's hooks (setOpenHooks): a forced cue (or just the tutorial's reel) for the
+--   tutorial's block, a call after every open, a block kept from climbing, a scripted climb's
+--   final tier (or a normal roll ready at once) and a call after a Mystery's reveal
+--   (TutorialService; economy v6: its Mystery rolls for real, its block is ready at once and
+--   opens with the tutorial's reel).
 -- - Testing: with Test.SeedOnJoin the accounts in Config.Debug.Commands.UserIds get one of each
 --   Config.LuckyBlocks.Test.Seed kind they lack on join, and with Test.Refill opening one gives a
 --   fresh one of the same kind in the same place (both off now). Nobody else is ever given a
@@ -68,16 +70,20 @@ local busy: { [Player]: boolean } = {}
 local dirty: { [Player]: boolean } = {}
 local lastSent: { [Player]: string } = {}
 local rolls = Random.new()
--- The tutorial lane (TutorialService.setOpenHooks): a forced cue for an open (game 1's
--- Standard block lands on an Uncommon cue) and a call once a block is opened. Nil: none.
-local openForce: ((Player, string) -> string?)? = nil
+-- The tutorial lane (TutorialService.setOpenHooks): a forced cue for an open, or true for the
+-- tutorial's reel with the block's own roll (economy v6), and a call once a block is opened.
+-- Nil: none.
+local openForce: ((Player, string) -> (string | boolean)?)? = nil
 local onOpened: ((Player, string, string) -> ())? = nil
 -- The tutorial lane: true keeps a block from climbing as it opens (game 1's block stays at
 -- its tier, economy v5). Nil: every block climbs.
 local climbStay: ((Player, string) -> boolean)? = nil
 -- The tutorial lane: the final tier a climb ends on (or the block a Mystery turns into, ready
--- at once; designer, 2026-10-09). Nil (or a nil answer): a normal roll.
-local climbScript: ((Player, string) -> string?)? = nil
+-- at once; designer, 2026-10-09), or true for a normal roll whose block is ready at once
+-- (economy v6). Nil (or a nil answer): a normal roll.
+local climbScript: ((Player, string) -> (string | boolean)?)? = nil
+-- The tutorial lane: a call after a Mystery's reveal with the block it turned into. Nil: none.
+local onRevealed: ((Player, string) -> ())? = nil
 -- Studio only (ServerStorage.LuckyBlockQA "script"): every climb ends on this tier, before the
 -- tutorial's hook. Nil: none.
 local qaScript: string? = nil
@@ -281,11 +287,13 @@ local function roll(n: number): number
 	return rolls:NextInteger(1, n)
 end
 
--- The tutorial's say on a climb of a `kind` block (setOpenHooks): (stay, the scripted tier).
-local function climbHooks(player: Player, kind: string): (boolean, string?)
+-- The tutorial's say on a climb of a `kind` block (setOpenHooks): (stay, the scripted tier,
+-- ready at once).
+local function climbHooks(player: Player, kind: string): (boolean, string?, boolean)
 	local stay = if climbStay then climbStay(player, kind) == true else false
-	local forced = qaScript or if climbScript then climbScript(player, kind) else nil
-	return stay, if type(forced) == "string" then forced else nil
+	local script = if climbScript then climbScript(player, kind) else nil
+	local forced = qaScript or script
+	return stay, if type(forced) == "string" then forced else nil, script == true
 end
 
 -- The open's plan for block `block` (PlayerData.planLuckyOpen), an unclimbed block's climb
@@ -508,14 +516,18 @@ end
 --- (its cue is of its own tier), and `script(player, kind)` names the tier an unclimbed `kind`
 --- block's climb ends on (nil: a normal roll; a tier below the block's start is ignored), or
 --- the block a Mystery turns into on its upgrade screen (pity still counted, ready at once).
---- `stay` wins over `script`. Every hook is optional; leave one out for none.
+--- `stay` wins over `script`. `force` may answer true (the tutorial's reel, the block's own
+--- roll) and `script` true (a normal roll, the block ready at once); `revealed(player, kind)`
+--- runs after a Mystery's reveal with the block it turned into. Every hook is optional; leave
+--- one out for none.
 function LuckyBlockService.setOpenHooks(
-	force: ((Player, string) -> string?)?,
+	force: ((Player, string) -> (string | boolean)?)?,
 	opened: ((Player, string, string) -> ())?,
 	stay: ((Player, string) -> boolean)?,
-	script: ((Player, string) -> string?)?
+	script: ((Player, string) -> (string | boolean)?)?,
+	revealed: ((Player, string) -> ())?
 )
-	openForce, onOpened, climbStay, climbScript = force, opened, stay, script
+	openForce, onOpened, climbStay, climbScript, onRevealed = force, opened, stay, script, revealed
 end
 
 function HANDLERS.Open(player: Player, r: LuckyBlocks.Request, data: any): Reply
@@ -563,7 +575,9 @@ function HANDLERS.Open(player: Player, r: LuckyBlocks.Request, data: any): Reply
 		then openForce(player, block.Kind)
 		else nil
 	local tutorialOpen = false
-	if forcedCue ~= nil and BlockOdds.canDrop(plan.oddsId, forcedCue) then
+	if forcedCue == true then
+		tutorialOpen = true -- the tutorial's reel, the block's own roll (economy v6)
+	elseif type(forcedCue) == "string" and BlockOdds.canDrop(plan.oddsId, forcedCue) then
 		plan.cueId = forcedCue
 		tutorialOpen = true
 	end
@@ -612,7 +626,9 @@ function HANDLERS.Open(player: Player, r: LuckyBlocks.Request, data: any): Reply
 		)
 	end
 	local cue = Catalog.get(plan.cueId) :: Catalog.Cue
-	Counters.add(cue.Id, 1)
+	if (opened.dupMoney or 0) <= 0 then
+		Counters.add(cue.Id, 1) -- a duplicate turned into money adds no copy (economy v6)
+	end
 	announceOpen(player, block, plan, cue.Id)
 	if carried then
 		Store.refresh(player) -- the shop card's pity bars (ShopState) moved
@@ -658,6 +674,7 @@ function HANDLERS.Open(player: Player, r: LuckyBlocks.Request, data: any): Reply
 		new = opened.new,
 		found = opened.found,
 		count = opened.count,
+		dupMoney = opened.dupMoney, -- a duplicate paid as money (economy v6): "Duplicate · +$200"
 		burstAt = burstAt,
 	}
 end
@@ -678,11 +695,11 @@ function HANDLERS.Reveal(player: Player, r: LuckyBlocks.Request, data: any): Rep
 		return refuse("Busy")
 	end
 	local block = LuckyBlocks.find(data.LuckyBlocks, id)
-	local stay, forced = false, nil
+	local stay, forced, ready = false, nil, false
 	if block then
-		stay, forced = climbHooks(player, block.Kind)
+		stay, forced, ready = climbHooks(player, block.Kind)
 	end
-	local ok, result = PlayerData.climbBlock(player, id, stay, forced)
+	local ok, result = PlayerData.climbBlock(player, id, stay, forced, ready)
 	if not ok then
 		return refuse(
 			if result == "NotReady"
@@ -694,6 +711,9 @@ function HANDLERS.Reveal(player: Player, r: LuckyBlocks.Request, data: any): Rep
 		)
 	end
 	Funnel.blockRevealed(player, "Mystery", result.kind) -- the Block funnel follows its new kind
+	if onRevealed then
+		onRevealed(player, result.kind)
+	end
 	Store.refresh(player) -- the shop card's pity bars (ShopState) moved
 	if L.Test.Refill and isTester(player) then
 		PlayerData.giveLuckyBlocks(player, result.from, 1)

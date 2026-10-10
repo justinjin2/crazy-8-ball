@@ -144,6 +144,11 @@ local function pickUp(player: Player)
 	Net.get("GiftDrop"):FireClient(player, { picked = reason == nil, reason = reason })
 end
 
+--- Where a block falling for `character` lands (the Sky Lucky Block's drop uses it too).
+GiftDropService.spotFor = spotFor
+--- Whether the player's table has a game on (no block lands then).
+GiftDropService.inGame = inGame
+
 --- /giftdrop: forgets the Gift, so the next menu opening earns it and drops it (`now`: earned at
 --- once and falling now). False when there is nothing to drop here (an arena, or the save is
 --- not loaded).

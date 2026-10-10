@@ -14,7 +14,8 @@
 --             Unique cues and the Starter Cue yes; the other Exclusive cues and Classic never
 --   Sellable  may be sold back (block cues only)
 --   Blocks    the odds rows (Config.BlockOdds) that drop it (block cues only; none: it drops
---             from nothing, the Week One Cue)
+--             from nothing: a reward cue, the Chroma Cue (login day 7) and the Candy Cane Cue
+--             (invites), economy v6)
 --   Vaulted   true stops it dropping (ECONOMY 12); it stays in the Index and in saves
 --   Tier      the rank tier whose reward it is (rank cues)
 --   Effect    the Config.Effects.Styles tier row for its trail and pocket burst, used where
@@ -81,6 +82,15 @@ local function blockCue(id: string, rarity: string): Cue
 		Effect = rarity,
 		Look = skinLook(id),
 	}
+end
+
+-- A block cue that no block drops (economy v6, designer 2026-10-10): given by one reward only
+-- (no rows, so no pool, reel, restock or odds list has it), still tradable and sold back like
+-- any cue of its rarity, and counted in its rarity's Index row.
+local function rewardCue(id: string, rarity: string): Cue
+	local cue = blockCue(id, rarity)
+	cue.Blocks = {}
+	return cue
 end
 
 local function rankCue(id: string, tier: string, effect: string): Cue
@@ -159,11 +169,11 @@ local CUES: { Cue } = {
 	blockCue("CosmoCue", "Uncommon"),
 	blockCue("GildedCue", "Uncommon"),
 	blockCue("PixelCue", "Uncommon"),
-	-- Rare (10): the first aura.
+	-- Rare (10; 9 drop): the first aura.
 	blockCue("HoneycombCue", "Rare"),
 	blockCue("NeonCue", "Rare"),
 	blockCue("NatureCue", "Rare"),
-	blockCue("CandyCue", "Rare"),
+	rewardCue("CandyCue", "Rare"), -- the invite reward (Config.Social.InviteCue)
 	blockCue("FrostbiteCue", "Rare"),
 	blockCue("PlasmaCue", "Rare"),
 	blockCue("BlazeCue", "Rare"),
@@ -180,36 +190,14 @@ local CUES: { Cue } = {
 	blockCue("AuroraCue", "Epic"),
 	blockCue("DiscoCue", "Epic"),
 	blockCue("HackedCue", "Epic"),
-	-- Legendary (7): a stronger aura, its own ball trail and pocket finisher.
-	blockCue("ChromaCue", "Legendary"),
+	-- Legendary (7; 6 drop): a stronger aura, its own ball trail and pocket finisher.
+	rewardCue("ChromaCue", "Legendary"), -- the first week's day 7 (Config.Daily.FirstWeek)
 	blockCue("ThunderstrikeCue", "Legendary"),
 	blockCue("PhoenixCue", "Legendary"),
 	blockCue("KrakenCue", "Legendary"),
 	blockCue("SeraphCue", "Legendary"),
 	blockCue("InfernalCue", "Legendary"),
 	blockCue("ClockworkCue", "Legendary"),
-	-- The Week One Cue (economy v5 plan section 5): a Legendary in no block (no rows, so no
-	-- pool, reel, restock or odds list has it), given on the first week's day 7 (and by its
-	-- Claim All). Tradable and sold back like any Legendary; counted in the Index's Legendary
-	-- row. The default cue's look until its art exists (hand-off 11.4).
-	{
-		Id = "WeekOneCue",
-		Rarity = "Legendary",
-		Group = "Block",
-		Tradable = true,
-		Sellable = true,
-		Blocks = {},
-		Vaulted = false,
-		Effect = "Legendary",
-		Look = {
-			Shaft = { 214, 176, 124 },
-			Forearm = { 86, 46, 34 },
-			Wrap = { 32, 32, 36 },
-			Ring = { 176, 180, 188 },
-			Tip = { 34, 44, 74 },
-			Cap = { 20, 20, 22 },
-		},
-	},
 	-- Mythic (3): a moving 3D piece and everything at full strength.
 	blockCue("CelestialDragonCue", "Mythic"),
 	blockCue("KitsuneCue", "Mythic"),
@@ -310,8 +298,8 @@ function Catalog.ofRarity(rarity: string): { Cue }
 end
 
 --- The cues an odds row can drop at one rarity, in catalog order: block cues of that rarity
---- that list the row and are not vaulted. A block cue with no rows (the Week One Cue) drops
---- from nothing.
+--- that list the row and are not vaulted. A block cue with no rows (a reward cue: Chroma,
+--- Candy Cane) drops from nothing.
 function Catalog.droppable(oddsId: string, rarity: string): { Cue }
 	local list = {}
 	-- The tables outside the ladder (Config.BlockOdds.Extra) roll the whole core pool: every

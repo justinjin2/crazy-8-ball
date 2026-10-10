@@ -13,6 +13,7 @@ local RunService = game:GetService("RunService")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
+local Format = require(Shared:WaitForChild("Progression"):WaitForChild("Format"))
 local ReelFx = require(script.Parent.ReelFx)
 local CueThumb = require(script.Parent.CueThumb)
 local HudParts = require(script.Parent.HudParts)
@@ -114,6 +115,31 @@ end
 --- The words under the card for the device in use.
 function Result.setHint(self: any, text: string)
 	self.hint.Text = text
+end
+
+--- A duplicate paid as money (economy v6): "Duplicate · +$200" in green under the card, the
+--- hint one line lower.
+function Result.setDuplicate(self: any, money: number)
+	if self.dupe or money <= 0 then
+		return
+	end
+	local size = Result.size()
+	local titleH, artH, hintH = rows()
+	local y = titleH + artH
+	local dupe = HudParts.text(
+		self.root,
+		"Duplicate",
+		U.CardHintPx,
+		W.Duplicate:format(Format.money(money)),
+		HudParts.tone("Green")
+	)
+	dupe.TextWrapped = false
+	dupe.Position = UDim2.fromOffset(0, y)
+	dupe.Size = UDim2.fromOffset(size.X, hintH)
+	dupe.ZIndex = 4
+	self.dupe = dupe
+	self.hint.Position = UDim2.fromOffset(0, y + hintH)
+	self.root.Size = UDim2.fromOffset(size.X, size.Y + hintH)
 end
 
 --- Pop it in: the sting, the rays and glow fading in, confetti for the rare ones (into

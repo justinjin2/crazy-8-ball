@@ -13,9 +13,11 @@ return {
 		local _, Config = load()
 		local C = Config.Social
 		H.expect(C.GroupId == 675425213, "Lucky 8")
-		H.expect(C.GroupReward.Blocks.Mystery == 2, "2 Mystery blocks once (economy v5)")
+		H.expect(C.GroupReward.Blocks.Mystery == 1, "1 Mystery block once (economy v6)")
 		H.expect(Config.Economy.GroupBoost == 0.1, "+10% while a member")
-		H.expect(C.InviteBlock == "Uncommon" and C.InvitesPerMonth == 5, "an Uncommon, 5 a month")
+		-- Economy v6 (2026-10-10): an invite gives the Candy Cue, no block.
+		H.expect(C.InviteCue == "CandyCue" and (C :: any).InviteBlock == nil, "the Candy Cue")
+		H.expect(C.InvitesPerMonth == 5, "5 a month")
 	end,
 
 	["launch data names the inviter; anything else is no invite"] = function()

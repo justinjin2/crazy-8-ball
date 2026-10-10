@@ -280,15 +280,15 @@ return {
 	end,
 
 	-- ECONOMY 3.1 and 3.2: the win and loss bonus by opponent.
-	["match bonus: $500 / $150 against people, $250 / $80 against PC"] = function()
+	["match bonus: $500 / $150 against people, nothing against PC (economy v6)"] = function()
 		local Money = setup()
 		local cases: { { any } } = {
 			-- outcome, overrides, expected
 			{ "Win", {}, 500 },
 			{ "Loss", {}, 150 },
 			{ "Draw", {}, 0 },
-			{ "Win", { opponent = "PC" }, 250 },
-			{ "Loss", { opponent = "PC" }, 80 },
+			{ "Win", { opponent = "PC" }, 0 }, -- PC is practice: PcWinBonus 0
+			{ "Loss", { opponent = "PC" }, 0 },
 			{ "Draw", { opponent = "PC" }, 0 },
 			{ "Win", { opponent = "Solo" }, 0 }, -- solo has no match bonus
 			{ "Loss", { forfeited = true }, 0 }, -- the leaver gets nothing
@@ -304,32 +304,36 @@ return {
 		H.expect(Money.matchBonus(nil :: any) == 0, "no context")
 	end,
 
-	["PC pays in full, then half after $10,000 in a UTC day (ECONOMY 3.2)"] = function()
+	-- Economy v6 (designer, 2026-10-10): PC is practice, paid like solo under one shared cap.
+	["PC is practice: $30 a ball, no nice shots, under the cap it shares with solo"] = function()
 		local Money, geometry = setup()
+		local Config = H.require("Config")
+		local E = Config.Economy
+		H.expect(E.SoloShare == 0.3 and E.SoloDailyCap == 3000 and E.SoloAfterCapPay == 10, "")
 		local events = bankAndCombo(geometry)
 		local under =
-			Money.shotPay(input(geometry, events, { opponent = "PC", pcEarnedToday = 5000 }))
-		expectPay(under, "3:Ball:100 3:Bank:150 5:Ball:100 5:Combo:200", 550, "PC under the cap")
-		H.expect(under.pcEarned == 550 and under.soloEarned == 0, "PC money counts toward PC")
-		local over =
-			Money.shotPay(input(geometry, events, { opponent = "PC", pcEarnedToday = 10000 }))
-		expectPay(over, "3:Ball:50 3:Bank:75 5:Ball:50 5:Combo:100", 275, "PC past the cap")
-		H.expect(over.pcEarned == 275)
-		-- The ball that crosses the cap pays in full; everything after it at half.
-		local crossing =
-			Money.shotPay(input(geometry, events, { opponent = "PC", pcEarnedToday = 9900 }))
-		expectPay(crossing, "3:Ball:100 3:Bank:75 5:Ball:50 5:Combo:100", 325, "crossing the cap")
-		-- Never zero.
-		local tiny = Money.shotPay(
-			input(geometry, events, { opponent = "PC", pcEarnedToday = 50000, multiplier = 0.001 })
+			Money.shotPay(input(geometry, events, { opponent = "PC", pcEarnedToday = 500 }))
+		expectPay(under, "3:Ball:30 5:Ball:30", 60, "PC under the cap")
+		H.expect(under.nice == 0, "no nice shots in practice")
+		H.expect(under.pcEarned == 60 and under.soloEarned == 0, "PC money counts toward PC")
+		-- Solo and PC money share the one cap: 2,000 + 1,000 reaches it.
+		local shared = { opponent = "PC", soloEarnedToday = 2000, pcEarnedToday = 1000 }
+		local over = Money.shotPay(input(geometry, events, shared))
+		expectPay(over, "3:Ball:10 5:Ball:10", 20, "PC past the shared cap")
+		-- The ball that crosses the cap pays in full; the next one the flat $10.
+		local crossing = Money.shotPay(
+			input(
+				geometry,
+				events,
+				{ opponent = "PC", soloEarnedToday = 2000, pcEarnedToday = 980 }
+			)
 		)
-		expectPay(tiny, "3:Ball:1 3:Bank:1 5:Ball:1 5:Combo:1", 4, "never zero")
-		-- A person match ignores the PC counter; the bonus halves past the cap too.
+		expectPay(crossing, "3:Ball:30 5:Ball:10", 40, "crossing the cap")
+		-- A person match ignores the practice counters; PC has no match bonus.
 		local person = Money.shotPay(input(geometry, events, { pcEarnedToday = 50000 }))
-		H.expect(person.total == 550 and person.pcEarned == 0, "people ignore the PC cap")
-		H.expect(Money.matchBonus(bonus("Win", { opponent = "PC", pcCapped = true })) == 125)
-		H.expect(Money.matchBonus(bonus("Loss", { opponent = "PC", pcCapped = true })) == 40)
-		H.expect(Money.matchBonus(bonus("Win", { pcCapped = true })) == 500, "people: no cap")
+		H.expect(person.total == 550 and person.pcEarned == 0, "people ignore the practice cap")
+		H.expect(Money.matchBonus(bonus("Win", { opponent = "PC" })) == 0, "no PC win bonus")
+		H.expect(Money.matchBonus(bonus("Loss", { opponent = "PC" })) == 0, "no PC loss bonus")
 	end,
 
 	["team pay: each teammate $100 a ball, nice shots only to the shooter (ECONOMY 3.3)"] = function()
@@ -340,13 +344,13 @@ return {
 		local mate = Money.shotPay(input(geometry, events, { isShooter = false }))
 		expectPay(mate, "3:Ball:100 5:Ball:100", 200, "a teammate")
 		H.expect(mate.balls == 2 and mate.nice == 0)
-		-- Each teammate by their own rules: a VIP teammate, one past the PC cap.
+		-- Each teammate by their own rules: a VIP teammate, one past the practice cap.
 		local vip = Money.shotPay(input(geometry, events, { isShooter = false, boost = 1 }))
 		expectPay(vip, "3:Ball:200 5:Ball:200", 400, "a VIP teammate")
 		local pcMate = Money.shotPay(
-			input(geometry, events, { isShooter = false, opponent = "PC", pcEarnedToday = 10000 })
+			input(geometry, events, { isShooter = false, opponent = "PC", pcEarnedToday = 3000 })
 		)
-		expectPay(pcMate, "3:Ball:50 5:Ball:50", 100, "a teammate past the PC cap")
+		expectPay(pcMate, "3:Ball:10 5:Ball:10", 20, "a teammate past the practice cap")
 		-- A foul pays nobody; the break pays every teammate its balls.
 		local foul = Money.shotPay(input(geometry, events, { isShooter = false, foul = true }))
 		expectPay(foul, "", 0, "a teammate on a foul")
@@ -388,7 +392,7 @@ return {
 		H.expect(Money.matchBonus(bonus("Win", { boost = both })) == 1500)
 		H.expect(Money.matchBonus(bonus("Loss", { boost = both })) == 450)
 		H.expect(Money.matchBonus(bonus("Win", { boost = both, multiplier = 2 })) == 3000, "x6")
-		H.expect(Money.matchBonus(bonus("Loss", { opponent = "PC", boost = 1 })) == 160)
+		H.expect(Money.matchBonus(bonus("Loss", { opponent = "PC", boost = 1 })) == 0, "PC: none")
 		H.expect(Money.matchBonus(bonus("Win", { boost = 0.1 })) == 550, "group")
 		-- A bad boost never pays more.
 		H.expect(Money.matchBonus(bonus("Win", { boost = -5 })) == 500)
@@ -407,16 +411,18 @@ return {
 			input(geometry, events, { opponent = "Solo", boost = 1, soloEarnedToday = 3000 })
 		)
 		expectPay(flat, "3:Ball:10 5:Ball:10", 20, "VIP solo past the cap")
-		-- VIP past the PC cap: 100 x 2 x 0.5.
-		local pc = Money.shotPay(
-			input(geometry, events, { opponent = "PC", boost = 1, pcEarnedToday = 10000 })
+		-- VIP PC is practice too: $60 a ball, then the flat $10 past the shared cap.
+		local pc = Money.shotPay(input(geometry, events, { opponent = "PC", boost = 1 }))
+		expectPay(pc, "3:Ball:60 5:Ball:60", 120, "VIP PC")
+		local pcFlat = Money.shotPay(
+			input(geometry, events, { opponent = "PC", boost = 1, pcEarnedToday = 3000 })
 		)
-		expectPay(pc, "3:Ball:100 3:Bank:150 5:Ball:100 5:Combo:200", 550, "VIP PC past the cap")
-		-- The counter takes the boosted money: 9,800 + 200 reaches the cap after the first ball.
+		expectPay(pcFlat, "3:Ball:10 5:Ball:10", 20, "VIP PC past the cap")
+		-- The counter takes the boosted money: 2,950 + 60 reaches the cap after the first ball.
 		local crossing = Money.shotPay(
-			input(geometry, events, { opponent = "PC", boost = 1, pcEarnedToday = 9800 })
+			input(geometry, events, { opponent = "PC", boost = 1, pcEarnedToday = 2950 })
 		)
-		expectPay(crossing, "3:Ball:200 3:Bank:150 5:Ball:100 5:Combo:200", 650, "VIP crossing")
+		expectPay(crossing, "3:Ball:60 5:Ball:10", 70, "VIP crossing")
 	end,
 
 	["short matches: $10 a ball and no nice shots once the $2,000 is reached (ECONOMY 3.6)"] = function()
@@ -501,7 +507,7 @@ return {
 		H.expect(Money.matchBonus(bonus("Win", { gap = 4 })) == 750, "at most x1.5")
 		H.expect(Money.matchBonus(bonus("Loss", { gap = 0.3 })) == 150, "the loss bonus ignores it")
 		H.expect(Money.matchBonus(bonus("Loss", { gap = 1.5 })) == 150)
-		H.expect(Money.matchBonus(bonus("Win", { opponent = "PC", gap = 0.3 })) == 125)
+		H.expect(Money.matchBonus(bonus("Win", { opponent = "PC", gap = 0.3 })) == 0, "PC: none")
 		-- Silver V beating Bronze V (5 divisions lower): 500 x 0.554 = 277.
 		H.expect(Money.matchBonus(bonus("Win", { gap = Ranks.gapFactor(10, 5) })) == 277)
 		-- Everything at once: Challenger, VIP, half-farm, a stronger opponent.

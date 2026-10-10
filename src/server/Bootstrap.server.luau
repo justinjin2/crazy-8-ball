@@ -163,6 +163,8 @@ require(script.Parent:WaitForChild("RankClaimService")).start()
 require(script.Parent:WaitForChild("TutorialService")).start()
 -- The Gift block's first-leave drop: leaves noted everywhere, the fall only in a lobby.
 require(script.Parent:WaitForChild("GiftDropService")).start(not isArena)
+-- The Sky Lucky Block (economy v6): its clock everywhere, its fall only in a lobby.
+require(script.Parent:WaitForChild("SkyDropService")).start(not isArena)
 DevCommands.start() -- /day and /sunset, for the developer only
 GlobalQueue.start(not isArena) -- every server takes its turn pairing the global queue
 if isArena then

@@ -24,15 +24,16 @@ return {
 		H.expect(R.SlotSeconds == 600 and R.Slots == 2, "every 10 minutes, two slots")
 		-- Economy v5 (plan 6.2): slot 1 always Epic or better; Rare or better everywhere.
 		H.expect(R.Kinds.Uncommon == nil and R.Odds.Uncommon == nil, "no Uncommon slot")
-		H.expect(R.Kinds.Rare.Price == 49900 and R.Kinds.Rare.Product == "RestockRare", "Rare")
+		-- Economy v6 (2026-10-10) money prices.
+		H.expect(R.Kinds.Rare.Price == 100000 and R.Kinds.Rare.Product == "RestockRare", "Rare")
 		H.expect(R.Kinds.Rare.Stock == 2, "two Rare blocks a restock")
-		H.expect(R.Kinds.Epic.Price == 249000 and R.Kinds.Epic.Product == "RestockEpic", "Epic")
+		H.expect(R.Kinds.Epic.Price == 500000 and R.Kinds.Epic.Product == "RestockEpic", "Epic")
 		H.expect(
-			R.Kinds.Legendary.Price == 1290000 and R.Kinds.Legendary.Product == "RestockLegendary",
+			R.Kinds.Legendary.Price == 2500000 and R.Kinds.Legendary.Product == "RestockLegendary",
 			"Legendary"
 		)
 		H.expect(
-			R.Kinds.Mythic.Price == 4990000
+			R.Kinds.Mythic.Price == 5000000
 				and R.Kinds.Mythic.Product == "RestockMythic"
 				and R.Kinds.Mythic.Stock == 1,
 			"Mythic"
@@ -249,8 +250,8 @@ return {
 	["the Mystery deal's money prices; the case timer skips are gone"] = function()
 		local Shop = H.require("Progression.Shop")
 		H.expect(Shop.skipPrice == nil and Shop.skipProduct == nil, "no case timer skips")
-		-- Economy v5.1 (designer, 2026-10-09): $19,900, 5 for $89,900, the same as the card shows.
-		H.expect(Shop.mysteryPrice(1) == 19900 and Shop.mysteryPrice(5) == 89900, "Mystery")
+		-- Economy v6 (designer, 2026-10-10): $25,000, 5 for $100,000, the same as the card shows.
+		H.expect(Shop.mysteryPrice(1) == 25000 and Shop.mysteryPrice(5) == 100000, "Mystery")
 		local card = H.require("Config").Shop.Mystery
 		H.expect(card.Price == Shop.mysteryPrice(1), "the card's price")
 		H.expect(card.BulkPrice == Shop.mysteryPrice(card.BulkCount), "the card's bundle")

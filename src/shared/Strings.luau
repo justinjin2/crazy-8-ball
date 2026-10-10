@@ -306,6 +306,7 @@ return {
 			GiveBlock = "%s <%s> [count] [player]", -- the lucky block kinds
 			Cutscene = "%s <%s>", -- the rarities with a cutscene
 			GiftDrop = "%s [now]",
+			SkyDrop = "%s",
 			Inv = "%s",
 			ClearInv = "%s",
 			Dupes = "%s",
@@ -340,6 +341,7 @@ return {
 			GiveBlock = "lucky blocks into your hotbar",
 			Cutscene = "plays a rare pull's cutscene on its own (nothing is given)",
 			GiftDrop = "the Gift again: open the Roblox menu (Escape) to make it fall (now: at once)",
+			SkyDrop = "a Sky Lucky Block earned now, falling at once",
 			Inv = "lists your cues, lucky blocks and equipped cue",
 			ClearInv = "takes every cue but Classic and every lucky block",
 			Dupes = "%d copies each of %d random Common and Uncommon cues (to test selling)",
@@ -383,6 +385,7 @@ return {
 		Cutscene = "Playing the %s cutscene.", -- the rarity
 		GiftDrop = "The Gift is reset: open the Roblox menu (Escape) to make it fall.",
 		GiftDropNow = "The Gift is falling (its 12 hours run from now).",
+		SkyDropNow = "A Sky Lucky Block is falling.",
 		GiftDropBusy = "No Gift drop here (an arena, or your save is not loaded).",
 		InvEquipped = "Equipped: %s",
 		InvBlocks = "Lucky blocks: ",
@@ -566,7 +569,7 @@ return {
 			HoneycombCue = "Honeycomb Cue",
 			NeonCue = "Neon Cue",
 			NatureCue = "Nature Cue",
-			CandyCue = "Candy Cue",
+			CandyCue = "Candy Cane Cue", -- the invite cue (economy v6, the designer's name for it)
 			FrostbiteCue = "Frostbite Cue",
 			PlasmaCue = "Plasma Cue",
 			BlazeCue = "Blaze Cue",
@@ -589,7 +592,6 @@ return {
 			SeraphCue = "Seraph Cue",
 			InfernalCue = "Infernal Cue",
 			ClockworkCue = "Clockwork Cue",
-			WeekOneCue = "Week One Cue", -- working name (economy v5 plan section 5)
 			CelestialDragonCue = "Celestial Dragon Cue",
 			KitsuneCue = "Kitsune Cue",
 			ApexCue = "Apex Cue",
@@ -685,6 +687,7 @@ return {
 			Claimed = "Already claimed.",
 			Incomplete = "Collect every cue in this row first.",
 			NoReward = "This row has no reward.",
+			Nothing = "Nothing to collect.",
 			NotStarted = "Not on sale yet.",
 			Ended = "This offer has ended.",
 			SoldOut = "Sold out!",
@@ -958,12 +961,21 @@ return {
 			Found = "In your collection", -- ever owned (selling it keeps it here)
 			NotFound = "Not found yet",
 			FindReward = "Find it for +%s", -- a cue not found yet: its finder's money ("$250")
+			-- The finder's money waiting at the top of the Index (economy v6: claimed, not paid
+			-- at once): the heading, the line under it and its button.
+			FindsTitle = "New cues found!",
+			FindsLine = "Your finder's money is ready",
+			Collect = "Collect",
 			-- The chosen cue's big card (GUI lane, 2026-10-03).
 			Odds = "%s chance", -- a cue's rarity per Mystery block: "4.2% chance"
-			-- A cue the first week gives (economy v5: the Week One Cue on day 7): its card's chip
+			-- A cue the first week gives (economy v6: the Chroma Cue on day 7): its card's chip
 			-- and its line in the details and the Index, in place of a chance.
 			FirstWeekChip = "Day %d",
 			FirstWeekOdds = "Day %d of your first week",
+			-- The invite cue (economy v6: the Candy Cane Cue, Config.Social.InviteCue): its
+			-- card's chip and its line.
+			InviteChip = "Invite",
+			InviteOdds = "Invite a friend who wins a match",
 			Joined = "%s · %s", -- the chance and how many exist: "4.2% chance · 1,284 exist"
 			SellSome = "Sell", -- opens the count chooser (any copy, the last one too)
 			SellCount = "Sell %s for %s", -- the count and the money: "Sell 3 for $360"
@@ -997,9 +1009,18 @@ return {
 		-- The Gift's fall from the sky (GiftDrop): the line in the cutscene's bottom bar while it
 		-- falls (designer, 2026-10-10), then the title and the line under it after the crash.
 		GiftWonder = "Wait... what is this?",
-		GiftTitle = "A GIFT FELL FROM THE SKY!",
-		GiftSub = "Pick it up!",
 		GiftPickUp = "Pick up",
+		-- Each falling kind's title and the line under it (GiftDrop: the Gift and, economy v6,
+		-- the Sky Lucky Block).
+		Drops = {
+			Gift = { Title = "A GIFT FELL FROM THE SKY!", Sub = "Pick it up!" },
+			Sky = { Title = "A LUCKY BLOCK FELL FROM THE SKY!", Sub = "Pick it up!" },
+		},
+		-- The Sky Lucky Block's banner at the top (economy v6; SkyBanner): the time left
+		-- ("12:34"), before the day's first finished match, and once today's has fallen.
+		SkyNext = "Next Sky Lucky Block in %s",
+		SkyNeedsMatch = "Finish a match to start the Sky Lucky Block timer",
+		SkyDone = "Sky Lucky Block: come back tomorrow!",
 		-- The kinds' short names (the Mystery block's odds list).
 		Short = {
 			Standard = "Standard",
@@ -1019,6 +1040,8 @@ return {
 		SkipUnavailable = "Timer skips are unavailable right now. You can still wait for the timer.",
 		Open = "Open", -- the prompt over a thrown block
 		YouGot = "YOU GOT %s!", -- the result card: the cue's name
+		-- A duplicate Common or Uncommon paid as its sell money instead of a copy (economy v6).
+		Duplicate = "Duplicate · +%s",
 		Continue = "Tap to continue",
 		ContinuePad = "Press A to continue",
 		ContinueMouse = "Click to continue",
@@ -1206,7 +1229,7 @@ return {
 		HeroBlock = "+%d %s",
 		-- Under the tiles. The first week: any 7 login days within 14 days of joining; day 7's
 		-- prize only for 7 days in a row (2026-10-10), else Config.Daily.FirstWeekMissed.
-		InRowCue = "Claim 7 days in a row to win the %s!", -- day 7's cue: "Week One Cue"
+		InRowCue = "Claim 7 days in a row to win the %s!", -- day 7's cue: "Chroma Cue"
 		InRowLine = "Claim 7 days in a row to win %s!", -- day 7's prize: "a Rare Lucky Block"
 		MissedLine = "You missed a day, so day 7 is now %s · %d days left", -- "an Epic Lucky Block"
 		MissedLast = "You missed a day, so day 7 is now %s · last day!",
@@ -1245,8 +1268,9 @@ return {
 		HeroHead = "Reward:", -- over the list of what it gives (designer, 2026-10-09)
 		Bullet = "•", -- before each thing it gives
 		NotMember = "Join the group first, then press Claim.",
-		-- The invite card. The inviter's own block comes once ever (Config.Social.InviterOnce).
+		-- The invite card. The inviter's own cue comes once ever (Config.Social.InviterOnce).
 		InviteTitle = "Invite a friend",
+		InviteCue = "the %s", -- the invite cue in those lines ("the Candy Cane Cue"; economy v6)
 		InviteBoth = "When they win their first match, you both get %s!",
 		InviteThem = "When they win their first match, they get %s!",
 		Joined = "%d friends joined",
@@ -1332,6 +1356,9 @@ return {
 			Busy = "They are already trading",
 			NoInvite = "That invite ran out",
 			NoSession = "This trade is over",
+			-- The trade gate (economy v6: Config.Trade.MinWins real wins; %d is that number).
+			NeedWins = "Win %d matches to unlock trading",
+			TheyNeedWins = "They need %d wins to trade",
 			Full = "You asked for enough already",
 			TooFast = "Slow down a little",
 			Default = "That didn't work. Try again",
@@ -1393,7 +1420,7 @@ return {
 		FirstReyes = "%s is the first player ever to reach Reyes!",
 		-- A cue new to your Index (not from a block), and its finder's money: the cue's name,
 		-- then "$500".
-		Found = "New in your Index: %s! +%s",
+		Found = "New in your Index: %s! Collect +%s in the Index", -- economy v6: claimed there
 		FoundNoMoney = "New in your Index: %s!",
 		-- An ability spin landing a Legendary (this server) or a Mythic (every server): the
 		-- username, then the ability's name (in its rarity colour).
@@ -1845,15 +1872,16 @@ return {
 			Touch = "Close Rank!",
 			Gamepad = "Press {B} to close Rank!",
 		},
+		-- Economy v6: the first win's Mystery block, next to Bronze's Uncommon block.
 		Mystery = {
-			Mouse = "Click your lucky block!",
-			Touch = "Tap your lucky block!",
-			Gamepad = "Press {LB}{RB} to pick your lucky block!",
+			Mouse = "Click your Mystery block!",
+			Touch = "Tap your Mystery block!",
+			Gamepad = "Press {LB}{RB} to pick your Mystery block!",
 		},
 		-- A controller picked it with LB / RB (only a controller gets here).
 		MysteryOpen = {
-			Mouse = "Click your lucky block!",
-			Touch = "Tap your lucky block!",
+			Mouse = "Click your Mystery block!",
+			Touch = "Tap your Mystery block!",
 			Gamepad = "Press {R2} to open it!",
 		},
 		MysteryPress = {
@@ -1862,6 +1890,12 @@ return {
 			Gamepad = "Press {A} to upgrade it!",
 		},
 		PlaceBig = "Place it!",
+		-- Pick the block the Mystery became in the hotbar.
+		PlacePick = {
+			Mouse = "Click your lucky block!",
+			Touch = "Tap your lucky block!",
+			Gamepad = "Press {LB}{RB} to pick your lucky block!",
+		},
 		Place = {
 			Mouse = "Click the ground to place it!",
 			Touch = "Tap the ground to place it!",
@@ -1922,7 +1956,7 @@ return {
 		Quest = "Win a Match %d/%d",
 		QuestDone = "Done!",
 		InviteTitle = "Invite a friend?",
-		InviteBody = "You both get a free %s!", -- the block ("Rare Lucky Block": Config.Social.InviteBlock)
+		InviteBody = "You both get the %s!", -- the cue ("Candy Cane Cue": Config.Social.InviteCue)
 		InviteWhen = "You get it when your friend wins their first match.",
 		InviteButton = "Invite",
 		New = "!", -- an icon's click-once badge

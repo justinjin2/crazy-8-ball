@@ -397,7 +397,8 @@ return {
 		H.expect(G.Scale > 0 and G.StrictScale > 0, "scales")
 		H.expect(G.StrictFloor > 0 and G.StrictFloor <= G.Floor and G.Floor <= 1, "floors")
 		H.expect(G.Max >= 1 and G.LossMax >= 0 and G.LossMax <= G.Max, "Max and LossMax")
-		H.expect(R.PcXp.High > 0 and R.PcXp.High <= R.PcXp.Low and R.PcXp.Low <= 1, "PcXp")
+		-- Practice against PC gives no XP (economy v6).
+		H.expect(R.PcXp.High == 0 and R.PcXp.Low == 0, "PcXp")
 		local B = R.Boosts
 		H.expect(B.Streak >= 0, "Boosts.Streak")
 		-- XP comes only from skill (2026-10-02): no Rookie, VIP or first-win boost.
@@ -426,16 +427,16 @@ return {
 		local Config = H.require("Config")
 		local E = Config.Economy
 		H.expect(E.BallPay > 0 and E.WinBonus > E.LossBonus and E.LossBonus > 0, "bonuses")
-		H.expect(E.PcWinBonus > E.PcLossBonus and E.PcLossBonus > 0, "PC bonuses")
-		H.expect(E.PcWinBonus < E.WinBonus, "PC pays less than people")
+		-- Practice against PC pays no match bonus (economy v6).
+		H.expect(E.PcWinBonus == 0 and E.PcLossBonus == 0, "PC bonuses")
+		H.expect(E.PcDropsPerDay == 0, "PC moves no win track")
 		for _, kind in { "Bank", "Kick", "Combo", "Carom" } do
 			H.expect((E.NiceShotPay :: any)[kind] > 0, "NiceShotPay." .. kind)
 		end
 		H.expect(E.WinBonusGapFloor > 0 and E.WinBonusGapFloor <= 1, "WinBonusGapFloor")
-		for _, share in { E.SoloShare, E.PcAfterCapShare } do
-			H.expect(share > 0 and share <= 1, "a share is in (0, 1]")
-		end
-		H.expect(E.SoloDailyCap > 0 and E.PcDailyCap > 0 and E.ShortDailyCap > 0, "caps")
+		H.expect(E.SoloShare > 0 and E.SoloShare <= 1, "a share is in (0, 1]")
+		H.expect((E :: any).PcDailyCap == nil and (E :: any).PcAfterCapShare == nil, "one cap")
+		H.expect(E.SoloDailyCap > 0 and E.ShortDailyCap > 0, "caps")
 		H.expect(E.SoloAfterCapPay >= 1 and E.ShortAfterCapPay >= 1, "never zero a ball")
 		H.expect(E.VipBoost >= 0 and E.PartyBoost >= 0, "boosts")
 		H.expect(E.StreakBonus > 0 and E.StreakFrom >= 1, "streak")

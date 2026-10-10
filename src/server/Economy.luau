@@ -198,8 +198,13 @@ local function payOne(e: any, player: Player, team: number, isShooter: boolean, 
 		reason = j.reason,
 		opponent = kind,
 		isShooter = isShooter,
-		soloEarnedToday = if kind == "Solo" then PlayerData.dailyMoney(player, "Solo") else 0,
-		pcEarnedToday = if kind == "PC" then PlayerData.dailyMoney(player, "Pc") else 0,
+		-- Solo and PC share one daily cap (economy v6): both totals count for either.
+		soloEarnedToday = if kind == "Solo" or kind == "PC"
+			then PlayerData.dailyMoney(player, "Solo")
+			else 0,
+		pcEarnedToday = if kind == "Solo" or kind == "PC"
+			then PlayerData.dailyMoney(player, "Pc")
+			else 0,
 		shortCapped = kind ~= "Solo"
 			and Settle.shortCapped(PlayerData.dailyMoney(player, "Short"), sinceBreak),
 		boost = Economy.boost(player),

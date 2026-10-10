@@ -112,6 +112,7 @@ local REMOTES: { [string]: string } = {
 	--   "EquipCue" (cueId) -> { cueId }
 	--   "MarkSeen" ({ cueId } at most Config.Items.MarkSeenMax) -> { cleared }
 	--   "ClaimIndexRow" (rarity) -> { rarity, money }
+	--   "ClaimIndexFinds" () -> { money }: every finder's money waiting (economy v6)
 	--   "BuyLimited" (cueId: a money-priced Limited shelf row) -> { cueId, copy, price }
 	--   "BuyBlocks" (dealId: a Config.Shop.Deals key, count: a count it sells) -> { dealId,
 	--     kind, count, price } (the lucky blocks land paid origin: a climbing kind unclimbed,
@@ -403,6 +404,12 @@ local REMOTES: { [string]: string } = {
 	-- tutorial earns the Gift; the server decides), or (no arguments) "picked it up", answered
 	-- back on the same event with { picked = true } or { picked = false, reason }.
 	GiftDrop = "RemoteEvent",
+	-- The Sky Lucky Block (economy v6; SkyDropService, client GiftDrop and SkyBanner): server ->
+	-- one player { at = CFrame } (it falls there, the Gift's cutscene), { picked, reason? }
+	-- (the pick up's answer) or { sky = { left, today, perDay, needsMatch } } (the banner's
+	-- clock: `left` seconds of active play to the next one); client -> server: (no arguments)
+	-- "picked it up", or { active = true } (an input lately: the clock runs).
+	SkyDrop = "RemoteEvent",
 }
 
 -- Values per table in an AimBroadcast batch.

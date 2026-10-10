@@ -371,6 +371,13 @@ local function loaded(player: Player): boolean
 	return PlayerData.isLoaded(player) and not PlayerData.isHandedOff(player)
 end
 
+-- The trade gate (economy v6, designer 2026-10-10: Config.Trade.MinWins real wins): whether
+-- the player has enough wins to trade.
+local function hasWins(player: Player): boolean
+	local progress = PlayerData.progress(player)
+	return progress ~= nil and (progress.Wins or 0) >= T.MinWins
+end
+
 local function onRequest(player: Player, action: any, arg: any): Reply
 	local now = os.clock()
 	local bucket = buckets[player]
@@ -396,6 +403,10 @@ local function onRequest(player: Player, action: any, arg: any): Reply
 			return refused("NotHere")
 		elseif target == player then
 			return refused("Self")
+		elseif not hasWins(player) then
+			return refused("NeedWins")
+		elseif not hasWins(target) then
+			return refused("TheyNeedWins")
 		elseif session ~= nil or sessions[target] ~= nil then
 			return refused("Busy")
 		end
@@ -421,6 +432,10 @@ local function onRequest(player: Player, action: any, arg: any): Reply
 		end
 		if from.Parent ~= Players or not loaded(from) then
 			return refused("NotHere")
+		elseif not hasWins(player) then
+			return refused("NeedWins")
+		elseif not hasWins(from) then
+			return refused("TheyNeedWins")
 		elseif session ~= nil or sessions[from] ~= nil then
 			return refused("Busy")
 		end

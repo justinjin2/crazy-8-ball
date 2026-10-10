@@ -27,6 +27,7 @@ local UserInputService = game:GetService("UserInputService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TextService = game:GetService("TextService")
 local GuiService = game:GetService("GuiService")
+local Players = game:GetService("Players")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
@@ -161,7 +162,7 @@ local function copyLine(row: any): string
 		else ""
 end
 
--- The first week's day that gives cue `id` (the Week One Cue: 7), else nil.
+-- The first week's day that gives cue `id` (the Chroma Cue: 7), else nil.
 local function firstWeekDay(id: string): number?
 	for day, row in Config.Daily.FirstWeek do
 		if row.Cues and table.find(row.Cues, id) then
@@ -189,7 +190,7 @@ end
 
 --- A cue's chance chip on its card (concept 1, 2026-10-08): its rarity's chance per Mystery
 --- block ("4.2%"), a Unique cue's chance in the Grand Opening block, the first week's day for
---- a login cue ("Day 7": the Week One Cue), nil for a cue no block drops (Ranked, Exclusive,
+--- a login cue ("Day 7": the Chroma Cue), nil for a cue no block drops (Ranked, Exclusive,
 --- Classic).
 function InventoryCues.chanceText(id: string): string?
 	local cue = Catalog.get(id)
@@ -198,6 +199,8 @@ function InventoryCues.chanceText(id: string): string?
 		return nil
 	elseif day then
 		return WORDS.FirstWeekChip:format(day)
+	elseif id == Config.Social.InviteCue then
+		return WORDS.InviteChip
 	elseif cue.Group == "Unique" then
 		for _, row in BlockOdds.uniqueRows("GrandOpening") do
 			if row.cue == id then
@@ -205,7 +208,7 @@ function InventoryCues.chanceText(id: string): string?
 			end
 		end
 		return nil
-	elseif cue.Group ~= "Block" then
+	elseif cue.Group ~= "Block" or #cue.Blocks == 0 then
 		return nil
 	end
 	return percentWords(cue.Rarity)
@@ -218,11 +221,13 @@ function InventoryCues.oddsLine(id: string): string?
 	local day = firstWeekDay(id)
 	if cue and day then
 		return WORDS.FirstWeekOdds:format(day)
+	elseif cue and id == Config.Social.InviteCue then
+		return WORDS.InviteOdds
 	elseif
 		not cue
 		or cue.Group == "Exclusive"
 		or cue.Group == "Unique"
-		or (cue.Group == "Block" and #cue.Blocks == 0) -- in no block (the Week One Cue)
+		or (cue.Group == "Block" and #cue.Blocks == 0) -- in no block (a reward cue)
 	then
 		return nil
 	end
@@ -787,13 +792,15 @@ function InventoryCues.redraw(self: any, items: any)
 		self.slots[index] = nil
 	end
 	self.order = order
-	-- The tutorial's Equip step points at the cue its block gave (Config.Tutorial.TutorialCue),
-	-- else at the first card that is not the equipped cue.
+	-- The tutorial's Equip step points at the cue its block gave (the server's TutorialNewCue
+	-- attribute; economy v6: a real roll, so any cue), else at the first card that is not the
+	-- equipped cue.
+	local newCue = Players.LocalPlayer:GetAttribute("TutorialNewCue")
 	local unequipped: GuiObject? = nil
 	for index, id in order do
-		if id ~= items.equipped and (unequipped == nil or id == Config.Tutorial.TutorialCue) then
+		if id ~= items.equipped and (unequipped == nil or id == newCue) then
 			unequipped = self.slots[index].button
-			if id == Config.Tutorial.TutorialCue then
+			if id == newCue then
 				break
 			end
 		end

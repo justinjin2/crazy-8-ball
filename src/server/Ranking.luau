@@ -382,8 +382,8 @@ local function settleOne(m: Match, entry: Entry, paid: Paid)
 	local streakAfter =
 		Ranks.nextStreak(data.Stats.WinStreak, outcome, real and Settle.streakCounts(m.e))
 
-	-- Rank XP and the rank-up rewards (ECONOMY 4).
-	if real then
+	-- Rank XP and the rank-up rewards (ECONOMY 4). Practice against PC gives none (economy v6).
+	if real and kind ~= "PC" then
 		-- No streak boost from a win against a bot of any kind (Settle.streakCounts).
 		local flags = Settle.boosts({
 			won = won,
@@ -423,7 +423,6 @@ local function settleOne(m: Match, entry: Entry, paid: Paid)
 		gap = Ranks.gapFactor(myIndex, entry.opponentIndex),
 		boost = boost,
 		farm = farm.Bonus,
-		pcCapped = pc and PlayerData.dailyMoney(p, "Pc") >= E.PcDailyCap,
 	})
 	if bonus > 0 and PlayerData.addMoney(p, bonus, "MatchBonus", if pc then "Pc" else nil) then
 		paid.bonus = bonus
@@ -477,7 +476,11 @@ local function settleOne(m: Match, entry: Entry, paid: Paid)
 			end
 		end
 	end
-	PlayerData.recordRealMatch(p, outcome == "Win", entry.opponents)
+	-- Practice against PC is no real match (economy v6): it opens no login day, Sky block or
+	-- trade gate.
+	if kind ~= "PC" then
+		PlayerData.recordRealMatch(p, outcome == "Win", entry.opponents)
+	end
 end
 
 local function settle(e: any)

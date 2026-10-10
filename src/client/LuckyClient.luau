@@ -416,6 +416,10 @@ function nextReveal()
 			if type(reward.glimpse) == "string" then reward.glimpse else nil
 		)
 	end
+	-- A duplicate Common or Uncommon paid as money (economy v6).
+	if type(reward.dupMoney) == "number" and reward.dupMoney > 0 then
+		opening:setDuplicate(math.floor(reward.dupMoney))
+	end
 end
 
 -- A block kind that can drop a cue of `rarity`, and that cue (the kind named after the rarity

@@ -184,10 +184,11 @@ return {
 		H.expect(Settle.dropContext(facts({ trackToday = 0 / 0 })).trackToday == 0, "bad: 0")
 	end,
 
-	["dropContext: the first win ever is the Rare block, under the same anti-farm rules"] = function()
+	-- Economy v6 (2026-10-10): no FirstWin block; the first win ever is the track's first step.
+	["dropContext: the first win ever is the track's first step, under the same anti-farm rules"] = function()
 		local Settle, BlockDrop = load()
 		local first = facts({ firstWinDue = true })
-		H.expect(dropOf(BlockDrop, Settle.dropContext(first)) == "Rare", "first win")
+		H.expect(dropOf(BlockDrop, Settle.dropContext(first)) == "Mystery", "first win")
 		-- A fresh loser (4 real matches) feeds nothing, not even the first win's block.
 		first.losers = { { realMatches = 4, dropsToday = 0 } }
 		H.expect(dropOf(BlockDrop, Settle.dropContext(first)) == nil, "fresh loser")
@@ -227,20 +228,17 @@ return {
 		H.expect(dropOf(BlockDrop, capped) == nil, "one loser already gave 3 today")
 	end,
 
-	["dropContext: a PC win has no account rules, and Play against PC 10 drops a day"] = function()
+	["dropContext: a PC win has no account rules; Play against PC drops nothing (economy v6)"] = function()
 		local Settle, BlockDrop = load()
 		local pc = Settle.dropContext(facts({ pc = true, farmAllows = false, losers = {} }))
 		H.expect(pc.farmAllows and pc.dropsFromOpponentToday == 0, "no account to farm")
 		H.expect(pc.loserRealMatches >= 5, "the loser rule is met")
 		H.expect(dropOf(BlockDrop, pc) == "Drop", "a bot or PC win")
-		local tenth = Settle.dropContext(
-			facts({ pc = true, losers = {}, pcLimited = true, pcDropsToday = 9 })
+		-- PcDropsPerDay 0: Play against PC is practice, its wins move no track.
+		local first = Settle.dropContext(
+			facts({ pc = true, losers = {}, pcLimited = true, pcDropsToday = 0 })
 		)
-		H.expect(tenth.pcLimited and dropOf(BlockDrop, tenth) == "Drop", "the 10th PC drop today")
-		local eleventh = Settle.dropContext(
-			facts({ pc = true, losers = {}, pcLimited = true, pcDropsToday = 10 })
-		)
-		H.expect(dropOf(BlockDrop, eleventh) == nil, "the 11th: none")
+		H.expect(first.pcLimited and dropOf(BlockDrop, first) == nil, "Play against PC: none")
 		local bad = Settle.dropContext(facts({ pcLimited = true, pcDropsToday = 0 / 0 }))
 		H.expect(bad.pcDropsToday == 0, "a bad count reads as 0")
 	end,

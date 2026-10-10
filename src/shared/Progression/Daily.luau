@@ -16,7 +16,7 @@
 --
 -- A reward is always { money = n, blocks = { [kind] = count }, spins = n, lucky = n } (0 and
 -- empty when there is none), plus `cues` (cue ids, in the row's order; economy v5: the first
--- week's day 7 gives the Week One Cue, only to a first week claimed on 7 days in a row since
+-- week's day 7 gives the Chroma Cue, only to a first week claimed on 7 days in a row since
 -- 2026-10-10, else Config.Daily.FirstWeekMissed); Daily.blockList lists its lucky blocks in
 -- Config.LuckyBlocks.Order. `spins` and `lucky` are ability spins and Lucky Spins. The
 -- approved economy plan (2026-10-02, section 6; cases retired for blocks 2026-10-04).

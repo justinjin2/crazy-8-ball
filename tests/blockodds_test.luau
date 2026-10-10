@@ -1,5 +1,5 @@
 --!strict
--- BlockOdds (Progression/BlockOdds): the odds rows the lucky blocks roll (economy v5 plan,
+-- BlockOdds (Progression/BlockOdds): the odds rows the lucky blocks roll (economy v5/v6,
 -- 2026-10-09: a climbed block gives exactly its tier's rarity; the Grand Opening and Starter
 -- tables stay), per-cue odds, seeded rolls, the guarantee, vaulting, sell-back values (ECONOMY
 -- 8) and announcements.
@@ -32,15 +32,15 @@ local MIN_RARITY = {
 	Starter = "Rare",
 }
 
--- ECONOMY 8: sell-back per copy.
+-- Sell-back per copy (economy v6, 2026-10-10).
 local SELL = {
-	Common = 150,
-	Uncommon = 400,
-	Rare = 1500,
-	Epic = 25000,
-	Legendary = 250000,
-	Mythic = 2500000,
-	Secret = 25000000,
+	Common = 200,
+	Uncommon = 500,
+	Rare = 2000,
+	Epic = 10000,
+	Legendary = 100000,
+	Mythic = 1000000,
+	Secret = 10000000,
 }
 
 -- A seeded xorshift32: rng(n) -> a whole number in 1..n, the same sequence every run.
@@ -166,9 +166,12 @@ return {
 		local full = BlockOdds.cueOdds("GrandOpening", nil, true)
 		H.expect(#full == #plain + 2, "the two Unique rows follow")
 		H.expect(full[#full - 1].id == "BetaCue" and full[#full].id == "FireworkCue", "sorted ids")
-		H.expect(full[#full].rarity == "Unique" and full[#full].display == "6%", "Firework 6%")
+		H.expect(
+			full[#full].rarity == "Unique" and full[#full].display == "3.5%",
+			"Firework 3.5%: " .. full[#full].display
+		)
 		H.near(sum(full), 100, 1e-9, "the whole pool adds to 100")
-		H.near(sum(plain), 100 - 6.4, 1e-9, "the rarities alone leave the Uniques out")
+		H.near(sum(plain), 100 - 3.7, 1e-9, "the rarities alone leave the Uniques out")
 		-- A closed row is left out (its share rolls as Rare).
 		local closed = BlockOdds.cueOdds("GrandOpening", { BetaCue = true }, true)
 		H.expect(#closed == #full - 1, "a closed Unique is not shown")
@@ -301,11 +304,15 @@ return {
 			end
 			H.near(total, 100, 1e-9, case.Id .. " total")
 		end
-		-- A climbed Legendary block: each of the 7 Legendaries is 100/7%, nothing else.
-		for _, entry in BlockOdds.cueOdds("Legendary") do
+		-- A climbed Legendary block: each of the 6 dropping Legendaries is 100/6% (the Chroma Cue
+		-- is a reward cue since economy v6), nothing else.
+		local legendaries = BlockOdds.cueOdds("Legendary")
+		H.expect(#legendaries == 6, "6 Legendaries drop")
+		for _, entry in legendaries do
 			H.expect(entry.rarity == "Legendary", entry.id .. " is " .. entry.rarity)
-			H.near(entry.percent, 100 / 7, 1e-9, entry.id)
-			H.expect(entry.display == "14%", entry.id .. " shows " .. entry.display)
+			H.expect(entry.id ~= "ChromaCue", "never the Chroma Cue")
+			H.near(entry.percent, 100 / 6, 1e-9, entry.id)
+			H.expect(entry.display == "17%", entry.id .. " shows " .. entry.display)
 		end
 		-- In the Starter row each of the 3 Mythics is 0.03%.
 		for _, entry in BlockOdds.cueOdds("Starter") do
@@ -501,13 +508,13 @@ return {
 	["the Grand Opening: 1,000 Firework and 100 Beta Cues ever; owned or all found reads as Rare"] = function()
 		local BlockOdds, _, Config = load()
 		local row = Config.BlockOdds.List.GrandOpening
-		H.expect(row.Odds.FireworkCue == 60000 and row.Odds.BetaCue == 4000, "6% and 0.4%")
+		H.expect(row.Odds.FireworkCue == 35000 and row.Odds.BetaCue == 2000, "3.5% and 0.2%")
 		H.expect(row.Odds.Uncommon == nil and BlockOdds.minRarity("GrandOpening") == "Rare", "")
 		local caps = BlockOdds.caps("GrandOpening")
 		H.expect(caps.FireworkCue == 1000 and caps.BetaCue == 100, "the caps")
 		H.expect(next(BlockOdds.caps("Rare")) == nil, "no caps elsewhere")
 		local G = Config.LuckyBlocks.Kinds.GrandOpening.Guarantee
-		H.expect(G.Cue == "BetaCue" and G.At == 1000, "the 1,000th block's Beta Cue")
+		H.expect(G.Cue == "BetaCue" and G.At == 500, "the 500th block's Beta Cue")
 		-- Nobody owns one and copies are left: nothing closed, the row as Config says.
 		local none = BlockOdds.closedFor("GrandOpening", function()
 			return false
@@ -515,7 +522,7 @@ return {
 			return 5
 		end)
 		H.expect(next(none) == nil, "open")
-		H.expect(BlockOdds.rowFor("GrandOpening", none).Odds.Rare == 818400, "unchanged")
+		H.expect(BlockOdds.rowFor("GrandOpening", none).Odds.Rare == 858750, "unchanged")
 		-- The Beta Cue all found, the Firework Cue owned: both shares go to Rare.
 		local closed = BlockOdds.closedFor("GrandOpening", function(cue)
 			return cue == "FireworkCue"
@@ -524,9 +531,9 @@ return {
 		end)
 		H.expect(closed.BetaCue and closed.FireworkCue, "both closed")
 		local mine = BlockOdds.rowFor("GrandOpening", closed) :: any
-		H.expect(mine.Odds.Rare == 818400 + 60000 + 4000, "the shares moved to Rare")
+		H.expect(mine.Odds.Rare == 858750 + 35000 + 2000, "the shares moved to Rare")
 		H.expect(mine.Odds.FireworkCue == nil and mine.Odds.BetaCue == nil, "")
-		H.expect(Config.BlockOdds.List.GrandOpening.Odds.BetaCue == 4000, "Config untouched")
+		H.expect(Config.BlockOdds.List.GrandOpening.Odds.BetaCue == 2000, "Config untouched")
 		H.expect(#BlockOdds.uniqueRows("GrandOpening", closed) == 0, "no Unique rows shown")
 		local total = 0
 		for _, entry in BlockOdds.odds("GrandOpening", closed) do

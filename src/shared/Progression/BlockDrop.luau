@@ -692,8 +692,9 @@ function BlockDrop.validate(): { string }
 			problem(("Climb.Luck.Steps.%s is not a whole part of OddsTotal"):format(tier))
 		end
 	end
-	if whole(CL.Luck.Seconds) <= 0 then
-		problem("Climb.Luck.Seconds must be above 0")
+	-- 0 is allowed: the luck is off (economy v6 removed it).
+	if type(CL.Luck.Seconds) ~= "number" or CL.Luck.Seconds < 0 then
+		problem("Climb.Luck.Seconds must be 0 (off) or more")
 	end
 	if D.PityRare < 1 or D.PityEpic < 1 then
 		problem("Drop pity limits must be at least 1")
@@ -708,7 +709,7 @@ function BlockDrop.validate(): { string }
 		problem("Drop.PityStart must be whole counts under the pity limits")
 	end
 	local kinds: { [string]: any } = Config.LuckyBlocks.Kinds :: any
-	if kinds[D.FirstWin] == nil then
+	if D.FirstWin ~= nil and kinds[D.FirstWin] == nil then
 		problem(("Drop.FirstWin %s is not a lucky block"):format(tostring(D.FirstWin)))
 	end
 	local money = false
@@ -763,14 +764,15 @@ function BlockDrop.trackMoney(): number
 	return whole(D.WinTrackMoney)
 end
 
---- What a win that moves the track gives: the first win ever's FirstWin block, else the next
---- step (`trackToday` steps given today): a block kind or BlockDrop.Money. nil past the track.
+--- What a win that moves the track gives: the first win ever's FirstWin block (when one is
+--- set; none since economy v6), else the next step (`trackToday` steps given today): a block
+--- kind or BlockDrop.Money. nil past the track.
 function BlockDrop.winKind(trackToday: number, firstWinEver: boolean): string?
 	local step = whole(trackToday) + 1
 	if step > #WIN_TRACK then
 		return nil
 	end
-	return if firstWinEver then D.FirstWin else WIN_TRACK[step]
+	return if firstWinEver and D.FirstWin ~= nil then D.FirstWin else WIN_TRACK[step]
 end
 
 --- Whether this win moves the day's win track (and gives its step), and that step (the first

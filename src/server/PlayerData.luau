@@ -44,6 +44,7 @@ local Restock = require(Shared.Progression.Restock)
 local Inventory = require(Shared.Progression.Inventory)
 local LuckyBlocks = require(Shared.Progression.LuckyBlocks)
 local Daily = require(Shared.Progression.Daily)
+local SkyBlock = require(Shared.Progression.SkyBlock)
 local Social = require(Shared.Progression.Social)
 local Trade = require(Shared.Progression.Trade)
 local Settle = require(Shared.Progression.Settle)
@@ -83,7 +84,7 @@ export type Find = { cue: string, money: number }
 --- PlayerData.progress: the match counts the settle needs.
 export type Progress = {
 	RealMatches: number, -- real matches played (Config.Economy.DropLoserMinMatches)
-	Wins: number, -- real wins ever, people or PC
+	Wins: number, -- real wins ever (never practice against PC since economy v6; the trade gate)
 	FirstWinDue: boolean, -- the first win's Rare block was never given
 }
 
@@ -206,7 +207,8 @@ PlayerData.BlocksGiven = blockEvent.Event
 local pendingInvite: { [any]: number } = setmetatable({}, { __mode = "k" }) :: any
 local inviteEvent = Instance.new("BindableEvent")
 --- (player, inviterId) Fires after an invited, brand-new player's first win gave them their
---- invite block (Config.Social.InviteBlock); src/server/Social.luau then queues the inviter's.
+--- invite cue (Config.Social.InviteCue, economy v6); src/server/Social.luau then counts it in
+--- the copies in existence and queues the inviter's.
 PlayerData.InviteWon = inviteEvent.Event
 
 -- The Store's VIP attribute on the player (VIP has no lucky block timers:
@@ -466,13 +468,12 @@ local function giveBlocksTo(
 	return readyAt
 end
 
--- A cue just entered the save's Index for the first time: pay its finder's money (earned;
--- Config.Index.FindMoney) and note it for commit. Returns the money.
+-- A cue just entered the save's Index for the first time: its finder's money (earned;
+-- Config.Index.FindMoney) waits to be claimed in the Index (economy v6: never paid at once;
+-- PlayerData.claimIndexFinds) and the find is noted for commit. Returns the money.
 local function payFind(data: any, id: string): number
 	local money = Inventory.findMoney(id)
-	if money > 0 then
-		addMoneyTo(data, money, true, "Find")
-	end
+	Inventory.addFind(data, id)
 	local finds = pendingFinds[data]
 	if finds == nil then
 		finds = {}
@@ -1261,7 +1262,7 @@ function PlayerData.progress(player: Player): Progress?
 	local progress: Progress = {
 		RealMatches = data.Progress.RealMatches,
 		Wins = data.Progress.Wins,
-		FirstWinDue = data.Flags[FIRST_WIN_FLAG] ~= true,
+		FirstWinDue = Config.BlockOdds.Drop.FirstWin ~= nil and data.Flags[FIRST_WIN_FLAG] ~= true,
 	}
 	return table.freeze(progress)
 end
@@ -1442,7 +1443,7 @@ end
 --- day's win track): the next step's block (Config.BlockOdds.Drop.WinTrack) landing in the
 --- hotbar unclimbed, free origin, or a money step's Drop.WinTrackMoney (earned, never boosted),
 --- and the step counted (Daily.Track), in one change. `firstWin` asks for the first win's
---- block (Config.BlockOdds.Drop.FirstWin: a Rare block) and marks it given; once given before,
+--- block (Config.BlockOdds.Drop.FirstWin: none since economy v6) and marks it given; once given before,
 --- the win gives the step as usual. Returns { kind, readyAt } for a block (readyAt unix, 0 =
 --- ready now) or { money, readyAt = 0 } for a money step, or nil when the save is not loaded,
 --- the day's track is done or the hotbar is full (the step is then not used up).
@@ -1457,7 +1458,9 @@ function PlayerData.winBlock(player: Player, firstWin: boolean?): WinBlock?
 		return nil
 	end
 	rollover(data)
-	local due = firstWin == true and data.Flags[FIRST_WIN_FLAG] ~= true
+	local due = firstWin == true
+		and Config.BlockOdds.Drop.FirstWin ~= nil
+		and data.Flags[FIRST_WIN_FLAG] ~= true
 	local kind = BlockDrop.winKind(data.Daily.Track, due)
 	if kind == nil then
 		return nil
@@ -1653,11 +1656,12 @@ function PlayerData.recordMatch(player: Player, outcome: string, opponent: strin
 	stats.WinStreak = math.min(Ranks.nextStreak(stats.WinStreak, outcome, counts), S.StatCap)
 	stats.BestWinStreak = math.max(stats.BestWinStreak, stats.WinStreak)
 	-- An invited player's first win (any match that is not solo: solo records none) gives
-	-- them their invite block; the inviter's follows (InviteWon, src/server/Social.luau).
+	-- them their invite cue (economy v6: the Candy Cane Cue); the inviter's follows
+	-- (InviteWon, src/server/Social.luau).
 	local social = data.Social
 	if outcome == "Win" and social.InvitedBy > 0 and not social.InviteDone then
 		social.InviteDone = true
-		giveBlocksTo(data, Config.Social.InviteBlock, 1, false, vipOfSave[data] == true)
+		giveCue(data, Config.Social.InviteCue)
 		pendingInvite[data] = social.InvitedBy
 	end
 	commit(player, data, op)
@@ -2171,11 +2175,13 @@ end
 --- block), "NotLoaded", "Invalid". `stay` (the tutorial's game-1 block): a Standard block, no
 --- pity counted. `forced` (the tutorial's scripted first block): the block it turns into, pity
 --- still counted, ready at once; a tier it can't turn into is ignored (a normal roll, warned).
+--- `ready` (the tutorial's Mystery since economy v6): a normal roll, its block ready at once.
 function PlayerData.climbBlock(
 	player: Player,
 	id: number,
 	stay: boolean?,
-	forced: string?
+	forced: string?,
+	ready: boolean?
 ): (boolean, any)
 	local op = "climbBlock"
 	if not isPlayer(player) then
@@ -2222,7 +2228,7 @@ function PlayerData.climbBlock(
 	data.Drops.Total = math.min(after.Total, S.StatCap)
 	local turned =
 		LuckyBlocks.turn(data.LuckyBlocks, id, tier, now, waits, vipOfSave[data] == true) :: LuckyBlocks.Block
-	if scripted then
+	if scripted or ready == true then
 		turned.ReadyAt = now -- the tutorial's block: ready at once
 	end
 	commit(player, data, op)
@@ -2339,10 +2345,23 @@ function PlayerData.openLuckyBlock(
 	end
 	local _, place = LuckyBlocks.remove(data.LuckyBlocks, id)
 	LuckyBlocks.noteOpened(data.LuckyBlocks, block.Kind)
-	local first: boolean
+	-- A cue of a Config.BlockOdds.DuplicateToMoney rarity already held pays its sell money
+	-- instead of a copy (economy v6, designer 2026-10-10: "Duplicate · +$200"); its Index and
+	-- pity are as for any open.
+	local dupMoney = 0
+	if
+		not unique
+		and (Config.BlockOdds.DuplicateToMoney :: any)[cue.Rarity] == true
+		and Inventory.count(data, cueId) > 0
+	then
+		dupMoney = BlockOdds.sellValue(cueId)
+	end
+	local first = false
 	if unique then
 		local _, isFirst = Inventory.addUnique(data, cueId, copy :: number, block.Paid == true)
 		first = isFirst
+	elseif dupMoney > 0 then
+		addMoneyTo(data, dupMoney, false, "Duplicate")
 	else
 		local _, isFirst = Inventory.addCue(data, cueId, 1, block.Paid == true)
 		first = isFirst
@@ -2355,7 +2374,8 @@ function PlayerData.openLuckyBlock(
 		{
 			cue = cueId,
 			new = new,
-			duplicate = count > 1,
+			duplicate = count > 1 or dupMoney > 0,
+			dupMoney = dupMoney, -- > 0: no copy was added (the copies in existence stay)
 			count = count,
 			found = found,
 			tier = plan.tier,
@@ -2803,6 +2823,26 @@ function PlayerData.claimIndexRow(player: Player, rarity: string): (boolean, any
 	return true, { money = result.money }
 end
 
+--- Claims every finder's money waiting in the Index at once (economy v6; the Index's Collect).
+--- Answers (true, { money }) or (false, reason): "Nothing" (none waits), "NotLoaded".
+function PlayerData.claimIndexFinds(player: Player): (boolean, any)
+	local op = "claimIndexFinds"
+	if not isPlayer(player) then
+		return refuseInvalid(op, player, "not a player")
+	end
+	local data = liveData(op, player)
+	if data == nil then
+		return false, "NotLoaded"
+	end
+	local ok, result = Inventory.claimFinds(data)
+	if not ok then
+		return false, result
+	end
+	addMoneyTo(data, result.money, true, "Find")
+	commit(player, data, op)
+	return true, { money = result.money }
+end
+
 --- Dev (/clearinv): takes every cue but Classic and every lucky block, clears the NEW tags, equips
 --- Classic, and forgets the one-per-player guards of the cues it took (Shop.Limited,
 --- Shop.VipCueGiven), so buying a Limited and getting the VIP Cue can be tested again.
@@ -3156,9 +3196,10 @@ function PlayerData.setInvitedBy(player: Player, inviterId: number): boolean
 	return true
 end
 
---- Gives the inviter the invite block for each invitee in `inviteeIds` (their first wins),
---- up to Config.Social.InvitesPerMonth a UTC month (Social.inviteGrant); the rest are gone.
---- Returns how many were given (0 when not loaded).
+--- Gives the inviter the invite cue (Config.Social.InviteCue) for each invitee in
+--- `inviteeIds` (their first wins), up to Config.Social.InvitesPerMonth a UTC month
+--- (Social.inviteGrant) and once ever (Social.inviteOnce); the rest are gone. Returns how many
+--- were given (0 when not loaded); the caller counts them in the copies in existence.
 function PlayerData.giveInviteRewards(player: Player, inviteeIds: { number }): number
 	local op = "giveInviteRewards"
 	if not isPlayer(player) then
@@ -3177,12 +3218,17 @@ function PlayerData.giveInviteRewards(player: Player, inviteeIds: { number }): n
 	social.InviteMonth = month
 	social.Invites = math.min(invites, S.StatCap)
 	given = Social.inviteOnce(given, data.Flags[INVITER_FLAG] == true)
+	local landed = 0
 	if given > 0 then
-		giveBlocksTo(data, Config.Social.InviteBlock, given, false, vipOfSave[data] == true)
+		for _ = 1, given do
+			if giveCue(data, Config.Social.InviteCue) then
+				landed += 1
+			end
+		end
 		data.Flags[INVITER_FLAG] = true
 	end
 	commit(player, data, op)
-	return given
+	return landed
 end
 
 --- Claims the group's one-time reward (Config.Social.GroupReward) for a member (`member`:
@@ -3707,6 +3753,73 @@ function PlayerData.landGift(player: Player): boolean
 	return true
 end
 
+--- The Sky Lucky Block (economy v6; SkyDropService): adds `seconds` of active play to today's
+--- clock (rolled over first). True when that earned one (it now waits to fall). The clock's
+--- seconds ride in the save without a commit (they are saved with it); earning one commits.
+function PlayerData.skyAdd(player: Player, seconds: number): boolean
+	local op = "skyAdd"
+	if not isPlayer(player) or not intIn(seconds, 0, SECONDS_PER_DAY) then
+		return refuse(op, player, "bad arguments")
+	end
+	local data = liveData(op, player)
+	if data == nil then
+		return false
+	end
+	rollover(data)
+	if not SkyBlock.add(data.Daily, data.Flags, seconds) then
+		return false
+	end
+	commit(player, data, op)
+	return true
+end
+
+--- The Sky Lucky Block's banner (SkyBlock.view, today's), or nil when not loaded.
+function PlayerData.skyView(player: Player): SkyBlock.View?
+	local data = peek(player)
+	if data == nil then
+		return nil
+	end
+	return SkyBlock.view(dailyOf(data, today()), data.Flags) -- a stale day reads as fresh
+end
+
+--- Whether an earned Sky Lucky Block waits to fall (false when not loaded).
+function PlayerData.skyPending(player: Player): boolean
+	local data = peek(player)
+	return data ~= nil and data.Flags[SkyBlock.PendingFlag] == true
+end
+
+--- The Sky Lucky Block was picked up: it lands in the hotbar (free, on its kind's timer). False
+--- when none waits, the hotbar is full or not loaded.
+function PlayerData.landSky(player: Player): boolean
+	local op = "landSky"
+	if not isPlayer(player) then
+		return refuse(op, player, "not a player")
+	end
+	local data = liveData(op, player)
+	if data == nil then
+		return false
+	elseif data.Flags[SkyBlock.PendingFlag] ~= true then
+		return refuse(op, player, "no Sky block waiting")
+	elseif #data.LuckyBlocks.List >= Config.LuckyBlocks.MaxBlocks then
+		return refuse(op, player, "holds the most lucky blocks allowed")
+	end
+	giveBlocksTo(data, Config.SkyBlock.Kind, 1, false, vipOfSave[data] == true)
+	data.Flags[SkyBlock.PendingFlag] = nil
+	commit(player, data, op)
+	return true
+end
+
+--- /skydrop (the designer's test): a Sky block earned now, to fall at once.
+function PlayerData.devSky(player: Player): boolean
+	local data = liveData("devSky", player)
+	if data == nil then
+		return false
+	end
+	data.Flags[SkyBlock.PendingFlag] = true
+	commit(player, data, "devSky")
+	return true
+end
+
 --- /giftdrop (the designer's test): forgets the Gift entirely, so the next menu opening earns it
 --- again (`now`: earned at once instead, for an immediate drop).
 function PlayerData.resetGift(player: Player, now: boolean?): boolean
@@ -3755,12 +3868,21 @@ function PlayerData.claimRank(player: Player): RankClaim.Pending?
 	if reward == nil then
 		return nil
 	end
-	local why = badReward(reward)
+	local readyBlocks = reward.readyBlocks
+	reward.readyBlocks = nil
+	local why = badReward(reward) or badBlocks(readyBlocks)
 	if why ~= nil then
 		refuse(op, player, why)
 		return nil
 	end
 	giveReward(data, reward, "RankUp")
+	-- The tiers whose blocks come ready at once (Config.Tutorial.RankClaim.ReadyTiers).
+	for _, kind in Config.LuckyBlocks.Order do
+		local count = readyBlocks and readyBlocks[kind]
+		if count ~= nil and count > 0 then
+			giveBlocksTo(data, kind, count, false, vipOfSave[data] == true, true)
+		end
+	end
 	data.Flags.RankClaimed = data.PeakDivision
 	commit(player, data, op)
 	return pending

@@ -1,5 +1,5 @@
 --!strict
--- BlockDrop (Progression/BlockDrop): the climb (economy v5 plan, 2026-10-09, section 3): one
+-- BlockDrop (Progression/BlockDrop): the climb (economy v6's numbers, 2026-10-10): one
 -- ladder for every block, the Grand Opening Luck, the Mystery's roll into a block (v5.1) and its
 -- pity with the head start, every block's odds lists, the climb screen's path from any start, the "1 in N", and the daily
 -- win track with its money steps (section 4), and whether a win moves it at all (the anti-farm
@@ -11,45 +11,40 @@ local function load()
 	return H.require("Progression.BlockDrop"), H.require("Config")
 end
 
--- The plan's ladder (3.2) in parts of a million, and the launch's two steps.
+-- Economy v6's ladder (2026-10-10) in parts of a million. The Grand Opening Luck is off: its
+-- two steps are the plain ones (and its window is 0 seconds long).
 local STEPS = {
-	Standard = 500000,
-	Uncommon = 350000,
-	Rare = 180000,
-	Epic = 100000,
-	Legendary = 150000,
+	Standard = 400000,
+	Uncommon = 300000,
+	Rare = 100000,
+	Epic = 150000,
+	Legendary = 100000,
 	Mythic = 25000,
 }
-local LUCK = { Rare = 270000, Epic = 150000 }
+local LUCK = { Rare = 100000, Epic = 150000 }
 
 local RARITIES = { "Common", "Uncommon", "Rare", "Epic", "Legendary", "Mythic", "Secret" }
 
 -- The plan's tables 3.3 and 3.4: each block's rarities in percent, as the plan prints them (to
 -- 7 decimals at most, so within half a last digit; they are exact products of the steps).
 local PLAN = {
-	Standard = { 50, 32.5, 14.35, 2.835, 0.26775, 0.0460688, 0.00118125 },
-	Uncommon = { 0, 65, 28.7, 5.67, 0.5355, 0.0921375, 0.0023625 },
-	Rare = { 0, 0, 82, 16.2, 1.53, 0.26325, 0.00675 },
-	Epic = { 0, 0, 0, 90, 8.5, 1.4625, 0.0375 },
-	Legendary = { 0, 0, 0, 0, 85, 14.625, 0.375 },
+	Standard = { 60, 28, 10.8, 1.02, 0.162, 0.01755, 0.00045 },
+	Uncommon = { 0, 70, 27, 2.55, 0.405, 0.043875, 0.001125 },
+	Rare = { 0, 0, 90, 8.5, 1.35, 0.14625, 0.00375 },
+	Epic = { 0, 0, 0, 85, 13.5, 1.4625, 0.0375 },
+	Legendary = { 0, 0, 0, 0, 90, 9.75, 0.25 },
 	Mythic = { 0, 0, 0, 0, 0, 97.5, 2.5 },
 }
-local PLAN_LUCK = {
-	Standard = { 50, 32.5, 12.775, 4.01625, 0.6024375, 0.1036547, 0.0026578 },
-	Uncommon = { 0, 65, 25.55, 8.0325, 1.204875, 0.2073094, 0.0053156 },
-	Rare = { 0, 0, 73, 22.95, 3.4425, 0.5923125, 0.0151875 },
-	Epic = { 0, 0, 0, 85, 12.75, 2.19375, 0.05625 },
-	Legendary = { 0, 0, 0, 0, 85, 14.625, 0.375 },
-	Mythic = { 0, 0, 0, 0, 0, 97.5, 2.5 },
-}
--- The plan's "or better" table (3.3) as 1 in N, rounded as it prints them: Epic+, Legendary+,
+-- With the luck off its table is the plain one.
+local PLAN_LUCK = PLAN
+-- The "or better" table as 1 in N, rounded as the plan prints them: Epic+, Legendary+,
 -- Mythic+, the Secret.
 local ONE_IN = {
-	Standard = { 32, 317, 2116, 84656 },
-	Uncommon = { 16, 159, 1058, 42328 },
-	Rare = { 5.6, 56, 370, 14815 },
-	Epic = { 1, 10, 67, 2667 },
-	Legendary = { 1, 1, 6.7, 267 },
+	Standard = { 83, 556, 5556, 222222 },
+	Uncommon = { 33, 222, 2222, 88889 },
+	Rare = { 10, 67, 667, 26667 },
+	Epic = { 1, 6.7, 67, 2667 },
+	Legendary = { 1, 1, 10, 400 },
 	Mythic = { 1, 1, 1, 40 },
 }
 
@@ -141,8 +136,8 @@ return {
 			H.expect(BlockDrop.stepParts(tier, true) == (LUCK[tier] or parts), tier .. " luck")
 		end
 		H.expect(BlockDrop.stepParts("Secret") == 0, "nothing above the Secret")
-		H.expect(CL.Luck.Steps.Rare == 270000 and CL.Luck.Steps.Epic == 150000, "launch steps")
-		H.expect(CL.Luck.With == "GrandOpening" and CL.Luck.Seconds == 30 * 86400, "30 days")
+		H.expect(CL.Luck.Steps.Rare == 100000 and CL.Luck.Steps.Epic == 150000, "luck steps")
+		H.expect(CL.Luck.With == "GrandOpening" and CL.Luck.Seconds == 0, "the luck is off")
 		for i, tier in CL.Tiers do
 			H.expect(BlockDrop.rank(tier) == i, tier .. " rank")
 			H.expect(BlockDrop.rarityOf(tier) == RARITIES[i], tier .. " rarity")
@@ -150,7 +145,7 @@ return {
 		H.expect(BlockDrop.rank("Nope") == 0 and BlockDrop.rank(nil) == 0, "unknown")
 		H.expect(BlockDrop.isBlockTier("Mythic") and not BlockDrop.isBlockTier("Secret"), "blocks")
 		local D = Config.BlockOdds.Drop
-		H.expect(D.PityRare == 10 and D.PityEpic == 40 and D.FirstWin == "Rare", "pity, first")
+		H.expect(D.PityRare == 10 and D.PityEpic == 50 and D.FirstWin == nil, "pity, no first win")
 		H.expect(D.Upgrade.Clicks == 4, "four presses")
 		H.expect((D :: any).Weights == nil and (D.Upgrade :: any).Chances == nil, "v4's tables go")
 	end,
@@ -176,12 +171,11 @@ return {
 		end
 		-- The Mystery block's list is the Standard start's.
 		local mystery = BlockDrop.rarityOdds()
-		H.near(mystery[1].percent, 50, 1e-12, "Mystery Common")
-		H.near(mystery[7].percent, 0.00118125, 1e-15, "Mystery Secret")
-		H.expect(mystery[7].display == "0.001%", mystery[7].display)
+		H.near(mystery[1].percent, 60, 1e-12, "Mystery Common")
+		H.near(mystery[7].percent, 0.00045, 1e-15, "Mystery Secret")
 	end,
 
-	["the Grand Opening Luck's odds are the plan's table 3.4, exactly"] = function()
+	["the Grand Opening Luck is off: its odds are the plain ones"] = function()
 		local BlockDrop = load()
 		for start, row in PLAN_LUCK do
 			local got: { [string]: number } = {}
@@ -192,16 +186,13 @@ return {
 				H.near(got[rarity] or 0, row[i], 6e-8, start .. " " .. rarity .. " (luck)")
 			end
 		end
-		-- A Mystery during the luck (plan 3.4): Epic+ 4.725% (1 in 21), Legendary+ 0.70875%
-		-- (1 in 141), Mythic+ 1 in 941, the Secret 1 in 37,625.
+		-- A Standard start with the luck flag: the plain odds (Epic+ 1.2%, Legendary+ 0.18%).
 		local c = BlockDrop.chances(nil, { luck = true })
 		local epicUp = c.Epic + c.Legendary + c.Mythic + c.Secret
 		local legUp = c.Legendary + c.Mythic + c.Secret
-		H.near(epicUp * 100, 4.725, 1e-12, "Epic+")
-		H.near(legUp * 100, 0.70875, 1e-12, "Legendary+")
-		H.expect(printed(epicUp * 100) == 21 and printed(legUp * 100) == 141, "1 in 21, 141")
-		H.expect(printed((c.Mythic + c.Secret) * 100) == 941, "1 in 941")
-		H.expect(printed(c.Secret * 100) == 37625, "1 in 37,625")
+		H.near(epicUp * 100, 1.2, 1e-12, "Epic+")
+		H.near(legUp * 100, 0.18, 1e-12, "Legendary+")
+		H.expect(printed(c.Secret * 100) == 222222, "1 in 222,222")
 	end,
 
 	["the 'or better' chances are the plan's (3.3)"] = function()
@@ -229,9 +220,9 @@ return {
 			end
 		end
 		local c = BlockDrop.chances()
-		H.near((c.Epic + c.Legendary + c.Mythic + c.Secret) * 100, 3.15, 1e-12, "Mystery Epic+")
-		H.near((c.Legendary + c.Mythic + c.Secret) * 100, 0.315, 1e-12, "Mystery Legendary+")
-		H.near((c.Mythic + c.Secret) * 100, 0.04725, 1e-12, "Mystery Mythic+")
+		H.near((c.Epic + c.Legendary + c.Mythic + c.Secret) * 100, 1.2, 1e-12, "Standard Epic+")
+		H.near((c.Legendary + c.Mythic + c.Secret) * 100, 0.18, 1e-12, "Standard Legendary+")
+		H.near((c.Mythic + c.Secret) * 100, 0.018, 1e-12, "Standard Mythic+")
 	end,
 
 	["each step is one draw at or under its chance; the climb stops at the first miss"] = function()
@@ -253,23 +244,11 @@ return {
 				return parts + 1
 			end) == tier, tier .. ": one over its chance stays")
 		end
-		-- The launch's steps change exactly those two draws.
+		-- The luck changes nothing (economy v6): one over Rare's 10% stays with it too.
 		local final = BlockDrop.climbRoll("Rare", function(_n: number): number
-			return 270000
-		end, false)
-		H.expect(final == "Rare", "270,000 misses Rare's 18%")
-		final = BlockDrop.climbRoll(
-			"Rare",
-			(function()
-				local i = 0
-				return function(n: number): number
-					i += 1
-					return if i == 1 then 270000 else n
-				end
-			end)(),
-			true
-		)
-		H.expect(final == "Epic", "270,000 climbs under the luck")
+			return 100001
+		end, true)
+		H.expect(final == "Rare", "100,001 misses Rare's 10% under the luck")
 		H.expect(BlockDrop.climbRoll("Standard", always) == "Secret", "always: the Secret")
 		H.expect(BlockDrop.climbRoll("Mythic", never) == "Mythic", "never: stays")
 		H.expect(BlockDrop.climbRoll("Rare", never) == "Rare", "the name is the floor")
@@ -327,22 +306,22 @@ return {
 		H.expect(BlockDrop.pityLeft(after).rare == 10, "10 to go again")
 	end,
 
-	["pity: the 40th without an Epic turns into an Epic block, never more or less"] = function()
+	["pity: the 50th without an Epic turns into an Epic block, never more or less"] = function()
 		local BlockDrop = load()
-		local pity = { SinceRare = 0, SinceEpic = 38, Total = 38 }
+		local pity = { SinceRare = 0, SinceEpic = 48, Total = 48 }
 		local block, final
 		block, final, pity = mystery(BlockDrop, pity, never)
-		H.expect(block == "Standard" and final == "Standard", "the 39th rolls as usual")
-		H.expect(pity.SinceEpic == 39 and pity.SinceRare == 1, "counted at its climb")
+		H.expect(block == "Standard" and final == "Standard", "the 49th rolls as usual")
+		H.expect(pity.SinceEpic == 49 and pity.SinceRare == 1, "counted at its climb")
 		local after, waits
 		block, after, waits = BlockDrop.turnRoll(pity, never)
-		H.expect(block == "Epic" and waits == nil, "the 40th: " .. block)
+		H.expect(block == "Epic" and waits == nil, "the 50th: " .. block)
 		H.expect(after.SinceRare == 0 and after.SinceEpic == 0, "an Epic block resets both")
 		-- Both due at once: Epic wins.
-		block = BlockDrop.turnRoll({ SinceRare = 9, SinceEpic = 39, Total = 200 }, never)
+		block = BlockDrop.turnRoll({ SinceRare = 9, SinceEpic = 49, Total = 200 }, never)
 		H.expect(block == "Epic", "Epic over Rare")
 		-- A higher roll is never lowered by pity.
-		block = BlockDrop.turnRoll({ SinceRare = 9, SinceEpic = 39, Total = 200 }, always)
+		block = BlockDrop.turnRoll({ SinceRare = 9, SinceEpic = 49, Total = 200 }, always)
 		H.expect(block == "Legendary", "the top roll stays")
 		-- A natural Rare block before the limit resets the Rare count; the Epic one waits.
 		local draws, i = { 1, 1, 1000000 }, 0
@@ -361,7 +340,7 @@ return {
 		local n = 200000
 		local counts: { [string]: number } = {}
 		for _ = 1, n do
-			local _, t = mystery(BlockDrop, { SinceRare = 0, SinceEpic = 39, Total = 0 }, rng)
+			local _, t = mystery(BlockDrop, { SinceRare = 0, SinceEpic = 49, Total = 0 }, rng)
 			counts[t] = (counts[t] or 0) + 1
 		end
 		for t, p in BlockDrop.chances("Epic", { mystery = true }) do
@@ -401,25 +380,25 @@ return {
 		H.expect(none.Total == pity.Total, "the total counts at the roll only")
 	end,
 
-	["pity's head start: a new save begins at 2 / 10 and 10 / 40"] = function()
+	["pity's head start: none since economy v6, a new save begins at 0 / 10 and 0 / 50"] = function()
 		local BlockDrop, Config = load()
 		local start = BlockDrop.freshPity()
-		H.expect(start.SinceRare == 2 and start.SinceEpic == 10 and start.Total == 0, "the counts")
+		H.expect(start.SinceRare == 0 and start.SinceEpic == 0 and start.Total == 0, "the counts")
 		local left = BlockDrop.pityLeft(start)
-		H.expect(left.rare == 8 and left.epic == 30, "8 and 30 to go")
-		-- The first Epic block is guaranteed by the 30th Mystery.
+		H.expect(left.rare == 10 and left.epic == 50, "10 and 50 to go")
+		-- The first Epic block is guaranteed by the 50th Mystery.
 		local pity, block = start, ""
-		for i = 1, 30 do
+		for i = 1, 50 do
 			block, _, pity = mystery(BlockDrop, pity, never)
-			if i < 30 then
+			if i < 50 then
 				H.expect(
 					block == "Standard" or block == "Rare",
 					("Mystery %d: %s"):format(i, block)
 				)
 			end
 		end
-		H.expect(block == "Epic", "the 30th: " .. block)
-		H.expect(Config.BlockOdds.Drop.PityStart.SinceRare == 2, "Config")
+		H.expect(block == "Epic", "the 50th: " .. block)
+		H.expect(Config.BlockOdds.Drop.PityStart.SinceRare == 0, "Config")
 	end,
 
 	["a forced turn skips the roll and still counts"] = function()
@@ -433,11 +412,11 @@ return {
 		H.expect(not pcall(BlockDrop.turnRoll, fresh(), never, "Mythic"), "above the top")
 	end,
 
-	["the Mystery's roll: 30 / 25 / 10 / 5, up to a Legendary block"] = function()
+	["the Mystery's roll: 30 / 20 / 10 / 5, up to a Legendary block"] = function()
 		local BlockDrop, Config = load()
 		local T = Config.BlockOdds.Turn
 		H.expect(T.Top == "Legendary", "the top")
-		H.expect(T.Steps.Standard == 300000 and T.Steps.Uncommon == 250000, "the first two")
+		H.expect(T.Steps.Standard == 300000 and T.Steps.Uncommon == 200000, "the first two")
 		H.expect(T.Steps.Rare == 100000 and T.Steps.Epic == 50000, "the last two")
 		H.expect(
 			BlockDrop.turnParts("Legendary") == 0 and BlockDrop.turnParts("Mythic") == 0,
@@ -445,10 +424,10 @@ return {
 		)
 		local want = {
 			Standard = 0.7,
-			Uncommon = 0.225,
-			Rare = 0.0675,
-			Epic = 0.007125,
-			Legendary = 0.000375,
+			Uncommon = 0.24,
+			Rare = 0.054,
+			Epic = 0.0057,
+			Legendary = 0.0003,
 		}
 		local turn = BlockDrop.turnChances()
 		local total = 0
@@ -460,9 +439,9 @@ return {
 		H.expect(turn.Mythic == nil and turn.Secret == nil, "never a Mythic block")
 		-- Under a floor the tiers below it move into it.
 		local floored = BlockDrop.turnChances("Rare")
-		H.near(floored.Rare, 0.9925, 1e-12, "Rare takes Standard and Uncommon")
+		H.near(floored.Rare, 0.994, 1e-12, "Rare takes Standard and Uncommon")
 		H.expect(floored.Standard == nil and floored.Uncommon == nil, "gone")
-		H.near(floored.Epic, 0.007125, 1e-15, "Epic as before")
+		H.near(floored.Epic, 0.0057, 1e-15, "Epic as before")
 		local rows = BlockDrop.turnTiers()
 		H.expect(#rows == 5 and rows[1].tier == "Standard" and rows[5].tier == "Legendary", "rows")
 		-- A seeded roll lands on those odds.
@@ -494,7 +473,7 @@ return {
 			end
 			H.near(m[tier] or 0, want, 1e-15, tier .. ": the sum over the roll")
 		end
-		H.near(m.Standard, 0.35, 1e-12, "a Common half the time Standard climbs")
+		H.near(m.Standard, 0.42, 1e-12, "a Common: 70% Standard blocks, 60% of them stay")
 		local function orBetter(from: string): number
 			local sum = 0
 			for tier, p in m do
@@ -504,18 +483,18 @@ return {
 			end
 			return sum
 		end
-		-- The plan page (2026-10-09): 1 in 18, 169, 1,125 and 45,007 (v5: 32, 317, 2,116, 84,656).
-		H.expect(printed(orBetter("Epic") * 100) == 18, "Epic or better")
-		H.expect(printed(orBetter("Legendary") * 100) == 169, "Legendary or better")
-		H.expect(printed(orBetter("Mythic") * 100) == 1125, "Mythic or better")
-		H.expect(printed(m.Secret * 100) == 45007, "the Secret")
+		-- Economy v6's plan page (2026-10-10): 1 in 37, 232, 2,323 and 92,915.
+		H.expect(printed(orBetter("Epic") * 100) == 37, "Epic or better")
+		H.expect(printed(orBetter("Legendary") * 100) == 232, "Legendary or better")
+		H.expect(printed(orBetter("Mythic") * 100) == 2323, "Mythic or better")
+		H.expect(printed(m.Secret * 100) == 92915, "the Secret")
 		-- Every block a Mystery can turn into can still reach the Secret.
 		for tier in turn do
 			H.expect(BlockDrop.chances(nil, { start = tier }).Secret > 0, tier .. " reaches it")
 		end
-		-- The luck lifts its climbs, never its roll.
+		-- The luck is off (economy v6): the same odds.
 		local lucky = BlockDrop.chances(nil, { mystery = true, luck = true })
-		H.expect(lucky.Legendary > m.Legendary, "the luck counts")
+		H.near(lucky.Legendary, m.Legendary, 1e-15, "the luck changes nothing")
 		H.near(lucky.Standard, m.Standard, 1e-15, "the roll is the same")
 		-- A Mystery is never worse than a Standard block.
 		H.expect(orBetter("Rare") > BlockDrop.chances().Rare, "better than Standard")
@@ -524,20 +503,20 @@ return {
 	["pity left and a broken pity table"] = function()
 		local BlockDrop = load()
 		local left = BlockDrop.pityLeft({ SinceRare = 0, SinceEpic = 0, Total = 3 })
-		H.expect(left.rare == 10 and left.epic == 40, "pity left")
+		H.expect(left.rare == 10 and left.epic == 50, "pity left")
 		local some = BlockDrop.pityLeft({ SinceRare = 4, SinceEpic = 4, Total = 4 })
-		H.expect(some.rare == 6 and some.epic == 36, "counted down")
+		H.expect(some.rare == 6 and some.epic == 46, "counted down")
 		local broken = BlockDrop.readPity({ SinceRare = -2, SinceEpic = 0 / 0, Total = "x" })
 		H.expect(broken.SinceRare == 0 and broken.SinceEpic == 0 and broken.Total == 0, "broken")
 		H.expect(BlockDrop.readPity(nil).Total == 0, "missing")
 	end,
 
-	["drop: the daily win track gives its 10 steps (4 blocks, 6 money), then money and XP only"] = function()
+	["drop: the daily win track gives its 10 steps (3 blocks, 7 money), then money and XP only"] = function()
 		local BlockDrop, Config = load()
-		local plan = "Uncommon Money Money Mystery Money Money Mystery Money Money Epic"
+		local plan = "Mystery Money Money Money Mystery Money Money Money Money Rare"
 		H.expect(table.concat(Config.BlockOdds.Drop.WinTrack, " ") == plan, "the plan's track")
 		H.expect(BlockDrop.trackSteps() == 10, "10 steps")
-		H.expect(BlockDrop.trackMoney() == 1000 and BlockDrop.Money == "Money", "$1,000 steps")
+		H.expect(BlockDrop.trackMoney() == 250 and BlockDrop.Money == "Money", "$250 steps")
 		local got = {}
 		for given = 0, 9 do
 			local drops, kind = BlockDrop.dropFor(ctx({ trackToday = given }))
@@ -550,17 +529,17 @@ return {
 		H.expect(BlockDrop.trackKind(11) == nil, "past the track")
 		for _, overrides in { { loserRealMatches = 5 }, { dropsFromOpponentToday = 2 } } do
 			local drops, kind = BlockDrop.dropFor(ctx(overrides))
-			H.expect(drops and kind == "Uncommon", "the first step")
+			H.expect(drops and kind == "Mystery", "the first step")
 		end
 	end,
 
-	["drop: the first win ever is the Rare block, under the same anti-farm rules"] = function()
+	["drop: the first win ever is the track's step (no first-win block since v6), same anti-farm rules"] = function()
 		local BlockDrop, Config = load()
-		local drops, forced = BlockDrop.dropFor(ctx({ firstWinEver = true }))
-		H.expect(drops and forced == Config.BlockOdds.Drop.FirstWin, "the first win's block")
-		H.expect(forced == "Rare", "a Rare block")
+		H.expect(Config.BlockOdds.Drop.FirstWin == nil, "no first-win block")
+		local drops, kind = BlockDrop.dropFor(ctx({ firstWinEver = true }))
+		H.expect(drops and kind == "Mystery", "win 1's Mystery")
 		local _, later = BlockDrop.dropFor(ctx({ firstWinEver = true, trackToday = 1 }))
-		H.expect(later == "Rare", "still the Rare block on a later step")
+		H.expect(later == "Money", "the track's own step later")
 		drops = BlockDrop.dropFor(ctx({ firstWinEver = true, loserRealMatches = 4 }))
 		H.expect(not drops, "a first win against a new account drops nothing")
 		drops = BlockDrop.dropFor(ctx({ firstWinEver = true, farmAllows = false }))
@@ -589,12 +568,11 @@ return {
 		)
 	end,
 
-	["drop: Play against PC moves the track only for the first 10 PC wins of a day"] = function()
+	["drop: Play against PC never moves the track (economy v6: practice)"] = function()
 		local BlockDrop, Config = load()
 		local cap = Config.Economy.PcDropsPerDay
-		H.expect(cap == 10, "the plan's 10")
-		H.expect(BlockDrop.dropFor(ctx({ pcLimited = true, pcDropsToday = cap - 1 })), "the 10th")
-		H.expect(not (BlockDrop.dropFor(ctx({ pcLimited = true, pcDropsToday = cap }))), "the 11th")
+		H.expect(cap == 0, "none")
+		H.expect(not (BlockDrop.dropFor(ctx({ pcLimited = true, pcDropsToday = 0 }))), "the 1st")
 		H.expect(BlockDrop.dropFor(ctx({ pcLimited = false, pcDropsToday = 99 })), "people: no cap")
 	end,
 
@@ -735,14 +713,14 @@ return {
 		end
 		local epic = percents("Epic")
 		H.expect(epic.Standard == nil and epic.Uncommon == nil and epic.Rare == nil, "under Epic")
-		H.near(epic.Epic, 99.685, 1e-9, "Epic takes the tiers under it")
-		H.near(epic.Legendary, 0.26775, 1e-12, "Legendary as before")
-		H.near(epic.Secret, 0.00118125, 1e-12, "the Secret as before")
+		H.near(epic.Epic, 99.82, 1e-9, "Epic takes the tiers under it")
+		H.near(epic.Legendary, 0.162, 1e-12, "Legendary as before")
+		H.near(epic.Secret, 0.00045, 1e-12, "the Secret as before")
 		local rare = percents("Rare")
-		H.near(rare.Rare, 96.85, 1e-9, "Rare takes Standard and Uncommon")
-		H.near(rare.Epic, 2.835, 1e-12, "Epic as before")
+		H.near(rare.Rare, 98.8, 1e-9, "Rare takes Standard and Uncommon")
+		H.near(rare.Epic, 1.02, 1e-12, "Epic as before")
 		local lucky = percents("Epic", true)
-		H.near(lucky.Legendary, 0.6024375, 1e-12, "the luck under the floor")
+		H.near(lucky.Legendary, 0.162, 1e-12, "the luck is off under the floor too")
 		-- The rarities under a floor never give a Common.
 		for _, row in BlockDrop.rarityOdds("Epic") do
 			H.expect(row.rarity ~= "Common" and row.rarity ~= "Uncommon", "no " .. row.rarity)
@@ -767,43 +745,37 @@ return {
 		H.expect(rare.Standard == 0 and rare.Uncommon == 0, "never under the name")
 	end,
 
-	["the Grand Opening Luck runs from the Grand Opening's StartsAt for its own 30 days"] = function()
+	["the Grand Opening Luck is off: no window is ever live (economy v6)"] = function()
 		local BlockDrop, Config = load()
-		H.expect(Config.Shop.Deals.GrandOpening.StartsAt == 0, "off until the designer sets it")
+		H.expect(Config.Shop.Deals.GrandOpening.StartsAt == 0, "set at publish")
 		H.expect(not BlockDrop.luckLive(1800000000), "off: never live")
 		local a, b = BlockDrop.luckWindow()
 		H.expect(a == 0 and b == 0, "no window")
 		local T = 1800000000
 		withStart(Config, T, function()
 			local s, e = BlockDrop.luckWindow()
-			H.expect(s == T and e == T + 30 * 86400, "30 days")
+			H.expect(s == T and e == T, "0 seconds long")
 			H.expect(not BlockDrop.luckLive(T - 1), "before")
-			H.expect(BlockDrop.luckLive(T) and BlockDrop.luckLive(e - 1), "inside")
-			H.expect(not BlockDrop.luckLive(e), "after")
-			-- Its own clock: the Grand Opening's length never changes it.
-			local deal = Config.Shop.Deals.GrandOpening
-			local seconds = deal.Seconds
-			deal.Seconds = 45 * 86400
-			local _, e2 = BlockDrop.luckWindow()
-			deal.Seconds = seconds
-			H.expect(e2 == e, "the luck keeps its 30 days")
+			H.expect(not BlockDrop.luckLive(T) and not BlockDrop.luckLive(T + 86400), "never")
 		end)
 		H.expect(not BlockDrop.luckLive("x") and not BlockDrop.luckLive(0 / 0), "bad now")
 	end,
 
 	["the 1 in N: an exact cue's chance from the block it started as, to 3 figures"] = function()
 		local BlockDrop = load()
-		-- From a Mystery block (plan 3.9): a Legendary cue 1 in 2,610 (7 of them), a Mythic cue
-		-- 1 in 6,510 (3), the Eclipse Cue 1 in 84,700.
-		H.expect(BlockDrop.oneIn(BlockDrop.cuePercent("PhoenixCue")) == 2610, "a Legendary")
-		H.expect(BlockDrop.oneIn(BlockDrop.cuePercent("KitsuneCue")) == 6510, "a Mythic")
-		H.expect(BlockDrop.oneIn(BlockDrop.cuePercent("EclipseCue")) == 84700, "the Eclipse")
+		-- From a Standard block (economy v6): a Legendary cue 1 in 3,700 (6 drop: Chroma is a
+		-- reward cue), a Mythic cue 1 in 17,100 (3), the Eclipse Cue 1 in 222,000.
+		H.expect(BlockDrop.oneIn(BlockDrop.cuePercent("PhoenixCue")) == 3700, "a Legendary")
+		H.expect(BlockDrop.oneIn(BlockDrop.cuePercent("KitsuneCue")) == 17100, "a Mythic")
+		H.expect(BlockDrop.oneIn(BlockDrop.cuePercent("EclipseCue")) == 222000, "the Eclipse")
 		local fromLegendary = BlockDrop.cuePercent("PhoenixCue", { start = "Legendary" })
-		H.near(BlockDrop.oneIn(fromLegendary) :: number, 8.24, 1e-9, "from a Legendary block")
+		H.near(BlockDrop.oneIn(fromLegendary) :: number, 6.67, 1e-9, "from a Legendary block")
 		H.expect(
-			BlockDrop.oneIn(BlockDrop.cuePercent("EclipseCue", { luck = true })) == 37600,
-			"luck"
+			BlockDrop.oneIn(BlockDrop.cuePercent("EclipseCue", { luck = true })) == 222000,
+			"the luck is off"
 		)
+		H.expect(BlockDrop.cuePercent("ChromaCue") == 0, "Chroma drops from no block")
+		H.expect(BlockDrop.cuePercent("CandyCue") == 0, "nor Candy Cane")
 		H.expect(BlockDrop.oneIn(0) == nil and BlockDrop.oneIn(0 / 0) == nil, "no chance")
 		H.expect(BlockDrop.cuePercent("Classic") == 0, "a cue no climb gives")
 	end,
@@ -872,7 +844,7 @@ return {
 		local tier, after, waits, scripted =
 			BlockDrop.turnFor(start, always, { stay = true, forced = "Epic" })
 		H.expect(tier == "Standard" and waits == nil and scripted, "stay")
-		H.expect(after.SinceRare == 2 and after.SinceEpic == 10 and after.Total == 0, "uncounted")
+		H.expect(after.SinceRare == 0 and after.SinceEpic == 0 and after.Total == 0, "uncounted")
 		-- Forced: that block, nothing rolled, the Mystery counted.
 		local calls = 0
 		local counted = function(n: number): number
@@ -881,7 +853,7 @@ return {
 		end
 		tier, after, waits, scripted = BlockDrop.turnFor(start, counted, { forced = "Uncommon" })
 		H.expect(tier == "Uncommon" and waits == "Rare" and scripted, "forced Uncommon")
-		H.expect(calls == 0 and after.Total == 1 and after.SinceRare == 2, "waits for its climb")
+		H.expect(calls == 0 and after.Total == 1 and after.SinceRare == 0, "waits for its climb")
 		-- A block it can't turn into: a normal roll.
 		for _, bad in { "Mythic", "Secret", "Nope" } do
 			tier, _, _, scripted = BlockDrop.turnFor(fresh(), never, { forced = bad })

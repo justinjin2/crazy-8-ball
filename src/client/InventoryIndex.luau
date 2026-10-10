@@ -2,6 +2,9 @@
 -- InventoryIndex: the Cues menu's Index view (docs/prompts/ECONOMY_UI_PROMPT.md section 11,
 -- ECONOMY section 18; concept 2 of docs/prompts/CUES_LIVELY_PROMPT.md, 2026-10-08).
 --
+--   * At the very top, while some waits, the finder's money of the cues found (economy v6,
+--     designer 2026-10-10: claimed here, never paid at once; the snapshot's `findMoney`): "New
+--     cues found!", the money and Collect (ItemRequest "ClaimIndexFinds"; it breathes).
 --   * On top, only for a player who holds one, their titles (gold pills, from the snapshot's
 --     `titles`: the first Reyes'). The rows' "Collector" titles are gone (designer, 2026-09-28).
 --   * Then a card per row: the rarities Common ... Secret, then Exclusive and Unique. Its
@@ -132,6 +135,39 @@ function InventoryIndex.new(page: Frame, ctx: any): any
 	self.list = list
 	local scroll, _ = MenuFrame.scroller(list, { name = "Index" })
 	self.scroll = scroll
+
+	-- The finder's money waiting (hidden when none).
+	local finds = InventoryCard.box(scroll, "Finds")
+	finds.LayoutOrder = -1
+	finds.ZIndex = 2
+	finds.Visible = false
+	self.finds = finds
+	self.findsTitle =
+		HudParts.text(finds, "Heading", I.HeaderTextPx[2], WORDS.FindsTitle, HudParts.tone("Gold"))
+	self.findsTitle.TextWrapped = false
+	self.findsTitle.TextXAlignment = Enum.TextXAlignment.Left
+	self.findsTitle.ZIndex = 3
+	self.findsLine = HudParts.note(finds, "Line", I.ProgressTextPx[2], WORDS.FindsLine)
+	self.findsLine.TextWrapped = false
+	self.findsLine.TextXAlignment = Enum.TextXAlignment.Left
+	self.findsLine.ZIndex = 3
+	local findsMoney = HudParts.pill(finds, "Money", HudParts.tone("White"))
+	findsMoney.ZIndex = 3
+	self.findsMoney = findsMoney
+	self.findsIcon = HudParts.icon(findsMoney, "CashSingle", "Cash")
+	self.findsIcon.ZIndex = 4
+	self.findsAmount =
+		HudParts.text(findsMoney, "Amount", I.RewardTextPx[2], "", HudParts.tone("Green"))
+	self.findsAmount.AutoLocalize = false -- a number
+	self.findsAmount.TextWrapped = false
+	self.findsAmount.ZIndex = 4
+	self.findsCollect = HudParts.candy(finds, WORDS.Collect, function()
+		self:collect()
+	end, "Green")
+	self.findsCollect.Name = "Collect"
+	self.findsCollect.ZIndex = 3
+	HudParts.setMinHit(self.findsCollect, TOUCH)
+	self.findMoney = 0
 
 	-- The titles held (hidden when none).
 	local titles = InventoryCard.box(scroll, "Titles")
@@ -351,8 +387,17 @@ local function claimable(row: any): boolean
 	return ItemState.indexRowReady(row)
 end
 
---- The tab's red dot: "!" while a row can be claimed.
+--- The finder's money waiting in a snapshot (economy v6).
+local function findMoneyOf(items: any): number
+	local money = if type(items) == "table" then items.findMoney else nil
+	return if type(money) == "number" and money > 0 then math.floor(money) else 0
+end
+
+--- The tab's red dot: "!" while a row can be claimed or finder's money waits.
 function InventoryIndex.dot(_self: any, items: any): string?
+	if findMoneyOf(items) > 0 then
+		return Strings.Menus.DotReady
+	end
 	for _, row in rowsOf(items) do
 		if claimable(row) then
 			return Strings.Menus.DotReady
@@ -427,6 +472,12 @@ function InventoryIndex.redraw(self: any, items: any)
 		section.claimed.Visible = row ~= nil and row.claimed == true and money > 0
 	end
 
+	-- The finder's money at the very top.
+	self.findMoney = findMoneyOf(items)
+	self.finds.Visible = self.findMoney > 0
+	self.findsAmount.Text = "+" .. Format.money(self.findMoney)
+	HudParts.setEnabled(self.findsCollect, not ctx.isHeld(self.findsCollect))
+
 	-- The titles at the top.
 	local names = {}
 	for _, id in list(items.titles) do
@@ -457,8 +508,16 @@ function InventoryIndex.redraw(self: any, items: any)
 	self:arrange()
 end
 
--- Claim breathes while its row can be claimed and the tab shows.
+-- Claim breathes while its row can be claimed and the tab shows (and Collect while finder's
+-- money waits).
 function InventoryIndex.refreshPulses(self: any)
+	local collect = self.showing and self.findMoney > 0 and not self.ctx.isHeld(self.findsCollect)
+	if collect and not self.findsPulse then
+		self.findsPulse = UIAnim.pulse(self.findsCollect)
+	elseif not collect and self.findsPulse then
+		self.findsPulse.stop()
+		self.findsPulse = nil
+	end
 	for _, section in self.sections do
 		local want = self.showing and section.claimable and not self.ctx.isHeld(section.claim)
 		if want and not section.pulse then
@@ -471,6 +530,10 @@ function InventoryIndex.refreshPulses(self: any)
 end
 
 function InventoryIndex.stopPulses(self: any)
+	if self.findsPulse then
+		self.findsPulse.stop()
+		self.findsPulse = nil
+	end
 	for _, section in self.sections do
 		if section.pulse then
 			section.pulse.stop()
@@ -521,6 +584,47 @@ function InventoryIndex.arrange(self: any)
 	local rewardH = span1(I.RewardPx)
 	local rewardText = span1(I.RewardTextPx)
 	local claimW = span1(I.ClaimWidthPx)
+
+	-- The finder's money: the heading and its line on the left; the money and Collect on the
+	-- right, or on a line of their own when they do not fit beside.
+	do
+		HudParts.setTextSize(self.findsTitle, headText)
+		HudParts.setTextSize(self.findsLine, progText)
+		HudParts.setTextSize(self.findsAmount, rewardText)
+		HudParts.setButtonTextSize(self.findsCollect, progText)
+		local icon = round(rewardH * I.RewardIconShare)
+		local over = round(icon * I.RewardIconOverShare)
+		local words = math.ceil(textWidth(self.findsAmount.Text, rewardText)) + 6
+		local moneyW = icon - over + words + 8
+		local titleW = math.ceil(
+			math.max(
+				textWidth(self.findsTitle.Text, headText),
+				textWidth(self.findsLine.Text, progText)
+			)
+		) + 8
+		local rightW = moneyW + gap + claimW
+		local beside = titleW + gap + rightW <= inner
+		self.findsTitle.Position = UDim2.fromOffset(pad, pad)
+		self.findsTitle.Size = UDim2.fromOffset(math.min(titleW, inner), headerH)
+		self.findsLine.Position = UDim2.fromOffset(pad, pad + headerH)
+		self.findsLine.Size = UDim2.fromOffset(math.min(titleW, inner), progText + 6)
+		local textBottom = pad + headerH + progText + 6
+		local rowY = if beside
+			then pad + round((textBottom - pad - headerH) / 2)
+			else textBottom + gap
+		local x0 = pad + inner - rightW
+		self.findsMoney.Position = UDim2.fromOffset(x0, rowY + round((headerH - rewardH) / 2))
+		self.findsMoney.Size = UDim2.fromOffset(moneyW, rewardH)
+		self.findsIcon.AnchorPoint = Vector2.new(0, 0.5)
+		self.findsIcon.Position = UDim2.new(0, -over, 0.5, 0)
+		self.findsIcon.Size = UDim2.fromOffset(icon, icon)
+		self.findsAmount.Position = UDim2.fromOffset(icon - over, 0)
+		self.findsAmount.Size = UDim2.fromOffset(words, rewardH)
+		self.findsCollect.Position = UDim2.fromOffset(pad + inner - claimW, rowY)
+		self.findsCollect.Size = UDim2.fromOffset(claimW, headerH)
+		local bottom = if beside then textBottom else rowY + headerH
+		self.finds.Size = UDim2.fromOffset(W, bottom + pad)
+	end
 
 	-- The titles: the heading, then the pills flowing left to right, wrapping.
 	HudParts.setTextSize(self.titlesHeading, headText)
@@ -748,6 +852,31 @@ function InventoryIndex.arrangeDetail(self: any)
 	self.detailScroll.CanvasSize = UDim2.fromOffset(0, y + pad)
 end
 
+-- Collect: every finder's money waiting (economy v6); it flies into the header's cash.
+function InventoryIndex.collect(self: any)
+	local ctx = self.ctx
+	if self.findMoney <= 0 then
+		return
+	end
+	if self.findsPulse then
+		self.findsPulse.stop()
+		self.findsPulse = nil
+	end
+	ctx.hold(self.findsCollect, function()
+		local reply = ctx.request("ClaimIndexFinds")
+		if reply.ok then
+			UISound.play("Claim")
+			local money = if type(reply.money) == "number" then reply.money else 0
+			if money > 0 then
+				ctx.flyMoney(money, self.findsCollect, "Reward")
+			end
+		else
+			ctx.refuse(reply)
+		end
+	end)
+	self:refreshPulses()
+end
+
 function InventoryIndex.claim(self: any, section: Section)
 	local ctx = self.ctx
 	if not section.claimable then
@@ -795,8 +924,12 @@ function InventoryIndex.closed(self: any)
 	self:stopPulses()
 end
 
---- Where a gamepad starts on this page: a Claim that can be pressed, else the first cue.
+--- Where a gamepad starts on this page: Collect or a Claim that can be pressed, else the
+--- first cue.
 function InventoryIndex.first(self: any): GuiObject?
+	if self.finds.Visible and self.findsCollect.Selectable then
+		return self.findsCollect
+	end
 	for _, section in self.sections do
 		if section.claim.Visible and section.claim.Selectable then
 			return section.claim

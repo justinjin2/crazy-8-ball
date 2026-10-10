@@ -9,6 +9,7 @@ local Config = require(script.Parent.Parent.Config)
 local Ranks = require(script.Parent.Parent.Progression.Ranks)
 
 local AT_ONCE: { [string]: boolean } = Config.Tutorial.RankClaim.BlocksAtOnce
+local READY: { [string]: boolean } = Config.Tutorial.RankClaim.ReadyTiers
 local BLOCK_ORDER: { string } = Config.LuckyBlocks.Order
 
 local RankClaim = {}
@@ -26,6 +27,8 @@ export type Row = {
 export type Pending = {
 	money: number,
 	blocks: { [string]: number },
+	-- The part of `blocks` that comes ready at once (Config.Tutorial.RankClaim.ReadyTiers).
+	readyBlocks: { [string]: number },
 	cues: { string },
 	spins: number,
 	rows: { Row },
@@ -71,7 +74,8 @@ end
 function RankClaim.pending(claimed: number?, peak: number): Pending
 	local valid = type(claimed) == "number" and claimed == claimed and math.abs(claimed) < math.huge
 	local from = if valid then whole(claimed) else whole(peak)
-	local out: Pending = { money = 0, blocks = {}, cues = {}, spins = 0, rows = {} }
+	local out: Pending =
+		{ money = 0, blocks = {}, readyBlocks = {}, cues = {}, spins = 0, rows = {} }
 	for _, reward in Ranks.rewardsBetween(from, whole(peak)) do
 		local blocks = if blocksAtOnce(reward.index) then {} else table.clone(reward.blocks)
 		local row: Row = {
@@ -84,6 +88,9 @@ function RankClaim.pending(claimed: number?, peak: number): Pending
 		out.money += row.money
 		out.spins += row.spins
 		addBlocks(out.blocks, row.blocks)
+		if READY[Ranks.at(reward.index)] == true then
+			addBlocks(out.readyBlocks, row.blocks)
+		end
 		if row.cue then
 			table.insert(out.cues, row.cue)
 		end
@@ -100,13 +107,27 @@ function RankClaim.any(p: Pending): boolean
 end
 
 --- The pending rewards in PlayerData's Reward shape (money, blocks, cues, spins), or nil when
---- nothing is pending.
+--- nothing is pending. The blocks that come ready at once are left out of `blocks`: they are
+--- `readyBlocks` (the caller gives them with no timer).
 function RankClaim.reward(p: Pending): any
 	if not RankClaim.any(p) then
 		return nil
 	end
-	local reward: any =
-		{ money = p.money, blocks = table.clone(p.blocks), cues = table.clone(p.cues) }
+	local blocks = table.clone(p.blocks)
+	local ready = p.readyBlocks or {}
+	for _, kind in BLOCK_ORDER do
+		local count = ready[kind]
+		if count then
+			local left = (blocks[kind] or 0) - count
+			blocks[kind] = if left > 0 then left else nil
+		end
+	end
+	local reward: any = {
+		money = p.money,
+		blocks = blocks,
+		readyBlocks = table.clone(ready),
+		cues = table.clone(p.cues),
+	}
 	if p.spins > 0 then
 		reward.spins = p.spins
 	end

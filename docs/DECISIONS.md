@@ -4203,3 +4203,37 @@ timer of a new block stay the designer's call.
   the top bar, and grew (46 px, 30 px on a phone), like the tutorial's line; the title and "Pick
   it up!" stay in the bottom bar after the crash. /giftdrop now means "the next opening of the
   menu drops it".
+- 2026-10-10 (designer, economy v6: "yes to all of those, build this economy now"): the economy
+  is rebuilt from scratch (docs/ECONOMY.md, docs/prompts/ECONOMY_V6_PLAN.md, the plan page
+  https://claude.ai/artifact/LngEA3qwDYZBZ7iPQkHkBK). Yes to A (the Sky Lucky Block at most 1 a
+  day), B (a duplicate Common or Uncommon pays its sell money instead of a copy) and C (trading
+  after 10 real wins). Interview answers: the launch bonus is +30% on money packs only (no 6th
+  Mystery); reset everything (saves and every game-wide store to `_v2` names, the `_v1` stores
+  kept); the Grand Opening runs 45 days from the moment the designer publishes v6 (StartsAt set
+  then).
+- 2026-10-10 (economy v6, assumptions made while building): the Candy Cue's player name is now
+  "Candy Cane Cue" (the designer's name for it); the Week One Cue is removed (the wipe means no
+  save holds it); practice against PC no longer counts as a real match (no login day, Sky clock,
+  trade-gate win or XP) and pays the solo rows under one shared $3,000 cap, disguised bots past
+  20 wins included; the tutorial's Place step points at whatever block the real Mystery became
+  (the TutorialBlock attribute; Bronze's Uncommon block after a rejoin) and its Cues step at the
+  cue its block gave; finder's money is collected all at once from a "New cues found!" card at
+  the top of the Index (a "!" on the Cues button); the VIP Cue's finder's money waits there too
+  (closes the open question). The trade warning's fallback worths and the bots' cue shares were
+  refit to v6.
+- 2026-10-10 (designer): the Daily Challenge is off for the release (not built in time):
+  `Config.UI.Corners.ChallengeOn = false` hides its target and moves the Starter / VIP offer
+  tile up into its place, which also takes it off the phone's jump button.
+- 2026-10-10 (designer): Solo and Practice get glowing portal arches in the lobby; their look
+  (a Blender model with particles and animation) and placement (the front of the lobby in place
+  of some plants, or the sides) are to be planned together and shown before building.
+- 2026-10-10: the server size is 24 (GDD's Max Players), set in the Creator Dashboard.
+- 2026-10-10 (designer, "only standards you can click to skip the roll, for uncommon+ do not
+  make add click to skip"): tapping the reel to skip its spin works only on a block whose climb
+  starts at Standard (`Config.LuckyBlocks.SkipFloor`); every other block plays its full spin and
+  shows no "tap to skip" hint.
+- 2026-10-10 (designer, "for the first ever mystery block someone ever opens, i want the spin
+  card to always be one off from a legendary card"): the tutorial's reel puts a Legendary on the
+  card just past the stop (`Config.Tutorial.ReelNearMiss`), even when the prize is a Legendary
+  too (two side by side). The opening spread (Mythic and Legendary at the start) and the Secret
+  flashing past just before it slows stay.

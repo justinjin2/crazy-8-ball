@@ -63,10 +63,13 @@ return {
 			local request, why = Requests.parse(action, "Standard", 1)
 			H.expect(request == nil and why == "BadRequest", "action " .. tostring(action))
 		end
-		H.expect(#Requests.Actions == 9, "nine actions")
+		H.expect(#Requests.Actions == 10, "ten actions")
 		for _, action in Requests.Actions do
-			local _, why = Requests.parse(action, 0 / 0, 0 / 0)
-			H.expect(why ~= nil, action .. " refuses NaN ids")
+			-- ClaimIndexFinds takes no arguments: there is no id to refuse.
+			if action ~= "ClaimIndexFinds" then
+				local _, why = Requests.parse(action, 0 / 0, 0 / 0)
+				H.expect(why ~= nil, action .. " refuses NaN ids")
+			end
 		end
 	end,
 
@@ -157,6 +160,14 @@ return {
 			H.expect(select(2, Requests.parse("ClaimIndexRow", bad)) == "BadRequest", "row")
 		end
 		H.expect(select(2, Requests.parse("ClaimIndexRow", "common")) == "BadRequest", "case")
+	end,
+
+	-- Economy v6 (2026-10-10): the finder's money waiting in the Index is claimed at once.
+	claim_index_finds_takes_no_arguments = function()
+		local Requests = load()
+		local r = Requests.parse("ClaimIndexFinds")
+		H.expect(r ~= nil and r.action == "ClaimIndexFinds", "parsed")
+		H.expect(table.find(Requests.Reasons, "Nothing") ~= nil, "its refusal")
 	end,
 
 	buy_limited_only_money_rows = function()
