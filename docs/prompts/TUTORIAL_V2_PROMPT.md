@@ -1441,6 +1441,8 @@ lines). All in the worktree.
   reel's climb odds and glimpse, the Cues equip, RELEASE and Magnet, the v5 Daily popup, group,
   favorite, Open all, the first-win Rare and the Lucky 8): no errors. Measured money and blocks
   per step (a VIP account, $43,525 before playtime) are in the hand-off's section 3a.
+  Published as test place version 10 from `6042439` (the merged build); `8ball-0d` told "ready"
+  for the fast-forward, `8ball-2c` told too.
 
 ### Touch list (files outside the tutorial's own modules changed, and why)
 
