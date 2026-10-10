@@ -61,8 +61,8 @@ One line each; the long form is the 2026-10-08 entry at the top of
 - **Economy v6** (2026-10-10, `docs/prompts/ECONOMY_V6_PLAN.md`): built, Robux prices synced to
   Roblox, checked in Studio on PC (the real tutorial Mystery and Bronze's block ready at once,
   a duplicate paid as money, the Index's finder's money, the Sky clock). Open, in order:
-  **publish** (then set `Config.Shop.Deals.GrandOpening.StartsAt` to that moment and publish
-  again, or tell me the time first), "Restart Servers for Updates", the server size 24 in the
+  **publish** (the Grand Opening's 46 days already run from 2026-10-10 08:15 EDT,
+  `Config.Shop.Deals.GrandOpening.StartsAt`), "Restart Servers for Updates", the server size 24 in the
   Creator Dashboard; the designer's look at the Sky banner, the Index's Collect card and the
   offer tile's new spot on a phone; a Sky block falling for real after 30 minutes. Roblox shows
   the products at about 0.8x their price (regional pricing or price optimization).

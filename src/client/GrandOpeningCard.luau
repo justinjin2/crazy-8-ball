@@ -333,7 +333,12 @@ function GrandOpeningCard.buildBlock(self: any)
 	tagPill.Position = UDim2.fromScale(0.5, 0.5)
 	tagPill.Size = UDim2.fromScale(1, 1)
 	self.newPill, self.newWords = tagPill, tagWords
-	self.endsIn = label(card, "EndsIn", "", rgb(L.EndsInColor), 5)
+	-- Under the block, how limited it is (designer, 2026-10-10: "emphasis on exclusivity and
+	-- limitedness"): the red "ENDS IN 45d 23h" pill, then "THEN GONE FOREVER!" in flowing
+	-- rainbow words that rattle now and then.
+	local endsPill, endsWords = pill(card, "EndsIn", "", rgb(L.EndsInColor), 5)
+	self.endsIn, self.endsWords = endsPill, endsWords
+	self.gone = label(card, "GoneForever", COPY.GoneForever, Color3.new(1, 1, 1), 5)
 end
 
 function GrandOpeningCard.buildTitle(self: any)
@@ -733,8 +738,15 @@ function GrandOpeningCard.layout(self: any, width: number, height: number?): num
 	HudParts.setTextSize(self.newWords, tagPx)
 	local endsPx = textPx(L.EndsInUnits, g.s)
 	put(self.endsIn, g, L.EndsIn[1], L.EndsIn[2], 0, 0)
-	self.endsIn.Size = UDim2.fromOffset(round(364 * g.s * k), endsPx + 8)
-	HudParts.setTextSize(self.endsIn, endsPx)
+	self.endsIn.Size = UDim2.fromOffset(
+		round(measure(string.format(COPY.EndsIn, L.EndsInSample), endsPx) + endsPx * 1.4),
+		round(endsPx * 1.6)
+	)
+	HudParts.setTextSize(self.endsWords, endsPx)
+	local gonePx = textPx(L.GoneForeverUnits, g.s)
+	put(self.gone, g, L.GoneForever[1], L.GoneForever[2], 0, 0)
+	self.gone.Size = UDim2.fromOffset(round(364 * g.s * k), gonePx + 8)
+	HudParts.setTextSize(self.gone, gonePx)
 
 	-- The title's group.
 	g = groups.title
@@ -900,8 +912,9 @@ function GrandOpeningCard.refresh(self: any, state: any)
 		HudParts.setText(self.robuxButtons[index], robuxWords(products, count))
 	end
 	self.endsIn.Visible = open
+	self.gone.Visible = open
 	if open then
-		self.endsIn.Text =
+		self.endsWords.Text =
 			string.format(COPY.EndsIn, StageMath.timeLeft(deal.endsAt - ShopParts.now(), COPY))
 	end
 	-- Each Unique cue's copies left, once the server has read the count.
@@ -1247,6 +1260,9 @@ function GrandOpeningCard.register(self: any, stage: Stage.Stage, keep: (UIAnim.
 	end
 	stage:add("Counts", self.counts)
 	stage:add("EndsIn", self.endsIn)
+	stage:add("GoneForever", self.gone, function()
+		keep(all({ UIAnim.rainbow(self.gone), UIAnim.shake(self.gone, "Text") }))
+	end)
 end
 
 --- The bought-blocks notice: "Your Grand Opening Lucky Block is in your hotbar!".

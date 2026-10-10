@@ -4244,3 +4244,8 @@ timer of a new block stay the designer's call.
   centred on the screen (just under the row when the row's HUD leaves no room). The match top
   bar is centred on the screen (the clock in the middle) whenever that clears Roblox's buttons
   (computers, tablets); a phone keeps it in the room beside them.
+- 2026-10-10 (designer, "start it now but make it 46 days"): the Grand Opening's clock started
+  at 08:15 EDT (StartsAt 1791634500) and runs 46 days (45 plus a grace day); the launch bonus
+  follows it. Its Shop card says how limited it is under the block: a red "ENDS IN 45d 23h"
+  pill and "THEN GONE FOREVER!" in flowing rainbow words. The Abilities code box's "NEXT CODE
+  AT 100 LIKES" has the kit's ink outline like the line above it.

@@ -3598,11 +3598,13 @@ Config.Shop = {
 			-- (it follows StartsAt). Economy v6 (designer, 2026-10-10): StartsAt is set to the
 			-- moment the designer publishes v6 (the deal then runs Seconds and ends).
 			SoftLaunch = true,
-			StartsAt = 0,
-			-- 45 days (designer, 2026-10-10: "long enough, not too long, short enough to see how
-			-- the game does"; the caps in Config.BlockOdds.List.GrandOpening keep the Uniques at
-			-- 1,000 and 100 either way).
-			Seconds = 45 * 86400,
+			-- Started 2026-10-10 08:15 EDT (12:15 UTC; designer: "start it now but make it 46
+			-- days", a grace day on top of the 45).
+			StartsAt = 1791634500,
+			-- 46 days (designer, 2026-10-10: 45 "long enough, not too long, short enough to see
+			-- how the game does", plus a grace day; the caps in Config.BlockOdds.List.GrandOpening
+			-- keep the Uniques at 1,000 and 100 either way).
+			Seconds = 46 * 86400,
 			VaultedSeconds = 7 * 86400, -- the "Vaulted" card stays this long after the end
 		},
 	},
@@ -9770,7 +9772,7 @@ Config.UI.Shop.Open = {
 		{ Ids = { "Robux1", "Robux3", "Robux10" }, Kind = "Pop", At = 0.50 }, -- with their gift squares
 		{ Ids = { "Counts" }, Kind = "Fade", At = 0.53, Length = 0.12 }, -- "1 block", "3 blocks", "10 blocks"
 		{ Ids = { "Money1", "Money3", "Money10" }, Kind = "Pop", At = 0.55 },
-		{ Ids = { "EndsIn" }, Kind = "Fade", At = 0.62, Length = 0.12 },
+		{ Ids = { "EndsIn", "GoneForever" }, Kind = "Fade", At = 0.62, Length = 0.12 },
 		-- The Blocks group (ShopMystery, ShopRestock, ShopOffers; the designer's picks,
 		-- 2026-10-08), with the same rhythm. Opened on Featured they play below the first screen,
 		-- unseen; opened on Blocks (the restock banner's Shop button) or jumped to, they are what
@@ -9999,9 +10001,14 @@ Config.UI.GrandOpeningCard = {
 		NewTagDegrees = -8,
 		NewTextUnits = 40,
 		OddsBadge = { 300, 360, 44 }, -- the dice on the block (centre, size)
-		EndsIn = { 182, 466 },
-		EndsInUnits = 32,
-		EndsInColor = { 70, 215, 255 },
+		-- Under the block: the "ENDS IN 45d 23h" pill (centre; its width fits EndsInSample) and
+		-- the rainbow "THEN GONE FOREVER!" under it (designer, 2026-10-10).
+		EndsIn = { 182, 434 },
+		EndsInUnits = 28,
+		EndsInColor = { 232, 52, 60 }, -- the kit's red: it is running out
+		EndsInSample = "88d 88h",
+		GoneForever = { 182, 476 },
+		GoneForeverUnits = 30,
 		-- The title's group (box 470..1155 x 10..130).
 		Title = { 812, 54 },
 		TitleUnits = 70, -- bigger than the animatic's 58: 13b's title fills more of the card

@@ -745,9 +745,11 @@ return {
 				-- rule: its chance moves to the block's lowest rarity, as the Odds & Details
 				-- list says); one with every copy found shows 0%.
 				CueOwned = "Owned",
-				-- The live timer under the block: "Ends in 20d 23h", in the last day
-				-- "Ends in 23h 59m", in the last hour "Ends in 59:59".
-				EndsIn = "Ends in %s",
+				-- The live timer under the block, on a red pill: "ENDS IN 20d 23h", in the last
+				-- day "ENDS IN 23h 59m", in the last hour "ENDS IN 59:59"; then, in rainbow
+				-- words, what happens after (designer, 2026-10-10: limited and exclusive).
+				EndsIn = "ENDS IN %s",
+				GoneForever = "THEN GONE FOREVER!",
 				Days = "%dd %dh",
 				Hours = "%dh %dm",
 				Minutes = "%d:%02d",

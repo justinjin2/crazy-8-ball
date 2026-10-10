@@ -232,7 +232,9 @@ function UltOdds.buildCode(self: any, parent: Instance)
 	local line = HudParts.text(card, "Line", C.Full.CodeTextPx, "")
 	line.RichText = true
 	line.ZIndex = 3
-	local next = HudParts.note(card, "Next", C.Full.CodeNoteTextPx, "")
+	-- White words with the ink outline like the line above (designer, 2026-10-10: the gold
+	-- likes count was hard to read as a plain note).
+	local next = HudParts.text(card, "Next", C.Full.CodeNoteTextPx, "")
 	next.RichText = true
 	next.ZIndex = 3
 	self.codeLine, self.nextLine = line, next

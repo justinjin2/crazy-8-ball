@@ -420,7 +420,7 @@ return {
 		H.expect(S.timeLeft(3599, words) == "59:59", "the last hour")
 		H.expect(S.timeLeft(-5, words) == "0:00", "never below zero")
 		H.expect(
-			string.format(words.EndsIn, S.timeLeft(86400, words)) == "Ends in 1d 0h",
+			string.format(words.EndsIn, S.timeLeft(86400, words)) == "ENDS IN 1d 0h",
 			"the sentence"
 		)
 	end,

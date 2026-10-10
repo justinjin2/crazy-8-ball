@@ -747,10 +747,10 @@ return {
 
 	["the Grand Opening Luck is off: no window is ever live (economy v6)"] = function()
 		local BlockDrop, Config = load()
-		H.expect(Config.Shop.Deals.GrandOpening.StartsAt == 0, "set at publish")
+		H.expect(Config.Shop.Deals.GrandOpening.StartsAt > 0, "started 2026-10-10")
 		H.expect(not BlockDrop.luckLive(1800000000), "off: never live")
 		local a, b = BlockDrop.luckWindow()
-		H.expect(a == 0 and b == 0, "no window")
+		H.expect(a == b, "a window 0 seconds long")
 		local T = 1800000000
 		withStart(Config, T, function()
 			local s, e = BlockDrop.luckWindow()
