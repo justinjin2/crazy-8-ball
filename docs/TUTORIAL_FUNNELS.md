@@ -100,7 +100,9 @@ spin.
 - **Block:** Got (any free block lands), Ready (its timer ended), Opened, Equipped (a cue from
   it was equipped) (Funnel's own watch, LuckyBlockService, Items).
 - **AbilitySpins:** OpenedAbilities, Spun, Equipped, UsedInMatch (TutorialService, UltSpins,
-  UltService).
+  UltService). Equipped means picking a slot: a new player's first spin fills their only slot,
+  so their sessions go from Spun straight to UsedInMatch. Roblox then counts Equipped as done
+  too (a later step marks the earlier ones), so read that funnel as Spun to UsedInMatch.
 
 ## The custom events
 

@@ -1319,6 +1319,25 @@ lines). All in the worktree.
 - **The designer (2026-10-09):** from here on, Studio checks only the main happy path of each
   step with one screenshot; step 14's target is 3 clean runs, not 20.
 
+### Step 14: bug-proofing (2026-10-09)
+
+- **Automated runs (3 in a row, clean, the designer's new target):** each from a brand-new save
+  in my window: on the pad, the bot walks over, game 1 begins (the Break lesson), the bot leaves
+  (a forfeit win: the rigged play itself is covered by the Lune sims and tests), then a client
+  script drives Result, Rank (claim), Mystery (three presses), Place (pick, throw, open; the
+  reel lands Cosmo Cue), Cues (Equip), Abilities (RELEASE: 3, SPIN: Magnet, 2 left), Soft (the
+  invite popup, its X). Run 1 PC; run 2 skips at Mystery (TutorialSkipped, the Mystery hint
+  Shown then Done, then the Block hint); run 3 the controller's scenes (forced device: every
+  scene key ends in gamepad). A 4th run with 0.3 s of fake lag
+  (`IncomingReplicationLag`, STUDIO_NOTES) went through the same way. No errors or warnings
+  from our code in any run (only the lane file's DataStore and MemoryStore notes); every
+  onboarding step 1 to 11 in order.
+- **Covered by Lune tests:** the step-name guard (every step name in `src/` is a real step), the
+  migration map (old saves' steps), the layout guard (a physics change that breaks game 1's
+  layouts fails a test), players with a match or a win never entering.
+- **The chaos list:** REVIEWS_PENDING
+- Screenshot: `~/Desktop/8ball-refs/tutorial/step14/skip_then_mystery_hint.jpg`.
+
 ### Touch list (files outside the tutorial's own modules changed, and why)
 
 - `src/shared/Config.luau`: `Config.Tutorial.Assist` (the hidden help's numbers, Pull modes)

@@ -774,7 +774,10 @@ function TutorialService.dev(player: Player, args: { string }): string
 		end
 		return nil
 	end
-	if word == "reset" then
+	if word == "reset" and TutorialGames.seated(player) then
+		-- A game in progress would go on under a new tutorial: leave the table first.
+		return Dev.TutorialSeated
+	elseif word == "reset" then
 		-- A new player's tutorial: the step, the path, the hints and every tutorial funnel.
 		for _, key in RESET_FLAGS do
 			PlayerData.setFlag(player, key, nil)

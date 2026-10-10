@@ -456,6 +456,7 @@ return {
 		TutorialStep = "Your tutorial is at %s (path %s).",
 		TutorialBad = "Try /tutorial reset, skip, off, hints, path s|r or step <name>. Steps: %s.",
 		TutorialHints = "Your first-time hints and click-once glows are back.",
+		TutorialSeated = "Leave the table first, then /tutorial reset.",
 		-- /funnel: what the funnels logged for you in this server (newest last).
 		FunnelNone = "No funnel events logged for you in this server yet.",
 		FunnelHead = "Funnel events (this server, newest last; %d):",
