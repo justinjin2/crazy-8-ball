@@ -202,7 +202,10 @@ Every feature is checked against these. If it serves none, it waits.
 - **Every table plays one mode** (changed 2026-09-26; for a day any table played any mode from
   one long queue box). Of sixteen tables, **ten are 1v1, four 2v2 and two 3v3**, the 1v1
   tables nearest the spawn. The four 2v2 stand together (2 x 2) in the back-left corner and
-  the two 3v3 in the back-right corner, seen from the spawn (changed 2026-09-26).
+  the two 3v3 in the back-right corner, seen from the spawn (changed 2026-09-26). One
+  exception: when every 1v1 table is busy, the tutorial borrows a free 2v2 or 3v3 table as a
+  1v1 for a new player's game 1, and it goes back to its own mode once free (2026-10-09,
+  section 14).
 - **Joining: step onto the table's queue pad.** Each table has one glowing rectangular pad in
   front of it, lying along the long side that faces the entrance (changed 2026-09-26 for the
   rooftop map; a round pad was tried the same day and dropped), as long as the table and just
@@ -1102,81 +1105,87 @@ blocks (2026-10-04).
 
 ## 14. First-time playthrough and onboarding
 
-The whole first session is the tutorial (built 2026-10-03, the tutorial lane; the brief is
-`docs/prompts/TUTORIAL_PROMPT.md`, the step-by-step record `docs/parallel/tutorial.md`). It
-runs in the real public server the player lands in, not a separate place. The server keeps the
-step in the save (`Flags.Tutorial`) and owns every rigged part; the client only shows guidance.
+The first session is the tutorial, version 2 (built 2026-10-09; the brief and its step notes:
+`docs/prompts/TUTORIAL_V2_PROMPT.md`, the report `docs/prompts/TUTORIAL_V2_REPORT.md`, the
+funnels `docs/TUTORIAL_FUNNELS.md`). It runs in the real public server the player joins, never
+a separate place or a fake lobby. The server keeps the step in the save (`Flags.Tutorial`) and
+owns every rigged part; the client only shows guidance (`src/client/Tutorial.luau` and its
+helpers, `src/server/TutorialService.luau`, `TutorialGames`, `TutorialBot`, `TutorialHints`,
+`src/shared/Tutorial/`).
 
 **Decided**
-- **Who gets it:** a brand-new save (no match played). Anyone with a match or a win is done.
-- **The look:** big white Fredoka text at the top with a thick ink outline (no strip), a light
-  dim with a lit hole round the target, and a white cartoon pointing hand (our own drawing in
-  the style of the designer's reference) that taps, drags and pulls. A line of white arrows on
-  the floor leads to the table. Every prompt has its own words and gesture for mouse, touch
-  and gamepad. A small **Skip tutorial** button sits top right the whole time.
-- **What is hidden:** in the first server Shop, Inventory, Rank, Free Reward and Trade are
-  hidden; Abilities appears at its lesson. No offers show while the tutorial runs (the player
-  attribute `TutorialActive`), and no money is given on join: the day-1 claim waits in the
-  Rewards menu (for everyone, designer 2026-10-04: no reward popups).
-- **Game 1 (rigged, against a disguised bot):** the arrow leads to the nearest empty 1v1 table,
-  reserved for them (lobby bots leave it alone). On the pad the host card shows only Request
-  opponent; 2 s later the tutorial bot (a random real avatar and name, a Silver badge) joins
-  and the player breaks. The break is fixed: any pull plays the rigged break, which pots 3
-  solids and leaves a 4th by a corner and the 8 by a pocket. Then: "Drag to aim!" with the
-  long guideline and strong ball highlights; a hidden pull (Magnet's strength, no visuals)
-  helps the player's balls near pockets; the bar fills and "Use your ability!" teaches Heat
-  Seeker (the hand taps a ball, then Confirm). The first miss gives the bot a visit where it
-  pots one and scratches, which teaches ball in hand. After that the bot only plays weak shots
-  that never touch the player's balls or the 8. "SELECT WHICH POCKET!" lights the pocket
-  nearest the 8. Losing on the 8 is impossible in game 1 (an early 8, a scratch on it or a
-  wrong pocket puts it back as a plain foul). On the winning shot the bot shouts "AUGHHHH!",
-  jumps and vanishes; the result screen shows Leave only.
-- **After game 1** (lucky blocks, 2026-10-04): NEW RANK! Bronze ("Claim your rewards in
-  Rank!") -> **Block**: Bronze's Standard lucky block sits in the hotbar; the hand shows
-  holding it from its slot, throwing it and holding the prompt to open it; it opens to an
-  Uncommon cue (forced) -> **Equip**: Inventory appears and the hand leads to it, the new cue's
-  card and Equip ("Equip your new cue!"; closing the Inventory without equipping moves on;
-  designer 2026-10-03) -> **RareBlock**: the hand rests on the match's Rare block in its hotbar
-  slot, counting down its 5-minute timer (a tap reports it seen) -> **Abilities**: the icon appears,
-  the hand on it -> **Spin**: the one starter spin lands on Fire Shot (Magnet until 2026-10-08)
-  -> **Code**: "Type RELEASE
-  for 3 more spins!" -> **Back**: "Click Back".
-- **Game 2:** the arrow to a pad; the host card shows only Join Global Queue; the search turns
-  into a match after 1 s against the Bots lane's disguised Bronze bot in a global arena. Win or
-  lose, no rematch: "Press Lobby!" teleports them to a public server.
-- **The real server:** everything shows; the day-1 claim ($5,000) waits in Rewards. Then
-  nudges, one at a time and only in the lobby (an ignored one comes back): Rank (claim the
-  held rank rewards), Inventory ("Your cues live in the Inventory!"), Shop, Free Reward. Then
-  **BlockWait** while the Rare block's hotbar slot counts down, and **BlockReady** ("Your
-  block is ready!" on that slot) once it ends; opening it ends the tutorial.
-- **Leaving and coming back:** game 1 starts over from the arrow; the reward steps resume where
-  they were; game 2 goes back to its arrow (or continues in the arena); after game 2 it picks
-  up in the real server.
-- **Skip and cancel:** Skip asks "Skip the tutorial?" Yes / No. Skipping (mid-game 1 the game
-  goes on with guidance off), joining another table or a friend joining their pad ends it:
-  everything shows at once and the normal rules apply (the first win's Bronze, its Standard
-  block, the Rare block).
-- **Rules changed for everyone with the tutorial (2026-10-03):** Bronze gives its Standard
-  block at once; every other rank reward (money, blocks, cue, tag, spins) and every later rank-up is held
-  until claimed in Rank (a claim card on the roadmap, the rewards fly to where they live); 1
-  starter ability spin; Heat Seeker is the default ability; the code RELEASE (3 spins) replaces
-  ABILITIES.
-- **Funnels (Roblox analytics, server only, `src/server/Funnel.luau`):** the onboarding funnel
-  of 22 steps, from Joined to Came back the next day (`Shared/Tutorial/Steps`, each logged once
-  per player); side events (ball in hand shown, the bot's scratch, lost game 2); the
-  TutorialExit funnel for skipped or cancelled players (then first game, first win, second
-  match, next day); Shop (opened, viewed an item, pressed buy, bought; per session); Block
-  (Got, Ready, Opened, Equipped; per block); Ability spins (opened Abilities, spun, equipped,
-  used in a match).
+- **Who gets it:** a brand-new save. A save with any match or win never enters it; a save from
+  before v2 has every first-time hint marked done.
+- **The look:** big white text with an ink outline, a light dim with a lit hole round the
+  target, the white cartoon hand, and the device's own words and gesture (mouse, touch,
+  controller with Roblox's button pictures). A small **Skip tutorial** button (Yes / No
+  confirm) is always on screen (top left while the Abilities screen is open).
+- **Joining game 1:** none of the menu icons show yet. A white arrow with a black outline runs
+  from the player's chest to the nearest empty 1v1 table's pad (an edge arrow when it is off
+  screen). Stepping onto **any** empty 1v1 table makes it the tutorial table. When every 1v1
+  table is busy, the nearest free 2v2 or 3v3 table plays game 1 as a 1v1 and goes back to its
+  own mode afterwards (the team-table backup).
+- **The bot:** a disguised player (real avatar and name) loaded on join, waiting out of sight
+  (a closed kiosk), walks over naturally (stop-and-go, look-arounds, the odd jump) and steps on
+  0.5-2 s after the player. If they step off before the game, it gets up and strolls nearby.
+- **Path S, the rigged game 1** (whoever sits down alone): the break with the aim locked
+  (under half power the bar springs back; half or more plays the fixed break: 2 solids, the
+  second creeping in); turn 2's aim lesson (a small turn, the zoom out with the pocket glowing);
+  the combination (two of their balls lined up, NICE SHOT!); the ability lesson (a full bar,
+  Fire Shot's long line); the first miss gives the bot a visit that pots one then scratches,
+  which teaches ball in hand; later bot visits miss and leave a makeable shot; SELECT WHICH
+  POCKET with the right pocket glowing. They cannot lose game 1 (a losing 8 is put back as a
+  plain foul). Hidden help: Magnet's pull on the lesson shots, an invisible small pull
+  elsewhere. The clock pauses while a lesson prompt shows. Target length about 4 minutes.
+- **Path R, a fair game 1:** a real person at their table before the game starts makes it a
+  normal game (no rig, no help); the pool controls come as first-time hints. Won: the same
+  chain as path S (without the bot's line). Lost: back to the arrow; the rigged game comes the
+  next time they sit alone.
+- **The chain after a won game 1:** Result (Continue only, the first win's Rare block) ->
+  NEW RANK! Bronze -> the bot says one casual line and leaves -> **Rank**: CLAIM (Bronze's
+  Mystery block waits there like every rank reward) -> **Mystery**: its upgrade screen climbs
+  once, Standard to Uncommon, ready at once -> **Place**: "Place it!", throw and open; the
+  reel pauses on its cards, the Secret cue flashes past, it lands on the Cosmo Cue -> **Cues**:
+  open, the new cue, Equip, close -> **Abilities**: 0 spins; "Type RELEASE for 3 free spins!"
+  (filled in on a controller); the first spin lands on Magnet; 2 left -> the soft part. Each
+  step re-prompts, offers Next after its fallback time, and resumes where it was after a
+  rejoin.
+- **The soft part:** every icon pops in, each with a "!" until clicked once (Free Reward
+  stands out most); "Win a Match 0/1" stays until won; a small invite popup once (an honest
+  line on when the reward comes); Free Reward's group, favorite and like frames light once;
+  Play Global glows. **Game 2** is a real game through the new search; after it, win or lose,
+  the tutorial is done.
+- **First-time hints, for everyone:** the first time each thing happens (the full ability bar,
+  a rank-up to claim, a lucky block to place, a Mystery block, a cue won, Abilities, ball in
+  hand, the 8's pocket, aim and zoom in a fair first game), a hand and one short line, no dim
+  in a match. Once each, saved; an ignored hint may come back once later. Never with the
+  tutorial bot at the table.
+- **Skip:** in game 1 the game goes on without guidance; in the chain everything shows at
+  once. Skippers keep the icons' "!" dots, and the first-time hints still come.
+- **Never stuck, never broken:** any failure in tutorial code ends it gracefully (everything
+  shows, the game works) and logs a `TutorialError`.
+- **Rules for every player (shipped with v2):** a new save has 0 ability spins (no starter
+  spin, no spin for Bronze, the first daily free spin the next day) until RELEASE gives 3;
+  Bronze's block waits in Rank; every reel pauses on its cards before it spins; "x2!" (and up)
+  beside NICE SHOT! for two or more of your balls in one shot; the new search (section 6: this
+  server first, the global queue, a bot here at 5 s); controller shooting (hold R2 or A to
+  fill, let go to shoot; B cancels); VIP and Starter Pack share one tile; the new arrow look.
+- **Funnels:** the onboarding funnel (16 steps), PathS, PathR, Game2 and Social, the Shop,
+  Block and Ability spins funnels, and custom events (Hint, TutorialSkipped, StepTime,
+  TutorialError, Game2Result, InvitePopup). All in `docs/TUTORIAL_FUNNELS.md`.
+- **Developer commands (the designer only):** `/tutorial reset | skip | off | hints | path s|r |
+  step <name>` and `/funnel`.
 - **Daily streak and playtime gifts:** in the Rewards menu, claimed there and never given by
   themselves; numbers in ECONOMY.md section 10.
-- **No reminders** (designer, 2026-10-04): the leave-menu and focus-loss reminder toast, the
-  come-back screen are gone; the Rewards dot is the only nudge. The first-leave gift came back
-  as the Gift lucky block (designer, 2026-10-07; section 12).
+- **No reminders** (designer, 2026-10-04): the Rewards dot is the only nudge. The first-leave
+  gift came back as the Gift lucky block (designer, 2026-10-07; section 12).
 
 **Open**
-- Whether the VIP Cue's finder's money should pay a VIP player on their very first join (it
-  gives $5,000 before the tutorial's real server; see the lane file's integrator notes).
+- The controller's shooting mode: Hold (default), Depth or Freeze
+  (`Config.Input.Gamepad.Shoot.Mode`), after the designer tries a real controller.
+- Max Players: 24 (the plan) or 20 (no new player ever waits for a table, half the arena
+  teleports). Set in the Creator Hub.
+- Whether the VIP Cue's finder's money should pay a VIP player on their very first join.
 
 ## 15. Social
 

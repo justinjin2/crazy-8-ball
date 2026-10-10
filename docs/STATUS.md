@@ -4,7 +4,7 @@ Current state only, rewritten in place. Keep it to about two screens (under 100 
 step is finished and verified, move its dated entry to the top of
 `docs/archive/STATUS_HISTORY.md` and keep only what is still true or still open here.
 
-Updated 2026-10-08.
+Updated 2026-10-09 (branch `tutorial-v2`).
 
 ## Where the build is
 
@@ -81,6 +81,10 @@ One line each; the long form is the 2026-10-08 entry at the top of
   one-by-one review (since 2026-09-30) goes on; abilities not yet reviewed are provisional.
 - **The lively Shop** is in `release` (2026-10-06); other menus take its frame as rebuilt.
 - **Decision still open:** whether the VIP cue pays finder's money on the first join.
+- **Tutorial v2** (branch `tutorial-v2`, not merged; `docs/prompts/TUTORIAL_V2_REPORT.md`):
+  built and checked in Studio on PC (3 clean automated runs, one with fake lag; two review
+  agents' 11 fixes; the team-table backup). Waiting on: the test place publish (the API key's
+  place permission), the designer's live checklist, a real controller and phone, Max Players.
 - **The cue rarity rework** continues after the Unique cues (Beta, Grand Opening, Eclipse,
   Celestial Dragon, Kitsune). Apex's first look was reverted.
 - **The place file:** save `place/8ball.rbxl` and publish once this milestone is done (lucky
@@ -95,7 +99,7 @@ One line each; the long form is the 2026-10-08 entry at the top of
 - Real multiplayer: a two-player block or cue trade, 2v2 and 4-player matches, the global
   queue in the published game (`docs/MULTIPLAYER_TESTING.md`), real Robux purchases.
 - Sounds by ear (the levels were measured, not listened to), the new click "boop" included.
-- The analytics funnels in the Creator Dashboard (roadmap 8.2).
+- The analytics funnels in the Creator Dashboard (roadmap 8.2; `docs/TUTORIAL_FUNNELS.md`).
 
 ## Known gaps and test switches to remember
 
