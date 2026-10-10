@@ -291,7 +291,7 @@ function Opening.pull(self: any, cueId: string, rarity: string, onClosed: (() ->
 end
 
 --- The quick reveal (economy v5 plan 3.8): a cue of a Config.LuckyBlocks.QuickReveal rarity
---- (Common, Uncommon) skips the reel. The result card alone, at QuickScale of its size, with
+--- skips the reel (none since 2026-10-09: the designer wants the reel every time). The result card alone, at QuickScale of its size, with
 --- its sting and rays, then it pops out by itself after QuickRevealSeconds (a tap closes it
 --- sooner). The cue is already the player's. `onClosed` runs once it is gone.
 function Opening.quick(self: any, cueId: string, rarity: string, onClosed: (() -> ())?)

@@ -1238,8 +1238,9 @@ Built in their screens' style on the designer's "use your judgment"; screenshots
   Epic cards and rarer, each chip its real chance).
 - **The Secret rung** (section 25's ladder): the Mythic block darkened (`Reveal.Secret.Tint`)
   with a red "?"; a Secret climb slams SECRET! in red, then the pull cutscene and YOU GOT.
-- **The quick reveal** (`LuckyOpening.quick`): a Common or Uncommon cue skips the reel; the
-  result card alone at 0.8 with its rays and sting, gone by itself after 1.5 s (a tap sooner).
+- **The quick reveal** (`LuckyOpening.quick`): the result card alone at 0.8 with its rays and
+  sting, gone by itself after 1.5 s (a tap sooner). Off since 2026-10-09 (the designer: the
+  reel every time); `Config.LuckyBlocks.QuickReveal` lists the rarities that would use it.
 - **"Open all"** (`LuckyHotbar`, `LuckyBlocks.UI.OpenAll`): a green kit button right of the
   bag button while a ready climbed Standard or Uncommon block waits; its summary is "37 BLOCKS
   OPENED!" over one cue card per cue ("x7", NEW on a first find), rarest first, in the columns

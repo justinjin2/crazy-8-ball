@@ -607,7 +607,7 @@ climbed block's row `Config.BlockOdds.List` (`Progression/BlockOdds.luau`).
   (`BlockDrop.climbFor`, with the launch luck; `PlayerData.planLuckyOpen`). The reel's strip is
   that climb's odds: a Rare block's shows Rare cards at 8.2% each and Epic cards at 1.8% each
   (Rare 82%, Epic 16.2%, Legendary 1.53%, Mythic 0.26%, the Secret 1 in 14,815), so the odds did
-  not change, only how they are shown. A Common or Uncommon cue opens with the quick reveal.
+  not change, only how they are shown. Every open spins the reel, a Common cue too (7.6).
 - **Only the Mystery has an upgrade screen** (like Brawl Stars' Starr Drop): its slot says
   **OPEN!** and wears the climb mark, and a tap opens its **4 presses** (`Drop.Upgrade.Clicks`;
   designer: "just 4"), which are its roll (7.4). The server rolls first; the presses only reveal
@@ -808,7 +808,7 @@ one step and gives that step's block or money (v5, 2026-10-09; `Config.BlockOdds
   30 minutes, 5.2 at 1 hour and 9.4 at 3 hours, about 70% of them ending Common or Uncommon
   (v5.1; v5: 4.8, 6.7 and 11.7; v4: about 15 a day at 1 hour).
 
-### 7.6 Timers, the skip, the quick reveal and "Open all"
+### 7.6 Timers, the skip, the reel every time and "Open all"
 
 **Every block waits its own name's timer** (v5.2; `Config.LuckyBlocks.Kinds[kind].Timer`):
 Standard at once, Uncommon 1 minute, Rare 5 minutes, Epic 30 minutes, Legendary 6 hours, Mythic
@@ -845,10 +845,10 @@ only, never money, and the skip button shows the price for the time left right n
 - Still the cheapest skip per hour of any game found (Steal An Egg: 9 R$ for 15 minutes, 299 R$
   for 12 hours).
 
-**The quick reveal** (the designer's answer 14): a Common or Uncommon result opens with a quick
-1.5-second reveal instead of the full show (`Config.LuckyBlocks.QuickReveal`,
-`QuickRevealSeconds`; `LuckyBlocks.quickReveal`); the full show from Rare up. The GUI session
-builds it.
+**Every open spins the reel** (designer, 2026-10-09: "its supposed to go through the scroll
+everytime"). v5 had a quick reveal for Common and Uncommon results (the result card alone for
+1.5 s, from answer 14); it is off now (`Config.LuckyBlocks.QuickReveal` empty; the code stays,
+`LuckyOpening.quick`).
 
 **"Open all"** (answer 14): one server request (`OpenAll`) opens every ready Standard and
 Uncommon block in the hotbar and bag at once (up to 50, at most once every 3 seconds;
@@ -1700,8 +1700,8 @@ Limited cues.
 - **Opening blocks.** One at a time, in the world: hold the block from its hotbar slot, throw
   it, hold the prompt; the reel, the pull cutscene (Rare and up) and the "YOU GOT" card follow.
   The block climbs as it opens and the reel shows that climb's odds (v5.2, 7.1); a Mystery
-  rolls on its upgrade screen first. A Common or Uncommon cue skips the reel: its result card
-  alone, gone by itself after 1.5 s (the quick reveal). **"Open all"** (v5), a green button
+  rolls on its upgrade screen first. Every open spins the reel (the quick reveal is off since
+  2026-10-09). **"Open all"** (v5), a green button
   right of the hotbar's bag button, opens every ready Standard and Uncommon block at once and
   shows one summary of the cues, then a reel for each Rare or better (7.6).
 - **Index completion.** A cue never owned is a "?" card; tapping it shows its name and its

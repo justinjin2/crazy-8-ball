@@ -12,9 +12,9 @@
 --   opens (VIP has no timers). Each thrown block keeps its own hold prompt. The Throw animation
 --   asks the server at its Release marker.
 -- - Open it: the prompt over it (LuckyWorld). The server rolls its climb and its cue; once the
---   block bursts at the top of its rise, the reel plays at the climb's odds (economy v5.2: a
---   Rare block's strip is Rare 82%, Epic 16.2%...; a Common or Uncommon cue the quick reveal;
---   a Rare or better cue's pull cutscene, LuckyOpening).
+--   block bursts at the top of its rise, the reel plays at the climb's odds, every time
+--   (economy v5.2: a Rare block's strip is Rare 82%, Epic 16.2%...; a Rare or better cue's
+--   pull cutscene follows, LuckyOpening).
 -- - A Mystery (economy v5.1; since v5.2 the only block with an upgrade screen) is never held
 --   as it is: its slot says OPEN! and a tap, a click or its key opens its upgrade screen
 --   (MysteryReveal), where its roll turns it into a tier's block, which jumps back into its
@@ -397,7 +397,8 @@ function nextReveal()
 		revealing = false
 		task.defer(nextReveal)
 	end
-	-- A Common or Uncommon cue: the quick reveal, no reel (economy v5 plan 3.8).
+	-- A Config.LuckyBlocks.QuickReveal rarity skips the reel (none since 2026-10-09: the
+	-- designer wants the reel every time).
 	if LuckyBlocks.quickReveal(reward.rarity) then
 		opening:quick(reward.cue, reward.rarity, done)
 	else
@@ -440,7 +441,7 @@ local function openAll()
 			for _, o in reply.opened do
 				if type(o) ~= "table" or type(o.rarity) ~= "string" then
 					continue
-				elseif LuckyBlocks.quickReveal(o.rarity) then
+				elseif table.find(L.OpenAll.Summary, o.rarity) ~= nil then
 					table.insert(quick, o)
 				elseif type(o.cue) == "string" and type(o.kind) == "string" then
 					table.insert(reveals, o)
@@ -674,7 +675,7 @@ function LuckyClient.start(screen: ScreenGui)
 			local seen = {}
 			for _, row in { "Standard", "Uncommon" } do
 				for _, entry in BlockOdds.cueOdds(row) do
-					if LuckyBlocks.quickReveal(entry.rarity) and not seen[entry.id] then
+					if table.find(L.OpenAll.Summary, entry.rarity) and not seen[entry.id] then
 						seen[entry.id] = true
 						table.insert(list, { cue = entry.id, new = #list == 0 })
 					end

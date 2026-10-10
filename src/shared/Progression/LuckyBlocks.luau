@@ -233,8 +233,8 @@ function LuckyBlocks.oneIn(cueId: string, from: string, luck: boolean?): number?
 	return nil
 end
 
---- Whether a cue of `rarity` opens with the quick reveal (Config.LuckyBlocks.QuickReveal:
---- Common and Uncommon, economy v5 plan 3.8); the full show from Rare up.
+--- Whether a cue of `rarity` opens with the quick reveal instead of the reel
+--- (Config.LuckyBlocks.QuickReveal: none since 2026-10-09, every open spins the reel).
 function LuckyBlocks.quickReveal(rarity: string): boolean
 	return table.find(L.QuickReveal or {}, rarity) ~= nil
 end

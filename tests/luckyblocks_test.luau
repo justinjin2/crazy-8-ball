@@ -444,12 +444,13 @@ return {
 		H.expect(table.find(L.Reasons, "NoneReady") ~= nil, "its refusal")
 	end,
 
-	["the quick reveal: Common and Uncommon; the full show from Rare up"] = function()
-		local L = load()
-		H.expect(L.quickReveal("Common") and L.quickReveal("Uncommon"), "quick")
-		for _, rarity in { "Rare", "Epic", "Legendary", "Mythic", "Secret" } do
-			H.expect(not L.quickReveal(rarity), rarity .. ": the full show")
+	["every open spins the reel; Open all sums up Common and Uncommon"] = function()
+		local L, Config = load()
+		for _, rarity in { "Common", "Uncommon", "Rare", "Epic", "Legendary", "Mythic", "Secret" } do
+			H.expect(not L.quickReveal(rarity), rarity .. ": the reel")
 		end
+		local summary = Config.LuckyBlocks.OpenAll.Summary
+		H.expect(table.concat(summary, " ") == "Common Uncommon", "Open all's summary")
 	end,
 	["the 1 in N: that exact cue's chance from the block it started as (plan 3.9)"] = function()
 		local L = load()
