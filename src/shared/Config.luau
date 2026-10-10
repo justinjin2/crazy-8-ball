@@ -3410,6 +3410,7 @@ Config.Portals = {
 	ArchHeight = 11,
 	PillarStuds = 1.6, -- the arch's frame thickness
 	TextHeightStuds = 16, -- the floating words' height above the floor
+	TextAheadStuds = 1, -- and this far in front of the arch (designer, 2026-10-10: closer)
 	CooldownSeconds = 6, -- after a try, the pad waits this long before it sends again
 	Colors = { Solo = { 70, 200, 255 }, Pc = { 255, 120, 220 } }, -- each portal's glow
 	FrameColor = { 245, 238, 225 }, -- the arch, like the rooftop's cream stone

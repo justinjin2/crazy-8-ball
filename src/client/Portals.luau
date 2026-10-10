@@ -168,12 +168,12 @@ local function build(row: any, parent: Instance, ignore: { Instance })
 	swirl.SpreadAngle = Vector2.new(60, 60)
 	swirl.Parent = pad
 	swirl.EmissionDirection = Enum.NormalId.Right -- the cylinder's axis points up
-	-- The floating words over the pad.
+	-- The floating words over the arch, just in front of it.
 	local anchor = part(
 		model,
 		"Words",
 		Vector3.new(0.2, 0.2, 0.2),
-		CFrame.new(px, y + P.TextHeightStuds, pz),
+		CFrame.new(row.X, y + P.TextHeightStuds, row.Z - P.TextAheadStuds),
 		glow
 	)
 	anchor.Transparency = 1
