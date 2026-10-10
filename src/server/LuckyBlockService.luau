@@ -67,7 +67,6 @@ local buckets: { [Player]: Requests.Bucket } = {}
 local busy: { [Player]: boolean } = {}
 local dirty: { [Player]: boolean } = {}
 local lastSent: { [Player]: string } = {}
-local lastOpenAll: { [Player]: number } = {} -- os.clock of the last "Open all" (MinGapSeconds)
 local rolls = Random.new()
 -- The tutorial lane (TutorialService.setOpenHooks): a forced cue for an open (game 1's
 -- Standard block lands on an Uncommon cue) and a call once a block is opened. Nil: none.
@@ -663,82 +662,6 @@ function HANDLERS.Open(player: Player, r: LuckyBlocks.Request, data: any): Reply
 	}
 end
 
--- "Open all" (economy v5 plan 3.8): every ready Standard and Uncommon block in the hotbar and
--- bag opens at once (LuckyBlocks.openAllIds: not the one in the hands, not a thrown one), each
--- as an Open would (its climb, the save, the tutorial's hooks), with no world show. One press
--- per Config.LuckyBlocks.OpenAll.MinGapSeconds. The answer: { opened = { { id, cue, rarity,
--- kind, tier, oddsId, start, luck, new, found, count } } } in the order opened (the client
--- reels the ones from Rare up), or "NoneReady".
-function HANDLERS.OpenAll(player: Player, _r: LuckyBlocks.Request, data: any): Reply
-	local clock = os.clock()
-	local last = lastOpenAll[player]
-	if last ~= nil and clock - last < L.OpenAll.MinGapSeconds then
-		return refuse("TooFast")
-	end
-	local skip: { [number]: boolean } = {}
-	local h = held[player]
-	if h then
-		skip[h.id] = true
-	end
-	local thrown: { [number]: Live } = live[player] or {}
-	for id in thrown do
-		skip[id] = true
-	end
-	local ids = LuckyBlocks.openAllIds(data.LuckyBlocks, os.time(), player.UserId, skip)
-	if #ids == 0 then
-		return refuse("NoneReady")
-	end
-	lastOpenAll[player] = clock
-	local opened = {}
-	local carried = false
-	for _, id in ids do
-		local before = PlayerData.read(player)
-		local block = if before then LuckyBlocks.find(before.LuckyBlocks, id) else nil
-		local plan = if block then planOpen(player, block) else nil
-		-- The Standard and Uncommon climbs hold no Unique cue; a plan that wants a copy number
-		-- is left for a normal open.
-		if block and plan ~= nil and not plan.unique then
-			local pity = block.Pity ~= nil
-			local forcedCue = if openForce and not plan.forced
-				then openForce(player, block.Kind)
-				else nil
-			if forcedCue ~= nil and BlockOdds.canDrop(plan.oddsId, forcedCue) then
-				plan.cueId = forcedCue
-			end
-			local ok, result = PlayerData.openLuckyBlock(player, id, plan, nil)
-			if ok then
-				local cue = Catalog.get(plan.cueId) :: Catalog.Cue
-				Counters.add(cue.Id, 1)
-				announceOpen(player, block, plan, cue.Id)
-				carried = carried or pity
-				if onOpened then
-					task.spawn(onOpened, player, block.From or block.Kind, cue.Id)
-				end
-				table.insert(opened, {
-					id = id,
-					cue = cue.Id,
-					rarity = cue.Rarity,
-					kind = block.Kind,
-					tier = plan.tier,
-					oddsId = plan.oddsId,
-					start = plan.start,
-					luck = plan.luck,
-					new = result.new,
-					found = result.found,
-					count = result.count,
-				})
-			end
-		end
-	end
-	if carried then
-		Store.refresh(player) -- the shop card's pity bars (ShopState) moved
-	end
-	if #opened == 0 then
-		return refuse("Error")
-	end
-	return { ok = true, opened = opened }
-end
-
 -- The Mystery's upgrade screen (economy v5.1; since v5.2 the only one, MysteryReveal): the
 -- server rolls the block it turns into and the path of its presses and turns it into that
 -- unclimbed block at once (PlayerData.climbBlock), so leaving mid-screen loses nothing; the
@@ -958,7 +881,6 @@ function LuckyBlockService.start()
 		busy[player] = nil
 		dirty[player] = nil
 		lastSent[player] = nil
-		lastOpenAll[player] = nil
 	end)
 	task.spawn(function()
 		while true do

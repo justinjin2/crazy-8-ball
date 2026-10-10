@@ -2455,20 +2455,11 @@ Config.LuckyBlocks = {
 	-- A cue of these rarities opens with the quick reveal (its result card alone, about
 	-- QuickRevealSeconds) instead of the reel. Economy v5 (plan 3.8) had Common and Uncommon;
 	-- none since the designer's "its supposed to go through the scroll everytime"
-	-- (2026-10-09): every open spins the reel. "Open all" has its own summary (OpenAll.Summary).
+	-- (2026-10-09): every open spins the reel.
 	QuickReveal = {},
 	QuickRevealSeconds = 1.5,
-	-- "Open all" (plan 3.8; BlockRequest "OpenAll"): every ready climbed block of these tiers
-	-- opens at once from the hotbar and bag (not one in the hands or thrown), oldest first, at
-	-- most Max a press, with a short summary of what came out. One press per MinGapSeconds
-	-- (on top of the token bucket). Summary: the rarities the summary shows; a block that
-	-- climbed to any other gets its full reel after it (economy v5.2).
-	OpenAll = {
-		Tiers = { "Standard", "Uncommon" },
-		Max = 50,
-		MinGapSeconds = 3,
-		Summary = { "Common", "Uncommon" },
-	},
+	-- Economy v5's "Open all" (plan 3.8) was removed by the designer (2026-10-10): every block
+	-- opens one at a time, through its reel.
 	-- Animations, all uploaded to the group (675425213) so they play in the game. BlockIdle:
 	-- the pack's bounce, played on a thrown block whose kind has no Idle of its own. Hold and Throw: the arms (an empty id plays
 	-- nothing), per rig.
@@ -3049,18 +3040,6 @@ Config.LuckyBlocks = {
 		-- card alone, no reel and no hint, at this share of its size; it pops out by itself
 		-- after QuickRevealSeconds (a tap closes it sooner, after CardDismissAfterSeconds).
 		QuickScale = 0.8,
-		-- "Open all" (OpenAll): a green kit button the bar's height right of the bag button
-		-- while at least one such block is ready, its words TextPx (a phone's PhoneTextPx).
-		-- Its summary: the cues that came out as cue cards CardPx wide (a repeat is one card
-		-- with "x3"), GapPx apart, under "5 BLOCKS OPENED!", in as many columns (at most
-		-- MaxColumns) as make them biggest on the screen.
-		OpenAll = {
-			TextPx = 20,
-			PhoneTextPx = 16,
-			CardPx = 120,
-			MaxColumns = 8,
-			GapPx = 12,
-		},
 	},
 }
 

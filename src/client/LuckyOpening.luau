@@ -14,8 +14,7 @@
 -- hides while it is up. A climb that reached the Secret skips the reel (`pull`): its pull
 -- cutscene, then the card. A Common or Uncommon cue (economy v5 plan 3.8) skips the reel too
 -- (`quick`): the card alone, a little smaller, gone by itself after a second and a half.
--- "Open all"'s summary (`summary`): the cues that came out as cue cards ("x3" for repeats)
--- under "5 BLOCKS OPENED!". Tuning in Config.LuckyBlocks.UI; the reel's own in Config.UI.Reel.
+-- Tuning in Config.LuckyBlocks.UI; the reel's own in Config.UI.Reel.
 local ContextActionService = game:GetService("ContextActionService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -24,11 +23,9 @@ local TweenService = game:GetService("TweenService")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
-local Catalog = require(Shared:WaitForChild("Progression"):WaitForChild("Catalog"))
 local LuckyBlocks = require(Shared:WaitForChild("Progression"):WaitForChild("LuckyBlocks"))
 local BlockReel = require(script.Parent.BlockReel)
 local HudParts = require(script.Parent.HudParts)
-local InventoryCard = require(script.Parent.InventoryCard)
 local ItemState = require(script.Parent.ItemState)
 local LuckyResult = require(script.Parent.LuckyResult)
 local PullCutscene = require(script.Parent.PullCutscene)
@@ -52,11 +49,10 @@ function Opening.new(screen: ScreenGui): any
 	self.screen = screen
 	self.open = false
 	-- Closed, Lead (the blur's head start), Reel, Scene (the pull cutscene), Card, Quick (the
-	-- quick reveal's card), Summary ("Open all")
+	-- quick reveal's card)
 	self.phase = "Closed"
 	self.reel = nil :: any
 	self.card = nil :: any
-	self.cards = nil :: { any }? -- the summary's cue cards (InventoryCard)
 	self.holder = nil :: Frame? -- the quick card's frame (its QuickScale)
 	self.shownAt = 0 -- os.clock when the quick card or the summary showed
 	self.hidden = nil :: { ScreenGui }?
@@ -327,91 +323,6 @@ function Opening.quick(self: any, cueId: string, rarity: string, onClosed: (() -
 	end)
 end
 
---- "Open all"'s summary (economy v5 plan 3.8): what came out of `opened` (the server's list:
---- { cue, new }), one cue card per cue (a repeat says "x3", a first find NEW), the rarest
---- first, under "5 BLOCKS OPENED!"; a tap closes it. The cues are already the player's.
---- `onClosed` runs once it is gone.
-function Opening.summary(self: any, opened: { any }, onClosed: (() -> ())?)
-	local groups: { { cue: string, rarity: string, count: number, new: boolean } } = {}
-	local byCue = {}
-	local total = 0
-	for _, o in opened do
-		local row = if type(o) == "table" and type(o.cue) == "string"
-			then Catalog.get(o.cue)
-			else nil
-		if row then
-			local group = byCue[row.Id]
-			if group == nil then
-				group = { cue = row.Id, rarity = row.Rarity, count = 0, new = false }
-				byCue[row.Id] = group
-				table.insert(groups, group)
-			end
-			group.count += 1
-			group.new = group.new or o.new == true
-			total += 1
-		end
-	end
-	if total == 0 then
-		if onClosed then
-			onClosed()
-		end
-		return
-	end
-	table.sort(groups, function(a, b)
-		local ra, rb = Catalog.rarityRank(a.rarity), Catalog.rarityRank(b.rarity)
-		if ra ~= rb then
-			return ra > rb
-		end
-		return a.cue < b.cue
-	end)
-	begin(self, onClosed)
-	self.phase = "Summary"
-	local frame = self.stage.frame
-	local title = HudParts.text(
-		frame,
-		"Title",
-		U.CardTitlePx,
-		if total == 1 then W.OpenAllOne else W.OpenAllSummary:format(total)
-	)
-	title.AnchorPoint = Vector2.new(0.5, 0)
-	title.TextWrapped = false
-	title.ZIndex = 4
-	self.title = title
-	local hint = HudParts.text(frame, "Hint", U.CardHintPx, hintFor("Card"))
-	hint.AnchorPoint = Vector2.new(0.5, 0)
-	hint.TextWrapped = false
-	hint.ZIndex = 4
-	self.hint = hint
-	local cards = {}
-	for i, group in groups do
-		local card = InventoryCard.new(frame, { name = "Cue" .. i, onPress = function() end })
-		card.button.Interactable = false -- a tap anywhere closes it
-		card.button.Selectable = false
-		card.button.AnchorPoint = Vector2.new(0.5, 0.5)
-		card.button.ZIndex = 3
-		InventoryCard.set(card, {
-			cueId = group.cue,
-			count = if group.count > 1
-				then Strings.Menus.Inventory.Count:format(tostring(group.count))
-				else nil,
-			new = group.new,
-		})
-		table.insert(cards, card)
-	end
-	self.cards = cards
-	self:layout()
-	-- One by one, quickly, like the reel's entrance: the title, each card, then the hint once a
-	-- tap may close it.
-	local S = Config.UI.Kit.Motion.Stagger
-	UIAnim.expandIn(title, 0)
-	for i, card in cards do
-		UIAnim.expandIn(card.button, i * S.GapSeconds)
-	end
-	UIAnim.expandIn(hint, math.max(U.CardDismissAfterSeconds, (#cards + 1) * S.GapSeconds))
-	ReelFx.sting(groups[1].rarity)
-	self.shownAt = os.clock()
-end
-
 -- The odds row's Unique rows closed for this player (the Grand Opening's: one they own, or
 -- all copies found), from the shop's view: the reel leaves them off, as the roll does.
 local function closedFor(oddsId: string): { [string]: boolean }
@@ -515,55 +426,6 @@ function Opening.layout(self: any)
 		self.card.root.Position = UDim2.fromOffset(math.floor(size.X / 2), math.floor(size.Y / 2))
 		return
 	end
-	if self.phase == "Summary" and self.cards then
-		local A = U.OpenAll
-		local units: { number } = Config.UI.CueCard.Units :: any
-		local cardW = A.CardPx
-		local cardH = math.floor(cardW * units[2] / units[1] + 0.5)
-		local n = #self.cards
-		local titleH, hintH = U.CardTitlePx + 8, U.CardHintPx + 6
-		local function needFor(c: number): Vector2
-			local r = math.ceil(n / c)
-			return Vector2.new(
-				math.max(c * cardW + (c - 1) * A.GapPx, CO.StageMinWidthPx),
-				titleH + A.GapPx + r * cardH + (r - 1) * A.GapPx + A.GapPx + hintH
-			)
-		end
-		-- The columns that make the cards biggest on this screen (a tie: the wider one).
-		local room = self.area.AbsoluteSize - Vector2.new(2, 2) * U.MarginPx
-		local cols, best = 1, -1
-		for c = 1, math.min(n, A.MaxColumns) do
-			local want = needFor(c)
-			local s = math.min(room.X / want.X, room.Y / want.Y, U.MaxScale)
-			if s >= best then
-				cols, best = c, s
-			end
-		end
-		local gridH = math.ceil(n / cols) * (cardH + A.GapPx) - A.GapPx
-		local need = needFor(cols)
-		local natural = stage.fit(need, U.MinScale, U.MaxScale, U.MarginPx)
-		local mid = math.floor(natural.X / 2)
-		local top = math.floor((natural.Y - need.Y) / 2)
-		self.title.Position = UDim2.fromOffset(mid, top)
-		self.title.Size = UDim2.fromOffset(natural.X, titleH)
-		local gridTop = top + titleH + A.GapPx
-		for i, card in self.cards do
-			local row = math.floor((i - 1) / cols)
-			local col = (i - 1) % cols
-			-- The last row's cards sit in the middle.
-			local inRow = math.min(cols, n - row * cols)
-			local left = mid - math.floor((inRow * cardW + (inRow - 1) * A.GapPx) / 2)
-			card.button.Size = UDim2.fromOffset(cardW, cardH)
-			card.button.Position = UDim2.fromOffset(
-				left + col * (cardW + A.GapPx) + math.floor(cardW / 2),
-				gridTop + row * (cardH + A.GapPx) + math.floor(cardH / 2)
-			)
-		end
-		self.hint.Position = UDim2.fromOffset(mid, gridTop + gridH + A.GapPx)
-		self.hint.Size = UDim2.fromOffset(natural.X, hintH)
-		self.hint.Text = hintFor("Card")
-		return
-	end
 	local titleH, gap, hintH = CO.TitleHeightPx, CO.GapPx, CO.HintHeightPx
 	local reelH = BlockReel.height()
 	local need = Vector2.new(CO.StageMinWidthPx, titleH + gap + reelH + gap + hintH)
@@ -662,7 +524,7 @@ end
 function Opening.canDismiss(self: any): boolean
 	if self.phase == "Card" then
 		return self.card ~= nil and self.card:canDismiss()
-	elseif self.phase == "Quick" or self.phase == "Summary" then
+	elseif self.phase == "Quick" then
 		return os.clock() - self.shownAt >= U.CardDismissAfterSeconds
 	end
 	return false
@@ -687,10 +549,6 @@ function Opening.close(self: any)
 		self.card:destroy()
 		self.card = nil
 	end
-	for _, card in self.cards or {} do
-		InventoryCard.destroy(card)
-	end
-	self.cards = nil
 	self.holder = nil
 	if self.stage then
 		self.stage.frame:Destroy()

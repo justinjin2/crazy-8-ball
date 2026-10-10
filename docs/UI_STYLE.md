@@ -1241,10 +1241,8 @@ Built in their screens' style on the designer's "use your judgment"; screenshots
 - **The quick reveal** (`LuckyOpening.quick`): the result card alone at 0.8 with its rays and
   sting, gone by itself after 1.5 s (a tap sooner). Off since 2026-10-09 (the designer: the
   reel every time); `Config.LuckyBlocks.QuickReveal` lists the rarities that would use it.
-- **"Open all"** (`LuckyHotbar`, `LuckyBlocks.UI.OpenAll`): a green kit button right of the
-  bag button while a ready climbed Standard or Uncommon block waits; its summary is "37 BLOCKS
-  OPENED!" over one cue card per cue ("x7", NEW on a first find), rarest first, in the columns
-  that make the cards biggest; a tap closes it.
+- **No "Open all"** (removed by the designer, 2026-10-10): the hotbar has no green button
+  beside the bag, and there is no summary screen; every block opens through its own reel.
 - **The Grand Opening Luck's clover** (`LuckClover`, `UI.LuckClover`): a navy badge with a
   green rim right of the VIP tag (in its place without VIP), the four-leaf clover rocking,
   only while the luck runs; hover shows its card ("Extra luck for the release!", each boosted

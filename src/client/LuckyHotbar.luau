@@ -8,10 +8,8 @@
 -- opens its upgrade screen instead (MysteryReveal). The bag button at the end ("+12": blocks
 -- waiting) and the ` key open the bag: a grid of every block. A click on a block there equips
 -- it like Roblox's backpack (the bag stays open; a Mystery opens its screen instead); drag a
--- block onto a hotbar slot to put it there (mouse and touch). "Open all" (economy v5 plan 3.8),
--- a green button right of the bag button while a Standard or Uncommon block is ready, opens
--- them all at once (LuckyClient asks the server and shows the summary); in the open bag a
--- gamepad selects it.
+-- block onto a hotbar slot to put it there (mouse and touch). Every block opens one at a time
+-- (economy v5's "Open all" was removed by the designer, 2026-10-10).
 --
 -- A throw of a block still on its timer (it stays in the hands: 2026-10-09), a Mystery's tap
 -- during its wait, or an open refused asks about the skip (economy v4
@@ -66,7 +64,6 @@ export type Handlers = {
 	reveal: (id: number) -> (), -- open this Mystery's upgrade screen (MysteryReveal)
 	move: (id: number, to: number) -> (), -- put this block at this place in the list
 	skip: (id: number) -> (), -- the skip dialog's Skip: ask the server to prompt this block's skip
-	openAll: () -> (), -- "Open all": every ready Standard and Uncommon block at once
 }
 
 -- picture: the kind's 2D icon (an ImageLabel) or its 3D view (a ViewportFrame); both have
@@ -343,15 +340,6 @@ function Hotbar.new(screen: ScreenGui, handlers: Handlers): any
 		Menus.toggle(BAG)
 	end)
 	self.bagButton, self.bagCount = bagButton, bagCount
-	-- "Open all", right of the bag button (it hangs past the bar, so the bar stays centred).
-	local openAll = HudParts.candy(bar, W.OpenAll, function()
-		UISound.play("Click")
-		self.handlers.openAll()
-	end, "Green")
-	openAll.Name = "OpenAll"
-	openAll.Visible = false
-	openAll.Selectable = false
-	self.openAllButton = openAll
 
 	-- "Ready in 1:42" and the server's refusals, over the bar.
 	local notice = HudParts.text(gui, "Notice", U.NoticePx, "")
@@ -698,7 +686,6 @@ function Hotbar.refreshSelection(self: any)
 		tile.edge.Thickness = if marked then U.SelectedStrokePx else U.SlotStrokePx
 		tile.button.Selectable = self.bagOpen
 	end
-	self.openAllButton.Selectable = self.bagOpen and self.openAllButton.Visible
 	local list, inBar = self:shown()
 	local waiting = #list - inBar
 	self.bagCount.Text = if waiting > 0 then W.BagCount:format(waiting) else ""
@@ -717,11 +704,6 @@ function Hotbar.layout(self: any)
 	end
 	self.bagButton.Size = UDim2.fromOffset(size, size)
 	self.bagButton.Position = UDim2.fromOffset(n * (size + gap), 0)
-	local textPx = if phone(self.gui) then U.OpenAll.PhoneTextPx else U.OpenAll.TextPx
-	HudParts.setButtonTextSize(self.openAllButton, textPx)
-	local openW = math.max(size, HudParts.candyWidth(self.openAllButton, size, textPx))
-	self.openAllButton.Size = UDim2.fromOffset(openW, size)
-	self.openAllButton.Position = UDim2.fromOffset((n + 1) * (size + gap), 0)
 	self.notice.Position = UDim2.new(0.5, 0, 1, -U.BottomPx - size - 8)
 	self.notice.Size = UDim2.fromOffset(math.max(width, 300), U.NoticePx + 6)
 	-- The skip's Odds & Details, over the whole screen.
@@ -964,37 +946,11 @@ function Hotbar.toggleBag(self: any)
 	end
 end
 
--- Whether "Open all" has something to open at `t`: a ready block of its tiers that is not in
--- the hands or on the floor (the server's rule: LuckyBlocks.openAllIds).
-function Hotbar.canOpenAll(self: any, t: number): boolean
-	for _, entry in self.entries do
-		if
-			not Hotbar.rollsFirst(entry)
-			and entry.readyAt <= t
-			and entry.id ~= self.heldId
-			and not self.hiddenIds[entry.id]
-			and table.find(L.OpenAll.Tiers, entry.kind) ~= nil
-		then
-			return true
-		end
-	end
-	return false
-end
-
 function Hotbar.step(self: any)
 	if not self.visible and not self.bagOpen then
 		return
 	end
 	local t = now()
-	local canOpenAll = self:canOpenAll(t)
-	if self.openAllButton.Visible ~= canOpenAll then
-		if canOpenAll then
-			UIAnim.popIn(self.openAllButton) -- it shows, growing in
-		else
-			self.openAllButton.Visible = false
-		end
-		self:refreshSelection()
-	end
 	-- The skip's question goes once its block is ready (its timer ran out, or VIP came).
 	if self.skipDialog and self.skipId then
 		local asked = self:find(self.skipId)

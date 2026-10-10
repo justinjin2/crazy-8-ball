@@ -70,7 +70,7 @@ export type State = {
 -- One checked BlockRequest. Only the fields its action uses are set.
 export type Request = {
 	action: string,
-	id: number?, -- Hold (nil: put it away), Throw, Open, Move, Reveal (OpenAll: none)
+	id: number?, -- Hold (nil: put it away), Throw, Open, Move, Reveal
 	to: number?, -- Move: the place in the list, 1..MaxBlocks
 }
 
@@ -80,7 +80,7 @@ local RENAMED: { [string]: string } = L.Renamed or {}
 local LuckyBlocks = {}
 
 --- Every action a BlockRequest may name (Net "BlockRequest").
-LuckyBlocks.Actions = table.freeze({ "Hold", "Throw", "Open", "Move", "Reveal", "OpenAll" })
+LuckyBlocks.Actions = table.freeze({ "Hold", "Throw", "Open", "Move", "Reveal" })
 
 --- Every reason a refused BlockRequest may answer (Strings.LuckyBlocks.Reasons words them).
 LuckyBlocks.Reasons = table.freeze({
@@ -97,7 +97,6 @@ LuckyBlocks.Reasons = table.freeze({
 	"Reveal", -- Hold: a Mystery block is opened on its upgrade screen, never held
 	"NotMystery", -- Reveal: that block has no climb or roll ahead (climbed, or a kind that never climbs)
 	"Climb", -- Open: a Mystery rolls on its upgrade screen first (economy v5.1)
-	"NoneReady", -- OpenAll: no ready climbed Standard or Uncommon block (economy v5)
 	"Error", -- anything else (logged on the server)
 })
 
@@ -237,35 +236,6 @@ end
 --- (Config.LuckyBlocks.QuickReveal: none since 2026-10-09, every open spins the reel).
 function LuckyBlocks.quickReveal(rarity: string): boolean
 	return table.find(L.QuickReveal or {}, rarity) ~= nil
-end
-
---- The blocks "Open all" opens at `now` for player `userId` (Config.LuckyBlocks.OpenAll): the
---- ready blocks of its tiers (economy v5.2: unclimbed ones climb as they open; a climbed one
---- from the old climb screen too), oldest first (by id), at most Max, leaving out `skip` (the
---- block in the hands and the thrown ones).
-function LuckyBlocks.openAllIds(
-	state: State,
-	now: number,
-	userId: number,
-	skip: { [number]: boolean }?
-): { number }
-	local rule = L.OpenAll
-	local out: { number } = {}
-	for _, block in state.List do
-		if
-			table.find(rule.Tiers, block.Kind) ~= nil
-			and not LuckyBlocks.needsRoll(block)
-			and not (skip and skip[block.Id])
-			and LuckyBlocks.canOpen(block, now, userId)
-		then
-			table.insert(out, block.Id)
-		end
-	end
-	table.sort(out)
-	while #out > rule.Max do
-		table.remove(out)
-	end
-	return out
 end
 
 --- Designer-only bypass never changes ReadyAt: the original countdown remains visible.
@@ -667,8 +637,6 @@ function LuckyBlocks.parse(action: any, a: any, b: any): (Request?, string?)
 		if wholeIn(a, 1, ID_CAP) then
 			return { action = action :: string, id = a }, nil
 		end
-	elseif action == "OpenAll" then
-		return { action = "OpenAll" }, nil
 	elseif action == "Move" then
 		if wholeIn(a, 1, ID_CAP) and wholeIn(b, 1, L.MaxBlocks) then
 			return { action = "Move", id = a, to = b }, nil

@@ -79,7 +79,6 @@ local heldId: number? = nil
 local liveIds: { [number]: boolean } = {}
 local reveals: { any } = {}
 local revealing = false
-local openingAll = false -- an "Open all" asked of the server, not answered yet
 local nextReveal: () -> () -- plays the queued reels one after another (below)
 local throwing = false
 local visible = false
@@ -419,45 +418,6 @@ function nextReveal()
 	end
 end
 
--- "Open all" (economy v5 plan 3.8): the server opens every ready Standard and Uncommon block
--- (not the one in the hands, not a thrown one) and the summary shows the Common and Uncommon
--- cues that came out; a climb that reached Rare or better gets its own reel after it, one by
--- one (economy v5.2).
-local function openAll()
-	if openingAll or not visible or revealing or opening:isOpen() or reveal:isBusy() then
-		return
-	end
-	openingAll = true
-	task.spawn(function()
-		local reply = request("OpenAll")
-		openingAll = false
-		if not reply.ok then
-			hotbar:say(reasonText(reply))
-			return
-		end
-		if type(reply.opened) == "table" and #reply.opened > 0 then
-			if hotbar:isBagOpen() then
-				hotbar:toggleBag()
-			end
-			local quick = {}
-			for _, o in reply.opened do
-				if type(o) ~= "table" or type(o.rarity) ~= "string" then
-					continue
-				elseif table.find(L.OpenAll.Summary, o.rarity) ~= nil then
-					table.insert(quick, o)
-				elseif type(o.cue) == "string" and type(o.kind) == "string" then
-					table.insert(reveals, o)
-				end
-			end
-			revealing = true
-			opening:summary(quick, function()
-				revealing = false
-				task.defer(nextReveal)
-			end)
-		end
-	end)
-end
-
 -- A block kind that can drop a cue of `rarity`, and that cue (the kind named after the rarity
 -- first): for /cutscene.
 local function blockOfRarity(rarity: string): (string?, string?)
@@ -598,7 +558,6 @@ function LuckyClient.start(screen: ScreenGui)
 		reveal = revealBlock,
 		move = move,
 		skip = requestSkip,
-		openAll = openAll,
 	})
 	opening = LuckyOpening.new(screen)
 	reveal = MysteryReveal.new(screen.Parent :: Instance, {
@@ -666,42 +625,12 @@ function LuckyClient.start(screen: ScreenGui)
 		opening:play(kind or "Standard", id, if row then row.Rarity else "Common")
 		return opening:isOpen()
 	end)
-	-- Studio tests of the quick reveal (default a Common cue of the Standard row) and of "Open
-	-- all"'s summary (`ids`: "CobaltCue,CobaltCue,..."; default a few of the Standard and
-	-- Uncommon rows' cues, one twice), nothing asked of the server or changed in the save.
+	-- A Studio test of the quick reveal (default a Common cue of the Standard row), nothing
+	-- asked of the server or changed in the save.
 	GuiQA.add("quickReveal", function(cueId: string?)
 		local id = cueId or BlockOdds.cueOdds("Standard")[1].id
 		local row = Catalog.get(id)
 		opening:quick(id, if row then row.Rarity else "Common")
-		return opening:isOpen()
-	end)
-	-- Press "Open all" as a tap would (the server really opens the blocks); whether it shows.
-	GuiQA.add("openAll", function()
-		local shown = hotbar.openAllButton.Visible
-		openAll()
-		return shown
-	end)
-	GuiQA.add("openAllSummary", function(ids: string?)
-		local list = {}
-		if ids then
-			for _, id in string.split(ids, ",") do
-				table.insert(list, { cue = id })
-			end
-		else
-			local seen = {}
-			for _, row in { "Standard", "Uncommon" } do
-				for _, entry in BlockOdds.cueOdds(row) do
-					if table.find(L.OpenAll.Summary, entry.rarity) and not seen[entry.id] then
-						seen[entry.id] = true
-						table.insert(list, { cue = entry.id, new = #list == 0 })
-					end
-				end
-			end
-			if list[1] then
-				table.insert(list, { cue = list[1].cue })
-			end
-		end
-		opening:summary(list)
 		return opening:isOpen()
 	end)
 	-- The open reel's showcase card (economy v4 plan 4): stop the spin with it under the marker

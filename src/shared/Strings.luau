@@ -1029,16 +1029,10 @@ return {
 			Reveal = "Tap the block's slot to open it!", -- a Mystery rolls on its screen first
 			NotMystery = "That block opens in the world.",
 			Climb = "Tap the block's slot to open it first!", -- a Mystery (economy v5.2)
-			NoneReady = "No Standard or Uncommon blocks are ready to open.", -- Open all
 			Error = "Something went wrong. Try again.",
 		} :: { [string]: string },
 		-- A ready Mystery block's hotbar slot (designer, 2026-10-07: like Star Drop).
 		OpenSlot = "OPEN!",
-		-- "Open all" (economy v5 plan 3.8; the GUI session draws it): the button, and the
-		-- summary after it ("12 blocks opened!", then each cue).
-		OpenAll = "Open all",
-		OpenAllSummary = "%d BLOCKS OPENED!", -- over the summary's cue cards, like YOU GOT
-		OpenAllOne = "1 BLOCK OPENED!",
 		-- The upgrade screen (MysteryReveal; the Mystery block's, the only one since economy
 		-- v5.2; every unclimbed block's in v5).
 		Reveal = {

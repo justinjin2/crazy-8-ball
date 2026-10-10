@@ -5,6 +5,29 @@ when `docs/STATUS.md` became current state only. Finished work moves here from S
 on top. Read it only to answer "when or why did X change"; it is not part of the read-first list.
 An entry marked "(latest)" was the latest when written.
 
+**2026-10-10: tutorial v2 closed** (branch `tutorial-v2`, `docs/prompts/TUTORIAL_V2_REPORT.md`
+and the brief's Notes). Rebuilt the first session (the arrow, any table, the walking bot, the
+rigged game 1 with its lessons, the chain to Rank, the Mystery block, Cues and Abilities, the
+soft part), checked in Studio on PC and played by the designer on Crazy 8 Test Place (versions
+6 to 10) with two rounds of notes. `gui-v4` (economy v5 to v5.2) merged in (`f1549ae`), the
+first session measured for the economy rescale (a VIP account $43,525 before playtime), "Open
+all" removed, and `gui-v4` fast-forwarded to it. The STATUS entry at the close:
+
+> - **Tutorial v2** (branch `tutorial-v2`, merging `gui-v4` with economy v5.2 in, 2026-10-10;
+>   `docs/prompts/TUTORIAL_V2_REPORT.md`, `TUTORIAL_V2_ECONOMY_HANDOFF.md`):
+>   built and checked in Studio on PC (3 clean automated runs, one with fake lag; two review
+>   agents' 11 fixes; the team-table backup). On the test place (Crazy 8 Test Place, published
+>   by Open Cloud). The designer's first live notes are done (the combination's ghost replay,
+>   the Rank claim without a dim, the Daily Rewards popup, the rank HUD's next goal, the Starter
+>   Pack tile, ...) and the test place's saves were reset; then the offer corner as a deal, and
+>   the second notes (no colours before the first pot, zoom animations, ball in hand on the head
+>   spot, the small hand at PRESS G, the offer tile's wiggle and X, a one-day Starter Pack).
+>   **Merged with `gui-v4`** (f1549ae, 2026-10-10): the first Mystery's roll scripted to Uncommon,
+>   its reel glimpse kept; the whole first session played in Studio on PC. A first session pays
+>   a VIP $43,525 before playtime (non-VIP about $35,000; over half finder's money): `8ball-0d`
+>   fast-forwards `gui-v4` and brings the designer a rescale (hand-off section 3a). Waiting on: a
+>   real controller and phone, Max Players, the merged build on the test place.
+
 **2026-10-09: the economy v5 GUI run** (steps 0-11, 13 on PC and 14). Every screen updated to
 economy v5 in place on `gui-v4` (`docs/prompts/ECONOMY_V5_GUI_PROMPT.md`, its Notes per step):
 the server hook for the tutorial's scripted first block; the climb screen

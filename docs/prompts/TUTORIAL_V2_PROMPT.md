@@ -897,9 +897,9 @@ lines). All in the worktree.
 - [x] 13. Funnels and telemetry complete (section 6), `/funnel`, `docs/TUTORIAL_FUNNELS.md`.
 - [x] 14. Bug-proofing (section 7): the chaos list, 3 clean automated runs in a row, fake
   lag, the two review agents, fixes.
-- [ ] 15. The test place (section 8): publish, the designer's live checklist, fixes,
+- [x] 15. The test place (section 8): publish, the designer's live checklist, fixes,
   republish.
-- [ ] 16. Docs and the report (section 11).
+- [x] 16. Docs and the report (section 11).
 
 (The merge is not a Progress step: it waits for the designer's word, section 10.)
 
@@ -1442,7 +1442,19 @@ lines). All in the worktree.
   favorite, Open all, the first-win Rare and the Lucky 8): no errors. Measured money and blocks
   per step (a VIP account, $43,525 before playtime) are in the hand-off's section 3a.
   Published as test place version 10 from `6042439` (the merged build); `8ball-0d` told "ready"
-  for the fast-forward, `8ball-2c` told too.
+  for the fast-forward, `8ball-2c` told too. `8ball-0d` fast-forwarded `gui-v4` to `c3ee723`.
+- **Open all removed (designer, 2026-10-10):** `8ball-2c` found v5.2's "Open all" lit beside
+  the Place step's hand (a ready Uncommon block counts), and a press would skip the reel
+  lesson. The designer: "just get rid of the open all option assuming they dont get to open
+  many lucky blocks anyway". Gone everywhere: the button (`LuckyHotbar`), the request
+  (`LuckyClient`, the server's `HANDLERS.OpenAll`, `LuckyBlocks.openAllIds`, the "OpenAll"
+  action and its "NoneReady" reason), the summary screen (`LuckyOpening.summary`), Config and
+  Strings; a test now checks the server refuses it. Checked in Studio on PC: no button with 3
+  ready blocks, the server answers BadRequest, a block opens through its reel to YOU GOT.
+- **Approved and closed (designer, 2026-10-10):** "the tutorial is good and approved everything
+  should be wrapped up here and then sent back to the main project ... everything from here on
+  out will be completed inside the main project 8ball folder now." Steps 15 and 16 ticked; the
+  report's last section lists what goes on in the main folder.
 
 ### Touch list (files outside the tutorial's own modules changed, and why)
 
@@ -1599,6 +1611,11 @@ lines). All in the worktree.
     `src/client/Tutorial.luau`, `src/shared/Config.luau` (`Tutorial.MysteryReveal.Tier`; gui-v4's
     `BronzeBlockKind` and `BronzeCueRarity` dropped), `src/shared/Strings.luau`,
     `tests/blockdrop_test.luau`; DECISIONS, ECONOMY, GDD, STATUS.
+  - Open all removed: `src/client/LuckyHotbar.luau`, `LuckyClient.luau`, `LuckyOpening.luau`,
+    `src/server/LuckyBlockService.luau`, `src/shared/Progression/LuckyBlocks.luau`,
+    `src/shared/Config.luau` (`LuckyBlocks.OpenAll`, `LuckyBlocks.UI.OpenAll`),
+    `src/shared/Strings.luau`, `src/shared/Net.luau` (comment), `tests/luckyblocks_test.luau`;
+    GDD, ECONOMY 7.6, UI_STYLE.
 
 ---
 

@@ -403,54 +403,18 @@ return {
 		H.expect(table.find(L.Reasons, "Reveal") ~= nil, "Hold's refusal")
 		H.expect(table.find(L.Reasons, "NotMystery") ~= nil, "Reveal's refusal")
 	end,
-	["Open all: the ready Standard and Uncommon blocks, oldest first"] = function()
+	["no Open all: every block opens one at a time (designer, 2026-10-10)"] = function()
 		local L, Config = load()
-		local rule = Config.LuckyBlocks.OpenAll
-		H.expect(table.concat(rule.Tiers, " ") == "Standard Uncommon", "Standard and Uncommon")
-		H.expect(rule.Max >= 1 and rule.MinGapSeconds > 0, "a cap and a gap")
-		local state = L.fresh()
-		local std = L.add(state, "Standard", 1000) -- no timer; it climbs as it opens (v5.2)
-		local unc = L.add(state, "Uncommon", 1000) -- 1 minute
-		local rare = L.add(state, "Rare", 0) -- ready, but a Rare: the full show
-		local mystery = L.add(state, "Mystery", 0) -- it rolls on its screen first
-		local held = L.add(state, "Standard", 0)
-		local old = climbed(L, state, "Standard", 1000) -- climbed on the old climb screen
-		local ids = L.openAllIds(state, 1000, 1)
-		H.expect(
-			table.concat(ids, " ") == ("%d %d %d"):format(std.Id, held.Id, old.Id),
-			"the ready ones"
-		)
-		ids = L.openAllIds(state, 1060, 1, { [held.Id] = true })
-		H.expect(
-			table.concat(ids, " ") == ("%d %d %d"):format(std.Id, unc.Id, old.Id),
-			"after a minute"
-		)
-		for _, id in ids do
-			H.expect(id ~= rare.Id and id ~= mystery.Id, "never a Rare or a Mystery")
-		end
-		-- A Standard block a Mystery turned into is one too.
-		local turned = L.turn(state, mystery.Id, "Standard", 1060, "Rare") :: any
-		H.expect(table.find(L.openAllIds(state, 1060, 1), turned.Id) ~= nil, "a turned one")
-		-- At most Max.
-		local many = L.fresh()
-		for _ = 1, rule.Max + 5 do
-			L.add(many, "Standard", 0)
-		end
-		H.expect(#L.openAllIds(many, 1000, 1) == rule.Max, "at most Max a press")
-		-- The request.
-		local r = L.parse("OpenAll")
-		H.expect(r ~= nil and r.action == "OpenAll" and r.id == nil, "no arguments")
-		H.expect(table.find(L.Actions, "OpenAll") ~= nil, "an action")
-		H.expect(table.find(L.Reasons, "NoneReady") ~= nil, "its refusal")
+		H.expect((Config.LuckyBlocks :: any).OpenAll == nil, "no rule")
+		H.expect(table.find(L.Actions, "OpenAll") == nil, "not an action")
+		H.expect(select(2, L.parse("OpenAll")) == "BadRequest", "refused")
 	end,
 
-	["every open spins the reel; Open all sums up Common and Uncommon"] = function()
-		local L, Config = load()
+	["every open spins the reel"] = function()
+		local L = load()
 		for _, rarity in { "Common", "Uncommon", "Rare", "Epic", "Legendary", "Mythic", "Secret" } do
 			H.expect(not L.quickReveal(rarity), rarity .. ": the reel")
 		end
-		local summary = Config.LuckyBlocks.OpenAll.Summary
-		H.expect(table.concat(summary, " ") == "Common Uncommon", "Open all's summary")
 	end,
 	["the 1 in N: that exact cue's chance from the block it started as (plan 3.9)"] = function()
 		local L = load()

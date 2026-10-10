@@ -500,6 +500,10 @@ daily rewards, trading's gates, Roblox policy): `docs/ECONOMY.md`.*
   Progress 2026-10-03 (the Tutorial lane, merged into `release`): built in the real public
   server, all ten steps of its brief. Still to do: the 8-ball in the tutorial, the published
   game's teleport halves of game 2, phone and gamepad.
+  Progress 2026-10-10 (tutorial v2, `docs/prompts/TUTORIAL_V2_REPORT.md`): rebuilt and approved
+  by the designer on the test place (PC), merged into `gui-v4` with economy v5.2. Still to do:
+  a real phone and controller, two-player paths, the funnels in the Creator Dashboard, and the
+  first session's money rescale (economy).
 - [ ] **8.2 Analytics funnel** with Roblox's built-in analytics.
   Progress 2026-10-03 (the Tutorial lane): onboarding (22 steps), skip/cancel, shop, Case
   Drop and spin funnels in `src/server/Funnel.luau`. Still to do: check them in the Creator

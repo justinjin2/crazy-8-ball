@@ -4,7 +4,7 @@ Current state only, rewritten in place. Keep it to about two screens (under 100 
 step is finished and verified, move its dated entry to the top of
 `docs/archive/STATUS_HISTORY.md` and keep only what is still true or still open here.
 
-Updated 2026-10-10 (branch `tutorial-v2`, `gui-v4` merged in; `gui-v4` fast-forwards to it).
+Updated 2026-10-10 (tutorial v2 closed and in `gui-v4`; work goes on in `~/Desktop/8ball`).
 
 ## Where the build is
 
@@ -65,8 +65,8 @@ One line each; the long form is the 2026-10-08 entry at the top of
   roadmap 7.9). The GUI run (`docs/prompts/ECONOMY_V5_GUI_PROMPT.md`, its Notes say what each
   step built) updated every screen and checked each on PC; screenshots for review in
   `~/Desktop/8ball-refs/economy-v5-gui/step2` .. `step13`. The `tutorial-v2` merge is in
-  (step 12, c3ee723; checked on PC; open: "Open all" shows during the tutorial's Place step,
-  with the tutorial session). Still open, in order: phone and gamepad checks with the designer
+  (step 12, c3ee723; checked on PC). "Open all" is removed (designer, 2026-10-10; it showed
+  during the tutorial's Place step). Still open, in order: phone and gamepad checks with the designer
   (step 13); the release (step 15): place saved and published, the Grand
   Opening's `StartsAt` (also starts the luck and launch bonus), random-item products Not Listed,
   `tools/roblox_products.py --sync` (Starter Pack 19 R$ on Roblox, Config 29; Lucky1 and Lucky3
@@ -88,20 +88,10 @@ One line each; the long form is the 2026-10-08 entry at the top of
   voice lines. The one-by-one review (since 2026-09-30) goes on; unreviewed ones are provisional.
 - **The lively Shop** is in `release` (2026-10-06); other menus take its frame as rebuilt.
 - **Decision still open:** whether the VIP cue pays finder's money on the first join.
-- **Tutorial v2** (branch `tutorial-v2`, merging `gui-v4` with economy v5.2 in, 2026-10-10;
-  `docs/prompts/TUTORIAL_V2_REPORT.md`, `TUTORIAL_V2_ECONOMY_HANDOFF.md`):
-  built and checked in Studio on PC (3 clean automated runs, one with fake lag; two review
-  agents' 11 fixes; the team-table backup). On the test place (Crazy 8 Test Place, published
-  by Open Cloud). The designer's first live notes are done (the combination's ghost replay,
-  the Rank claim without a dim, the Daily Rewards popup, the rank HUD's next goal, the Starter
-  Pack tile, ...) and the test place's saves were reset; then the offer corner as a deal, and
-  the second notes (no colours before the first pot, zoom animations, ball in hand on the head
-  spot, the small hand at PRESS G, the offer tile's wiggle and X, a one-day Starter Pack).
-  **Merged with `gui-v4`** (f1549ae, 2026-10-10): the first Mystery's roll scripted to Uncommon,
-  its reel glimpse kept; the whole first session played in Studio on PC. A first session pays
-  a VIP $43,525 before playtime (non-VIP about $35,000; over half finder's money): `8ball-0d`
-  fast-forwards `gui-v4` and brings the designer a rescale (hand-off section 3a). Waiting on: a
-  real controller and phone, Max Players, the merged build on the test place.
+- **Tutorial v2: approved and closed** (2026-10-10; in `gui-v4`; `docs/prompts/TUTORIAL_V2_REPORT.md`,
+  its last section lists what is open). Still open: the first session's money rescale
+  (`8ball-0d`, hand-off section 3a), a real phone and controller, two-player paths, Max
+  Players, the funnels in the dashboard. "Open all" is removed (designer, 2026-10-10).
 - **The cue rarity rework** continues after the Unique cues (Beta, Grand Opening, Eclipse,
   Celestial Dragon, Kitsune). Apex's first look was reverted.
 - **The place file:** save `place/8ball.rbxl` and publish once this milestone is done.

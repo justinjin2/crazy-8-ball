@@ -808,7 +808,7 @@ one step and gives that step's block or money (v5, 2026-10-09; `Config.BlockOdds
   30 minutes, 5.2 at 1 hour and 9.4 at 3 hours, about 70% of them ending Common or Uncommon
   (v5.1; v5: 4.8, 6.7 and 11.7; v4: about 15 a day at 1 hour).
 
-### 7.6 Timers, the skip, the reel every time and "Open all"
+### 7.6 Timers, the skip and the reel every time
 
 **Every block waits its own name's timer** (v5.2; `Config.LuckyBlocks.Kinds[kind].Timer`):
 Standard at once, Uncommon 1 minute, Rare 5 minutes, Epic 30 minutes, Legendary 6 hours, Mythic
@@ -850,11 +850,8 @@ everytime"). v5 had a quick reveal for Common and Uncommon results (the result c
 1.5 s, from answer 14); it is off now (`Config.LuckyBlocks.QuickReveal` empty; the code stays,
 `LuckyOpening.quick`).
 
-**"Open all"** (answer 14): one server request (`OpenAll`) opens every ready Standard and
-Uncommon block in the hotbar and bag at once (up to 50, at most once every 3 seconds;
-`Config.LuckyBlocks.OpenAll`), skipping held and thrown ones, each climbing as it opens (v5.2),
-and answers a short list of what came out. The summary shows the Common and Uncommon cues; a
-block that climbed to Rare or better gets its own reel after it, one by one.
+**"Open all"** (answer 14, v5) is gone (designer, 2026-10-10: "assuming they dont get to open
+many lucky blocks anyway"): every block opens one at a time, through its reel.
 
 ### 7.7 Odds screen and per-cue odds
 
@@ -1702,9 +1699,7 @@ Limited cues.
   it, hold the prompt; the reel, the pull cutscene (Rare and up) and the "YOU GOT" card follow.
   The block climbs as it opens and the reel shows that climb's odds (v5.2, 7.1); a Mystery
   rolls on its upgrade screen first. Every open spins the reel (the quick reveal is off since
-  2026-10-09). **"Open all"** (v5), a green button
-  right of the hotbar's bag button, opens every ready Standard and Uncommon block at once and
-  shows one summary of the cues, then a reel for each Rare or better (7.6).
+  2026-10-09), one block at a time (v5's "Open all" is gone, 2026-10-10; 7.6).
 - **Index completion.** A cue never owned is a "?" card; tapping it shows its name and its
   black 3D silhouette turning (designer, 2026-09-28). A cue counts once it has ever been owned
   (selling it later keeps it). The Week One Cue sits in the Legendary row. Completing a rarity
@@ -1760,8 +1755,6 @@ The approved plan is `docs/prompts/ECONOMY_V5_PLAN.md`; the build's report is
   Claim All gives it as paid origin like its blocks; the server counts its copies on a claim.
 - **A Robux button for a product off sale or not made** shows its price greyed (the 5-pack
   exists since 2026-10-09).
-- **"Open all"** skips a block whose open has a special plan (a forced or unique result), which
-  the one-by-one open handles.
 - **The "1 in N"** rounds to the nearest 3 significant figures, leaves pity out, and uses a
   never-climbing block's own row.
 - **`Config.Trade.ClimbedExists`** is new beside `BlockExists`, both from the v5 model at day 30.

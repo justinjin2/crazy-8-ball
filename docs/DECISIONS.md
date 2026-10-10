@@ -4099,3 +4099,9 @@ timer of a new block stay the designer's call.
   playtime, over half of it finder's money; hand-off section 3a). The tutorial's Uncommon block
   reel that passes Legendary, Mythic and the Secret stays (designer); it now comes from the
   first Mystery's scripted roll.
+- 2026-10-10 (designer): economy v5's "Open all" is removed: every lucky block opens one at a
+  time through its reel ("assuming they dont get to open many lucky blocks anyway"). It had
+  shown beside the tutorial's Place step and would have skipped the reel lesson.
+- 2026-10-10 (designer): tutorial v2 is approved and closed. Everything after it (the economy
+  rescale of the first session, the phone and controller checks, Max Players, the controller's
+  shooting mode) goes on in the main folder (`~/Desktop/8ball`, `gui-v4`).

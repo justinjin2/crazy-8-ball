@@ -942,10 +942,9 @@ approves the v5 proposal (ECONOMY.md section 11).
 - **Every block waits its own name's timer** (v5.2): Standard at once, Uncommon 1 min, Rare 5
   min, Epic 30 min, Legendary 6 h, Mythic 12 h, all running at once (the Gift waits 12 h);
   VIP has no timers at all (designer, 2026-10-07); a bought block opens at once. **Every open
-  spins the reel** (designer, 2026-10-09; v5's quick reveal for Common and Uncommon is off), and
-  **"Open all"** opens every ready Standard and
-  Uncommon block at once, then reels any that climbed to Rare or better (designer,
-  2026-10-09). ECONOMY.md section 7.6.
+  spins the reel** (designer, 2026-10-09; v5's quick reveal for Common and Uncommon is off),
+  one block at a time: v5's **"Open all" is gone** (designer, 2026-10-10: a player does not
+  open many blocks). ECONOMY.md section 7.6.
 - **Announcements**: Mythic and Secret pulls are announced in every server, Legendary pulls in
   the server only ("X unboxed a Legendary Cue!"), each with the **"1 in N"** of that exact cue
   from the block it started as (v5). The every-server line (designer, 2026-10-05) reads

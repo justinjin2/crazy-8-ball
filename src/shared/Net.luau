@@ -386,16 +386,14 @@ local REMOTES: { [string]: string } = {
 	-- client -> server: (action, a, b), checked by Progression/LuckyBlocks.parse:
 	-- "Hold" (block id, or nil to put it away), "Throw" (the held block's id, sent at the throw
 	-- animation's release), "Open" (the thrown block's id, after the 1 s hold), "Move" (id,
-	-- place in the list), "Reveal" (an unclimbed block's id: its climb, economy v5) and
-	-- "OpenAll" (no id: every ready climbed Standard and Uncommon block). Answers { ok = true,
+	-- place in the list) and "Reveal" (an unclimbed block's id: its climb, economy v5). Answers { ok = true,
 	-- ... } or { ok = false, reason } (LuckyBlocks.Reasons). Open's answer: { ok, cue, rarity,
 	-- kind, oddsId, tier?, copy?, forced, new, found, count, burstAt } (oddsId: the odds row it
 	-- rolled; copy: a Unique cue's number; forced: the Guarantee gave it; burstAt: server time
 	-- the block bursts and the reel may show). Reveal's answer: { ok, id, path (the presses: the
 	-- start, then a climb or not each; the Secret on top), kind?, readyAt?, pity = { rare, epic
 	-- }, from, luck, secret, cue?, rarity?, new?, found?, count? } (kind and readyAt: the
-	-- climbed block's; a Secret climb leaves no block and gives its cue at once). OpenAll's
-	-- answer: { ok, opened = { { id, cue, rarity, kind, new, found, count } } }.
+	-- climbed block's; a Secret climb leaves no block and gives its cue at once).
 	BlockRequest = "RemoteFunction",
 	-- server -> one player: their blocks { blocks = { { id, kind, readyAt, climbed? } } } in hotbar order
 	-- (readyAt in unix seconds, compared with workspace:GetServerTimeNow()). Sent when the save

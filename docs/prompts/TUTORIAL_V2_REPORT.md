@@ -1,4 +1,7 @@
-# Tutorial v2: the report (2026-10-09)
+# Tutorial v2: the report (2026-10-09, closed 2026-10-10)
+
+**Approved by the designer on 2026-10-10 and closed.** It is in `gui-v4` (the main folder,
+`~/Desktop/8ball`); everything still open goes on there (the last section).
 
 Branch `tutorial-v2` (worktree `~/Desktop/8ball-tutorial`), forked from `gui-v4` at `19d27d4`.
 `gui-v4` (economy v5 to v5.2) merged in on 2026-10-10 (f1549ae); `8ball-0d` fast-forwards
@@ -27,8 +30,8 @@ Branch `tutorial-v2` (worktree `~/Desktop/8ball-tutorial`), forked from `gui-v4`
    back to the arrow, and the bot game comes the next time they sit alone.
 6. **The chain:** Result (Continue, the Rare block) → NEW RANK! Bronze → the bot says one
    casual line and leaves → Rank: CLAIM (the Mystery block arrives) → the Mystery block's
-   upgrade screen climbs once to Uncommon → "Place it!", open it, the reel lands on the Cosmo
-   Cue → Cues: Equip → Abilities: 0 spins, "Type RELEASE for 3 free spins!", the first spin
+   roll screen (economy v5.1, 4 presses) lands on Uncommon → "Place it!", open it, the reel
+   passes Legendary, Mythic and the Secret and lands on the Cosmo Cue → Cues: Equip → Abilities: 0 spins, "Type RELEASE for 3 free spins!", the first spin
    lands on Magnet, 2 left.
 7. **The soft part:** every icon pops in with a "!" until clicked once, "Win a Match 0/1", the
    Daily Rewards popup once, then the invite popup once, Free Reward's frames lit once (its
@@ -69,8 +72,8 @@ at once. Skippers keep the icons' "!" dots, and the first-time hints still come.
   all 11 problems they found are fixed (the list is in the brief's step 14 notes).
 - **The team-table backup** in Studio: all 1v1 tables held, a 2v2 table lent as a 1v1, the bot
   came, game 1 began; the table went back to 2v2 after.
-- **Lune tests:** 1140 pass (rigged layouts, the step machine and old-save migration, the rank
-  claim, spins, the search). Lint is clean.
+- **Lune tests:** 1185 pass at the close (rigged layouts, the step machine and old-save
+  migration, the rank claim, spins, the search, and gui-v4's economy tests). Lint is clean.
 - **Not checked:** a real phone, a real controller, two real players (paths R, same-server and
   global pairing). Those need you: see below.
 
@@ -119,6 +122,8 @@ for you.
   older behaviour, not from this branch).
 - The "equip your new cue" hint forgets the cue after a rejoin (it waits for the next cue won).
 - The merge back: done the other way round (2026-10-10, below).
+
+All of these move to the main folder with the tutorial (the last section).
 
 ## Your live notes of 2026-10-09: done
 
@@ -216,4 +221,23 @@ folder at a quiet moment. The hand-off is `docs/prompts/TUTORIAL_V2_ECONOMY_HAND
   before playtime, $41,000 at 30 minutes, $49,000 at 60; 6 lucky blocks, 7 new cues. That is
   more than v4's $32,000, mostly from finder's money. The next win pays $1,000 (v5's track).
   `8ball-0d` brings you a rescale to approve; the tutorial changes no number.
+- **Open all is gone** (your call, 2026-10-10): `8ball-2c` found it lit beside the "Place it!"
+  hand, where a press would have skipped the reel lesson. Every block now opens one at a time
+  through its reel, for everyone. Checked in Studio on PC.
+
+## Handed to the main folder (2026-10-10)
+
+`gui-v4` holds the whole tutorial. Nothing is left in `~/Desktop/8ball-tutorial`. Still open,
+for sessions in the main folder:
+
+- **The first session's money** (`8ball-0d`, with you): the rescale from the hand-off's section
+  3a; the next win's reward; whether the VIP Cue pays its finder's money at join.
+- **A real phone and a real controller** on the whole first session (the zoom animations, the
+  pinch, ball in hand, PRESS G, the offer tile's X); the controller's shooting mode.
+- **Two players**: a friend at the bot's table, two at one table, Play Global in one server and
+  across servers (the list under "What you need to try by hand").
+- **Max Players** (24 or 20) on the real game.
+- **The funnels** in the Creator Dashboard a day after a publish (`docs/TUTORIAL_FUNNELS.md`).
+- **The notification icon** under the target is hard to see; you said to leave it (the icon
+  will likely change).
 
