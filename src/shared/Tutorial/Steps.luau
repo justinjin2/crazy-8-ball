@@ -135,11 +135,19 @@ function Steps.load(saved: any, matches: number?, wins: number?): string
 	elseif Steps.Ends[saved] then
 		return saved
 	elseif INDEX[saved] then
+		if (saved == "Pad" or saved == "Game1") and (wins or 0) > 0 then
+			return "Rank" -- game 1 was won as the server stopped: its result was missed
+		end
 		return Steps.resume(saved)
 	end
 	local mapped = Steps.Migrate[saved]
 	if mapped then
-		return if Steps.Ends[mapped] then mapped else Steps.resume(mapped)
+		if Steps.Ends[mapped] then
+			return mapped
+		end
+		local step = Steps.resume(mapped)
+		-- A v1 save still before game 1 that has played since never starts the tutorial.
+		return if step == "Arrow" and ((matches or 0) > 0 or (wins or 0) > 0) then "Done" else step
 	end
 	return if (matches or 0) > 0 or (wins or 0) > 0 then "Done" else "Arrow"
 end

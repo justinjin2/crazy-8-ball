@@ -58,7 +58,7 @@ type Escort = {
 	onTable: number?,
 	onAt: number?, -- os.clock() the player was first seen on that pad
 	eta: number, -- the player's seconds to the target's pad (0 on it)
-	played: boolean, -- it sat down to game 1
+	played: boolean, -- its game 1 began
 	turn: Turn?,
 	lockYaw: boolean,
 	walkPoints: { Vector3 },
@@ -785,7 +785,6 @@ local function stepOn(e: Escort, job: number, t: any): boolean
 	local at = CFrame.new(root.Position) * CFrame.Angles(0, yaw, 0)
 	if BotService.seat(e.bot :: any, t, { at = at, breakFor = e.player.UserId }) then
 		e.state = "Seated"
-		e.played = true
 		log(
 			("%s's bot stepped on at table %d, %.2f s after them"):format(
 				e.player.Name,
@@ -1001,7 +1000,6 @@ fallbackSeat = function(e: Escort, why: string)
 	newJob(e)
 	if BotService.seat(bot, t, { breakFor = e.player.UserId }) then
 		e.state = "Seated"
-		e.played = true
 		warn(("[8ball] TutorialBot: %s's bot was seated directly (%s)"):format(e.player.Name, why))
 	end
 end
@@ -1204,11 +1202,20 @@ local function update(e: Escort)
 			end
 		elseif e.state == "Roaming" or e.state == "Out" then
 			follow(e)
+		elseif
+			e.state == "Seated"
+			and bot.t
+			and bot.t.engine.phase == "Waiting"
+			and Tables.tableOf(player) ~= bot.t.engine.id
+		then
+			roam(e) -- the player stepped off before the game began: it gets up and strolls
 		end
 	elseif step == "Game1" then
 		-- Path R: nobody needs it; one on its way strolls on.
 		if bot and e.state == "Out" then
 			roam(e)
+		elseif bot and e.state == "Seated" and bot.t and bot.t.engine.phase ~= "Waiting" then
+			e.played = true -- its game began (a skip before that leaves it quiet)
 		end
 	elseif bot == nil then
 		if not e.loading then

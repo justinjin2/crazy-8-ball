@@ -34,6 +34,7 @@ local Rewards = require(script.Parent.Rewards)
 local Funnel = require(script.Parent.Funnel)
 local TutorialHints = require(script.Parent.TutorialHints)
 local TutorialGames = require(script.Parent.TutorialGames)
+local RankClaimService = require(script.Parent.RankClaimService)
 local TutorialBot = require(script.Parent.TutorialBot)
 local Items = require(script.Parent.Items)
 local LuckyBlockService = require(script.Parent.LuckyBlockService)
@@ -316,6 +317,16 @@ function TutorialService.guard(player: Player, code: string, fn: () -> ()): bool
 	return ok
 end
 
+-- Whether the save holds a lucky block of `kind`.
+local function holdsBlock(data: any, kind: string): boolean
+	for _, block in data.LuckyBlocks.List do
+		if block.kind == kind then
+			return true
+		end
+	end
+	return false
+end
+
 local function onLoaded(player: Player)
 	local data = PlayerData.read(player)
 	if data == nil then
@@ -323,10 +334,21 @@ local function onLoaded(player: Player)
 	end
 	local saved = data.Flags[STEP_FLAG]
 	local step = Steps.load(saved, data.Stats.Matches, data.Progress.Wins)
+	-- A step's moments live in one server only: a Mystery block revealed before they left
+	-- (none left to tap) continues at Place.
+	if step == "Mystery" and not holdsBlock(data, T.MysteryKind) then
+		step = "Place"
+	end
 	-- The onboarding funnel follows new players only: its first step is a brand-new save
 	-- starting the tutorial (logged once the device is known), and no later step is logged
 	-- for anyone without it.
-	if type(saved) ~= "string" and step == "Arrow" then
+	if
+		step == "Arrow"
+		and (type(saved) ~= "string" or not Funnel.onboarded(player, "Joined"))
+		and (data.Stats.Matches or 0) == 0
+		and (data.Progress.Wins or 0) == 0
+	then
+		-- (also a new save that left before its device came: its Joined is logged now)
 		joinedWaiting[player] = true
 		task.delay(T.Device.JoinedWaitSeconds, function()
 			if player.Parent then
@@ -366,6 +388,10 @@ local function onLoaded(player: Player)
 	log(("%s joins at %s"):format(player.Name, step))
 	if step ~= "Arrow" then
 		entered(player, step, if type(saved) == "string" then saved else nil)
+	end
+	-- RELEASE redeemed before they left: the Abilities step points at SPIN again.
+	if step == "Abilities" and data.Codes[Config.Ults.CodeBanner.ActiveCode :: string] == true then
+		TutorialService.mark(player, "Redeemed")
 	end
 	stepChanged:Fire(player, step, saved)
 end
@@ -469,7 +495,10 @@ end
 
 -- A new save's first spin lands on Config.Tutorial.SpinUlt (Magnet) at the Abilities step.
 local function forcedSpin(player: Player): string?
-	return if TutorialService.step(player) == "Abilities" then T.SpinUlt else nil
+	return if TutorialService.step(player) == "Abilities"
+			and not TutorialService.marked(player, "Spun")
+		then T.SpinUlt
+		else nil
 end
 
 local function spun(player: Player, _id: string)
@@ -605,6 +634,10 @@ local function next(player: Player)
 		return
 	end
 	if TutorialService.since(player) + Timing.NextGraceSeconds >= fallbackOf(step :: string) then
+		if step == "Rank" and player:GetAttribute("RankPending") == true then
+			-- Not claimed yet: claimed for them, so the next steps' Mystery block is there.
+			RankClaimService.claimFor(player)
+		end
 		TutorialService.advance(player, step :: string)
 	end
 end
@@ -675,7 +708,16 @@ local function allow(player: Player): boolean
 end
 
 local function onEvent(player: Player, kind: any, data: any)
-	if type(kind) ~= "string" or not allow(player) or not PlayerData.isLoaded(player) then
+	if type(kind) ~= "string" or not allow(player) then
+		return
+	end
+	if kind == "Device" and type(data) == "string" and Funnel.Devices[data] then
+		-- Taken before the save loads too: the client sends it once, often that early.
+		player:SetAttribute(Funnel.DeviceAttribute, data)
+		logJoined(player)
+		return
+	end
+	if not PlayerData.isLoaded(player) then
 		return
 	end
 	local step = TutorialService.step(player)
@@ -689,11 +731,6 @@ local function onEvent(player: Player, kind: any, data: any)
 			TutorialService.fail(player, code)
 		else
 			TutorialService.logError(player, code)
-		end
-	elseif kind == "Device" then
-		if type(data) == "string" and Funnel.Devices[data] then
-			player:SetAttribute(Funnel.DeviceAttribute, data)
-			logJoined(player)
 		end
 	elseif kind == "Hint" then
 		if type(data) == "table" and type(data.name) == "string" then

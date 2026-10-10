@@ -3928,3 +3928,9 @@ timer of a new block stay the designer's call.
 - 2026-10-09 (designer): the tutorial v2 run checks only the main happy path of each remaining
   step in Studio, with one screenshot; lint and the tests cover the rest. Step 14's target drops
   from 20 clean automated runs to 3.
+- 2026-10-09: Tutorial v2 bug-proofing (two review agents): only a 1v1 pad starts the
+  tutorial's Pad step (a team pad leaves them at the arrow); pressing Next at the Rank step
+  claims the reward for them (the Mystery block must exist for the next steps); only the first
+  spin at the Abilities step is forced to Magnet; the tutorial player's reset in game 1 is not a
+  foul (the rigged break stays); a save left at Pad or Game1 with a win resumes at Rank, and a
+  v1 save from before game 1 that has played since never starts the tutorial.

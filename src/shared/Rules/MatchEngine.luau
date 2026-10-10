@@ -434,6 +434,7 @@ end
 function Engine.death(t: any, userId: number, now: number)
 	if
 		t.shooter == userId
+		and not TutorialRig.isPlayer(t, userId) -- game 1 (the rig) keeps its lesson on a reset
 		and (
 			t.phase == "Intro"
 			or t.phase == "Placement"

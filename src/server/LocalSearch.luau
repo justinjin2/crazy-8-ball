@@ -115,7 +115,7 @@ local function gather(): { Side }
 		local e = t.engine
 		if e.teamSize == 1 and e.phase == "Waiting" and t.pad and not promised[t] then
 			local players, at = Tables.waitingSearch(t)
-			if players and #players == 1 and at then
+			if players and #players == 1 and at and not e.tutorial then
 				local side = sideOf(players[1], "Pad", at, t)
 				if side then
 					table.insert(out, side)

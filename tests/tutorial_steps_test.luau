@@ -124,6 +124,14 @@ return {
 		)
 		H.expect(Steps.load("Game1", 0, 0) == "Arrow", "a v2 game 1 starts over")
 		H.expect(
+			Steps.load("Game1", 1, 1) == "Rank" and Steps.load("Pad", 1, 1) == "Rank",
+			"game 1 won as the server stopped: on to Rank, not a second game 1"
+		)
+		H.expect(
+			Steps.load("Arrow1", 2, 0) == "Done" and Steps.load("Request", 1, 1) == "Done",
+			"a v1 save before game 1 that has played since never starts the tutorial"
+		)
+		H.expect(
 			Steps.load("Equip", 1, 1) == "Cues" and Steps.load("Spin", 1, 1) == "Abilities",
 			""
 		)

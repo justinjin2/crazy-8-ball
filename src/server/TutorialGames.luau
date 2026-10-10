@@ -165,6 +165,16 @@ local function unrig(t: any?)
 	end
 end
 
+-- Takes the player's rig off every table still waiting (they skipped, the tutorial ended or
+-- they left the server before the bot came): no rigged game for anyone else.
+local function unrigFor(player: Player)
+	for _, t in Tables.all() do
+		if Rig.isPlayer(t.engine, player.UserId) then
+			unrig(t)
+		end
+	end
+end
+
 --- The table reserved for the player (its id), or nil.
 function TutorialGames.reservedTable(player: Player): number?
 	return reserved[player]
@@ -390,7 +400,9 @@ local function atArrow(player: Player)
 	reserve(player)
 	local id = Tables.tableOf(player)
 	local t = if id then Tables.get(id) else nil
-	if t == nil then
+	-- Only a 1v1 pad waiting for a game: a team pad never gets the bot, and a lost game 1's
+	-- result screen (still seated) must not start the steps over until the table is free.
+	if t == nil or t.engine.teamSize ~= 1 or t.engine.phase ~= "Waiting" then
 		return
 	end
 	Funnel.onboarding(player, "OnTable")
@@ -455,10 +467,14 @@ local function watch(player: Player)
 	elseif step == "Game1" then
 		local id = Tables.tableOf(player)
 		local t = if id then Tables.get(id) else nil
+		if reserved[player] and reserved[player] ~= id then
+			release(player) -- game 1 is at another table: the reserved one is free for others
+		end
 		if not game1Over(player, t) and t and service.path(player) == "S" then
 			watchRigged(player, t)
 		end
 	elseif reserved[player] then
+		unrigFor(player)
 		release(player)
 	end
 end
@@ -513,6 +529,7 @@ function TutorialGames.start(tutorial: any)
 		end
 	end)
 	Players.PlayerRemoving:Connect(function(player: Player)
+		unrigFor(player)
 		release(player)
 		calling[player] = nil
 		games[player] = nil

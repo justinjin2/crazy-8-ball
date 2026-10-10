@@ -895,7 +895,7 @@ lines). All in the worktree.
 - [x] 12. Path R, skipping, first-time hints for everyone (4.8, 4.9), starter spins 0,
   Bronze's block in Rank, "x2!" for everyone.
 - [x] 13. Funnels and telemetry complete (section 6), `/funnel`, `docs/TUTORIAL_FUNNELS.md`.
-- [ ] 14. Bug-proofing (section 7): the chaos list, 3 clean automated runs in a row, fake
+- [x] 14. Bug-proofing (section 7): the chaos list, 3 clean automated runs in a row, fake
   lag, the two review agents, fixes.
 - [ ] 15. The test place (section 8): publish, the designer's live checklist, fixes,
   republish.
@@ -1335,7 +1335,42 @@ lines). All in the worktree.
 - **Covered by Lune tests:** the step-name guard (every step name in `src/` is a real step), the
   migration map (old saves' steps), the layout guard (a physics change that breaks game 1's
   layouts fails a test), players with a match or a win never entering.
-- **The chaos list:** REVIEWS_PENDING
+- **The two reviews** (a code reviewer and an adversarial tester, read-only agents over every
+  file touched since F) found 11 real problems, all fixed:
+  - a lost game 1 flipped Arrow, Pad, Game1 every 0.25 s on the result screen (saves and
+    StepTime events each time): the arrow step ignores a table that is not waiting;
+  - Skip, an error or leaving at Pad left the rig on the waiting table (the next game there,
+    even against a real player, would have been rigged): the rig comes off on every exit and
+    on PlayerRemoving, and LocalSearch never pairs a rigged pad;
+  - the bot sat down, the player stepped off within the start grace: the bot stayed seated
+    (game 1 unrigged, or the bot never came to another table): it gets up and strolls;
+  - a 2v2 or 3v3 pad moved the player to Pad with nobody coming: only a 1v1 pad does;
+  - a rejoin after RELEASE pointed at the code box for good, and one after the Mystery block's
+    climb drew nothing: the save rebuilds Redeemed, and a revealed Mystery continues at Place;
+  - every spin during the Abilities step landed on Magnet: only the first;
+  - Next at Rank before claiming left Mystery and Place empty: Next claims it for them;
+  - the device sent before the save loaded was dropped (the funnels' device "Unknown" for the
+    session), and a new save gone within 8 s never logged Joined: both fixed;
+  - a reset (death) during the rigged break fouled and broke the rig: no reset foul for the
+    tutorial player in game 1;
+  - the old reservation stayed held during a game 1 at another table: let go;
+  - a save at Pad or Game1 with a win replayed game 1 (now Rank); a v1 save before game 1 that
+    has played since entered the tutorial (now Done). Tests added for both.
+  - Also: the bot's goodbye line only after a game it really played.
+- **The chaos list** (by the runs, the reviews' code traces and the tests): leave and rejoin at
+  every step (Arrow, Pad, Game1 resume at the arrow; Result at Rank; the chain where it was,
+  now with its marks); skip at every step (everything shows, the bot leaves); AFK (Result moves
+  on, the chain's Next, no clock on lesson turns); reset and FallGuard (back on the pad; no foul
+  in game 1); walking away mid-step (the rig and the bot let go); other menus mid-step
+  (pointers wait); device switch (words and gestures every frame); lag (the 4th run); spam
+  clicks (rate limit, time-gated Next, marked close reports); two new players (two bots, two
+  tables); a friend or a real player on the tutorial table before the start (path R, unrigged);
+  no free table (the line to wait; a team pad no longer traps them); the bot's avatar or path
+  failing (plain look, retries, fallback seat; logged as TutorialError); a shutdown (in-memory
+  flags; resume rules); DataStore errors (an unloaded save shows everything); an old save
+  (Done, hints all done). Not tried by hand: a phone rotation and a real low frame rate (the
+  arrow, dim and hand make no new Instances per frame; step 15's live checks).
+- **After the fixes:** lint clean, 1140 tests pass, one more happy-path run clean.
 - Screenshot: `~/Desktop/8ball-refs/tutorial/step14/skip_then_mystery_hint.jpg`.
 
 ### Touch list (files outside the tutorial's own modules changed, and why)
@@ -1449,6 +1484,10 @@ lines). All in the worktree.
 - Step 13 (funnels and telemetry):
   - `src/shared/Strings.luau`: `Dev.FunnelOnce`. `src/server/Funnel.luau`: `onceLogged`.
   - `docs/TUTORIAL_FUNNELS.md` (new).
+- Step 14 (bug-proofing):
+  - `src/shared/Rules/MatchEngine.luau` (`Engine.death`: no reset foul for game 1's player),
+    `src/server/RankClaimService.luau` (`claimFor`), `src/server/LocalSearch.luau` (a rigged
+    pad is never paired). `src/shared/Strings.luau`: `Dev.TutorialSeated`.
 
 ---
 

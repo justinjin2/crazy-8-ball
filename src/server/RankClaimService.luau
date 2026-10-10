@@ -92,6 +92,12 @@ local function onSeen(player: Player, index: any)
 	end
 end
 
+--- Claims the player's pending rank rewards for them, as their CLAIM press would (the
+--- tutorial's Rank step when they press Next instead).
+function RankClaimService.claimFor(player: Player)
+	onClaim(player)
+end
+
 --- Wires the remotes and the attributes. Call after PlayerData.start.
 function RankClaimService.start()
 	Net.get("RankClaim").OnServerEvent:Connect(onClaim)
