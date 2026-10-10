@@ -3179,18 +3179,22 @@ Config.Daily = {
 	-- The first week (v4 plan 6.1, designer 2026-10-08): a new player's first FirstWeekDays
 	-- login days, in a row or not, within FirstWeekWindow days of joining (the join's day is
 	-- day 1). After FirstWeekDays claims or after the window, the later weeks (Streak) take
-	-- over. Each day: Money, Blocks (lucky blocks, { [kind] = count }) and/or Spins.
-	-- Economy v5 (plan sections 4 and 5): a Rare block on day 2, $15,000 on day 5, 2 Mystery on
-	-- day 6 and the Week One Cue on day 7 (v4: Epic, Rare, 3 Mystery, a Legendary block). Cues:
-	-- cue ids, one copy each (a player who owns one already gets another).
+	-- over. Each day: Money, Blocks (lucky blocks, { [kind] = count }), Spins or Cues (cue ids,
+	-- one copy each: a player who owns one already gets another).
+	-- One thing a day, each worth more than the day before at shop money prices (designer,
+	-- 2026-10-10: "different things each day ... each reward better than the next"; a spin
+	-- $12,500, a Mystery $19,900, a Rare block $49,900). Day 7's Week One Cue only for days 1-7
+	-- claimed on 7 days in a row; a missed day makes day 7 FirstWeekMissed instead. v5 was
+	-- $5,000 + a Mystery, a Rare block, $10,000, 2 Mystery, $15,000, 2 Mystery, the Week One
+	-- Cue + 2 spins.
 	FirstWeek = {
-		{ Money = 5000, Blocks = { Mystery = 1 } },
+		{ Money = 5000 },
+		{ Blocks = { Mystery = 1 } },
+		{ Spins = 3 },
 		{ Blocks = { Rare = 1 } },
-		{ Money = 10000 },
-		{ Blocks = { Mystery = 2 } },
-		{ Money = 15000 },
-		{ Blocks = { Mystery = 2 } },
-		{ Cues = { "WeekOneCue" }, Spins = 2 },
+		{ Money = 50000 },
+		{ Blocks = { Mystery = 3 } },
+		{ Cues = { "WeekOneCue" } },
 	} :: {
 		{
 			Money: number?,
@@ -3200,25 +3204,35 @@ Config.Daily = {
 		}
 	},
 	FirstWeekWindow = 14,
+	-- The first week's last day when a day was missed between two first-week claims (designer,
+	-- 2026-10-10: "they have to be 7 days in a row, or else it'll just be an epic"). Days 1-6
+	-- still forgive gaps (FirstWeekWindow); only day 7's prize needs the run unbroken.
+	FirstWeekMissed = { Blocks = { Epic = 1 } } :: {
+		Money: number?,
+		Blocks: { [string]: number }?,
+		Cues: { string }?,
+		Spins: number?,
+	},
 	-- Claim All (designer, 2026-10-08: "a claim all robux option as well (put a fair price)";
 	-- priced by the days left, the designer's pick): one Robux product claims every day still
 	-- ahead in this 7-day row at once, today's unclaimed day included (Daily.claimAll). The
-	-- product: the first step whose MinDays the days ahead reach. Each is about half the shop
-	-- value of those days (blocks at their shop prices, money at Pack1's): the first week from
-	-- day 1 was worth ~800 R$ in v4, most of it day 7's Legendary block (599 R$ in the
-	-- restock); a later week ~250 R$. Economy v5 changes the days (day 7 is the Week One Cue);
-	-- the prices stay until the designer's Robux pass. Paid random items (the days give lucky
-	-- blocks): refused where restricted.
+	-- product: the first step whose MinDays the days ahead reach. The first week's is offered
+	-- only while its days are still in a row (its day 7 is then the Week One Cue, priced like
+	-- the restock's 599 R$ Legendary block); designer, 2026-10-10: "not too easy", about 60% of
+	-- the shop value of the days it claims (blocks and spins at their Robux prices, money at
+	-- Pack1's), so 1-2 days left no longer buys day 7's cue for 299 R$. The later weeks' days
+	-- give more money since 2026-10-10, so their steps rose too. Paid random items (the days
+	-- give lucky blocks): refused where restricted.
 	ClaimAll = {
 		First = {
-			{ MinDays = 6, Product = "ClaimAllFirst7" }, -- 399 R$
-			{ MinDays = 3, Product = "ClaimAllFirst5" }, -- 349 R$
-			{ MinDays = 1, Product = "ClaimAllFirst2" }, -- 299 R$
+			{ MinDays = 6, Product = "ClaimAllFirst7" }, -- 499 R$ (2026-10-10; was 399)
+			{ MinDays = 3, Product = "ClaimAllFirst5" }, -- 449 R$ (2026-10-10; was 349)
+			{ MinDays = 1, Product = "ClaimAllFirst2" }, -- 399 R$ (2026-10-10; was 299)
 		},
 		Week = {
-			{ MinDays = 6, Product = "ClaimAllWeek7" }, -- 79 R$ (economy v5; v4 129)
-			{ MinDays = 3, Product = "ClaimAllWeek5" }, -- 69 R$ (economy v5; v4 99)
-			{ MinDays = 1, Product = "ClaimAllWeek2" }, -- 35 R$ (economy v5; v4 59)
+			{ MinDays = 6, Product = "ClaimAllWeek7" }, -- 99 R$ (2026-10-10; v5 79, v4 129)
+			{ MinDays = 3, Product = "ClaimAllWeek5" }, -- 79 R$ (2026-10-10; v5 69, v4 99)
+			{ MinDays = 1, Product = "ClaimAllWeek2" }, -- 49 R$ (2026-10-10; v5 35, v4 59)
 		},
 	},
 	-- A login day counts (can be claimed) only once the player has finished a match that day
@@ -3227,16 +3241,19 @@ Config.Daily = {
 	-- The later weeks (the login loop, every day claimed once per day): seven days that repeat.
 	-- A missed day starts again at day 1, unless the week's streak freeze covers it. Every reward
 	-- is claimed in the Rewards menu (no popups, designer 2026-10-04).
-	-- Economy v5 (plan section 4): a Mystery on days 2, 4 and 6, a Rare block on day 7 (v4:
-	-- Rare, 2 Mystery, 3 Mystery, Epic; every v5 block climbs from its name).
+	-- One thing a day, each worth more than the day before at shop money prices (designer,
+	-- 2026-10-10, as FirstWeek). The same blocks as v5 (3 Mystery and a Rare block a week), one
+	-- spin instead of two, and more money ($75,000 instead of $30,000), paid for by the smaller
+	-- playtime gifts. v5 was $5,000, a Mystery, $10,000, a Mystery, $15,000, a Mystery, a Rare
+	-- block + 2 spins (every v5 block climbs from its name).
 	Streak = {
 		{ Money = 5000 },
+		{ Spins = 1 },
 		{ Blocks = { Mystery = 1 } },
-		{ Money = 10000 },
-		{ Blocks = { Mystery = 1 } },
-		{ Money = 15000 },
-		{ Blocks = { Mystery = 1 } },
-		{ Blocks = { Rare = 1 }, Spins = 2 },
+		{ Money = 25000 },
+		{ Blocks = { Mystery = 2 } },
+		{ Money = 45000 },
+		{ Blocks = { Rare = 1 } },
 	} :: { { Money: number?, Blocks: { [string]: number }?, Spins: number? } },
 	-- One free streak freeze a week (weeks start Monday): a single missed day is covered
 	-- by itself, so the streak goes on. Two or more missed days start it over.
@@ -3247,8 +3264,11 @@ Config.Daily = {
 	-- VIP's daily block (v4 plan 6.7, designer 2026-10-08), added to each day's claim. Where
 	-- PolicyService restricts paid random items it is VipRestrictedMoney instead (VIP is then
 	-- a paid random item: its card shows the block's odds). Economy v5: an Uncommon block (was
-	-- Rare; it climbs from Uncommon).
-	VipBlocks = { Uncommon = 1 },
+	-- Rare). 2026-10-10 (designer): a Mystery block, about the same worth (Epic or better 1 in
+	-- 18 against the Uncommon block's 1 in 16, the value ladder's 34 R$ against 40) but its
+	-- 4-press screen and a step of pity each day. The Rewards menu shows it once under the
+	-- day tiles (Daily.vipReward), not on every tile.
+	VipBlocks = { Mystery = 1 },
 	VipRestrictedMoney = 5000,
 	-- The 28-day track: total days claimed (never resets), repeating every TrackDays. On the
 	-- day the count reaches one of these it adds its reward to that day's claim (v4: the first
@@ -3271,14 +3291,16 @@ Config.Daily = {
 	-- Playtime gifts: minutes played in a day, across sessions, each claimable once that day
 	-- (v4 plan 6.3: all within the first hour; Roblox ranks playtime up to 60 minutes a day).
 	-- Economy v5 (plan section 4): money only (v4: a Mystery at 15, 30 and 45, a Rare block at
-	-- 60). Economy v5.1 (designer, 2026-10-09): $2,000 at 15 minutes (v5: a Mystery), part of
-	-- what pays for the better Mystery.
+	-- 60). 2026-10-10 (designer, "be careful if these playtime rewards are too much money"):
+	-- $7,500 in all, about one hour of Classic match money (Config.Economy), so the first hour
+	-- pays double, not nearly triple (v5.1 was $1,000 / $2,000 / $2,500 / $3,500 / $5,000,
+	-- $14,000, the biggest money source of a 1-hour player).
 	Playtime = {
-		{ Minutes = 5, Money = 1000 },
-		{ Minutes = 15, Money = 2000 },
-		{ Minutes = 30, Money = 2500 },
-		{ Minutes = 45, Money = 3500 },
-		{ Minutes = 60, Money = 5000, Spins = 1 },
+		{ Minutes = 5, Money = 500 },
+		{ Minutes = 15, Money = 1000 },
+		{ Minutes = 30, Money = 1500 },
+		{ Minutes = 45, Money = 2000 },
+		{ Minutes = 60, Money = 2500, Spins = 1 },
 	} :: {
 		{
 			Minutes: number,
@@ -3803,42 +3825,42 @@ Config.Products = {
 		ClaimAllFirst7 = {
 			Kind = "Product",
 			Id = 3717289778,
-			Robux = 399,
+			Robux = 499, -- 2026-10-10 (was 399)
 			ClaimAll = 7,
 			Random = true,
 		},
 		ClaimAllFirst5 = {
 			Kind = "Product",
 			Id = 3717289783,
-			Robux = 349,
+			Robux = 449, -- 2026-10-10 (was 349)
 			ClaimAll = 5,
 			Random = true,
 		},
 		ClaimAllFirst2 = {
 			Kind = "Product",
 			Id = 3717289785,
-			Robux = 299,
+			Robux = 399, -- 2026-10-10 (was 299)
 			ClaimAll = 2,
 			Random = true,
 		},
 		ClaimAllWeek7 = {
 			Kind = "Product",
 			Id = 3717289791,
-			Robux = 79, -- economy v5 (was 129)
+			Robux = 99, -- 2026-10-10 (v5 79, v4 129)
 			ClaimAll = 7,
 			Random = true,
 		},
 		ClaimAllWeek5 = {
 			Kind = "Product",
 			Id = 3717289793,
-			Robux = 69, -- economy v5 (was 99)
+			Robux = 79, -- 2026-10-10 (v5 69, v4 99)
 			ClaimAll = 5,
 			Random = true,
 		},
 		ClaimAllWeek2 = {
 			Kind = "Product",
 			Id = 3717289797,
-			Robux = 35, -- economy v5 (was 59)
+			Robux = 49, -- 2026-10-10 (v5 35, v4 59)
 			ClaimAll = 2,
 			Random = true,
 		},
@@ -6688,8 +6710,13 @@ Config.UI = {
 			OneMoreTextPx = 18,
 			OneMoreGapPx = 2, -- under the pill
 			-- A phone: the column starts right under the badge, so the words sit in the pill's
-			-- name row instead, right-aligned and smaller.
-			OneMoreShortTextPx = 12,
+			-- name row instead, right-aligned after the rank's name, centred between the pill's
+			-- top edge and the bar (designer, 2026-10-10: "hard to see ... a little bit higher
+			-- ... not resting on the bar"; was 12 px, resting on the bar). They shrink to
+			-- OneMoreShortMinPx when a long rank name leaves less room.
+			OneMoreShortTextPx = 15,
+			OneMoreShortMinPx = 11,
+			OneMoreShortGapPx = 6, -- from the end of the rank's name
 			-- The small badge under each portrait in the match bar (MatchHUD): this share of the
 			-- portrait, its centre this share of the badge above the portrait's lower edge, so it
 			-- overlaps the edge rather than growing the bar.
@@ -9713,12 +9740,6 @@ Config.UI.Shop.Open = {
 			At = 0.38,
 			Stagger = 1.5,
 		},
-		{
-			Ids = { "RestockOdds1", "RestockOdds2", "RestockOdds3" },
-			Kind = "Fade",
-			At = 0.56,
-			Length = 0.12,
-		},
 		{ Ids = { "OfferStarter" }, Kind = "Pop", At = 0.44, Burst = "Pink" },
 		{ Ids = { "OfferVip" }, Kind = "Pop", At = 0.48, Burst = "Gold" },
 		-- The Money group (ShopMoney, pick B), the same rhythm: seen when jumped to.
@@ -10150,7 +10171,8 @@ Config.UI.ShopBlocks = {
 	},
 	-- The restock (pick B): three slots and the VIP slot, big blocks, odds behind each dice.
 	Restock = {
-		Units = { 1275, 556 }, -- the panel
+		-- The panel (2026-10-10: 498, the odds lines under the cards gone; was 556).
+		Units = { 1275, 498 },
 		SlotTop = 50,
 		-- A slot card: economy v5's three (slot 1, slot 2, VIP's) and their gaps fill the panel.
 		SlotUnits = { 401, 426 },
@@ -10183,11 +10205,6 @@ Config.UI.ShopBlocks = {
 		GoldTextUnits = 30,
 		VipFill = { 255, 248, 224 }, -- the VIP slot's card
 		VipEdge = { 242, 178, 0 },
-		-- Each slot's odds under its card ("Rare 55% · Epic 34% · ..."), up to OddsRows rows.
-		OddsY = 514,
-		OddsUnits = 19, -- one row on a PC (21 wraps the longest)
-		OddsRows = 2,
-		OddsSideUnits = 6, -- its room each side under its card
 	},
 	-- The Starter Pack and VIP side by side, wide (ShopOffers; designer, 2026-10-08: "put VIP
 	-- and starter side by side ... this should actually be used mainly as the reference so it
@@ -10280,7 +10297,7 @@ Config.UI.ShopBlocks = {
 			PerkBoxEdge = { 240, 196, 92 }, -- its rim, a soft gold
 		},
 		-- VIP's perk icons, in Strings' order (a Kit.Icons key, or a lucky block's kind).
-		VipPerkIcons = { "Block:Rare", "Stopwatch", "UltSpin", "ShopBasket", "Cue", "ChatTag" },
+		VipPerkIcons = { "Block:Mystery", "Stopwatch", "UltSpin", "ShopBasket", "Cue", "ChatTag" },
 		VipPerkIconRestricted = "CashSingle", -- the daily block's line where it is money
 	},
 }
@@ -15008,7 +15025,7 @@ Config.UI.FreeReward = {
 	-- The Daily section (pick "daily A"): six day tiles, 3 x 2, then day 7 tall at the right;
 	-- under them the first week's line and Claim All.
 	Daily = {
-		Units = { 1275, 500 }, -- the panel
+		Units = { 1275, 534 }, -- the panel (534 since VIP's line, 2026-10-10; was 500)
 		Grid = { Left = 20, Top = 46, Columns = 3, GapUnits = { 12, 12 } },
 		Tile = {
 			Units = { 284, 190 },
@@ -15036,6 +15053,11 @@ Config.UI.FreeReward = {
 			Rays = 340,
 			Op = { 278, 92, 128, 60, 44 }, -- the tilted "OP!": centre x, y, width, height, text
 			OpDegrees = -12,
+			-- The first week's "7 IN A ROW!" while its days are still in a row (day 7 then gives
+			-- its cue; a missed day makes it Config.Daily.FirstWeekMissed): centre x, y, width,
+			-- height, text, at the card's top left across from "OP!".
+			RowTag = { 82, 92, 150, 36, 20 },
+			RowTagColor = { 255, 112, 40 }, -- a streak's flame orange
 			OddsBadge = { 252, 222, 44 }, -- centre x, y, size
 			-- What comes with the block: "+2 Ability Spins", one to a line when they do not fit on
 			-- one (a VIP's extras are longer), clear above the status.
@@ -15047,9 +15069,12 @@ Config.UI.FreeReward = {
 			SideUnits = 36,
 			EdgeUnits = 5,
 		},
-		-- Under the tiles: the week's line (left) and Claim All (right, under day 7).
-		Footer = { X = 458, Y = 469, WidthUnits = 860, TextUnits = 24 },
-		ClaimAll = { X = 1082, Y = 469, WidthUnits = 345, HeightUnits = 52, TextUnits = 30 },
+		-- Under the tiles: the week's line (left), VIP's daily part under it (once, not on every
+		-- tile: designer, 2026-10-10; Daily.vipReward) and Claim All (right, under day 7).
+		Footer = { X = 458, Y = 462, WidthUnits = 860, TextUnits = 24 },
+		VipLine = { Y = 500, TextUnits = 22 },
+		VipColor = { 214, 150, 0 }, -- the kit's VIP gold
+		ClaimAll = { X = 1082, Y = 486, WidthUnits = 345, HeightUnits = 52, TextUnits = 30 },
 		TimeSample = "88h 88m", -- the title pill's widest time (room kept so it never jumps)
 		-- Each day's colours, top to bottom (day 1 .. 7), as the shop's offer cards.
 		Looks = {
@@ -15239,9 +15264,9 @@ Config.UI.FreeReward.Open = {
 			Stagger = 1.25,
 		},
 		{ Ids = { "DailyDay7" }, Kind = "Pop", At = 0.36, Burst = "Gold" },
-		{ Ids = { "DailyOp" }, Kind = "Pop", At = 0.46 },
+		{ Ids = { "DailyOp", "DailyRowTag" }, Kind = "Pop", At = 0.46 },
 		{ Ids = { "DailyClaimAll" }, Kind = "Pop", At = 0.44 },
-		{ Ids = { "DailyFooter" }, Kind = "Fade", At = 0.48, Length = 0.12 },
+		{ Ids = { "DailyFooter", "DailyVip" }, Kind = "Fade", At = 0.48, Length = 0.12 },
 		{ Ids = { "PlaytimeHead" }, Kind = "Pop", At = 0.18 },
 		{ Ids = { "PlaytimeLines" }, Kind = "Grow", At = 0.22 },
 		{ Ids = { "PlaytimePanel" }, Kind = "Grow", At = 0.20 },
@@ -15318,9 +15343,9 @@ Config.UI.DailyRewards = {
 				Stagger = 1.25,
 			},
 			{ Ids = { "DailyDay7" }, Kind = "Pop", At = 0.36, Burst = "Gold" },
-			{ Ids = { "DailyOp" }, Kind = "Pop", At = 0.46 },
+			{ Ids = { "DailyOp", "DailyRowTag" }, Kind = "Pop", At = 0.46 },
 			{ Ids = { "DailyClaimAll" }, Kind = "Pop", At = 0.44 },
-			{ Ids = { "DailyFooter" }, Kind = "Fade", At = 0.48, Length = 0.12 },
+			{ Ids = { "DailyFooter", "DailyVip" }, Kind = "Fade", At = 0.48, Length = 0.12 },
 			{ Ids = { "Flair" }, Kind = "Drop", At = 0.66, Length = 0.25 },
 		},
 	},

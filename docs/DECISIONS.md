@@ -4106,3 +4106,25 @@ timer of a new block stay the designer's call.
   rescale of the first session, the phone and controller checks, Max Players, the controller's
   shooting mode) goes on in the main folder (`~/Desktop/8ball`, `gui-v4`).
 - 2026-10-10 (designer, "instead of roman numerals for ranks like Silver II Silver III just do Silver 2 silver 3 for everything from now on and all ranks in every gui and hud"): rank divisions are digits everywhere ("Silver 2"). One list (`Strings.Ranks.Numerals`) feeds every screen through `Ranks.name`, so every GUI, HUD, popup, leaderboard and dev reply changes together. Older docs still say "Bronze I" in places; read them as "Bronze 1".
+- 2026-10-10 (designer, "why everyday gives three things, should be like different things each
+  day ... each reward better than the next"): each login day gives one thing. First week: $5,000,
+  a Mystery block, 3 ability spins, a Rare block, $50,000, 3 Mystery blocks, then the Week One
+  Cue on day 7 **only for 7 days claimed in a row**; one missed day turns day 7 into an Epic
+  block (`Config.Daily.FirstWeekMissed`, the save's `Login.FirstMissed`), shown by a "7 IN A
+  ROW!" tag while the row holds and a line under the days after a miss. Later weeks: $5,000, 1
+  spin, a Mystery, $25,000, 2 Mystery, $45,000, a Rare block. The model: Epic by day 7 / 30
+  about 4-5 points lower (the start is leaner on purpose), the Week One Cue much rarer (15.8% to
+  1.6% by day 7), daily players unchanged.
+- 2026-10-10 (designer's pick): the first week's Claim All 499 / 449 / 399 R$ (was 399 / 349 /
+  299) and the later weeks' 99 / 79 / 49 (was 79 / 69 / 35), synced on Roblox; the first week's
+  Claim All is offered only while its days are still in a row (it buys the Week One Cue).
+- 2026-10-10 (designer's pick): playtime gifts $500 / $1,000 / $1,500 / $2,000 / $2,500 + 1 spin
+  ($7,500 a day, was $12,000; a match hour pays about $7,750, so the gifts no longer pay more
+  than playing).
+- 2026-10-10 (designer, "would instead making VIP give a free mystery instead of uncommon be
+  fair?"): yes, about the same worth; VIP's daily block is a Mystery block. The Daily screen
+  shows the VIP part once under the days, not on every tile.
+- 2026-10-10 (designer, "way too much text ... going left to right from least rare to
+  rarest"): the restock's odds line is gone (each card's dice opens its odds) and its cards
+  sort least rare to rarest. On a phone the rank HUD's "N wins to go" sits bigger, between the
+  bar and the panel's top edge, right of the rank name.

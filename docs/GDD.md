@@ -685,8 +685,8 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   with **pity**: the 100th spin without an Epic or better is Epic+, and any Epic+ resets it.
   **Lucky Spins** (Robux only) never roll Common. Spins come from the code RELEASE (a new player
   has none before it, 2026-10-09), a free spin every day (from a new save's second day),
-  rank-up rewards from Silver, day 7 of the login streak, the day's last playtime gift, codes,
-  Robux packs (1 for 15 R$ up to 50 for 449) and money ($1,750 a spin). VIP adds Skip and Auto
+  rank-up rewards from Silver, the first week's day 3 and the later weeks' day 2 (2026-10-10),
+  the day's last playtime gift, codes, Robux packs (1 for 15 R$ up to 50 for 449) and money ($1,750 a spin). VIP adds Skip and Auto
   Spin (the Quick Cases pass was retired into VIP, 2026-10-04). Paid spins are paid random items: odds shown, and blocked
   where PolicyService restricts them (ECONOMY.md 11.7-11.8). The live screen stays hidden
   (`Config.Ults.ScreenLive`) was hidden until more ults than Magnet were built; it is live
@@ -1014,18 +1014,21 @@ approves the v5 proposal (ECONOMY.md section 11).
   ($149,000-$499,000, some for Robux); none is scheduled yet. Seasons, the Cue Pass and event
   blocks come after release.
 - **Free rewards** (plan, 2026-10-02; designer, 2026-10-03; blocks and no popups, 2026-10-04;
-  v4, 2026-10-08; v5, 2026-10-09): **the first week**, a new player's first 7 login days within
-  14 days of joining, in a row or not ($5,000 + 1 Mystery block, **a Rare block**, $10,000, 2
-  Mystery blocks, $15,000, 2 Mystery blocks, **the Week One Cue** + 2 ability spins); a day
-  counts only after a finished match that day; **the Week One Cue** (designer, 2026-10-09) is a
-  new Legendary cue never in any block, tradable and sellable like any Legendary, shown on day
-  7's card from day 1, with no farming limits for now; then **later weeks** ($5,000, a Mystery
-  block, $10,000, a Mystery block, $15,000, a Mystery block, a Rare block + 2 ability spins;
-  one free streak freeze a week); **Claim All** buys the rest of a 7-day row with Robux; a
-  **28-day track** of total days (day 8 $50,000, day 14 a Rare block, day 21 $150,000, day 28
-  an Epic block); **playtime gifts**, all within the first hour (5 min $1,000, 15 min $2,000
-  (v5.1), 30 min $2,500, 45 min $3,500, 60 min $5,000 + 1 spin); **VIP's Uncommon
-  block** each day; the game's **group** (Join and Claim: 2 Mystery blocks once, +10% match
+  v4, 2026-10-08; v5, 2026-10-09; one thing a day, 2026-10-10): **the first week**, a new
+  player's first 7 login days within 14 days of joining, in a row or not, each day one reward
+  worth more than the day before ($5,000, a Mystery block, 3 ability spins, **a Rare block**,
+  $50,000, 3 Mystery blocks, then day 7 **the Week One Cue only for 7 days in a row**, else an
+  Epic block: a tilted "7 IN A ROW!" on day 7's card says so); a day counts only after a
+  finished match that day; **the Week One Cue** (designer, 2026-10-09) is a new Legendary cue
+  never in any block, tradable and sellable like any Legendary, shown on day 7's card from day
+  1, with no farming limits for now; then **later weeks** ($5,000, 1 ability spin, a Mystery
+  block, $25,000, 2 Mystery blocks, $45,000, a Rare block; one free streak freeze a week);
+  **Claim All** buys the rest of a 7-day row with Robux (the first week's only while it is in a
+  row); a **28-day track** of total days (day 8 $50,000, day 14 a Rare block, day 21 $150,000,
+  day 28 an Epic block); **playtime gifts**, all within the first hour (5 min $500, 15 min
+  $1,000, 30 min $1,500, 45 min $2,000, 60 min $2,500 + 1 spin; 2026-10-10, was $14,000 in
+  all); **VIP's Mystery block** each day (2026-10-10; it was an Uncommon block), shown once
+  under the day tiles, never on each tile; the game's **group** (Join and Claim: 2 Mystery blocks once, +10% match
   money while a member); a **favorite** reward ($10,000 + a Lucky 8 block); six **like codes**
   the designer switches on live at like milestones; **invites** (a brand-new friend's first
   real win gives both an Uncommon block; the inviter's once ever, at most 5 a month); **codes**

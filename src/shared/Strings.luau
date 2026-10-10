@@ -765,9 +765,6 @@ return {
 				RestockTitle = "RESTOCK",
 				-- Slot 1's tag (economy v5: its own table, from its lowest kind): "Epic or better!".
 				SlotFloor = "%s or better!",
-				-- Under each slot: each kind's chance in it, each name in its colour.
-				OddsPart = "%s %s", -- a kind and its chance: "Rare 87%"
-				OddsJoin = " · ",
 				Left = "x%d left", -- a restock slot's stock: "x2 left"
 				SoldOut = "Sold out",
 				VipOnly = "VIP only",
@@ -784,7 +781,7 @@ return {
 				VipPerks = {
 					"2x money",
 					"No lucky block timers",
-					"An Uncommon Lucky Block every day",
+					"A Mystery Lucky Block every day",
 					"+1 Ability Spin a day",
 					"The VIP restock slot",
 					"The VIP Cue and tag",
@@ -802,7 +799,7 @@ return {
 				-- VIP's perks under its picture (2x money is the big line), two columns of three,
 				-- in the order of Config.UI.ShopBlocks.Pair.VipPerkIcons.
 				VipPerksWide = {
-					"Uncommon block every day",
+					"Mystery block every day",
 					"No block timers",
 					"+1 ability spin a day",
 					"VIP restock slot",
@@ -1116,7 +1113,7 @@ return {
 		FirstWeekLeft = "%d days left to finish your first week",
 		LaterWeeks = "Day %d of 7",
 		NeedsMatch = "Finish one match to claim today's reward",
-		VipBlock = "VIP: an Uncommon Lucky Block every day",
+		VipBlock = "VIP: a Mystery Lucky Block every day",
 		VipRestricted = "VIP: $5,000 every day", -- where paid random items are restricted
 	},
 	-- The shop's v4 lines (economy v4 plan sections 8.2-8.5).
@@ -1127,7 +1124,7 @@ return {
 		UniqueLeft = "%s · %s of %s left", -- "Beta Cue · 23 of 100 left"
 		CopyOf = "#%d of %d", -- a capped Unique's copy: "#4 of 100"
 		OnlyEver = "only %s ever", -- "only 100 ever"
-		VipPerks = "2x money · no timers · an Uncommon Lucky Block every day · +1 spin a day · "
+		VipPerks = "2x money · no timers · a Mystery Lucky Block every day · +1 spin a day · "
 			.. "Skip and Auto Spin · the VIP restock slot · the VIP Cue",
 		VipRestrictedNote = "Where Lucky Blocks can't be bought, the daily block is $5,000.",
 		StarterRestricted = "$40,000 + 1 hour of 2x money",
@@ -1191,14 +1188,21 @@ return {
 		StreakTitle = "DAILY STREAK",
 		Day = "DAY %d",
 		Op = "OP!",
+		InRowTag = "7 IN A ROW!", -- day 7's tag while the first week is still in a row
 		-- What comes with day 7's block: "+2 Ability Spins", "+$5,000", "+1 Rare Lucky Block".
 		HeroSpins = "+%d Ability Spins",
 		HeroSpin = "+1 Ability Spin",
 		HeroMoney = "+%s",
 		HeroBlock = "+%d %s",
-		-- Under the tiles. The first week: any 7 login days within 14 days of joining.
-		FirstWeekLine = "First week: any %d days within %d · %d days left",
-		FirstWeekLast = "First week: any %d days within %d · last day!",
+		-- Under the tiles. The first week: any 7 login days within 14 days of joining; day 7's
+		-- prize only for 7 days in a row (2026-10-10), else Config.Daily.FirstWeekMissed.
+		InRowCue = "Claim 7 days in a row to win the %s!", -- day 7's cue: "Week One Cue"
+		InRowLine = "Claim 7 days in a row to win %s!", -- day 7's prize: "a Rare Lucky Block"
+		MissedLine = "You missed a day, so day 7 is now %s · %d days left", -- "an Epic Lucky Block"
+		MissedLast = "You missed a day, so day 7 is now %s · last day!",
+		-- VIP's part of every day's claim, shown once (Daily.vipReward): its gains joined.
+		VipLine = "VIP bonus every day: %s",
+		VipPitch = "Get VIP for %s every day", -- "a Mystery Lucky Block and 1 Ability Spin"
 		FirstWeekDone = "First week done! Your daily streak starts tomorrow.",
 		NeedMatch = "Finish one match today to claim day %d", -- win or lose, any mode
 		-- The later weeks: a missed day starts the row again at day 1, unless the week's one

@@ -16,7 +16,8 @@
 --
 -- A reward is always { money = n, blocks = { [kind] = count }, spins = n, lucky = n } (0 and
 -- empty when there is none), plus `cues` (cue ids, in the row's order; economy v5: the first
--- week's day 7 gives the Week One Cue); Daily.blockList lists its lucky blocks in
+-- week's day 7 gives the Week One Cue, only to a first week claimed on 7 days in a row since
+-- 2026-10-10, else Config.Daily.FirstWeekMissed); Daily.blockList lists its lucky blocks in
 -- Config.LuckyBlocks.Order. `spins` and `lucky` are ability spins and Lucky Spins. The
 -- approved economy plan (2026-10-02, section 6; cases retired for blocks 2026-10-04).
 local Config = require(script.Parent.Parent.Config)
@@ -36,14 +37,16 @@ export type Reward = {
 
 -- The save's login days: the last claimed day (0 none), the later weeks' loop day that claim
 -- was (1..7; 0 none, or a first-week claim), every day ever claimed (the 28-day track), the
--- week whose streak freeze was used (Daily.weekOf; 0 none) and the first-week days claimed
--- (0..#Config.Daily.FirstWeek; economy v4).
+-- week whose streak freeze was used (Daily.weekOf; 0 none), the first-week days claimed
+-- (0..#Config.Daily.FirstWeek; economy v4) and whether a day was missed between two of them
+-- (2026-10-10: day 7 is then Config.Daily.FirstWeekMissed).
 export type Login = {
 	LastDay: number,
 	StreakDay: number,
 	Total: number,
 	FreezeWeek: number,
 	FirstWeek: number?,
+	FirstMissed: boolean?,
 }
 
 -- What the login rules need besides the save (economy v4): the day of the first join (nil:
@@ -61,6 +64,10 @@ export type LoginState = {
 	firstWeek: boolean, -- today's claim is a first-week day
 	firstWeekDays: number, -- first-week days claimed, counting today's claim once made
 	firstWeekLeft: number, -- days left in the first week's window, today included (0: over)
+	-- the first week is still on 7 days in a row (no day missed between its claims, and today's
+	-- claim, when still to make, follows yesterday's): its day 7 is the row's own, not
+	-- Config.Daily.FirstWeekMissed. False once the first week is over.
+	firstInRow: boolean,
 	needsMatch: boolean, -- not claimed, and no match finished today yet (the claim waits)
 	total: number, -- days claimed counting today's claim (the 28-day track)
 	week: number, -- the track's week today's claim is in: 1..TrackDays / 7
@@ -111,6 +118,7 @@ local STREAK: { RewardRow } = D.Streak :: any
 local FIRST: { RewardRow } = D.FirstWeek :: any
 local FIRST_DAYS = #FIRST
 local FIRST_WINDOW: number = D.FirstWeekWindow
+local MISSED: RewardRow = D.FirstWeekMissed :: any
 local VIP_BLOCKS: { [string]: number } = D.VipBlocks :: any
 local DAY_OFFSET: number = D.ResetHour * 3600
 local PLAYTIME: { RewardRow } = D.Playtime :: any
@@ -220,7 +228,7 @@ end
 --- rows), once each in row order: the server counts their copies in existence around a claim.
 function Daily.rewardCues(): { string }
 	local out: { string } = {}
-	for _, rows in { FIRST, STREAK, TRACK } do
+	for _, rows in { FIRST, { MISSED }, STREAK, TRACK } do
 		for _, row in rows do
 			local cues: { string } = rewardOf(row).cues or {}
 			for _, id in cues do
@@ -307,6 +315,14 @@ local function addVip(reward: Reward, vip: boolean?, restricted: boolean?): Rewa
 	return merge(reward, rewardOf({ Blocks = VIP_BLOCKS }))
 end
 
+--- VIP's part of every day's claim on its own (Config.Daily.VipSpins and VipBlocks, or
+--- VipRestrictedMoney where paid random items are `restricted`): the Rewards menu shows it once
+--- under the day tiles, not on each tile (designer, 2026-10-10: "why everyday gives three
+--- things").
+function Daily.vipReward(restricted: boolean?): Reward
+	return addVip(rewardOf(nil), true, restricted)
+end
+
 --- What the later weeks' loop day `day` gives (the seven tiles show these), with VIP's daily
 --- spin and block (Config.Daily.VipSpins, VipBlocks) when `vip` (`restricted`: VIP's money
 --- instead). The second answer is always false (the old week bonus is the track now:
@@ -315,10 +331,25 @@ function Daily.streakReward(day: number, vip: boolean?, restricted: boolean?): (
 	return addVip(rewardOf(STREAK[day]), vip, restricted), false
 end
 
+-- First-week day `day`'s own row: the last day's is Config.Daily.FirstWeekMissed when a day
+-- was missed (`missed`).
+local function firstRow(day: number, missed: boolean?): RewardRow?
+	if day == FIRST_DAYS and missed == true then
+		return MISSED
+	end
+	return FIRST[day]
+end
+
 --- What first-week day `day` gives (1..#Config.Daily.FirstWeek), with VIP's part like
---- Daily.streakReward.
-function Daily.firstWeekReward(day: number, vip: boolean?, restricted: boolean?): Reward
-	return addVip(rewardOf(FIRST[day]), vip, restricted)
+--- Daily.streakReward. `missed`: a day was missed between the first week's claims, so the
+--- last day gives Config.Daily.FirstWeekMissed (2026-10-10).
+function Daily.firstWeekReward(
+	day: number,
+	vip: boolean?,
+	restricted: boolean?,
+	missed: boolean?
+): Reward
+	return addVip(rewardOf(firstRow(day, missed)), vip, restricted)
 end
 
 -- Whether day `now` is inside the first week's window for a player who joined on `joinDay`
@@ -366,6 +397,19 @@ local function todaysDay(
 	return 1, false, false, false
 end
 
+-- Whether the first week is still on 7 days in a row on day `now` (2026-10-10): no day missed
+-- between its claims so far, and today's claim, when it is a first-week day still to make,
+-- follows yesterday's (the first claim always does). False once the first week is over.
+local function firstInRow(login: any, now: number, joinDay: number?): boolean
+	local last = readLogin(login)
+	local missed = type(login) == "table" and login.FirstMissed == true
+	local day, claimed, _, isFirst = todaysDay(login, now, joinDay)
+	if missed or not isFirst then
+		return false
+	end
+	return claimed or day == 1 or last >= now - 1
+end
+
 --- Where a player's login days stand on day `today` (`vip`: today's claim adds VIP's spin and
 --- block; `extra`: the join day, today's match, VIP's restriction). One claim per day, and
 --- only once a match was finished that day (Config.Daily.NeedsMatch). The first week: the
@@ -384,10 +428,11 @@ function Daily.loginState(
 	local played = not (extra and extra.played == false)
 	local _, _, total, freeze, first = readLogin(login)
 	local day, claimedToday, frozen, isFirst = todaysDay(login, now, joinDay)
+	local inRow = firstInRow(login, now, joinDay)
 	local count = if claimedToday then math.max(1, total) else total + 1
 	local _, week = trackPlace(count)
 	local reward = if isFirst
-		then Daily.firstWeekReward(day, vip, restricted)
+		then Daily.firstWeekReward(day, vip, restricted, not inRow)
 		else Daily.streakReward(day, vip, restricted)
 	local track = Daily.trackReward(count)
 	if track ~= nil then
@@ -404,6 +449,7 @@ function Daily.loginState(
 		firstWeekLeft = if inWindow and (first < FIRST_DAYS or (isFirst and claimedToday))
 			then left
 			else 0,
+		firstInRow = inRow,
 		needsMatch = needsMatch,
 		total = count,
 		week = week,
@@ -418,7 +464,8 @@ end
 --- Claims today's login reward (`vip` and `extra` as Daily.loginState). Returns (true, the
 --- new Login to store, the reward) or (false, an unchanged copy of the Login, nil) when today
 --- is already claimed or waits for a match. A first-week claim stores StreakDay 0, so the
---- later weeks start at day 1. Never changes the table it is given.
+--- later weeks start at day 1, and marks FirstMissed when it does not follow yesterday's.
+--- Never changes the table it is given.
 function Daily.claimLogin(
 	login: Login,
 	today: number,
@@ -427,6 +474,7 @@ function Daily.claimLogin(
 ): (boolean, Login, Reward?)
 	local now = whole(today)
 	local last, streakDay, total, freeze, first = readLogin(login)
+	local missed = type(login) == "table" and login.FirstMissed == true
 	local state = Daily.loginState(login, now, vip, extra)
 	if not state.canClaim then
 		return false,
@@ -436,6 +484,7 @@ function Daily.claimLogin(
 				Total = total,
 				FreezeWeek = freeze,
 				FirstWeek = first,
+				FirstMissed = missed,
 			},
 			nil
 	end
@@ -446,6 +495,7 @@ function Daily.claimLogin(
 			Total = state.total,
 			FreezeWeek = if state.frozen then Daily.weekOf(now) else freeze,
 			FirstWeek = if state.firstWeek then state.day else first,
+			FirstMissed = missed or (state.firstWeek and not state.firstInRow),
 		},
 		state.reward
 end
@@ -478,12 +528,14 @@ function Daily.claimAll(
 	local now = whole(today)
 	local joinDay = if extra then extra.joinDay else nil
 	local last, streakDay, total, freeze, first = readLogin(login)
+	local inRow = firstInRow(login, now, joinDay)
 	local out: Login = {
 		LastDay = last,
 		StreakDay = streakDay,
 		Total = total,
 		FreezeWeek = freeze,
 		FirstWeek = first,
+		FirstMissed = type(login) == "table" and login.FirstMissed == true,
 	}
 	local isFirst, from, withToday = rowAhead(login, now, joinDay)
 	local to = if isFirst then FIRST_DAYS else DAYS
@@ -507,12 +559,16 @@ function Daily.claimAll(
 			out.Total = state.total
 			out.FreezeWeek = if state.frozen then Daily.weekOf(now) else freeze
 		else
-			reward = merge(reward, rewardOf(if isFirst then FIRST[day] else STREAK[day]))
+			reward =
+				merge(reward, rewardOf(if isFirst then firstRow(day, not inRow) else STREAK[day]))
 		end
 	end
 	if isFirst then
 		out.FirstWeek = to
 		out.StreakDay = 0
+		-- The offer is only made while the run is unbroken (Daily.claimAllOffer); a receipt that
+		-- lands after a missed day still pays, with day 7's missed row.
+		out.FirstMissed = out.FirstMissed or not inRow
 	else
 		out.StreakDay = to
 	end
@@ -522,7 +578,8 @@ end
 --- Claim All's offer on day `today` (`vip`, `extra` as Daily.loginState): what the rest of
 --- this 7-day row gives at once and the product it is bought with (Config.Daily.ClaimAll: the
 --- first step whose MinDays the days ahead reach). Not available once the row's last day is
---- claimed.
+--- claimed, nor in a first week no longer on 7 days in a row (2026-10-10: its price is set by
+--- day 7's cue).
 function Daily.claimAllOffer(
 	login: Login,
 	today: number,
@@ -534,7 +591,7 @@ function Daily.claimAllOffer(
 	local isFirst, from = rowAhead(login, now, joinDay)
 	local days, _, reward = Daily.claimAll(login, now, vip, extra)
 	local product: string? = nil
-	if days > 0 then
+	if days > 0 and (not isFirst or firstInRow(login, now, joinDay)) then
 		local steps: { ClaimAllStep } = if isFirst then CLAIM_ALL.First else CLAIM_ALL.Week
 		for _, step in steps do
 			if days >= whole(step.MinDays) then
@@ -575,6 +632,7 @@ function Daily.setStreakDay(
 			Total = day - 1,
 			FreezeWeek = freeze,
 			FirstWeek = day - 1,
+			FirstMissed = false,
 		}
 	end
 	local day = math.clamp(whole(n), 1, DAYS)
@@ -589,6 +647,7 @@ function Daily.setStreakDay(
 			Total = count - 1,
 			FreezeWeek = freeze,
 			FirstWeek = FIRST_DAYS,
+			FirstMissed = false,
 		}
 	end
 	return {
@@ -597,6 +656,7 @@ function Daily.setStreakDay(
 		Total = math.max(0, count - 1),
 		FreezeWeek = freeze,
 		FirstWeek = FIRST_DAYS,
+		FirstMissed = false,
 	}
 end
 

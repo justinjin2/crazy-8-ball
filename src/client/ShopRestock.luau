@@ -4,9 +4,12 @@
 -- ("RESTOCK 6:12"): economy v5's two slots and the VIP slot, each a card with its big block (its
 -- rarity's glow, turning rays and twinkles; the dice opens that block's Odds & Details), its
 -- name, the stock this player has left ("x2 left", "Sold out"), the green Robux price and the
--- gold money price, and under each card that slot's chances. Slot 1 rolls its own table (Epic or
--- better: its tilted "Epic or better!" tag). The VIP slot is gold; for a player without VIP it
--- shows its block, "VIP only" and a Get VIP button. Restock items are never
+-- gold money price. The cards stand left to right from the least rare block to the rarest
+-- (designer, 2026-10-10; ties keep the slots' order, VIP's last), and the slots' chances are
+-- no longer written under them ("way too much text"): each card's dice opens its block's odds.
+-- Slot 1 rolls its own table (Epic or better: its tilted "Epic or better!" tag). The VIP slot
+-- is gold; for a player without VIP it shows its block, "VIP only" and a Get VIP button.
+-- Restock items are never
 -- gifts (the server refuses them), so no gift square here. Money buys through ItemRequest
 -- "BuyRestock" (the item id), Robux through StoreRequest "Buy" (the slot's RestockRare ..
 -- RestockMythic product); the server refuses both where paid random items are restricted. The slots
@@ -18,7 +21,6 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local Progression = Shared:WaitForChild("Progression")
-local BlockOdds = require(Progression:WaitForChild("BlockOdds"))
 local Restock = require(Progression:WaitForChild("Restock"))
 local Format = require(Progression:WaitForChild("Format"))
 local HudParts = require(script.Parent.HudParts)
@@ -54,7 +56,6 @@ type Slot = {
 	badge: ShopCards.Badge,
 	crown: ImageLabel?,
 	floor: ShopCards.Tag?, -- slot 1's "Epic or better!"
-	odds: TextLabel, -- its chances under its card
 	name: TextLabel,
 	stock: Frame,
 	stockWords: TextLabel,
@@ -82,27 +83,6 @@ local function nameText(block: string): string
 		)
 	end
 	return string.format('<font color="#%s">%s</font>', hex, full)
-end
-
--- A kind's short name in its colour (rich text).
-local function kindWord(kind: string): string
-	return string.format(
-		'<font color="#%s">%s</font>',
-		ShopCards.rarityColor(kind):ToHex(),
-		SHORT[kind] or kind
-	)
-end
-
-local function oddsParts(odds: { [string]: number }): string
-	local parts: { string } = {}
-	for _, kind in Config.LuckyBlocks.Order do
-		local parts10000 = odds[kind]
-		if type(parts10000) == "number" and parts10000 > 0 then
-			local percent = BlockOdds.percentText(parts10000 * 100 / RS.ChanceTotal)
-			table.insert(parts, string.format(COPY.OddsPart, kindWord(kind), percent))
-		end
-	end
-	return table.concat(parts, COPY.OddsJoin)
 end
 
 -- The odds table slot `index` rolls by (the VIP slot: VipOdds).
@@ -173,9 +153,6 @@ function ShopRestock.new(parent: Instance, actions: Actions): any
 				7
 			)
 		end
-		local odds = ShopCards.label(card, "SlotOdds" .. index, oddsParts(oddsOf(index)), nil, 4)
-		odds.RichText = true
-		odds.TextWrapped = true
 		local name = ShopCards.label(box.frame, "Name", "", nil, 5)
 		name.RichText = true
 		local stock, stockWords = ShopCards.pill(box.frame, "Stock", "", rgb(R.StockColor), 5)
@@ -201,7 +178,6 @@ function ShopRestock.new(parent: Instance, actions: Actions): any
 			badge = badge,
 			crown = crown,
 			floor = floorTag,
-			odds = odds,
 			name = name,
 			stock = stock,
 			stockWords = stockWords,
@@ -213,7 +189,55 @@ function ShopRestock.new(parent: Instance, actions: Actions): any
 		}
 		self.slots[index] = slot
 	end
+	-- Where each slot's card stands, left to right (sortSlots): the slots' order until the first
+	-- restock arrives.
+	self.places = {} :: { number }
+	for index = 1, SLOTS do
+		self.places[index] = index
+	end
 	return self
+end
+
+-- The rank of a restock block for the cards' order (the least rare first): its place in
+-- Config.LuckyBlocks.Order (Rare, Epic, Legendary, Mythic); no block last.
+local function rankOf(slot: Slot): number
+	local item = slot.item
+	if item == nil then
+		return math.huge
+	end
+	return table.find(Config.LuckyBlocks.Order, tostring(item.block))
+		or (#Config.LuckyBlocks.Order + 1)
+end
+
+-- Order the cards from the least rare block to the rarest (ties: the slots' own order, so
+-- VIP's slot stands last); true when a card moved.
+local function sortSlots(self: any): boolean
+	local order: { Slot } = table.clone(self.slots)
+	table.sort(order, function(a: Slot, b: Slot): boolean
+		local ra, rb = rankOf(a), rankOf(b)
+		if ra ~= rb then
+			return ra < rb
+		end
+		return a.index < b.index
+	end)
+	local moved = false
+	for place, slot in order do
+		if self.places[slot.index] ~= place then
+			self.places[slot.index] = place
+			moved = true
+		end
+	end
+	return moved
+end
+
+-- Put each slot's card at its place (sortSlots) at the scale `k`.
+local function placeCards(self: any, k: number)
+	local sw, sh = R.SlotUnits[1], R.SlotUnits[2]
+	for index, slot in self.slots do
+		local place = self.places[index] or index
+		local x = R.SlotSideUnits + (place - 1) * (sw + R.SlotGapUnits) + sw / 2
+		ShopCards.put(slot.box.frame, k, x, R.SlotTop + sh / 2, sw, sh)
+	end
 end
 
 --------------------------------------------------------------------------------------------
@@ -267,10 +291,9 @@ function ShopRestock.layout(self: any, width: number, k: number, y: number): num
 	ShopCards.put(self.panel.frame, k, W / 2, top + H / 2, W, H)
 	ShopCards.sizeBox(self.panel, k, P.CornerUnits, P.EdgeUnits)
 	ShopCards.layoutTitlePill(self.title, k, W / 2, top)
-	local sw, sh = R.SlotUnits[1], R.SlotUnits[2]
-	for index, slot in self.slots do
-		local x = R.SlotSideUnits + (index - 1) * (sw + R.SlotGapUnits) + sw / 2
-		ShopCards.put(slot.box.frame, k, x, R.SlotTop + sh / 2, sw, sh)
+	local sw = R.SlotUnits[1]
+	placeCards(self, k)
+	for _, slot in self.slots do
 		ShopCards.sizeBox(
 			slot.box,
 			k,
@@ -286,16 +309,6 @@ function ShopRestock.layout(self: any, width: number, k: number, y: number): num
 			local f = R.Floor
 			ShopCards.layoutTag(slot.floor, k, f[1], f[2], f[3], f[4], R.FloorTextUnits)
 		end
-		-- Its chances under it, wrapping to OddsRows rows.
-		local oddsPx = ShopCards.textPx(R.OddsUnits, k)
-		ShopCards.putPx(
-			slot.odds,
-			x * k,
-			R.OddsY * k,
-			(sw - 2 * R.OddsSideUnits) * k,
-			R.OddsRows * oddsPx + B.TextBoxPx
-		)
-		HudParts.setTextSize(slot.odds, oddsPx)
 		-- The stock pill over the Robux row, the name over the pill: on a small screen their
 		-- words keep the smallest text size, so they move up to make room.
 		local greenTop = round(R.GreenY * k) - ShopCards.buttonPx(R.GreenUnits, k) / 2
@@ -351,7 +364,6 @@ function ShopRestock.refresh(self: any, state: any)
 		local item = items[index]
 		slot.item = if type(item) == "table" then item else nil
 		slot.box.frame.Visible = slot.item ~= nil
-		slot.odds.Visible = slot.item ~= nil
 		if slot.item == nil then
 			continue
 		end
@@ -406,6 +418,10 @@ function ShopRestock.refresh(self: any, state: any)
 			HudParts.setEnabled(slot.gold, canBuy)
 		end
 	end
+	-- The cards from the least rare block to the rarest.
+	if sortSlots(self) then
+		placeCards(self, self.k)
+	end
 end
 
 --------------------------------------------------------------------------------------------
@@ -433,7 +449,6 @@ function ShopRestock.register(self: any, stage: Stage.Stage, keep: (UIAnim.Handl
 			end
 			keep(ShopCards.all(list))
 		end)
-		stage:add("RestockOdds" .. index, slot.odds)
 	end
 end
 

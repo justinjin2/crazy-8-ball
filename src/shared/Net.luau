@@ -231,8 +231,10 @@ local REMOTES: { [string]: string } = {
 	--   weeks (the 28-day track's four weeks),
 	--   login = { canClaim, claimedToday, day (1..7 of the loop), week (the track's), total
 	--     (days claimed with today's), bonus (a track reward today), frozen (the week's streak
-	--     freeze kept the streak), freezeReady, reward (the loop day + track + VIP's spin) },
-	--   days = { { day, reward, bonus (false), claimed, today } } (the loop's seven tiles),
+	--     freeze kept the streak), freezeReady, reward (the loop day + track + VIP's spin),
+	--     firstWeek, firstWeekDays, firstWeekLeft, firstInRow (the first week still on 7 days
+	--     in a row: day 7 is its cue), needsMatch, vipPart (VIP's daily part, shown once), vip },
+	--   days = { { day, reward (the day's own, no VIP part), bonus (false), claimed, today } },
 	--   trackDays (28), trackPlace (days claimed this round, 0..28),
 	--   track = { { day (a Config.Daily.Track day: 8, 14, 21, 28), reward, reached } },
 	--   playtime = { { index, minutes, reward, ready, claimed, progress (0..1) } },

@@ -50,6 +50,7 @@ local out = {
 	Daily = {
 		FirstWeek = Config.Daily.FirstWeek, -- the first 7 login days within FirstWeekWindow of joining
 		FirstWeekWindow = Config.Daily.FirstWeekWindow,
+		FirstWeekMissed = Config.Daily.FirstWeekMissed, -- day 7 after a missed day (2026-10-10)
 		Streak = Config.Daily.Streak, -- later weeks
 		FreezePerWeek = Config.Daily.FreezePerWeek,
 		TrackDays = Config.Daily.TrackDays,

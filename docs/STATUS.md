@@ -48,6 +48,11 @@ One line each; the long form is the 2026-10-08 entry at the top of
 
 ## Open, waiting on the designer
 
+- **Daily rewards rework on `gui-v4`** (2026-10-10, DECISIONS): one thing a day, the Week One
+  Cue only for 7 days in a row (else an Epic block), Claim All 499 / 449 / 399 and 99 / 79 / 49
+  R$ (synced), playtime $7,500 a day, VIP's daily Mystery block, the restock without its odds
+  line and sorted by rarity, the rank HUD's phone label. Lint and tests pass. Open: the
+  designer's look in Studio on phone, PC and controller.
 - **Economy v5.1 "Lively" on `gui-v4`** (approved 2026-10-09 evening; plan section 15): a
   Mystery turns into a real block (its roll 30 / 25 / 10 / 5%) that then climbs; $19,900 / 9 R$
   (synced on Roblox); the 15-minute gift $2,000; pity counts the final cue. Screenshots for the

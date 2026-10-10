@@ -6,7 +6,7 @@
    "kind": "Pass",
    "name": "VIP",
    "robux": 399,
-   "description": "2x money from every match, no lucky block timers, an Uncommon Lucky Block every day (where paid random items aren't allowed, $5,000 instead), 1 free Ability Spin every day, a VIP slot in the restock shop, the VIP Cue, a gold [VIP] chat tag and a gold name. Adds Skip and Auto Spin to Ability Spins."
+   "description": "2x money from every match, no lucky block timers, a Mystery Lucky Block every day (where paid random items aren't allowed, $5,000 instead), 1 free Ability Spin every day, a VIP slot in the restock shop, the VIP Cue, a gold [VIP] chat tag and a gold name. Adds Skip and Auto Spin to Ability Spins."
   },
   {
    "key": "UltSlot2",
@@ -27,7 +27,7 @@
    "kind": "Product",
    "name": "VIP Welcome Offer",
    "robux": 199,
-   "description": "VIP at half price for a short time: 2x money, no lucky block timers, an Uncommon Lucky Block every day ($5,000 where paid random items aren't allowed), a free daily Ability Spin, the VIP restock slot, the VIP Cue, tag and gold name."
+   "description": "VIP at half price for a short time: 2x money, no lucky block timers, a Mystery Lucky Block every day ($5,000 where paid random items aren't allowed), a free daily Ability Spin, the VIP restock slot, the VIP Cue, tag and gold name."
   },
   {
    "key": "StarterPack",
@@ -146,42 +146,42 @@
    "key": "ClaimAllFirst7",
    "kind": "Product",
    "name": "Claim All Daily Rewards (First Week, 6-7 days)",
-   "robux": 399,
-   "description": "Claims the rest of your first week's Daily Rewards at once, day 7's Week One Cue included (when 6 or 7 days are left). Lucky block odds are shown in the game."
+   "robux": 499,
+   "description": "Claims the rest of your first week's Daily Rewards at once while your days are still in a row, day 7's Week One Cue included (when 6 or 7 days are left). Lucky block odds are shown in the game."
   },
   {
    "key": "ClaimAllFirst5",
    "kind": "Product",
    "name": "Claim All Daily Rewards (First Week, 3-5 days)",
-   "robux": 349,
-   "description": "Claims the rest of your first week's Daily Rewards at once, day 7's Week One Cue included (when 3 to 5 days are left). Lucky block odds are shown in the game."
+   "robux": 449,
+   "description": "Claims the rest of your first week's Daily Rewards at once while your days are still in a row, day 7's Week One Cue included (when 3 to 5 days are left). Lucky block odds are shown in the game."
   },
   {
    "key": "ClaimAllFirst2",
    "kind": "Product",
    "name": "Claim All Daily Rewards (First Week, 1-2 days)",
-   "robux": 299,
-   "description": "Claims the rest of your first week's Daily Rewards at once, day 7's Week One Cue included (when 1 or 2 days are left). Lucky block odds are shown in the game."
+   "robux": 399,
+   "description": "Claims the rest of your first week's Daily Rewards at once while your days are still in a row, day 7's Week One Cue included (when 1 or 2 days are left). Lucky block odds are shown in the game."
   },
   {
    "key": "ClaimAllWeek7",
    "kind": "Product",
    "name": "Claim All Daily Rewards (6-7 days)",
-   "robux": 79,
+   "robux": 99,
    "description": "Claims the rest of this week's Daily Rewards at once (when 6 or 7 days are left). Lucky block odds are shown in the game."
   },
   {
    "key": "ClaimAllWeek5",
    "kind": "Product",
    "name": "Claim All Daily Rewards (3-5 days)",
-   "robux": 69,
+   "robux": 79,
    "description": "Claims the rest of this week's Daily Rewards at once (when 3 to 5 days are left). Lucky block odds are shown in the game."
   },
   {
    "key": "ClaimAllWeek2",
    "kind": "Product",
    "name": "Claim All Daily Rewards (1-2 days)",
-   "robux": 35,
+   "robux": 49,
    "description": "Claims the rest of this week's Daily Rewards at once (when 1 or 2 days are left). Lucky block odds are shown in the game."
   },
   {

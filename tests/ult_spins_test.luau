@@ -473,10 +473,19 @@ return {
 		H.expect(none.rewardSpins == 0, "no rank-up, no spins")
 	end,
 
-	["loop day 7 and the 60-minute playtime gift add spins (v4 plan section 6)"] = function()
+	["the later weeks' day 2, the first week's day 3 and the 60-minute gift add spins"] = function()
+		-- One thing a day (designer, 2026-10-10): the spins day is the later weeks' day 2 and the
+		-- first week's day 3 (v4 plan section 6 had them on day 7).
+		for day = 1, #Config.Daily.FirstWeek do
+			local want = if day == 3 then 3 else 0
+			H.expect(
+				Daily.firstWeekReward(day, false).spins == want,
+				("first week day %d"):format(day)
+			)
+		end
 		for day = 1, #Config.Daily.Streak do
 			local reward = Daily.streakReward(day)
-			local want = if day == #Config.Daily.Streak then 2 else 0
+			local want = if day == 2 then 1 else 0
 			H.expect(reward.spins == want, ("day %d"):format(day))
 		end
 		local gifts = Daily.playtimeState({ PlaySeconds = 99999, PlaytimeClaimed = {} })
@@ -493,7 +502,7 @@ return {
 			{},
 			Daily.dayStart(DAY)
 		)
-		H.expect(payload.days[7].reward.spins == 2, "the day 7 tile's chip")
+		H.expect(payload.days[2].reward.spins == 1, "the day 2 tile's chip")
 		H.expect(payload.days[1].reward.spins == 0, "day 1 has none")
 		H.expect(payload.playtime[5].reward.spins == 1, "the gift row's chip")
 	end,

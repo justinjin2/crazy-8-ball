@@ -311,6 +311,12 @@ function RankHud.new(screen: ScreenGui, onOpen: () -> ()): any
 	connect(screen:GetPropertyChangedSignal("AbsoluteSize"), function()
 		self:layout()
 	end)
+	-- A phone's goal sits after the rank's name: a new name moves it.
+	connect(self.name:GetPropertyChangedSignal("TextBounds"), function()
+		if self.short then
+			self:layout()
+		end
+	end)
 	local player = self.player
 	if player then
 		for _, attribute in WATCHED do
@@ -466,11 +472,19 @@ function RankHud.layout(self: any)
 	self.short = short
 	self:drawGoal()
 	if short then
+		-- In the name row after the rank's name, centred between the pill's top edge (inside
+		-- its outline) and the bar's (the designer, 2026-10-10: never resting on the bar).
 		oneMore.Parent = self.pill
 		oneMore.TextXAlignment = Enum.TextXAlignment.Right
-		HudParts.setTextSize(oneMore, H.OneMoreShortTextPx, H.OneMoreShortTextPx)
-		oneMore.Position = UDim2.fromOffset(B / 2, H.NameTopPx + 2)
-		oneMore.Size = UDim2.fromOffset(PW - B / 2 - H.PadPx * 1.5, H.NameTextPx)
+		HudParts.setTextSize(oneMore, H.OneMoreShortTextPx, H.OneMoreShortMinPx)
+		local left = B / 2 + H.PadPx
+		local right = PW - H.PadPx * 1.5
+		local from = left + self.name.TextBounds.X + H.OneMoreShortGapPx
+		local outline = K.PanelStrokePx
+		local barTop = PH - H.BarHeightPx - H.BarBottomPx - H.BarStrokePx
+		local height = H.OneMoreShortTextPx + 2
+		oneMore.Position = UDim2.fromOffset(from, (outline + barTop) / 2 - height / 2)
+		oneMore.Size = UDim2.fromOffset(math.max(0, right - from), height)
 	else
 		oneMore.Parent = self.body
 		oneMore.TextXAlignment = Enum.TextXAlignment.Left

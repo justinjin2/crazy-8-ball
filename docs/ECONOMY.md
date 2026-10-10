@@ -78,9 +78,10 @@ zero. A tiny chance also shows **"1 in N" beside its %** (0.0001%, 1 in 1,000,00
 - **Pity, for Mystery blocks only**: Rare by the 10th, **Epic by the 40th**, and a new player's
   bars start at 2/10 and 10/40. Since v5.1 it counts the cue a Mystery finally gives, and a due
   Mystery turns into a Rare (or Epic) block that can still climb (7.4).
-- **The first week**: any 7 login days within 14 days of joining, each with a finished match.
-  Day 2 a **Rare block**; **day 7 the Week One Cue**, a Legendary cue no block ever drops,
-  tradable and sellable (section 10.1).
+- **The first week**: any 7 login days within 14 days of joining, each with a finished match,
+  **one thing a day, each worth more than the day before** (2026-10-10): $5,000, a Mystery, 3
+  spins, a Rare block, $50,000, 3 Mystery, then **day 7 the Week One Cue only for 7 days in a
+  row** (else an Epic block), a Legendary cue no block ever drops, tradable and sellable (10.1).
 - **Money buys** Mystery blocks (**$19,900, or 5 for $89,900**; v5: $14,900 and $66,900), the
   **restock shop** (2 slots every 10 minutes, the first always Epic or better, plus VIP's slot),
   the Grand Opening block while it runs ($24,900) and ability spins ($12,500). Timers are
@@ -88,8 +89,8 @@ zero. A tiny chance also shows **"1 in N" beside its %** (0.0001%, 1 in 1,000,00
   Uncommon and Rare block).
 - **Robux**: Mystery block **9 R$**, 5 for **39 R$** (v5.1; v5: 7 and 29), restock **39 / 149 /
   599 / 1,699 R$**; the Robux route stays about 2.5 times better value than money (section 11).
-- **VIP** (399 R$): 2x money, no timers and an **Uncommon block every day** ($5,000 where paid
-  random items are restricted).
+- **VIP** (399 R$): 2x money, no timers and a **Mystery block every day** (2026-10-10; was an
+  Uncommon block; $5,000 where paid random items are restricted).
 - **Robux products**: 3 game passes and 42 developer products on Roblox (9 of them retired), and
   a Get Roblox Plus button (11.5).
 - **Trading**: anyone in the server, cues and ready lucky blocks, never money, an atomic swap
@@ -115,19 +116,27 @@ and a more generous launch (answer 3, the Grand Opening Luck). v5.1 (2026-10-09 
 for more upgrades, fewer blocks opened, no tier capped at its name and a little more than v5;
 its simulated shares are the targets now.
 
-The model (`python3 tools/economy_model.py`, re-run 2026-10-09 on the numbers in Config; v5's
-own run in brackets):
+The model (`python3 tools/economy_model.py`, re-run 2026-10-10 on the numbers in Config, after
+the daily rewards' one-thing-a-day rows, the Week One Cue for 7 days in a row, playtime's $7,500
+and VIP's daily Mystery; v5.1's run of 2026-10-09 in brackets):
 
 | Rarity | Day 7 | Day 30 | Day 60 | v4 (day 7 / 30 / 60) | Before v4 |
 |---|---|---|---|---|---|
-| Epic | **60.86%** (58.05) | **69.21%** (66.59) | **66.66%** (64.53) | 18.37 / 32.39 / 42.40% | 2.73 / 5.75 / 10.09% |
-| Legendary (from blocks) | **14.83%** (13.57) | **22.24%** (20.69) | **18.65%** (17.49) | 2.29 / 8.10 / 12.92% | 0.43 / 0.84 / 1.90% |
-| The Week One Cue | 0.18% | 15.77% | 28.99% | - | - |
-| A Legendary or the Week One Cue | 14.91% (13.68) | 29.56% (28.57) | 35.59% (35.11) | | |
-| Mythic | **2.57%** (2.38) | **4.80%** (4.72) | **4.58%** (4.36) | 0.30 / 0.95 / 1.74% | 0.06 / 0.14 / 0.23% |
-| Secret | **0.10%** (0.08) | **0.17%** (0.14) | **0.16%** (0.13) | 0.03 / 0.11 / 0.18% | 0.02 / 0.01 / 0.02% |
+| Epic | **55.44%** (60.86) | **64.97%** (69.21) | **64.56%** (66.66) | 18.37 / 32.39 / 42.40% | 2.73 / 5.75 / 10.09% |
+| Legendary (from blocks) | **12.93%** (14.83) | **21.53%** (22.24) | **19.31%** (18.65) | 2.29 / 8.10 / 12.92% | 0.43 / 0.84 / 1.90% |
+| The Week One Cue | 0.18% | 1.55% (15.77) | 2.31% (28.99) | - | - |
+| A Legendary or the Week One Cue | 13.03% (14.91) | 22.23% (29.56) | 20.67% (35.59) | | |
+| Mythic | **2.23%** (2.57) | **4.87%** (4.80) | **4.80%** (4.58) | 0.30 / 0.95 / 1.74% | 0.06 / 0.14 / 0.23% |
+| Secret | **0.08%** (0.10) | **0.14%** (0.17) | **0.13%** (0.16) | 0.03 / 0.11 / 0.18% | 0.02 / 0.01 / 0.02% |
 
-**Slightly more generous than v5 everywhere, as asked.** Without the planned features (section
+**2026-10-10: a slower start, the same later on.** A new player's first days give fewer blocks
+(day 1 no longer adds a Mystery, the Rare block moved from day 2 to day 4, playtime pays $7,500),
+so Epic owners are 4 to 5 points under v5.1 and day 7's Legendary owners 2 under; Legendary,
+Mythic and the Secret at day 30 and 60 are where v5.1 had them. The model's players miss days
+often, so few get the Week One Cue (only for 7 days in a row; the rest get an Epic block): about
+1 in 10 who finish a first week. A player who logs in every day is almost unchanged (the table
+below). **v5.1 (2026-10-09) was slightly more generous than v5 everywhere, as asked.** Without
+the planned features (section
 10.6; `--built-only`): Epic 58.59 / 67.29 / 64.90%, Legendary 14.00 / 20.94 / 17.87%, Mythic
 2.37 / 4.64 / 4.35%, Secret 0.08 / 0.13 / 0.13%.
 
@@ -175,23 +184,25 @@ Mystery blocks and spins):
 
 | Player | Own one at day 7 (Epic / Legendary / Mythic / Secret) | Day 30 | Money earned by day 30 |
 |---|---|---|---|
-| Free, 30 min a day | 91% / 30% / 6.2% / 0.2% | 100% / 77% / 23% / 0.8% | $727,000 |
-| Free, 1 h a day | 98% / 40% / 10% / 0.1% | 100% / 88% / 34% / 0.7% | $1,268,000 |
-| Free, 3 h a day | 100% / 78% / 21% / 0.7% | 100% / 100% / 74% / 2.5% | $2,339,000 |
-| VIP, 1 h a day | 99% / 48% / 10% / 0.0% | 100% / 95% / 39% / 0.4% | $1,562,000 |
-| Small spender: VIP, 1 h, 500 R$ a month | 99.4% / 51% / 11% / 0.1% | 100% / 94% / 41% / 1.1% | $1,746,000 |
-| Big spender: VIP, 3 h, 5,000 R$ a month | 100% / 96% / 41% / 1.2% | 100% / 100% / 91% / 6.6% | $4,998,000 |
+| Free, 30 min a day | 93% / 30% / 6.0% / 0.2% | 100% / 77% / 22% / 1.1% | $812,000 |
+| Free, 1 h a day | 97% / 40% / 7.3% / 0.1% | 100% / 90% / 30% / 0.8% | $1,233,000 |
+| Free, 3 h a day | 100% / 80% / 22% / 0.7% | 100% / 100% / 72% / 3.1% | $2,304,000 |
+| VIP, 1 h a day | 99% / 46% / 10% / 0.6% | 100% / 93% / 39% / 1.4% | $1,527,000 |
+| Small spender: VIP, 1 h, 500 R$ a month | 99.4% / 54% / 10% / 0.5% | 100% / 96% / 38% / 1.4% | $1,711,000 |
+| Big spender: VIP, 3 h, 5,000 R$ a month | 100% / 96% / 39% / 1.2% | 100% / 100% / 91% / 5.6% | $4,963,000 |
 
 These players never skip a day; most real players do, which is why the whole-game shares above
 are far lower. Money earned roughly doubles against v4 ($571,000 for the 1-hour player): the
-playtime gifts and the win track's money steps replaced blocks with money. (v5.1 run; the
-Secret column moves a few tenths between runs, about 1 owner in 1,000 players.)
+win track's money steps and the later weeks' money days replaced blocks with money. (Run of
+2026-10-10: the 1-hour player earns about 3% less than v5.1's $1,268,000, the playtime gifts'
+cut mostly paid back by the later weeks' money days; the Secret column moves a few tenths
+between runs, about 1 owner in 1,000 players.)
 
 **Other targets (still true):**
 
 | Target (designer) | How it is met |
 |---|---|
-| A guaranteed better block early (2026-10-08) | the first win ever is a Rare block, win 1 of every day an Uncommon block, the first week's day 2 a Rare block |
+| A guaranteed better block early (2026-10-08) | the first win ever is a Rare block, win 1 of every day an Uncommon block, the first week's day 4 a Rare block (day 2 until 2026-10-10) |
 | Legendary and Mythic stay reachable (2026-10-08, 2026-10-09) | every block can climb to the Secret; Legendary to Mythic is 15% |
 | Lots of duplicates of Commons to Rares | about 70% of a free player's blocks end Common or Uncommon |
 | Block cues keep their value | no direct buying (section 9); new cues each season and old ones retired (section 6); copy caps on the Grand Opening's Uniques |
@@ -199,7 +210,7 @@ Secret column moves a few tenths between runs, about 1 owner in 1,000 players.)
 | (2026-10-02) 3 h a day at 50%: Expert 1 month, Veteran 2, Master 3-4, Grandmaster 6, Reyes 7+ | the ramp from Diamond (section 4.2) |
 | (2026-10-02) XP strictly from skill | wins only; harder modes, streaks and stronger opponents pay more |
 | Losing is never a punishment (2026-09-28) | a loss gives 0 XP, never negative, and $150 |
-| VIP 2x money, not overpowered | 2x money, no timers and one Uncommon block a day; never better odds, never XP |
+| VIP 2x money, not overpowered | 2x money, no timers and one Mystery block a day (2026-10-10; was Uncommon); never better odds, never XP |
 | Most expensive item about a phone Robux pack (2026-10-08) | 1,699 R$ (one $19.99 pack of 1,700 R$) |
 
 ---
@@ -213,19 +224,23 @@ except the tutorial's blocks):
 |---|---|
 | Join | No ability spin, and the day's free spin starts the next UTC day (designer, 2026-10-09): the tutorial's Abilities step starts at 0 and the code RELEASE gives 3. |
 | The first win (the tutorial) | Unranked to **Bronze I**: $2,500, a Mystery block, the Bronze Cue and the [BRONZE] tag once claimed in Rank (tutorial v2, 2026-10-09: nothing at once, and no spin). The tutorial's Mystery rolls (scripted) into an Uncommon block, ready at once, which stays Uncommon as it opens and gives the Cosmo Cue (merged with economy v5.2, 2026-10-10). The win's own step is step 1 of the day's win track: the first win ever is always a **Rare block**, which waits its 5-minute timer and climbs as it opens (v5.2). |
-| The first finished match | first-week day 1 can be claimed: **$5,000 + a Mystery block** (a login day counts once a match is finished that day). |
-| 5 minutes | playtime gift: $1,000 |
+| The first finished match | first-week day 1 can be claimed: **$5,000** (2026-10-10; was $5,000 + a Mystery block; a login day counts once a match is finished that day). |
+| 5 minutes | playtime gift: $500 |
 | The second and third wins | $1,000 each (win track steps 2 and 3); the third win is **Bronze II**: $1,000 |
-| 15 minutes | playtime gift: **$2,000** (v5.1; v5: a Mystery block) |
+| 15 minutes | playtime gift: $1,000 |
 | The fourth win | a Mystery block (step 4) |
-| 30 and 45 minutes | playtime gifts: $2,500 and $3,500 |
-| 60 minutes | playtime gift: **$5,000 + 1 ability spin** |
+| 30 and 45 minutes | playtime gifts: $1,500 and $2,000 |
+| 60 minutes | playtime gift: **$2,500 + 1 ability spin** (the five: $7,500, 2026-10-10; were $14,000) |
 
 Every new cue also pays finder's money the first time (section 18). The model's first 20
-minutes (the tutorial, then the group, the favorite and the launch codes): about **6 Mystery
-blocks, an Uncommon block** (ROOFTOP), the first win's Rare block and the Lucky 8 block, about
-**$31,000** earned, and during the launch luck about **55% already own an Epic** and 1 in 10 a
-Legendary. **Login day 2 is a Rare block.** Silver comes after about 6 hours of play (21 wins).
+minutes (the tutorial, then the group, the favorite and the launch codes; 2026-10-10): about
+**4.6 Mystery blocks, an Uncommon block** (ROOFTOP), the first win's Rare block and the Lucky 8
+block, about **$29,000** earned, and during the launch luck about **48% already own an Epic**
+and 1 in 11 a Legendary (v5.1: 6 Mystery blocks, $31,000, 55%). **Login day 2 is a Mystery
+block, day 4 a Rare block.** Silver comes after about 6 hours of play (21 wins). The tutorial
+session measured a real first session on 2026-10-10 (before these changes): about $35,000 and 6
+blocks before playtime for a player without VIP, half of it finder's money
+(`TUTORIAL_V2_ECONOMY_HANDOFF.md` 3a, on the tutorial's branch history).
 The Starter Pack offer appears after the first block opening (section 11.4).
 
 ---
@@ -313,7 +328,7 @@ money = base x difficulty x (1 + VIP 1.0 + Money Party 1.0 + Starter hour 1.0 + 
 - The Starter Pack's hour of 2x adds to VIP's: x3 for that hour (designer, 2026-10-03).
 - The group's +10% is on while the player is a member of the game's group (section 10.4).
 - No boost ever changes block odds or how many blocks a player gets. VIP's block timers (none)
-  and daily Uncommon block (11.2) are its perks outside money.
+  and daily Mystery block (11.2) are its perks outside money.
 
 ### 3.6 Anti-farming (alts and friends)
 
@@ -973,7 +988,8 @@ slots, the first always Epic or better**, plus a VIP-only slot with its own rich
   (it arrives unclimbed). That is why Legendary and Mythic blocks stay expensive: if a
   guaranteed Legendary cost a few hours of play, Legendaries would flood.
 - Stock is per slot, one block per press; **money and Robux share the stock**. The slot odds are
-  published on the restock screen (today one line: "Slot 1: Epic or better · Slot 2: ..."). Every
+  published on the restock screen (each card's dice opens its block's odds; the cards run left to
+  right from least rare to rarest, 2026-10-10, the odds line under them removed). Every
   block in the VIP slot has its usual odds: VIPs see more good blocks, never better odds.
 - A slot's shared stock counter (`GlobalStock`, the old plan's "25 worldwide") is in the code
   but no row sets it.
@@ -1047,15 +1063,31 @@ climbs from its name (7.1).
 
 | Login day | 1 | 2 | 3 | 4 | 5 | 6 | 7 |
 |---|---|---|---|---|---|---|---|
-| **First week** (once ever) | $5,000 + 1 Mystery block | **a Rare block** | $10,000 | 2 Mystery blocks | $15,000 | 2 Mystery blocks | **the Week One Cue** + 2 ability spins |
-| **Later weeks** | $5,000 | 1 Mystery block | $10,000 | 1 Mystery block | $15,000 | 1 Mystery block | **a Rare block** + 2 ability spins |
+| **First week** (once ever; 2026-10-10) | $5,000 | 1 Mystery block | 3 ability spins | **a Rare block** | $50,000 | 3 Mystery blocks | **the Week One Cue** for 7 days in a row, else **an Epic block** |
+| **Later weeks** (2026-10-10) | $5,000 | 1 ability spin | 1 Mystery block | $25,000 | 2 Mystery blocks | $45,000 | **a Rare block** |
+| v5 first week | $5,000 + 1 Mystery block | a Rare block | $10,000 | 2 Mystery blocks | $15,000 | 2 Mystery blocks | the Week One Cue + 2 ability spins |
+| v5 later weeks | $5,000 | 1 Mystery block | $10,000 | 1 Mystery block | $15,000 | 1 Mystery block | a Rare block + 2 ability spins |
 | v4 first week | $5,000 + 1 Mystery | an Epic block | $10,000 | 2 Mystery | a Rare block | 3 Mystery | a Legendary block + 2 spins |
 | v4 later weeks | $5,000 | a Rare block | $10,000 | 2 Mystery | $15,000 | 3 Mystery | an Epic block + 2 spins |
 
+- **One thing a day, each worth more than the day before** (designer, 2026-10-10: "why
+  everyday gives three things, should be like different things each day ... each reward better
+  than the next"). At shop money prices (a spin $12,500, a Mystery $19,900, a Rare block
+  $49,900) the first week runs $5,000, $19,900, $37,500, $49,900, $50,000, $59,700, then day 7;
+  the later weeks $5,000, $12,500, $19,900, $25,000, $39,800, $45,000, $49,900. A Rare block on
+  day 2 (the designer's first idea) would have made days 3 and 4 worth less than day 2, so it
+  is day 4 (the designer's pick). The later weeks keep v5's blocks (3 Mystery and a Rare a
+  week), one spin instead of two and $75,000 instead of $30,000, paid for by the smaller
+  playtime gifts (10.3).
 - **The first week = the first 7 login days within 14 days of joining, in a row or not**
   (designer, 2026-10-08; `Config.Daily.FirstWeek`, `FirstWeekWindow` 14; the join's day is day
   1). After 7 claims, or after the window, the later weeks take over. Kids miss days; this
-  forgives them.
+  forgives them, **except day 7's prize** (designer, 2026-10-10: "they have to be 7 days in a
+  row, or else it'll just be an epic"): a day missed between two first-week claims makes day 7
+  `Config.Daily.FirstWeekMissed`, an Epic block (`Login.FirstMissed` in the save, false for a
+  new one). Day 7's card wears a tilted orange **"7 IN A ROW!"** while the run is unbroken and
+  the line under the row says "Claim 7 days in a row to win the Week One Cue!"; after a miss
+  the card shows the Epic block and the line says why.
 - **A login day counts only once the player has finished a match that day** (any mode, PC
   included; `NeedsMatch`; designer, 2026-10-08), so an alt can't collect the first week by
   just joining. Until then the Rewards menu says to play a match first.
@@ -1068,21 +1100,26 @@ climbs from its name (7.1).
   **No farming limits for now** (designer: "all of that will be worried about IF this game does
   good"). The first-week calendar shows it from day 1, on day 7's card (the GUI session's). Its
   look is new art the designer picks; until then it uses the default bands with its own name.
-  Simulated: 16% of active players hold it on day 30 and 29% on day 60.
-- **Day 2's Rare block** is the day-1 retention hook (v4: an Epic block). It climbs: Epic or
-  better 18% of the time, 27% during the launch luck.
+  Simulated: 1.6% of active players hold it on day 30 and 2.3% on day 60 since it needs 7 days
+  in a row (v5.1, any 7 days: 16% and 29%).
+- **Day 4's Rare block** (day 2 until 2026-10-10; v4: an Epic block on day 2) climbs: Epic or
+  better 18% of the time, 27% during the launch luck. Day 2 is a Mystery block.
 - **Later weeks keep the streak** (`Config.Daily.Streak`): one claim per day; **one free streak
   freeze a week** (weeks start Monday): one missed day is covered by itself and the streak goes
   on. Two or more missed days start the week over.
 - **Claim All** (designer, 2026-10-08): Robux claims every day still ahead in this 7-day row at
-  once (`Config.Daily.ClaimAll`; first week 399 / 349 / 299 R$ for 6-7 / 3-5 / 1-2 days left,
-  later weeks **79 / 69 / 35 R$** since v5, were 129 / 99 / 59). It still claims day 7, so a
-  player can buy the Week One Cue early (plan 2.10); its cue comes as paid origin, like its
-  blocks. A paid random item, never a gift. Priced at about half the shop value of the days it
-  claims (money at Pack1's rate, blocks at their Robux prices, the Week One Cue like a restock
-  Legendary block). Selling the Week One Cue from ClaimAllFirst2 beats the $250,000 money pack
-  once per player; the designer kept 299 R$ (2026-10-09).
-- **VIP adds 1 ability spin and an Uncommon block** to each day's claim (10.5).
+  once (`Config.Daily.ClaimAll`; **first week 499 / 449 / 399 R$** for 6-7 / 3-5 / 1-2 days
+  left, **later weeks 99 / 79 / 49 R$**, live on Roblox since 2026-10-10; were 399 / 349 / 299
+  and 79 / 69 / 35). It still claims day 7, so a player can buy the Week One Cue early (plan
+  2.10); its cue comes as paid origin, like its blocks. **The first week's Claim All is offered
+  only while its days are still in a row** (a receipt that lands after a miss still pays, with
+  the Epic block). A paid random item, never a gift. Priced at about 60% of the shop value of the
+  days it claims (designer, 2026-10-10: "not too easy"; money at Pack1's rate, blocks and spins
+  at their Robux prices, the Week One Cue like the restock's 599 R$ Legendary block): 1-2 days
+  left no longer buys the cue for 299 R$. The later weeks rose with their money days.
+- **VIP adds 1 ability spin and a Mystery block** to each day's claim (10.5), shown once on a
+  gold line under the day tiles ("VIP bonus every day: ..."; a player without VIP sees what VIP
+  would add), never on each tile (designer, 2026-10-10).
 - Everyone also gets **1 free ability spin a day** on the Abilities screen (11.8).
 - The day starts at 08:00 UTC (7.5).
 - **Save version 9's migration**: a save that had already claimed 7 or more days counts its
@@ -1112,13 +1149,18 @@ playtime up to 60 minutes a day):
 
 | | 5 min | 15 min | 30 min | 45 min | 60 min |
 |---|---|---|---|---|---|
-| v5.1 | $1,000 | **$2,000** | $2,500 | $3,500 | $5,000 + 1 ability spin |
-| v5 | $1,000 | 1 Mystery block | **$2,500** | **$3,500** | **$5,000** + 1 ability spin |
+| **2026-10-10** | **$500** | **$1,000** | **$1,500** | **$2,000** | **$2,500** + 1 ability spin |
+| v5.1 | $1,000 | $2,000 | $2,500 | $3,500 | $5,000 + 1 ability spin |
+| v5 | $1,000 | 1 Mystery block | $2,500 | $3,500 | $5,000 + 1 ability spin |
 | v4 | $1,000 | 1 Mystery block | 1 Mystery block | 1 Mystery block | a Rare block + 1 ability spin |
 
-Fewer blocks (v5): one Mystery block instead of three and a Rare block. **v5.1 (designer,
-2026-10-09) made the 15-minute gift $2,000** to pay for the better Mystery: playtime now gives
-money only. The five gifts stay, because the Free Reward screen shows five tiles (plan 2.5).
+Fewer blocks (v5): one Mystery block instead of three and a Rare block. v5.1 (designer,
+2026-10-09) made the 15-minute gift $2,000 to pay for the better Mystery: playtime gives money
+only. **2026-10-10 (designer: "be careful if these playtime rewards are too much money"): $7,500
+in all, about one hour of Classic match money ($7,750),** so the first hour pays double, not
+nearly triple: v5.1's $14,000 was 1.8 hours of match money and the biggest money source of a
+1-hour player. The $6,500 a day it saves moved into the later weeks' money days (10.1). The
+five gifts stay, because the Free Reward screen shows five tiles (plan 2.5).
 
 ### 10.4 Group, likes, invites and codes
 
@@ -1167,15 +1209,20 @@ money only. The five gifts stay, because the Free Reward screen shows five tiles
 
 Together the group, favorite, codes and invite are about a day's worth of blocks once.
 
-### 10.5 VIP's daily Uncommon block
+### 10.5 VIP's daily Mystery block
 
-An **Uncommon block each day a VIP claims** (v5; v4, designer 2026-10-08: a Rare block;
-`Config.Daily.VipBlocks`), added to the day's claim. A v5 Uncommon block has 6 times the Epic
-chance of v4's Rare row; it climbs like every Uncommon block, never better odds. **Where
-PolicyService restricts paid random items it is $5,000 instead** (`VipRestrictedMoney`), and so
-is it while PolicyService hasn't answered (an unknown policy counts as restricted). VIP is a paid
-random item: its card shows the Uncommon block's odds, and VIP is never promoted on Roblox's Buy
-Robux page (a pass promoted there can't grant paid random items).
+A **Mystery block each day a VIP claims** (designer, 2026-10-10; v5: an Uncommon block; v4,
+2026-10-08: a Rare block; `Config.Daily.VipBlocks`), added to the day's claim. About the same
+worth as the Uncommon block it replaces (Epic or better 1 in 18 against 1 in 16; the value
+ladder's 34 R$ against 40), but it is the block players know from the shop ($19,900), with
+its 4-press screen and a step of pity each day; it climbs like every Mystery block, never
+better odds. **Where PolicyService restricts
+paid random items it is $5,000 instead** (`VipRestrictedMoney`), and so is it while
+PolicyService hasn't answered (an unknown policy counts as restricted). VIP is a paid random
+item: its card shows the Mystery block's odds, and VIP is never promoted on Roblox's Buy Robux
+page (a pass promoted there can't grant paid random items). The Daily screen shows the VIP part
+once, on a line under the days ("VIP bonus every day: ..."; without VIP: "Get VIP for ..."),
+not on every day.
 
 ### 10.6 Planned, not built yet
 
@@ -1265,7 +1312,8 @@ on Roblox (never deleted) so an old receipt still pays.
 - **2x money** (+100%, adds with other boosts) on match money only (3.5).
 - **No block timers** (designer, 2026-10-07): every block opens at once
   (`Config.LuckyBlocks.VipTimerFactor` 0), and timers already running when VIP arrives finish.
-- **An Uncommon block every day** (v5; v4: a Rare block), added to the day's login claim;
+- **A Mystery block every day** (2026-10-10; v5: an Uncommon block; v4: a Rare block), added
+  to the day's login claim;
   **$5,000** where paid random items are restricted (10.5).
 - **Skip and Auto Spin** on the ability spin screen (11.8; without VIP they answer "NoVip").
 - **+1 free ability spin a day** (added to the day's login claim, 10.1).
@@ -1326,7 +1374,7 @@ on Roblox (13).
 | 22 | RestockMythic | Product | **1,699** | new | the restock Mythic block, while in stock |
 | 23-26 | LuckyBlockSkip1, LuckyBlockSkip, LuckyBlockSkip9, LuckyBlockSkip15 | Products | **1 / 4 / 9 / 15** | 19 (one product) | finish a block's timer, by time left (7.6) |
 | 27 | MoneyParty | Product | **49** | 199 | +100% match money for everyone in the server for 15 minutes, the buyer's name announced; buying again adds 15 minutes (the shop offers it up to an hour queued) |
-| 28-33 | ClaimAllFirst7, 5, 2; ClaimAllWeek7, 5, 2 | Products | **399 / 349 / 299; 79 / 69 / 35** (v5; v4 later weeks 129 / 99 / 59) | new (2026-10-08) | the rest of this 7-day login row at once (10.1) |
+| 28-33 | ClaimAllFirst7, 5, 2; ClaimAllWeek7, 5, 2 | Products | **499 / 449 / 399; 99 / 79 / 49** (2026-10-10, synced; v5 399 / 349 / 299; 79 / 69 / 35; v4 later weeks 129 / 99 / 59) | new (2026-10-08) | the rest of this 7-day login row at once (10.1) |
 | 34-37 | Spin1, Spin5, Spin10, Spin50 | Products | **9 / 39 / 75 / 299** | 15 / 50 / 100 / 449 | ability spins (11.8) |
 | 38-39 | Lucky1, Lucky3 | Products | 25 / 65 | 49 / 129 | **retired** with Lucky Spins (designer, 2026-10-08) |
 | 40-45 | Pack4Sale-Pack7Sale, VipSale, Mystery10Sale | Products | - | 349 ... 3,499 | **retired** (the release sale; `Retired = true`, shown as closed, taken off sale on Roblox, never deleted) |
@@ -1377,7 +1425,7 @@ on matches, offline income, money for idle time, always-on Epic or Legendary blo
 near-misses. Also never: anything that protects rank, in-match aids (longer guidelines, hints,
 power or spin upgrades), anything that hurts an opponent, and purchase prompts right after a
 loss. Two later calls by the designer sit next to this list: VIP's daily block (v4, 2026-10-08;
-an Uncommon block since v5), and the restock's first slot, always Epic or better (v5,
+an Uncommon block in v5, a Mystery block since 2026-10-10), and the restock's first slot, always Epic or better (v5,
 2026-10-09, answer 13): it changes every 10 minutes, one per player, at a guarantee's price, so
 it is a rotating offer rather than an always-on Epic block. The Grand Opening Luck is a free,
 dated event for everyone, never sold.

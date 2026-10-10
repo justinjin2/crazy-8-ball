@@ -501,7 +501,8 @@ return {
 		H.expect(size(d) == 12, "Daily has twelve fields")
 		local l = t.Login
 		H.expect(l.LastDay == 0 and l.StreakDay == 0 and l.Total == 0, "login")
-		H.expect(l.FreezeWeek == 0 and l.FirstWeek == 0 and size(l) == 5, "no freeze used")
+		H.expect(l.FreezeWeek == 0 and l.FirstWeek == 0, "no freeze used")
+		H.expect(l.FirstMissed == false and size(l) == 6, "no first-week day missed")
 		local s = t.Shop
 		H.expect(s.FirstJoin == 0, "first join not set yet")
 		H.expect(not s.VipOffer and not s.VipCueGiven, "no VIP")

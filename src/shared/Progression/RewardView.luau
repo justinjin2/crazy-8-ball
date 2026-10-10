@@ -34,6 +34,9 @@ export type LoginView = {
 	firstWeek: boolean, -- today's claim is a first-week day (the days are the first week's)
 	firstWeekDays: number, -- first-week days claimed (today's counts once made)
 	firstWeekLeft: number, -- days left in the first week's window, today included (0: over)
+	-- the first week is still on 7 days in a row, so its day 7 is the Week One Cue (else
+	-- Config.Daily.FirstWeekMissed); false outside the first week (Daily.LoginState)
+	firstInRow: boolean,
 	needsMatch: boolean, -- today's claim waits for a finished match (Config.Daily.NeedsMatch)
 	week: number, -- the 28-day track's week that claim is in: 1..weeks
 	total: number, -- days claimed counting today's claim
@@ -41,6 +44,10 @@ export type LoginView = {
 	frozen: boolean, -- today's claim keeps the streak through this week's freeze
 	freezeReady: boolean, -- this week's streak freeze is unused
 	reward: RewardOut, -- the loop day, the track and VIP's spin together
+	-- VIP's part of every day's claim (Daily.vipReward), shown once under the tiles (a VIP's
+	-- bonus, else what VIP would add)
+	vipPart: RewardOut,
+	vip: boolean, -- the player is VIP (today's claim includes vipPart)
 }
 
 -- Claim All (Config.Daily.ClaimAll): the rest of this 7-day row at once, for Robux.
@@ -58,7 +65,7 @@ export type ClaimAllView = {
 -- One of the seven day tiles: the first week's while it lasts, else the later weeks' loop.
 export type DayView = {
 	day: number,
-	reward: RewardOut, -- the day's own reward (VIP's spin and block included for a VIP)
+	reward: RewardOut, -- the day's own reward (VIP's part is LoginView.vip, 2026-10-10)
 	bonus: boolean, -- always false (the track has its own rows)
 	claimed: boolean, -- claimed in this streak (a check mark)
 	today: boolean, -- today's tile (it glows with Claim while canClaim)
@@ -277,13 +284,14 @@ function RewardView.build(
 		end
 	end
 
+	-- Each tile shows its day's own reward; VIP's part is shown once (login.vip).
 	local days: { DayView } = {}
 	for day = 1, if state.firstWeek then FIRST_DAYS else DAYS do
 		local reward, bonus
 		if state.firstWeek then
-			reward, bonus = Daily.firstWeekReward(day, vip, restricted), false
+			reward, bonus = Daily.firstWeekReward(day, false, nil, not state.firstInRow), false
 		else
-			reward, bonus = Daily.streakReward(day, vip, restricted)
+			reward, bonus = Daily.streakReward(day, false)
 		end
 		table.insert(days, {
 			day = day,
@@ -326,6 +334,7 @@ function RewardView.build(
 			firstWeek = state.firstWeek,
 			firstWeekDays = state.firstWeekDays,
 			firstWeekLeft = state.firstWeekLeft,
+			firstInRow = state.firstInRow,
 			needsMatch = state.needsMatch,
 			week = state.week,
 			total = state.total,
@@ -333,6 +342,8 @@ function RewardView.build(
 			frozen = state.frozen,
 			freezeReady = state.freezeReady,
 			reward = RewardView.reward(state.reward),
+			vipPart = RewardView.reward(Daily.vipReward(restricted)),
+			vip = vip == true,
 		},
 		claimAll = RewardView.claimAll(
 			Daily.claimAllOffer(login, today, vip, loginExtra),

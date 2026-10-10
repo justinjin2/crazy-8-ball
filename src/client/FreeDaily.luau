@@ -5,13 +5,18 @@
 -- reward's pictures, "$10,000", its status button) and day 7 tall at the right as the row's
 -- big prize (its best block over gold rays, the tilted rainbow "OP!", what comes with it; the
 -- first week's day 7 shows its cue from day 1 instead: economy v5's Week One Cue, its name and
--- rarity on the line, as the goal to come back for).
+-- rarity on the line, as the goal to come back for, with a tilted orange "7 IN A ROW!" while
+-- the first week's days are still in a row; a missed day turns day 7 into
+-- Config.Daily.FirstWeekMissed, an Epic block, 2026-10-10). Each tile shows its day's one
+-- reward; VIP's daily part shows once, on a gold line under the row (a VIP's bonus, else what
+-- VIP would add).
 -- A claimed day turns grey under a big check; today's wears a thick pale-gold edge and its
 -- green Claim! breathes; until a match is finished today it reads "Play a match"
 -- (Config.Daily.NeedsMatch); once today is claimed the next day reads "Tomorrow". A tile with a
 -- lucky block wears the sky-blue dice opening that block's Odds & Details (Claim All buys them:
--- a paid random item, Roblox's rule). Under the tiles: the first week's line ("First week: any 7 days within
--- 14 · 12 days left"), the later weeks' (the week's free miss) or "Finish one match today", and
+-- a paid random item, Roblox's rule). Under the tiles: the first week's line ("Claim 7 days in
+-- a row to win the Week One Cue!", or what day 7 is after a missed day), the later weeks' (the
+-- week's free miss) or "Finish one match today", VIP's gold line, and
 -- Claim All, the green Robux button that claims every day still ahead in this row at once
 -- (RewardState.claimAll; hidden where paid random items are restricted or nothing is left).
 -- The server decides everything; this draws its RewardState. Sizes in
@@ -37,7 +42,6 @@ local P = B.Panel
 local F = Config.UI.FreeReward
 local D = F.Daily
 local FIRST_DAYS = #Config.Daily.FirstWeek
-local WINDOW = Config.Daily.FirstWeekWindow
 local W = Strings.FreeReward
 local rgb, round = ShopCards.rgb, ShopCards.round
 
@@ -150,6 +154,11 @@ function FreeDaily.new(parent: Instance, ctx: Ctx): any
 			words.Position = UDim2.fromScale(0.5, 0.5)
 			words.Size = UDim2.fromScale(1, 1)
 			self.op, self.opWords = op, words
+			-- The first week's "7 IN A ROW!" (shown while its days are in a row).
+			local rowTag =
+				ShopCards.tag(box.frame, "RowTag", W.InRowTag, rgb(D.Hero.RowTagColor), 8)
+			rowTag.holder.Visible = false
+			self.rowTag = rowTag
 		else
 			made.pictures = FreeParts.pictures(box.frame, "Pictures", 4)
 			local amount =
@@ -185,6 +194,12 @@ function FreeDaily.new(parent: Instance, ctx: Ctx): any
 	footer.AnchorPoint = Vector2.new(0.5, 0.5)
 	footer.ZIndex = 4
 	self.footer = footer
+	-- VIP's daily part, once for the whole row (not on every tile).
+	local vipLine = HudParts.note(card, "Vip", ShopCards.textPx(D.VipLine.TextUnits, 1), "")
+	vipLine.AnchorPoint = Vector2.new(0.5, 0.5)
+	vipLine.TextColor3 = rgb(D.VipColor)
+	vipLine.ZIndex = 4
+	self.vipLine = vipLine
 	local claimAll = ShopCards.robuxButton(card, "ClaimAll", function()
 		local offer = self:offer()
 		if offer then
@@ -318,6 +333,8 @@ local function layoutHero(self: any, d: Day, k: number)
 	local Op = H.Op
 	ShopCards.put(self.op, k, Op[1], Op[2], Op[3], Op[4])
 	HudParts.setTextSize(self.opWords, ShopCards.textPx(Op[5], k))
+	local R = H.RowTag
+	ShopCards.layoutTag(self.rowTag, k, R[1], R[2], R[3], R[4], R[5])
 end
 
 --- Lay the section out across `width` pixels at the scale `k`, its top `y` pixels down its
@@ -361,6 +378,7 @@ function FreeDaily.layoutFooter(self: any)
 	local x = if wide then D.Units[1] / 2 else Fo.X
 	local w = if wide then D.Units[1] - 2 * D.Grid.Left else Fo.WidthUnits
 	ShopCards.line(self.footer, k, x, Fo.Y, w, ShopCards.textPx(Fo.TextUnits, k))
+	ShopCards.line(self.vipLine, k, x, D.VipLine.Y, w, ShopCards.textPx(D.VipLine.TextUnits, k))
 	local button = self.claimAll
 	button.Position = UDim2.fromOffset(round(C.X * k), round(C.Y * k))
 	button.Size = UDim2.fromOffset(round(C.WidthUnits * k), ShopCards.buttonPx(C.HeightUnits, k))
@@ -495,23 +513,43 @@ function FreeDaily.refresh(self: any, state: any)
 		end
 	end
 	self:setPulse(claimable)
+	-- The first week's "7 IN A ROW!" on day 7 while its days are still in a row.
+	local inRow = login.firstWeek == true and login.firstInRow == true
+	self.rowTag.holder.Visible = inRow and RewardsParts.whole(login.firstWeekDays) < FIRST_DAYS
 	-- The footer: the match today's claim waits for, the first week's days, or the free miss.
 	local text: string
 	local left = RewardsParts.whole(login.firstWeekLeft)
+	local last = days[FIRST_DAYS]
+	local prize = RewardsParts.reward(if type(last) == "table" then last.reward else nil)
 	if login.needsMatch == true then
 		text = W.NeedMatch:format(math.max(1, loginDay))
 	elseif login.firstWeek == true and RewardsParts.whole(login.firstWeekDays) >= FIRST_DAYS then
 		text = W.FirstWeekDone
 	elseif login.firstWeek == true or left > 0 then
-		text = if left <= 1
-			then W.FirstWeekLast:format(FIRST_DAYS, WINDOW)
-			else W.FirstWeekLine:format(FIRST_DAYS, WINDOW, left)
+		-- Day 7's prize for 7 days in a row, or what it is after a missed day.
+		local cueId = if prize.cues then prize.cues[1] else nil
+		if inRow then
+			text = if cueId
+				then W.InRowCue:format(CueThumb.cueName(cueId))
+				else W.InRowLine:format(RewardsParts.summary(prize))
+		else
+			text = if left <= 1
+				then W.MissedLast:format(RewardsParts.summary(prize))
+				else W.MissedLine:format(RewardsParts.summary(prize), left)
+		end
 	elseif login.frozen == true and login.claimedToday ~= true then
 		text = W.Frozen
 	else
 		text = if login.freezeReady == true then W.StreakLine else W.StreakLineUsed
 	end
 	setText(self.footer, text)
+	-- VIP's daily part, once: a VIP's bonus, or what VIP would add.
+	local vipPart = RewardsParts.reward(login.vipPart)
+	local vipText = if login.vip == true
+		then W.VipLine:format(RewardsParts.gains(vipPart))
+		else W.VipPitch:format(RewardsParts.summary(vipPart))
+	local none = vipPart.money <= 0 and #vipPart.blocks == 0 and vipPart.spins <= 0
+	setText(self.vipLine, if none then "" else vipText)
 	-- Claim All: the live price when the shop has it, else Config's.
 	local offer = self:offer()
 	local button = self.claimAll
@@ -609,6 +647,8 @@ function FreeDaily.register(self: any, stage: Stage.Stage, keep: (UIAnim.Handle)
 		keep(ShopCards.buttonShine(self.claimAll, B.ButtonShineEvery, 0))
 	end)
 	stage:add("DailyFooter", self.footer)
+	stage:add("DailyVip", self.vipLine)
+	stage:add("DailyRowTag", self.rowTag.holder)
 end
 
 --- The menu opened (`open` true) or closed: the breathing Claim!.

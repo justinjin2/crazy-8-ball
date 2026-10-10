@@ -883,10 +883,11 @@ band, restock tiles and pass bands.
   money button (no gift square: restock items cannot be gifted). Slot 1 wears a tilted tag in
   its floor's colour at its top left ("Epic or better!"). The 3rd is the VIP slot: cream with a
   gold edge, a crown rocking over its block; without VIP it says "VIP only" in gold and shows
-  one Get VIP button between the two button rows. Under each card its own odds, each kind in
-  its colour ("Rare 55% · Epic 34% · ...").
+  one Get VIP button between the two button rows. The cards run left to right from least rare
+  to rarest block (ties keep slot order), re-sorted on each restock; no odds text under them
+  (designer, 2026-10-10: "way too much text"): each card's dice opens its odds.
 - **The Starter Pack and VIP cards** each have the sky-blue dice on their picture's top left
-  corner: the odds of the lucky block in them (the Starter Lucky Block, VIP's daily Uncommon
+  corner: the odds of the lucky block in them (the Starter Lucky Block, VIP's daily Mystery
   block); hidden where paid random items are restricted.
 - **The Starter Pack and VIP** (designer, 2026-10-08, their second reference: "so it can fit
   on one page without scrolling"; `ShopOffers`, `Config.UI.ShopBlocks.Pair`): two wide cards
@@ -1029,10 +1030,15 @@ player's first win shows its Rare block).
   Tomorrow or "Play a match". Today wears a thick pale-gold edge. Day 7 stands tall and gold at
   the right: its best block over gold rays, the tilted rainbow "OP!", what comes with it. A
   day with a lucky block wears the sky-blue dice: that block's Odds & Details (a Mystery day's,
-  the Mystery list), Claim All buying them. Under the tiles the
-  week's line ("First week: any 7 days within 14 · 12 days left", "First week done!", the
-  streak's free miss, or "Finish one match today to claim day 3") and Claim All (green,
-  shining, the live price; hidden where paid random items are restricted or no day is left).
+  the Mystery list), Claim All buying them. Each day gives one thing (2026-10-10), the VIP
+  part not on the tiles but once on a gold line under them ("VIP bonus every day: ..."; without
+  VIP "Get VIP for ..."). In the first week, while no day was missed, day 7's box wears an
+  orange tilted "7 IN A ROW!" tag, and the week's line says "Claim 7 days in a row to win the
+  Week One Cue!"; after a miss day 7 shows the Epic block and the line "You missed a day, so
+  day 7 is now an Epic Lucky Block · 9 days left". Other lines: "First week done!", the streak's
+  free miss, or "Finish one match today to claim day 3". Then Claim All (green, shining, the
+  live price; hidden where paid random items are restricted, no day is left, or the first
+  week's row is broken).
 - **Playtime**: "TODAY'S GIFTS", five white tiles: "5 min", the pictures, the money and the
   status (Claim! with a gold glow behind the gift, Claimed, the time left on the next gift
   with a stopwatch, a padlock on the later ones).

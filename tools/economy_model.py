@@ -259,6 +259,8 @@ def plan_from_config(c, built_only=False):
         "track": track, "vip_track": [],
         "vip_daily": reward({"Blocks": daily["VipBlocks"]}),
         "login_first": [reward(r) for r in daily["FirstWeek"]],
+        # 2026-10-10: the first week's day 7 only for 7 days in a row, else this row.
+        "login_first_missed": reward(daily["FirstWeekMissed"]) if daily.get("FirstWeekMissed") else None,
         "login_later": [reward(r) for r in daily["Streak"]],
         "login_resets": True, "first_week_count": True, "first_week_window": daily["FirstWeekWindow"],
         "track28": {r["Day"]: reward(r) for r in daily["Track"]},
@@ -524,6 +526,7 @@ class Sim:
         sellrng = random.Random(20261009)
         streak, claims, last_active, freeze_week = [0] * N, [0] * N, [-99] * N, [-1] * N
         first_done = [0] * N  # first-week loop days already given (bitmask)
+        first_missed = [False] * N  # a day missed between two first-week claims (2026-10-10)
         rank_idx = [0] * N
         go_opened = [0] * N
         unique_made = {7: 0, 8: 0}  # Firework and Beta copies found so far (every server)
@@ -694,10 +697,17 @@ class Sim:
                 # reaches that day); after that the later weeks' row.
                 in_window = P["first_week_window"] is None or day - joined[i] < P["first_week_window"]
                 if P.get("first_week_count") and in_window and first_done[i] != 127:
-                    # Count mode: the first week's days go to the first 7 login days (no streak).
+                    # Count mode: the first week's days go to the first 7 login days (no streak);
+                    # its last day only for 7 days in a row (a login every day from the first).
                     k = bin(first_done[i]).count("1")
                     first_done[i] |= 1 << k
-                    give(i, P["login_first"][k], S["login + 28-day"])
+                    if k > 0 and gap != 1:
+                        first_missed[i] = True
+                    last_row = P.get("login_first_missed")
+                    if k == 6 and first_missed[i] and last_row is not None:
+                        give(i, last_row, S["login + 28-day"])
+                    else:
+                        give(i, P["login_first"][k], S["login + 28-day"])
                 elif P["login_later"] is None or (in_window and not first_done[i] >> loop_day & 1):
                     first_done[i] |= 1 << loop_day
                     give(i, P["login_first"][loop_day], S["login + 28-day"])

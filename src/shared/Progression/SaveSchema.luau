@@ -172,6 +172,9 @@ function SaveSchema.template(): any
 			Total = 0, -- every day ever claimed (the 28-day track, Config.Daily.Track)
 			FreezeWeek = 0, -- the week whose streak freeze was used (Daily.weekOf); 0 none
 			FirstWeek = 0, -- the first week's days claimed, 0..#Config.Daily.FirstWeek
+			-- A day was missed between two first-week claims, so its day 7 is
+			-- Config.Daily.FirstWeekMissed (2026-10-10; Reconcile adds it as false).
+			FirstMissed = false,
 		},
 		Shop = {
 			-- Unix seconds of the first join; 0 until PlayerData sets it on load (the migration
@@ -1355,6 +1358,11 @@ function SaveSchema.validate(data: any): (any, { string })
 	fixInteger(login, "Total", "Login.Total", SaveCfg.StatCap, fixes)
 	fixInteger(login, "FreezeWeek", "Login.FreezeWeek", SaveCfg.StatCap, fixes)
 	fixInteger(login, "FirstWeek", "Login.FirstWeek", #Config.Daily.FirstWeek, fixes)
+	-- New on 2026-10-10 (Reconcile adds it as false; nil reads as false): only a wrong type is
+	-- fixed.
+	if login.FirstMissed ~= nil then
+		fixBoolean(login, "FirstMissed", "Login.FirstMissed", fixes)
+	end
 	login.Week = nil -- the old four-week cycle (the track replaced it, plan section 6)
 
 	local shop = data.Shop

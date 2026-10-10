@@ -154,7 +154,17 @@ return {
 			table.insert(wanted, jump.Key .. "Head")
 			table.insert(wanted, jump.Key .. "Lines")
 		end
-		for _, id in { "DailyPanel", "DailyTitle", "DailyOp", "DailyClaimAll", "DailyFooter" } do
+		for _, id in
+			{
+				"DailyPanel",
+				"DailyTitle",
+				"DailyOp",
+				"DailyRowTag",
+				"DailyClaimAll",
+				"DailyFooter",
+				"DailyVip",
+			}
+		do
 			table.insert(wanted, id)
 		end
 		for day = 1, #Config.Daily.FirstWeek do
