@@ -161,7 +161,10 @@ without Studio's import dialogs. It only uses the Python standard library.
   `POST https://apis.roblox.com/universes/v1/<universe>/places/<place>/versions?versionType=Published`
   with header `x-api-key` and `Content-Type: application/octet-stream`, the .rbxl as the body.
   Crazy 8 Test Place: universe 10769973956, place 75362358216917. A 403 "Scope not
-  authorized" means the key lacks `universe-places` for that experience. Never the real game.
+  authorized" means the key lacks `universe-places` for that experience; a 401 "Invalid API
+  Key" with a 128-character key means it was stored through the typed prompt (cut short); a
+  409 "Server is busy" kept coming while the place was open in a Studio window (Team Create):
+  closing that window let it through at once. Never the real game.
 - **Run:** `python3 tools/roblox_upload.py --list files.txt --group-id 675425213 --dry-run`,
   then the same command without `--dry-run`. Other options are `--dir <folder>` (not
   recursive), `--type Model|Decal|Audio|Animation`, `--limit N`, and `--force-type Animation`

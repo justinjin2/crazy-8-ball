@@ -1386,6 +1386,16 @@ lines). All in the worktree.
   `~/Desktop/8ball-refs/tutorial/step14/team_table_backup_game1.jpg`.
 - Screenshot: `~/Desktop/8ball-refs/tutorial/step14/skip_then_mystery_hint.jpg`.
 
+### Step 15: the test place (2026-10-09)
+
+- **Published** Crazy 8 Test Place version 6 from `7e01ec3` (Open Cloud, the new
+  `ROBLOX_PUBLISH_KEY`: the designer made a key with only `universe-places`; the old Assets key
+  stays for uploads). The place file: `place/lane-tutorial.rbxl` plus the Rojo build, merged by
+  `~/Desktop/8ball-refs/tutorial/merge_place.luau`. On the way: 403 (no place scope), 401 (a
+  key cut to 128 characters by the typed prompt), 409 while the test place was open in a Studio
+  window. All in STUDIO_NOTES.
+- **The live checklist** went to the designer (the report's list). Waiting for their results.
+
 ### Touch list (files outside the tutorial's own modules changed, and why)
 
 - `src/shared/Config.luau`: `Config.Tutorial.Assist` (the hidden help's numbers, Pull modes)
