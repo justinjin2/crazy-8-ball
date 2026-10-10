@@ -28,6 +28,7 @@ SettingsState.Changed = changed.Event
 
 local function apply()
 	SoundGroups.setOn("Sfx", current.Sfx ~= false)
+	SoundGroups.setOn("Music", current.Music ~= false)
 	Quality.set(current.LowFx == true)
 end
 

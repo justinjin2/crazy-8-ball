@@ -4282,3 +4282,4 @@ timer of a new block stay the designer's call.
   the nearest pad.
 - 2026-10-10: Portal pads smaller and closer to the arch (radius 3, 3.8 studs out; was 4.5 and 5.5) so the gap to the front 1v1 pads is wider (designer).
 - 2026-10-10: Launch review. A money buy the player can't afford opens Roblox's prompt for the smallest money pack that covers the gap (TopUp). Bot lines are chat bubbles only, shown only to the players at that bot's table. LIKES100 code added ($5,000 + 2 spins) for the "NEXT CODE AT 100 LIKES" banner. Arena waits shortened (no-show search 10 s, play-another search 20 s). Bots yield every simulation (server lag). Portal arenas accepted by the match-record check (were bounced home live).
+- 2026-10-10: Music is back (was dropped 2026-10-03): three tracks cycle, anchor 9043887091 first, then 139132289200391 and 140492661889585, at a very low volume (0.06, designer: background only). A Music row in Settings turns it off (its own sound group).

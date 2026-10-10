@@ -15633,14 +15633,31 @@ Config.UI.Corners = {
 -- Settings (SettingsMenu, src/server/Settings.luau; GUI lane, designer 2026-10-03, C10): each
 -- switch and its default, saved in the save's Settings map; the moments a player has seen
 -- once (so their Skip shows) saved in Flags as "Seen:<kind>".
+-- The background music (designer, 2026-10-10): the anchor track always plays first, then the
+-- list cycles in order, forever. Local to each player (the Music sound group, its Settings row).
+Config.Music = {
+	Tracks = {
+		"rbxassetid://9043887091", -- the anchor: always first
+		"rbxassetid://139132289200391",
+		"rbxassetid://140492661889585",
+	},
+	-- Each track's volume: very low, background only, never in focus (designer, 2026-10-10:
+	-- "VERY VERY low volume"; Roblox's default is 0.5).
+	Volume = 0.06,
+	GapSeconds = 1.5, -- silence between two tracks
+	FadeInSeconds = 2, -- a track comes in this softly
+	LoadTimeoutSeconds = 10, -- a track that hasn't loaded by then is skipped
+}
+
 Config.Settings = {
 	Defaults = {
 		Sfx = true, -- sound effects on
+		Music = true, -- the lobby music on (Config.Music; designer, 2026-10-10: music is back)
 		LowFx = false, -- Lower effects (Quality: fewer particles, calmer UI loops)
 		ShowFlag = false, -- show my country flag in the player list (off until turned on)
 		ListOpen = false, -- the player list left open (designer 2026-10-07: folded until opened)
 	} :: { [string]: boolean },
-	Order = { "Sfx", "LowFx", "ShowFlag" }, -- the rows, top to bottom (the music is gone, 2026-10-03)
+	Order = { "Music", "Sfx", "LowFx", "ShowFlag" }, -- the rows, top to bottom (music back 2026-10-10)
 	-- Saved switches with no row on the Settings screen (the HUD remembers them).
 	Hidden = { "ListOpen" },
 	-- The kinds Seen may mark (anything else is refused).
@@ -15671,7 +15688,7 @@ Config.UI.Settings = {
 	SwitchUnits = { 184, 74 }, -- the ON / OFF switch: width, height
 	SwitchTextShare = 0.42, -- ON / OFF, of the switch's height
 	KnobInsetPx = 3, -- the white knob in from the track's edge
-	Icons = { Sfx = "Sound", LowFx = "Effects", ShowFlag = "Globe" }, -- each row's Kit.Icons key
+	Icons = { Music = "Sound", Sfx = "Sound", LowFx = "Effects", ShowFlag = "Globe" }, -- each row's Kit.Icons key
 	-- The Codes strip: the code icon at its left, "Codes" with the server's answer beside it,
 	-- the box and the green Redeem under them.
 	CodesUnits = 150, -- its height
@@ -15690,8 +15707,13 @@ Config.UI.Settings = {
 			{ Ids = { "Panel" }, Kind = "Unroll", At = 0 },
 			{ Ids = { "Header" }, Kind = "Fade", At = 0.12, Length = 0.15 },
 			{ Ids = { "Basket", "Title", "Money", "Close" }, Kind = "Pop", At = 0.18 },
-			{ Ids = { "Row1", "Row2", "Row3" }, Kind = "Pop", At = 0.22, Stagger = 1.5 },
-			{ Ids = { "Switch1", "Switch2", "Switch3" }, Kind = "Pop", At = 0.3, Stagger = 1.5 },
+			{ Ids = { "Row1", "Row2", "Row3", "Row4" }, Kind = "Pop", At = 0.22, Stagger = 1.5 },
+			{
+				Ids = { "Switch1", "Switch2", "Switch3", "Switch4" },
+				Kind = "Pop",
+				At = 0.3,
+				Stagger = 1.5,
+			},
 			{ Ids = { "Codes" }, Kind = "Grow", At = 0.34 },
 			{ Ids = { "CodeIcon" }, Kind = "Pop", At = 0.4, Burst = "Gold" },
 			{ Ids = { "CodeTitle", "CodeBox", "Redeem" }, Kind = "Pop", At = 0.42 },
