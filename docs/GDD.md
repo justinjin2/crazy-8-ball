@@ -991,11 +991,20 @@ approves the v5 proposal (ECONOMY.md section 11).
   block's: the cues of its one rarity); one showcase tile (an Epic-to-Secret cue printing its own odds) passes by each
   spin, never near where it stops; every other tile is at the real odds; no slot-machine looks.
   ECONOMY.md section 7.2.
-- **Pull cutscene sounds, for later** (designer, 2026-10-05): when the Mythic and Secret
-  cutscenes are redone, they also get the Legendary's two bonus reveal sounds: the "Cinematic
-  Hit" on the white flash (`Audio.Ui.LegendaryHit`) and the very faint looping angelic
-  "Aurora" ambience under the card that tapers after it closes (`Audio.Ui.LegendaryAurora`).
-  The Legendary has no sky effect (its gold aurora was dropped, 2026-10-05).
+- **The Mythic and Secret pull cutscenes** (redone 2026-10-10, designer: "the Legendary but
+  tenfold", directing left to Claude; `docs/prompts/PULL_CUTSCENES_V2.md`). The **Mythic,
+  "Starfall"** (about 10.5 s on the designer's "Transition Logo Reveal"): the sky falls to night
+  while the world round the player dissolves away for them alone, shooting stars streak and
+  wind into one rainbow star, it falls on the player, bullet time round the frozen burst, and
+  the real 3D cue is forged from the light beside them on the "Robo Rise". The **Secret, "The
+  Dream"** (about 17 s of found footage on a worn VHS tape): the black and a heartbeat, the
+  DREAMCORE track, an endless backrooms hall, "You've dreamed of it..." and "...and now it's
+  finally yours." in Great Vibes, glitching; the lights die toward the camera, the real cue
+  floats far down the hall in a red glow, a dolly-zoom pull on the "Tonal Rise", a hard cut to
+  black and silence. Both end like the Legendary: the white flash with its "Cinematic Hit"
+  (`Audio.Ui.LegendaryHit`) and the card; under the card the Mythic keeps the faint angelic
+  "Aurora", the Secret the dream music, each tapering after it closes. No scene shows a 2D cue
+  card. The Legendary has no sky effect (its gold aurora was dropped, 2026-10-05).
 - **The player stands still through every pull cutscene** (designer, 2026-10-05): no walking
   or jumping, and no turning with the camera, even with shift lock on.
 - **What money buys** (v5 prices, 2026-10-09): **Mystery blocks** ($19,900; 5 for $89,900; v5.1),

@@ -80,6 +80,23 @@ function UISound.stop(key: string)
 	end
 end
 
+--- Stop a UI sound and every copy of it still playing (an Overlap sound's): a hard cut.
+function UISound.stopAll(key: string)
+	local sound = sounds[key]
+	if not sound then
+		return
+	end
+	sound:Stop()
+	local holder = sound.Parent
+	if holder then
+		for _, copy in holder:GetChildren() do
+			if copy ~= sound and copy.Name == key and copy:IsA("Sound") then
+				copy:Destroy()
+			end
+		end
+	end
+end
+
 --- Let a playing UI sound (not an Overlap one's copies) play on for `after` seconds, then
 --- taper it away over `seconds` and stop it. A Play in the meantime cancels the taper.
 function UISound.fadeOut(key: string, after: number, seconds: number)
@@ -113,6 +130,12 @@ function UISound.position(key: string): (number, boolean)
 		return sound.TimePosition, sound.IsPlaying
 	end
 	return 0, false
+end
+
+--- The Sound behind a UI key (nil for an empty id): a cutscene bending it while it plays (its
+--- speed, its level). UISound.play sets both afresh each time.
+function UISound.sound(key: string): Sound?
+	return soundFor(key)
 end
 
 --- Load every UI sound now, so the first chip does not land in silence.

@@ -12,7 +12,7 @@ branch `gui-v4`).
 - **Branch `release`** is the integration branch, and every lane of the parallel build is
   merged into it (Bots, Economy, GUI and cutscenes, Tutorial, Unique cues). Stage 5 of the
   road to release (`docs/ROADMAP.md`): tutorial, funnel, performance, game page.
-- **Lint and tests (2026-10-10, `gui-v4`):** lint OK (four old LocalShadow warnings); all 1198
+- **Lint and tests (2026-10-10, `gui-v4`):** lint OK (four old LocalShadow warnings); all 1214
   Lune tests pass.
 - **In the game:** server-owned tables with our own physics and 8-ball rules; 1v1, 2v2, 3v3
   and solo; the global queue and arena with rematch; bots (ten tiers, Play against PC, lobby
@@ -21,7 +21,7 @@ branch `gui-v4`).
   13 abilities (Ultimates) with the spin screen; cue skins with VFX and outlines; lucky blocks
   as the only gacha (cases, the Magic 8 Ball and reward popups are gone); the Free Reward menu
   (daily, playtime, the 28-day track, group and invites), Cues (My Cues, Index; the Inventory renamed), trading, settings, our own player list and boards; the first-time tutorial;
-  the rooftop map with a day and sunset cycle; pull cutscenes Rare to Legendary; the ball streak.
+  the rooftop map with a day and sunset cycle; pull cutscenes Rare to Secret; the ball streak.
 
 ## Being tried right now (the designer's look, nothing final)
 
@@ -39,7 +39,7 @@ One line each; the long form is the 2026-10-08 entry at the top of
 - **The ball streak** (2026-10-09; GDD 8, UI_STYLE 28): checked in Studio and on an iPhone; a
   tablet next. **Coin flip tokens, phone letterbox bars, the Mystery screen** (2026-10-09):
   Studio's phone emulator only.
-- **Lighting** day 10 min, sunset 5. **Pull cutscenes**: Mythic and Secret wait a redo.
+- **Lighting** day 10 min, sunset 5.
 - **Our own lucky blocks** and **the Mystery upgrade screen**: not yet on a phone or at full
   frame rate. **The Gift drop on the first opening of Roblox's menu** (2026-10-10, DECISIONS):
   `/giftdrop`, then press Escape; not yet by a real Escape press (Studio's test tools cannot
@@ -66,6 +66,9 @@ One line each; the long form is the 2026-10-08 entry at the top of
   Creator Dashboard; the designer's look at the Sky banner, the Index's Collect card and the
   offer tile's new spot on a phone; a Sky block falling for real after 30 minutes. Roblox shows
   the products at about 0.8x their price (regional pricing or price optimization).
+- **The Mythic and Secret pull cutscenes, redone** (2026-10-10, DECISIONS, the brief in
+  `docs/prompts/PULL_CUTSCENES_V2.md`): checked in Studio on PC. Open: the designer's look and
+  ears (`/cutscene mythic`, `/cutscene secret`), a phone and a controller.
 - **Reel skip on Standard blocks only; the tutorial reel's Legendary near miss** (2026-10-10,
   DECISIONS). Open: the designer's look at a tutorial first block and an Uncommon reel.
 - **Trading** is off for the release (`Config.Trade.Enabled`): no Trade button, the server refuses.

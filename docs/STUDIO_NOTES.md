@@ -822,3 +822,29 @@ basics (glb textures, face direction, axes, texture alpha) are under "Uploading 
   `{ picked = true }`. The server drops it once per visit, so pick it up before replaying.
 - Stop Play with it still on the floor and start again: it falls again on join (the visit path,
   3 s after the character is in).
+
+## Pull cutscenes in Studio (2026-10-10, the Mythic and Secret redo)
+
+- Play one from the Client datamodel: `PlayerScripts.GuiQA:Invoke("pull", "Mythic", nil, 4.98)`
+  (rarity, a cue id or nil for a stand-in cue of that rarity, and a scene time to hold at for
+  a screenshot); `"pullStop"` ends it and puts everything back. The hold is on the scene's own
+  clock (the track's late start included), so the same number always gives the same frame.
+  The real flow (`/cutscene mythic`) hides every other ScreenGui first; a QA run does not, so
+  disable them by hand for a clean screenshot.
+- The MCP's `execute_luau` puts CameraType back to what it was when the call started ("The
+  execute_luau changed camera type" in the output). A scene that sets its camera every frame
+  is unaffected; read the camera inside the same call.
+- Decoration is often left out of spatial queries (CanQuery off), so `GetPartBoundsInRadius`
+  misses it: to find every part near a point, walk `workspace:GetDescendants()` once.
+- LocalTransparencyModifier hides a part (and its Decals, set on each) for this client only;
+  the part's SurfaceGuis, BillboardGuis, particles, beams and lights still show.
+- A BillboardGui or SurfaceGui that two scripts switch on and off every frame (one sets
+  Enabled false, the other true) keeps showing even with MaxDistance 0.001 or a zero Size.
+  Hide it with properties the other script leaves alone and never fight over Enabled:
+  `PlayerToHideFrom = LocalPlayer` for a BillboardGui, `MaxDistance = 0.001` for a SurfaceGui
+  (its default 0 means no limit; a BillboardGui's default is inf), `Transparency =
+  NumberSequence.new(1)` for particles, beams and trails, `Range = 0` for lights. The queue
+  pads (PadEffects) set their JOIN arrows, rings and portal sparks every frame.
+- Lighting values a scene changes (ClockTime, Ambient, Exposure, the Atmosphere, Bloom, the
+  grade) are held and put back by `PullKit.hold`; check them after `pullStop`, along with
+  `workspace.PullCutscene` gone and the map's LocalTransparencyModifier back to 0.

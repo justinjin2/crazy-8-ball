@@ -277,6 +277,7 @@ function Opening.pull(self: any, cueId: string, rarity: string, onClosed: (() ->
 		self.backGui.Enabled = true
 		self:showCard()
 	end
+	PullCutscene.prepare(rarity, cueId)
 	local ok = pcall(PullCutscene.play, rarity, cueId, function()
 		local phase: string = self.phase
 		if self.open and phase == "Scene" then
@@ -379,6 +380,7 @@ function Opening.startReel(
 		{ look = "Dark", closed = closedFor(reelOdds), climb = climb, glimpse = glimpse }
 	)
 	reel:setPrize(cueId, rarity)
+	PullCutscene.prepare(rarity, cueId) -- a big pull's cue and art load while the reel spins
 	self.reel = reel
 	self.cueId, self.rarity = cueId, rarity
 	self.phase = "Reel"

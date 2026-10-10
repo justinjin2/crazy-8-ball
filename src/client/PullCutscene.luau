@@ -20,16 +20,20 @@
 --   pulses up from nothing, then expands spinning ever faster until it fills the screen; the
 --   white flash with a cinematic hit, and the card, a very faint ambience under it.
 --   Skippable once seen.
--- The ones below are the old scenes, still to be redone; they lift the black off as they begin.
--- - Mythic: the sky turns to deep space with pastel aurora, the camera rises into the stars,
---   and the cue comes down from them on a beam of light.
--- - Secret: a red-white glitch, the map's lights go out one by one, silence and a heartbeat, a
---   shockwave, the camera shakes and spins while the sky flickers red and white.
--- One scene at a time owns the camera, the light, the sky and the map's lights (DayCycle is
--- held), and puts every one back exactly as it was when it ends, is skipped, is replaced by a
--- second pull, or is stopped (a match starting). The effects are our own instances (a
--- ColorCorrection, our own Sky swapped in, parts in our own model), so nothing of the map is
--- edited except values saved first. A kind can be skipped (a tap, A, B or Escape) once it has
+-- - Mythic (redone 2026-10-10, PullMythic): "Starfall", a film behind black bars. Night falls
+--   in a second, shooting stars streak over a pastel Milky Way, bend into one point and fuse
+--   into a rainbow star that falls on the player; bullet time round the nova; the real cue is
+--   forged from the light over a celestial sigil as the "Robo Rise" builds; the flash.
+-- - Secret (redone 2026-10-10, PullSecret, Backrooms): "The Dream", found footage on a worn VHS
+--   tape. Silence and a heartbeat in the black; an endless backrooms hall; "You've dreamed of
+--   it..." in a curly script; the lights die toward the camera; "...and now it's finally
+--   yours." glowing red; the cue far down the hall in a red glow; the pull down the hall in a
+--   dolly zoom through a storm of glitches; a hard cut to black and silence; red, white, card.
+-- One scene at a time owns the camera, the light and the sky (DayCycle is held), and puts every
+-- one back exactly as it was when it ends, is skipped, is replaced by a second pull, or is
+-- stopped (a match starting). The effects are our own instances (a ColorCorrection, parts in
+-- our own model, layers on the veil), so nothing of the map is edited except values saved
+-- first (PullKit.hold). A kind can be skipped (a tap, A, B or Escape) once it has
 -- been seen; it always ends on the server's prize, which the card then shows.
 -- Others' pulls from Mythic up arrive through the Unbox banner: remote() gives the sky a
 -- short tint in the rarity's colour, nothing else (a player in a match sees only that too).
@@ -40,7 +44,6 @@ local Lighting = game:GetService("Lighting")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
-local SoundService = game:GetService("SoundService")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 
@@ -48,10 +51,14 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local ReelFx = require(script.Parent.ReelFx)
-local CueThumb = require(script.Parent.CueThumb)
+local CueAssets = require(script.Parent.CueAssets)
 local DayCycle = require(script.Parent.DayCycle)
+local GuiQA = require(script.Parent.GuiQA)
 local HudParts = require(script.Parent.HudParts)
 local Letterbox = require(script.Parent.Letterbox)
+local PullKit = require(script.Parent.PullKit)
+local PullMythic = require(script.Parent.PullMythic)
+local PullSecret = require(script.Parent.PullSecret)
 local Quality = require(script.Parent.Quality)
 local Seen = require(script.Parent.Seen)
 local UISound = require(script.Parent.UISound)
@@ -65,26 +72,12 @@ local BLACK = Color3.new(0, 0, 0)
 
 local PullCutscene = {}
 
-local function rgb(values: { number }): Color3
-	return Color3.fromRGB(values[1], values[2], values[3])
-end
+local rgb = PullKit.rgb
+local smooth = PullKit.smooth
+local window = PullKit.window
 
 local function rank(rarity: string): number
 	return table.find(RARITIES, rarity) or 0
-end
-
-local function smooth(u: number): number
-	u = math.clamp(u, 0, 1)
-	return u * u * (3 - 2 * u)
-end
-
--- 0 -> 1 -> 0 over [from, from + seconds] with `edge` seconds of fade each side.
-local function window(t: number, from: number, seconds: number, edge: number): number
-	if t < from or t > from + seconds then
-		return 0
-	end
-	local inside = math.min(t - from, from + seconds - t)
-	return math.clamp(inside / math.max(edge, 1e-3), 0, 1)
 end
 
 --- Whether a rarity gets a cutscene (Rare and up).
@@ -101,40 +94,16 @@ end
 -- The scene: everything it changed, so it can all go back
 --------------------------------------------------------------------------------------------
 
-type Scene = {
-	rarity: string,
-	cueId: string,
-	clock: number,
-	ended: boolean,
-	done: (() -> ())?,
-	skippable: boolean,
-	gui: ScreenGui,
-	root: Frame,
-	skip: TextButton,
-	hint: TextLabel,
-	veil: ScreenGui, -- over every other screen: the black, and a redone scene's own layers
-	veilRoot: Frame,
-	black: Frame,
-	white: Frame,
-	onBlack: (() -> ())?, -- runs once the screen is fully black
-	cc: ColorCorrectionEffect,
-	model: Model,
-	release: () -> (),
-	held: { [string]: any }?, -- the player's Humanoid as it was, while it stands still
-	camera: { [string]: any }?,
-	lighting: { [string]: any },
-	atmosphere: { [string]: any }?,
-	sky: Sky?, -- the map's own sky, taken out while ours shows
-	ourSky: Sky?,
-	lights: { { light: Light, enabled: boolean } },
-	sounds: { { sound: Sound, volume: number } },
-	parts: { [string]: any }, -- this rarity's own pieces (streaks, beam, aurora...)
-	fired: { [string]: boolean },
-	random: Random,
-	connections: { RBXScriptConnection },
-}
+type Scene = PullKit.Scene
 
 local scene: Scene? = nil
+
+-- The ambience a big pull left playing under its card (a Config.Audio.Ui key) and its taper.
+local ambience: { key: string, tail: number, fade: number }? = nil
+
+-- Studio's checks (GuiQA "pullHold"): a scene stops its clock at this many seconds after the
+-- black, and its particles freeze, so a moment can be looked at. Never set in a live game.
+local qaHold: number? = nil
 
 -- What a rarity does as its card shows (filled in below with the scenes).
 local REVEALS: { [string]: (Scene) -> () } = {}
@@ -143,17 +112,7 @@ local LIGHTING_KEYS =
 	{ "Brightness", "ClockTime", "Ambient", "OutdoorAmbient", "ExposureCompensation" }
 local ATMOSPHERE_KEYS = { "Density", "Haze", "Glare", "Offset" }
 
-local function character(): (BasePart?, Vector3?)
-	local player = Players.LocalPlayer
-	local body = player and player.Character
-	local root = body and body:FindFirstChild("HumanoidRootPart")
-	if root and root:IsA("BasePart") then
-		local humanoid = body and body:FindFirstChildOfClass("Humanoid")
-		local hip = if humanoid then humanoid.HipHeight else 2
-		return root, root.Position - Vector3.new(0, hip + root.Size.Y / 2, 0)
-	end
-	return nil, nil
-end
+local character = PullKit.character
 
 -- The player stands still through the scene (designer 2026-10-05): no walking or jumping,
 -- and no turning, even with shift lock on (its camera-relative turn follows AutoRotate).
@@ -191,93 +150,15 @@ local function releaseCharacter(held: { [string]: any }?)
 	end
 end
 
-local function fullFrame(parent: Instance, name: string, colour: Color3, z: number): Frame
-	local frame = Instance.new("Frame")
-	frame.Name = name
-	frame.BorderSizePixel = 0
-	frame.BackgroundColor3 = colour
-	frame.BackgroundTransparency = 1
-	frame.Size = UDim2.fromScale(1, 1)
-	frame.ZIndex = z
-	frame.Parent = parent
-	return frame
-end
+local fullFrame = PullKit.fullFrame
 
-local function takeCamera(s: Scene)
-	if s.camera then
-		return
-	end
-	local cam = workspace.CurrentCamera
-	s.camera = {
-		kind = cam.CameraType,
-		subject = cam.CameraSubject,
-		cframe = cam.CFrame,
-		focus = cam.Focus,
-		fov = cam.FieldOfView,
-	}
-	cam.CameraType = Enum.CameraType.Scriptable
-end
-
-local function takeSky(s: Scene): Sky
-	if s.ourSky then
-		return s.ourSky
-	end
-	local original = Lighting:FindFirstChildOfClass("Sky")
-	s.sky = original
-	if original then
-		original.Parent = nil
-	end
-	local sky = Instance.new("Sky")
-	sky.Name = "PullCutsceneSky"
-	sky.CelestialBodiesShown = false
-	sky.StarCount = CS.Mythic.Stars
-	sky.Parent = Lighting
-	s.ourSky = sky
-	return sky
-end
-
-local function muteSounds(s: Scene)
-	if #s.sounds > 0 then
-		return
-	end
-	for _, holder in { workspace, SoundService } :: { Instance } do
-		for _, sound in holder:GetDescendants() do
-			if sound:IsA("Sound") and sound.IsPlaying and sound.Volume > 0 then
-				table.insert(s.sounds, { sound = sound, volume = sound.Volume })
-			end
-		end
-	end
-end
-
-local function darkenLights(s: Scene)
-	if #s.lights > 0 then
-		return
-	end
-	local _, feet = character()
-	local list = {}
-	for _, light in workspace:GetDescendants() do
-		if light:IsA("Light") and light.Enabled then
-			table.insert(list, { light = light, enabled = true })
-		end
-	end
-	-- Out from the far side in toward the player.
-	local function distance(entry: { light: Light, enabled: boolean }): number
-		local parent = entry.light.Parent
-		if feet and parent and parent:IsA("BasePart") then
-			return (parent.Position - feet).Magnitude
-		end
-		return 0
-	end
-	table.sort(list, function(a, b)
-		return distance(a) > distance(b)
-	end)
-	s.lights = list
-end
+local takeCamera = PullKit.takeCamera
 
 -- Everything back exactly as it was. Safe to call twice.
 local function restore(s: Scene)
 	releaseCharacter(s.held)
 	s.held = nil
+	PullKit.putBack(s) -- every value a scene held, its cue's look, its sounds' speeds
 	for _, entry in s.lights do
 		if entry.light.Parent then
 			entry.light.Enabled = entry.enabled
@@ -391,6 +272,16 @@ local function finish(s: Scene, instant: boolean?)
 			warn("[8ball] PullCutscene reveal: " .. tostring(err))
 		end
 	end
+	-- The ambience it left under the card, for cardClosed to taper.
+	local spec = (CS :: any)[s.rarity]
+	local key = spec and (if spec.Sounds then spec.Sounds.Ambience else spec.Ambience)
+	if type(key) == "string" then
+		ambience = {
+			key = key,
+			tail = spec.AmbienceTailSeconds or 1,
+			fade = spec.AmbienceFadeSeconds or 1,
+		}
+	end
 	local done = s.done
 	s.done = nil
 	if done then
@@ -399,61 +290,11 @@ local function finish(s: Scene, instant: boolean?)
 end
 
 --------------------------------------------------------------------------------------------
--- The pieces
---------------------------------------------------------------------------------------------
-
-local function tint(s: Scene, colour: Color3, share: number)
-	s.cc.TintColor = WHITE:Lerp(colour, math.clamp(share, 0, 1))
-end
-
---------------------------------------------------------------------------------------------
 -- Each rarity, as a function of the scene's clock
 --------------------------------------------------------------------------------------------
 
--- A round soft glow on the veil, centred (the kit's SoftGlow image; a plain circle without it).
-local function makeGlow(s: Scene, name: string, colour: Color3, z: number): GuiObject
-	local art: string = Config.UI.Kit.Art.SoftGlow
-	local glow: GuiObject
-	if art ~= "" then
-		local image = Instance.new("ImageLabel")
-		image.Image = art
-		image.ImageColor3 = colour
-		image.BackgroundTransparency = 1
-		glow = image
-	else
-		local circle = Instance.new("Frame")
-		circle.BackgroundColor3 = colour
-		circle.BorderSizePixel = 0
-		local corner = Instance.new("UICorner")
-		corner.CornerRadius = UDim.new(0.5, 0)
-		corner.Parent = circle
-		glow = circle
-	end
-	glow.Name = name
-	glow.AnchorPoint = Vector2.new(0.5, 0.5)
-	glow.Position = UDim2.fromScale(0.5, 0.5)
-	glow.Size = UDim2.fromOffset(0, 0)
-	glow.ZIndex = z
-	glow.Visible = false
-	glow.Parent = s.veilRoot
-	return glow
-end
-
--- A tinted piece of the kit's white art on the veil, centred and hidden until it is placed.
-local function makeArt(s: Scene, name: string, art: string, colour: Color3, z: number): ImageLabel
-	local image = Instance.new("ImageLabel")
-	image.Name = name
-	image.Image = art
-	image.ImageColor3 = colour
-	image.BackgroundTransparency = 1
-	image.AnchorPoint = Vector2.new(0.5, 0.5)
-	image.Position = UDim2.fromScale(0.5, 0.5)
-	image.Size = UDim2.fromOffset(0, 0)
-	image.ZIndex = z
-	image.Visible = false
-	image.Parent = s.veilRoot
-	return image
-end
+local makeGlow = PullKit.makeGlow
+local makeArt = PullKit.makeArt
 
 -- When a redone scene's white flash starts, on its clock (from the end of the fade to black).
 local function flashAt(rarity: string): number
@@ -465,6 +306,10 @@ local function flashAt(rarity: string): number
 	elseif rarity == "Legendary" then
 		local L = CS.Legendary
 		return L.ImpactAt + L.RiseAfterHitSeconds + L.InterludeSeconds
+	elseif rarity == "Mythic" then
+		return PullMythic.flashAt()
+	elseif rarity == "Secret" then
+		return PullSecret.flashAt()
 	end
 	return 0
 end
@@ -591,84 +436,13 @@ local function stepEpic(s: Scene, t: number)
 end
 
 -- Legendary: the film's pieces, built on its first frame round where the player stands.
-local function key(at: number, value: number): NumberSequenceKeypoint
-	return NumberSequenceKeypoint.new(at, value)
-end
+local key = PullKit.key
+local ghostPart = PullKit.ghostPart
+local emitter = PullKit.emitter
+local clampEye = PullKit.clampEye
 
-local function ghostPart(s: Scene, name: string, size: Vector3, at: Vector3): Part
-	local part = Instance.new("Part")
-	part.Name = name
-	part.Anchored = true
-	part.CanCollide = false
-	part.CanQuery = false
-	part.CanTouch = false
-	part.CastShadow = false
-	part.Transparency = 1
-	part.Size = size
-	part.CFrame = CFrame.new(at)
-	part.Parent = s.model
-	return part
-end
-
--- A glowing particle emitter that emits nothing until it is told to.
-local function emitter(
-	parent: Instance,
-	name: string,
-	art: string,
-	a: Color3,
-	b: Color3
-): ParticleEmitter
-	local e = Instance.new("ParticleEmitter")
-	e.Name = name
-	e.Texture = art
-	e.Color = ColorSequence.new(a, b)
-	e.LightEmission = 1
-	e.LightInfluence = 0
-	e.Rate = 0
-	e.Speed = NumberRange.new(0)
-	e.Rotation = NumberRange.new(0, 360)
-	e.Parent = parent
-	return e
-end
-
--- A flat piece of art lying on the ground under the player.
 local function groundArt(s: Scene, name: string, art: string, colour: Color3): (Part, Decal)
-	local part = ghostPart(s, name, Vector3.new(1, 0.05, 1), s.parts.feet)
-	local decal = Instance.new("Decal")
-	decal.Face = Enum.NormalId.Top
-	decal.Texture = art
-	decal.Color3 = colour
-	decal.Transparency = 1
-	decal.Parent = part
-	return part, decal
-end
-
--- The camera wants to be at `to`, looking from about `from`: it stops CameraPadStuds short
--- of anything solid in between (a table, a wall), never inside it. Near-invisible parts
--- (zones, triggers) are seen through.
-local function clampEye(s: Scene, from: Vector3, to: Vector3): Vector3
-	local params: RaycastParams = s.parts.params
-	local pad = CS.Legendary.CameraPadStuds
-	local origin = from
-	for _ = 1, 6 do
-		local offset = to - origin
-		if offset.Magnitude < 1e-3 then
-			return to
-		end
-		local hit = workspace:Raycast(origin, offset, params)
-		if not hit then
-			return to
-		end
-		local part = hit.Instance
-		if part:IsA("BasePart") and part.Transparency > 0.9 then
-			params:AddToFilter(part)
-		else
-			local back = (from - hit.Position)
-			local room = math.min(pad, back.Magnitude)
-			return hit.Position + (if back.Magnitude > 1e-3 then back.Unit * room else Vector3.zero)
-		end
-	end
-	return to
+	return PullKit.groundArt(s, name, art, colour, s.parts.feet)
 end
 
 local function buildLegendary(s: Scene)
@@ -688,17 +462,7 @@ local function buildLegendary(s: Scene)
 	p.facing = facing
 	p.right = facing:Cross(Vector3.yAxis)
 	p.starAt = feet + Vector3.new(0, L.StarHeightStuds, 0)
-	local params = RaycastParams.new()
-	params.FilterType = Enum.RaycastFilterType.Exclude
-	params.IgnoreWater = true
-	local skip: { Instance } = { s.model }
-	for _, other in Players:GetPlayers() do
-		if other.Character then
-			table.insert(skip, other.Character)
-		end
-	end
-	params.FilterDescendantsInstances = skip
-	p.params = params
+	p.params = PullKit.rayParams(s)
 
 	-- The screen: black bars top and bottom, and the blinding glare of the hit.
 	local bars = {}
@@ -1270,275 +1034,20 @@ local function revealLegendary(s: Scene)
 	UISound.play(L.Ambience)
 end
 
-local function makeAurora(s: Scene, feet: Vector3)
-	local M = CS.Mythic
-	local holder = Instance.new("Part")
-	holder.Name = "Aurora"
-	holder.Anchored = true
-	holder.CanCollide = false
-	holder.CanQuery = false
-	holder.CanTouch = false
-	holder.Transparency = 1
-	holder.Size = Vector3.one
-	holder.CFrame = CFrame.new(feet)
-	holder.Parent = s.model
-	local palette = ReelFx.palette("Mythic")
-	local beams = {}
-	local bands = math.max(2, math.floor(M.AuroraBands * Quality.rate()))
-	for i = 1, bands do
-		local z = (i - (bands + 1) / 2) * 30
-		local a = Instance.new("Attachment")
-		a.Position = Vector3.new(-M.AuroraSpreadStuds, M.AuroraHeightStuds + i * 8, z)
-		a.Parent = holder
-		local b = Instance.new("Attachment")
-		b.Position = Vector3.new(M.AuroraSpreadStuds, M.AuroraHeightStuds + i * 8, z + 20)
-		b.Parent = holder
-		local beam = Instance.new("Beam")
-		beam.Attachment0 = a
-		beam.Attachment1 = b
-		local c1 = palette[(i - 1) % #palette + 1]
-		local c2 = palette[i % #palette + 1]
-		beam.Color = ColorSequence.new(c1, c2)
-		beam.Transparency = NumberSequence.new({
-			NumberSequenceKeypoint.new(0, 1),
-			NumberSequenceKeypoint.new(0.3, M.AuroraTransparency),
-			NumberSequenceKeypoint.new(0.7, M.AuroraTransparency),
-			NumberSequenceKeypoint.new(1, 1),
-		})
-		beam.LightEmission = 1
-		beam.LightInfluence = 0
-		beam.FaceCamera = true
-		beam.Width0 = M.AuroraWidthStuds
-		beam.Width1 = M.AuroraWidthStuds * 0.6
-		beam.Segments = 30
-		beam.Parent = holder
-		table.insert(beams, beam)
-	end
-	s.parts.aurora = beams
-end
-
-local function stepMythic(s: Scene, t: number)
-	local M = CS.Mythic
-	local _, feet = character()
-	if not s.fired.setup then
-		s.fired.setup = true
-		takeCamera(s)
-		s.parts.flash = fullFrame(s.root, "Flash", WHITE, 6)
-		s.parts.light = Instance.new("Frame")
-		local beam: Frame = s.parts.light
-		beam.Name = "LightBeam"
-		beam.BorderSizePixel = 0
-		beam.BackgroundColor3 = WHITE
-		beam.AnchorPoint = Vector2.new(0.5, 0)
-		beam.Position = UDim2.fromScale(0.5, 0)
-		beam.Size = UDim2.fromScale(0.16, 0)
-		beam.BackgroundTransparency = 1
-		beam.ZIndex = 2
-		local fade = Instance.new("UIGradient")
-		fade.Transparency = NumberSequence.new({
-			NumberSequenceKeypoint.new(0, 1),
-			NumberSequenceKeypoint.new(0.5, 0.3),
-			NumberSequenceKeypoint.new(1, 1),
-		})
-		fade.Parent = beam
-		beam.Parent = s.root
-		local cue = CueThumb.new(s.root, s.cueId)
-		cue.AnchorPoint = Vector2.new(0.5, 0.5)
-		cue.Position = UDim2.fromScale(0.5, -0.3)
-		cue.ZIndex = 3
-		local aspect = Instance.new("UIAspectRatioConstraint")
-		aspect.Parent = cue
-		cue.Size = UDim2.fromScale(M.CueSharePx, M.CueSharePx)
-		s.parts.cue = cue
-		local camPos = workspace.CurrentCamera.CFrame.Position
-		s.parts.back = if feet
-			then Vector3.new(camPos.X - feet.X, 0, camPos.Z - feet.Z)
-			else Vector3.new(0, 0, 1)
-		UISound.play("ReelBuild")
-	end
-	-- Into space: a white flash hides the sky's swap.
-	local flash: Frame = s.parts.flash
-	flash.BackgroundTransparency = 1
-		- 0.9 * window(t, M.SpaceInSeconds * 0.4, M.SpaceInSeconds * 0.6, 0.15)
-	if t >= M.SpaceInSeconds * 0.7 and not s.fired.space then
-		s.fired.space = true
-		takeSky(s)
-		Lighting.ClockTime = 0
-		Lighting.Brightness = M.Brightness
-		local atmosphere = Lighting:FindFirstChildOfClass("Atmosphere")
-		if atmosphere then
-			atmosphere.Density = 0
-			atmosphere.Haze = 0
-			atmosphere.Glare = 0
-		end
-		if feet then
-			makeAurora(s, feet)
-		end
-	end
-	tint(s, rgb(M.Tint), M.TintShare * smooth(t / M.SpaceInSeconds))
-	local aurora = s.parts.aurora
-	if aurora then
-		for i, beam in aurora do
-			local wave = math.sin(t * 1.3 + i) * 25
-			beam.CurveSize0 = wave
-			beam.CurveSize1 = -wave
-		end
-	end
-	if feet then
-		local u = smooth((t - M.RiseFrom) / M.RiseSeconds)
-		local back = s.parts.back
-		back = if back.Magnitude > 1e-3 then back.Unit else Vector3.new(0, 0, 1)
-		local eye = feet + back * 12 + Vector3.new(0, 4 + M.RiseStuds * u, 0)
-		local target = feet + Vector3.new(0, 4 + (M.AuroraHeightStuds + 20) * u, 0) - back * 30 * u
-		local cam = workspace.CurrentCamera
-		cam.CameraType = Enum.CameraType.Scriptable
-		cam.CFrame = CFrame.lookAt(eye, target)
-	end
-	-- The cue comes down from the stars on its beam.
-	local light: Frame = s.parts.light
-	local d = smooth((t - M.DescendAt) / M.DescendSeconds)
-	light.BackgroundTransparency = 1
-		- window(t, M.DescendAt - 0.2, M.Seconds - M.DescendAt + 0.2, 0.3)
-	light.Size = UDim2.fromScale(0.16, 0.5 + 0.5 * d)
-	local cue: Frame = s.parts.cue
-	cue.Position = UDim2.fromScale(0.5, -0.3 + 0.8 * d)
-	if t >= M.DescendAt + M.DescendSeconds and not s.fired.burst then
-		s.fired.burst = true
-		ReelFx.sting("Mythic")
-	end
-end
-
-local function stepSecret(s: Scene, t: number)
-	local X = CS.Secret
-	local red = rgb(X.Red)
-	if not s.fired.setup then
-		s.fired.setup = true
-		takeCamera(s)
-		muteSounds(s)
-		darkenLights(s)
-		local blocks = {}
-		local count = math.max(3, math.floor(X.GlitchBlocks * Quality.rate()))
-		for i = 1, count do
-			local block = fullFrame(s.root, "Glitch", if i % 2 == 0 then WHITE else red, 4)
-			table.insert(blocks, block)
-		end
-		s.parts.blocks = blocks
-		s.parts.flash = fullFrame(s.root, "Flash", WHITE, 6)
-		local ring = Instance.new("Frame")
-		ring.Name = "Shockwave"
-		ring.BackgroundTransparency = 1
-		ring.AnchorPoint = Vector2.new(0.5, 0.5)
-		ring.Position = UDim2.fromScale(0.5, 0.5)
-		ring.ZIndex = 5
-		ring.Visible = false
-		HudParts.corner(ring, 9999)
-		local edge = Instance.new("UIStroke")
-		edge.Color = WHITE
-		edge.Thickness = 10
-		edge.Parent = ring
-		local hue = Instance.new("UIGradient")
-		hue.Color = ColorSequence.new(red, WHITE)
-		hue.Parent = edge
-		ring.Parent = s.root
-		s.parts.ring = ring
-		s.parts.edge = edge
-		s.parts.view = workspace.CurrentCamera.CFrame
-	end
-	-- The glitch blocks: random rectangles flickering on and off.
-	for _, block in s.parts.blocks :: { Frame } do
-		local on = t < X.GlitchSeconds and s.random:NextNumber() < 0.35
-		block.Visible = on
-		if on then
-			block.BackgroundTransparency = s.random:NextNumber(0.1, 0.6)
-			block.Position =
-				UDim2.fromScale(s.random:NextNumber(-0.1, 0.9), s.random:NextNumber(0, 0.95))
-			block.Size =
-				UDim2.fromScale(s.random:NextNumber(0.1, 0.5), s.random:NextNumber(0.01, 0.08))
-		end
-	end
-	-- Silence.
-	local quiet = 1 - math.clamp(t / X.SilenceSeconds, 0, 1)
-	if t < X.RestoreAt then
-		for _, entry in s.sounds do
-			if entry.sound.Parent then
-				entry.sound.Volume = entry.volume * quiet
-			end
-		end
-	end
-	-- The lights go out one by one, the world into the dark.
-	local out = math.clamp((t - X.LightsFrom) / X.LightsSeconds, 0, 1)
-	local n = math.floor(out * #s.lights + 0.5)
-	for i, entry in s.lights do
-		if entry.light.Parent then
-			entry.light.Enabled = t >= X.RestoreAt or i > n
-		end
-	end
-	if t < X.RestoreAt then
-		local saved = s.lighting
-		Lighting.Brightness = saved.Brightness + (X.DarkBrightness - saved.Brightness) * out
-		Lighting.Ambient = (saved.Ambient :: Color3):Lerp(BLACK, out)
-		Lighting.OutdoorAmbient = (saved.OutdoorAmbient :: Color3):Lerp(BLACK, out)
-		Lighting.ExposureCompensation = saved.ExposureCompensation - 1.5 * out
-	elseif not s.fired.restored then
-		s.fired.restored = true
-		for key, value in s.lighting do
-			(Lighting :: any)[key] = value
-		end
-		for _, entry in s.sounds do
-			if entry.sound.Parent then
-				entry.sound.Volume = entry.volume
-			end
-		end
-	end
-	for i, at in X.Heartbeats do
-		local key = "beat" .. i
-		if t >= at and not s.fired[key] then
-			s.fired[key] = true
-			UISound.play("Heartbeat")
-		end
-	end
-	-- The shockwave, the spin, the sky's red-white flicker.
-	local cam = workspace.CurrentCamera
-	cam.CameraType = Enum.CameraType.Scriptable
-	local view: CFrame = s.parts.view
-	if t >= X.ShockAt then
-		if not s.fired.shock then
-			s.fired.shock = true
-			UISound.play("Shockwave")
-			ReelFx.sting("Secret")
-		end
-		local u = (t - X.ShockAt) / X.ShockSeconds
-		local ring: Frame = s.parts.ring
-		ring.Visible = u <= 1
-		local side = s.root.AbsoluteSize.Magnitude * 1.2 * smooth(u)
-		ring.Size = UDim2.fromOffset(side, side)
-		s.parts.edge.Transparency = math.clamp(u, 0, 1)
-		local spin = smooth((t - X.ShockAt) / X.SpinSeconds)
-		local shake = (1 - spin) * X.ShakeStuds
-		local jitter =
-			Vector3.new(s.random:NextNumber(-shake, shake), s.random:NextNumber(-shake, shake), 0)
-		cam.CFrame = view * CFrame.new(jitter) * CFrame.Angles(0, 0, math.pi * 2 * spin)
-		local flicker = window(t, X.ShockAt, X.SkyGlitchSeconds, 0.1)
-		local phase = math.floor((t - X.ShockAt) * X.FlickerHz) % 2
-		s.cc.TintColor = WHITE:Lerp(if phase == 0 then red else WHITE, 0.7 * flicker)
-		s.cc.Brightness = 0.15 * flicker * phase
-	else
-		cam.CFrame = view
-	end
-	local flash: Frame = s.parts.flash
-	flash.BackgroundTransparency = 1 - 0.9 * window(t, X.RestoreAt, X.Seconds - X.RestoreAt, 0.05)
-end
-
--- The redone scenes draw on the veil themselves; the rest lift the black off as they begin.
-local OWNS_VEIL: { [string]: boolean } = { Rare = true, Epic = true, Legendary = true }
+-- Every scene draws on the veil itself (a scene that did not would lift the black off as it
+-- began).
+local OWNS_VEIL: { [string]: boolean } =
+	{ Rare = true, Epic = true, Legendary = true, Mythic = true, Secret = true }
 REVEALS.Legendary = revealLegendary
+REVEALS.Mythic = PullMythic.reveal
+REVEALS.Secret = PullSecret.reveal
 
 local STEPS: { [string]: (Scene, number) -> () } = {
 	Rare = stepRare,
 	Epic = stepEpic,
 	Legendary = stepLegendary,
-	Mythic = stepMythic,
-	Secret = stepSecret,
+	Mythic = PullMythic.step,
+	Secret = PullSecret.step,
 }
 
 local function length(rarity: string): number
@@ -1553,10 +1062,51 @@ end
 -- Playing
 --------------------------------------------------------------------------------------------
 
---- The pull's card closed: a Legendary's ambience plays on a moment, then tapers away.
+--- The pull's card closed: a big pull's ambience plays on a moment, then tapers away.
 function PullCutscene.cardClosed()
 	local L = CS.Legendary
-	UISound.fadeOut(L.Ambience, L.AmbienceTailSeconds, L.AmbienceFadeSeconds)
+	local a = ambience
+		or { key = L.Ambience, tail = L.AmbienceTailSeconds, fade = L.AmbienceFadeSeconds }
+	ambience = nil
+	UISound.fadeOut(a.key, a.tail, a.fade)
+end
+
+--- A pull of `rarity` (with prize `cueId`) has just started its reel: load what its scene
+--- will show (the cue's look, the scene's art), so nothing pops in grey.
+function PullCutscene.prepare(rarity: string, cueId: string)
+	if rarity == "Mythic" or rarity == "Secret" then
+		CueAssets.preload(cueId)
+	end
+	local spec = (CS :: any)[rarity]
+	local load: { any } = {}
+	local art: { string } = if rarity == "Mythic"
+		then PullMythic.assets()
+		elseif rarity == "Secret" then PullSecret.assets()
+		else {}
+	for _, image in art do
+		if image ~= "" then
+			table.insert(load, image)
+		end
+	end
+	-- Its sounds too (a long track loading late would start late).
+	if spec and type(spec.Sounds) == "table" then
+		for _, soundKey: string in spec.Sounds do
+			local sound = UISound.sound(soundKey)
+			if sound and not table.find(load, sound) then
+				table.insert(load, sound)
+			end
+		end
+	end
+	if rarity == "Secret" then
+		PullSecret.loadFont()
+	end
+	if #load > 0 then
+		task.spawn(function()
+			pcall(function()
+				game:GetService("ContentProvider"):PreloadAsync(load)
+			end)
+		end)
+	end
 end
 
 --- Whether a scene is playing now.
@@ -1693,6 +1243,8 @@ function PullCutscene.play(rarity: string, cueId: string, done: () -> (), onBlac
 		ourSky = nil,
 		lights = {},
 		sounds = {},
+		saved = {},
+		cleanup = {},
 		parts = {},
 		fired = {},
 		random = Random.new(),
@@ -1745,6 +1297,22 @@ function PullCutscene.play(rarity: string, cueId: string, done: () -> (), onBlac
 				return
 			end
 			s.clock += dt
+			local hold = qaHold
+			-- (on the scene's own clock: a scene keeping to its track runs `lag` behind)
+			if hold then
+				hold += s.parts.lag or 0
+			end
+			if hold and s.clock > intro + hold then
+				if not s.fired.qaFrozen then
+					s.fired.qaFrozen = true
+					for _, d in s.model:GetDescendants() do
+						if d:IsA("ParticleEmitter") then
+							d.TimeScale = 0
+						end
+					end
+				end
+				s.clock = intro + hold
+			end
 			hint.Visible = s.skippable and s.clock >= CS.HintAfterSeconds
 			if not s.fired.riser and s.clock >= riserAt then
 				s.fired.riser = true
@@ -1838,5 +1406,43 @@ function PullCutscene.remote(rarity: string)
 		if rarity == "Secret" then CS.Secret.FlickerHz else nil
 	)
 end
+
+--------------------------------------------------------------------------------------------
+-- Studio's checks (GuiQA; nothing here runs in a live game)
+--------------------------------------------------------------------------------------------
+
+-- A cue of each big rarity to look at when none is named.
+local QA_CUES: { [string]: string } = {
+	Rare = "NeonCue",
+	Epic = "VoidCue",
+	Legendary = "PhoenixCue",
+	Mythic = "CelestialDragonCue",
+	Secret = "EclipseCue",
+}
+
+-- GuiQA "pull", rarity, cue?, hold?: play a pull's scene on its own (no card, nothing given),
+-- held at `hold` seconds after the black when given (its particles frozen there).
+GuiQA.add("pull", function(rarity: string, cueId: string?, hold: number?): any
+	if not STEPS[rarity] then
+		return "no scene for " .. tostring(rarity)
+	end
+	qaHold = hold
+	local id = cueId or QA_CUES[rarity] or ""
+	PullCutscene.prepare(rarity, id)
+	PullCutscene.play(rarity, id, function() end)
+	return true
+end)
+-- GuiQA "pullPrepare", rarity, cue?: warm a scene's cue and art (as a reel does).
+GuiQA.add("pullPrepare", function(rarity: string, cueId: string?): any
+	local id = cueId or QA_CUES[rarity] or ""
+	PullCutscene.prepare(rarity, id)
+	return CueAssets.ready(id)
+end)
+-- GuiQA "pullStop": end the scene and clear the hold.
+GuiQA.add("pullStop", function(): any
+	qaHold = nil
+	PullCutscene.stop()
+	return true
+end)
 
 return PullCutscene

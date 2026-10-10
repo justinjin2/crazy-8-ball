@@ -4288,3 +4288,27 @@ timer of a new block stay the designer's call.
 - 2026-10-10: Index finder's money is claimed per card: a found cue whose money waits shows a breathing CLAIM! in the padlock's place, and pressing the card claims it (the money flies from the card). The "New cues found!" strip with Collect is hidden.
 - 2026-10-10: Two new players may still meet in game 1 (path R stays). Their tutorial bots leave the server when that game starts (a new one comes if they lose and return to the arrow). A path-R win under Config.Ranks.RealMatchSeconds counts as not won (game 1 again), since it pays no XP. A first win that dropped no Mystery block (beating another new player) gets the tutorial's own Mystery once, at the Mystery step. A first-match loss still gives no block (win to get it).
 - 2026-10-10: Far players look smoother: the nearest 8 tables (6 on a phone; was 4) pose their shooter and draw their balls, far poses at 30 a second (was 15), and the server moves an unposed shooter's root in finer steps (10 a second, 0.3 studs, 6 degrees; was 5, 1, 20).
+- 2026-10-10 (designer: "the Legendary but tenfold ... cutscene movie worthy", directing left
+  to Claude; brief `docs/prompts/PULL_CUTSCENES_V2.md`): the Mythic and Secret pull cutscenes
+  are redone. The Mythic, "Starfall", runs on the designer's "Transition Logo Reveal" (its beats
+  drive the film) and "Robo Rise" (its stop is the flash): night falls, shooting stars wind into
+  one rainbow star that falls on the player, bullet time round the frozen burst, the cue forged
+  from the light beside them. The Secret, "The Dream" (the designer's picks: a backrooms dream,
+  the Great Vibes font, "You've dreamed of it..." / "...and now it's finally yours."), is found
+  footage on a worn VHS tape: the DREAMCORE track (86247184974274), a backrooms hall whose
+  lights die toward the camera, the cue glowing red far down it, a dolly-zoom pull on the
+  "Tonal Rise", a hard cut to black and silence, then red and white. Both end like the
+  Legendary (its Cinematic Hit on the white flash); under the Secret's card plays the dream
+  music instead of the Aurora.
+- 2026-10-10 (designer: "make sure to do the actual 3d model and not the card"): no pull
+  cutscene shows a 2D cue card. The Mythic and Secret show the real 3D cue with its look and
+  aura, loaded from the reel's start; if it is not ready in time its moment is pure light.
+- 2026-10-10: In the Mythic the world within 420 studs of the player dissolves away for them
+  alone (LocalTransparencyModifier), leaving the player, the bare ground and the sky; the
+  signs, lights and effects on it and on the ground go out under the black, hidden by
+  properties their own scripts leave alone (the queue pads switch theirs on every frame). All of
+  it comes back when the scene ends or is skipped. Reason: the map's walls, tables and signs
+  filled the sky shots.
+- 2026-10-10: The Secret's heartbeat is a new single 1 s lub-dub (176554627); the old one
+  (1839088414) was a 31 s loop whose copies stacked into noise. The old scenes' "Shockwave"
+  sound (9120009360) is gone with them.

@@ -1141,6 +1141,21 @@
     "assetType": "Audio",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball/assets/audio/cutscenes/MythicLogo.wav": {
+    "assetId": "70660822484246",
+    "assetType": "Audio",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/audio/cutscenes/MythicRise.wav": {
+    "assetId": "77718729000824",
+    "assetType": "Audio",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/audio/cutscenes/SecretRise.wav": {
+    "assetId": "122183012463871",
+    "assetType": "Audio",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball/assets/audio/luckyblocks/ImpactEpic.wav": {
     "assetId": "124125612588605",
     "assetType": "Audio",
@@ -4898,6 +4913,24 @@
     "imageId": "137361940974937",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball/assets/cutscenes/backrooms_carpet.png": {
+    "assetId": "100854383687251",
+    "assetType": "Decal",
+    "imageId": "85328592376015",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/cutscenes/backrooms_ceiling.png": {
+    "assetId": "138277853597274",
+    "assetType": "Decal",
+    "imageId": "135194052214813",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/cutscenes/backrooms_wallpaper.png": {
+    "assetId": "97756486915675",
+    "assetType": "Decal",
+    "imageId": "116894571064682",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball/assets/cutscenes/beam_energy.png": {
     "assetId": "106769341622649",
     "assetType": "Decal",
@@ -4910,16 +4943,70 @@
     "imageId": "98573532343624",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball/assets/cutscenes/celestial_sigil.png": {
+    "assetId": "115025796370137",
+    "assetType": "Decal",
+    "imageId": "122111353406116",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/cutscenes/light_shard.png": {
+    "assetId": "133284834923189",
+    "assetType": "Decal",
+    "imageId": "99670713323994",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball/assets/cutscenes/light_streak.png": {
     "assetId": "80015313274648",
     "assetType": "Decal",
     "imageId": "114536414580559",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball/assets/cutscenes/milky_way.png": {
+    "assetId": "114961624310929",
+    "assetType": "Decal",
+    "imageId": "90810175968030",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/cutscenes/nebula_puff_a.png": {
+    "assetId": "73182226173110",
+    "assetType": "Decal",
+    "imageId": "120699545744911",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/cutscenes/nebula_puff_b.png": {
+    "assetId": "121501967646198",
+    "assetType": "Decal",
+    "imageId": "107407343850426",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball/assets/cutscenes/star_flare.png": {
     "assetId": "100355805252400",
     "assetType": "Decal",
     "imageId": "84051192712402",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/cutscenes/vhs_noise.png": {
+    "assetId": "90157398644100",
+    "assetType": "Decal",
+    "imageId": "128367808280885",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/cutscenes/vhs_scanlines.png": {
+    "assetId": "99880314318415",
+    "assetType": "Decal",
+    "imageId": "71605853922794",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/cutscenes/vhs_tracking.png": {
+    "assetId": "136374951298822",
+    "assetType": "Decal",
+    "imageId": "88534595023473",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/cutscenes/vignette.png": {
+    "assetId": "130690318969174",
+    "assetType": "Decal",
+    "imageId": "129683785836185",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/luckyblocks/anims/BoxIdle.rbxm": {

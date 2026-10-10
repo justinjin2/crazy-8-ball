@@ -5562,10 +5562,46 @@ Config.Audio = {
 		-- already): looped VERY faintly under the Legendary card (Config.Cutscenes.Legendary
 		-- .Ambience).
 		LegendaryAurora = { Id = "rbxassetid://138935380522596", Volume = 0.3, Looped = true },
-		-- The Secret pull's heartbeat and shockwave (GUI lane, 2026-10-03; licensed library
-		-- sounds: APM "Heart Beat", Pro Sound Effects "Thruster Blast 8").
-		Heartbeat = { Id = "rbxassetid://1839088414", Volume = 0.12, Overlap = true },
-		Shockwave = { Id = "rbxassetid://9120009360", Volume = 0.5 },
+		-- The Mythic pull cutscene "Starfall" (Config.Cutscenes.Mythic; designer 2026-10-10,
+		-- assets/audio/cutscenes): "Transition Logo Reveal Sequence 01" (8.3 s: a hit at 0.35 s,
+		-- a drone, a shimmer rising to 3.9 s, the air sucked out, reveal hits 4.25-5.1 s, a reverb
+		-- tail) from the black, and "Robo Rise" (4 s: its peak and hard stop at 3.55 s) into the
+		-- flash.
+		MythicLogo = { Id = "rbxassetid://70660822484246", Volume = 0.165 },
+		MythicRise = { Id = "rbxassetid://77718729000824", Volume = 0.44 },
+		-- Its sweeteners (Roblox's licensed libraries; each measured loading in this game,
+		-- 2026-10-10): "Magical Exit Sparkling Pass Bys Clinking Chimes 7" (PSE, 3.5 s: the pass-by
+		-- at 0.25-0.75 s, a chiming tail) for a shooting star; "Whooshy Magic Sucks Somewhat
+		-- Phasey 7" (PSE, 2.3 s, rising to 1.91 s) into the fusion; "Deep Hits Big Reverberant
+		-- Booms Rumbling Tail 2" (PSE, 4.4 s, more upper body than a pure sub, so phones hear it)
+		-- at the impact; "Anarchy Reverse Swell" (APM, 2.7 s, peak 1.89 s then cut) through bullet
+		-- time. Volumes set by their measured loudness, under the track.
+		StarWhoosh = { Id = "rbxassetid://9125635442", Volume = 0.22, Overlap = true },
+		StarGather = { Id = "rbxassetid://9120747424", Volume = 0.5 },
+		MythicBoom = { Id = "rbxassetid://9125484367", Volume = 0.3 },
+		TimeSlow = { Id = "rbxassetid://9040531832", Volume = 0.3 },
+		-- The Secret pull cutscene "The Dream" (Config.Cutscenes.Secret; designer 2026-10-10):
+		-- "DREAMCORE (Fever Dream)" (a public Roblox upload, its own 1 s fade in, then a droning
+		-- bed) from the black and quietly under the card, and "Tonal Rise" (5.4 s, loudest at its
+		-- end) into the hard cut.
+		SecretDream = { Id = "rbxassetid://86247184974274", Volume = 0.5 },
+		SecretRise = { Id = "rbxassetid://122183012463871", Volume = 0.36 },
+		-- The dream's hall (Roblox's libraries; each measured loading here, 2026-10-10): "Buzzing
+		-- Fluorescent Light" (Riptide Studios, 13.6 s, a steady mid buzz phones can play) while
+		-- the lights are on; "Fluorescent Light Flicker SFX" (0.17 s tick) on each blink of the
+		-- faulty panel; "Power Up Sweeteners 6" (PSE, a deep thunk gone by 0.4 s) as each panel
+		-- dies; "Static Bursts Of Interference Many Variations 6" (PSE, a 0.8 s burst from 0.1 s)
+		-- on the tape's tears; "Television 2" (PSE: a set's switch-on whump, then hiss; faded
+		-- out soon after) as the picture opens.
+		FluorescentHum = { Id = "rbxassetid://8865081402", Volume = 0.6, Looped = true },
+		LightFlicker = { Id = "rbxassetid://124724102681542", Volume = 0.8, Overlap = true },
+		LightClunk = { Id = "rbxassetid://9117884499", Volume = 0.5, Overlap = true },
+		VhsGlitch = { Id = "rbxassetid://9126000399", Volume = 0.45, Overlap = true },
+		CrtOn = { Id = "rbxassetid://9119969399", Volume = 0.5 },
+		-- The Secret pull's heartbeat: "Slow Heartbeat" (1 s, exactly one dry lub-dub a play, so
+		-- played faster and faster it races; 2026-10-10). It was APM "Heart Beat" 1839088414, a
+		-- 31 s loop that stacked when played per beat.
+		Heartbeat = { Id = "rbxassetid://176554627", Volume = 0.45, Overlap = true },
 		-- "Roblox_UI_Tonal_Stinger" (1.5 s): a reward claimed (daily, playtime, index, code).
 		Claim = { Id = "rbxassetid://15675043410", Volume = 0.3 },
 		-- "Roblox_UI_Indicator" (3.4 s), quiet: a banner (Money Party, an announcement).
@@ -16063,44 +16099,478 @@ Config.Cutscenes = {
 		AmbienceFadeSeconds = 1.2, -- ...then tapers away over this long
 		Skippable = true, -- once it has been seen
 	},
-	-- For the Mythic and Secret redo (designer, 2026-10-05): both also get the Legendary's bonus
-	-- reveal sounds, the "Cinematic Hit" on the flash (Audio.Ui.LegendaryHit) and the faint
-	-- angelic "Aurora" ambience under the card (Audio.Ui.LegendaryAurora, PullCutscene.cardClosed).
+	-- Mythic, "Starfall" (designer 2026-10-10: the sky turns dark, streaks of stars, the
+	-- shooting stars combine and hit the player; directed by Claude, PullMythic,
+	-- docs/prompts/PULL_CUTSCENES_V2.md). A film behind black bars on the designer's "Transition
+	-- Logo Reveal" from the black: nightfall, shooting stars, the newborn star, its fall onto the
+	-- player, bullet time, the real cue forged from the light, the "Robo Rise", the flash.
+	-- Scene seconds (from the end of the fade to black, on the track's own clock), studs,
+	-- degrees and 0..1 shares.
 	Mythic = {
-		Seconds = 4.6,
-		SpaceInSeconds = 0.6, -- the sky turns to deep space
-		Stars = 6000,
-		Tint = { 225, 210, 255 },
-		TintShare = 0.35,
-		Brightness = 0.6, -- the light while in space
-		RiseFrom = 0.4, -- the camera rises into the stars
-		RiseSeconds = 2.4,
-		RiseStuds = 40,
-		AuroraBands = 4, -- pastel aurora ribbons high in the sky
-		AuroraHeightStuds = 120,
-		AuroraWidthStuds = 26,
-		AuroraTransparency = 0.5, -- at a ribbon's middle (the stars show through)
-		AuroraSpreadStuds = 160,
-		DescendAt = 2.6, -- the cue comes down from the stars on a beam of light
-		DescendSeconds = 1.4,
-		CueSharePx = 0.42, -- the falling cue's size, of the screen's height
+		-- Sounds (Config.Audio.Ui keys; an empty Id plays nothing).
+		Sounds = {
+			Logo = "MythicLogo", -- the designer's track, from the black: its beats drive the film
+			Rise = "MythicRise", -- the designer's "Robo Rise", started so its stop is the flash
+			Whoosh = "StarWhoosh", -- a shooting star as it appears (every WhooshEvery-th one)
+			Gather = "StarGather", -- the stars sucked in to the point (from GatherSoundAt)
+			Boom = "MythicBoom", -- under the track's own hit at the impact
+			Slow = "TimeSlow", -- a reverse swell through bullet time into time running again
+			Finale = "LegendaryHit", -- on the flash (designer 2026-10-05: the Legendary's "Cinematic Hit")
+			Ambience = "LegendaryAurora", -- very faint under the card (designer 2026-10-05)
+		},
+		AmbienceTailSeconds = 1, -- the ambience plays on this long after the card closes...
+		AmbienceFadeSeconds = 1.2, -- ...then tapers away over this long
+		RiseStopSeconds = 3.6, -- the Robo Rise stops dead this far in (measured 3.597 s): the flash
+		WhooshEvery = 2, -- a whoosh for every second shooting star (more would blur together)
+		GatherSoundAt = 2.3, -- the suck's peak (1.91 s in) lands on the track's breath (4.2 s)
+		SlowSoundAt = 4.71, -- the swell's peak (1.89 s in) lands as time runs again (ForgeAt)
+		QuietSeconds = 0.4, -- every other sound in the world fades out this fast
+		-- The timeline, on the track (its beats measured, assets/audio/cutscenes/README.md).
+		HitAt = 0.35, -- the track's first hit: a hard cut in from the black
+		NightSeconds = 1.6, -- from the hit, the day falls to night
+		TurnAt = 3.2, -- the track's shimmer: the shooting stars bend toward the point...
+		FuseAt = 4.25, -- ...and fuse there on the reveal hit, after the breath (3.9-4.2 s)
+		FallAt = 4.66, -- the newborn star falls...
+		ImpactAt = 5.12, -- ...and hits the player on the track's last sub hit
+		SlowFrom = 5.3, -- bullet time: the world slows almost to a stop (the burst thrown out first)...
+		SlowTo = 6.6, -- ...and runs again here
+		SlowSpeed = 0.05, -- its speed meanwhile (particles, the nova, the shake)
+		SlowRampSeconds = 0.12, -- the slowing and the speeding up
+		ForgeAt = 6.6, -- the light falls into a point at the player's chest...
+		CueAt = 7.0, -- ...and the cue is there (the Robo Rise started at 10.55 - 3.6 = 6.95)
+		FlashAt = 10.55, -- the white flash, on the Robo Rise's stop
+		FlashInSeconds = 0.08, -- the flash snaps in...
+		FlashOutSeconds = 0.5, -- ...and fades off the card
+		BarsShare = 0.12, -- each letterbox bar, of the screen's height (in from the black)
+		Skippable = true, -- once it has been seen
+		ChestStuds = 3.2, -- the hit lands this high above the feet
+		-- The world round the player falls away into the night as it falls (for them alone:
+		-- LocalTransparencyModifier; PullKit.clearWorld): everything standing above the ground,
+		-- so the sky shots see only the player, the ground and the cosmos. Back at the end.
+		Clear = {
+			RadiusStuds = 420, -- this far round the player
+			GroundStuds = 0.75, -- a part whose top is no higher than this over their feet stays
+			From = 0.15, -- the dissolve, seconds after the hit...
+			To = 1.55,
+			Share = 0.35, -- ...each piece fading over this share of it (the farthest first)
+		},
+		-- Pastels the scene cycles through: the Mythic shimmer (Kit.MythicShimmer) and two more.
+		Palette = {
+			{ 127, 231, 255 }, -- cyan
+			{ 183, 156, 255 }, -- lilac
+			{ 255, 156, 230 }, -- pink
+			{ 255, 255, 255 }, -- white
+			{ 150, 255, 210 }, -- mint
+			{ 255, 214, 160 }, -- peach
+		},
+		-- Night: the clock runs to midnight (Roblox dims the painted sky and shows the stars),
+		-- the light goes indigo and the bloom opens. All of it goes back at the end.
+		Night = {
+			ClockTime = 0, -- midnight
+			Stars = 3000, -- the sky's own stars meanwhile
+			Brightness = 0.5, -- the sun's light (it is set, but the clock moves it)
+			OutdoorAmbient = { 52, 46, 104 }, -- the night shade
+			Ambient = { 26, 22, 52 },
+			Exposure = -0.1, -- ExposureCompensation
+			EnvDiffuse = 0.2, -- the sky's light on the scene...
+			EnvSpecular = 0.35, -- ...and in its reflections
+			AtmosphereDensity = 0.05, -- a clear night
+			AtmosphereColour = { 44, 38, 96 }, -- the haze at the horizon, indigo
+			AtmosphereDecay = { 24, 20, 60 },
+			Tint = { 222, 212, 255 }, -- the grade's lavender
+			Contrast = 0.12, -- added to the grade
+			Saturation = 0.18,
+			BloomIntensity = 1.1, -- the map's bloom opens (it was 1)...
+			BloomThreshold = 1.9, -- ...lower (it was 2.6), so starlight and neon glow...
+			BloomSize = 30, -- ...wider (it was 24)
+		},
+		-- Bullet time's grade, on top of the night's (at the slowest).
+		Bullet = { Tint = { 236, 214, 255 }, TintShare = 0.6, Contrast = 0.12, Saturation = 0.25 },
+		-- The cosmos over the roof, our own: it fades in with the night.
+		Cosmos = { InFrom = 0.5, InTo = 1.7 }, -- after the hit
+		MilkyWay = { -- a pastel band arching over the sky (Art.MilkyWay on a Beam)
+			LengthStuds = 2000, -- end to end
+			EndHeightStuds = 20, -- its ends near the horizon...
+			CurveStuds = 700, -- ...arching this high (Beam control points: its top about 3/4 of it)
+			AheadStuds = 0, -- centred over the player...
+			YawDegrees = 35, -- ...running from ahead of them to behind, turned this far
+			WidthStuds = 230,
+			Transparency = 0.2, -- at its most
+			Brightness = 1.4,
+		},
+		Nebulae = { -- soft pastel clouds far out (Art.NebulaA/B on BillboardGuis)
+			Count = 7,
+			DistanceStuds = 760,
+			YawDegrees = { -170, 170 }, -- all round
+			PitchDegrees = { 16, 55 }, -- above the horizon
+			SizeStuds = { 280, 480 },
+			Transparency = 0.45, -- at their most
+			TurnDegrees = 2, -- a slow turn, degrees a second
+		},
+		SkyStars = { -- big twinkling pastel stars over the painted ones (particles)
+			Count = 420, -- (scaled by the quality setting)
+			SpreadStuds = 1500, -- a box this wide...
+			BottomStuds = 170, -- ...from this high...
+			TopStuds = 430, -- ...to this high
+			AheadStuds = 0,
+			SizeStuds = 4, -- each, give or take 60%
+			LifetimeSeconds = 40, -- longer than the scene
+		},
+		-- The shooting stars: each crosses the sky ahead, then homes on the point.
+		Shooting = {
+			Count = 12, -- (scaled by the quality setting...)
+			Min = 5, -- ...never fewer)
+			From = 1.4, -- the first appears (behind the player, seen in the first shot)...
+			Every = 0.16, -- ...and one more every this long
+			YawDegrees = { 10, 75 }, -- how far round from straight ahead, either side
+			Distance = { 380, 620 }, -- studs out
+			Height = { 150, 300 }, -- studs up
+			Dip = { 0.1, 0.35 }, -- how steeply they fall as they cross
+			Speed = { 300, 460 }, -- studs a second while they streak (they stay in the sky)
+			TrailStuds = { 10, 18 }, -- each trail's width far away...
+			MinWidthStuds = 1.6, -- ...and never thinner than this close up
+			WidthPerStud = 0.03, -- the width wanted per stud from the camera
+			TrailSeconds = 0.75, -- the trail's length in time
+			HeadStuds = 16, -- the head's glow, at least...
+			HeadPerStud = 0.06, -- ...or this per stud from the camera
+			DustRate = 26, -- sparkles shed along the way, a second
+			TurnStagger = 0.05, -- each turns this much after the one before
+			ArriveEarlySeconds = 0.08, -- they reach the point this long before the fusion
+			HomePower = 1.7, -- the homing starts slow and arrives fast
+			CarryShare = 0.35, -- how far each carries on along its flight as it turns
+			SpiralTurns = 1.1, -- turns round the point on the way in
+			SpiralStuds = 70, -- the spiral's widest
+		},
+		PointHeightStuds = 60, -- the point the stars fuse at, above the player...
+		PointAheadStuds = 10, -- ...and this far ahead of them
+		Star = { -- the newborn star
+			Studs = 28, -- its white core
+			FlareStuds = 64, -- its turning eight-spike flares
+			RaysStuds = 70, -- rays behind
+			SpinDegrees = 90, -- the flares' turn, degrees a second
+			CycleSeconds = 1.4, -- its colours cycle the palette this often
+			PulseAt = { 4.47, 4.59, 4.87 }, -- it pulses on the track's next hits (measured)
+			PulseScale = 0.35, -- by this much
+			RingStuds = 300, -- the ring that bursts through the sky at the fusion
+			RingSeconds = 0.6,
+			GatherStuds = 60, -- light streams in to the point from a sphere this wide...
+			GatherRate = 140, -- ...this many a second (scaled by quality)
+			Light = 3, -- its light's brightness (high above, it barely reaches the ground)
+			LightRange = 50,
+		},
+		Fall = {
+			Power = 2.2, -- the fall speeds up: share^power
+			TrailStuds = 7, -- the comet's rainbow trail
+			TrailSeconds = 0.45,
+		},
+		Impact = {
+			GlareColour = { 255, 246, 255 }, -- the light that floods the screen...
+			Glare = 0.9, -- ...this much...
+			GlareSeconds = 0.16, -- ...clearing this fast
+			NovaStuds = 15, -- the nova shell's last size (it hangs in bullet time round the player)
+			NovaSeconds = 0.9,
+			CoreSeconds = 0.25, -- its white core's flash
+			ImplodeSeconds = 0.4, -- it falls back into the forge point when time runs again
+			ShockStuds = 130, -- the shockwave over the roof
+			ShockSeconds = 0.8,
+			PillarStuds = 160, -- a pillar of light up from the player
+			PillarWidthStuds = 3.5,
+			PillarSeconds = 0.6,
+			Sparks = 90, -- thrown out (scaled by quality)
+			Shards = 36, -- light shards (scaled by quality)
+			Light = 5,
+			ShakeStuds = 2.4, -- the hit's shake...
+			ShakeSeconds = 1.3, -- ...dying over this long (on the slowed clock)
+			ShakeRollDegrees = 8,
+			ShakeHz = 16,
+			KickStuds = 1.7, -- the jolt down at the hit
+			PunchFov = 10, -- a punch in, degrees
+		},
+		Forge = {
+			CueAheadStuds = 2.4, -- the cue forms this far in front of the player...
+			CueSideStuds = 2.6, -- ...this far to their right (both in the picture)...
+			CueHeightStuds = 3.9, -- ...its middle this high
+			ImplodeStuds = 26, -- light falls in from a sphere this wide...
+			ImplodeRate = 220, -- ...this many a second (scaled by quality)
+			GlowStuds = 9, -- the white-hot glow the cue forms in
+			RevealSeconds = 0.9, -- it fades off the cue over this long
+			FlareSeconds = 0.4, -- before the flash the cue flares...
+			FlareGrow = 3, -- ...its glow growing this many times
+			BornSparks = 60, -- a burst as it forms (scaled by quality)
+			Light = 1.6,
+			SpinPerSecond = 0.7, -- the cue's turn (radians a second)...
+			SpinRise = 5, -- ...plus this much at the rise's top
+			BobStuds = 0.18, -- a gentle float
+			SigilStuds = 26, -- the celestial sigil under them
+			SigilTurn = 0.25, -- its turn (radians a second)...
+			SigilTurnRise = 1.4, -- ...plus this much at the rise's top
+			Orbiters = 3, -- starlight orbiting the cue
+			OrbitStuds = 3.4,
+			OrbitPerSecond = 3, -- radians a second...
+			OrbitRise = 3, -- ...this many times faster at the rise's top
+			OrbitTiltDegrees = 35,
+			OrbitTrailSeconds = 0.35,
+			MoteRate = 12, -- motes rising off the sigil...
+			MoteRise = 24, -- ...more with the rise
+		},
+		Focus = { RadiusStuds = 7, Far = 0.35 }, -- the shallow focus in the shots on the player
+		-- The camera, shot by shot (see PullMythic's header).
+		Shots = {
+			Night = { -- 1: low and wide in front, the player in the lower third, a slow push
+				FromStuds = 15,
+				ToStuds = 12,
+				SideStuds = 2.2,
+				HeightStuds = 1.6,
+				LookHeightStuds = 4.5, -- it looks this high above their feet...
+				LookRiseStuds = 5, -- ...and tilts up this much more as night falls
+				FieldOfView = 72,
+				Handheld = 0.04,
+			},
+			Wonder = { -- 2: over the shoulder from behind and below, looking up at the sky
+				At = 2.0,
+				BackStuds = 6,
+				PushStuds = 1.5,
+				SideStuds = 2.4,
+				HeightStuds = 2.6,
+				LookAheadStuds = 34,
+				LookHeightStuds = 40,
+				ToPointShare = 0.85, -- it tilts toward the point as the stars wind in
+				FieldOfView = 82,
+				Narrow = 10, -- degrees narrower by the fusion
+				Handheld = 0.05,
+			},
+			Star = { -- 3: low behind their other shoulder, up past them at the newborn star
+				At = 4.25,
+				Studs = 9.5, -- behind them
+				PushStuds = 1.2,
+				SideStuds = -1.8, -- to their left (the wonder shot was over the right)
+				HeightStuds = 0.7,
+				TiltShare = 0.58, -- between their shoulders (0) and the star (1)
+				FieldOfView = 84,
+			},
+			Fall = { -- 4: wide and low from the side as the comet comes down
+				At = 4.66,
+				Degrees = 80, -- round from straight in front
+				Studs = 44,
+				HeightStuds = 1.5,
+				FollowShare = 0.32, -- it looks this far up from their chest to the star's point
+				FieldOfView = 82,
+			},
+			Bullet = { -- 5: a slow orbit round the frozen burst
+				At = 5.3,
+				FromDegrees = 45,
+				ToDegrees = 150,
+				FromStuds = 17,
+				ToStuds = 12.5,
+				FromHeight = 4.2,
+				ToHeight = 2.6,
+				FieldOfView = 60,
+			},
+			Forge = { -- 6: in front, then a rising orbit round cue and player; a rush in at the end
+				At = 6.6,
+				FromDegrees = -40, -- front left (the cue is to the player's right)...
+				ToDegrees = 10, -- ...round to the front
+				FromStuds = 13,
+				ToStuds = 10,
+				PivotShare = 0.55, -- round a point this far from their chest to the cue
+				FromHeight = 0.2, -- above that point
+				ToHeight = 2,
+				LookAboveStuds = 0.4,
+				FromFov = 52,
+				ToFov = 44,
+				RushSeconds = 0.45, -- the last stretch...
+				RushStuds = 2.6, -- ...it rushes this close...
+				RushFov = 12, -- ...narrowing this much
+				Handheld = 0.03,
+			},
+		},
 	},
+	-- Secret, "The Dream" (designer 2026-10-10: the screen goes black, an ominous backrooms
+	-- track, "You've dreamed of it... ...and now it's finally yours." in a curly script, glitches;
+	-- directed by Claude, PullSecret, Backrooms, docs/prompts/PULL_CUTSCENES_V2.md). Found footage
+	-- on a worn VHS tape: the black and a heartbeat; an endless backrooms hall; the lights die
+	-- toward the camera; the cue glowing red far down the hall; the pull down the hall on the
+	-- "Tonal Rise"; a hard cut to black and silence; red, white, the card. Scene seconds (from
+	-- the end of the fade to black), studs, degrees, pixels and 0..1 shares.
 	Secret = {
-		Seconds = 5.6,
-		GlitchSeconds = 1.6, -- red-white glitch blocks over the screen
-		GlitchBlocks = 10,
-		LightsFrom = 0.3, -- the map's lights go out one by one...
-		LightsSeconds = 1.8,
-		DarkBrightness = 0.05, -- ...down to this
-		SilenceSeconds = 0.4, -- every other sound fades out this fast
-		Heartbeats = { 2.2, 2.85, 3.5 }, -- a heartbeat in the silence
-		ShockAt = 3.9, -- the shockwave
-		ShockSeconds = 0.6,
-		SpinSeconds = 0.9, -- the camera shakes and spins
-		ShakeStuds = 0.6,
-		SkyGlitchSeconds = 1.4, -- the sky flickers red and white (everyone in the server)
+		-- Sounds (Config.Audio.Ui keys; an empty Id plays nothing).
+		Sounds = {
+			Dream = "SecretDream", -- the designer's DREAMCORE track, from DreamAt to the hard cut
+			Heartbeat = "Heartbeat",
+			Hum = "FluorescentHum", -- looped while the hall's lights are on
+			Flicker = "LightFlicker", -- a panel stuttering
+			Clunk = "LightClunk", -- each panel dying
+			Glitch = "VhsGlitch", -- the tape tearing
+			Crt = "CrtOn", -- the picture opening
+			Rise = "SecretRise", -- the designer's "Tonal Rise": its loudest end is the hard cut
+			Finale = "LegendaryHit", -- the Cinematic Hit on the flash
+			Ambience = "SecretDream", -- the dream music on under the card (cardClosed tapers it)
+		},
+		AmbienceVolume = 0.45, -- the dream music under the card, of its own level...
+		AmbienceInSeconds = 1.6, -- ...rising back after the silence over this long
+		AmbienceTailSeconds = 1.5, -- once the card is closed it plays on this long...
+		AmbienceFadeSeconds = 2, -- ...then tapers away over this long
+		Skippable = true, -- once it has been seen
+		QuietSeconds = 0.5, -- every other sound in the game dies away this fast
+		-- The black.
+		Beats = { 0.3, 1.25, 2.15 }, -- heartbeats in the black...
+		DarkBeats = { 8.75, 9.65, 10.5 }, -- ...and in the dark once the lights are out
+		BeatPulse = 0.55, -- the red at the screen's edges on a beat (0..1)
+		DreamAt = 0.8, -- the music starts (its own 1 s fade in)
+		-- The tape opens on the hall (a CRT line opening into the picture).
+		OpenAt = 2.2,
+		OpenSeconds = 0.4,
+		CrtSeconds = 0.9, -- the set's switch-on and hiss play this long, then fade
+		-- The two lines (Strings.PullCutscene), written on from the left.
+		-- (Y: the line's middle, of the screen's height; the second sits low, under the cue)
+		Line1 = { At = 3.5, WriteSeconds = 1.7, OutAt = 6.25, OutSeconds = 0.3, Y = 0.5 },
+		Line2 = { At = 8.6, WriteSeconds = 1.9, OutAt = 10.75, OutSeconds = 0.3, Y = 0.76 },
+		CutAt = 6.55, -- the tape jumps: further down the hall
+		-- The lights die from the far end toward the camera, faster as they near (PullMath
+		-- .lightsOut); one panel by the camera keeps flickering.
+		LightsFrom = 7.3,
+		LightsTo = 8.45,
+		LightsPower = 1.7,
+		ClunkGapSeconds = 0.07, -- clunks at most this often (the rest die quietly)
+		FlickerAtStuds = 66, -- the flickering panel: the one nearest this far down the hall
+		-- The cue far down the hall in a red glow.
+		CueAt = 9.4,
+		CueInSeconds = 1.4,
+		CueAtStuds = 165, -- how far down the hall it floats...
+		CueHeightStuds = 4.6, -- ...its middle this high over the carpet
+		CueSpinPerSecond = 0.6, -- radians, turning about its length...
+		CueSpinRise = 3, -- ...this many times faster by the end of the pull
+		CueBobStuds = 0.25,
+		RedLight = { Brightness = 3, RangeStuds = 18, PullBrightness = 6 },
+		RedGlowStuds = 12, -- the glow behind it
+		Embers = 30, -- red embers rising round it, a second (scaled by Quality)
+		-- The pull: the Tonal Rise (its loudest moment, its end, on the hard cut), the camcorder
+		-- snapping in on the cue, the dolly zoom down the hall, the rush into the cue.
+		PullAt = 11.0,
+		RiseLeadSeconds = 5.39, -- the rise starts this long before the hard cut
+		BlackAt = 16.4, -- the hard cut to black and silence
+		FlashAt = 16.85, -- red, then white: the Cinematic Hit and the card
+		RedSeconds = 0.08, -- red before it turns white...
+		FlashInSeconds = 0.3, -- ...white by now (the card comes in under it)
+		FlashOutSeconds = 0.6,
+		Racing = { FirstGap = 0.8, LastGap = 0.17, Loudest = 1.8 }, -- the heart racing to the cut
+		-- The camera, shot by shot (studs down the hall; the eye's height over the carpet).
+		Shots = {
+			Hall = {
+				FromStuds = 5,
+				ToStuds = 15,
+				EyeStuds = 5.1,
+				LookAtStuds = 200,
+				LookHeight = 4.4,
+				FieldOfView = 70,
+			},
+			Dark = { AtStuds = 60, DriftStuds = 1.6, EyeStuds = 4.8, FieldOfView = 68 },
+			Pull = {
+				ZoomFov = 17, -- the snap in on the cue...
+				ZoomSeconds = 0.35,
+				HoldSeconds = 0.3, -- ...a breath...
+				DollyToStuds = 150, -- ...the dolly zoom down the hall to here (the cue the same size)...
+				DollyEndsAt = 14.6,
+				MaxFov = 104,
+				RushToStuds = 4.6, -- ...then the rush in, to this far from the cue
+				RushFov = 62,
+				RollDegrees = 7, -- a slow tilt as it goes
+			},
+			Handheld = 0.06, -- the camcorder's drift (studs of smooth noise)...
+			HandheldHz = 0.35,
+			StormShake = 0.22, -- ...and its shake at the height of the storm
+		},
+		-- The tape (the veil's layers over the picture).
+		Vhs = {
+			NoiseTransparency = 0.9, -- the grain (lower is stronger)
+			NoiseTilePx = 256,
+			ScanlineTransparency = 0.45,
+			ScanlineTilePx = 256,
+			VignetteTransparency = 0.12,
+			TrackingSeconds = 1.6, -- a tracking band rolls up the picture over this long
+			TrackingHeight = 0.08, -- of the screen
+			Blur = 2, -- the picture's softness (BlurEffect size)
+			Tint = { 255, 240, 205 },
+			Saturation = -0.25,
+			Contrast = 0.12,
+			Exposure = 0.25,
+			OsdTextPx = 26, -- "PLAY" and the clock (Strings.PullCutscene)
+			GlitchBars = 9, -- the tears across the picture
+		},
+		-- The lines' look: Great Vibes (a Roblox font family, public), a red and a cyan copy
+		-- split either side, torn in strips when it glitches.
+		Text = {
+			Font = "rbxassetid://12187375958",
+			Width = 0.86,
+			Height = 0.17,
+			Bands = 7, -- strips a glitch can tear sideways
+			Split = 2.5, -- the red and cyan copies, pixels either side...
+			GlitchSplit = 12, -- ...when it glitches
+			TearPx = 26, -- a glitch's tear, pixels at most
+			SoftEdge = 0.07, -- the writing's soft edge, of the line's width
+			Colour = { 255, 246, 232 },
+			YoursColour = { 255, 228, 228 },
+			Red = { 255, 40, 60 },
+			Cyan = { 60, 230, 255 },
+			Glow = 0.62, -- the soft glow behind the second line, transparency
+		},
+		-- The glitches: the timeline is cut into slots, each on or off (PullMath.glitchOn).
+		Glitch = {
+			SlotSeconds = 0.05,
+			Calm = 0.025, -- the chance a slot glitches in the hall...
+			StormFrom = 0.08, -- ...as the pull starts...
+			StormTo = 0.55, -- ...and at its height
+			SoundGapSeconds = 0.2, -- a glitch's sound at most this often
+		},
+		-- The worn tape bending the music in the pull (its speed, 1 = normal).
+		Warble = { Depth = 0.07, FromHz = 0.6, ToHz = 2.8 },
+		Hall = {
+			Origin = { 0, 2400, 0 }, -- the near wall's foot, far above the map, facing -Z
+			WidthStuds = 12,
+			HeightStuds = 9,
+			LengthStuds = 230,
+			WallStuds = 1, -- the walls', carpet's and ceiling's thickness
+			SideDepthMost = 18, -- the deepest side hall (the carpet and ceiling reach under it)
+			PanelFirstStuds = 6, -- a light panel down the middle every so often
+			PanelEveryStuds = 12,
+			PanelStuds = { 2.4, 4.4 }, -- across, along
+			PanelColour = { 255, 247, 222 },
+			HousingColour = { 206, 200, 182 },
+			DeadColour = { 96, 93, 86 }, -- a panel gone out
+			Light = {
+				Brightness = 1.6,
+				RangeStuds = 15,
+				AngleDegrees = 120,
+				Colour = { 255, 238, 196 },
+			},
+			SideShare = 0.7, -- a lit side hall's panel, of a full one
+			-- Side halls: Side -1 left, 1 right; At studs down the hall; Width and Depth studs.
+			Openings = {
+				{ Side = -1, At = 30, Width = 7, Depth = 14, Lit = true },
+				{ Side = 1, At = 54, Width = 6, Depth = 10, Lit = false },
+				{ Side = 1, At = 98, Width = 8, Depth = 16, Lit = true },
+				{ Side = -1, At = 126, Width = 6, Depth = 12, Lit = false },
+				{ Side = 1, At = 190, Width = 7, Depth = 14, Lit = false },
+			},
+			WallpaperColour = { 212, 194, 112 }, -- under the art (and in its place without it)
+			CarpetColour = { 150, 132, 82 },
+			CeilingColour = { 222, 216, 186 },
+			CarpetTileStuds = 7,
+			CeilingTileStuds = 4.4, -- the art is 2 x 2 tiles
+			BaseboardStuds = 0.45,
+			BaseboardColour = { 140, 122, 66 },
+			LitAmbient = { 70, 62, 34 }, -- the hall's ambient light with the panels on...
+			DarkAmbient = { 14, 12, 8 }, -- ...and with them out
+			Haze = {
+				Density = 0.42,
+				Colour = { 196, 176, 108 },
+				Decay = { 92, 80, 40 },
+				Dark = { 6, 5, 3 },
+			},
+			Bloom = { Intensity = 0.7, Threshold = 1.15, Size = 36 }, -- the panels glow, not the ceiling
+		},
+		-- Others' pulls (PullCutscene.remote): the sky flickers red and white.
 		FlickerHz = 9,
-		RestoreAt = 5.0, -- the lights come back in one go
 		Red = { 255, 40, 60 },
 	},
 	-- Others' pulls (Legendary and up): the sky tint only, never a camera or screen effect.
@@ -16111,6 +16581,21 @@ Config.Cutscenes = {
 		BeamSoft = "rbxassetid://98573532343624", -- a soft falloff across a beam
 		LightStreak = "rbxassetid://114536414580559", -- one soft streak of light (the warp's streaks)
 		StarFlare = "rbxassetid://84051192712402", -- a pointed eight-spike star (the Legendary warp)
+		-- The Mythic's sky (colour baked, never tinted): a pastel Milky Way band along a beam and
+		-- two soft nebula clouds.
+		MilkyWay = "rbxassetid://90810175968030",
+		NebulaA = "rbxassetid://120699545744911", -- pink to lilac
+		NebulaB = "rbxassetid://107407343850426", -- cyan to lilac
+		Sigil = "rbxassetid://122111353406116", -- a celestial magic circle on the ground (white)
+		LightShard = "rbxassetid://99670713323994", -- a thin glowing crystal shard (white)
+		-- The Secret's backrooms (tools/gen_backrooms_art.py): the hall's surfaces and the VHS.
+		Wallpaper = "rbxassetid://116894571064682", -- one wall's height, tiles across
+		Carpet = "rbxassetid://85328592376015",
+		Ceiling = "rbxassetid://135194052214813", -- 2 x 2 drop-ceiling tiles
+		Scanlines = "rbxassetid://71605853922794", -- black lines on clear, tiles
+		Noise = "rbxassetid://128367808280885", -- grey grain, tiles
+		Tracking = "rbxassetid://88534595023473", -- a torn band of bright noise (white)
+		Vignette = "rbxassetid://129683785836185", -- white at the edges, clear in the middle
 	},
 	HintAfterSeconds = 0.6, -- "Tap to skip" shows this late (only once the kind was seen)
 	-- The 1v1 match result (ResultCutscene; GUI lane, C11a, D2; redone by the designer

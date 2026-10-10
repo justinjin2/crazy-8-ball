@@ -1215,6 +1215,14 @@ return {
 		SkipMouse = "Click to skip",
 		SkipPad = "Skip", -- after the gamepad's A button picture
 	},
+	-- The Secret pull cutscene (PullSecret): its two lines in a curly script (the designer's
+	-- wording, 2026-10-10), and the old VHS tape's on-screen display over the picture.
+	PullCutscene = {
+		DreamLine = "You've dreamed of it...",
+		YoursLine = "...and now it's finally yours.",
+		VhsPlay = "PLAY ▶",
+		VhsClock = "AM 3:33",
+	},
 	-- The Free Reward menu (FreeRewardMenu and its sections FreeDaily, FreePlaytime, FreeTrack,
 	-- FreeSocial; the designer's picks "daily A" and "free_other A", 2026-10-08). Block names
 	-- come from Strings.LuckyBlocks.Names; money is "$250" (Progression/Format).
