@@ -4,8 +4,10 @@
 -- "tap here" icon, 2026-10-03). Its fingertip is the point it shows; it is never turned upside
 -- down.
 --
--- - point(target): solid, just under a target (TutorialOverlay.Target), tapping (it pokes up
---   and squishes on a short loop, and the tap lines over the fingertip flash).
+-- - point(target, side): solid, just under a target (TutorialOverlay.Target), tapping (it pokes
+--   up and squishes on a short loop, and the tap lines over the fingertip flash). With `side`
+--   it lies on its side to the target's right and pokes left, so what is over and under the
+--   target stays clear (the Rank claim's rewards, the designer 2026-10-09).
 -- - gesture(kind, ...): see-through demonstrations on a loop:
 --     "pull"  (target)        down the power bar, all the way;
 --     "hold"  (keyCode)       a gamepad button glyph held while a bar fills (Hold A);
@@ -156,9 +158,9 @@ function TutorialHand.set(self: Hand, mode: string?, target: Target?, other: Tar
 	self.other = other
 end
 
---- Points at `target`, tapping. Nil hides the hand.
-function TutorialHand.point(self: Hand, target: Target?)
-	self:set(if target then "point" else nil, target)
+--- Points at `target`, tapping (from its right side with `side`). Nil hides the hand.
+function TutorialHand.point(self: Hand, target: Target?, side: boolean?)
+	self:set(if target == nil then nil elseif side then "side" else "point", target)
 end
 
 --- Starts a see-through demonstration (see the header).
@@ -222,9 +224,12 @@ function TutorialHand.update(self: Hand, dt: number)
 	local size = handSize() * (1 + H.NudgeGrow * grow)
 	local t = self.clock
 
-	if mode == "point" then
-		local centre = if self.target then (self.target()) else nil
-		if centre == nil then
+	if mode == "point" or mode == "side" then
+		local centre: Vector2?, rect: Vector2? = nil, nil
+		if self.target then
+			centre, rect = self.target()
+		end
+		if centre == nil or rect == nil then
 			return
 		end
 		-- The tap: a quick poke up and squish, then a rest; the tap lines flash with it. Near the
@@ -234,15 +239,25 @@ function TutorialHand.update(self: Hand, dt: number)
 		local dip = if phase < 0.3 then math.sin(phase / 0.3 * math.pi) else 0
 		local flash = if phase < 0.6 then math.sin(phase / 0.6 * math.pi) else 0
 		self.scale.Scale = 1 - H.TapSquish * dip
-		local below = centre.Y + H.HoverPx + size * (1 - H.TipY) - view.Y
-		local flip = below > size * H.FlipOffShare
-		local at = centre
-			+ Vector2.new(0, (if flip then -1 else 1) * (H.HoverPx - H.TapDipPx * dip))
-		if flip then
-			at -= Vector2.new((1 - 2 * H.TipX) * size, (1 - 2 * H.TipY) * size)
+		if mode == "side" then
+			-- Turned a quarter left about its middle: the tip, at (dx, dy) from the middle
+			-- upright, lands at (dy, -dx), so the hand shifts to keep it inside the right end.
+			local tip =
+				Vector2.new(centre.X + rect.X / 2 - H.SideInsetPx - H.TapDipPx * dip, centre.Y)
+			local dx, dy = (H.TipX - 0.5) * size, (H.TipY - 0.5) * size
+			placeHand(self, tip + Vector2.new(dx - dy, dy + dx), size, 0)
+			self.hand.Rotation = -90
+		else
+			local below = centre.Y + H.HoverPx + size * (1 - H.TipY) - view.Y
+			local flip = below > size * H.FlipOffShare
+			local at = centre
+				+ Vector2.new(0, (if flip then -1 else 1) * (H.HoverPx - H.TapDipPx * dip))
+			if flip then
+				at -= Vector2.new((1 - 2 * H.TipX) * size, (1 - 2 * H.TipY) * size)
+			end
+			placeHand(self, at, size, 0)
+			self.hand.Rotation = if flip then 180 else 0
 		end
-		placeHand(self, at, size, 0)
-		self.hand.Rotation = if flip then 180 else 0
 		self.rays.Visible = flash > 0
 		self.rays.Size = self.hand.Size
 		self.rays.Position = self.hand.Position

@@ -267,6 +267,10 @@ return {
 		XpOf = "%s / %s XP", -- the XP bar: "520 / 1,000 XP"
 		XpOnly = "%s XP", -- Reyes has no top: just the XP past its start
 		OneMoreWin = "ONE MORE WIN!", -- under the XP bar when one win ranks up (GUI lane)
+		-- Under the XP bar otherwise: the wins (against an equal player) to the next division
+		-- (the designer, 2026-10-09: always a next goal). Wins, the next division in capitals.
+		WinsTo = "%d WINS TO %s!",
+		WinsToGo = "%d WINS TO GO!", -- a phone's short name row
 		ChatTag = "[%s]", -- before a name in chat, the tier in capitals: "[PLATINUM]" (ChatTags)
 		VipTag = "[VIP]", -- first before a VIP player's name in chat, in the house rainbow (ChatTags)
 	},
@@ -624,6 +628,7 @@ return {
 			Index = "Index", -- the Cues menu's title while its Index shows
 			Trade = "Trade",
 			FreeReward = "Free Reward",
+			DailyRewards = "Daily Rewards", -- the daily calendar's own popup
 		},
 		-- The tabs under (or beside) each title.
 		Tabs = {

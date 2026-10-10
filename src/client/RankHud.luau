@@ -200,7 +200,8 @@ function RankHud.new(screen: ScreenGui, onOpen: () -> ()): any
 	numbers.Size = UDim2.new(1, -8, 1, 4)
 	numbers.ZIndex = 3
 	self.numbers = numbers
-	-- "ONE MORE WIN!" under the pill, shaking, while one win would rank up (refreshOneMore).
+	-- The next goal under the pill (refreshOneMore): "ONE MORE WIN!", shaking, while one win
+	-- would rank up; else the wins to go.
 	local oneMore = HudParts.text(
 		body,
 		"OneMore",
@@ -262,7 +263,7 @@ function RankHud.new(screen: ScreenGui, onOpen: () -> ()): any
 	local mark = HudParts.text(pending, "Mark", H.PendingDotTextPx, Strings.Menus.DotReady)
 	mark.Size = UDim2.fromScale(1, 1)
 	mark.ZIndex = 7
-	self.pending = pending
+	self.pendingDot = pending
 	self.pendingPulse = nil :: UIAnim.Handle?
 	local button = badge.button :: GuiButton
 	-- Nothing is above or left of it on screen: a stick pushed that way stays on it.
@@ -347,25 +348,26 @@ end
 function RankHud.refreshPending(self: any)
 	local player = self.player
 	local show = player ~= nil and player:GetAttribute("RankPending") == true
-	if show == self.pending.Visible then
+	if show == self.pendingDot.Visible then
 		return
 	end
 	if self.pendingPulse then
 		self.pendingPulse.stop()
 		self.pendingPulse = nil
 	end
-	self.pending.Visible = show
+	self.pendingDot.Visible = show
 	if show then
-		UIAnim.popIn(self.pending)
-		self.pendingPulse = UIAnim.pulse(self.pending)
+		UIAnim.popIn(self.pendingDot)
+		self.pendingPulse = UIAnim.pulse(self.pendingDot)
 	end
 end
 
---- Whether one win against an equal player (Ranks.matchXp) would rank up: then the badge and
---- the bar wiggle and "ONE MORE WIN!" shows under the bar (GUI lane, C3).
+--- The next goal (the designer, 2026-10-09: always a goal in sight), from the wins against an
+--- equal player (Ranks.matchXp) the next division takes: one, and the badge and the bar
+--- wiggle with "ONE MORE WIN!" under the bar (GUI lane, C3); more, and the wins to go show.
 function RankHud.refreshOneMore(self: any)
 	local player = self.player
-	local on = false
+	local wins, nextName = 0, ""
 	if player then
 		local xp = player:GetAttribute("RankXp")
 		local matches = player:GetAttribute("RatedMatches")
@@ -376,15 +378,23 @@ function RankHud.refreshOneMore(self: any)
 		local width = rank.width
 		if rank.index > 0 and width ~= nil then
 			local gain = Ranks.matchXp(rank, { outcome = "Win", opponent = "Player" } :: any)
-			on = gain > 0 and width - rank.xpInDivision <= gain
+			if gain > 0 then
+				wins = math.max(1, math.ceil((width - rank.xpInDivision) / gain))
+				nextName = Ranks.name(Ranks.fromXp(Ranks.startXp(rank.index + 1), true))
+			end
 		end
 	end
+	local was = self.goalWins or 0
+	self.goalWins, self.goalName = wins, nextName
+	self:drawGoal()
+	if wins > 0 and (was == 0 or (wins == 1) ~= (was == 1)) then
+		UIAnim.popIn(self.oneMore)
+	end
+	local on = wins == 1
 	if on == (self.oneMoreLoops ~= nil) then
 		return
 	end
 	if on then
-		self.oneMore.Visible = true
-		UIAnim.popIn(self.oneMore)
 		self.oneMoreLoops = {
 			UIAnim.shake(self.badge.root, "Wiggle"),
 			UIAnim.shake(self.pill, "Text"),
@@ -395,7 +405,21 @@ function RankHud.refreshOneMore(self: any)
 			loop.stop()
 		end
 		self.oneMoreLoops = nil
-		self.oneMore.Visible = false
+	end
+end
+
+-- The goal's words: "ONE MORE WIN!", or the wins to the next division ("3 WINS TO BRONZE
+-- II!"; in a phone's short name row "3 WINS TO GO!"). Hidden with no goal (Unranked, Reyes).
+function RankHud.drawGoal(self: any)
+	local wins = self.goalWins or 0
+	local label = self.oneMore
+	label.Visible = wins > 0
+	if wins == 1 then
+		label.Text = Copy.OneMoreWin
+	elseif wins > 1 then
+		label.Text = if self.short
+			then Copy.WinsToGo:format(wins)
+			else Copy.WinsTo:format(wins, string.upper(self.goalName or ""))
 	end
 end
 
@@ -428,7 +452,7 @@ function RankHud.layout(self: any)
 	local spill = (badgePx - B0) / 2
 	self.badge.root.Size = UDim2.fromOffset(badgePx, badgePx)
 	self.badge.root.Position = UDim2.fromOffset(-spill, -spill)
-	self.pending.Position = UDim2.fromOffset(
+	self.pendingDot.Position = UDim2.fromOffset(
 		B0 / 2 + (H.PendingDotAt[1] - 0.5) * badgePx,
 		B0 / 2 + (H.PendingDotAt[2] - 0.5) * badgePx
 	)
@@ -436,9 +460,11 @@ function RankHud.layout(self: any)
 	if room > 0 then
 		scale = math.min(scale, room / (self.naturalWidth + spill))
 	end
-	-- "ONE MORE WIN!": under the pill, or in its name row on a phone.
+	-- The goal ("ONE MORE WIN!"): under the pill, or in its name row on a phone.
 	local B, PW, PH = H.BadgePx, H.PillWidthPx, H.PillHeightPx
 	local oneMore = self.oneMore
+	self.short = short
+	self:drawGoal()
 	if short then
 		oneMore.Parent = self.pill
 		oneMore.TextXAlignment = Enum.TextXAlignment.Right

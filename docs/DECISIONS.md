@@ -3941,3 +3941,30 @@ timer of a new block stay the designer's call.
   players without a table at 20 players, against 0% with the backup; the spare-table lever
   (`Config.GlobalQueue.SpareTables`) stays at 0. Max Players stays the plan's 24 (0.13% of new
   players wait for a table in a full server; 20 makes it 0% and halves arena teleports).
+- 2026-10-09 (designer, live test notes): the tutorial's combination is shown as a ghost replay
+  on the table (a see-through cue strikes, the cue ball rolls into the first ball, it into the
+  second, that one into the glowing pocket, on a loop) instead of the pointer hand. The Rank
+  claim keeps the rewards in view: no dim, only CLAIM ringed, the hand from its side. The Cues
+  step waits until the lucky block's reel and reveal are done. Every lucky block reel's still
+  before it spins goes back to 0.2 s (1.2 s was too long). Free Reward's soft-part bounce is a
+  slow breath (1.1x over 0.9 s), and its first open lands on the group to join.
+- 2026-10-09 (designer): the Daily Rewards popup ("daily A" in its own lively frame, the same
+  section as the Free Reward menu's Daily) comes up once at the tutorial's soft part, before
+  the invite popup, which follows a second after it closes; Play Global glows after the invite
+  is answered. This is the one exception to the 2026-10-04 "no reward popups" rule; returning
+  players get no daily popup (say if they should).
+- 2026-10-09 (designer): the Starter Pack tile shows the Shop card's picture (the Starter Lucky
+  Block, the Starter Cue behind it, money in front) on a blue halo; the rank HUD always shows the
+  next goal under its bar: "N WINS TO <next division>!" (wins against an equal player), "ONE
+  MORE WIN!" with the wiggle at one ("N WINS TO GO!" in a phone's short row).
+- 2026-10-09: the rank HUD follows XP changes again (since 2026-10-03 the claim dot's field
+  shadowed its pending-changes flag, so it only redrew when shown again and "ONE MORE WIN!"
+  never appeared).
+- 2026-10-09 (designer): the test place's saves live in their own store
+  (`Config.Save.TestPlace`), renamed to start everyone there over; the real game's store is
+  untouched.
+- 2026-10-09 (designer, for economy v5.1 at the merge; nothing changed now): after the tutorial
+  plus the group and playtime rewards a new player had about $32,000 and 5+ lucky blocks, which
+  reads as a lot and misleads about the pace after; the buildup should be slower. The next win
+  reward (Mystery, wins 2/10) is not appetizing after so many Mystery blocks: maybe an Epic, if
+  the economy allows.

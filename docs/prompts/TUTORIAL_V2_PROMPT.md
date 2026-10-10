@@ -1395,6 +1395,21 @@ lines). All in the worktree.
   key cut to 128 characters by the typed prompt), 409 while the test place was open in a Studio
   window. All in STUDIO_NOTES.
 - **The live checklist** went to the designer (the report's list). Waiting for their results.
+- **The designer's first live notes (2026-10-09), all done** and checked in Studio on PC's
+  happy path with one screenshot each: the combination's ghost replay (`TutorialGhostShot`) in
+  place of the big hand; the Rank claim with no dim, only CLAIM ringed, the hand from its side
+  (`TutorialHand.point(target, side)`); the Cues step waits for the reel and its reveal
+  (`LuckyClient.busy`); the Daily Rewards popup (`DailyRewardsMenu`, the Free Reward menu's
+  Daily section in its own lively frame) once at the soft part's start, then the invite popup a
+  second after it closes, then Play Global; the reel's still back to 0.2 s; Free Reward's
+  bounce a slow breath; its first open lands on Group; the Starter Pack tile drawn as the
+  Shop's card (block, cue, money on a blue halo); the rank HUD's next goal ("2 WINS TO BRONZE
+  II!"). On the way: the rank HUD had stopped following XP changes since 2026-10-03 (its
+  pending-changes flag and the claim dot shared a name), so "ONE MORE WIN!" never showed and
+  the bar only redrew on a hide; fixed (`pendingDot`). The test place's saves moved to their
+  own store (`Config.Save.TestPlace`, reset 1) so everyone there starts over. The economy notes
+  (too much money and too many blocks by the end, the next win's reward) are in the report for
+  economy v5.1; nothing in the economy changed.
 
 ### Touch list (files outside the tutorial's own modules changed, and why)
 
@@ -1514,6 +1529,18 @@ lines). All in the worktree.
   - `src/server/TableService.luau` (`setMode`, the pad's `modeText`; `freeTable`'s `spare`),
     `src/shared/Config.luau` (`GlobalQueue.SpareTables` 0), `tools/tutorial_v2_server_model.py`
     (the `backup` switch).
+- Step 15 (the designer's live notes):
+  - `src/client/RankHud.luau` (the next goal under the bar; the `pendingDot` rename fixes the
+    HUD not following XP), `src/shared/Strings.luau` (`Ranks.WinsTo`, `WinsToGo`,
+    `Menus.Titles.DailyRewards`).
+  - `src/client/HubCorners.luau` (the Starter Pack tile's picture), `src/client/FreeRewardMenu.luau`
+    (the first open on Group), `src/client/LuckyClient.luau` (`busy`), `src/client/Progression.luau`
+    (builds `DailyRewardsMenu`, new).
+  - `src/server/PlayerData.luau` (the test place's own store).
+  - `src/shared/Config.luau`: `Save.TestPlace`, `UI.Menu.LivelyMenus` + `UI.DailyRewards`,
+    `UI.Corners.Starter*`, `UI.Reel.Reel.StillSeconds` 0.2, `Tutorial.Ghost`,
+    `Tutorial.Hand.SideInsetPx`, `Tutorial.Soft` (BounceScale, BounceSeconds,
+    DailyAfterSeconds).
 
 ---
 

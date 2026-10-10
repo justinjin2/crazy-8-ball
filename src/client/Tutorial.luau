@@ -23,6 +23,7 @@ local TutorialAnchors = require(script.Parent.TutorialAnchors)
 local TutorialOverlay = require(script.Parent.TutorialOverlay)
 local TutorialHand = require(script.Parent.TutorialHand)
 local TutorialArrow = require(script.Parent.TutorialArrow)
+local TutorialGhostShot = require(script.Parent.TutorialGhostShot)
 local TutorialGlow = require(script.Parent.TutorialGlow)
 local Camera = require(script.Parent.Camera)
 local Progression = require(script.Parent.Progression)
@@ -39,6 +40,7 @@ local overlay: TutorialOverlay.Overlay
 local hand: TutorialHand.Hand
 local arrow: TutorialArrow.Arrow
 local glow: TutorialGlow.Glow
+local ghost: TutorialGhostShot.Ghost
 
 local ULTS = Config.UI.UltScreen.Column.Name
 local INVENTORY = "Inventory"
@@ -171,6 +173,15 @@ local function refreshHidden()
 			Tutorial.report("Seen", "Icons")
 		end
 	end
+	-- A step's new icons wait while a block opens (Place's open moves the server to Cues at the
+	-- E-hold: Cues comes after the reel and its reveal; the designer, 2026-10-09).
+	if not broken and step ~= "" and LuckyClient.busy() then
+		for item, from in Steps.Reveal do
+			if from == step then
+				hidden[item] = true
+			end
+		end
+	end
 	-- The Win a Match quest takes the daily win track's place until it is won.
 	if not broken and TutorialSoft.questOn() then
 		hidden.WinTrack = true
@@ -203,14 +214,27 @@ end
 
 -- Points at a GUI anchor with the dim and the line (at `place`, see TutorialOverlay.say), the
 -- gamepad's selection on it when the scene is new. Nothing while the anchor is not on screen.
-local function pointAt(anchor: string, text: string, device: string, fresh: boolean, place: string?)
+-- `clear`: no dim, only the gold ring, and the hand from the side, so what is round the anchor
+-- stays in full view.
+local function pointAt(
+	anchor: string,
+	text: string,
+	device: string,
+	fresh: boolean,
+	place: string?,
+	clear: boolean?
+)
 	if not TutorialAnchors.showing(anchor) then
 		lineOnly(nil)
 		return
 	end
 	local target = TutorialOverlay.guiTarget(anchor)
-	overlay:dim(target)
-	hand:point(target)
+	if clear then
+		overlay:dim(target, false, true)
+	else
+		overlay:dim(target)
+	end
+	hand:point(target, clear)
 	overlay:say(text, place)
 	local object = TutorialAnchors.get(anchor)
 	if fresh and device == "gamepad" and object and object.Selectable then
@@ -336,24 +360,24 @@ local function comboLesson(device: string, fresh: boolean): string
 		end
 		aimPartAt = os.clock()
 	end
-	glow:show(lessonPocket())
+	local id, pocket = lessonPocket()
+	glow:show(id, pocket)
 	overlay:dim(nil)
+	local balls = player:GetAttribute("TutorialComboBalls")
+	local pair = if type(balls) == "string" then string.split(balls, ",") else {}
+	local a, b = tonumber(pair[1]), tonumber(pair[2])
+	if id and pocket and a and b then
+		ghost:show(id, a, b, pocket)
+	else
+		ghost:hide()
+	end
 	if os.clock() - aimPartAt >= L.ComboShootSeconds then
 		shootPrompt(device)
 		return "ComboShoot"
 	end
-	local id = player:GetAttribute("TutorialTable")
-	local balls = player:GetAttribute("TutorialComboBalls")
-	local pair = if type(balls) == "string" then string.split(balls, ",") else {}
-	local a, b = tonumber(pair[1]), tonumber(pair[2])
-	if type(id) == "number" and a and b then
-		-- "Hit this ball" (the back one); "into that one" sits between it and the glowing pocket.
-		hand:point(TutorialOverlay.worldTarget(function(): Vector3?
-			return TutorialAnchors.worldPoint(id, "ball", a)
-		end, 24))
-	else
-		hand:hide()
-	end
+	-- The ghost replay shows the shot: the cue ball into "this ball" (the back one), it into
+	-- "that one" (between it and the glowing pocket), that one in.
+	hand:hide()
 	overlay:say(Copy.Combo)
 	return "Combo"
 end
@@ -456,10 +480,10 @@ end
 -- The chain after game 1 (Result .. Abilities)
 ---------------------------------------------------------------------------------------------
 
--- A popup, a menu or the block screens (the upgrade screen, the reel) are up: the chain's
--- pointers wait.
+-- A popup, a menu or the block screens (the upgrade screen, a block opening from its E-hold
+-- to its reveal) are up: the chain's pointers wait.
 local function busy(): boolean
-	return Progression.isBusy() or LuckyClient.isOpen()
+	return Progression.isBusy() or LuckyClient.busy()
 end
 
 -- A step's done report, sent again every Timing.ReportAgainSeconds while the scene holds: the
@@ -498,7 +522,8 @@ local function rankScene(device: string, fresh: boolean): string
 	local open = Menus.isOpen(RANKED)
 	if pending then
 		if open then
-			pointAt("RankClaim", words(Copy.RankClaim, device), device, fresh, "Near")
+			-- The rewards stay lit and uncovered: they see what they claim (the designer).
+			pointAt("RankClaim", words(Copy.RankClaim, device), device, fresh, "Near", true)
 			return "rankClaim" .. device
 		end
 		if busy() then
@@ -722,9 +747,7 @@ local function scene(step: string, device: string): string
 	end
 	-- Never over a block screen (the upgrade screen, the reel, its reveal): they end by themselves.
 	overlay:setNext(
-		NEXT_STEPS[step] == true
-			and Tutorial.since() >= fallbackOf(step)
-			and not LuckyClient.isOpen(),
+		NEXT_STEPS[step] == true and Tutorial.since() >= fallbackOf(step) and not LuckyClient.busy(),
 		function()
 			Tutorial.report("Next")
 		end
@@ -837,6 +860,7 @@ local function update(dt: number)
 	-- The Abilities screen fills the screen with its odds top right: Skip goes top left.
 	overlay.skipLeft = Menus.isOpen(ULTS)
 	pcall(glow.update, glow, dt)
+	pcall(ghost.update, ghost, dt)
 	pcall(refreshHidden)
 	-- The soft part outlives the tutorial's steps (its quest waits for a win).
 	if not broken then
@@ -860,13 +884,19 @@ local function update(dt: number)
 	end
 	if not Tutorial.active() then
 		shownKey, shownStep = "", ""
+		ghost:hide()
 		runHints("")
 		return
 	end
 	local ok, result = pcall(scene, Tutorial.step(), Tutorial.device())
 	if not ok then
+		ghost:hide()
 		breakDown(result, "Scene")
 		return
+	end
+	-- The combination's ghost replay shows only in its lesson.
+	if string.sub(result, 1, 10) ~= "game1Combo" then
+		ghost:hide()
 	end
 	runHints(Tutorial.step())
 	local now = os.clock()
@@ -942,6 +972,8 @@ local function startQA()
 				broken = broken,
 				line = overlay.lineText,
 				next = overlay.nextButton.Visible,
+				blockBusy = LuckyClient.busy(),
+				cuesShown = TutorialAnchors.showing("Inventory"),
 			}
 		elseif op == "big" then
 			overlay:bigText(a)
@@ -992,6 +1024,7 @@ function Tutorial.start()
 	hand = TutorialHand.new(overlay.gui)
 	arrow = TutorialArrow.new(overlay.gui)
 	glow = TutorialGlow.new(overlay.gui)
+	ghost = TutorialGhostShot.new()
 	overlay.avoid = function(): { Vector3 }
 		local spots = {}
 		local pocket = glow:point()

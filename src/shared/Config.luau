@@ -1660,6 +1660,10 @@ Config.Save = {
 	-- player's save. A new name starts everyone fresh: change it only on purpose.
 	StoreName = "PlayerData_v1",
 	StudioStoreName = "PlayerData_Studio_v1",
+	-- The test place (Crazy 8 Test Place, its own universe, so its own DataStores): its saves
+	-- in a store of their own, renamed to start everyone there over as brand-new players (the
+	-- designer, 2026-10-09: reset 1). Never the real game's.
+	TestPlace = { GameId = 10769973956, StoreName = "PlayerData_TestPlace_1" },
 	KeyPrefix = "Player_", -- key = KeyPrefix .. UserId
 	-- Hard caps a save can never pass (validate clamps to them). Far above any honest total;
 	-- they only stop a bug from writing a nonsense number.
@@ -8596,7 +8600,7 @@ Config.UI.Menu = {
 	-- 8-balls scroll, the white sheet has the still dots and an 8-ball sits on the top edge.
 	-- Menus not listed keep the kit frame (pop in, still pattern). Names as Menus.register.
 	-- "Inventory": the Cues menu (concept 2, 2026-10-08); "Ranked": the roadmap (pick "ranked A").
-	LivelyMenus = { "Shop", "Inventory", "FreeReward", "Ranked", "Settings" },
+	LivelyMenus = { "Shop", "Inventory", "FreeReward", "Ranked", "Settings", "DailyRewards" },
 	-- One thing at a time (HudFocus; designer, 2026-10-06): while a full menu is open every
 	-- other screen of ours is off. These ScreenGuis stay on (a "...Menu" screen always does):
 	-- popups that must still reach the player and invisible probes. KeepWith: more per menu.
@@ -9991,8 +9995,9 @@ Config.UI.Reel = {
 		-- slots 1 to 9), so it slides in.
 		ShowcaseFirstSlot = 10,
 		-- Before any reel spins it stands still this long on its cards (tutorial v2 4.5, for
-		-- every player): the Uncommon, Rare, Epic and Legendary cards they could win.
-		StillSeconds = 1.2,
+		-- every player): a glimpse of the cards they could win (the designer, 2026-10-09: 1.2 s
+		-- was far too long).
+		StillSeconds = 0.2,
 		CardWidthPx = 136, -- bigger cards with the cue's name and odds (GUI lane, 2026-10-03)
 		CardHeightPx = 176,
 		GapPx = 8, -- between two cards
@@ -13975,6 +13980,32 @@ Config.Tutorial = {
 		LightRange = 6, -- studs
 		LightBrightness = 4,
 	},
+	-- Game 1's combination as a ghost replay on the table (src/client/TutorialGhostShot.luau;
+	-- the designer, 2026-10-09: in place of the pointer hand). One loop: the cue draws back and
+	-- strikes, the cue ball rolls into A, A into B, B into the pocket and drops, all fade, a gap.
+	Ghost = {
+		Color = { 255, 255, 255 }, -- the cue (the balls wear their own colours)
+		BallScale = 1.1, -- the ghost balls, of a ball's look (a touch bigger, over the real one)
+		BallTransparency = 0.3,
+		CueTransparency = 0.45,
+		-- A white outline round each ghost (a Highlight each), so they read from the far end.
+		OutlineTransparency = 0.15,
+		CueLengthInches = 34, -- the part of the cue shown
+		CueWidthInches = 0.6,
+		RestInches = 2, -- the cue's tip behind the ball at the start
+		PullInches = 7, -- drawn back this far
+		PullSeconds = 0.5,
+		StrikeSeconds = 0.1,
+		RollSeconds = { 0.8, 0.6, 0.8 }, -- the cue ball to A, A to B, B to the pocket
+		DropSeconds = 0.3, -- B sinking into the pocket
+		FadeSeconds = 0.4,
+		GapSeconds = 0.5, -- nothing shown before the next loop
+		TrailSeconds = 0.9, -- each ghost's trail
+		TrailTransparency = 0.35, -- at the ball (it fades out along the trail)
+		TrailWidthShare = 0.9, -- the trail's width, of the ball's diameter
+		StillStuds = 0.002, -- the real cue ball moved more than this in a frame: a shot is on
+		RestSeconds = 0.6, -- the ghost waits this long after the balls rest
+	},
 	-- The chain's lucky block (tutorial v2 4.5): Bronze's Mystery block, whose upgrade screen
 	-- climbs once (Standard to Uncommon), then opens to TutorialCue (the designer's pick,
 	-- 2026-10-09: Cosmo, clearly nicer than the Bronze Cue). That one block is ready at once
@@ -14074,6 +14105,7 @@ Config.Tutorial = {
 		MinPx = 90,
 		MaxPx = 170,
 		HoverPx = 6, -- the tip rests this far below a button's centre
+		SideInsetPx = 18, -- point(target, side): the tip rests this far inside the target's right end
 		-- Near the screen's bottom (more than this share of the hand would run off it, as on the
 		-- hotbar) the hand turns over and points down at the target from above.
 		FlipOffShare = 0.4,
@@ -14174,7 +14206,11 @@ Config.Tutorial = {
 		GlowSeconds = 1.3,
 		GlowRaysScale = 2.4,
 		GlowRaysTransparency = 0.3,
-		BounceSeconds = 2.2, -- Free Reward bounces this often until it is clicked
+		-- Free Reward breathes until it is clicked: up to BounceScale and back over
+		-- 2 x BounceSeconds, smooth (the designer, 2026-10-09: the old quick pop was too fast and
+		-- jittery).
+		BounceScale = 1.1,
+		BounceSeconds = 0.9,
 		-- The gold ring (Free Reward's frames, Play Global): this thick, its transparency
 		-- breathing between Low and High over GlowSeconds.
 		RingThicknessPx = 6,
@@ -14190,8 +14226,13 @@ Config.Tutorial = {
 		QuestTopGapPx = 10,
 		QuestCountSeconds = 0.8,
 		QuestDoneSeconds = 3,
-		-- The invite popup: once, this long after the icons are out, when nothing else is up.
-		InviteAfterSeconds = 2.5,
+		-- The Daily Rewards popup (the designer, 2026-10-09): once, this long after the icons
+		-- are out, when nothing else is up.
+		DailyAfterSeconds = 0.5,
+		-- The invite popup: once, this long after the Daily Rewards popup is closed, when
+		-- nothing else is up; Play Global's glow waits until it is answered (the designer,
+		-- 2026-10-09: the invite first).
+		InviteAfterSeconds = 1,
 		InviteWidthPx = 380, -- its card (a phone's is InvitePhoneWidthPx), the height follows
 		InvitePhoneWidthPx = 300,
 		InvitePadPx = 18, -- room inside the card's edge
@@ -14766,6 +14807,42 @@ Config.UI.FreeReward.Open = {
 	},
 }
 
+-- The Daily Rewards popup (src/client/DailyRewardsMenu.luau; the designer's mock "daily A" as a
+-- popup of its own, 2026-10-09): the lively frame round the Free Reward menu's Daily section
+-- (its sizes in Config.UI.FreeReward.Daily). The open is that section's, from the Free Reward
+-- menu's schedule, with no money pill and no jump buttons.
+Config.UI.DailyRewards = {
+	FootPx = 10, -- the room under the section in the panel
+	Open = {
+		OpenSeconds = 0.91,
+		Steps = {
+			{ Ids = { "Panel" }, Kind = "Unroll", At = 0 },
+			{ Ids = { "Header" }, Kind = "Fade", At = 0.12, Length = 0.15 },
+			{ Ids = { "Basket", "Title", "Close" }, Kind = "Pop", At = 0.18 },
+			{ Ids = { "DailyPanel" }, Kind = "Grow", At = 0.20 },
+			{ Ids = { "DailyTitle" }, Kind = "Pop", At = 0.24 },
+			{
+				Ids = {
+					"DailyDay1",
+					"DailyDay2",
+					"DailyDay3",
+					"DailyDay4",
+					"DailyDay5",
+					"DailyDay6",
+				},
+				Kind = "Pop",
+				At = 0.28,
+				Stagger = 1.25,
+			},
+			{ Ids = { "DailyDay7" }, Kind = "Pop", At = 0.36, Burst = "Gold" },
+			{ Ids = { "DailyOp" }, Kind = "Pop", At = 0.46 },
+			{ Ids = { "DailyClaimAll" }, Kind = "Pop", At = 0.44 },
+			{ Ids = { "DailyFooter" }, Kind = "Fade", At = 0.48, Length = 0.12 },
+			{ Ids = { "Flair" }, Kind = "Drop", At = 0.66, Length = 0.25 },
+		},
+	},
+}
+
 -- The Ranked screen's open (Roadmap, pick "ranked A", 2026-10-08), on the frame's ids (Panel,
 -- Header, Basket, Title, Money, Close, Flair) and the page's: the arrows, each tier
 -- left to right, your shining badge with a gold burst and its rays, the two cards, then the
@@ -14834,6 +14911,14 @@ Config.UI.Corners = {
 	ChallengeRightPx = 14, -- from the right edge
 	ChallengeYShare = 0.42, -- its middle this far down the screen
 	ChallengeFlashSeconds = 1.2, -- one flash of its glow
+	-- The Starter Pack tile's picture (the Shop card's block, cue and money; the designer,
+	-- 2026-10-09): a halo in the Starter card's blue behind it, this much of the icon wide, so
+	-- the silver cue reads on the pale floor (a gold halo lost it); the cue a little more in
+	-- the middle than on the card, clear of the "!" dot (centre x, y, size, of the icon).
+	StarterGlowScale = 1.7,
+	StarterGlowTransparency = 0,
+	StarterGlowTint = { 60, 130, 255 },
+	StarterCue = { 0.52, 0.46, 0.98 },
 	SmallPx = 46, -- Invite and Plus (a computer)
 	ShortSmallPx = 38,
 	SmallGapPx = 8, -- between them, and from the money HUD

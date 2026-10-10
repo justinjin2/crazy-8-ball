@@ -984,7 +984,8 @@ blocks (2026-10-04).
   5 a month); **codes** (WELCOME, 8BALL, ROOFTOP, RELEASE). Codes give only money, lucky blocks
   and spins. **Everything is claimed in the Rewards menu**: nothing is given by itself on join
   or at a playtime mark, and there are no reward popups, reminder toasts or come-back screens
-  (designer, 2026-10-04). The one exception is the **Gift lucky block** (designer, 2026-10-07):
+  (designer, 2026-10-04), except the **Daily Rewards popup** once in the tutorial's soft part
+  (designer, 2026-10-09: day 1 to claim, day 7's prize on show). The other exception is the **Gift lucky block** (designer, 2026-10-07):
   given once, the first time a player leaves the game (not a teleport to a match), on a 12-hour
   timer that runs from that leave. On their next visit to a lobby (after the tutorial) it falls
   from the sky in a short cutscene: black bars, a glowing gold trail, a crash with a flash,
@@ -1131,7 +1132,9 @@ helpers, `src/server/TutorialService.luau`, `TutorialGames`, `TutorialBot`, `Tut
 - **Path S, the rigged game 1** (whoever sits down alone): the break with the aim locked
   (under half power the bar springs back; half or more plays the fixed break: 2 solids, the
   second creeping in); turn 2's aim lesson (a small turn, the zoom out with the pocket glowing);
-  the combination (two of their balls lined up, NICE SHOT!); the ability lesson (a full bar,
+  the combination (two of their balls lined up, shown as a ghost replay on the table: a
+  see-through cue strikes, the cue ball rolls into the first ball, it into the second, that one
+  into the glowing pocket; NICE SHOT!); the ability lesson (a full bar,
   Fire Shot's long line); the first miss gives the bot a visit that pots one then scratches,
   which teaches ball in hand; later bot visits miss and leave a makeable shot; SELECT WHICH
   POCKET with the right pocket glowing. They cannot lose game 1 (a losing 8 is put back as a
@@ -1143,17 +1146,22 @@ helpers, `src/server/TutorialService.luau`, `TutorialGames`, `TutorialBot`, `Tut
   next time they sit alone.
 - **The chain after a won game 1:** Result (Continue only, the first win's Rare block) ->
   NEW RANK! Bronze -> the bot says one casual line and leaves -> **Rank**: CLAIM (Bronze's
-  Mystery block waits there like every rank reward) -> **Mystery**: its upgrade screen climbs
+  Mystery block waits there like every rank reward; only CLAIM is ringed, no dim, the hand
+  from its side, so the rewards stay in view) -> **Mystery**: its upgrade screen climbs
   once, Standard to Uncommon, ready at once -> **Place**: "Place it!", throw and open; the
-  reel pauses on its cards, the Secret cue flashes past, it lands on the Cosmo Cue -> **Cues**:
+  reel pauses on its cards, the Secret cue flashes past, it lands on the Cosmo Cue (the Cues
+  step waits until the reel and its reveal are done) -> **Cues**:
   open, the new cue, Equip, close -> **Abilities**: 0 spins; "Type RELEASE for 3 free spins!"
   (filled in on a controller); the first spin lands on Magnet; 2 left -> the soft part. Each
   step re-prompts, offers Next after its fallback time, and resumes where it was after a
   rejoin.
 - **The soft part:** every icon pops in, each with a "!" until clicked once (Free Reward
-  stands out most); "Win a Match 0/1" stays until won; a small invite popup once (an honest
-  line on when the reward comes); Free Reward's group, favorite and like frames light once;
-  Play Global glows. **Game 2** is a real game through the new search; after it, win or lose,
+  stands out most, breathing slowly; its first open lands on the group to join); "Win a Match
+  0/1" stays until won; the **Daily Rewards popup** once (day 1 to claim, day 7 on show), then
+  a small invite popup once (an honest line on when the reward comes); Free Reward's group,
+  favorite and like frames light once; Play Global glows after the invite is answered. The
+  rank HUD always shows the next goal under the bar ("2 WINS TO BRONZE II!", "ONE MORE
+  WIN!"). **Game 2** is a real game through the new search; after it, win or lose,
   the tutorial is done.
 - **First-time hints, for everyone:** the first time each thing happens (the full ability bar,
   a rank-up to claim, a lucky block to place, a Mystery block, a cue won, Abilities, ball in
@@ -1169,7 +1177,9 @@ helpers, `src/server/TutorialService.luau`, `TutorialGames`, `TutorialBot`, `Tut
   Bronze's block waits in Rank; every reel pauses on its cards before it spins; "x2!" (and up)
   beside NICE SHOT! for two or more of your balls in one shot; the new search (section 6: this
   server first, the global queue, a bot here at 5 s); controller shooting (hold R2 or A to
-  fill, let go to shoot; B cancels); VIP and Starter Pack share one tile; the new arrow look.
+  fill, let go to shoot; B cancels); VIP and Starter Pack share one tile (the Starter Pack
+  drawn as the Shop's card: its block, cue and money); the new arrow look; the rank HUD's
+  next goal.
 - **Funnels:** the onboarding funnel (16 steps), PathS, PathR, Game2 and Social, the Shop,
   Block and Ability spins funnels, and custom events (Hint, TutorialSkipped, StepTime,
   TutorialError, Game2Result, InvitePopup). All in `docs/TUTORIAL_FUNNELS.md`.

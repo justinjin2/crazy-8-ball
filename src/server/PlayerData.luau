@@ -89,8 +89,12 @@ export type OpponentDay = { Matches: number, Drops: number }
 
 local S = Config.Save
 local IS_STUDIO = RunService:IsStudio()
--- Studio saves go to their own store, so testing never touches a real player's save.
-local STORE_NAME = if IS_STUDIO then S.StudioStoreName else S.StoreName
+-- Studio saves go to their own store, so testing never touches a real player's save; the test
+-- place's too (Config.Save.TestPlace: renamed to reset everyone there).
+local STORE_NAME = if IS_STUDIO
+	then S.StudioStoreName
+	elseif game.GameId == S.TestPlace.GameId then S.TestPlace.StoreName
+	else S.StoreName
 -- Studio-only failure test: set this attribute on ServerStorage to true and the next save
 -- that opens fails as if the DataStore refused the session (the player is kicked with
 -- Strings.Save.LoadFailed); the attribute clears itself. Never read outside Studio.

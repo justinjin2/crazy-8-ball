@@ -18,7 +18,7 @@ Not merged: it waits for your word. The full record is the brief's Notes
    0.5 to 2 s after them.
 4. **Game 1 (rigged, path S):** the break (aim locked; a weak pull springs back; a real pull
    pots 2 solids, the second creeping in), the aim lesson with the zoom and a glowing pocket,
-   the combination (NICE SHOT!), the ability lesson (Fire Shot's long line), the bot's visit
+   the combination (a ghost replay shows the shot; NICE SHOT!), the ability lesson (Fire Shot's long line), the bot's visit
    that pots then scratches (ball in hand), and SELECT WHICH POCKET. They can't lose game 1.
    About 4 minutes.
 5. **A fair first game (path R):** if a real person is at their table, it's a normal game; the
@@ -30,7 +30,8 @@ Not merged: it waits for your word. The full record is the brief's Notes
    Cue → Cues: Equip → Abilities: 0 spins, "Type RELEASE for 3 free spins!", the first spin
    lands on Magnet, 2 left.
 7. **The soft part:** every icon pops in with a "!" until clicked once, "Win a Match 0/1", the
-   invite popup once, Free Reward's frames lit once, Play Global glowing. Game 2 is a real game
+   Daily Rewards popup once, then the invite popup once, Free Reward's frames lit once (its
+   first open on Group), Play Global glowing. Game 2 is a real game
    through the new search; after it the tutorial is done.
 8. **For everyone after:** first-time hints (one each, ever) the first time something happens:
    the full ability bar, a rank-up, a lucky block, a Mystery block, a new cue, Abilities, and
@@ -44,14 +45,17 @@ at once. Skippers keep the icons' "!" dots, and the first-time hints still come.
 - **Spins:** a new save has 0 ability spins until RELEASE gives 3 (no starter spin, no spin
   for Bronze; Silver and up keep theirs; the first daily free spin is the next day).
 - **Bronze's Mystery block waits in Rank** like every other rank reward.
-- **Every lucky block reel** holds still about 1.2 s on its cards before it spins.
+- **Every lucky block reel** holds still 0.2 s on its cards before it spins (your note).
+- **The rank HUD's next goal** under its bar: "2 WINS TO BRONZE II!", "ONE MORE WIN!". On the
+  way I found the HUD had stopped following XP changes since 2026-10-03 (a name clash): fixed.
 - **"x2!"** (and up) beside NICE SHOT! when two or more of your balls drop in one shot.
 - **The new search** (Play Global, a pad's Play Global, the spawn pill): someone near your rank
   in this server first, then the global queue, and at 5 s a bot of your tier in this server (an
   arena bot only when no table is free). Team searches fill with bots after 5 s.
 - **Controller shooting:** hold R2 (or A) to fill the bar, let go to shoot, B cancels. Two
   other modes to try (below).
-- **VIP and the Starter Pack** share one tile; it and Daily Challenge are bigger.
+- **VIP and the Starter Pack** share one tile; it and Daily Challenge are bigger. The Starter
+  Pack shows the Shop card's picture (block, cue, money) on a blue halo.
 - **The new arrow look** wherever the arrow shows.
 
 ## What was checked, and on what
@@ -114,6 +118,40 @@ for you.
   older behaviour, not from this branch).
 - The "equip your new cue" hint forgets the cue after a rejoin (it waits for the next cue won).
 - The merge back (only when you say).
+
+## Your live notes of 2026-10-09: done
+
+Checked in Studio on PC, the main path, one screenshot each:
+
+1. **The combination:** a ghost replay on the table instead of the big hand (a see-through cue
+   strikes, the cue ball rolls into the first ball, it into the second, that one into the
+   glowing pocket; each with a trail, on a loop).
+2. **Rank claim:** no dim; only CLAIM is ringed; the hand points from its side, so the rewards
+   stay in view.
+3. **Cues waits for the reel:** its icon and hand come only after the reel and the YOU GOT
+   screen.
+4. **The invite popup comes sooner:** a second after the Daily Rewards popup closes, and Play
+   Global glows only after the invite is answered.
+5. **The reel's pause** is 0.2 s again, for every lucky block.
+6. **Free Reward's bounce** is a slow breath now.
+7. **Free Reward's first open** lands on the group to join.
+8. **The Daily Rewards popup** (your "daily A") comes up once at the soft part: day 1 to
+   claim, day 7's prize on show. Returning players don't get it each day; say if they should.
+9. **The Starter Pack tile** shows the block, the Starter Cue and money, as in the Shop.
+10. **"2 WINS TO BRONZE II!"** under the rank bar; "ONE MORE WIN!" with the wiggle when one
+    win ranks up.
+
+Also: **everyone on the test place starts over** as a new player (its saves moved to a fresh
+store; the real game's saves are untouched).
+
+## Economy notes for v5.1 (your notes; nothing changed)
+
+- After the tutorial plus the group and playtime rewards you had about **$32,000 and 5+
+  lucky blocks**. That reads as a lot and misleads about the pace after the tutorial: the
+  buildup should be slower.
+- **The next win reward** (Mystery, Wins 2/10) isn't exciting after opening so many Mystery
+  blocks: maybe an **Epic** block, if the economy allows.
+- A next goal should always be in sight; the rank HUD's line is the first piece (above).
 
 ## Run assumptions (my calls where the brief left room; all in DECISIONS)
 

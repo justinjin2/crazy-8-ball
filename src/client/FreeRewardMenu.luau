@@ -48,7 +48,6 @@ local HudParts = require(script.Parent.HudParts)
 local ItemState = require(script.Parent.ItemState)
 local JumpRail = require(script.Parent.JumpRail)
 local MenuFrame = require(script.Parent.MenuFrame)
-local TutorialAnchors = require(script.Parent.TutorialAnchors)
 local Menus = require(script.Parent.Menus)
 local OddsDetails = require(script.Parent.OddsDetails)
 local RewardsFlyer = require(script.Parent.RewardsFlyer)
@@ -456,13 +455,10 @@ function FreeRewardMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 				arrange()
 			end
 			frame:open()
-			-- Opened with no section: the top of the page (designer, 2026-10-08); the tutorial's
-			-- first open lands on Daily (its day 1 to claim, day 7 in view; 4.5 step 13).
-			local first = TutorialAnchors.seen("Icons") and not TutorialAnchors.seen("FreeReward")
-			local key = if tab and rail:has(tab)
-				then tab
-				elseif first and rail:has("Daily") then "Daily"
-				else order[1]
+			-- Opened with no section: the top of the page (designer, 2026-10-08), which is Group
+			-- until the group and the favorite are claimed (the designer, 2026-10-09: the first
+			-- open shows the group to join, not the calendar).
+			local key = if tab and rail:has(tab) then tab else order[1]
 			openedOn, openedAt = key, os.clock()
 			rail:jump(key, true)
 		end,

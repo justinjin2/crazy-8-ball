@@ -26,6 +26,7 @@ local TweenService = game:GetService("TweenService")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
+local CueThumb = require(script.Parent.CueThumb)
 local GuiQA = require(script.Parent.GuiQA)
 local HudParts = require(script.Parent.HudParts)
 local InvitePrompt = require(script.Parent.InvitePrompt)
@@ -86,6 +87,54 @@ local function corner(
 	return { button = button, icon = icon, word = word }
 end
 
+-- The Starter Pack's picture on a tile, as the Shop's card draws it (the designer,
+-- 2026-10-09): the Starter Lucky Block, the Starter Cue behind it and money in front, in the
+-- icon's square (Config.UI.ShopBlocks.Pair's shares; the cue's Config.UI.Corners'). Hidden
+-- until drawOffer shows it.
+local function starterArt(tile: Corner): Frame
+	local icon = tile.icon
+	local holder = HudParts.frame(icon.Parent :: Instance, "StarterArt")
+	holder.AnchorPoint = icon.AnchorPoint
+	holder.Position = icon.Position
+	holder.Size = icon.Size
+	holder.ZIndex = icon.ZIndex
+	holder.Visible = false
+	local square = Instance.new("UIAspectRatioConstraint")
+	square.AspectRatio = 1
+	square.Parent = holder
+	local pair = Config.UI.ShopBlocks.Pair
+	-- A blue halo behind it all: the silver cue reads on any floor.
+	local glow = Instance.new("ImageLabel")
+	glow.Name = "Glow"
+	glow.BackgroundTransparency = 1
+	glow.Image = K.Art.SoftGlow
+	local tint = C.StarterGlowTint
+	glow.ImageColor3 = Color3.fromRGB(tint[1], tint[2], tint[3])
+	glow.ImageTransparency = C.StarterGlowTransparency
+	glow.AnchorPoint = Vector2.new(0.5, 0.5)
+	glow.Position = UDim2.fromScale(0.5, 0.5)
+	glow.Size = UDim2.fromScale(C.StarterGlowScale, C.StarterGlowScale)
+	glow.ZIndex = icon.ZIndex - 1
+	glow.Parent = holder
+	local function share(object: GuiObject, at: { number }, z: number)
+		object.AnchorPoint = Vector2.new(0.5, 0.5)
+		object.Position = UDim2.fromScale(at[1], at[2])
+		object.Size = UDim2.fromScale(at[3], at[3])
+		object.ZIndex = icon.ZIndex + z
+	end
+	local cue = CueThumb.new(holder, Config.Shop.StarterCue)
+	share(cue, C.StarterCue, 0)
+	local kind = (Config.LuckyBlocks.Kinds :: any)[Config.Shop.StarterBlock]
+	local block = HudParts.icon(holder, "StarterPack", "Block")
+	block.Image = if kind then kind.Icon else ""
+	share(block, pair.StarterBlock, 1)
+	share(HudParts.icon(holder, "CashStack", "Cash"), pair.StarterCash, 2)
+	HudParts.onLit(tile.button, function(lit: boolean)
+		UIAnim.sunRays(holder, lit)
+	end)
+	return holder
+end
+
 --- Build the corners into `screen` (the HUD ScreenGui), hidden until setVisible(true). `deps`:
 --- money (MoneyHud: Invite and Plus sit right of it).
 function HubCorners.new(screen: ScreenGui, deps: any): any
@@ -144,6 +193,7 @@ function HubCorners.new(screen: ScreenGui, deps: any): any
 		end
 	end)
 	offerTile.button.Visible = false
+	self.starterArt = starterArt(offerTile)
 	local timer = HudParts.text(HudParts.candyParts(offerTile.button).body, "Timer", C.TimerPx, "")
 	timer.TextWrapped = false
 	timer.TextColor3 = HudParts.tone("Gold")
@@ -326,7 +376,9 @@ end
 -- Draw `spec`'s icon, word and press on the offer tile.
 local function drawOffer(self: any, spec: any)
 	self.offerKey = spec.key
-	HudParts.setIcon(self.offerTile.icon, spec.icon)
+	local starter = spec.key == "StarterPack"
+	HudParts.setIcon(self.offerTile.icon, if starter then nil else spec.icon)
+	self.starterArt.Visible = starter
 	self.offerTile.word.Text = spec.words
 end
 

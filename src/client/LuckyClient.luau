@@ -424,10 +424,20 @@ local function blockOfRarity(rarity: string): (string?, string?)
 	return nil, nil
 end
 
+-- Opens asked for whose reel has not begun yet (the server's answer, the block's burst).
+local pendingOpens = 0
+
 local function openBlock(id: number)
+	pendingOpens += 1
 	task.spawn(function()
-		local reply = request("Open", id)
+		local ok: boolean, reply: any = pcall(request, "Open", id)
+		if not ok then
+			pendingOpens -= 1
+			warn("[8ball] LuckyClient: opening failed: " .. tostring(reply))
+			return
+		end
 		if not reply.ok then
+			pendingOpens -= 1
 			hotbar:say(reasonText(reply))
 			if reply.reason == "NotReady" then
 				offerSkip(id)
@@ -448,6 +458,7 @@ local function openBlock(id: number)
 			table.insert(reveals, reply)
 			nextReveal()
 		end
+		pendingOpens -= 1
 	end)
 end
 
@@ -764,6 +775,12 @@ end
 --- Whether the reel, its pull cutscene or its card is up (Progression treats it as a popup).
 function LuckyClient.isOpen(): boolean
 	return started and (opening:isOpen() or PullCutscene.isPlaying() or reveal:isOpen())
+end
+
+--- Whether a block is opening at all: asked for and waiting for its reel, its reel or
+--- cutscene, its reveal, or more reveals queued (the tutorial's next step waits for this).
+function LuckyClient.busy(): boolean
+	return started and (pendingOpens > 0 or revealing or #reveals > 0 or LuckyClient.isOpen())
 end
 
 --- Close the reel (and its cutscene) at once: a match is starting, or the result screen

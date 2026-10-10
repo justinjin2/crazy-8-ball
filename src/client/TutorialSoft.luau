@@ -10,8 +10,10 @@
 -- - "Win a Match 0/1", top centre (under the top banner while one shows), until a win: then
 --   "1/1", "Done!", and the daily win track takes its place (WinTrack waits meanwhile). Only in
 --   a quiet lobby (Progression.quiet).
--- - The invite popup, once: a small card, Invite and a big X.
--- - Free Reward's first open lands on Daily (FreeRewardMenu); its join and favorite get a gold
+-- - The Daily Rewards popup, once, as the lobby goes quiet after the icons (day 1 to claim,
+--   day 7's prize on show; DailyRewardsMenu); then the invite popup, once: a small card,
+--   Invite and a big X.
+-- - Free Reward's first open lands on Group (FreeRewardMenu); its join and favorite get a gold
 --   ring and a light sweeping over them until they are pressed (or claimed), its like line a
 --   ring until the menu closes after it was on the page.
 -- - Play Global wears the gold ring, its spawn pill staying up (Main, MatchBar), until it is
@@ -95,7 +97,7 @@ type Glow = {
 local glows: { [string]: Glow } = {}
 type Ring = { clip: Frame, ring: Frame, stroke: UIStroke }
 local rings: { [string]: Ring } = {}
-local bouncedAt = 0
+local freePulse: UIAnim.Handle? = nil -- Free Reward breathing (its tile's)
 local shinedAt = 0
 local likeShown = false
 
@@ -437,6 +439,22 @@ local function openPopup()
 	)
 end
 
+-- The Daily Rewards popup: once, after the icons are out and the lobby has been quiet a
+-- moment (before the invite popup, which waits for it to close).
+local dailySince: number? = nil
+local function updateDaily(quiet: boolean, now: number)
+	local due = step() == "Soft" and soft() and TutorialAnchors.seen("Icons") and not seen("Daily")
+	if not due or not quiet then
+		dailySince = nil
+		return
+	end
+	dailySince = dailySince or now
+	if now - (dailySince :: number) >= S.DailyAfterSeconds then
+		click("Daily")
+		Menus.open("DailyRewards")
+	end
+end
+
 -- Every frame: once, after the icons are out and the lobby has been quiet a moment.
 local function updatePopup(quiet: boolean, now: number)
 	if popupUp then
@@ -445,7 +463,11 @@ local function updatePopup(quiet: boolean, now: number)
 		end
 		return
 	end
-	local due = step() == "Soft" and soft() and TutorialAnchors.seen("Icons") and not seen("Invite")
+	local due = step() == "Soft"
+		and soft()
+		and TutorialAnchors.seen("Icons")
+		and seen("Daily")
+		and not seen("Invite")
 	if not due or not quiet then
 		quietSince = nil
 		return
@@ -463,7 +485,8 @@ end
 --- Whether Play Global should stay up and glow (the soft part, until it is pressed): Main
 --- keeps the spawn pill up for it.
 function TutorialSoft.wantsGlobal(): boolean
-	return step() == "Soft" and soft() and not seen("PlayGlobal")
+	-- After the invite popup was answered: it comes first.
+	return step() == "Soft" and soft() and not seen("PlayGlobal") and seen("Invite") and not popupUp
 end
 
 --- Whether the Win a Match quest is up (or finishing): the daily win track waits for it.
@@ -530,12 +553,15 @@ function TutorialSoft.update(_dt: number)
 	local column = TutorialAnchors.get("ColumnRays")
 	local free = on and not seen("FreeReward")
 	setGlow("FreeReward", free, column)
-	if free and now - bouncedAt >= S.BounceSeconds and TutorialAnchors.showing("FreeReward") then
-		bouncedAt = now
+	local breathe = free and TutorialAnchors.showing("FreeReward")
+	if breathe and freePulse == nil then
 		local tile = TutorialAnchors.get("FreeReward")
 		if tile then
-			UIAnim.bounce(tile)
+			freePulse = UIAnim.pulse(tile, S.BounceScale, S.BounceSeconds)
 		end
+	elseif not breathe and freePulse then
+		freePulse.stop()
+		freePulse = nil
 	end
 	setGlow("Shop", on and over and not seen("Shop"), column)
 	setRing("GlobalQueue", TutorialSoft.wantsGlobal(), now, "Pill")
@@ -566,6 +592,7 @@ function TutorialSoft.update(_dt: number)
 
 	local quiet = Progression.quiet()
 	updateQuest(quiet, now)
+	updateDaily(quiet, now)
 	updatePopup(quiet, now)
 end
 

@@ -83,8 +83,11 @@ One line each; the long form is the 2026-10-08 entry at the top of
 - **Decision still open:** whether the VIP cue pays finder's money on the first join.
 - **Tutorial v2** (branch `tutorial-v2`, not merged; `docs/prompts/TUTORIAL_V2_REPORT.md`):
   built and checked in Studio on PC (3 clean automated runs, one with fake lag; two review
-  agents' 11 fixes; the team-table backup). Waiting on: the test place publish (the API key's
-  place permission), the designer's live checklist, a real controller and phone, Max Players.
+  agents' 11 fixes; the team-table backup). On the test place (Crazy 8 Test Place, published
+  by Open Cloud). The designer's first live notes are done (the combination's ghost replay,
+  the Rank claim without a dim, the Daily Rewards popup, the rank HUD's next goal, the Starter
+  Pack tile, ...) and the test place's saves were reset. Waiting on: the designer's next live
+  pass, a real controller and phone, Max Players; economy v5.1 notes in the report.
 - **The cue rarity rework** continues after the Unique cues (Beta, Grand Opening, Eclipse,
   Celestial Dragon, Kitsune). Apex's first look was reverted.
 - **The place file:** save `place/8ball.rbxl` and publish once this milestone is done (lucky

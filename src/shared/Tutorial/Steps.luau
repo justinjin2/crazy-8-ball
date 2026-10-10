@@ -243,6 +243,7 @@ Steps.Seen = {
 	"Game2", -- game 2 was found (the soft part's last step)
 	"Ready", -- the first-win Rare block's "Ready!" glow, until it is taken in hand
 	"InviteAnswered", -- the invite popup's Invite or X was pressed (its InvitePopup event)
+	"Daily", -- the Daily Rewards popup came up (once, before the invite popup)
 }
 
 -- The moments a client may report itself (TutorialEvent "Seen"); the rest the server sees.
@@ -260,6 +261,7 @@ Steps.ClientSeen = (
 		Like = true,
 		PlayGlobal = true,
 		Ready = true,
+		Daily = true,
 	}
 ) :: { [string]: boolean }
 
