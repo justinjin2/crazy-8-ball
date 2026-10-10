@@ -723,10 +723,16 @@ function ArenaService.start(list: any)
 		while true do
 			task.wait(0.25)
 			sinceState += 0.25
-			watch()
+			-- Guarded: one error must not stop the arena's timeouts for good (launch review).
+			local ok, err = pcall(function()
+				watch()
+			end)
+			if not ok then
+				warn("[8ball] arena watch failed: " .. tostring(err))
+			end
 			if sinceState >= 2 then
 				sinceState = 0
-				sendState() -- late listeners
+				pcall(sendState) -- late listeners
 			end
 		end
 	end)

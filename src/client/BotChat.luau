@@ -49,8 +49,9 @@ local function nameColor(name: string): Color3
 end
 
 --- `text` "said" by player or bot `id` on this screen: a Roblox chat bubble over their head
---- and a line in the chat window in their name. Changes nothing anywhere else.
-function BotChat.say(id: number, text: string)
+--- and, unless `bubbleOnly` (a bot's words: designer, 2026-10-10, so tutorials don't flood the
+--- chat), a line in the chat window in their name. Changes nothing anywhere else.
+function BotChat.say(id: number, text: string, bubbleOnly: boolean?)
 	local bot = People.owner(id)
 	if not bot or type(text) ~= "string" then
 		return
@@ -62,6 +63,9 @@ function BotChat.say(id: number, text: string)
 		pcall(function()
 			TextChatService:DisplayBubble(head, text)
 		end)
+	end
+	if bubbleOnly then
+		return
 	end
 	local parts = {}
 	if bot:GetAttribute("Vip") == true then
@@ -83,7 +87,9 @@ end
 
 --- Listens for BotSay (Main, once).
 function BotChat.start()
-	Net.get("BotSay").OnClientEvent:Connect(BotChat.say)
+	Net.get("BotSay").OnClientEvent:Connect(function(id: number, text: string)
+		BotChat.say(id, text, true)
+	end)
 end
 
 return BotChat

@@ -4281,3 +4281,4 @@ timer of a new block stay the designer's call.
   were not moved: the portals sit in the aisles between table columns, about 8 studs clear of
   the nearest pad.
 - 2026-10-10: Portal pads smaller and closer to the arch (radius 3, 3.8 studs out; was 4.5 and 5.5) so the gap to the front 1v1 pads is wider (designer).
+- 2026-10-10: Launch review. A money buy the player can't afford opens Roblox's prompt for the smallest money pack that covers the gap (TopUp). Bot lines are chat bubbles only, shown only to the players at that bot's table. LIKES100 code added ($5,000 + 2 spins) for the "NEXT CODE AT 100 LIKES" banner. Arena waits shortened (no-show search 10 s, play-another search 20 s). Bots yield every simulation (server lag). Portal arenas accepted by the match-record check (were bounced home live).

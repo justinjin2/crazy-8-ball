@@ -377,6 +377,15 @@ function tests.a_bot_matchs_list_is_readable()
 	local over = table.clone(solo)
 	over.bots = { { team = 2 }, { team = 2 } }
 	expect(not Ticket.isRecord(over), "more on a side than the mode")
+	local portal = table.clone(solo)
+	portal.bots = nil
+	portal.practice = "Solo"
+	expect(Ticket.isRecord(portal), "a portal's practice arena may have an empty second side")
+	portal.practice = "Pc"
+	expect(Ticket.isRecord(portal), "the practice bot comes in the arena")
+	local empty = table.clone(portal)
+	empty.teams = { {}, {} }
+	expect(not Ticket.isRecord(empty), "the player's own side is never empty")
 end
 
 -- Many servers on one clock for two simulated minutes.

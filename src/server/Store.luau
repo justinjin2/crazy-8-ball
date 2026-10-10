@@ -720,13 +720,15 @@ local function grantGift(
 	if not ok then
 		return false, why
 	end
+	-- The giver's record of it at once (a grant of nothing but the purchase id), before any
+	-- wait: a giver who leaves during the receiver's save must not get the item again on the
+	-- receipt's retry (launch review, 2026-10-10).
+	if not PlayerData.applyPurchase(buyer, purchaseId, { key = key, money = 0 }) then
+		return false, "Failed"
+	end
 	-- Their copy of the id, saved now (the giver's receipt waits for the giver's save only).
 	if not PlayerData.saveNow(receiver, S.ReceiptSaveTimeoutSeconds, purchaseId) then
 		log(("gift %s to %d: their save is late (it saves again later)"):format(key, pend.to))
-	end
-	-- The giver's record of it: a grant of nothing but the purchase id.
-	if not PlayerData.applyPurchase(buyer, purchaseId, { key = key, money = 0 }) then
-		return false, "Failed"
 	end
 	pendingGift[buyer] = nil
 	log(("gift %s from %d to %d (receipt %s)"):format(key, buyer.UserId, pend.to, purchaseId))

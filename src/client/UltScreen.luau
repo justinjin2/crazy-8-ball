@@ -50,6 +50,7 @@ local Menus = require(script.Parent.Menus)
 local RewardsParts = require(script.Parent.RewardsParts)
 local Stage = require(script.Parent.Stage)
 local UIAnim = require(script.Parent.UIAnim)
+local TopUp = require(script.Parent.TopUp)
 local UISound = require(script.Parent.UISound)
 local UltBuy = require(script.Parent.UltBuy)
 local UltFast = require(script.Parent.UltFast)
@@ -832,8 +833,12 @@ function UltScreen.buyMoney(self: any, pack: number)
 	end)
 end
 
---- "Need $X more": the Shop's Money tab (it closes this screen) with how much is missing.
+--- "Need $X more": Roblox's prompt for the smallest money pack that covers it (TopUp), else
+--- the Shop's Money tab (it closes this screen) with how much is missing.
 function UltScreen.jumpToMoney(_self: any, gap: number)
+	if TopUp.prompt(gap) then
+		return
+	end
 	if Menus.open("Shop", "Money") then
 		Menus.notice(SHOP.NeedNotice:format(Format.money(gap)), "Ink")
 	end

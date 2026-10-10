@@ -3351,7 +3351,9 @@ Config.Daily = {
 		-- The spin screen's code box (Config.Ults.CodeBanner.ActiveCode names it): 3 ability
 		-- spins. The tutorial points at it (designer, 2026-10-03: RELEASE replaces ABILITIES).
 		RELEASE = { Spins = 3 },
-		-- Like milestones: 1k, 5k, 10k, 25k, 50k, 100k likes.
+		-- Like milestones: 100 (the code box's first goal, CodeBanner.NextGoalLikes), 1k, 5k,
+		-- 10k, 25k, 50k, 100k likes.
+		LIKES100 = { Money = 5000, Spins = 2, Live = true },
 		LIKES1K = { Money = 10000, Blocks = { Mystery = 1 }, Live = true },
 		LIKES5K = { Blocks = { Mystery = 2 }, Live = true },
 		LIKES10K = { Blocks = { Rare = 1 }, Spins = 3, Live = true },
@@ -8666,11 +8668,13 @@ Config.Arena = {
 	-- both sides have someone, or whoever came searches again. (tune)
 	ArrivalSeconds = 25,
 	-- After the rematch countdown, anyone who chose nothing is sent back to the lobby.
-	-- Someone searching for another game from here may wait this long, then goes too.
-	SearchMaxSeconds = 120,
+	-- Someone searching for another game from here may wait this long, then goes too (launch,
+	-- 2026-10-10: was 120; few players means a quick trip home where the lobby's bot waits).
+	SearchMaxSeconds = 20,
 	-- A side whose opponent never came searches again for anyone, for this long at most, then
-	-- goes to the lobby (it has no row of buttons, only Leave on a keyboard or pad).
-	NoShowSearchSeconds = 30,
+	-- goes to the lobby (it has no row of buttons, only Leave on a keyboard or pad). Launch,
+	-- 2026-10-10: was 30.
+	NoShowSearchSeconds = 10,
 	-- Someone who cannot be seated here (not on the list) is sent to the lobby, tried again
 	-- this far apart, and kicked with a line to rejoin if every try fails.
 	EvictRetrySeconds = 5,
@@ -8696,8 +8700,9 @@ Config.UI.Queue = {
 	TeleportTitlePx = 48,
 	TeleportLinePx = 22,
 	-- A teleport that has not taken the player away after this long gives the screen back
-	-- (the server also says when one failed).
-	TeleportGiveUpSeconds = 20,
+	-- (the server also says when one failed). The same as Config.GlobalQueue.TeleportHangSeconds
+	-- so the screen never drops while the server still holds the save (2026-10-10: was 20).
+	TeleportGiveUpSeconds = 45,
 	-- A match in this server (LocalSearch, tutorial v2 4.7): the same screen over the move to
 	-- the table, this long (the server moves them at Config.GlobalQueue.LocalLeadSeconds),
 	-- then it fades out in FadeSeconds.
@@ -14156,7 +14161,9 @@ Config.Bots = {
 	-- A bot appears on its pad this long after it is called (Play against PC).
 	PcArriveSeconds = 0.6,
 	-- The server's thinking yields every this many simulations (spreads a turn over frames).
-	YieldEvery = 4,
+	-- 1 for launch (2026-10-10: was 4): a full-rack simulation is ~40 ms, so 4 in a row was a
+	-- lag spike for the whole 24-player server.
+	YieldEvery = 1,
 	-- Ball in hand: the cue ball is dragged to its spot over this long.
 	DragSeconds = 1.4,
 	-- Look Over There!: a bot starts moving the cue ball this long into the drag window (a

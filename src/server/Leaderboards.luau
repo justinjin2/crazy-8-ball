@@ -319,10 +319,15 @@ function Leaderboards.start()
 			if not ok then
 				complain("the read", err)
 			end
-			paintSigns()
-			local r = remote
-			if r then
-				r:FireAllClients(payload())
+			local shown, why = pcall(function()
+				paintSigns()
+				local r = remote
+				if r then
+					r:FireAllClients(payload())
+				end
+			end)
+			if not shown then
+				complain("the signs", why)
 			end
 			task.wait(L.ReadSeconds)
 		end

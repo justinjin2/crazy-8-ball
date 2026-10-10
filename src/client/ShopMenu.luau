@@ -38,6 +38,7 @@ local GuiQA = require(script.Parent.GuiQA)
 local HudParts = require(script.Parent.HudParts)
 local ItemState = require(script.Parent.ItemState)
 local JumpRail = require(script.Parent.JumpRail)
+local TopUp = require(script.Parent.TopUp)
 local MenuFrame = require(script.Parent.MenuFrame)
 local Menus = require(script.Parent.Menus)
 local OddsDetails = require(script.Parent.OddsDetails)
@@ -518,6 +519,7 @@ function ShopMenu.buyBlocks(self: any, dealId: string, count: number)
 			self.frame:notice(GrandOpeningCard.boughtText(count), "Green")
 		elseif reply.reason == "NotEnoughMoney" and type(reply.need) == "number" then
 			self.frame:notice(ShopParts.need(reply.need), "Red")
+			TopUp.prompt(reply.need)
 		else
 			self.frame:notice(MenuFrame.reason(reply), "Red")
 		end
@@ -576,6 +578,7 @@ function ShopMenu.buyRestock(self: any, itemId: string, block: string)
 			self.frame:notice(string.format(COPY.Blocks.Bought, names[block] or block), "Green")
 		elseif reply.reason == "NotEnoughMoney" and type(reply.need) == "number" then
 			self.frame:notice(ShopParts.need(reply.need), "Red")
+			TopUp.prompt(reply.need)
 		else
 			self.frame:notice(MenuFrame.reason(reply), "Red")
 		end

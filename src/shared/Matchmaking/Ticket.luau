@@ -245,7 +245,8 @@ local function botsOn(record: any, team: number): number
 end
 
 --- Whether a stored match record is one this code can read. A side may be all bots (a bot
---- match's list names no player there).
+--- match's list names no player there). A portal's practice arena (`practice` "Solo" or "Pc")
+--- has an empty second side: the arena fills it (PortalService, ArenaService).
 function Ticket.isRecord(record: any): boolean
 	if type(record) ~= "table" or record.v ~= Ticket.Version or type(record.teams) ~= "table" then
 		return false
@@ -256,11 +257,15 @@ function Ticket.isRecord(record: any): boolean
 	if record.ults ~= nil and type(record.ults) ~= "boolean" then
 		return false
 	end
+	if record.practice ~= nil and type(record.practice) ~= "string" then
+		return false
+	end
 	for team = 1, 2 do
 		local list = record.teams[team]
+		local least = if team == 2 and record.practice ~= nil then 0 else 1
 		if
 			type(list) ~= "table"
-			or #list + botsOn(record, team) < 1
+			or #list + botsOn(record, team) < least
 			or #list + botsOn(record, team) > record.mode
 		then
 			return false

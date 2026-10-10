@@ -699,7 +699,13 @@ local function leaderLoop()
 		if leading and now >= nextTick then
 			nextTick = now + G.MatchTickSeconds
 			local t0 = os.clock()
-			local made, failures = QueueCore.leaderTick(store, reserve, clock(), clock)
+			-- Guarded: one bad tick must not end this server's pairing for good (launch review).
+			local tickOk, made, failures =
+				pcall(QueueCore.leaderTick, store, reserve, clock(), clock)
+			if not tickOk then
+				log("the pairing tick failed: " .. tostring(made))
+				made, failures = {}, {}
+			end
 			for _, record in made do
 				log(
 					("paired %s vs %s (%dv%d) into arena %s in %.0f ms"):format(

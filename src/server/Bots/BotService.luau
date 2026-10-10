@@ -68,6 +68,7 @@ export type Bot = {
 	seq: number?,
 	gone: boolean?,
 	lobby: boolean?, -- a lobby bot (LobbyBots): freed from a table, it stays in the lobby
+	audience: { Player }?, -- the real players last at its table: the only screens its words show on
 	-- Its owner's (TutorialBot): it never leaves by itself after a game; freed from its table
 	-- it stands where it is and this is called.
 	freed: ((any) -> ())?,
@@ -308,9 +309,32 @@ function BotService.unseat(bot: Bot)
 	end
 end
 
---- `bot` says `text`: a bubble over its head and a chat line in its name, on every screen.
+--- `bot` says `text`: a bubble over its head, on the screens of the real players at its table
+--- (or last at it), so a full lobby of tutorials doesn't fill everyone's chat (designer,
+--- 2026-10-10: bubbles only, the tutorial player only). A bot never at a table: every screen.
 function BotService.say(bot: Bot, text: string)
-	Net.get("BotSay"):FireAllClients(bot.id, text)
+	local t = bot.t
+	if t then
+		local list = {}
+		for _, s in t.engine.seats do
+			local p = if s.userId > 0 then Players:GetPlayerByUserId(s.userId) else nil
+			if p then
+				table.insert(list, p)
+			end
+		end
+		bot.audience = list
+	end
+	local remote = Net.get("BotSay")
+	local audience = bot.audience
+	if audience == nil then
+		remote:FireAllClients(bot.id, text)
+		return
+	end
+	for _, p in audience do
+		if p.Parent == Players then
+			remote:FireClient(p, bot.id, text)
+		end
+	end
 end
 
 --- Takes `bot` away: "Vanish" (gone at once, as if it left the game) or "Angry" (the
