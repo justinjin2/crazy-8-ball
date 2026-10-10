@@ -361,7 +361,7 @@ block", 1789-1791 (RareBlock), 1834 (BlockReady). Put what you find into the han
 - [x] 9. Cues and the Index.
 - [x] 10. Rank rewards and every other block or reward display.
 - [x] 11. Every word (the Strings sweep).
-- [ ] 12. The merge with `tutorial-v2` (the designer's yes), checked in Studio.
+- [x] 12. The merge with `tutorial-v2` (the designer's yes), checked in Studio.
 - [ ] 13. The full Studio check on phone, PC and gamepad.
 - [x] 14. The docs.
 - [ ] 15. Ready for release: the place saved and committed, the designer's release clicks
@@ -530,8 +530,15 @@ block", 1789-1791 (RareBlock), 1834 (BlockReady). Put what you find into the han
     on your word). In Studio every price shows about 0.8 times the Roblox price (Starter 16,
     VIP 320, Mystery5 24, Grand Opening 16 / 40 / 120): that matches Roblox's regional pricing
     for this account, and the shop shows what Roblox will charge.
-- **Step 12 waits** (the designer: the tutorial terminal is still working; no merge). The trial
-  merge after every step still shows only the 5 known conflicts.
+- **Step 12 done another way** (the designer's call, 2026-10-10): the tutorial session merged
+  `gui-v4` (5e34be7, economy v5.2) into `tutorial-v2` in its own worktree (f1549ae, its
+  conflicts its side), and 8ball-0d fast-forwarded `gui-v4` to it (c3ee723); this run merged
+  nothing. Checked here on c3ee723: lint OK, 1185 tests, and in Studio on PC the tutorial's block
+  chain (a test account set to the Mystery step: 4 presses, an Uncommon block ready at once,
+  "Place it!", hold, throw, open, the reel, YOU GOT COSMO CUE, the step on to Cues; the account
+  put back to Skipped), no console errors. Found: "Open all" shows during the Place step (v5.2
+  lets it take the ready Uncommon block); pressing it still advances, but with the summary
+  instead of the reel. Sent to the tutorial session to decide (its screens).
 - **Step 13 on PC** (the phone and gamepad parts wait for the designer): every screen was
   checked as it was built (steps 2-11, shots per step); then two real win-track steps through
   `PlayerDataQA winBlock` (step 4 gave a Mystery block, to the bag as the hotbar was full; step 5

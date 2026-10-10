@@ -64,9 +64,10 @@ One line each; the long form is the 2026-10-08 entry at the top of
 - **Economy v5 and its screens on `gui-v4`** (2026-10-09; `docs/prompts/ECONOMY_V5_PLAN.md`,
   roadmap 7.9). The GUI run (`docs/prompts/ECONOMY_V5_GUI_PROMPT.md`, its Notes say what each
   step built) updated every screen and checked each on PC; screenshots for review in
-  `~/Desktop/8ball-refs/economy-v5-gui/step2` .. `step13`. Still open, in order: phone and
-  gamepad checks with the designer (step 13); the merge with `tutorial-v2` once it is done
-  (step 12; 5 known conflicts); the release (step 15): place saved and published, the Grand
+  `~/Desktop/8ball-refs/economy-v5-gui/step2` .. `step13`. The `tutorial-v2` merge is in
+  (step 12, c3ee723; checked on PC; open: "Open all" shows during the tutorial's Place step,
+  with the tutorial session). Still open, in order: phone and gamepad checks with the designer
+  (step 13); the release (step 15): place saved and published, the Grand
   Opening's `StartsAt` (also starts the luck and launch bonus), random-item products Not Listed,
   `tools/roblox_products.py --sync` (Starter Pack 19 R$ on Roblox, Config 29; Lucky1 and Lucky3
   off sale). This account sees Robux prices at about 0.8x (regional pricing). Lucky Shot, Golden
