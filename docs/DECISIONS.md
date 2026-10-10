@@ -4312,3 +4312,4 @@ timer of a new block stay the designer's call.
 - 2026-10-10: The Secret's heartbeat is a new single 1 s lub-dub (176554627); the old one
   (1839088414) was a 31 s loop whose copies stacked into noise. The old scenes' "Shockwave"
   sound (9120009360) is gone with them.
+- 2026-10-10: A rematch after a lost game 1 (path R) is game 1 (fair): it played under "Join a table!" with the arrow up, and a win there was never counted. The arrow and its line wait while a lost game 1's result screen is up.

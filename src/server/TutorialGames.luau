@@ -463,6 +463,18 @@ local function atArrow(player: Player)
 	reserve(player)
 	local id = Tables.tableOf(player)
 	local t = if id then Tables.get(id) else nil
+	-- A 1v1 game of theirs already on (a rematch after a lost game 1): it is game 1, through
+	-- Pad, which names its path (it played with "Join a table!" over it, and a win there was
+	-- never counted).
+	if
+		t
+		and t.engine.teamSize == 1
+		and t.engine.phase ~= "Waiting"
+		and t.engine.phase ~= "Result"
+	then
+		service.setStep(player, "Pad")
+		return
+	end
 	-- Only a 1v1 pad waiting for a game: a team pad never gets the bot, and a lost game 1's
 	-- result screen (still seated) must not start the steps over until the table is free.
 	if t == nil or t.engine.teamSize ~= 1 or t.engine.phase ~= "Waiting" then

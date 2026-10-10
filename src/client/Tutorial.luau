@@ -270,6 +270,13 @@ end
 -- The arrow: to the reserved table's pad ("Need help?" once its fallback time is up; after
 -- the re-prompt time it pulses harder).
 local function arrowScene(): string
+	-- A lost game 1's result (its cutscene, then the result screen) first: no arrow or
+	-- "Join a table!" over it.
+	if Progression.isBusy() or ResultCutscene.isPlaying() then
+		arrow:show(nil)
+		lineOnly(nil)
+		return "arrowBusy"
+	end
 	local id = player:GetAttribute("TutorialTable")
 	local pad = if type(id) == "number" and id > 0 then padOf(id) else nil
 	local goal = if pad then pad.Position + Vector3.new(0, pad.Size.Y / 2, 0) else nil
