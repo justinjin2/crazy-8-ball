@@ -4280,3 +4280,4 @@ timer of a new block stay the designer's call.
   Built from parts and Roblox particles for now (a Blender arch can come later); the tables
   were not moved: the portals sit in the aisles between table columns, about 8 studs clear of
   the nearest pad.
+- 2026-10-10: Portal pads smaller and closer to the arch (radius 3, 3.8 studs out; was 4.5 and 5.5) so the gap to the front 1v1 pads is wider (designer).

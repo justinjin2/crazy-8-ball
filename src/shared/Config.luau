@@ -3402,9 +3402,11 @@ Config.Portals = {
 		{ Mode = "Solo", X = -40, Z = 78.5 },
 		{ Mode = "Pc", X = 40, Z = 78.5 },
 	},
-	PadRadius = 4.5, -- the round pad's radius (studs), in front of the arch
-	PadAheadStuds = 5.5, -- the pad's centre this far in front of the arch (toward the tables)
-	TriggerRadius = 4, -- standing within this of the pad's centre sends the player
+	-- The round pad in front of the arch: small and close to it, clear of the front 1v1 pads
+	-- (designer, 2026-10-10: the gap was too small; it was 4.5 studs, 5.5 out).
+	PadRadius = 3, -- the round pad's radius (studs)
+	PadAheadStuds = 3.8, -- the pad's centre this far in front of the arch (toward the tables)
+	TriggerRadius = 2.6, -- standing within this of the pad's centre sends the player
 	ServerSlackStuds = 6, -- the server's check is this much looser (lag)
 	ArchWidth = 9, -- the arch's inside width and height (studs)
 	ArchHeight = 11,
