@@ -1211,8 +1211,12 @@ local function update(e: Escort)
 			roam(e) -- the player stepped off before the game began: it gets up and strolls
 		end
 	elseif step == "Game1" then
-		-- Path R: nobody needs it; one on its way strolls on.
-		if bot and e.state == "Out" then
+		-- Path R (a real opponent): nobody needs it, so it leaves the server rather than stroll
+		-- through their game (designer, 2026-10-10). Lose and back at Arrow: a new one is made.
+		local state: string = e.state
+		if bot and service.path(player) == "R" and state ~= "Seated" and state ~= "Leaving" then
+			leave(e, true)
+		elseif bot and e.state == "Out" then
 			roam(e)
 		elseif bot and e.state == "Seated" and bot.t and bot.t.engine.phase ~= "Waiting" then
 			e.played = true -- its game began (a skip before that leaves it quiet)

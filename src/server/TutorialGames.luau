@@ -32,6 +32,7 @@ local Rig = require(Shared.Tutorial.Rig)
 local Plan = require(Shared.Tutorial.Plan)
 local UltMatch = require(Shared.Ults.Match)
 local Judge = require(Shared.Rules.ShotJudge)
+local Settle = require(Shared.Progression.Settle)
 
 local T = Config.Tutorial
 local G = T.Games
@@ -401,6 +402,12 @@ local function game1Over(player: Player, t: any?): boolean
 	if e and e.phase == "Result" and e.result then
 		local team = teamOf(t, player)
 		local won = team ~= nil and e.result.winner == team
+		-- A fair game (path R) won too quickly to count (an early 8, the other player leaving
+		-- in under Config.Ranks.RealMatchSeconds) pays no XP, so Bronze and the chain's steps
+		-- would be empty: it is played again, like a loss (designer, 2026-10-10).
+		if won and path == "R" and not Settle.isReal(e.result.seconds) then
+			won = false
+		end
 		player:SetAttribute("TutorialLesson", "")
 		games[player] = nil
 		Funnel.onboarding(player, "Game1Ended")

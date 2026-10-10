@@ -58,6 +58,9 @@ local QUEST_FLAG = "TutorialQuestAt"
 -- What game 2 was, for its result (the Game2 funnel's kinds): "Server", "Global", "Bot",
 -- "Arena", or "Table" (they sat at a table with no search).
 local GAME2_FLAG = "TutorialGame2"
+-- Set once the tutorial gave its own Mystery block (a first win that dropped none: beating
+-- another new player drops nothing, BlockDrop's loser rule). Never given twice.
+local MYSTERY_FLAG = "TutorialMysteryGiven"
 
 -- Listeners for step changes: fn(player, step, previous).
 local stepChanged = Instance.new("BindableEvent")
@@ -177,10 +180,32 @@ local function logJoined(player: Player)
 	end
 end
 
+-- Whether the save holds a lucky block of `kind`.
+local function holdsBlock(data: any, kind: string): boolean
+	for _, block in data.LuckyBlocks.List do
+		if block.kind == kind then
+			return true
+		end
+	end
+	return false
+end
+
 -- What happens once when a step is entered.
 local function entered(player: Player, step: string, _previous: string?)
 	if step == "Arrow" then
 		Funnel.onboarding(player, "ArrowShown")
+	elseif step == "Mystery" then
+		-- The step opens a Mystery block; a first win against a real new player dropped none
+		-- (designer, 2026-10-10: the win still earns it), so the tutorial gives one, once.
+		local data = PlayerData.read(player)
+		if
+			data
+			and data.Flags[MYSTERY_FLAG] == nil
+			and not holdsBlock(data, T.MysteryKind)
+			and PlayerData.giveLuckyBlocks(player, T.MysteryKind, 1)
+		then
+			PlayerData.setFlag(player, MYSTERY_FLAG, true)
+		end
 	elseif step == "Soft" then
 		-- Counted from the soft part's first start (a rejoin keeps them).
 		local data = PlayerData.read(player)
@@ -315,16 +340,6 @@ function TutorialService.guard(player: Player, code: string, fn: () -> ()): bool
 		TutorialService.fail(player, code, err)
 	end
 	return ok
-end
-
--- Whether the save holds a lucky block of `kind`.
-local function holdsBlock(data: any, kind: string): boolean
-	for _, block in data.LuckyBlocks.List do
-		if block.kind == kind then
-			return true
-		end
-	end
-	return false
 end
 
 local function onLoaded(player: Player)
