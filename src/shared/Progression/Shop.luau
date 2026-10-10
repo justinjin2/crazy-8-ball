@@ -137,11 +137,13 @@ export type DealRow = {
 	StartsAt: number?,
 	Seconds: number?,
 	VaultedSeconds: number?,
+	SoftLaunch: boolean?,
 }
 local DEALS: { [string]: DealRow } = S.Deals :: any
 
--- A deal's window: always open when it has no StartsAt; closed (off) at StartsAt 0; else
--- open from StartsAt for Seconds, and "vaulted" (shown as gone) for VaultedSeconds after.
+-- A deal's window: always open when it has no StartsAt; closed (off) at StartsAt 0, or open
+-- with no end date while SoftLaunch is on (the Grand Opening's soft launch); else open from
+-- StartsAt for Seconds, and "vaulted" (shown as gone) for VaultedSeconds after.
 export type DealWindow = {
 	open: boolean,
 	timed: boolean, -- it has a window at all
@@ -417,7 +419,7 @@ function Shop.deal(key: string, now: number): DealWindow
 			vaulted = false,
 		}
 	end
-	if row.StartsAt == nil then
+	if row.StartsAt == nil or (row.SoftLaunch == true and whole(row.StartsAt) <= 0) then
 		return {
 			open = true,
 			timed = false,

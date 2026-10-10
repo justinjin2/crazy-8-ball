@@ -884,13 +884,16 @@ end
 --------------------------------------------------------------------------------------------
 
 --- Show what the shop state says: the time left on the deal ("Ends in 20d 23h"), hidden when
---- the deal is not open.
+--- the deal is not open or has no end date (the soft launch).
 function GrandOpeningCard.refresh(self: any, state: any)
 	local deals = if type(state) == "table" and type(state.deals) == "table"
 		then state.deals
 		else {}
 	local deal = deals.GrandOpening
-	local open = type(deal) == "table" and deal.open == true and type(deal.endsAt) == "number"
+	local open = type(deal) == "table"
+		and deal.open == true
+		and type(deal.endsAt) == "number"
+		and deal.endsAt > 0
 	-- The live Robux prices.
 	local products = if type(state) == "table" then state.products else nil
 	for index, count in COUNTS do

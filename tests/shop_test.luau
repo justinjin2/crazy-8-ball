@@ -47,6 +47,19 @@ local PACKS = {
 	{ name = "Fortune", robux = 1699, money = 1500000, bonus = 121 },
 }
 
+-- Runs `fn` with the Grand Opening's soft launch (Config.Shop.Deals.GrandOpening.SoftLaunch)
+-- set to `on`, then puts it back.
+local function withSoftLaunch(on: boolean, fn: () -> ())
+	local deal = Config.Shop.Deals.GrandOpening :: any
+	local was = deal.SoftLaunch
+	deal.SoftLaunch = on
+	local ok, err = pcall(fn)
+	deal.SoftLaunch = was
+	if not ok then
+		error(err, 0)
+	end
+end
+
 local function newShop(overrides: { [string]: any }?): any
 	local shop: { [string]: any } = {
 		FirstJoin = JOIN,
@@ -677,8 +690,23 @@ return {
 		H.expect(row.Seconds == 30 * DAY and row.VaultedSeconds == 7 * DAY, "30 days, 7 vaulted")
 		H.expect(row.Money[1] == 24900 and row.Money[3] == 69900 and row.Money[10] == 219000, "")
 		H.expect(row.Products[3] == "GrandOpening3", "the Robux products")
-		local off = Shop.deal("GrandOpening", JOIN)
-		H.expect(off.timed and not off.open and not off.vaulted and off.startsAt == 0, "closed")
+		-- The soft launch (designer, 2026-10-09): on sale with no end date while StartsAt is 0,
+		-- without the Grand Opening Luck or the launch bonus.
+		H.expect(row.SoftLaunch == true, "the soft launch is on")
+		local soft = Shop.deal("GrandOpening", JOIN)
+		H.expect(soft.open and not soft.timed and soft.endsAt == 0, "open, no end date")
+		H.expect(not Shop.deal("GrandOpening", JOIN + 400 * DAY).vaulted, "never vaulted")
+		H.expect(not Shop.launchBonus(JOIN).open, "no launch bonus")
+		H.expect(not H.require("Progression.BlockDrop").luckLive(JOIN), "no luck")
+		H.expect(ShopView.check("GrandOpening3", ctxAt(JOIN)) ~= "Closed", "Robux on sale")
+		H.expect(
+			select(2, Shop.grantFor("GrandOpening3", newShop(), JOIN, false)) == nil,
+			"a receipt pays its blocks"
+		)
+		withSoftLaunch(false, function()
+			local off = Shop.deal("GrandOpening", JOIN)
+			H.expect(off.timed and not off.open and not off.vaulted and off.startsAt == 0, "closed")
+		end)
 		local mystery = Shop.deal("Mystery", JOIN)
 		H.expect(mystery.open and not mystery.timed, "the Mystery deal is always open")
 		H.expect(not Shop.deal("Nope", JOIN).open, "unknown: closed")
@@ -697,7 +725,10 @@ return {
 		H.expect(not Shop.deal("GrandOpening", JOIN + 22 * DAY).vaulted, "then gone")
 		H.expect(Config.Shop.Deals.GrandOpening.StartsAt == 0, "Config itself untouched")
 		H.expect(Shop.setDeal("GrandOpening", nil, nil), "cleared")
-		H.expect(not Shop.deal("GrandOpening", JOIN + DAY).open, "back to off")
+		withSoftLaunch(false, function()
+			H.expect(not Shop.deal("GrandOpening", JOIN + DAY).open, "back to off")
+		end)
+		H.expect(Shop.deal("GrandOpening", JOIN + DAY).open, "back to the soft launch")
 		H.expect(not Shop.setDeal("Nope", 1, 1), "no such deal")
 	end,
 
@@ -1281,10 +1312,12 @@ return {
 		H.expect(one.blocks.kind == "Mystery" and one.blocks.count == 1 and one.money == 0, "one")
 		H.expect(ten.blocks.kind == "Mystery" and ten.blocks.count == 10, "ten")
 		-- The deal's window at the receipt: closed (off) pays the fallback.
-		H.expect(
-			select(2, Shop.grantFor("GrandOpening3", newShop(), JOIN, false)) == "Closed",
-			"off until scheduled"
-		)
+		withSoftLaunch(false, function()
+			H.expect(
+				select(2, Shop.grantFor("GrandOpening3", newShop(), JOIN, false)) == "Closed",
+				"off until scheduled"
+			)
+		end)
 		Shop.setDeal("GrandOpening", JOIN, 21 * DAY)
 		local three, why = Shop.grantFor("GrandOpening3", newShop(), JOIN + DAY, false)
 		H.expect(why == nil and three.blocks.kind == "GrandOpening" and three.blocks.count == 3, "")
@@ -1368,7 +1401,10 @@ return {
 				"top, bottom"
 			)
 			H.expect(p.deals.Mystery.open and p.deals.Mystery.counts[2] == 5, "the deals")
-			H.expect(p.deals.GrandOpening.timed and not p.deals.GrandOpening.open, "off")
+			H.expect(
+				p.deals.GrandOpening.open and not p.deals.GrandOpening.timed,
+				"the soft launch: open, no end date"
+			)
 			local g = p.guarantees.GrandOpening
 			H.expect(g ~= nil and g.cue == "BetaCue" and g.at == 1000 and g.left == 999, "")
 			H.expect(not g.soldOut, "copies left (none found yet)")

@@ -55,6 +55,9 @@ One line each; the long form is the 2026-10-08 entry at the top of
   the designer's OK on those; Mystery1 and Mystery5 at 9 and 39 R$ on Roblox (until then the
   shop shows Roblox's live 7 / 29); the tutorial session's scripted first Mystery (hand-off
   line in DECISIONS.md).
+- **The Grand Opening soft launch is on** (2026-10-09, `Deals.GrandOpening.SoftLaunch`): the
+  block sells for money and Robux with no end date, no luck, no launch bonus. Live once the place
+  is published. For the release: set `StartsAt` (or `SoftLaunch = false` to close it).
 - **Economy v5 and its screens on `gui-v4`** (2026-10-09; `docs/prompts/ECONOMY_V5_PLAN.md`,
   roadmap 7.9). The GUI run (`docs/prompts/ECONOMY_V5_GUI_PROMPT.md`, its Notes say what each
   step built) updated every screen and checked each on PC; screenshots for review in

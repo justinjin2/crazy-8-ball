@@ -611,9 +611,10 @@ function Items.start()
 	end
 	started = true
 	if IS_STUDIO and Config.Debug.StudioOpening == true then
-		-- The Grand Opening is open in every Studio session (Config.Debug.StudioOpening).
+		-- The Grand Opening is open in every Studio session (Config.Debug.StudioOpening); during
+		-- the soft launch it is open already, as live (no window, no luck, no launch bonus).
 		local opening = Config.Shop.Deals.GrandOpening
-		if opening ~= nil and opening.StartsAt == 0 then
+		if opening ~= nil and opening.StartsAt == 0 and opening.SoftLaunch ~= true then
 			Items.setLimitedWindow(os.time(), opening.Seconds)
 		end
 	end

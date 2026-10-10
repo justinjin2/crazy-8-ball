@@ -3516,6 +3516,11 @@ Config.Shop = {
 			-- v4 plan 8.5: $24,900 (3.4 hours of play), 3 for $69,900, 10 for $219,000.
 			Money = { [1] = 24900, [3] = 69900, [10] = 219000 },
 			Products = { [1] = "GrandOpening1", [3] = "GrandOpening3", [10] = "GrandOpening10" },
+			-- The soft launch (designer, 2026-10-09, temporary): while StartsAt is 0 the block is
+			-- on sale for money and Robux with no end date. It does not start the Grand Opening
+			-- Luck or the launch bonus (they follow StartsAt). For the release window set
+			-- StartsAt (the deal then runs Seconds and ends), or false to close it again.
+			SoftLaunch = true,
 			StartsAt = 0,
 			-- 30 days (the designer, 2026-10-08: start at publish, maybe 30-45 days; the caps in
 			-- Config.BlockOdds.List.GrandOpening keep the Uniques at 1,000 and 100 either way).

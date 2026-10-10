@@ -988,6 +988,11 @@ Unique cues.
   2026-10-08: start at publish, maybe 30-45 days); a "Vaulted" card stays 7 days after the end.
   The launch bonus (11.1) runs on the same window, and the Grand Opening Luck (7.3) on its own
   30-day clock from the same `StartsAt`.
+- **The soft launch** (designer, 2026-10-09, temporary; `Deals.GrandOpening.SoftLaunch`): while
+  `StartsAt` is 0 the block is on sale for money and Robux **with no end date** and no
+  countdown. It does not start the Grand Opening Luck or the launch bonus. Setting `StartsAt`
+  for the release starts the real 30-day window (and the luck and the bonus); `SoftLaunch =
+  false` closes it again. The copy caps hold either way.
 - **Copy caps** (`Config.BlockOdds.List.GrandOpening.Caps`): **1,000 Firework Cues and 100 Beta
   Cues, ever.** Every server reads the copies taken from one shared counter. Once a cue's copies
   are all found, its row's share goes to Rare and the odds update everywhere at once; the card
