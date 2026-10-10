@@ -6709,14 +6709,11 @@ Config.UI = {
 			-- "ONE MORE WIN!" under the bar.
 			OneMoreTextPx = 18,
 			OneMoreGapPx = 2, -- under the pill
-			-- A phone: the column starts right under the badge, so the words sit in the pill's
-			-- name row instead, right-aligned after the rank's name, centred between the pill's
-			-- top edge and the bar (designer, 2026-10-10: "hard to see ... a little bit higher
-			-- ... not resting on the bar"; was 12 px, resting on the bar). They shrink to
-			-- OneMoreShortMinPx when a long rank name leaves less room.
-			OneMoreShortTextPx = 15,
-			OneMoreShortMinPx = 11,
-			OneMoreShortGapPx = 6, -- from the end of the rank's name
+			-- A phone: under the pill too, smaller, with the short words ("3 WINS TO GO!"),
+			-- centred under the bar, so they clear the menu column that starts right under the
+			-- badge (designer, 2026-10-10: in the name row after the rank's name a long name
+			-- like Grandmaster covered them; before that they rested on the bar).
+			OneMoreShortTextPx = 12,
 			-- The small badge under each portrait in the match bar (MatchHUD): this share of the
 			-- portrait, its centre this share of the badge above the portrait's lower edge, so it
 			-- overlaps the edge rather than growing the bar.

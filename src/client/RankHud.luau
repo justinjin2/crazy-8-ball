@@ -311,12 +311,6 @@ function RankHud.new(screen: ScreenGui, onOpen: () -> ()): any
 	connect(screen:GetPropertyChangedSignal("AbsoluteSize"), function()
 		self:layout()
 	end)
-	-- A phone's goal sits after the rank's name: a new name moves it.
-	connect(self.name:GetPropertyChangedSignal("TextBounds"), function()
-		if self.short then
-			self:layout()
-		end
-	end)
 	local player = self.player
 	if player then
 		for _, attribute in WATCHED do
@@ -415,7 +409,7 @@ function RankHud.refreshOneMore(self: any)
 end
 
 -- The goal's words: "ONE MORE WIN!", or the wins to the next division ("3 WINS TO BRONZE
--- II!"; in a phone's short name row "3 WINS TO GO!"). Hidden with no goal (Unranked, Reyes).
+-- 2!"; on a phone "3 WINS TO GO!"). Hidden with no goal (Unranked, Reyes).
 function RankHud.drawGoal(self: any)
 	local wins = self.goalWins or 0
 	local label = self.oneMore
@@ -466,25 +460,18 @@ function RankHud.layout(self: any)
 	if room > 0 then
 		scale = math.min(scale, room / (self.naturalWidth + spill))
 	end
-	-- The goal ("ONE MORE WIN!"): under the pill, or in its name row on a phone.
+	-- The goal ("ONE MORE WIN!") under the pill: on a phone smaller, centred under the bar.
 	local B, PW, PH = H.BadgePx, H.PillWidthPx, H.PillHeightPx
 	local oneMore = self.oneMore
 	self.short = short
 	self:drawGoal()
 	if short then
-		-- In the name row after the rank's name, centred between the pill's top edge (inside
-		-- its outline) and the bar's (the designer, 2026-10-10: never resting on the bar).
-		oneMore.Parent = self.pill
-		oneMore.TextXAlignment = Enum.TextXAlignment.Right
-		HudParts.setTextSize(oneMore, H.OneMoreShortTextPx, H.OneMoreShortMinPx)
-		local left = B / 2 + H.PadPx
-		local right = PW - H.PadPx * 1.5
-		local from = left + self.name.TextBounds.X + H.OneMoreShortGapPx
-		local outline = K.PanelStrokePx
-		local barTop = PH - H.BarHeightPx - H.BarBottomPx - H.BarStrokePx
-		local height = H.OneMoreShortTextPx + 2
-		oneMore.Position = UDim2.fromOffset(from, (outline + barTop) / 2 - height / 2)
-		oneMore.Size = UDim2.fromOffset(math.max(0, right - from), height)
+		-- The bar's span: the pill starts under the badge's centre, the bar PadPx into it.
+		oneMore.Parent = self.body
+		oneMore.TextXAlignment = Enum.TextXAlignment.Center
+		HudParts.setTextSize(oneMore, H.OneMoreShortTextPx)
+		oneMore.Position = UDim2.fromOffset(B + H.PadPx, (B + PH) / 2 + H.OneMoreGapPx)
+		oneMore.Size = UDim2.fromOffset(PW - B / 2 - H.PadPx * 2.5, H.OneMoreShortTextPx + 4)
 	else
 		oneMore.Parent = self.body
 		oneMore.TextXAlignment = Enum.TextXAlignment.Left

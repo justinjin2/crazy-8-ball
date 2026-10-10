@@ -4128,3 +4128,7 @@ timer of a new block stay the designer's call.
   rarest"): the restock's odds line is gone (each card's dice opens its odds) and its cards
   sort least rare to rarest. On a phone the rank HUD's "N wins to go" sits bigger, between the
   bar and the panel's top edge, right of the rank name.
+- 2026-10-10 (designer, "text is a little too big ... might be better to move it underneath
+  the rank since longer text like platinum or grandmaster will get covered"): on a phone the
+  rank HUD's "3 WINS TO GO!" is back to 12 px, under the pill and centred under the XP bar
+  (clear of the menu column under the badge), no longer in the name row.
