@@ -1410,6 +1410,7 @@ lines). All in the worktree.
   own store (`Config.Save.TestPlace`, reset 1) so everyone there starts over. The economy notes
   (too much money and too many blocks by the end, the next win's reward) are in the report for
   economy v5.1; nothing in the economy changed.
+- **Published** test place version 7 from `d488579` (the notes above, the saves reset there).
 
 ### Touch list (files outside the tutorial's own modules changed, and why)
 
