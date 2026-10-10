@@ -379,11 +379,39 @@ local function characterOf(userId: number): Model?
 	return who and who.Character or nil
 end
 
+-- Whether a copy of `userId`'s character now would be the real look: the body is there with its
+-- root, and a player's appearance (clothes, accessories) has loaded. A copy made sooner (a
+-- player just arrived in an arena) is the silhouette or bare, so it is never kept (designer,
+-- 2026-10-10: a solo arena's cutscene showed the black stand-in).
+local function readyToCopy(userId: number): boolean
+	local who = People.owner(userId)
+	local character = who and who.Character
+	if character == nil or character:FindFirstChild("HumanoidRootPart") == nil then
+		return false
+	end
+	if typeof(who) == "Instance" and who:IsA("Player") then
+		local ok, loaded = pcall(function()
+			return who:HasAppearanceLoaded()
+		end)
+		return ok and loaded == true
+	end
+	return true
+end
+
+local function isSilhouette(model: Model): boolean
+	return model.Name == "Silhouette"
+end
+
 -- The cached copy of `userId`'s character when it is still current, else a fresh one.
 local function takeAvatar(userId: number): Model
 	local entry = cached[userId]
 	cached[userId] = nil
-	if entry and entry.character == characterOf(userId) and entry.model.Parent == nil then
+	if
+		entry
+		and entry.character == characterOf(userId)
+		and entry.model.Parent == nil
+		and not isSilhouette(entry.model)
+	then
 		return entry.model
 	end
 	if entry then
@@ -399,6 +427,11 @@ local function giveBack(userId: number, model: Model)
 	if old and old.model ~= model then
 		old.model:Destroy()
 	end
+	if isSilhouette(model) or not readyToCopy(userId) then
+		cached[userId] = nil
+		model:Destroy()
+		return
+	end
 	cached[userId] = { character = characterOf(userId), model = model }
 end
 
@@ -412,8 +445,8 @@ local function warm(userId: number)
 	task.defer(function()
 		warming[userId] = nil
 		local character = characterOf(userId)
-		if character == nil then
-			return
+		if character == nil or not readyToCopy(userId) then
+			return -- too soon: the next snapshot warms it again
 		end
 		local now = cached[userId]
 		if now and now.character == character then
