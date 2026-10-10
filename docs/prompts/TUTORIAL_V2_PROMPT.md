@@ -1417,6 +1417,7 @@ lines). All in the worktree.
   "x2 VALUE!" (its money at the smallest pack's rate plus a Rare block, over its price) or
   "50% OFF!" in rainbow, "ONLY" and the live Robux price in green, the countdown on a gold pill
   on its corner; the Daily Challenge's "!" until pressed (until daily challenges exist).
+  Published as test place version 8 from `a4019e3`.
 
 ### Touch list (files outside the tutorial's own modules changed, and why)
 
