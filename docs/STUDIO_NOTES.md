@@ -152,6 +152,16 @@ without Studio's import dialogs. It only uses the Python standard library.
   128 characters, and Roblox keys are longer, so the result is a 401. The script reads it with `security find-generic-password -s ROBLOX_API_KEY -w`. Never print the key,
   echo it, log it or write it to a file. To check that it exists, run
   `security find-generic-password -s ROBLOX_API_KEY >/dev/null 2>&1 && echo True || echo False`.
+- **Publishing a place (2026-10-09):** a second key, place publishing only (`universe-places`
+  Write on the test place), lives under service `ROBLOX_PUBLISH_KEY` (stored the same way, with
+  `$(pbpaste)`); the Assets key above stays for uploads. Build the place: `rojo build
+  default.project.json -o build.rbxl`, then merge it into a copy of the place file with
+  `lune run ~/Desktop/8ball-refs/tutorial/merge_place.luau <place.rbxl> build.rbxl out.rbxl`
+  (keeps the Edit-mode content, swaps in the four Rojo trees), then
+  `POST https://apis.roblox.com/universes/v1/<universe>/places/<place>/versions?versionType=Published`
+  with header `x-api-key` and `Content-Type: application/octet-stream`, the .rbxl as the body.
+  Crazy 8 Test Place: universe 10769973956, place 75362358216917. A 403 "Scope not
+  authorized" means the key lacks `universe-places` for that experience. Never the real game.
 - **Run:** `python3 tools/roblox_upload.py --list files.txt --group-id 675425213 --dry-run`,
   then the same command without `--dry-run`. Other options are `--dir <folder>` (not
   recursive), `--type Model|Decal|Audio|Animation`, `--limit N`, and `--force-type Animation`
