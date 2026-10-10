@@ -4092,3 +4092,10 @@ timer of a new block stay the designer's call.
 - 2026-10-10 (designer): a skipper's "A new cue! Equip it in Cues." hint waits until a lucky
   block's reel and reveal are over (the cue is granted at the open), and so does the CUES
   tile's NEW count, for everyone: neither tells what the reel lands on.
+- 2026-10-10 (designer): the tutorial merges into the economy line this way: the tutorial
+  session merges `gui-v4` (economy v5 to v5.2) into `tutorial-v2` and keeps every economy rule;
+  `8ball-0d` fast-forwards `gui-v4` to it; the economy sessions own every number and bring the
+  designer a first-session rescale (measured on the merged branch: a VIP account $43,525 before
+  playtime, over half of it finder's money; hand-off section 3a). The tutorial's Uncommon block
+  reel that passes Legendary, Mythic and the Secret stays (designer); it now comes from the
+  first Mystery's scripted roll.

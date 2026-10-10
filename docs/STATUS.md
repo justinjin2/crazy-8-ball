@@ -4,15 +4,15 @@ Current state only, rewritten in place. Keep it to about two screens (under 100 
 step is finished and verified, move its dated entry to the top of
 `docs/archive/STATUS_HISTORY.md` and keep only what is still true or still open here.
 
-Updated 2026-10-10 (branch `tutorial-v2`, merging `gui-v4`).
+Updated 2026-10-10 (branch `tutorial-v2`, `gui-v4` merged in; `gui-v4` fast-forwards to it).
 
 ## Where the build is
 
 - **Branch `release`** is the integration branch, and every lane of the parallel build is
   merged into it (Bots, Economy, GUI and cutscenes, Tutorial, Unique cues). Stage 5 of the
   road to release (`docs/ROADMAP.md`): tutorial, funnel, performance, game page.
-- **Lint and tests (2026-10-09, branch `gui-v4`):** lint OK (three old LocalShadow warnings);
-  all 1164 Lune tests pass.
+- **Lint and tests (2026-10-10, branch `tutorial-v2` with `gui-v4` merged in):** lint OK (three
+  old LocalShadow warnings); all 1185 Lune tests pass.
 - **In the game:** server-owned tables with our own physics and 8-ball rules; 1v1, 2v2, 3v3
   and solo; the global queue and arena with rematch; bots (ten tiers, Play against PC, lobby
   bots, disguised bots); ranks (XP only from winning) and money; economy v5.1 and its screens
@@ -96,9 +96,11 @@ One line each; the long form is the 2026-10-08 entry at the top of
   Pack tile, ...) and the test place's saves were reset; then the offer corner as a deal, and
   the second notes (no colours before the first pot, zoom animations, ball in hand on the head
   spot, the small hand at PRESS G, the offer tile's wiggle and X, a one-day Starter Pack).
-  Then `8ball-0d` fast-forwards `gui-v4` and brings the designer a first-session rescale
-  (measured totals from the merged branch). Waiting on: a real controller and phone, Max
-  Players.
+  **Merged with `gui-v4`** (f1549ae, 2026-10-10): the first Mystery's roll scripted to Uncommon,
+  its reel glimpse kept; the whole first session played in Studio on PC. A first session pays
+  a VIP $43,525 before playtime (non-VIP about $35,000; over half finder's money): `8ball-0d`
+  fast-forwards `gui-v4` and brings the designer a rescale (hand-off section 3a). Waiting on: a
+  real controller and phone, Max Players, the merged build on the test place.
 - **The cue rarity rework** continues after the Unique cues (Beta, Grand Opening, Eclipse,
   Celestial Dragon, Kitsune). Apex's first look was reverted.
 - **The place file:** save `place/8ball.rbxl` and publish once this milestone is done.

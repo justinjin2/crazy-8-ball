@@ -7,7 +7,7 @@ other side. Message `8ball-tutorial-c1` with any question.
 
 ## 1. Who does what (the designer's calls, 2026-10-10)
 
-1. **The tutorial session merges `gui-v4` into `tutorial-v2`**, in its own worktree: it resolves
+1. **The tutorial session merges `gui-v4` into `tutorial-v2`** (done 2026-10-10, f1549ae), in its own worktree: it resolves
    the conflicts (16 files at the preview: `Config`, `Strings`, `LuckyBlockService`,
    `PlayerData`, `Rewards`, `Ranking`, `BlockDrop`, `LuckyClient`, `LuckyOpening`, `BlockReel`,
    `TutorialService`, `Tutorial`, and DECISIONS, ECONOMY, GDD, STATUS), keeps every v5, v5.1 and
@@ -62,10 +62,53 @@ guidance. All values are read from Config at run time; none is typed in tutorial
 | Playtime | the gifts at 5, 15, 30, 45, 60 minutes | `Config.Daily.Playtime` (v5: money only) |
 | "Win a Match 0/1" quest, then normal play | the next wins | `Config.Economy.Drop.WinTrack`, `Ranks` |
 
-**Measured on v5 after the merge:** the tutorial session plays the whole first session in
-Studio on the merged branch and adds the money and blocks at each row here (it will message
-you the totals). The v4 figure above ($32,000 and 5+ blocks) is the designer's own play on the
-test place.
+### 3a. Measured on the merged branch (2026-10-10)
+
+The tutorial session played the whole first session in its Studio window on `tutorial-v2` at
+f1549ae (`gui-v4` 5e34be7 merged in), on PC, a fresh save. **The Studio account is VIP**: match
+money doubled (`Config.Economy.VipBoost`), VIP's daily extras (`Config.Daily.VipBlocks`,
+`VipSpins`), no block timers, and the VIP Cue's finder's money at join. Finder's money
+(`Config.Index.FindMoney`) is never boosted. The v4 figure in section 2 ($32,000 and 5+ blocks)
+is the designer's own play on the test place, with playtime gifts.
+
+| Step | Money after | What changed |
+|---|---|---|
+| Join | $5,000 | the VIP Cue's finder's money (Exclusive); **a non-VIP starts at $0**; 0 spins |
+| Game 1 (rigged win) | $8,025 | +$3,025 match money, VIP-doubled (break 440, aim 220, combination 715, ability 330, other balls 220, the win +1,100); about **$1,500 for a non-VIP** |
+| Result: the first win | – | the first-win Rare block (`Drop.FirstWin`, win track step 1) |
+| Rank claim (Bronze) | $15,525 | +$7,500: $2,500 + the Bronze Cue's finder's $5,000 (Ranked); a Mystery block |
+| The tutorial's block | $16,525 | the Mystery rolled to Uncommon, opened to CosmoCue: +$1,000 finder's |
+| Abilities | – | RELEASE: +3 spins, one used on the tutorial spin |
+| Daily day 1 | $21,525 | +$5,000 + a Mystery (VIP also: an Uncommon block and 1 spin) |
+| Group | – | +2 Mystery |
+| Favorite | $31,525 | +$10,000 + a Lucky 8 block |
+| 3 Mysteries rolled, then Open all | $38,525 | rolled to Uncommon, Standard, Uncommon; with VIP's Uncommon block, 4 new cues (2 Rare, 2 Uncommon): +$7,000 finder's |
+| The first-win Rare block | $41,025 | +$2,500 finder's (a Rare cue) |
+| The Lucky 8 block | **$43,525** | +$2,500 finder's |
+| Not measured: playtime | up to +$14,000 | `Config.Daily.Playtime`: $1,000 at 5 min, $2,000 at 15, $2,500 at 30, $3,500 at 45, $5,000 + 1 spin at 60 |
+| Not measured: an invite | – | an Uncommon block for both (`Config.Social.InviteBlock`) |
+
+**Where the VIP account's $43,525 came from:** finder's money **$23,000 (53%)** (VIP Cue 5,000,
+Bronze Cue 5,000, Cosmo 1,000, Open all 7,000, Rare 2,500, Lucky 8 2,500); rewards **$17,500
+(40%)** (Favorite 10,000, Daily 5,000, Bronze 2,500); match money **$3,025 (7%)**.
+
+**A non-VIP's first session, estimated from the same run:** about **$35,000 before playtime**
+(no VIP Cue $5,000, half the match money, no VIP block; the 3 Mysteries' finder's money is
+luck, about $4,500 to $6,000), **about $41,000 at 30 minutes** and **about $49,000 at 60
+minutes**. Blocks: **6** (the tutorial's Mystery, the first-win Rare, the daily Mystery, 2 group
+Mysteries, the Lucky 8; VIP 7), 7 new cues (VIP 9), 3 ability spins (+1 at 60 minutes). A
+non-VIP also waits each block's own timer (Uncommon 1 min, Rare 5 min).
+
+**The next win** (the "Win a Match 0/1" quest after the tutorial) is win track step 2 on v5:
+`WinTrackMoney`, $1,000, then $1,000 again, then a Mystery at win 4 and the Epic at win 10. The
+designer asked for something exciting there (section 2); v5's step 2 is money, which reads
+smaller than the session's rewards before it.
+
+**What reads high, for your rescale (the designer approves the numbers, not us):** the
+designer's v4 complaint was $32,000 with 5+ blocks; v5 is higher, not lower, because finder's
+money pays for every new cue and a first session finds 7 to 9. Favorite's $10,000 is the
+biggest single reward, about 7 games' worth of a non-VIP's match money at once. Match money,
+what the game is about, is the smallest share.
 
 ## 4. Tutorial screens that show an economy number (recheck after the merge)
 
@@ -82,6 +125,13 @@ test place.
 - The ability prompt (`UltBar`): bigger and breathing in every match now (not economy, FYI).
 
 ## 5. What the tutorial needs from v5.2 (questions for `8ball-0d`)
+
+**Answered by the merge (f1549ae, 2026-10-10):** the tutorial uses gui-v4's
+`LuckyBlockService.setOpenHooks(force, opened, stay, script)` with every answer keyed on
+`TutorialService.step`: `script` rolls the first Mystery to Uncommon (`Config.Tutorial.
+MysteryReveal.Tier`), ready at once; `stay` keeps that Uncommon block from climbing at the
+open; `force` gives `TutorialCue`. `BronzeBlockKind`, `setRevealHook` and the tutorial's own
+forced path are gone; the save stays at version 11. The questions below are kept for the record.
 
 1. Your section 2 describes v5.0 (the climb screen for every block). With v5.1 and v5.2, is the
    right hook for the first block now: the Mystery's roll scripted to an Uncommon block

@@ -1428,6 +1428,19 @@ lines). All in the worktree.
   (hidden for the visit); the Starter Pack's window one day. The Daily Rewards' amounts are
   flagged for economy v5 at the merge (report, DECISIONS). Published as test place version 9
   from `c22a2cd`.
+- **The designer's merge call (2026-10-10):** first a skipper's "new cue" hint and the CUES
+  count wait for the reel and YOU GOT (`LuckyClient.busy`; `181f244`). Then, the designer's
+  picks: this session merges `gui-v4` (5e34be7, economy v5 to v5.2) into `tutorial-v2`, messages
+  `8ball-0d` and `8ball-2c` directly with the hand-off (`docs/prompts/TUTORIAL_V2_ECONOMY_HANDOFF.md`),
+  and `8ball-0d` fast-forwards `gui-v4` in the main folder (`git merge --ff-only tutorial-v2`) at
+  a quiet moment once told "ready". The merge is `f1549ae` (16 files with conflicts): gui-v4's
+  `setOpenHooks(force, opened, stay, script)` replaces the tutorial's own forced path; the first
+  Mystery's roll is scripted to Uncommon (`Config.Tutorial.MysteryReveal.Tier`), that block stays
+  Uncommon at the open and gives `TutorialCue`, its reel keeps the Secret glimpse (designer's
+  call). Lint, the tests and the whole first session in Studio on PC (the Mystery roll, the
+  reel's climb odds and glimpse, the Cues equip, RELEASE and Magnet, the v5 Daily popup, group,
+  favorite, Open all, the first-win Rare and the Lucky 8): no errors. Measured money and blocks
+  per step (a VIP account, $43,525 before playtime) are in the hand-off's section 3a.
 
 ### Touch list (files outside the tutorial's own modules changed, and why)
 
@@ -1573,6 +1586,17 @@ lines). All in the worktree.
     `tests/shop_test.luau` (the Starter window read from Config); `docs/ECONOMY.md` 11.4 and
     `docs/GDD.md` (the one-day window); `tools/tutorial_v2/sim_game.luau` (the simulated
     player drags ball in hand).
+  - The new-cue wait: `src/client/MenuColumn.luau` (the CUES count holds while
+    `LuckyClient.busy()`), `src/client/TutorialHints.luau`, `Config.UI.Menu.Column.NewWaitSeconds`.
+  - The merge with `gui-v4` (`f1549ae`): `src/server/TutorialService.luau` (`scriptedClimb`,
+    `stayFor`, `forcedOpen` through `LuckyBlockService.setOpenHooks`), `src/server/LuckyBlockService.luau`
+    (gui-v4's hooks; the tutorial's reel glimpse at the open), `src/server/PlayerData.luau`
+    (gui-v4's `climbBlock`), `src/server/Rewards.luau` (both sides' ClaimDaily),
+    `src/server/Ranking.luau`, `src/shared/Progression/BlockDrop.luau` (the forced path gone),
+    `src/client/LuckyClient.luau`, `LuckyOpening.luau`, `BlockReel.luau` (climb and glimpse),
+    `src/client/Tutorial.luau`, `src/shared/Config.luau` (`Tutorial.MysteryReveal.Tier`; gui-v4's
+    `BronzeBlockKind` and `BronzeCueRarity` dropped), `src/shared/Strings.luau`,
+    `tests/blockdrop_test.luau`; DECISIONS, ECONOMY, GDD, STATUS.
 
 ---
 

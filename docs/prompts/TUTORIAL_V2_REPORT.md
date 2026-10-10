@@ -1,7 +1,8 @@
 # Tutorial v2: the report (2026-10-09)
 
 Branch `tutorial-v2` (worktree `~/Desktop/8ball-tutorial`), forked from `gui-v4` at `19d27d4`.
-Not merged: it waits for your word. The full record is the brief's Notes
+`gui-v4` (economy v5 to v5.2) merged in on 2026-10-10 (f1549ae); `8ball-0d` fast-forwards
+`gui-v4` to it. The full record is the brief's Notes
 (`docs/prompts/TUTORIAL_V2_PROMPT.md`); the design is GDD section 14; the funnels are
 `docs/TUTORIAL_FUNNELS.md`.
 
@@ -117,7 +118,7 @@ for you.
 - The result screen's total counts the held rank reward's money although it waits in Rank (an
   older behaviour, not from this branch).
 - The "equip your new cue" hint forgets the cue after a rejoin (it waits for the next cue won).
-- The merge back (only when you say).
+- The merge back: done the other way round (2026-10-10, below).
 
 ## Your live notes of 2026-10-09: done
 
@@ -172,7 +173,7 @@ OFF!", then "ONLY" and the live price; the Daily Challenge wears a "!" until pre
   blocks: maybe an **Epic** block, if the economy allows.
 - A next goal should always be in sight; the rank HUD's line is the first piece (above).
 - **The Daily Rewards' rewards** (the seven login days and Claim All) definitely need rescaling
-  to economy v5 at the merge: they are still v4's amounts.
+  to economy v5 at the merge: since the merge the popup shows v5's first week (below).
 
 ## Run assumptions (my calls where the brief left room; all in DECISIONS)
 
@@ -193,3 +194,26 @@ OFF!", then "ONLY" and the live price; the Daily Challenge wears a "!" until pre
   forced to Magnet; a reset during game 1 is not a foul.
 - Studio checks were the main happy path with one screenshot per step from step 13 on (your
   call), and 3 automated runs instead of 20.
+
+## The merge with economy v5 to v5.2 (2026-10-10)
+
+You chose: the tutorial session merges `gui-v4` into `tutorial-v2` here, messages the economy
+sessions (`8ball-0d`, `8ball-2c`) directly, and `8ball-0d` fast-forwards `gui-v4` in the main
+folder at a quiet moment. The hand-off is `docs/prompts/TUTORIAL_V2_ECONOMY_HANDOFF.md`.
+
+- **Before the merge:** after a skip, the "new cue" hint and the CUES count waited for nothing
+  and showed during the lucky block's reel; both now wait until the reel and YOU GOT are done
+  (the same as on the tutorial's path).
+- **The merge** (f1549ae; 16 files had conflicts): every v5, v5.1 and v5.2 rule stays. The
+  tutorial's first Mystery uses v5.1's roll screen, scripted to land on Uncommon; that
+  Uncommon block opens at once with the reel that passes Legendary, Mythic and the Secret
+  (kept, your call) and gives the tutorial's cue. The Daily Rewards popup shows v5's first week
+  (the Week One Cue on day 7); the invite now gives an Uncommon block (v5); the Starter Pack
+  stays one day. Lint and all tests pass; the whole session was played in Studio on PC.
+- **What a first session gives now** (measured on the merged branch; the Studio account is
+  VIP): **$43,525** before playtime: 53% finder's money (each new cue pays once), 40% rewards
+  (Favorite $10,000, Daily $5,000, Bronze $2,500), 7% match money. A non-VIP: about $35,000
+  before playtime, $41,000 at 30 minutes, $49,000 at 60; 6 lucky blocks, 7 new cues. That is
+  more than v4's $32,000, mostly from finder's money. The next win pays $1,000 (v5's track).
+  `8ball-0d` brings you a rescale to approve; the tutorial changes no number.
+
