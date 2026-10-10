@@ -317,13 +317,13 @@ function Progression.start(screen: ScreenGui, hooks: Hooks)
 	-- The banner keeps under the rank HUD and its next-goal line (under the pill on a phone).
 	banner = Banner.new(screen, { avoid = { rankHud.holder, rankHud.oneMore } })
 	TutorialAnchors.set("Banner", banner.root) -- the tutorial's line keeps under it
-	-- The Sky banner sits in the top row when it clears these (else just under the row).
-	skyBanner:setAvoid({
-		rankHud.holder,
-		corners.gearTile.button,
-		corners.gearTile.word,
-		playerList.panel,
-	})
+	-- The Sky banner sits in the top row when it clears these (else just under the row); on a
+	-- phone just right of the rank HUD and the Settings gear.
+	local beside = { rankHud.holder, corners.gearTile.button, corners.gearTile.word }
+	skyBanner:setAvoid(
+		{ rankHud.holder, corners.gearTile.button, corners.gearTile.word, playerList.panel },
+		beside
+	)
 	Menus.setBlocker(function(): boolean
 		return lastState.inMatch or popupUp()
 	end)

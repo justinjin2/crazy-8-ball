@@ -725,6 +725,16 @@ Net.get("ArenaState").OnClientEvent:Connect(function(state: any)
 		arenaState = state
 	end
 end)
+-- The last match summary's table and game. The server sends it just before the result
+-- snapshot, and on a slow connection that snapshot can come frames later: a game that still
+-- looked on there would stop the result cutscene before it opens the result screen (the
+-- designer's phone, 2026-10-10: no result screen, straight to NEW RANK!).
+local summaryTable: number?, summaryEpoch: number? = nil, nil
+Net.get("MatchSummary").OnClientEvent:Connect(function(summary: any)
+	if type(summary) == "table" and type(summary.epoch) == "number" then
+		summaryTable, summaryEpoch = summary.tableId, summary.epoch
+	end
+end)
 -- The row's buttons. Rematch and Leave are the table's vote; Play another, its Cancel and
 -- Lobby are the arena's own.
 local leftChoiceAt: number? = nil
@@ -1417,7 +1427,15 @@ local function renderFrame(dt: number)
 	end
 	-- Ranks and money: the rank HUD hides while you play, your match's nameplates too, and a
 	-- rank-up popup waits until your shot is over.
-	local inMatch = seated ~= nil and seated.phase ~= "Waiting" and seated.phase ~= "Result"
+	-- A game whose summary is in is over, whatever its snapshot still says.
+	local ended = seated ~= nil
+		and seated.phase ~= "Waiting"
+		and seated.id == summaryTable
+		and seated.epoch == summaryEpoch
+	local inMatch = seated ~= nil
+		and seated.phase ~= "Waiting"
+		and seated.phase ~= "Result"
+		and not ended
 	local matchIds = {}
 	if inMatch then
 		for _, s in seated.seats do
@@ -1426,7 +1444,7 @@ local function renderFrame(dt: number)
 	end
 	Progression.update({
 		inMatch = inMatch,
-		afterMatch = seated ~= nil and seated.phase == "Result",
+		afterMatch = seated ~= nil and (seated.phase == "Result" or ended),
 		shooting = controlled,
 		matchUserIds = matchIds,
 		-- The matchmaking bar or an opponent's ask has the space over the hotbar.

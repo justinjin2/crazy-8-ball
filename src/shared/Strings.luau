@@ -1022,6 +1022,7 @@ return {
 		-- ("12:34"; nothing shows before the day's first finished match), and once today's
 		-- has fallen.
 		SkyNext = "Next Sky Lucky Block in %s",
+		SkyNextShort = "Sky Block in %s", -- a phone's, beside the Settings gear when short of room
 		SkyDone = "Sky Lucky Block: come back tomorrow!",
 		-- The kinds' short names (the Mystery block's odds list).
 		Short = {

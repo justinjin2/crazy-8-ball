@@ -6402,6 +6402,7 @@ Config.UI = {
 	SkyBanner = {
 		TextPx = 18,
 		PhoneTextPx = 14,
+		PhoneMinTextPx = 11, -- a phone's words shrink to this to fit beside the Settings gear
 		PadPx = 8,
 		GapPx = 6,
 		IconShare = 1.1, -- of the pill's height (the wings poke out a little)

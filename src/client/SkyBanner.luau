@@ -1,11 +1,13 @@
 --!strict
 -- SkyBanner: the Sky Lucky Block's clock at the top of the lobby (economy v6, designer
 -- 2026-10-10: "next sky lucky block in..."; SkyDropService). An Ink pill with the Sky block's
--- icon and "Next Sky Lucky Block in 12:34", in Roblox's top bar row centred on the screen, or
--- just under the row when the rank HUD, the Settings gear or the Players list leaves no room
--- there (setAvoid; a phone). Hidden before today's first finished match (designer: "just have
--- them finish a match then show the timer"), once today's has been earned, while one is
--- falling, and whenever the lobby is not quiet (Progression: setVisible). The server sends the clock ({ sky = view }) every Config.SkyBlock.TickSeconds;
+-- icon and "Next Sky Lucky Block in 12:34", in Roblox's top bar row: centred on the screen on a
+-- computer or tablet, just right of the Settings gear on a phone (setAvoid; designer: no room
+-- under the row there), and just under the row when the row has no room at all. Hidden before
+-- today's first finished match (designer: "just have them finish a match then show the
+-- timer"), once today's has been earned, while one is falling, and whenever the lobby is not
+-- quiet (Progression: setVisible). The server sends the clock ({ sky = view }) every
+-- Config.SkyBlock.TickSeconds;
 -- between sends the time counts down here while the server says it runs (the player active).
 --
 -- It also tells the server the player is active: any input, at most every
@@ -14,6 +16,7 @@ local GuiService = game:GetService("GuiService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
+local TextService = game:GetService("TextService")
 local UserInputService = game:GetService("UserInputService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
@@ -25,6 +28,7 @@ local HudParts = require(script.Parent.HudParts)
 local C = Config.SkyBlock
 local U = Config.UI.SkyBanner
 local W = Strings.LuckyBlocks
+local BIG = Vector2.new(10000, 1000)
 
 local SkyBanner = {}
 SkyBanner.__index = SkyBanner
@@ -41,6 +45,7 @@ function SkyBanner.new(screen: ScreenGui): any
 	self.wanted = false
 	self.screen = screen
 	self.avoid = {} :: { GuiObject }
+	self.beside = {} :: { GuiObject }
 	-- Its own ScreenGui over the free part of Roblox's top bar row (as RankHud and PlayerList),
 	-- so its origin is the row's top-left on every device.
 	local gui = Instance.new("ScreenGui")
@@ -101,8 +106,8 @@ function SkyBanner.new(screen: ScreenGui): any
 	return self
 end
 
---- The words now, or nil when nothing shows.
-function SkyBanner.words(self: any): string?
+--- The words now and their short form (a phone short of room), or nil when nothing shows.
+function SkyBanner.words(self: any): (string?, string?)
 	local view = self.view
 	if type(view) ~= "table" or view.pending == true or view.needsMatch == true then
 		return nil
@@ -113,35 +118,79 @@ function SkyBanner.words(self: any): string?
 	if view.running == true then
 		left -= os.clock() - self.receivedAt
 	end
-	return W.SkyNext:format(clock(math.max(1, left)))
+	local time = clock(math.max(1, left))
+	return W.SkyNext:format(time), W.SkyNextShort:format(time)
 end
 
 function SkyBanner.refresh(self: any)
-	local words = if self.wanted then self:words() else nil
+	local words, short = nil, nil
+	if self.wanted then
+		words, short = self:words()
+	end
 	self.pill.Visible = words ~= nil
 	if words == nil then
+		self.laidFor = nil
 		return
 	end
-	if self.text.Text ~= words then
-		self.text.Text = words
-	end
+	-- Laid out again only when its words or the screen change (the words tick once a second;
+	-- this runs every frame while it shows).
 	local camera = workspace.CurrentCamera
+	local key = words .. tostring(camera and camera.ViewportSize)
+	if key == self.laidFor then
+		return
+	end
+	self.laidFor = key
 	local phone = camera ~= nil and camera.ViewportSize.Y < Config.Multiplayer.Style.ShortHeight
-	local size = if phone then U.PhoneTextPx else U.TextPx
-	HudParts.setTextSize(self.text, size)
-	local h = size + 2 * U.PadPx
-	local iconPx = math.floor(h * U.IconShare)
-	local textW = math.ceil(self.text.TextBounds.X) + 4
-	local w = U.PadPx + iconPx + U.GapPx + textW + U.PadPx
-	-- In the row, centred on the screen and on Roblox's buttons, unless that touches what
-	-- the row already holds; then just under the row.
-	local origin = self.gui.AbsolutePosition
+	local font = HudParts.measureFont(self.text)
+	local shown = words :: string
+	-- The pill's width, height, icon and words' width at a text size.
+	local function sized(px: number): (number, number, number, number)
+		local h = px + 2 * U.PadPx
+		local iconPx = math.floor(h * U.IconShare)
+		local textW = math.ceil(TextService:GetTextSize(shown, px, font, BIG).X) + 4
+		return U.PadPx + iconPx + U.GapPx + textW + U.PadPx, h, iconPx, textW
+	end
+	local origin, area = self.gui.AbsolutePosition, self.gui.AbsoluteSize
 	local centre = self.screen.AbsolutePosition.X + self.screen.AbsoluteSize.X / 2
+	local size = U.TextPx
+	local w, h, iconPx, textW = sized(size)
 	local left = centre - w / 2
 	local top = U.RowButtonTopPx + (U.RowButtonPx - h) / 2
-	if self:blocked(left - U.ClearPx, origin.Y + top, w + 2 * U.ClearPx, h) then
-		top = GuiService.TopbarInset.Height + U.TopGapPx
+	local placed = false
+	if phone then
+		-- A phone: in the row just right of the Settings gear (designer, 2026-10-10: no room
+		-- for it under the row); short of room, its short words, then a little smaller.
+		local edge = self:leftEdge()
+		if edge then
+			local room = origin.X + area.X - U.ClearPx - (edge + U.ClearPx)
+			size = U.PhoneTextPx
+			w, h, iconPx, textW = sized(size)
+			if w > room and short then
+				shown = short
+				w, h, iconPx, textW = sized(size)
+			end
+			while w > room and size > U.PhoneMinTextPx do
+				size -= 1
+				w, h, iconPx, textW = sized(size)
+			end
+			if w <= room then
+				left, top = edge + U.ClearPx, math.max(0, (area.Y - h) / 2)
+				placed = true
+			end
+		end
+	elseif not self:blocked(left - U.ClearPx, origin.Y + top, w + 2 * U.ClearPx, h) then
+		-- A bigger screen: in the row, centred on the screen and on Roblox's buttons.
+		placed = true
 	end
+	if not placed then
+		-- Else just under the row, centred.
+		shown = words :: string
+		size = if phone then U.PhoneTextPx else U.TextPx
+		w, h, iconPx, textW = sized(size)
+		left, top = centre - w / 2, GuiService.TopbarInset.Height + U.TopGapPx
+	end
+	self.text.Text = shown
+	HudParts.setTextSize(self.text, size)
 	self.pill.Position = UDim2.fromOffset(left - origin.X + w / 2, top)
 	self.pill.Size = UDim2.fromOffset(w, h)
 	self.icon.Size = UDim2.fromOffset(iconPx, iconPx)
@@ -150,18 +199,36 @@ function SkyBanner.refresh(self: any)
 	self.text.Size = UDim2.fromOffset(textW, h)
 end
 
+-- Whether `object` shows (it and every holder visible, its ScreenGui on).
+local function shows(object: GuiObject): boolean
+	local shown = object:IsDescendantOf(game) and object.AbsoluteSize.X > 0
+	local at: Instance? = object
+	while shown and at and not at:IsA("PlayerGui") do
+		local hidden = (at:IsA("GuiObject") and not at.Visible)
+			or (at:IsA("ScreenGui") and not at.Enabled)
+		shown = not hidden
+		at = at.Parent
+	end
+	return shown
+end
+
+-- The right end (absolute pixels) of what a phone's pill sits beside (the rank HUD, the
+-- Settings gear and its word), or nil when none shows.
+function SkyBanner.leftEdge(self: any): number?
+	local edge: number? = nil
+	for _, object in self.beside :: { GuiObject } do
+		local p, s = object.AbsolutePosition, object.AbsoluteSize
+		if shows(object) then
+			edge = math.max(edge or -math.huge, p.X + s.X)
+		end
+	end
+	return edge
+end
+
 -- Whether anything in the avoid list shows over this rectangle (absolute pixels).
 function SkyBanner.blocked(self: any, x: number, y: number, w: number, h: number): boolean
 	for _, object in self.avoid :: { GuiObject } do
-		local shown = object:IsDescendantOf(game)
-		local at: Instance? = object
-		while shown and at and not at:IsA("PlayerGui") do
-			local hidden = (at:IsA("GuiObject") and not at.Visible)
-				or (at:IsA("ScreenGui") and not at.Enabled)
-			shown = not hidden
-			at = at.Parent
-		end
-		if shown then
+		if shows(object) then
 			local p, s = object.AbsolutePosition, object.AbsoluteSize
 			if p.X < x + w and p.X + s.X > x and p.Y < y + h and p.Y + s.Y > y then
 				return true
@@ -171,10 +238,12 @@ function SkyBanner.blocked(self: any, x: number, y: number, w: number, h: number
 	return false
 end
 
---- What the pill keeps clear of in the top row: the rank HUD, the Settings gear, the Players
---- list (Progression).
-function SkyBanner.setAvoid(self: any, objects: { GuiObject })
+--- What the pill keeps clear of in the top row (the rank HUD, the Settings gear, the Players
+--- list), and what a phone's pill sits just right of (the rank HUD and the gear; Progression).
+function SkyBanner.setAvoid(self: any, objects: { GuiObject }, beside: { GuiObject })
 	self.avoid = objects
+	self.beside = beside
+	self.laidFor = nil
 	self:refresh()
 end
 

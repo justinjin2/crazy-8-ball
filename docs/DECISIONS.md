@@ -4249,3 +4249,13 @@ timer of a new block stay the designer's call.
   follows it. Its Shop card says how limited it is under the block: a red "ENDS IN 45d 23h"
   pill and "THEN GONE FOREVER!" in flowing rainbow words. The Abilities code box's "NEXT CODE
   AT 100 LIKES" has the kit's ink outline like the line above it.
+- 2026-10-10 (designer, phone pass): on a phone the Sky banner sits in the top row just right
+  of the Settings gear ("Sky Block in 14:29" when the full words do not fit). The ability
+  cutscene's band draws past a phone's safe area (Letterbox.screen), edge to edge, and each
+  seated player's avatar copy is made when they sit down, not in the frame an ability fires
+  (the activation hitch). The hotbar keeps the tiles of unchanged blocks on each update instead
+  of rebuilding the hotbar and the whole bag in one frame (the choppy Mystery jump and block
+  arrivals), and stops each Mystery tile's OPEN! pulse with its tile. A match whose summary
+  has arrived counts as over even before its Result snapshot does, so a slow connection no
+  longer stops the result cutscene before the result screen opens (the tutorial's missing
+  results), and the tutorial's Result step waits for that cutscene.

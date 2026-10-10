@@ -35,6 +35,7 @@ local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local Catalog = require(Shared:WaitForChild("Ults"):WaitForChild("Catalog"))
 local HudParts = require(script.Parent:WaitForChild("HudParts"))
+local Letterbox = require(script.Parent:WaitForChild("Letterbox"))
 local UIAnim = require(script.Parent:WaitForChild("UIAnim"))
 local ScreenFx = require(script.Parent:WaitForChild("ScreenFx"))
 local People = require(script.Parent:WaitForChild("People"))
@@ -82,6 +83,8 @@ type Line = { frame: Frame, y: number, length: number, start: number, speed: num
 
 type Play = {
 	tableId: number,
+	avatar: Model, -- the activator's copy (handed back to the cache when it ends)
+	avatarBy: number,
 	mine: boolean, -- the local player is seated at that table
 	started: number, -- os.clock() at elapsed 0
 	root: Frame,
@@ -149,8 +152,9 @@ local function ensureGui(): ScreenGui
 	local screen = Instance.new("ScreenGui")
 	screen.Name = "UltCutscene"
 	screen.ResetOnSpawn = false
-	-- The whole screen, Roblox's top bar included: the band runs edge to edge.
-	screen.IgnoreGuiInset = true
+	-- The whole screen, Roblox's top bar and a phone's notch and corners included: the band
+	-- runs edge to edge (designer, 2026-10-10: on an iPhone it stopped short of the sides).
+	Letterbox.screen(screen)
 	screen.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 	local hud = player:WaitForChild("PlayerGui"):FindFirstChild("PoolHud")
 	local base = if hud and hud:IsA("ScreenGui") then hud.DisplayOrder else 0
@@ -364,6 +368,64 @@ local function avatarModel(userId: number): Model
 	return model
 end
 
+-- Each seated player's copy, made ahead (warm) so an activation does not clone a whole
+-- character in the frame it starts: that hitch made the ult feel slow on a phone (designer,
+-- 2026-10-10). Kept with the character it was copied from; a new character makes a new copy.
+local cached: { [number]: { character: Model?, model: Model } } = {}
+local warming: { [number]: boolean } = {}
+
+local function characterOf(userId: number): Model?
+	local who = People.owner(userId)
+	return who and who.Character or nil
+end
+
+-- The cached copy of `userId`'s character when it is still current, else a fresh one.
+local function takeAvatar(userId: number): Model
+	local entry = cached[userId]
+	cached[userId] = nil
+	if entry and entry.character == characterOf(userId) and entry.model.Parent == nil then
+		return entry.model
+	end
+	if entry then
+		entry.model:Destroy()
+	end
+	return avatarModel(userId)
+end
+
+-- Keep `model` (taken out of its viewport) for `userId`'s next activation.
+local function giveBack(userId: number, model: Model)
+	model.Parent = nil
+	local old = cached[userId]
+	if old and old.model ~= model then
+		old.model:Destroy()
+	end
+	cached[userId] = { character = characterOf(userId), model = model }
+end
+
+-- Make `userId`'s copy a frame later, unless a current one is kept.
+local function warm(userId: number)
+	local entry = cached[userId]
+	if warming[userId] or (entry and entry.character == characterOf(userId)) then
+		return
+	end
+	warming[userId] = true
+	task.defer(function()
+		warming[userId] = nil
+		local character = characterOf(userId)
+		if character == nil then
+			return
+		end
+		local now = cached[userId]
+		if now and now.character == character then
+			return
+		end
+		if now then
+			now.model:Destroy()
+		end
+		cached[userId] = { character = character, model = avatarModel(userId) }
+	end)
+end
+
 -- Where the camera looks and how much it must show: the upper body (waist to the top of the head
 -- or its hat) fits FrameMargin of a window `aspect` wide per unit of height, its waist near the
 -- window's bottom edge.
@@ -572,7 +634,7 @@ local function build(tableId: number, mine: boolean, armed: Armed, elapsed: numb
 	viewCamera.FieldOfView = C.FieldOfView
 	viewCamera.Parent = viewport
 	viewport.CurrentCamera = viewCamera
-	local model = avatarModel(armed.by)
+	local model = takeAvatar(armed.by)
 	model.Parent = viewport
 	local focus, visibleHeight =
 		frameAvatar(model, viewport.Size.X.Offset / math.max(viewport.Size.Y.Offset, 1))
@@ -662,6 +724,8 @@ local function build(tableId: number, mine: boolean, armed: Armed, elapsed: numb
 
 	return {
 		tableId = tableId,
+		avatar = model,
+		avatarBy = armed.by,
 		mine = mine,
 		started = os.clock() - elapsed,
 		root = root,
@@ -709,6 +773,9 @@ local function stop(play: Play)
 	if play.connection then
 		play.connection:Disconnect()
 		play.connection = nil
+	end
+	if play.avatar.Parent then
+		giveBack(play.avatarBy, play.avatar)
 	end
 	play.root:Destroy()
 	if current == play then
@@ -896,6 +963,14 @@ end
 local function onSnapshot(self: UltCutscene, snapshot: any)
 	if type(snapshot) ~= "table" or type(snapshot.id) ~= "number" then
 		return
+	end
+	-- The seated players' copies, made ahead while this player is in that match.
+	if type(snapshot.seats) == "table" and involved(self, snapshot) then
+		for _, seat in snapshot.seats do
+			if type(seat) == "table" and type(seat.userId) == "number" then
+				warm(seat.userId)
+			end
+		end
 	end
 	local armed = armedOf(snapshot)
 	if armed == nil then

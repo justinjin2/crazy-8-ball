@@ -28,6 +28,7 @@ local TutorialGhostShot = require(script.Parent.TutorialGhostShot)
 local TutorialGlow = require(script.Parent.TutorialGlow)
 local Camera = require(script.Parent.Camera)
 local Progression = require(script.Parent.Progression)
+local ResultCutscene = require(script.Parent.ResultCutscene)
 local Menus = require(script.Parent.Menus)
 local LuckyClient = require(script.Parent.LuckyClient)
 local TutorialSoft = require(script.Parent.TutorialSoft)
@@ -527,11 +528,12 @@ local function reportDone(kind: string)
 end
 
 -- Result: the result screen, the first win's block and NEW RANK! play on their own; once
--- none of them is up, the step is done.
+-- none of them is up, the step is done. The result cutscene counts: the result screen opens
+-- partway through it (over a second in, later on a slow phone).
 local resultClearAt: number? = nil
 local function resultScene(): string
 	lineOnly(nil)
-	if Progression.isBusy() or Tutorial.since() < 1 then
+	if Progression.isBusy() or ResultCutscene.isPlaying() or Tutorial.since() < 1 then
 		resultClearAt = nil
 		return "resultBusy"
 	end

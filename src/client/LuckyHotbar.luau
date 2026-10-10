@@ -77,7 +77,9 @@ type Tile = {
 	number: TextLabel?,
 	timer: TextLabel,
 	open: TextLabel?, -- a Mystery's OPEN! (designer, 2026-10-07)
+	pulse: UIAnim.Handle?, -- its OPEN!'s endless pulse, stopped with the tile
 	mark: Frame?, -- a Mystery's climb mark
+	slot: number?, -- its hotbar slot (nil: a bag tile)
 }
 
 local Hotbar = {}
@@ -231,6 +233,7 @@ local function makeTile(parent: Instance, entry: Entry, number: number?): Tile
 	-- A Mystery says OPEN! along its bottom once it is ready, and pulses: a tap opens its
 	-- upgrade screen. It wears the climb mark meanwhile (the screen's up arrow).
 	local openLabel: TextLabel? = nil
+	local pulse: UIAnim.Handle? = nil
 	local mark: Frame? = nil
 	if Hotbar.rollsFirst(entry) then
 		local M = U.ClimbMark
@@ -264,7 +267,7 @@ local function makeTile(parent: Instance, entry: Entry, number: number?): Tile
 		label.TextWrapped = false
 		label.Visible = false
 		label.ZIndex = 5
-		UIAnim.pulse(label)
+		pulse = UIAnim.pulse(label)
 		openLabel = label
 	end
 	return {
@@ -275,8 +278,31 @@ local function makeTile(parent: Instance, entry: Entry, number: number?): Tile
 		number = numberLabel,
 		timer = timer,
 		open = openLabel,
+		pulse = pulse,
 		mark = mark,
+		slot = number,
 	}
+end
+
+-- A tile gone: its endless OPEN! pulse stops first (an endless tween is never let go by
+-- itself; each one left running cost every frame from then on).
+local function dropTile(tile: Tile)
+	if tile.pulse then
+		tile.pulse.stop()
+	end
+	tile.button:Destroy()
+end
+
+-- `old`'s tile for `entry` (taken out of it) while it still shows the same block: its kind
+-- and whether it climbed decide every part of a tile; its place is set afterwards.
+local function reuse(old: { [number]: Tile }, entry: Entry): Tile?
+	local tile = old[entry.id]
+	if tile == nil or tile.entry.kind ~= entry.kind or tile.entry.climbed ~= entry.climbed then
+		return nil
+	end
+	old[entry.id] = nil
+	tile.entry = entry
+	return tile
 end
 
 function Hotbar.new(screen: ScreenGui, handlers: Handlers): any
@@ -537,20 +563,33 @@ function Hotbar.placeOfSlot(self: any, index: number): number
 	return index
 end
 
+-- The tiles for the list as it is now. A tile whose block still looks the same is kept (moved
+-- to its new place); only new or changed blocks get a new one. Building every tile again on
+-- each change (the whole bag, up to MaxBlocks, in one frame) stalled the screen whenever a
+-- block arrived or a Mystery turned into its tier mid-jump on its upgrade screen.
 function Hotbar.rebuild(self: any)
+	local oldSlots: { [number]: Tile } = {}
 	for _, tile in self.slots do
-		tile.button:Destroy()
+		oldSlots[tile.entry.id] = tile
 	end
+	local oldTiles: { [number]: Tile } = {}
 	for _, tile in self.tiles do
-		tile.button:Destroy()
+		oldTiles[tile.entry.id] = tile
 	end
 	self.slots, self.tiles = {}, {}
 	self.wasPhone = phone(self.gui)
 	local list, inBar = self:shown()
 	for i = 1, inBar do
 		local entry = list[i]
-		local tile = makeTile(self.bar, entry, i)
-		self:wire(tile, i)
+		local kept = reuse(oldSlots, entry)
+		local tile: Tile = kept or makeTile(self.bar, entry, i)
+		if kept == nil then
+			self:wire(tile)
+		end
+		tile.slot = i
+		if tile.number then
+			tile.number.Text = tostring(i)
+		end
 		self.slots[i] = tile
 	end
 	-- The tutorial's hand points at a slot ("HotbarSlot1"...).
@@ -560,10 +599,19 @@ function Hotbar.rebuild(self: any)
 	end
 	-- The bag lists every block but the thrown ones (it can stay open while one is thrown).
 	for i, entry in list do
-		local tile = makeTile(self.grid, entry, nil)
+		local kept = reuse(oldTiles, entry)
+		local tile: Tile = kept or makeTile(self.grid, entry, nil)
+		if kept == nil then
+			self:wire(tile)
+		end
 		tile.button.LayoutOrder = i
-		self:wire(tile, nil)
 		table.insert(self.tiles, tile)
+	end
+	for _, tile in oldSlots do
+		dropTile(tile)
+	end
+	for _, tile in oldTiles do
+		dropTile(tile)
 	end
 	if self.pickedId and not self:find(self.pickedId) then
 		self.pickedId = nil
@@ -581,13 +629,14 @@ function Hotbar.find(self: any, id: number): Entry?
 	return nil
 end
 
--- A tile's presses: a click picks or holds; a press that moves is a drag.
-function Hotbar.wire(self: any, tile: Tile, slot: number?)
+-- A tile's presses: a click picks or holds; a press that moves is a drag. It reads its block
+-- and slot at the press (a kept tile moves).
+function Hotbar.wire(self: any, tile: Tile)
 	tile.button.Activated:Connect(function()
 		if os.clock() < self.suppressUntil then
 			return -- the end of a drag
 		end
-		self:pressed(tile.entry.id, slot)
+		self:pressed(tile.entry.id, tile.slot)
 	end)
 	tile.button.InputBegan:Connect(function(input: InputObject)
 		local kind = input.UserInputType
