@@ -3890,3 +3890,34 @@ timer of a new block stay the designer's call.
 - 2026-10-09: The Game2 funnel records what game 2 was (Server: a person here, Global, Bot: a
   bot here, Arena: the arena bot, Table: they stepped onto someone's pad with no search) and
   how it ended (Won or Lost; plus the custom event Game2Result with the kind and device).
+- 2026-10-09: First-time hints, for everyone new (tutorial v2 4.8): the ability bar full (how
+  to use it on this device), the first rank-up (claim it in Rank), the first lucky block and the
+  first Mystery block in the hotbar, the first cue won (equip it in Cues), the first visit to
+  Abilities (RELEASE, then SPIN), the first ball in hand and the first 8 call. Each is a hand and
+  one short line with no dim, once, saved; it goes when done, is ignored after 20 s or when its
+  moment passes undone, and may come back once 2 minutes later. In a match it never pauses the
+  clock and keeps off the table's middle (the line at the top, the hand on the power bar or the
+  ability button). Never in the rigged game 1 (also after a skip there).
+- 2026-10-09 (run assumption): the hints are for players new since tutorial v2. A save from
+  before (any match, no v2 start) gets them all marked done once, so veterans see none.
+- 2026-10-09: Path R (a fair first game with a real person) is taught by the same hints: "Drag to
+  aim, then pull the power bar to shoot!" from the break, zoom on a later turn, ball in hand,
+  the 8 call and the ability, with the clock running as in any fair game. The guided steps mark
+  the hints they teach done (game 1 on path S: the pool controls and the ability; Rank, Mystery,
+  Place, Cues, Abilities: theirs).
+- 2026-10-09: Skipping: in game 1 the rigged game plays on with no guidance (the bot keeps its
+  script); in the chain everything shows at once; the first-time hints still come. A skipper
+  keeps only the icons' click-once "!" (the first click on each new icon is a hint for
+  everyone); the quest, the invite popup and the glows are the soft tutorial they skipped (run
+  assumption). While the Abilities screen is open the Skip button sits top left (its odds list
+  is top right).
+- 2026-10-09 (run assumption): Bronze's Mystery block waits in Rank like every other rank reward
+  (`Config.Tutorial.RankClaim.BlocksAtOnce` is empty): the first win's result lists only the Rare
+  block, and the chain's Rank claim brings the Mystery block to the hotbar before its step.
+- 2026-10-09: "x2!" (x3! and up) for everyone: a small gold pop just right of NICE SHOT! (or alone
+  over the pocket) when the shooter's second, third ... ball drops in one shot; never on the
+  break or in a late joiner's catch-up.
+- 2026-10-09 (designer): a new player has 0 ability spins until the code RELEASE gives 3: no
+  starter spin (`Config.Ults.Earn.Starter` 0), no spin for reaching Bronze (`RankUp.Bronze` 0;
+  Silver, Gold and up keep theirs), and a brand-new save's daily free spin starts the next UTC
+  day. The tutorial's Abilities step reads 0, then 3; its spin lands on Magnet and 2 are left.

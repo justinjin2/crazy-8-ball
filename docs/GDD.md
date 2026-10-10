@@ -533,8 +533,8 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
     (designer, 2026-10-09: it was "way too aggressive"; cosmetic only). Measured: -0.08 /
     -0.03 / +0.03 net (about nothing: double speed alone neither pots nor misses more, and the
     model shooter plays no kicks or banks, where the line helps, nor Difficult or Challenger
-    tables, where it shows what the normal lines hide). The tutorial's one starter spin lands
-    on it. Icon: the cue ball as a fireball, a cartoon flame of five curling tongues streaming
+    tables, where it shows what the normal lines hide). Every player starts with it (the
+    tutorial's spin lands on Magnet since tutorial v2). Icon: the cue ball as a fireball, a cartoon flame of five curling tongues streaming
     back from it.
   - **Super Bounce** (Common, 0.33; became Fire Shot on 2026-10-08, back as a third Common on
     2026-10-09, "just more in the pool"): the cue ball turns rainbow and keeps bouncing off the
@@ -662,8 +662,9 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   colour. True odds are always shown (Common 55%, Uncommon 30%, Rare 12.2333%, Epic 2%,
   Legendary 1 in 150, Mythic 1 in 1,000; a rarity with no built ult passes its share down),
   with **pity**: the 100th spin without an Epic or better is Epic+, and any Epic+ resets it.
-  **Lucky Spins** (Robux only) never roll Common. Spins come from 3 starter spins, a free spin
-  every day, rank-up rewards, day 7 of the login streak, the day's last playtime gift, codes,
+  **Lucky Spins** (Robux only) never roll Common. Spins come from the code RELEASE (a new player
+  has none before it, 2026-10-09), a free spin every day (from a new save's second day),
+  rank-up rewards from Silver, day 7 of the login streak, the day's last playtime gift, codes,
   Robux packs (1 for 15 R$ up to 50 for 449) and money ($1,750 a spin). VIP adds Skip and Auto
   Spin (the Quick Cases pass was retired into VIP, 2026-10-04). Paid spins are paid random items: odds shown, and blocked
   where PolicyService restricts them (ECONOMY.md 11.7-11.8). The live screen stays hidden

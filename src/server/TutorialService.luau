@@ -157,6 +157,9 @@ local function publish(player: Player, step: string)
 	player:SetAttribute("TutorialStep", if Steps.active(step) then step else "")
 	player:SetAttribute("TutorialActive", Steps.guided(step))
 	player:SetAttribute("TutorialPath", TutorialService.path(player) or "")
+	-- Why it ended early ("Skip", "Error"; "" otherwise): a skipper's icons still get their "!".
+	local why = PlayerData.flag(player, WHY_FLAG)
+	player:SetAttribute("TutorialWhy", if type(why) == "string" then why else "")
 	player:SetAttribute("TutorialStepAt", workspace:GetServerTimeNow())
 end
 
@@ -213,6 +216,16 @@ function TutorialService.setStep(player: Player, step: string): boolean
 	publishMarks(player)
 	publish(player, step)
 	log(("%s: %s -> %s"):format(player.Name, tostring(previous), step))
+	-- A guided step passed the normal way taught its first-time hints (Steps.Taught; game 1's
+	-- only on path S).
+	if previous and step == Steps.after(previous) then
+		local taught = Steps.Taught[previous]
+		if taught and (previous ~= "Game1" or TutorialService.path(player) == "S") then
+			for _, name in taught do
+				TutorialHints.done(player, name)
+			end
+		end
+	end
 	entered(player, step, previous)
 	stepChanged:Fire(player, step, previous)
 	return true
@@ -237,6 +250,7 @@ local function finish(player: Player, reason: string)
 	PlayerData.setFlag(player, WHY_FLAG, reason)
 	TutorialHints.skipPool(player)
 	TutorialService.setStep(player, "Skipped")
+	player:SetAttribute("TutorialWhy", reason)
 end
 
 --- The Skip button (Yes): the funnel notes the step they skipped at.
@@ -313,6 +327,22 @@ local function onLoaded(player: Player)
 			log(("%s: saved step %s continues at %s"):format(player.Name, saved, step))
 		end
 	end
+	-- First-time hints are for players new since tutorial v2: a new save starts them (0); a
+	-- save from before, which knows the game, has them all done once.
+	if not TutorialHints.started(player) then
+		if type(saved) ~= "string" and step == "Arrow" then
+			PlayerData.setFlag(player, TutorialHints.DoneFlag, 0)
+			-- A brand-new save holds no spin until RELEASE (the designer, 2026-10-09): its first
+			-- daily free spin is tomorrow's.
+			PlayerData.setFreeSpin(player, false)
+		else
+			TutorialHints.allDone(player)
+		end
+	end
+	player:SetAttribute(
+		"TutorialCodeUsed",
+		data.Codes[Config.Ults.CodeBanner.ActiveCode :: string] == true
+	)
 	enteredAt[player] = clock()
 	TutorialHints.publish(player)
 	publish(player, step)
@@ -397,6 +427,14 @@ local function opened(player: Player, kind: string, cueId: string)
 	Funnel.blockOpened(player, kind, { cueId })
 	Funnel.onboarding(player, "BlockOpened")
 	TutorialHints.done(player, "Block")
+	-- The first cue won: its hint (equip it in Cues) points at Cues until it is equipped.
+	if
+		type(cueId) == "string"
+		and not TutorialHints.isDone(player, "Cue")
+		and player:GetAttribute("EquippedCue") ~= cueId
+	then
+		player:SetAttribute("TutorialNewCue", cueId)
+	end
 	if TutorialService.step(player) == "Place" then
 		TutorialService.advance(player, "Place")
 	end
@@ -406,6 +444,7 @@ end
 local function equipped(player: Player, _cueId: string)
 	Funnel.onboarding(player, "CueEquipped")
 	TutorialHints.done(player, "Cue")
+	player:SetAttribute("TutorialNewCue", nil)
 	if TutorialService.step(player) == "Cues" then
 		TutorialService.mark(player, "Equipped")
 	end
@@ -427,6 +466,9 @@ end
 
 local function codeRedeemed(player: Player, code: string)
 	local typed = string.upper((string.gsub(code, "%s", "")))
+	if typed == Config.Ults.CodeBanner.ActiveCode then
+		player:SetAttribute("TutorialCodeUsed", true) -- the Abilities hint moves on to SPIN
+	end
 	if
 		TutorialService.step(player) == "Abilities"
 		and typed == Config.Ults.CodeBanner.ActiveCode

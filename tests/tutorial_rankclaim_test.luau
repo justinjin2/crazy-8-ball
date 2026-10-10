@@ -1,6 +1,6 @@
 --!strict
--- RankClaim (Tutorial/RankClaim): rank rewards held until claimed in Rank, Bronze's lucky
--- block given at once (designer, 2026-10-03; cases retired for blocks 2026-10-04).
+-- RankClaim (Tutorial/RankClaim): rank rewards held until claimed in Rank (designer,
+-- 2026-10-03; cases retired for blocks 2026-10-04), Bronze's lucky block too (tutorial v2).
 
 local H = require("./harness")
 
@@ -9,35 +9,40 @@ local function load()
 end
 
 return {
-	["bronze's block is given at once and nothing else"] = function()
+	["no block is given at once, bronze's included"] = function()
 		local RankClaim, Ranks = load()
 		local bronze1 = Ranks.indexOf("Bronze", 1) :: number
-		H.expect(RankClaim.blocksAtOnce(0, bronze1).Mystery == 1, "Bronze I's 1 block at once")
+		H.expect(next(RankClaim.blocksAtOnce(0, bronze1)) == nil, "Bronze I's block waits")
 		H.expect(next(RankClaim.blocksAtOnce(bronze1, bronze1)) == nil, "no rise, nothing")
 		local silver1 = Ranks.indexOf("Silver", 1) :: number
-		H.expect(next(RankClaim.blocksAtOnce(bronze1, silver1)) == nil, "Silver gives none at once")
-		H.expect(RankClaim.blocksAtOnce(0, silver1).Mystery == 1, "passing Bronze still gives it")
+		H.expect(next(RankClaim.blocksAtOnce(0, silver1)) == nil, "passing Bronze: none either")
 	end,
 
 	["pending is everything between the claimed division and the peak"] = function()
-		local RankClaim, Ranks = load()
+		local RankClaim, Ranks, Config = load()
 		local bronze1 = Ranks.indexOf("Bronze", 1) :: number
 		local p = RankClaim.pending(0, bronze1)
 		H.expect(RankClaim.any(p), "something pending")
-		H.expect(p.money == 2500 and p.spins == 1, "Bronze I's money and spin")
-		H.expect(next(p.blocks) == nil, "its block was given at once")
+		local bronze = Config.Ranks.Rewards.Tier.Bronze
+		H.expect(
+			p.money == bronze.Money and p.spins == Config.Ults.Earn.RankUp.Bronze,
+			"money, spins"
+		)
+		H.expect(p.blocks.Mystery == bronze.Blocks.Mystery, "its block waits here too")
 		H.expect(#p.cues == 1 and p.cues[1] == "BronzeCue", "the Bronze Cue")
 		local reward = RankClaim.reward(p)
 		H.expect(
-			reward.money == 2500 and reward.spins == 1 and next(reward.blocks) == nil,
-			"the reward"
+			reward.money == bronze.Money
+				and (reward.spins or 0) == Config.Ults.Earn.RankUp.Bronze
+				and reward.blocks.Mystery == bronze.Blocks.Mystery,
+			"the reward (no spins key when none)"
 		)
 		H.expect(reward.cues[1] == "BronzeCue", "the reward's cue")
 		-- Two divisions at once add up, bottom first.
 		local bronze3 = Ranks.indexOf("Bronze", 3) :: number
 		local two = RankClaim.pending(0, bronze3)
 		H.expect(#two.rows == 3 and two.rows[1].index == bronze1, "rows bottom first")
-		H.expect(two.money == 2500 + 1000 + 1000, "money added up")
+		H.expect(two.money == bronze.Money + 1000 + 1000, "money added up")
 	end,
 
 	["nothing pending once claimed, or for an unknown or broken save"] = function()

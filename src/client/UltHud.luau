@@ -798,6 +798,12 @@ function UltHud.update(self: any, dt: number, pulling: boolean)
 	end
 	local ready = self.count == nil and self.shown >= Config.Ults.BarMax and self.truth.ready
 	self.bar:setReady(ready)
+	-- The first-time hint "your ability is ready" (TutorialHints): a full bar shown in a match
+	-- (never solo's, always full there).
+	TutorialAnchors.setFlag(
+		"UltReady",
+		ready and mode == "bar" and not (s ~= nil and s.solo ~= nil)
+	)
 	if self.bar.value ~= self.shown then
 		self.bar:setValue(self.shown)
 	end

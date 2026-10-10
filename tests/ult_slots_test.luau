@@ -93,6 +93,7 @@ return {
 			"into slot 2"
 		)
 		H.expect(u.SpinsDone == 1, "counted")
+		Slots.addSpins(u, 1) -- a fresh save holds none since tutorial v2
 		H.expect(Slots.take(u, false, DAY) == "Spin", "then the held spins")
 		local replaced = Slots.place(u, "Rewind")
 		H.expect(replaced == "Portals" and u.Slots[2] == "Rewind" and u.SpinsDone == 2, "replaced")

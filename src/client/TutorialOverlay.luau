@@ -62,6 +62,7 @@ export type Overlay = typeof(setmetatable(
 		lastCentre: Vector2?, -- the hole's last place, kept while a lost target fades out
 		lastSize: Vector2?,
 		skip: TextButton,
+		skipLeft: boolean, -- the Skip button top left (a full-screen menu's own panel is top right)
 		confirm: Frame,
 		onSkip: (() -> ())?,
 		nextButton: TextButton,
@@ -200,6 +201,7 @@ function TutorialOverlay.new(): Overlay
 		lastCentre = nil,
 		lastSize = nil,
 		skip = nil :: any,
+		skipLeft = false,
 		confirm = nil :: any,
 		onSkip = nil,
 		nextButton = nil :: any,
@@ -574,9 +576,13 @@ function TutorialOverlay.update(self: Overlay, dt: number)
 	local bigPx = if small then O.BigPhoneTextPx else O.BigTextPx
 	self.big.Position = UDim2.fromOffset(view.X / 2, view.Y * O.BigYScale)
 	self.big.Size = UDim2.fromOffset(view.X * 0.9, bigPx * 1.3)
-	-- The Skip button, top right under the bar.
+	-- The Skip button, top right under the bar (top left while skipLeft).
 	local skipH = if small then O.SkipPhoneHeightPx else O.SkipHeightPx
-	self.skip.Position = UDim2.fromOffset(view.X - O.SkipEdgePx, inset.Y + O.SkipEdgePx)
+	self.skip.AnchorPoint = Vector2.new(if self.skipLeft then 0 else 1, 0)
+	self.skip.Position = UDim2.fromOffset(
+		if self.skipLeft then O.SkipEdgePx else view.X - O.SkipEdgePx,
+		inset.Y + O.SkipEdgePx
+	)
 	self.skip.Size = UDim2.fromOffset(skipH * O.SkipWidthRatio, skipH)
 	-- The Next button, centred under the line.
 	local nextH = if small then O.NextPhoneHeightPx else O.NextHeightPx

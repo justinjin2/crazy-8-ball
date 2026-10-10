@@ -512,6 +512,58 @@ function Effects.niceShot(self: Effects, at: Vector3)
 	Debris:AddItem(root, math.max(C.Seconds, C.SparkleSeconds[2]) + 0.2)
 end
 
+--- "x2!" (x3! ...) over the pocket at `at` when the shooter's `count`-th ball drops in one
+--- shot: beside NICE SHOT! (`beside`, just right of it) or alone over the pocket. It pops,
+--- floats up and fades with NICE SHOT!'s timing.
+function Effects.multiPot(self: Effects, at: Vector3, count: number, beside: boolean)
+	local N = Config.Effects.NiceShot
+	local C = Config.Effects.MultiPot
+	local K = Config.UI.Kit
+	local root = bare("MultiPot", self.folder, at)
+	local board = Instance.new("BillboardGui")
+	board.Name = "Words"
+	board.AlwaysOnTop = false -- as NICE SHOT!'s (those did not draw in Studio's phone view)
+	board.LightInfluence = 0
+	-- Wide enough to hold NICE SHOT! and the pop beside it, centred on the pocket.
+	local half = N.SizePx[1] / 2 + C.GapPx + C.SizePx[1]
+	board.Size = UDim2.fromOffset(half * 2, math.max(N.SizePx[2], C.SizePx[2]))
+	board.StudsOffsetWorldSpace = Vector3.new(0, N.HeightStuds, 0)
+	board.Adornee = root
+	board.Parent = root
+	local words = HudParts.text(
+		board,
+		"MultiPot",
+		C.TextSize,
+		Strings.Match.MultiPot:format(count),
+		HudParts.tone("Gold")
+	)
+	words.AnchorPoint = Vector2.new(0.5, 0.5)
+	words.Position = if beside
+		then UDim2.new(0.5, N.SizePx[1] / 2 + C.GapPx + C.SizePx[1] / 2, 0.5, 0)
+		else UDim2.fromScale(0.5, 0.5)
+	words.Size = UDim2.fromOffset(C.SizePx[1], C.SizePx[2])
+	words.Rotation = C.TiltDegrees
+	local scale = Instance.new("UIScale")
+	scale.Parent = words
+
+	local started = os.clock()
+	local step: RBXScriptConnection
+	step = RunService.RenderStepped:Connect(function()
+		local elapsed = os.clock() - started
+		if elapsed >= N.Seconds or not root.Parent then
+			step:Disconnect()
+			return
+		end
+		local pop = math.clamp(elapsed / K.Motion.PopSeconds, 0, 1)
+		scale.Scale = K.Motion.PopFromScale + (1 - K.Motion.PopFromScale) * UIAnim.backOut(pop)
+		local fade = math.clamp((elapsed - (N.Seconds - N.FadeSeconds)) / N.FadeSeconds, 0, 1)
+		HudParts.setTextTransparency(words, fade)
+		board.StudsOffsetWorldSpace =
+			Vector3.new(0, N.HeightStuds + N.RiseStuds * UIAnim.quadOut(elapsed / N.Seconds), 0)
+	end)
+	Debris:AddItem(root, N.Seconds + 0.2)
+end
+
 --- The reward when a ball drops: a gust of wind blowing up out of the pocket in the
 --- ball's own colour (the 8 reads black-and-white, a stripe its stripe colour), or in the
 --- style's own Pocket.Colors, and as big as its Pocket.Scale.

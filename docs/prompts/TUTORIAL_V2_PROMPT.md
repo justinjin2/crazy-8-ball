@@ -891,7 +891,7 @@ lines). All in the worktree.
   - the VIP / Starter tile and the bigger Daily Challenge.
 - [x] 11. The new search for everyone (4.7): this server first, global within 5 s, the bot in
   this server, teams 5 s, arena overflow.
-- [ ] 12. Path R, skipping, first-time hints for everyone (4.8, 4.9), starter spins 0,
+- [x] 12. Path R, skipping, first-time hints for everyone (4.8, 4.9), starter spins 0,
   Bronze's block in Rank, "x2!" for everyone.
 - [ ] 13. Funnels and telemetry complete (section 6), `/funnel`, `docs/TUTORIAL_FUNNELS.md`.
 - [ ] 14. Bug-proofing (section 7): the chaos list, 20 clean automated runs in a row, fake
@@ -1207,7 +1207,7 @@ lines). All in the worktree.
   before RELEASE (the brief: 0 to 3); step 12 sets the starter to 0 and moves the block into Rank,
   and decides Bronze's own spin and today's free spin. Step 10 hides Challenge, VIP, Invite and
   money during the guided part. The Skip button sits over the top of the Abilities screen's odds
-  list.
+  list. (All resolved in step 12.)
 
 ### Step 10: the soft part (2026-10-09)
 
@@ -1230,7 +1230,7 @@ lines). All in the worktree.
   none of it; no errors. Screenshots: `~/Desktop/8ball-refs/tutorial/step10/`.
 - **Not checked by hand here:** a controller's B on the popup and the phone layout (code only:
   the card narrows to 300 px with a smaller title); step 14's runs cover them.
-- **Open:** skippers' soft part (step 12).
+- **Open:** skippers' soft part (step 12; resolved there: the "!" dots only).
 
 ### Step 11: the new search for everyone (2026-10-09)
 
@@ -1259,6 +1259,43 @@ lines). All in the worktree.
   no errors; lint clean, tests pass.
 - **Not checked here:** two real people meeting here and the global path (Studio has one player
   and my file has no MemoryStore): step 15 on the test place with two accounts.
+
+### Step 12: path R, skipping, first-time hints, the rules for everyone (2026-10-09)
+
+- **First-time hints:** `src/client/TutorialHints.luau` (new). Tutorial runs it whenever no
+  guided step is on screen (the tutorial over or skipped, the soft part, game 1 on path R); one
+  hint at a time, a hand and a line, no dim (a "Near" line gets its target without a dim).
+  Match hints read the seat's snapshot (`TutorialAnchors.setMatch`, from Main) and never show
+  with a tutorial bot at the table; AbilityReady reads `UltHud`'s flag `UltReady`; Block uses
+  `LuckyClient.firstReady`. Outcomes go to the server's `TutorialHints` (Shown, Done, Ignored:
+  the Hint event).
+- **Server:** a new save starts the hints (Flags.TutorialHints = 0); an older save gets them all
+  done once (`TutorialHints.allDone`); `/tutorial reset` keeps them a number. Steps.Taught: a
+  guided step passed the normal way marks its hints. Attributes for the client: `TutorialWhy`,
+  `TutorialNewCue` (a cue won and not equipped, until equipped), `TutorialCodeUsed`.
+- **Path R:** game1Scene clears once and the hints teach (Aim from the break).
+- **Skip:** a skipper keeps the "!" dots (TutorialSoft `skipper`); Skip moves top left while
+  the Abilities screen is open.
+- **For everyone:** Bronze's block waits in Rank (`BlocksAtOnce = {}`); "x2!" (`Effects.multiPot`,
+  counted per shot in Main's pocket handler).
+- **Verified in Studio (my window, PC):** Skip clear of the Abilities odds; a skip at Abilities:
+  TutorialWhy Skip, the Abilities hint ("Type RELEASE for 3 free spins!" over the code box),
+  the pool hints done (mask 15), the "!" on Shop, Free Reward, the offer and money; the Block hint
+  on a fresh block (hand on its slot); a PC game after a normal end: Aim at the break (Shown,
+  Ignored after 20 s), AbilityReady with a full bar (Shown, Done on use, bit 5 saved); "x2!"
+  beside NICE SHOT! and "x3!" alone; game 1 won by the bot leaving: the result lists only the
+  Rare block, Rank's claim brings the Mystery block (slot 2), the Mystery step points at it, the
+  taught hints marked (mask 63). No errors; lint clean; tests pass. Screenshots:
+  `~/Desktop/8ball-refs/tutorial/step12/`.
+- **Not checked by hand here:** RankUp, Mystery, Cue, Zoom, BallInHand and Eight hints on screen
+  (same code paths as those checked); the phone and controller layouts; a real path R game (two
+  players: step 15).
+- **Spins (the designer's call, 2026-10-09: true 0, then 3):** `Config.Ults.Earn.Starter = 0`,
+  `RankUp.Bronze = 0` (Silver, Gold and above keep theirs), and a brand-new save's daily free
+  spin starts the next day (`PlayerData.setFreeSpin(player, false)` in TutorialService.onLoaded).
+  Verified in Studio: a new save has 0 spins and no free spin; after Bronze's claim still 0; the
+  Abilities screen says "Spins left: 0"; RELEASE gives 3; the spin lands on Magnet (equipped),
+  2 left; marks Redeemed, Spun; the AbilitySpins and onboarding 10 funnel steps fire.
 
 ### Touch list (files outside the tutorial's own modules changed, and why)
 
@@ -1353,6 +1390,21 @@ lines). All in the worktree.
     `Bots.Fallback.TeamSeconds` 5; `UI.Queue.LocalScreenSeconds`. `src/shared/Strings.luau`:
     `GlobalQueue.ToTable`.
   - `docs/GDD.md` (Global queue, Disguised bots), `docs/ARCHITECTURE.md` (LocalSearch).
+- Step 12 (path R, skipping, hints, the rules for everyone):
+  - `src/client/UltHud.luau` (the `UltReady` flag), `src/client/LuckyClient.luau`
+    (`firstReady`), `src/client/Main.client.luau` (`TutorialAnchors.setMatch`; "x2!" counted in
+    the pocket handler), `src/client/Effects.luau` (`multiPot`).
+  - `src/server/Ranking.luau` (a comment: no block at once), `src/shared/Tutorial/RankClaim.luau`
+    (its header), `tests/tutorial_rankclaim_test.luau` (Bronze's block waits).
+  - `src/shared/Config.luau`: `Tutorial.RankClaim.BlocksAtOnce` empty, `Effects.MultiPot`,
+    `Ults.Earn.Starter` 0 and `Ults.Earn.RankUp.Bronze` 0 (the designer's spins call).
+    `src/shared/Strings.luau`: `Match.MultiPot`.
+  - `src/server/PlayerData.luau` (`setFreeSpin`'s comment: a new save's first free spin is the
+    next day), `src/server/TutorialHints.luau` (`allDone`, `started`).
+  - `tests/ult_spins_test.luau`, `tests/ult_slots_test.luau` (no starter spin: spins added first;
+    Bronze 0), `tests/tutorial_steps_test.luau` (`Steps.Taught`).
+  - `docs/ECONOMY.md` (the join row, the first win, the tier spins, getting spins), `docs/GDD.md`
+    (the spin sources).
 
 ---
 

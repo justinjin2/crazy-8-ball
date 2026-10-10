@@ -29,6 +29,7 @@ local Progression = require(script.Parent.Progression)
 local Menus = require(script.Parent.Menus)
 local LuckyClient = require(script.Parent.LuckyClient)
 local TutorialSoft = require(script.Parent.TutorialSoft)
+local TutorialHints = require(script.Parent.TutorialHints)
 
 local Tutorial = {}
 
@@ -357,17 +358,21 @@ local function comboLesson(device: string, fresh: boolean): string
 	return "Combo"
 end
 
-local function game1Scene(device: string): string
+local function game1Scene(device: string, fresh: boolean): string
 	arrow:show(nil)
 	if Tutorial.path() ~= "S" then
+		-- A fair first game (path R): the first-time hints teach the pool controls.
 		glow:hide()
 		TutorialAnchors.setMinPower(nil)
-		lineOnly(nil)
+		if fresh or lastLesson ~= "fair" then
+			lastLesson = "fair"
+			lineOnly(nil)
+		end
 		return "game1Fair"
 	end
 	local lesson = player:GetAttribute("TutorialLesson")
 	lesson = if type(lesson) == "string" then lesson else ""
-	local fresh = lesson ~= lastLesson
+	local newLesson = lesson ~= lastLesson
 	lastLesson = lesson
 	TutorialAnchors.setAimLock(if lesson == "Break" then Config.Tutorial.Break.Angle else nil)
 	-- The break: a release under half power does nothing (the bar springs back, the line
@@ -387,11 +392,11 @@ local function game1Scene(device: string): string
 		end
 		overlay:say(words(Copy.Break, device))
 	elseif lesson == "Aim" then
-		return "game1" .. aimLesson(device, fresh) .. device
+		return "game1" .. aimLesson(device, newLesson) .. device
 	elseif lesson == "Combo" then
-		return "game1" .. comboLesson(device, fresh) .. device
+		return "game1" .. comboLesson(device, newLesson) .. device
 	elseif lesson == "Ability" then
-		if fresh then
+		if newLesson then
 			-- The aim opens on the planned pot (they are free to change it).
 			local angle = player:GetAttribute("TutorialAimAngle")
 			if type(angle) == "number" then
@@ -733,7 +738,7 @@ local function scene(step: string, device: string): string
 	if step == "Arrow" then
 		return arrowScene()
 	elseif step == "Game1" then
-		return game1Scene(device)
+		return game1Scene(device, fresh)
 	elseif step == "Result" then
 		return resultScene()
 	elseif step == "Rank" then
@@ -747,8 +752,10 @@ local function scene(step: string, device: string): string
 	elseif step == "Abilities" then
 		return abilitiesScene(device, fresh)
 	end
-	-- Pad, Soft: nothing guided on screen.
-	lineOnly(nil)
+	-- Pad, Soft: nothing guided on screen (the first-time hints may draw in the soft part).
+	if fresh then
+		lineOnly(nil)
+	end
 	return step
 end
 
@@ -759,6 +766,33 @@ local MENU_FUNNELS: { [string]: string } = { Shop = "ShopOpened", [ULTS] = "Abil
 
 -- The device last reported to the server.
 local reportedDevice = ""
+-- The first-time hint drawn last (its key), and whether the hints failed (off this session).
+local hintKey: string? = nil
+local hintsBroken = false
+
+-- The first-time hints (TutorialHints) draw whenever no guided step is on screen: the
+-- tutorial over or skipped, the soft part, a fair first game (path R).
+local function hintTime(step: string): boolean
+	return step == "" or step == "Soft" or (step == "Game1" and Tutorial.path() ~= "S")
+end
+
+local function runHints(step: string)
+	local allowed = not broken and not hintsBroken and hintTime(step)
+	local ok: boolean, key: any = pcall(TutorialHints.update :: any, {
+		overlay = overlay,
+		hand = hand,
+		words = words,
+	}, Tutorial.device(), allowed)
+	if not ok then
+		hintsBroken = true
+		warn("[8ball] Tutorial: the first-time hints failed, off this session: " .. tostring(key))
+		key = nil
+	end
+	if key == nil and hintKey ~= nil and (allowed or hintsBroken) then
+		lineOnly(nil) -- the hint is gone (a guided scene draws its own instead)
+	end
+	hintKey = key
+end
 -- When the scene showing now began (os.clock), for its re-prompts.
 local keyAt = 0
 
@@ -784,6 +818,8 @@ local function breakDown(err: any)
 end
 
 local function update(dt: number)
+	-- The Abilities screen fills the screen with its odds top right: Skip goes top left.
+	overlay.skipLeft = Menus.isOpen(ULTS)
 	pcall(glow.update, glow, dt)
 	pcall(refreshHidden)
 	-- The soft part outlives the tutorial's steps (its quest waits for a win).
@@ -808,6 +844,7 @@ local function update(dt: number)
 	end
 	if not Tutorial.active() then
 		shownKey, shownStep = "", ""
+		runHints("")
 		return
 	end
 	local ok, result = pcall(scene, Tutorial.step(), Tutorial.device())
@@ -815,6 +852,7 @@ local function update(dt: number)
 		breakDown(result)
 		return
 	end
+	runHints(Tutorial.step())
 	local now = os.clock()
 	if result ~= shownKey then
 		shownKey = result
@@ -916,6 +954,8 @@ local function startQA()
 			TutorialAnchors.notePress(a)
 		elseif op == "soft" then
 			return TutorialSoft.qaState()
+		elseif op == "hint" then
+			return TutorialHints.showing() or false
 		end
 		return true
 	end

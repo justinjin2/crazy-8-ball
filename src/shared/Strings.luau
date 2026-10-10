@@ -193,6 +193,8 @@ return {
 		PocketLabel = "Pocket %d",
 		PlacementHandle = "MOVE",
 		NiceShot = "NICE SHOT!", -- over the pocket after a bank, combo, kick or carom
+		-- Beside NICE SHOT! (or alone) when the shooter's 2nd, 3rd ... ball drops in one shot.
+		MultiPot = "x%d!",
 		MoveClock = "MOVE %ds", -- under the big clock: seconds left to move the cue ball
 		-- Rewind's redo turn, under the big clock: its shot clock in seconds.
 		SecondChance = "SECOND CHANCE: %ds",

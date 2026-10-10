@@ -3,8 +3,8 @@
 -- docs/prompts/TUTORIAL_PROMPT.md, "Rule changes for everyone"). The save keeps the last
 -- division whose rewards were claimed (Flags.RankClaimed); everything between it and the
 -- peak is pending, except the lucky blocks of the tiers in Config.Tutorial.RankClaim
--- .BlocksAtOnce, which are given with the rank-up itself (Bronze's block follows the first
--- win: the tutorial's Standard block). Pure: no Instances, no clocks, arrays walked in order.
+-- .BlocksAtOnce, which are given with the rank-up itself (none since tutorial v2: Bronze's
+-- block waits in Rank too). Pure: no Instances, no clocks, arrays walked in order.
 local Config = require(script.Parent.Parent.Config)
 local Ranks = require(script.Parent.Parent.Progression.Ranks)
 

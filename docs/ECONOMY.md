@@ -149,8 +149,8 @@ except the tutorial's blocks):
 
 | When | What happens |
 |---|---|
-| Join | 1 starter ability spin (the tutorial, 2026-10-03). |
-| The first win (the tutorial) | Unranked to **Bronze I**: a **Standard lucky block at once** (the tutorial opens it to an Uncommon cue; `Config.Tutorial.BronzeBlockKind`), then $2,500, a Mystery block, the Bronze Cue, the [BRONZE] tag and +1 ability spin once claimed in Rank. The win's own block is step 1 of the day's win track, a **Rare block** (5-minute timer): the first win ever is always a Rare block. |
+| Join | No ability spin, and the day's free spin starts the next UTC day (designer, 2026-10-09): the tutorial's Abilities step starts at 0 and the code RELEASE gives 3. |
+| The first win (the tutorial) | Unranked to **Bronze I**: $2,500, a Mystery block, the Bronze Cue and the [BRONZE] tag once claimed in Rank (tutorial v2, 2026-10-09: nothing at once, and no spin; the tutorial's Mystery block climbs to an Uncommon block that opens to an Uncommon cue). The win's own block is step 1 of the day's win track, a **Rare block** (5-minute timer): the first win ever is always a Rare block. |
 | The first finished match | first-week day 1 can be claimed: **$5,000 + a Mystery block** (a login day counts once a match is finished that day). |
 | 5 minutes | playtime gift: $1,000 |
 | The second and third wins | 2 Mystery blocks (win track steps 2 and 3); the third win is **Bronze II**: $1,000 |
@@ -369,12 +369,12 @@ difficulty sets its money and XP multipliers for everyone at it.
 `Config.Ranks.Rewards`. Money for each new division is unchanged; v4 (2026-10-08) pays better
 blocks from Platinum up and the first Legendary block at Expert (about a month at 3 hours a
 day; before v4 it waited for Master). Reaching a tier also gives the tier's cue (the Ranked
-rarity, never traded or sold), its chat tag and ability spins (+1 for Bronze, Silver and Gold;
-+2 for Platinum and Diamond; +3 from Expert up).
+rarity, never traded or sold), its chat tag and ability spins (none for Bronze since 2026-10-09;
++1 for Silver and Gold; +2 for Platinum and Diamond; +3 from Expert up).
 
 | Tier (Classic wins to reach) | Each new division II-V | Reaching the tier (division I) | Before v4 |
 |---|---|---|---|
-| Bronze (1) | $1,000 | $2,500, a Mystery block (plus the Standard block given at once with the first win) | same |
+| Bronze (1) | $1,000 | $2,500, a Mystery block (claimed in Rank like every tier's since 2026-10-09) | same |
 | Silver (21) | $2,000 | $5,000, a Rare block | same |
 | Gold (66) | $3,500 | $10,000, 2 Rare blocks | same |
 | Platinum (136) | $6,000 | $20,000, **an Epic block** | 3 Rare blocks |
@@ -1105,8 +1105,8 @@ Lucky Spins are refused; free spins still work. The ability bar itself is never 
 **Pity:** every spin adds 1; the 100th spin without an Epic or better is Epic or better (Epic
 72.3%, Legendary 24.1%, Mythic 3.6%); any Epic or better resets it.
 
-**Getting spins:** 1 starter spin; 1 free spin a day (never stacks); VIP +1 a day (10.1);
-rank-ups (+1 for Bronze, Silver, Gold; +2 Platinum and Diamond; +3 from Expert up); +2 on login
+**Getting spins:** no starter spin (2026-10-09); 1 free spin a day from a new save's second
+UTC day (never stacks); VIP +1 a day (10.1); rank-ups (+1 for Silver and Gold; +2 Platinum and Diamond; +3 from Expert up); +2 on login
 day 7; +1 with the 60-minute playtime gift; codes (RELEASE 3; LIKES10K 3, LIKES100K 5); VIP adds
 Skip and Auto Spin.
 

@@ -4030,11 +4030,15 @@ Config.Ults = {
 	},
 	-- Where spins come from (section 10, (tune)).
 	Earn = {
-		Starter = 1, -- a fresh save, and the migration for existing saves (the tutorial spins it)
+		-- A fresh save, and the migration for existing saves: none since tutorial v2 (designer,
+		-- 2026-10-09: a new player has 0 spins until RELEASE gives its spins; a new save's daily
+		-- free spin starts the next UTC day, TutorialService).
+		Starter = 0,
 		DailyFree = 1, -- one free spin a UTC day (Rewards > Daily's reset); never stacks
-		-- Reaching each tier (division I) adds spins: +1 up to Gold, +2 Platinum and Diamond, +3 above.
+		-- Reaching each tier (division I) adds spins: +1 Silver and Gold, +2 Platinum and Diamond,
+		-- +3 above.
 		RankUp = {
-			Bronze = 1,
+			Bronze = 0, -- none (designer, 2026-10-09: the tutorial's Abilities step starts at 0)
 			Silver = 1,
 			Gold = 1,
 			Platinum = 2,
@@ -5895,6 +5899,16 @@ Config.Effects = {
 		SparkleSpeed = { 3, 6 }, -- studs per second: they stay round the pocket
 		SparkleSeconds = { 0.4, 0.8 },
 		SparkleSize = 0.35, -- studs
+	},
+	-- "x2!" (tutorial v2 4.11, for everyone): a small pop when the shooter's second (third
+	-- ...) ball drops in one shot, never on the break. It sits just right of NICE SHOT! (the
+	-- same height and life, NiceShot's numbers) when that shows for the ball, else alone over
+	-- the pocket. (tune)
+	MultiPot = {
+		SizePx = { 56, 28 },
+		TextSize = 20, -- a touch bigger than NICE SHOT!'s 18: it is one short word
+		GapPx = 2, -- from NICE SHOT!'s right edge
+		TiltDegrees = 6, -- the other way to NICE SHOT!'s
 	},
 
 	-- VFX are CUE DATA, not constants. Every catalog cue (Progression/Catalog) names a style
@@ -13572,10 +13586,10 @@ Config.Bots = {
 -- src/server/TutorialService.luau, src/client/Tutorial*.luau, src/shared/Tutorial/). (tune)
 Config.Tutorial = {
 	-- Rank rewards wait until the player claims them in Rank (designer, 2026-10-03), except
-	-- these tiers' lucky blocks, given at once with the rank-up (Bronze's block follows the
-	-- first win: the tutorial's Standard block, BronzeBlockKind).
+	-- these tiers' lucky blocks, given at once with the rank-up. None since tutorial v2
+	-- (2026-10-09): Bronze's Mystery block waits in Rank like every other rank reward.
 	RankClaim = {
-		BlocksAtOnce = { Bronze = true },
+		BlocksAtOnce = {},
 		MinGapSeconds = 0.5, -- one claim request at most this often per player (a double tap)
 		-- The claim block over the roadmap (src/client/RankClaimBlock.luau), in pixels.
 		Block = {

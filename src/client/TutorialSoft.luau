@@ -19,7 +19,9 @@
 -- - After game 2, the first-win Rare block's hotbar slot wears the gold ring once its timer is
 --   done (its READY! shows), until it is taken in hand.
 --
--- Who gets it: a player in the soft part, or past it (its icons came out: the Icons moment).
+-- Who gets it: a player in the soft part, or past it (its icons came out: the Icons moment). A
+-- skipper (TutorialWhy "Skip") gets only the "!" dots: the first click on each new icon is a
+-- first-time hint for everyone (4.8); the rest is the soft tutorial they skipped.
 -- What was clicked is saved as one-time moments (Tutorial/Steps.Seen, the TutorialSeen mask):
 -- the client reports each (TutorialEvent "Seen"), the server checks the name. Sizes and
 -- timings in Config.Tutorial.Soft, words in Strings.Tutorial.
@@ -116,6 +118,11 @@ local function soft(): boolean
 	return not stopped and (step() == "Soft" or TutorialAnchors.seen("Icons"))
 end
 
+-- A skipper: the "!" dots only.
+local function skipper(): boolean
+	return not stopped and player:GetAttribute("TutorialWhy") == "Skip"
+end
+
 local function seen(name: string): boolean
 	return clicked[name] == true or TutorialAnchors.seen(name)
 end
@@ -127,7 +134,7 @@ end
 -- One-time moment `name` happened (a click, a popup shown): its "!" or glow goes at once and
 -- the server is told.
 local function click(name: string)
-	if not soft() or TutorialAnchors.seen(name) or clicked[name] then
+	if not (soft() or skipper()) or TutorialAnchors.seen(name) or clicked[name] then
 		return
 	end
 	clicked[name] = true
@@ -475,6 +482,7 @@ function TutorialSoft.update(_dt: number)
 	end
 	local now = os.clock()
 	local on = soft()
+	local dots = on or skipper()
 	local over = step() == "" -- game 2 is over (or the tutorial ended another way)
 
 	-- Reports the server has not answered yet go again.
@@ -509,7 +517,7 @@ function TutorialSoft.update(_dt: number)
 
 	-- The click-once "!".
 	for _, item in FRESH do
-		local want = on and not seen(item) and (item ~= "Challenge" or S.ChallengeBuilt)
+		local want = dots and not seen(item) and (item ~= "Challenge" or S.ChallengeBuilt)
 		if want ~= (freshOn[item] == true) then
 			freshOn[item] = want
 			Progression.setFresh(item, want)

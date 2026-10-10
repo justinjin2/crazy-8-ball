@@ -110,6 +110,20 @@ function TutorialAnchors.worldPoint(tableId: number, kind: string, id: number): 
 	return if worldPoint then worldPoint(tableId, kind, id) else nil
 end
 
+-- The snapshot of the table this player sits at (Main registers it): the first-time hints'
+-- moments in a match.
+local matchOf: (() -> any?)? = nil
+
+--- Main: how to read the snapshot of the table this player sits at (nil when not seated).
+function TutorialAnchors.setMatch(fn: () -> any?)
+	matchOf = fn
+end
+
+--- The snapshot of the table this player sits at, or nil.
+function TutorialAnchors.match(): any?
+	return if matchOf then matchOf() else nil
+end
+
 -- The break's power gate (game 1, the designer: a release under half power does nothing):
 -- Input shoots only at minPower or more; a weaker release springs the bar back and fires
 -- weakRelease (the tutorial shakes its line).

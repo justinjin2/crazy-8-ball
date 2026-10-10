@@ -171,6 +171,12 @@ return {
 		for name in Steps.PoolHints do
 			H.expect(Steps.hintBit(name) ~= nil, name .. " is a hint")
 		end
+		for step, names in Steps.Taught do
+			H.expect(Steps.guided(step), step .. " is a guided step")
+			for _, name in names do
+				H.expect(Steps.hintBit(name) ~= nil, step .. " teaches a real hint: " .. name)
+			end
+		end
 		for name in Steps.ClientSeen do
 			H.expect(Steps.seenBit(name) ~= nil, name .. " is a moment")
 		end

@@ -88,8 +88,8 @@ end
 
 -- Rank rewards are held until claimed in Rank (tutorial lane, 2026-10-03; RankClaim): a rank-up
 -- pays only the lucky blocks of Config.Tutorial.RankClaim.BlocksAtOnce's tiers. The tutorial
--- sets their kind through `blockKind` (Bronze's block is its Standard block); nil gives the
--- Config kinds.
+-- could set their kind through `blockKind` (v1 made Bronze's its Standard block; no tier's
+-- block comes at once since v2); nil gives the Config kinds.
 local blockKind: ((Player) -> string?)? = nil
 
 --- The tutorial's hook: `fn(player)` names the kind of the rank-up's at-once blocks, or nil.

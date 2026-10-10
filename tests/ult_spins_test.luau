@@ -139,8 +139,9 @@ return {
 		H.expect(u.Slots[1] == r.id, "in the selected slot")
 		H.expect(r.used == "Free" and u.Spins == E.Starter, "the free spin first")
 		H.expect(u.FreeSpinDay == DAY and u.SpinsDone == 1 and u.Pity == 1, "counted")
+		Slots.addSpins(u, 1) -- one to spend (a fresh save holds E.Starter: none since tutorial v2)
 		local second = SpinView.spin(u, opts()) :: any
-		H.expect(second.used == "Spin" and u.Spins == E.Starter - 1, "then a spin")
+		H.expect(second.used == "Spin" and u.Spins == E.Starter, "then a spin")
 		-- Slot 2 with its pass: the spin goes there and slot 1 keeps its ult.
 		Slots.addSpins(u, 1)
 		Slots.select(u, 2, ALL)
@@ -453,7 +454,7 @@ return {
 				H.expect(row.spins == 0, "divisions II-V add none")
 			end
 		end
-		H.expect(byTier.Bronze == 1 and byTier.Gold == 1 and byTier.Platinum == 2, "")
+		H.expect(byTier.Bronze == 0 and byTier.Gold == 1 and byTier.Platinum == 2, "")
 		H.expect(byTier.Diamond == 2 and byTier.Expert == 3 and byTier.Reyes == 3, "")
 		-- A big jump adds every tier passed: Bronze, Silver and Gold's division I.
 		local goldStart, goldIndex = 0, 0
@@ -463,7 +464,10 @@ return {
 			end
 		end
 		local result = Ranks.applyXp({ RankXp = 0, PeakDivision = 0, RatedMatches = 0 }, goldStart)
-		H.expect(result.rewardSpins == 3, "1 + 1 + 1")
+		H.expect(
+			result.rewardSpins == E.RankUp.Bronze + E.RankUp.Silver + E.RankUp.Gold,
+			"Bronze's, Silver's and Gold's"
+		)
 		local none =
 			Ranks.applyXp({ RankXp = goldStart, PeakDivision = goldIndex, RatedMatches = 5 }, 1)
 		H.expect(none.rewardSpins == 0, "no rank-up, no spins")

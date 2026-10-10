@@ -2595,7 +2595,8 @@ function PlayerData.setUltPity(player: Player, n: number): boolean
 end
 
 --- Today's daily free spin: `ready` true makes it unused again (dev /freespin), false marks it
---- used (FreeSpinDay = today). A spin uses it by itself (ultSpin); this is for tests and dev.
+--- used (FreeSpinDay = today). A spin uses it by itself (ultSpin); this is for tests, dev, and a
+--- brand-new save (its first free spin is the next UTC day's: TutorialService).
 function PlayerData.setFreeSpin(player: Player, ready: boolean): boolean
 	local op = "setFreeSpin"
 	if not isPlayer(player) then

@@ -199,6 +199,19 @@ Steps.Hints = {
 	"Abilities", -- the first visit to Abilities: the RELEASE code, then spin
 }
 
+-- The hints each guided step teaches: done once the step is passed the normal way (Game1's
+-- only on path S, the rigged game's lessons; path R gets them as hints).
+Steps.Taught = (
+	{
+		Game1 = { "Aim", "Zoom", "BallInHand", "Eight", "AbilityReady" },
+		Rank = { "RankUp" },
+		Mystery = { "Mystery" },
+		Place = { "Block" },
+		Cues = { "Cue" },
+		Abilities = { "Abilities" },
+	}
+) :: { [string]: { string } }
+
 -- The pool controls (4.2): taught in the first game whoever it is against, off for skippers.
 Steps.PoolHints = (
 	{ Aim = true, Zoom = true, BallInHand = true, Eight = true }

@@ -636,6 +636,10 @@ Progression.start(screen, {
 		return nil
 	end,
 })
+-- The table this player sits at, for the first-time hints' moments in a match.
+TutorialAnchors.setMatch(function(): any?
+	return if hub.mySeat then hub.snapshots[hub.mySeat] else nil
+end)
 -- Where a table's pockets and balls are in the world, for the tutorial's pocket glow and its
 -- pointer (game 1's lessons).
 TutorialAnchors.setWorldPoint(function(tableId: number, kind: string, id: number): Vector3?
@@ -992,6 +996,8 @@ local function rewardsPocket(tableId: number, m: any, ballId: number): boolean
 	local group = if s.activeTeam then groups[s.activeTeam] else nil
 	return s.solo ~= nil or group == nil or Judge.group(ballId) == group
 end
+-- Each table's shot and how many of the shooter's balls it has dropped so far ("x2!").
+local potsThisShot: { [number]: { shot: any, count: number } } = {}
 for id = 1, Placement.tableCount() do
 	local m = assert(hub:matchFor(id))
 	local a = Audio.new(visuals)
@@ -1018,14 +1024,31 @@ for id = 1, Placement.tableCount() do
 				-- break, and not for a drop a late joiner's replay only caught up with.
 				local s = hub.snapshots[id]
 				local shot = m.shot
-				if
-					shot
+				local fresh = shot ~= nil
 					and not (s and s.breakShot)
 					and m.state.time - ev.t < Config.Effects.NiceShot.FreshSeconds
-					and NiceShot.isNice(shot.events, ev.ball, index, m.state.geometry.pockets)
-				then
+				local nice = fresh
+					and NiceShot.isNice(
+						(shot :: any).events,
+						ev.ball,
+						index,
+						m.state.geometry.pockets
+					)
+				if nice then
 					e:niceShot(at)
 					a:niceClap(at)
+				end
+				-- "x2!" (x3! ...): the shooter's second ball and on in one shot, never the break.
+				local pots = potsThisShot[id]
+				if shot and (pots == nil or pots.shot ~= shot) then
+					pots = { shot = shot, count = 0 }
+					potsThisShot[id] = pots
+				end
+				if pots then
+					pots.count += 1
+					if fresh and pots.count >= 2 then
+						e:multiPot(at, pots.count, nice == true)
+					end
 				end
 			end
 			if snapshot and snapshot.id == id then

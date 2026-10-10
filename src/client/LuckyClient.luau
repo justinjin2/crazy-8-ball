@@ -825,6 +825,21 @@ function LuckyClient.readySlot(kind: string): number?
 	return nil
 end
 
+--- The first-time hints: the first hotbar slot (1-9) with a ready block of a kind other than
+--- `except`, and its kind; nil when none.
+function LuckyClient.firstReady(except: string?): (number?, string?)
+	if not started then
+		return nil, nil
+	end
+	for i = 1, hotbar:slotCount() do
+		local entry = hotbar:slotEntry(i)
+		if entry and entry.kind ~= except and entry.readyAt <= serverNow() then
+			return i, entry.kind
+		end
+	end
+	return nil, nil
+end
+
 --- The tutorial: the held block's kind, or nil.
 function LuckyClient.heldKind(): string?
 	local entry = find(heldId)

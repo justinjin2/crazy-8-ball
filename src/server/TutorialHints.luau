@@ -118,10 +118,27 @@ function TutorialHints.markSeen(player: Player, name: string): boolean
 	return n ~= nil and setBit(player, TutorialHints.SeenFlag, n)
 end
 
---- Clears every hint and moment (the designer's /tutorial reset and hints).
+--- Marks every hint done: a player from before tutorial v2 (they know the game).
+function TutorialHints.allDone(player: Player)
+	local m = maskOf(player, TutorialHints.DoneFlag)
+	for i = 1, #Steps.Hints do
+		m = Steps.mark(m, i)
+	end
+	if PlayerData.setFlag(player, TutorialHints.DoneFlag, m) then
+		player:SetAttribute(TutorialHints.DoneFlag, m)
+	end
+end
+
+--- Whether the save holds the hints at all (a new save gets 0 at once: see TutorialService).
+function TutorialHints.started(player: Player): boolean
+	return type(PlayerData.flag(player, TutorialHints.DoneFlag)) == "number"
+end
+
+--- Clears every hint and moment (the designer's /tutorial reset and hints). The hints stay a
+--- number (0), so the save still reads as one that gets them.
 function TutorialHints.reset(player: Player)
 	for _, key in { TutorialHints.DoneFlag, TutorialHints.AgainFlag, TutorialHints.SeenFlag } do
-		PlayerData.setFlag(player, key, nil)
+		PlayerData.setFlag(player, key, if key == TutorialHints.DoneFlag then 0 else nil)
 	end
 	shownNow[player] = nil
 	TutorialHints.publish(player)
