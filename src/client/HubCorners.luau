@@ -7,8 +7,10 @@
 -- - Under it, while open for this player: the Starter Pack and VIP's welcome offer on one tile
 --   with its countdown, flipping from one to the other every few seconds when both are open
 --   (tutorial v2 4.11); a press opens the Shop on the shown offer's section. Offers never pop up
---   by themselves (designer, 2026-10-03). The challenge and the offer tile are about the left
---   column's tiles' size.
+--   by themselves (designer, 2026-10-03). The challenge and the offer tile are a bit bigger than
+--   the left column's tiles. The offer's picture wiggles, and a small red X on its corner hides
+--   the tile for the rest of the visit (the designer, 2026-10-09: "a small dismiss button ... to
+--   get rid of it"; the Shop still sells it).
 -- - The tutorial hides the challenge, the offer tile, Invite and Plus until its soft part
 --   (Steps.Reveal: Challenge, Offer, Invite, Plus); each pops in as it comes back. The soft
 --   part's click-once "!" sits on the challenge and the offer tile (setFresh).
@@ -220,6 +222,22 @@ function HubCorners.new(screen: ScreenGui, deps: any): any
 	end)
 	offerTile.button.Visible = false
 	self.starterArt = starterArt(offerTile)
+	-- Its picture wiggles now and then (the designer, 2026-10-09).
+	UIAnim.shake(offerTile.icon, "Wiggle")
+	UIAnim.shake(self.starterArt, "Wiggle")
+	-- The X: away for the rest of the visit (it comes back on the next join while still open).
+	self.offerDismissed = false
+	local dismiss = HudParts.candy(root, "", function()
+		UISound.play("Click")
+		self.offerDismissed = true
+		self:refreshOffers()
+	end, "Red", "X")
+	dismiss.Name = "OfferDismiss"
+	dismiss.Selectable = false
+	dismiss.AnchorPoint = Vector2.new(0.5, 0.5)
+	dismiss.Visible = false
+	HudParts.setMinHit(dismiss, C.DismissHitPx)
+	self.offerDismiss = dismiss
 	local offerBody = HudParts.candyParts(offerTile.button).body
 	-- The deal under the name, as a shop sign (the designer, 2026-10-09): the deal in rainbow
 	-- ("x2 VALUE!", "50% OFF!"), then "ONLY" and the price in Robux green.
@@ -267,7 +285,9 @@ function HubCorners.new(screen: ScreenGui, deps: any): any
 		local dot =
 			HudParts.pill(HudParts.candyParts(tile.button).body, "New", HudParts.tone("Red"))
 		dot.AnchorPoint = Vector2.new(0.5, 0.5)
-		dot.Position = UDim2.fromScale(0.86, 0.1)
+		-- The offer's sits left of its X (the corner is the X's).
+		local at = if key == "Offer" then C.OfferNewAt else { 0.86, 0.1 }
+		dot.Position = UDim2.fromScale(at[1], at[2])
 		dot.ZIndex = 6
 		dot.Visible = false
 		local words = HudParts.text(dot, "Words", C.WordPx + 1, Strings.Tutorial.New)
@@ -280,6 +300,7 @@ function HubCorners.new(screen: ScreenGui, deps: any): any
 	-- The tutorial's anchors: the soft part's glows sit behind these.
 	TutorialAnchors.set("Challenge", self.challenge.button)
 	TutorialAnchors.set("Offer", offerTile.button)
+	TutorialAnchors.set("OfferDismiss", self.offerDismiss) -- its X (Studio QA presses it)
 	TutorialAnchors.set("Invite", self.inviteTile.button)
 
 	-- The challenge's glow flashes behind it.
@@ -514,7 +535,9 @@ function HubCorners.refreshOffers(self: any)
 		windows = self.fakeOffers -- Studio QA (GuiQA "cornerOffers")
 	end
 	local now = workspace:GetServerTimeNow()
-	local allowed = not self.challengeHidden and not TutorialAnchors.hidden("Offer")
+	local allowed = not self.challengeHidden
+		and not TutorialAnchors.hidden("Offer")
+		and not self.offerDismissed
 	local open = {}
 	for _, spec in self.offerSpecs do
 		local window = windows[spec.key]
@@ -626,6 +649,16 @@ function HubCorners.layout(self: any)
 	self.offerRays.Size = UDim2.fromOffset(raysPx, raysPx)
 	self.offerRays.Position = offer.button.Position
 	self.offerRays.Visible = offer.button.Visible
+	-- The X on the tile's top-right corner.
+	local dismissPx = if short then C.ShortDismissPx else C.DismissPx
+	self.offerDismiss.Size = UDim2.fromOffset(dismissPx, dismissPx)
+	self.offerDismiss.Position = UDim2.new(
+		1,
+		round(centreX + offerPx / 2 - dismissPx * C.DismissInShare),
+		0,
+		round(offerY - offerPx / 2 + dismissPx * C.DismissInShare)
+	)
+	self.offerDismiss.Visible = offer.button.Visible
 	for _, dot in self.fresh do
 		dot.Size = UDim2.fromOffset(wordPx + 12, wordPx + 8)
 	end

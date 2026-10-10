@@ -3351,7 +3351,7 @@ Config.Shop = {
 	-- (designer, 2026-10-08; was 19): the Starter Cue, the Starter block, StarterMoney and an
 	-- hour of 2x money; where PolicyService restricts paid random items, no block and
 	-- StarterRestrictedMoney instead (was $75,000 at 99 R$).
-	StarterSeconds = 7 * 86400,
+	StarterSeconds = 86400, -- one day (the designer, 2026-10-09; was 7 days)
 	StarterMoney = 25000,
 	StarterRestrictedMoney = 40000,
 	-- The Starter Pack's hour of 2x money (Config.Economy.StarterBoost; it adds to VIP's).
@@ -10179,8 +10179,11 @@ Config.UI.Ults = {
 	ShakeDegrees = 4,
 	ShakePx = 3,
 	-- The prompt over the ready bar: PRESS [G] TO ACTIVATE, TAP TO ACTIVATE, PRESS [X] ...
-	PromptPx = { 22, 26 },
-	PromptTextPx = { 14, 16 },
+	-- (Bigger, and breathing while it waits, the designer 2026-10-09: "a bit bigger and noticeable".)
+	PromptPx = { 28, 34 },
+	PromptTextPx = { 18, 21 },
+	PromptPulseScale = 1.08, -- the ready prompt grows to this and back...
+	PromptPulseSeconds = 0.7, -- ...over this long each way
 	KeycapShare = 0.78, -- the keycap or the controller glyph, of the prompt's height
 	KeycapCornerPx = 5,
 	PromptDimTransparency = 0.4, -- greyed while a press waits for the server
@@ -13952,6 +13955,9 @@ Config.Tutorial = {
 		BreakMinPower = 0.5, -- the break's release under this does nothing (the bar springs back)
 		AimTurnedDegrees = 2, -- once the player has turned this much, the line says to shoot
 		DragPx = { 170, -80 }, -- the ball-in-hand demo drags the ghost ball this far (px)
+		-- The ability lesson's small hand points at PRESS G TO ACTIVATE from its right end, its
+		-- tip about this far out past the pill (so it touches no letter).
+		PromptHandPadPx = 12,
 		BlockPadPx = 28, -- the ring round the thrown block on the floor, past its outline (px)
 		ZoomedOut = 0.85, -- the zoom lesson is done at this zoom or wider (Camera: 1 is all out)
 		ZoomDoneSeconds = 2.5, -- "You can zoom in and out any time." shows this long
@@ -14106,6 +14112,7 @@ Config.Tutorial = {
 		MaxPx = 170,
 		HoverPx = 6, -- the tip rests this far below a button's centre
 		SideInsetPx = 18, -- point(target, side): the tip rests this far inside the target's right end
+		SmallShare = 0.6, -- point(..., small): the hand (and its side inset) at this share of its size
 		-- Near the screen's bottom (more than this share of the hand would run off it, as on the
 		-- hotbar) the hand turns over and points down at the target from above.
 		FlipOffShare = 0.4,
@@ -14127,8 +14134,20 @@ Config.Tutorial = {
 		GhostBallTransparency = 0.45,
 		NudgeSeconds = 0.45, -- the re-prompt's grow and settle
 		NudgeGrow = 0.3, -- ... by this share at its top
-		ScrollPx = 14, -- the "scroll" gesture's push down
 		PinchApart = 0.6, -- the "pinch" fingertips start this far apart (against the hand)
+		PinchArrowShare = 0.9, -- an arrow by each fingertip, against the fingertip
+		-- The up-and-down sign (scroll and the zoom stick; the designer's reference, 2026-10-09):
+		-- its height against the mouse (or glyph), its width against its height, its centre
+		-- this far right of the mouse's (against the mouse), the arrowheads' bob, the dashes.
+		SignShare = 1.15,
+		SignWidthShare = 0.26,
+		SignBesideShare = 0.85,
+		SignBobPx = 7,
+		SignDashes = 5,
+		SignDashShare = 0.22, -- a dash's height against the sign's width, at most...
+		SignDashFill = 0.55, -- ...and this much of the step between two dashes (outline included)
+		SignDashDim = 0.6, -- the dashes the running light is not on
+		SignStrokePx = 2.5,
 	},
 	-- The arrow to the tutorial's pad (src/client/TutorialArrow.luau; tutorial v2 look A, the
 	-- designer's pick 2026-10-09): white chevrons with a thick black outline at chest height,
@@ -14907,9 +14926,9 @@ Config.UI.Corners = {
 	-- The Daily Challenge target (a computer; a phone's is ShortChallengePx): about the left
 	-- column's tiles or a bit bigger (tutorial v2 4.11, 2026-10-09; it was 70 and 50).
 	-- Bigger than the left column's, words too (the designer, 2026-10-09: "bigger than the left
-	-- side gui"; was 84 and 56).
-	ChallengePx = 108,
-	ShortChallengePx = 70,
+	-- side gui"; was 84 and 56; 108 and 70 were "a bit big", so 94 and 62).
+	ChallengePx = 94,
+	ShortChallengePx = 62,
 	ChallengeRightPx = 14, -- from the right edge, at least
 	WordEdgePx = 8, -- ... and further in so the widest word under it ends this far from the edge
 	ChallengeYShare = 0.42, -- its middle this far down the screen
@@ -14933,8 +14952,8 @@ Config.UI.Corners = {
 	-- Challenge, with its countdown: never a popup (designer, 2026-10-03). With both open it
 	-- flips from one to the other every OfferFlipSeconds (tutorial v2 4.11, 2026-10-09: one tile
 	-- as big as the challenge's; each had its own 58 px tile).
-	OfferPx = 108, -- the tile's icon (a computer; was 84, the designer 2026-10-09)
-	ShortOfferPx = 70,
+	OfferPx = 94, -- the tile's icon (a computer; was 84, then 108: "a bit big", the designer 2026-10-09)
+	ShortOfferPx = 62,
 	OfferFlipSeconds = 4,
 	OfferFlipHalfSeconds = 0.14, -- each half of the flip (it narrows to nothing, then opens)
 	OfferGapPx = 8, -- between the challenge's word and the offer tile
@@ -14958,6 +14977,12 @@ Config.UI.Corners = {
 	-- Rainbow sun rays turning behind it (Free Reward's gold ones are Column.FreeRaysShare).
 	OfferRaysShare = 2.1, -- of the tile
 	OfferRaysTransparency = 0,
+	-- The small red X that hides the offer tile for the visit (the designer, 2026-10-09).
+	DismissPx = 26,
+	ShortDismissPx = 22,
+	DismissInShare = 0.15, -- its middle this much of its size in from the tile's corner
+	DismissHitPx = 36, -- a touch reaches it from this far round (at least this big)
+	OfferNewAt = { 0.6, 0.08 }, -- the soft part's "!" on the offer tile, left of the X (of the tile)
 }
 
 -- Settings (SettingsMenu, src/server/Settings.luau; GUI lane, designer 2026-10-03, C10): each

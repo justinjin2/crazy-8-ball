@@ -367,7 +367,7 @@ tests["no planned pot runs along the rail into a side pocket"] = function()
 	end
 end
 
-tests["ball in hand lines up a waiting combination, and it follows the cue ball"] = function()
+tests["ball in hand starts on the head spot; a drag lines up the combination, which follows it"] = function()
 	-- A pair by a corner pocket: 5 (the front ball) 14 in from the mouth, 3 behind it on the
 	-- line; another solid and a stripe far off, the 8 on the other side.
 	local Magnet = H.require("Ults.Effects.Magnet")
@@ -411,13 +411,22 @@ tests["ball in hand lines up a waiting combination, and it follows the cue ball"
 	}
 	t.tutorial.done.Aim = true
 	local cue = find(t.state.balls, 0)
-	Rig.placeHand(t, function(x: number, y: number): boolean
-		cue.x, cue.y, cue.pocketed = x, y, false
-		return true
-	end)
-	expect(not cue.pocketed, "the cue ball is placed")
+	-- Ball in hand starts on the head spot (the engine's); the rig leaves it there.
+	local hx, hy = TableGeometry.headSpot(geometry)
+	cue.x, cue.y, cue.pocketed = hx, hy, false
 	Rig.turnBegan(t)
 	local rig = t.tutorial
+	expect(cue.x == hx and cue.y == hy, "the cue ball stays on the head spot")
+	expect(rig.handTurn and not Rig.timed(t, "Placement"), "the first ball in hand has no clock")
+	-- Dropped where no line reaches the pair: no lesson, and the combination is not given up.
+	cue.x, cue.y = mx + ux * 8, my + uy * 8 -- between the pair and the pocket
+	Rig.cueMoved(t)
+	expect(rig.lesson == nil and (rig.waited.Combo or 0) == 0, "no line: no lesson yet")
+	-- They drag it straight behind the pair: the combination is this turn's lesson.
+	local x, y = Plan.comboSpot(geometry, t.state.balls, "solids")
+	expect(x ~= nil and y ~= nil, "a spot lines the pair up")
+	cue.x, cue.y = x :: number, y :: number
+	Rig.cueMoved(t)
 	expect(rig.lesson == "Combo", "the combination is this turn's lesson")
 	local plan = rig.plan
 	expect(plan.a == 3 and plan.b == 5 and plan.cueCut < 1, "lined up straight behind the pair")
@@ -457,6 +466,9 @@ tests["ball in hand lines up a waiting combination, and it follows the cue ball"
 	cue.x, cue.y = mx + ux * 8, my + uy * 8 -- between the pair and the pocket
 	Rig.cueMoved(t)
 	expect(rig.lesson == nil, "no line onto the pair: no lesson")
+	cue.x, cue.y = x :: number, y :: number
+	Rig.cueMoved(t)
+	expect(rig.lesson == "Combo", "dragged back: the combination again")
 end
 
 tests["the player's shots carry the hidden help, their ability inside it"] = function()

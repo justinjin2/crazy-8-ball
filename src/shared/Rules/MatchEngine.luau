@@ -345,11 +345,8 @@ local function beginTurn(t: any, team: number, now: number, hand: boolean, skipI
 		Placement.set(t.state, 0, x, y)
 	end
 	if t.tutorial then
-		-- The tutorial's game 1 (Tutorial/Rig): ball in hand starts on a good spot, and the
-		-- turn's lesson is picked from the table.
-		TutorialRig.placeHand(t, function(x: number, y: number): boolean
-			return Placement.set(t.state, 0, x, y)
-		end)
+		-- The tutorial's game 1 (Tutorial/Rig): the turn's lesson is picked from the table (ball
+		-- in hand starts on the head spot as always: they drag it themselves).
 		TutorialRig.turnBegan(t)
 	end
 	-- A shooter who owes the call for the 8 picks the pocket at once: the introduction would

@@ -1009,7 +1009,7 @@ blocks (2026-10-04).
   (designer, 2026-09-28). Never better odds, no XP boost, no discount, no extra win-track
   steps. A **welcome offer** at half price (199 R$) for 24 hours from the first join, plus one 24-hour comeback window 7 days later (designer, 2026-09-27; Roblox's rules
   call short pressure windows unfair, so not 15 minutes). ECONOMY.md section 11.
-- **Starter Pack** (**19 R$**, v4; once, in the first 7 days *(tune)*): a Starter lucky block
+- **Starter Pack** (**19 R$**, v4; once, in the first day *(tune; was 7 days until 2026-10-09)*): a Starter lucky block
   (Rare or better, Epic 9%), $25,000 and 1 hour of 2x money; where paid random items are
   restricted, $40,000 and the hour, no block.
 - **Other Robux products** at release (v4 prices, 2026-10-08: everything cheaper, the top

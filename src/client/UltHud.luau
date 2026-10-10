@@ -211,6 +211,7 @@ function UltHud.new(screen: ScreenGui, activate: () -> ()): any
 	local content = HudParts.frame(canvas, "Content")
 	self.content = content
 	self.bar = UltBar.new(content)
+	TutorialAnchors.set("UltPrompt", self.bar.prompt) -- PRESS G TO ACTIVATE: pointed at from its side
 	self.armed = wordPill(content, "Armed")
 	self.opponent = wordPill(content, "OpponentArmed")
 

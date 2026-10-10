@@ -336,7 +336,7 @@ local function aimLesson(device: string, fresh: boolean): string
 		overlay:say(words(Copy.Aim, device))
 	elseif aimPart == "zoom" then
 		if device == "gamepad" then
-			hand:gesture("stick", Enum.KeyCode.Thumbstick2)
+			hand:gesture("stickY", Enum.KeyCode.Thumbstick2)
 		else
 			hand:gesture(if device == "touch" then "pinch" else "scroll")
 		end
@@ -432,7 +432,8 @@ local function game1Scene(device: string, fresh: boolean): string
 		if device == "gamepad" then
 			hand:gesture("hold", (Enum.KeyCode :: any)[Config.UI.Ults.GamepadKey])
 		else
-			hand:point(button)
+			-- A small hand at the prompt's right end: the key it names stays in sight.
+			hand:point(TutorialOverlay.guiTarget("UltPrompt", L.PromptHandPadPx), true, true)
 		end
 		overlay:say(words(Copy.Ability, device):format(Config.UI.Ults.KeyboardKey))
 	elseif lesson == "BallInHand" then
@@ -949,10 +950,12 @@ local function startQA()
 		elseif op == "gesture" then
 			if a == "pull" then
 				hand:gesture("pull", TutorialOverlay.guiTarget(b))
-			elseif a == "hold" or a == "stick" then
+			elseif a == "hold" or a == "stick" or a == "stickY" then
 				hand:gesture(a, (Enum.KeyCode :: any)[b])
 			elseif a == "swipe" then
 				hand:gesture("swipe", b == true)
+			else
+				hand:gesture(a) -- "scroll", "pinch"
 			end
 		elseif op == "arrow" then
 			arrow:show(a)

@@ -3976,3 +3976,22 @@ timer of a new block stay the designer's call.
   price. The Daily Challenge itself is untouched (not built) but wears a "!" until pressed. The
   Starter Pack's price stays 29 R$ (the designer's "ONLY 19R$" note is a reprice for them to
   decide; at 19 the same sum reads "x4 VALUE!").
+- 2026-10-09 (designer): game 1 shows no group colour until the first legal pot after the break
+  (the break assigns none, so the open table dims and outlines nothing); the aim lesson still
+  outlines the one ball to pot. Ball in hand after a scratch starts on the head spot as in any
+  game, not lined up behind a ball: they drag it themselves, and where they drop it picks the
+  turn's aim or combination lesson again.
+- 2026-10-09 (designer): the zoom lesson's gestures are animations, not a hand: a computer
+  shows the mouse with an up-and-down sign (arrowheads bobbing apart, dashes running), a phone
+  two fingertips pinching in with an arrow by each (closing zooms out: spreading would zoom in),
+  a controller the right stick pushed up and down with the same sign.
+- 2026-10-09 (designer): the ability lesson's hand is small and points at PRESS G TO ACTIVATE
+  from its right end, so the key stays in sight; that prompt is bigger in every match and
+  breathes while it waits for the press (`Config.UI.Ults.PromptPx`, `PromptPulseScale`).
+- 2026-10-09 (designer): the right side's Daily Challenge and offer tile are a little smaller
+  (94 px, 62 on a phone; 108 and 70 were "a bit big"), the offer's picture wiggles, and a small
+  red X on its corner hides the tile for the rest of the visit (it comes back on the next join
+  while still open; the Shop keeps selling it; no X on a controller, where the corners are not
+  stops). The Starter Pack's window is one day from the first join (was 7 days).
+- 2026-10-09 (designer, for economy v5 at the merge): the Daily Rewards' seven login days (and
+  Claim All) must be rescaled to the new economy; their amounts are v4's today.

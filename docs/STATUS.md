@@ -86,8 +86,11 @@ One line each; the long form is the 2026-10-08 entry at the top of
   agents' 11 fixes; the team-table backup). On the test place (Crazy 8 Test Place, published
   by Open Cloud). The designer's first live notes are done (the combination's ghost replay,
   the Rank claim without a dim, the Daily Rewards popup, the rank HUD's next goal, the Starter
-  Pack tile, ...) and the test place's saves were reset. Waiting on: the designer's next live
-  pass, a real controller and phone, Max Players; economy v5.1 notes in the report.
+  Pack tile, ...) and the test place's saves were reset; then the offer corner as a deal, and
+  the second notes (no colours before the first pot, zoom animations, ball in hand on the head
+  spot, the small hand at PRESS G, the offer tile's wiggle and X, a one-day Starter Pack).
+  Waiting on: the designer's next steps, a real controller and phone, Max Players; economy
+  v5.1 notes in the report (the Daily Rewards' amounts must scale with v5 at the merge).
 - **The cue rarity rework** continues after the Unique cues (Beta, Grand Opening, Eclipse,
   Celestial Dragon, Kitsune). Apex's first look was reverted.
 - **The place file:** save `place/8ball.rbxl` and publish once this milestone is done (lucky

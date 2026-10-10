@@ -12,8 +12,10 @@
 -- - The clock: none while a lesson shows (the break, a lesson turn, SELECT WHICH POCKET, the
 --   first ball in hand), and none on a turn right after one they let run out (away: two
 --   timeouts in a row would lose). Every other turn has the usual clock.
--- - Ball in hand starts on a good spot (Plan.handSpot), lined up for the combination while it
---   waits (Plan.comboSpot: its lesson shows after the ball-in-hand one); they may move it.
+-- - Ball in hand starts on the head spot, as in any game: they drag it themselves (the designer,
+--   2026-10-09: "the whole point is theyre supposed to drag it themselves"). Where they drop it
+--   picks the turn's lesson again (cueMoved): the aim lesson's pot, or the combination when
+--   that spot has a line onto the pair.
 -- - The hidden help (Tutorial/Assist, "TutorialAssist"): on every shot of theirs but the
 --   break, nothing drawn. An ability they armed (Fire Shot) runs inside it (Inner). On the
 --   aim lesson, the combination and the 8 the cue ball bends toward the planned ghost point
@@ -121,40 +123,32 @@ function Rig.turnHand(t: any, hand: boolean, set: (number, number) -> boolean): 
 	return hand
 end
 
---- The player's ball in hand starts on a good spot, set through `set`: lined up for the
---- combination while it waits (Plan.comboSpot), else straight behind their easiest ball
---- (Plan.handSpot).
-function Rig.placeHand(t: any, set: (number, number) -> boolean)
-	if not (t.ballInHand and not t.breakShot and Rig.isPlayer(t, t.shooter)) then
-		return
-	end
-	local rig = stateOf(t)
-	local geometry, balls, group = t.state.geometry, t.state.balls, Rig.playerGroup(t)
-	local x, y = nil, nil
-	if not rig.done.Combo and rig.done.Aim then
-		x, y = Plan.comboSpot(geometry, balls, group)
-	end
-	if x == nil then
-		x, y = Plan.handSpot(geometry, balls, group, t.calledPocket)
-	end
-	if x and y then
-		set(x, y)
-	end
-end
-
---- The cue ball was moved (ball in hand): the combination's plan follows it (none from a spot
---- with no line onto the pair: no lesson this turn).
+--- The cue ball was moved (ball in hand): the turn's aim or combination lesson is picked again
+--- from where it is now (none from a spot with no such pot: no lesson this turn, unless they
+--- move it again).
 function Rig.cueMoved(t: any)
 	local rig = t.tutorial
-	if rig == nil or rig.lesson ~= "Combo" or not Rig.isPlayer(t, t.shooter) then
+	if rig == nil or not rig.handTurn or not Rig.isPlayer(t, t.shooter) then
 		return
 	end
-	local combo = Plan.combo(t.state.geometry, t.state.balls, Rig.playerGroup(t))
-	if combo then
-		rig.plan = combo
-	else
-		rig.lesson, rig.plan = nil, nil
+	if rig.lesson ~= nil and rig.lesson ~= "Aim" and rig.lesson ~= "Combo" then
+		return
 	end
+	local geometry, balls = t.state.geometry, t.state.balls
+	local group = Rig.playerGroup(t)
+	if Judge.eligible(balls, group :: any) then
+		return
+	end
+	local plan: any = nil
+	local lesson: string? = nil
+	if not rig.done.Aim then
+		plan = Plan.aim(geometry, balls, group)
+		lesson = if plan then "Aim" else nil
+	elseif not rig.done.Combo then
+		plan = Plan.combo(geometry, balls, group)
+		lesson = if plan then "Combo" else nil
+	end
+	rig.lesson, rig.plan = lesson, plan
 end
 
 --- Picks this turn's lesson (t.tutorial.lesson and .plan), when the player's turn begins
@@ -181,10 +175,13 @@ function Rig.turnBegan(t: any)
 		return
 	end
 	if not rig.done.Combo then
-		local combo = Plan.combo(geometry, balls, group) -- with ball in hand: from comboSpot
+		local combo = Plan.combo(geometry, balls, group)
 		if combo then
 			rig.lesson, rig.plan = "Combo", combo
 			return
+		end
+		if rig.handTurn then
+			return -- ball in hand: where they drop it may line the pair up (cueMoved)
 		end
 		rig.waited.Combo = (rig.waited.Combo or 0) + 1
 		if rig.waited.Combo > P.ComboWaitTurns then

@@ -127,6 +127,7 @@ function UltBar.new(parent: Instance): any
 	self.value = -1
 	self.ready = false
 	self.promptMode = nil :: string?
+	self.promptPulse = nil :: UIAnim.Handle? -- the prompt breathes while it waits for a press
 	self.floats = {} :: { any }
 	self.sparkles = {} :: { any }
 	self.flashAt = -math.huge
@@ -401,11 +402,20 @@ function UltBar.setReady(self: any, ready: boolean)
 end
 
 --- How to activate, above the bar: "key" (the keycap), "pad" (the controller's glyph `image`),
---- "tap", or nil for none (ULTIMATE shows instead). `dim` greys it while a press is on its way.
+--- "tap", or nil for none (ULTIMATE shows instead). `dim` greys it while a press is on its way;
+--- otherwise it breathes (Config.UI.Ults PromptPulseScale, the designer 2026-10-09: "a bit bigger
+--- and noticeable").
 function UltBar.setPrompt(self: any, mode: string?, image: string?, dim: boolean?)
 	self.promptMode = mode
 	self.prompt.Visible = mode ~= nil
 	self.label.Visible = mode == nil
+	local breathe = mode ~= nil and not dim
+	if breathe and self.promptPulse == nil then
+		self.promptPulse = UIAnim.pulse(self.prompt, U.PromptPulseScale, U.PromptPulseSeconds)
+	elseif not breathe and self.promptPulse then
+		self.promptPulse.stop()
+		self.promptPulse = nil
+	end
 	if mode == nil then
 		return
 	end

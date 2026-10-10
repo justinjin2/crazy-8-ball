@@ -10,8 +10,9 @@
 --   cue ball's line onto a.
 -- - fire: the ability lesson's pot: the cue ball close to one of their balls, that ball far
 --   from its pocket (Fire Shot's long line shows it all the way in).
--- - handSpot: where ball in hand starts: straight behind their easiest ball; comboSpot: straight
---   behind the pair's back ball while the combination waits.
+-- - handSpot: a ball-in-hand spot straight behind their easiest ball (the bot's jam check:
+--   whether any spot lines one up); comboSpot: one straight behind the pair's back ball (where
+--   the tools' simulated player drags it while the combination waits).
 -- - eightGlow: the pocket that glows for the 8 ("SELECT WHICH POCKET!"); eightOpen: whether
 --   the 8 can still be potted from somewhere (the bot's later visits keep it so).
 -- - target: the pot a shot is aimed at (the aim help after many misses).
@@ -411,7 +412,7 @@ function Plan.fireGood(pot: Pot?): boolean
 	return pot ~= nil and pot.toGhost <= P.Fire.GoodInches
 end
 
---- Where ball in hand starts: straight behind the easiest of their balls (the 8 into `called`
+--- A ball-in-hand spot straight behind the easiest of their balls (the 8 into `called`
 --- once theirs are gone), Hand.BackInches back from its ghost ball, on a legal spot with a
 --- clear line. Nil when no spot is free.
 function Plan.handSpot(
@@ -473,7 +474,7 @@ function Plan.handSpot(
 	return bx, by
 end
 
---- Where ball in hand starts while the combination waits: straight behind the easiest pair's
+--- A ball-in-hand spot that lines up the combination: straight behind the easiest pair's
 --- back ball on its line to the front ball's ghost point (a straight hit sends it in),
 --- Hand.BackInches back, on a legal spot with a clear line. Nil when there is no pair or spot.
 function Plan.comboSpot(geometry: Geometry, balls: { Ball }, group: string): (number?, number?)

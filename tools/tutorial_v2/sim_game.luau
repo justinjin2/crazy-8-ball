@@ -282,9 +282,22 @@ local function play(seed: number): any
 
 			if m.ballInHand and not m.breakShot then
 				rec.hand = true
-				-- The cue ball starts on its good spot (Rig.placeHand); they keep it there.
+				-- The cue ball starts on the head spot; they drag it behind a ball of theirs (the
+				-- pair while the combination waits), and the turn's lesson follows (Rig.cueMoved).
 				now += think(if seenLesson.Hand then { 2, 5 } else LESSON.hand)
 				seenLesson.Hand = true
+				if newTurn then
+					local x, y = nil, nil
+					if rig.done.Aim and not rig.done.Combo then
+						x, y = Plan.comboSpot(geometry, m.state.balls, group)
+					end
+					if x == nil then
+						x, y = Plan.handSpot(geometry, m.state.balls, group, m.calledPocket)
+					end
+					if x and y then
+						E.action(m, uid, { kind = "Place", x = x, y = y }, now)
+					end
+				end
 			end
 			local balls = m.state.balls
 			local lesson = rig.lesson

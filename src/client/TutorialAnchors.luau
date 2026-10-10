@@ -6,14 +6,15 @@
 --     TutorialAnchors.set("Abilities", tile)
 --
 -- Names in use: Request, GlobalQueue (the host card), PowerBar, UltButton (the ability bar's
--- press), UltConfirm (the pick's Confirm), Abilities, Inventory, Shop, FreeReward, Rank (the
--- column and the rank HUD), SpinButton, CodeBox, SpinBack (the spin screen), OpenNow (the
--- 8-ball's Open now), Lobby (the arena's result row), MoneyHud, InventoryCue (the tutorial's cue's
--- card, else the first that is not the equipped one), InventoryEquip (the chosen cue's Equip), CodeRedeem (the code
--- box's Redeem; the flag CodeFocused is set once the box is clicked), Banner (the top banner,
--- which the line keeps under), Challenge, Offer, Invite (the hub corners), HotbarSlot1..9 (the
--- lucky block hotbar), Group, Favorite, Like (Free Reward's frames, highlighted once),
--- ColumnRays (the layer under the left column: glows behind its tiles).
+-- press), UltPrompt (its PRESS G TO ACTIVATE), UltConfirm (the pick's Confirm), Abilities,
+-- Inventory, Shop, FreeReward, Rank (the column and the rank HUD), SpinButton, CodeBox, SpinBack
+-- (the spin screen), OpenNow (the 8-ball's Open now), Lobby (the arena's result row), MoneyHud,
+-- InventoryCue (the tutorial's cue's card, else the first that is not the equipped one),
+-- InventoryEquip (the chosen cue's Equip), CodeRedeem (the code box's Redeem; the flag CodeFocused
+-- is set once the box is clicked), Banner (the top banner, which the line keeps under), Challenge,
+-- Offer, OfferDismiss, Invite (the hub corners), HotbarSlot1..9 (the lucky block hotbar), Group,
+-- Favorite, Like (Free Reward's frames, highlighted once), ColumnRays (the layer under the left
+-- column: glows behind its tiles).
 --
 -- A screen may also hide one of its parts while the tutorial says so (TutorialAnchors.hidden).
 

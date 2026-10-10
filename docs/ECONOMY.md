@@ -999,7 +999,8 @@ never "LAST CHANCE". Managed Pricing is off so "half price" stays true.
 
 ### 11.4 Starter Pack (developer product, 29 R$)
 
-Once per player, in the first 7 days after the first join, shown after the first block opening
+Once per player, in the first day (24 hours; was 7 days until the designer's 2026-10-09 note)
+after the first join, shown after the first block opening
 (v4, 2026-10-08; 29 R$ since that afternoon, was 19, before v4 99): **the Starter Cue**
 (Exclusive, the one that trades; `Config.Shop.StarterCue`; back in the pack, designer
 2026-10-08), **a Starter lucky block** (Rare or better: Epic 9%, Legendary 0.9%;

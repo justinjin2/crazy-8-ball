@@ -168,12 +168,13 @@ local HINTS: { Hint } = {
 		end,
 		passed = "Ignored", -- shot without it
 		draw = function(view: View, device: string): string
-			local button = TutorialOverlay.guiTarget("UltButton")
 			view.overlay:dim(nil)
 			if device == "gamepad" then
 				view.hand:gesture("hold", (Enum.KeyCode :: any)[Config.UI.Ults.GamepadKey])
 			else
-				view.hand:point(button)
+				-- A small hand at the prompt's right end: the key it names stays in sight.
+				local pad = Config.Tutorial.Lessons.PromptHandPadPx
+				view.hand:point(TutorialOverlay.guiTarget("UltPrompt", pad), true, true)
 			end
 			view.overlay:say(
 				view.words(Copy.Hint.AbilityReady, device):format(Config.UI.Ults.KeyboardKey)

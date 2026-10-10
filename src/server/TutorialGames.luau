@@ -350,6 +350,8 @@ local function watchRigged(player: Player, t: any)
 		-- pocket it goes in glows.
 		player:SetAttribute("TutorialAimAngle", if plan then plan.angle else nil)
 		player:SetAttribute("TutorialAimPocket", if plan then plan.pocket else 0)
+		-- The ball it pots: outlined alone while the table is still open (Main).
+		player:SetAttribute("TutorialAimBall", if plan and plan.ball then plan.ball else 0)
 		player:SetAttribute(
 			"TutorialComboBalls",
 			if lesson == "Combo" and plan then ("%d,%d"):format(plan.a, plan.b) else ""

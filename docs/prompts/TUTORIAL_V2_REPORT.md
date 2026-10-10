@@ -144,6 +144,25 @@ Checked in Studio on PC, the main path, one screenshot each:
 Also: **everyone on the test place starts over** as a new player (its saves moved to a fresh
 store; the real game's saves are untouched).
 
+Then the offer corner (test place version 8): the Starter Pack / VIP tile and the Daily
+Challenge bigger than the left column, rainbow sun rays behind the offer, "x2 VALUE!" or "50%
+OFF!", then "ONLY" and the live price; the Daily Challenge wears a "!" until pressed.
+
+## Your second notes of 2026-10-09: done
+
+1. **No colours until a ball is legally potted:** the break shows nothing; the aim lesson still
+   outlines the one ball to pot.
+2. **Zoom animations:** the mouse with a moving up-and-down sign (computer); two fingertips
+   pinching in with arrows (phone; pinching in zooms out, spreading would zoom in); the right
+   stick pushed up and down with the sign (controller).
+3. **Ball in hand after a scratch** starts on the break spot; they drag it where they like,
+   and the lesson follows where they drop it.
+4. **The ability lesson:** a small hand at the right end of PRESS G TO ACTIVATE (the G stays in
+   sight); the prompt is bigger and breathes, in every match.
+5. **The offer tile:** a bit smaller (the Daily Challenge too), its picture wiggles, a small
+   red X hides it for the rest of the visit, and the Starter Pack's window is 1 day.
+6. **Economy note** for the merge: below.
+
 ## Economy notes for v5.1 (your notes; nothing changed)
 
 - After the tutorial plus the group and playtime rewards you had about **$32,000 and 5+
@@ -152,6 +171,8 @@ store; the real game's saves are untouched).
 - **The next win reward** (Mystery, Wins 2/10) isn't exciting after opening so many Mystery
   blocks: maybe an **Epic** block, if the economy allows.
 - A next goal should always be in sight; the rank HUD's line is the first piece (above).
+- **The Daily Rewards' rewards** (the seven login days and Claim All) definitely need rescaling
+  to economy v5 at the merge: they are still v4's amounts.
 
 ## Run assumptions (my calls where the brief left room; all in DECISIONS)
 

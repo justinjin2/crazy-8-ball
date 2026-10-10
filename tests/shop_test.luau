@@ -316,14 +316,15 @@ return {
 		end
 	end,
 
-	["the Starter Pack is on for 7 days, until bought"] = function()
+	["the Starter Pack is on for its window, until bought"] = function()
 		local shop = newShop()
+		local window = Config.Shop.StarterSeconds
 		H.expect(Shop.offers(shop, JOIN, false).starter.open, "at the first join")
-		H.expect(Shop.offers(shop, JOIN + 7 * DAY - 1, false).starter.open, "the last second")
-		H.expect(not Shop.offers(shop, JOIN + 7 * DAY, false).starter.open, "closed after 7 days")
+		H.expect(Shop.offers(shop, JOIN + window - 1, false).starter.open, "the last second")
+		H.expect(not Shop.offers(shop, JOIN + window, false).starter.open, "closed after it")
 		H.expect(Shop.offers(shop, JOIN, true).starter.open, "VIP still sees it")
 		shop.StarterBought = true
-		H.expect(not Shop.offers(shop, JOIN + DAY, false).starter.open, "once only")
+		H.expect(not Shop.offers(shop, JOIN + HOUR, false).starter.open, "once only")
 	end,
 
 	["VIP closes the welcome and comeback offers"] = function()
@@ -571,10 +572,14 @@ return {
 				check("VipOffer", newShop({ FirstJoin = 0 }), JOIN) == "Closed",
 				"first join unknown"
 			)
-			-- The Starter Pack: its week plus the grace, once; a VIP may still buy it.
-			H.expect(check("StarterPack", newShop(), JOIN + 6 * DAY, true) == nil, "its week")
-			H.expect(check("StarterPack", newShop(), JOIN + 7 * DAY + grace - 1) == nil, "grace")
-			H.expect(check("StarterPack", newShop(), JOIN + 7 * DAY + grace) == "Closed", "closed")
+			-- The Starter Pack: its window plus the grace, once; a VIP may still buy it.
+			local window = Config.Shop.StarterSeconds
+			H.expect(
+				check("StarterPack", newShop(), JOIN + window - HOUR, true) == nil,
+				"its window"
+			)
+			H.expect(check("StarterPack", newShop(), JOIN + window + grace - 1) == nil, "grace")
+			H.expect(check("StarterPack", newShop(), JOIN + window + grace) == "Closed", "closed")
 			H.expect(
 				check("StarterPack", newShop({ StarterBought = true }), JOIN + HOUR) == "Owned",
 				"once only"
@@ -647,7 +652,7 @@ return {
 			end
 			-- Inside the window the real grant, with no reason.
 			local real, none =
-				Shop.grantFor("StarterPack", newShop(), JOIN + 7 * DAY + grace - 1, true)
+				Shop.grantFor("StarterPack", newShop(), JOIN + window + grace - 1, true)
 			H.expect(none == nil and real.starterBought and real.money == 25000, "the real grant")
 		end)
 	end,
@@ -971,10 +976,11 @@ return {
 					ShopView.check("QuickCases", joined) == "BadRequest",
 					"Quick Cases is gone"
 				)
-				H.expect(ShopView.check("StarterPack", joined) == nil, "the Starter Pack's week")
+				H.expect(ShopView.check("StarterPack", joined) == nil, "the Starter Pack's window")
 				H.expect(
-					ShopView.check("StarterPack", ctxAt(JOIN + 7 * DAY)) == "Closed",
-					"after 7 days"
+					ShopView.check("StarterPack", ctxAt(JOIN + Config.Shop.StarterSeconds))
+						== "Closed",
+					"after its window"
 				)
 				H.expect(
 					ShopView.check(
@@ -1070,8 +1076,8 @@ return {
 				)
 				local starter = p.offers.StarterPack
 				H.expect(
-					starter.open and starter.endsAt == JOIN + 7 * DAY,
-					"the Starter Pack's week"
+					starter.open and starter.endsAt == JOIN + Config.Shop.StarterSeconds,
+					"the Starter Pack's window"
 				)
 				H.expect(
 					p.party ~= nil and p.party.endsAt == now + 600 and p.party.buyer == "Painicane",
@@ -1106,9 +1112,10 @@ return {
 			offerEndsAt(ShopView.build(ctxAt(JOIN + HOUR)), JOIN + HOUR) == JOIN + DAY,
 			"welcome"
 		)
+		local vipOnly = ctxAt(JOIN + HOUR, { vipPass = true })
 		H.expect(
-			offerEndsAt(ShopView.build(ctxAt(JOIN + 2 * DAY)), JOIN + 2 * DAY) == JOIN + 7 * DAY,
-			"then the Starter Pack's week"
+			offerEndsAt(ShopView.build(vipOnly), JOIN + HOUR) == JOIN + Config.Shop.StarterSeconds,
+			"a VIP (no welcome offer): the Starter Pack's window"
 		)
 		local comeback = ShopView.build(ctxAt(JOIN + 2 * DAY)).offers.VipOffer
 		H.expect(

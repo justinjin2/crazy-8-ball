@@ -417,9 +417,15 @@ local function highlightOwn()
 		end
 	end
 	local group = view.groups[team]
-	-- The tutorial's game 1: the player's colour is solids from the break on (Tutorial/Rig).
+	-- The tutorial's game 1 (the designer, 2026-10-09): no colour shows while the table is
+	-- open (the break decides none; the first legal pot after it does), only the aim
+	-- lesson's ball to pot.
+	local only: number? = nil
 	if group == nil and TutorialAnchors.game1() then
-		group = "solids"
+		local aim = player:GetAttribute("TutorialAimBall")
+		if player:GetAttribute("TutorialLesson") == "Aim" and type(aim) == "number" and aim > 0 then
+			only = aim
+		end
 	end
 	local downMask = 0
 	local down: { [number]: boolean } = {}
@@ -464,20 +470,21 @@ local function highlightOwn()
 		group = if left[first] > 0 then first else Judge.opposite(first)
 	end
 	local eight = group ~= nil and left[group] == 0
-	local key = ("%d:%d:%s:%s:%d:%s"):format(
+	local key = ("%d:%d:%s:%s:%d:%s:%d"):format(
 		view.id,
 		view.epoch,
 		group or "",
 		tostring(eight),
 		downMask,
-		tostring(ballPulse:active())
+		tostring(ballPulse:active()),
+		only or 0
 	)
 	if key == highlightKey and renderer == highlightRenderer then
 		return
 	end
 	clearHighlights()
 	highlightKey, highlightRenderer = key, renderer
-	if not group then
+	if not group and not only then
 		return
 	end
 	-- The balls to hit get a green outline; the 8 joins them once it is this player's to take.
@@ -488,8 +495,8 @@ local function highlightOwn()
 	local strong = S.StrongBallHighlights or TutorialAnchors.game1()
 	for _, b in match.state.balls do
 		local ball = Judge.group(b.id)
-		local own = ball == group or (b.id == 8 and eight)
-		local other = strong and ball ~= nil and ball ~= group
+		local own = if only then b.id == only else ball == group or (b.id == 8 and eight)
+		local other = not only and strong and ball ~= nil and ball ~= group
 		local part = renderer.parts and renderer.parts[b.id]
 		-- A pulsing ball has the pulse's glow instead (BallPulse).
 		if
@@ -518,6 +525,8 @@ local function highlightOwn()
 		end
 	end
 end
+-- Game 1's lesson changing (the aim lesson's lone outlined ball) redraws the outlines.
+player:GetAttributeChangedSignal("TutorialLesson"):Connect(highlightOwn)
 -- Present the current snapshot. Runs on every snapshot and whenever the replay drops a ball
 -- or reveals the colors (match.downVersion).
 local function refreshView()

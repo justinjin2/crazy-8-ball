@@ -1418,6 +1418,15 @@ lines). All in the worktree.
   "50% OFF!" in rainbow, "ONLY" and the live Robux price in green, the countdown on a gold pill
   on its corner; the Daily Challenge's "!" until pressed (until daily challenges exist).
   Published as test place version 8 from `a4019e3`.
+- **The designer's second notes (2026-10-09), all done** and checked in Studio on PC's happy
+  path (plus the phone's pinch): no colours on the break or the open table (only the aim
+  lesson's ball, outlined alone: `TutorialAimBall`); the zoom animations (`TutorialHand`
+  "scroll", "pinch", "stickY" and the up-and-down sign); ball in hand on the head spot after a
+  scratch, the lesson following where they drop it (`Rig.cueMoved`; `Rig.placeHand` gone); the
+  ability lesson's small hand at PRESS G's right end, the prompt bigger and breathing in every
+  match; the offer tile and Daily Challenge a bit smaller, the offer's picture wiggling, its X
+  (hidden for the visit); the Starter Pack's window one day. The Daily Rewards' amounts are
+  flagged for economy v5 at the merge (report, DECISIONS).
 
 ### Touch list (files outside the tutorial's own modules changed, and why)
 
@@ -1552,6 +1561,17 @@ lines). All in the worktree.
   - The offer corner: `src/client/HubCorners.luau`, `Config.UI.Corners` (sizes, Deal, Price,
     TimerPill, OfferRays, WordEdgePx), `Strings.Corners` (Starter, VipName, Value, Off, Only;
     the words in capitals).
+  - The second notes: `src/client/Main.client.luau` (`highlightOwn`: nothing while the table is
+    open in game 1 but the aim lesson's ball); `src/shared/Rules/MatchEngine.luau` (no
+    `Rig.placeHand`: ball in hand stays on the head spot); `src/client/UltBar.luau` (the prompt
+    breathes), `src/client/UltHud.luau` (the UltPrompt anchor), `src/client/TutorialHints.luau`
+    (the same small hand); `src/client/HubCorners.luau` (smaller, the wiggle, the X, the "!"
+    left of it); `src/shared/Config.luau` (`UI.Ults.PromptPx`, `PromptTextPx`,
+    `PromptPulse*`; `UI.Corners` ChallengePx, OfferPx, Dismiss*, OfferNewAt; `Shop.StarterSeconds`
+    one day; `Tutorial.Hand` SmallShare and the sign; `Tutorial.Lessons.PromptHandPadPx`);
+    `tests/shop_test.luau` (the Starter window read from Config); `docs/ECONOMY.md` 11.4 and
+    `docs/GDD.md` (the one-day window); `tools/tutorial_v2/sim_game.luau` (the simulated
+    player drags ball in hand).
 
 ---
 

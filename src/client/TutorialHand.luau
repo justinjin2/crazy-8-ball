@@ -4,19 +4,27 @@
 -- "tap here" icon, 2026-10-03). Its fingertip is the point it shows; it is never turned upside
 -- down.
 --
--- - point(target, side): solid, just under a target (TutorialOverlay.Target), tapping (it pokes
---   up and squishes on a short loop, and the tap lines over the fingertip flash). With `side`
---   it lies on its side to the target's right and pokes left, so what is over and under the
---   target stays clear (the Rank claim's rewards, the designer 2026-10-09).
+-- - point(target, side, small): solid, just under a target (TutorialOverlay.Target), tapping (it
+--   pokes up and squishes on a short loop, and the tap lines over the fingertip flash). With
+--   `side` it lies on its side to the target's right and pokes left, so what is over and under
+--   the target stays clear (the Rank claim's rewards, the designer 2026-10-09). `small` draws it
+--   at Hand.SmallShare of its size (the ability's PRESS G: "way too large and covering up the
+--   letter", the designer 2026-10-09).
 -- - gesture(kind, ...): see-through demonstrations on a loop:
 --     "pull"  (target)        down the power bar, all the way;
 --     "hold"  (keyCode)       a gamepad button glyph held while a bar fills (Hold A);
 --     "swipe" (withMouse)     across the middle of the screen, left and right (a computer adds
 --                             the mouse under the hand);
 --     "stick" (keyCode)       a gamepad stick glyph tilting left and right;
+--     "stickY" (keyCode)      a gamepad stick glyph pushed up and down, the up-and-down sign
+--                             beside it (zoom on a controller);
 --     "drag"  (from, to)      from one target to another, carrying a ghost cue ball;
---     "scroll"                the mouse rolling its wheel (zoom out on a computer);
---     "pinch"                 two fingertips closing in (zoom out on a phone).
+--     "scroll"                the mouse with the up-and-down sign beside it (its arrows bob
+--                             apart, its dashes run down; zoom on a computer);
+--     "pinch"                 two fingertips closing in, an arrow by each (zoom out on a
+--                             phone: fingers spreading would zoom in).
+-- The up-and-down sign (the designer's reference, 2026-10-09): an arrowhead, a column of
+-- dashes, an arrowhead pointing down (the arrow's own head art).
 -- - nudge(): the re-prompt, a quick grow and settle.
 -- - hide().
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -29,6 +37,7 @@ local HudParts = require(script.Parent.HudParts)
 
 local H = Config.Tutorial.Hand
 local ART = Config.Tutorial.Art
+local HEAD = Config.Tutorial.Arrow.Head
 
 local TutorialHand = {}
 TutorialHand.__index = TutorialHand
@@ -47,11 +56,17 @@ export type Hand = typeof(setmetatable(
 		ghost2: Frame, -- the pinch's second fingertip
 		bar: Frame,
 		barFill: Frame,
+		sign: Frame, -- the up-and-down sign
+		signUp: ImageLabel,
+		signDown: ImageLabel,
+		signDashes: { Frame },
+		pinchArrows: { ImageLabel },
 		mode: string?,
 		target: Target?,
 		other: Target?,
 		key: Enum.KeyCode?,
 		withMouse: boolean,
+		small: boolean, -- point(..., small)
 		clock: number,
 		nudgedAt: number, -- os.clock of the last re-prompt
 	},
@@ -118,6 +133,36 @@ function TutorialHand.new(gui: ScreenGui): Hand
 	fill.BackgroundColor3 = HudParts.color(Config.UI.Kit.Colors.Green)
 	HudParts.corner(fill, 6)
 
+	local sign = HudParts.frame(root, "UpDownSign")
+	sign.AnchorPoint = Vector2.new(0.5, 0.5)
+	sign.Visible = false
+	sign.ZIndex = 9
+	local function arrowHead(parent: Instance, name: string): ImageLabel
+		local a = image(parent, name, HEAD)
+		a.AnchorPoint = Vector2.new(0.5, 0.5)
+		a.ZIndex = 10
+		return a
+	end
+	local signUp, signDown = arrowHead(sign, "Up"), arrowHead(sign, "Down")
+	signUp.Visible, signDown.Visible = true, true
+	signDown.Rotation = 180
+	local dashes: { Frame } = {}
+	for i = 1, H.SignDashes do
+		local d = HudParts.frame(sign, "Dash" .. i)
+		d.AnchorPoint = Vector2.new(0.5, 0.5)
+		d.BackgroundTransparency = 0
+		d.BackgroundColor3 = Color3.new(1, 1, 1)
+		d.ZIndex = 10
+		HudParts.corner(d, 999)
+		local edge = Instance.new("UIStroke")
+		edge.Color = Color3.new(0, 0, 0)
+		edge.Thickness = H.SignStrokePx
+		edge.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+		edge.Parent = d
+		table.insert(dashes, d)
+	end
+	local pinchArrows = { arrowHead(root, "PinchArrow1"), arrowHead(root, "PinchArrow2") }
+
 	local self = setmetatable({
 		root = root,
 		hand = hand,
@@ -129,8 +174,14 @@ function TutorialHand.new(gui: ScreenGui): Hand
 		ghost2 = ghost2,
 		bar = bar,
 		barFill = fill,
+		sign = sign,
+		signUp = signUp,
+		signDown = signDown,
+		signDashes = dashes,
+		pinchArrows = pinchArrows,
 		mode = nil,
 		target = nil,
+		small = false,
 		other = nil,
 		key = nil,
 		withMouse = false,
@@ -158,16 +209,19 @@ function TutorialHand.set(self: Hand, mode: string?, target: Target?, other: Tar
 	self.other = other
 end
 
---- Points at `target`, tapping (from its right side with `side`). Nil hides the hand.
-function TutorialHand.point(self: Hand, target: Target?, side: boolean?)
+--- Points at `target`, tapping (from its right side with `side`, smaller with `small`). Nil
+--- hides the hand.
+function TutorialHand.point(self: Hand, target: Target?, side: boolean?, small: boolean?)
 	self:set(if target == nil then nil elseif side then "side" else "point", target)
+	self.small = small == true
 end
 
 --- Starts a see-through demonstration (see the header).
 function TutorialHand.gesture(self: Hand, kind: string, a: any?, b: any?)
 	self.key = nil
 	self.withMouse = false
-	if kind == "hold" or kind == "stick" then
+	self.small = false
+	if kind == "hold" or kind == "stick" or kind == "stickY" then
 		self.key = a
 		self:set(kind, nil)
 	elseif kind == "swipe" then
@@ -198,6 +252,40 @@ local function reset(self: Hand)
 	self.ghost.Visible = false
 	self.ghost2.Visible = false
 	self.bar.Visible = false
+	self.sign.Visible = false
+	for _, a in self.pinchArrows do
+		a.Visible = false
+	end
+end
+
+-- The up-and-down sign `height` tall at `at`, at `phase` (0..1) of its loop: the arrowheads
+-- bob apart and back, a light runs down the dashes.
+local function placeSign(self: Hand, at: Vector2, height: number, phase: number)
+	local sign = self.sign
+	local w = height * H.SignWidthShare
+	sign.Visible = true
+	sign.Position = UDim2.fromOffset(at.X, at.Y)
+	sign.Size = UDim2.fromOffset(w, height)
+	local bob = H.SignBobPx * math.sin(phase * math.pi * 2)
+	local head = w
+	self.signUp.Size = UDim2.fromOffset(head, head)
+	self.signUp.Position = UDim2.fromOffset(w / 2, head / 2 - math.max(bob, 0))
+	self.signDown.Size = UDim2.fromOffset(head, head)
+	self.signDown.Position = UDim2.fromOffset(w / 2, height - head / 2 + math.max(bob, 0))
+	local count = #self.signDashes
+	local top, bottom = head * 1.15, height - head * 1.15
+	-- Each dash takes SignDashFill of its step, outline included: a gap always shows between.
+	local step = (bottom - top) / math.max(count - 1, 1)
+	local dashH =
+		math.max(2, math.min(H.SignDashShare * w, step * H.SignDashFill - 2 * H.SignStrokePx))
+	for i, d in self.signDashes do
+		local y = top + (bottom - top) * (if count > 1 then (i - 1) / (count - 1) else 0.5)
+		d.Size = UDim2.fromOffset(w * 0.8, dashH)
+		d.Position = UDim2.fromOffset(w / 2, y)
+		-- The light: the dash it is on is solid white, the rest see-through.
+		local lit = math.abs(((phase * count) % count) - (i - 1))
+		d.BackgroundTransparency = H.SignDashDim * math.clamp(lit, 0, 1)
+	end
 end
 
 local function placeHand(self: Hand, at: Vector2, size: number, transparency: number)
@@ -221,7 +309,8 @@ function TutorialHand.update(self: Hand, dt: number)
 	local view = camera.ViewportSize
 	local since = os.clock() - self.nudgedAt
 	local grow = if since < H.NudgeSeconds then math.sin(since / H.NudgeSeconds * math.pi) else 0
-	local size = handSize() * (1 + H.NudgeGrow * grow)
+	local shrink = if self.small then H.SmallShare else 1
+	local size = handSize() * shrink * (1 + H.NudgeGrow * grow)
 	local t = self.clock
 
 	if mode == "point" or mode == "side" then
@@ -242,8 +331,8 @@ function TutorialHand.update(self: Hand, dt: number)
 		if mode == "side" then
 			-- Turned a quarter left about its middle: the tip, at (dx, dy) from the middle
 			-- upright, lands at (dy, -dx), so the hand shifts to keep it inside the right end.
-			local tip =
-				Vector2.new(centre.X + rect.X / 2 - H.SideInsetPx - H.TapDipPx * dip, centre.Y)
+			local inset = (H.SideInsetPx + H.TapDipPx * dip) * shrink
+			local tip = Vector2.new(centre.X + rect.X / 2 - inset, centre.Y)
 			local dx, dy = (H.TipX - 0.5) * size, (H.TipY - 0.5) * size
 			placeHand(self, tip + Vector2.new(dx - dy, dy + dx), size, 0)
 			self.hand.Rotation = -90
@@ -302,7 +391,7 @@ function TutorialHand.update(self: Hand, dt: number)
 			self.mouse.ImageTransparency = fade
 		end
 		placeHand(self, at, size, fade)
-	elseif mode == "hold" or mode == "stick" then
+	elseif mode == "hold" or mode == "stick" or mode == "stickY" then
 		local key = self.key
 		if key == nil then
 			return
@@ -316,6 +405,13 @@ function TutorialHand.update(self: Hand, dt: number)
 			local swing = math.sin(t * math.pi * 2 / H.StickSeconds)
 			self.glyph.Rotation = H.StickDegrees * swing
 			self.glyph.Position = UDim2.fromOffset(at.X + H.StickShiftPx * swing, at.Y)
+		elseif mode == "stickY" then
+			-- Pushed up and down (a tilt toward each way), the sign beside it.
+			local swing = math.sin(t * math.pi * 2 / H.StickSeconds)
+			self.glyph.Rotation = 0
+			self.glyph.Position = UDim2.fromOffset(at.X, at.Y - H.StickShiftPx * swing)
+			local phase2 = (t % H.StickSeconds) / H.StickSeconds
+			placeSign(self, at + Vector2.new(g * H.SignBesideShare, 0), g * H.SignShare, phase2)
 		else
 			self.glyph.Rotation = 0
 			self.glyph.Position = UDim2.fromOffset(at.X, at.Y)
@@ -327,29 +423,40 @@ function TutorialHand.update(self: Hand, dt: number)
 			self.barFill.Size = UDim2.fromScale(held, 1)
 		end
 	elseif mode == "scroll" then
-		-- The mouse at the middle, rolling its wheel: a short push down, again and again.
+		-- The mouse at the middle, the up-and-down sign beside it (no hand: it hid the wheel).
 		local at = Vector2.new(view.X / 2, view.Y * H.GlyphHeightShare)
-		local roll = math.sin(math.clamp(phase / 0.6, 0, 1) * math.pi)
+		local m = size * H.MouseShare * 1.4
 		self.mouse.Visible = true
-		self.mouse.Size = UDim2.fromOffset(size * H.MouseShare * 1.4, size * H.MouseShare * 1.4)
-		self.mouse.Position = UDim2.fromOffset(at.X, at.Y + H.ScrollPx * roll)
-		self.mouse.ImageTransparency = alpha
-		placeHand(self, at + Vector2.new(0, size * 0.1 + H.ScrollPx * roll), size, alpha)
+		self.mouse.Size = UDim2.fromOffset(m, m)
+		self.mouse.Position = UDim2.fromOffset(at.X, at.Y)
+		self.mouse.ImageTransparency = 0
+		local signH = m * H.SignShare
+		placeSign(self, at + Vector2.new(m * H.SignBesideShare, m * 0.3), signH, phase)
 	elseif mode == "pinch" then
-		-- Two fingertips closing in at the middle of the screen (zoom out), the hand on one.
+		-- Two fingertips closing in at the middle of the screen (zoom out), an arrow by each
+		-- pointing in; they meet, hold, fade, and start apart again.
 		local centre = Vector2.new(view.X / 2, view.Y * H.GlyphHeightShare)
-		local apart = size * H.PinchApart * (1 - 0.7 * move)
 		local ball = size * H.GhostBallShare
+		local apart = math.max(size * H.PinchApart * (1 - move), ball * 0.5)
 		for i, ghost in { self.ghost, self.ghost2 } do
 			local side = if i == 1 then -1 else 1
+			local dir = Vector2.new(side, -side * 0.4).Unit -- out from the middle
+			local spot = centre + dir * apart
 			ghost.Visible = true
 			ghost.Size = UDim2.fromOffset(ball, ball)
-			ghost.Position =
-				UDim2.fromOffset(centre.X + side * apart, centre.Y - side * apart * 0.4)
+			ghost.Position = UDim2.fromOffset(spot.X, spot.Y)
 			ghost.BackgroundTransparency = H.GhostBallTransparency
 				+ (1 - H.GhostBallTransparency) * out
+			-- The arrow just outside it, pointing in (the head art points up).
+			local arrow = self.pinchArrows[i]
+			local a = ball * H.PinchArrowShare
+			local behind = spot + dir * (ball / 2 + a * 0.6)
+			arrow.Visible = true
+			arrow.Size = UDim2.fromOffset(a, a)
+			arrow.Position = UDim2.fromOffset(behind.X, behind.Y)
+			arrow.Rotation = math.deg(math.atan2(-dir.X, dir.Y))
+			arrow.ImageTransparency = out
 		end
-		placeHand(self, centre + Vector2.new(apart, apart * 0.4), size, alpha)
 	elseif mode == "drag" then
 		local from = if self.target then (self.target()) else nil
 		local to = if self.other then (self.other()) else nil
