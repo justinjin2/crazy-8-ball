@@ -425,6 +425,7 @@ local function openPopup()
 		"TutorialInviteClose",
 		function(_, state: Enum.UserInputState)
 			if state == Enum.UserInputState.Begin and popupUp then
+				report("InvitePopup", "Closed")
 				closePopup()
 				return Enum.ContextActionResult.Sink
 			end
@@ -568,6 +569,12 @@ function TutorialSoft.update(_dt: number)
 	updatePopup(quiet, now)
 end
 
+--- Studio QA (TutorialClientQA "popup"): presses the invite popup's Invite (`which` "Invite")
+--- or its X (anything else) as a click would; false when the popup is not up.
+function TutorialSoft.qaPress(which: string): boolean
+	return popupUp and HudParts.pressCandy(if which == "Invite" then popupInvite else popupClose)
+end
+
 --- Studio QA (TutorialClientQA "soft"): what the soft part shows now.
 function TutorialSoft.qaState(): any
 	local shownGlows, shownRings = {}, {}
@@ -659,6 +666,7 @@ function TutorialSoft.start()
 	popupInvite = HudParts.candy(popup, Copy.InviteButton, function()
 		UISound.play("Click")
 		TutorialAnchors.notePress("Invite")
+		report("InvitePopup", "Invited")
 		InvitePrompt.show(function() end)
 		closePopup()
 	end, "Green", "Invite")
@@ -667,6 +675,7 @@ function TutorialSoft.start()
 	popupInvite.ZIndex = 7
 	popupClose = HudParts.candy(popup, "", function()
 		UISound.play("Click")
+		report("InvitePopup", "Closed")
 		closePopup()
 	end, "Red", "X")
 	popupClose.Name = "Close"

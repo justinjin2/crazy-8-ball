@@ -199,6 +199,7 @@ from `Config.UI.Kit.Icons` and `.Art`; swapping an image is a Config change, nev
   saved money. Every layout change bumps a version with a migration. Robux receipts are
   processed exactly once.
 - **Analytics:** Roblox built-in analytics for the funnel and economy events, server-side.
+  Funnels and custom events go through `src/server/Funnel.luau` only (`docs/TUTORIAL_FUNNELS.md`).
 
 ## 7. Performance budgets
 

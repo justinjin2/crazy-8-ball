@@ -460,6 +460,7 @@ return {
 		FunnelNone = "No funnel events logged for you in this server yet.",
 		FunnelHead = "Funnel events (this server, newest last; %d):",
 		FunnelOnboarding = "Onboarding steps done: %s",
+		FunnelOnce = "%s steps done: %s", -- a one-time funnel's name, its steps (saved)
 	},
 	-- The rank and money screens (ResultScreen, NewRankPopup, Roadmap, RankHud).
 	Progress = {

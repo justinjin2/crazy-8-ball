@@ -289,6 +289,23 @@ function TutorialService.fail(player: Player, code: string, err: any?)
 	end)
 end
 
+-- The failures already logged for each player that did not end the tutorial (by code).
+local logged: { [Player]: { [string]: boolean } } = {}
+
+--- Logs a guarded failure that did not end the tutorial (the bot fell back to the plain way,
+--- the hints turned off): TutorialError with `code`, a short fixed word, once per code per
+--- player in this server.
+function TutorialService.logError(player: Player, code: string)
+	local codes = logged[player] or {}
+	logged[player] = codes
+	if codes[code] then
+		return
+	end
+	codes[code] = true
+	warn(("[8ball] Tutorial: %s: %s failed (carried on)"):format(player.Name, code))
+	pcall(Funnel.error, player, TutorialService.step(player) or "None", code)
+end
+
 --- Runs `fn` for the player under the fail-safe (`code` names the place for TutorialError).
 --- Answers whether it ran without an error.
 function TutorialService.guard(player: Player, code: string, fn: () -> ()): boolean
@@ -632,6 +649,13 @@ local SOCIAL_SEEN: { [string]: string } = {
 	Like = "LikeClicked",
 }
 
+-- The client's failures (TutorialEvent "Error"): its word -> the TutorialError code.
+local CLIENT_ERRORS: { [string]: string } = {
+	Scene = "ClientScene", -- a guided scene
+	Soft = "ClientSoft", -- the soft part
+	Hints = "ClientHints", -- the first-time hints
+}
+
 -- A token bucket per player (Config.Tutorial.Events).
 local buckets: { [Player]: { tokens: number, at: number } } = {}
 local function allow(player: Player): boolean
@@ -658,9 +682,13 @@ local function onEvent(player: Player, kind: any, data: any)
 	if kind == "Skip" then
 		TutorialService.skip(player)
 	elseif kind == "Error" then
-		-- The client's scene failed: the same graceful end (the code stays one fixed word).
-		if Steps.active(step) then
-			TutorialService.fail(player, "Client", data)
+		-- A part of the client failed (`data` says which: a fixed word). A guided scene's or the
+		-- soft part's failure ends the tutorial the same graceful way; the hints only turn off.
+		local code = CLIENT_ERRORS[data] or "Client"
+		if code ~= CLIENT_ERRORS.Hints and Steps.active(step) then
+			TutorialService.fail(player, code)
+		else
+			TutorialService.logError(player, code)
 		end
 	elseif kind == "Device" then
 		if type(data) == "string" and Funnel.Devices[data] then
@@ -681,7 +709,19 @@ local function onEvent(player: Player, kind: any, data: any)
 		if type(data) == "string" and Steps.ClientSeen[data] then
 			if TutorialHints.markSeen(player, data) and SOCIAL_SEEN[data] then
 				Funnel.social(player, SOCIAL_SEEN[data])
+				if data == "Invite" then
+					Funnel.event(player, "InvitePopup", 1, "Shown", Funnel.device(player))
+				end
 			end
+		end
+	elseif kind == "InvitePopup" then
+		-- The invite popup's answer, once: its Invite button or the X (B on a controller).
+		if
+			(data == "Invited" or data == "Closed")
+			and TutorialHints.seen(player, "Invite")
+			and TutorialHints.markSeen(player, "InviteAnswered")
+		then
+			Funnel.event(player, "InvitePopup", 1, data, Funnel.device(player))
 		end
 	elseif kind == "Invited" then
 		Funnel.social(player, "Invited")
@@ -745,6 +785,7 @@ function TutorialService.dev(player: Player, args: { string }): string
 		TutorialHints.reset(player)
 		Funnel.clearLog(player)
 		failed[player] = nil
+		logged[player] = nil
 		player:SetAttribute("TutorialPath", "")
 		joinedWaiting[player] = true
 		TutorialService.setStep(player, "Arrow")
@@ -769,7 +810,12 @@ function TutorialService.dev(player: Player, args: { string }): string
 	)
 end
 
---- /funnel: the lines the funnels logged for the player in this server (newest last).
+-- The one-time funnels in /funnel's order.
+local ONCE_ORDER = { "PathS", "PathR", "Game2", "Social" }
+
+--- /funnel: the onboarding and one-time funnels' steps saved for the player, then the lines
+--- the funnels logged for them in this server (newest last).
+
 function TutorialService.funnelLines(player: Player): { string }
 	local Dev = Strings.Dev
 	local done = {}
@@ -780,6 +826,13 @@ function TutorialService.funnelLines(player: Player): { string }
 	end
 	local lines =
 		{ Dev.FunnelOnboarding:format(if #done > 0 then table.concat(done, ", ") else "-") }
+	for _, funnel in ONCE_ORDER do
+		local steps = Funnel.onceLogged(player, funnel)
+		table.insert(
+			lines,
+			Dev.FunnelOnce:format(funnel, if #steps > 0 then table.concat(steps, ", ") else "-")
+		)
+	end
 	local list = Funnel.log(player)
 	if #list == 0 then
 		table.insert(lines, Dev.FunnelNone)
@@ -803,6 +856,7 @@ local function forget(player: Player)
 	buckets[player] = nil
 	lastFunnelEvent[player] = nil
 	failed[player] = nil
+	logged[player] = nil
 	game2Kind[player] = nil
 	game2Seen[player] = nil
 end

@@ -234,6 +234,7 @@ Steps.Seen = {
 	"QuestDone", -- ... and won
 	"Game2", -- game 2 was found (the soft part's last step)
 	"Ready", -- the first-win Rare block's "Ready!" glow, until it is taken in hand
+	"InviteAnswered", -- the invite popup's Invite or X was pressed (its InvitePopup event)
 }
 
 -- The moments a client may report itself (TutorialEvent "Seen"); the rest the server sees.

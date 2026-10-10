@@ -749,6 +749,7 @@ local function run(e: Escort, what: string, fn: () -> ())
 					tostring(err)
 				)
 			)
+			service.logError(e.player, "Bot" .. what)
 			fallbackSeat(e, what)
 		end
 	end)
@@ -1068,6 +1069,7 @@ local function make(e: Escort)
 							local fine, why = pcall(onFreed :: any, e, b)
 							if not fine then
 								warn("[8ball] TutorialBot: freed failed: " .. tostring(why))
+								service.logError(e.player, "BotFreed")
 							end
 						end
 						if bot.model then
@@ -1083,6 +1085,7 @@ local function make(e: Escort)
 		e.loading = false
 		if not ok then
 			warn("[8ball] TutorialBot: making a bot failed: " .. tostring(err))
+			service.logError(e.player, "BotMake")
 		end
 	end)
 end

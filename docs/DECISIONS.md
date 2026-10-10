@@ -3921,3 +3921,10 @@ timer of a new block stay the designer's call.
   starter spin (`Config.Ults.Earn.Starter` 0), no spin for reaching Bronze (`RankUp.Bronze` 0;
   Silver, Gold and up keep theirs), and a brand-new save's daily free spin starts the next UTC
   day. The tutorial's Abilities step reads 0, then 3; its spin lands on Magnet and 2 are left.
+- 2026-10-09: Tutorial v2 telemetry: the invite popup gets its own event (InvitePopup: Shown,
+  then Invited or Closed, once), and failures that do not end the tutorial (the bot falling back
+  to the plain way, the first-time hints turning off) log a TutorialError too, once per code per
+  player per server. `docs/TUTORIAL_FUNNELS.md` lists every funnel and event.
+- 2026-10-09 (designer): the tutorial v2 run checks only the main happy path of each remaining
+  step in Studio, with one screenshot; lint and the tests cover the rest. Step 14's target drops
+  from 20 clean automated runs to 3.

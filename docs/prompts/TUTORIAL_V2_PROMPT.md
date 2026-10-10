@@ -705,8 +705,9 @@ Write it to `~/Desktop/8ball-refs/tutorial/research-2026-10-09/`. Don't over-res
      - an old save with items never enters the tutorial.
 7. **Automated run-throughs:** extend the QA hooks (`TutorialQA`, the client QA hook, `BotsQA`,
    `GuiQA`) into a driver that plays the whole first session by itself, with random choices
-   (misses, delays, skips). **Target: 20 clean full runs in a row with no console errors**,
-   plus the chaos list.
+   (misses, delays, skips). **Target: 3 clean full runs in a row with no console errors**
+   (the designer cut it from 20 on 2026-10-09: Studio checks cover the main happy path only,
+   with one screenshot per step; lint and the tests cover the rest), plus the chaos list.
 8. **Two fresh-eyes reviews before the end:**
    - a code reviewer agent over every file you touched (races, nils, leaks, cleanup, server
      checks on every remote);
@@ -893,8 +894,8 @@ lines). All in the worktree.
   this server, teams 5 s, arena overflow.
 - [x] 12. Path R, skipping, first-time hints for everyone (4.8, 4.9), starter spins 0,
   Bronze's block in Rank, "x2!" for everyone.
-- [ ] 13. Funnels and telemetry complete (section 6), `/funnel`, `docs/TUTORIAL_FUNNELS.md`.
-- [ ] 14. Bug-proofing (section 7): the chaos list, 20 clean automated runs in a row, fake
+- [x] 13. Funnels and telemetry complete (section 6), `/funnel`, `docs/TUTORIAL_FUNNELS.md`.
+- [ ] 14. Bug-proofing (section 7): the chaos list, 3 clean automated runs in a row, fake
   lag, the two review agents, fixes.
 - [ ] 15. The test place (section 8): publish, the designer's live checklist, fixes,
   republish.
@@ -1297,6 +1298,27 @@ lines). All in the worktree.
   Abilities screen says "Spins left: 0"; RELEASE gives 3; the spin lands on Magnet (equipped),
   2 left; marks Redeemed, Spun; the AbilitySpins and onboarding 10 funnel steps fire.
 
+### Step 13: funnels and telemetry (2026-10-09)
+
+- **Already in place from step 4 on:** the onboarding funnel, PathS, PathR, Game2, Social and the
+  three repeating funnels (8 of Roblox's 10); Hint, TutorialSkipped, StepTime, TutorialError and
+  Game2Result; `/funnel`. Each step's call site checked; every one fires somewhere. Roblox counts
+  a funnel's session ids per funnel, so the one-time funnels' fixed id (the user id) is safe.
+- **Added:** the InvitePopup event (Shown, then Invited or Closed, once: a new Seen bit
+  InviteAnswered); TutorialError for failures that do not end the tutorial
+  (`TutorialService.logError`, once per code: the bot's walk falling back, making the bot, the
+  hints); the client's errors now say which part failed (Scene, Soft, Hints), and the hints
+  failing only turns them off (they are no longer run every frame after); `/funnel` lists each
+  one-time funnel's saved steps. `docs/TUTORIAL_FUNNELS.md`: every funnel and event, where it
+  fires, how to read it on the Creator Dashboard.
+- **Verified in Studio (happy path, PC):** the hints failing on purpose logs one TutorialError
+  (Arrow, ClientHints) and the tutorial carries on; the soft part's invite popup comes up
+  (Social InviteShown, InvitePopup Shown), its X logs Closed, a second answer is ignored;
+  `/funnel`'s lines. Lint clean; 1140 tests pass. Screenshot:
+  `~/Desktop/8ball-refs/tutorial/step13/invite_popup.jpg`.
+- **The designer (2026-10-09):** from here on, Studio checks only the main happy path of each
+  step with one screenshot; step 14's target is 3 clean runs, not 20.
+
 ### Touch list (files outside the tutorial's own modules changed, and why)
 
 - `src/shared/Config.luau`: `Config.Tutorial.Assist` (the hidden help's numbers, Pull modes)
@@ -1405,6 +1427,9 @@ lines). All in the worktree.
     Bronze 0), `tests/tutorial_steps_test.luau` (`Steps.Taught`).
   - `docs/ECONOMY.md` (the join row, the first win, the tier spins, getting spins), `docs/GDD.md`
     (the spin sources).
+- Step 13 (funnels and telemetry):
+  - `src/shared/Strings.luau`: `Dev.FunnelOnce`. `src/server/Funnel.luau`: `onceLogged`.
+  - `docs/TUTORIAL_FUNNELS.md` (new).
 
 ---
 

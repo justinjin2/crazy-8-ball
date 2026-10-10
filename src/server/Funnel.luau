@@ -171,6 +171,19 @@ function Funnel.once(player: Player, funnel: string, name: string, extra: string
 	return true
 end
 
+--- The steps of one-time funnel `funnel` logged for the player so far (saved), in order.
+function Funnel.onceLogged(player: Player, funnel: string): { string }
+	local key = F.Once[funnel]
+	local m = if key then mask(player, key) else nil
+	local out = {}
+	for i, name in (if m then Steps.Funnels[funnel] else nil) or {} do
+		if Steps.has(m :: number, i) then
+			table.insert(out, name)
+		end
+	end
+	return out
+end
+
 --- Logs step `name` of the Social funnel (InviteShown, Invited, FreeRewardOpened ...) once
 --- per player, only for a player whose soft part began (the tutorial's icons came out, the
 --- Icons moment in Flags.TutorialSeen): it follows new players, not everyone. False when not

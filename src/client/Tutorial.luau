@@ -769,6 +769,7 @@ local reportedDevice = ""
 -- The first-time hint drawn last (its key), and whether the hints failed (off this session).
 local hintKey: string? = nil
 local hintsBroken = false
+local failHints = false -- QA: the hints' next frame fails (op "break" "Hints")
 
 -- The first-time hints (TutorialHints) draw whenever no guided step is on screen: the
 -- tutorial over or skipped, the soft part, a fair first game (path R).
@@ -778,15 +779,29 @@ end
 
 local function runHints(step: string)
 	local allowed = not broken and not hintsBroken and hintTime(step)
-	local ok: boolean, key: any = pcall(TutorialHints.update :: any, {
-		overlay = overlay,
-		hand = hand,
-		words = words,
-	}, Tutorial.device(), allowed)
-	if not ok then
-		hintsBroken = true
-		warn("[8ball] Tutorial: the first-time hints failed, off this session: " .. tostring(key))
-		key = nil
+	local key: any = nil
+	if not hintsBroken then
+		local ok: boolean
+		ok, key = pcall(function(): string?
+			if failHints then
+				failHints = false
+				error("a test failure")
+			end
+			return TutorialHints.update({
+				overlay = overlay,
+				hand = hand,
+				words = words,
+			}, Tutorial.device(), allowed)
+		end)
+		if not ok then
+			-- Once: the hints are not run again this session.
+			hintsBroken = true
+			warn(
+				"[8ball] Tutorial: the first-time hints failed, off this session: " .. tostring(key)
+			)
+			Tutorial.report("Error", "Hints")
+			key = nil
+		end
 	end
 	if key == nil and hintKey ~= nil and (allowed or hintsBroken) then
 		lineOnly(nil) -- the hint is gone (a guided scene draws its own instead)
@@ -796,14 +811,15 @@ end
 -- When the scene showing now began (os.clock), for its re-prompts.
 local keyAt = 0
 
--- The fail-safe: the tutorial ends here and now (the server ends it too and logs it).
-local function breakDown(err: any)
+-- The fail-safe: the tutorial ends here and now (the server ends it too and logs it). `part`:
+-- "Scene" (a guided scene) or "Soft" (the soft part), the TutorialError's code.
+local function breakDown(err: any, part: string)
 	if broken then
 		return
 	end
 	broken = true
-	warn("[8ball] Tutorial: a scene failed, the tutorial ends: " .. tostring(err))
-	Tutorial.report("Error")
+	warn("[8ball] Tutorial: the " .. part .. " failed, the tutorial ends: " .. tostring(err))
+	Tutorial.report("Error", part)
 	pcall(function()
 		overlay:clear()
 		overlay:setSkip(false)
@@ -826,7 +842,7 @@ local function update(dt: number)
 	if not broken then
 		local ok: boolean, err: any = pcall(TutorialSoft.update :: any, dt)
 		if not ok then
-			breakDown(err)
+			breakDown(err, "Soft")
 		end
 	end
 	local menu = Menus.current()
@@ -849,7 +865,7 @@ local function update(dt: number)
 	end
 	local ok, result = pcall(scene, Tutorial.step(), Tutorial.device())
 	if not ok then
-		breakDown(result)
+		breakDown(result, "Scene")
 		return
 	end
 	runHints(Tutorial.step())
@@ -934,8 +950,13 @@ local function startQA()
 				overlay.onNext()
 			end
 		elseif op == "break" then
-			-- The fail-safe on purpose (QA): as if a scene had failed.
-			breakDown("a test failure")
+			-- The fail-safe on purpose (QA): as if a scene (`a` "Soft": the soft part; "Hints":
+			-- the first-time hints, on their next frame) had failed.
+			if a == "Hints" then
+				failHints = true
+			else
+				breakDown("a test failure", if a == "Soft" then "Soft" else "Scene")
+			end
 		elseif op == "turn" then
 			-- Game 1's aim lesson (QA): as if the aim had turned `a` degrees.
 			TutorialAnchors.noteTurn(a)
@@ -954,6 +975,8 @@ local function startQA()
 			TutorialAnchors.notePress(a)
 		elseif op == "soft" then
 			return TutorialSoft.qaState()
+		elseif op == "popup" then
+			return TutorialSoft.qaPress(a)
 		elseif op == "hint" then
 			return TutorialHints.showing() or false
 		end
