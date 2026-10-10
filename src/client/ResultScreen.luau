@@ -575,9 +575,12 @@ function ResultScreen.build(self: any, view: any)
 		words.ZIndex = 4
 		view.noUlts = pill
 	end
-	-- The choices after a two-sided game, in Continue's place.
+	-- The choices after a two-sided game, in Continue's place; and after a Solo portal arena's
+	-- solo game (an arena game: Play another and Lobby, designer 2026-10-10: not Continue).
 	view.choices = nil
-	if not solo and (summary.rematch == true or summary.arena == true) then
+	if
+		(not solo or summary.arena == true) and (summary.rematch == true or summary.arena == true)
+	then
 		view.choices = PostMatch.new(stage, function(kind: string)
 			if self.onChoice and self.view == view and not view.closing then
 				self.onChoice(kind, summary)

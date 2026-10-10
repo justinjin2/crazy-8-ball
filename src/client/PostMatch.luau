@@ -180,7 +180,7 @@ function PostMatch.set(self: any, state: State, now: number)
 	local line = ""
 	if searching and state.searchingSince then
 		line = clock(now - state.searchingSince)
-	elseif r == "gone" and not TutorialAnchors.hidden("Rematch") then
+	elseif r == "gone" and state.practice ~= "Solo" and not TutorialAnchors.hidden("Rematch") then
 		line = Copy.OpponentLeft
 	end
 	self.status.Text = line
