@@ -14,6 +14,7 @@
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
@@ -71,7 +72,9 @@ function Hub.new(parent: Instance): Hub
 	local first = Placement.rows()[1]
 	local firstPlacement = Placement.forTable(first.id)
 	local pool, cues = {}, {}
-	for i = 1, math.min(Config.Hub.RenderedTables, Placement.tableCount()) do
+	local phone = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
+	local rendered = if phone then Config.Hub.RenderedTablesPhone else Config.Hub.RenderedTables
+	for i = 1, math.min(rendered, Placement.tableCount()) do
 		table.insert(pool, BallRenderer.new(folder, firstPlacement :: any, i))
 		local cue = CueStickBuilder.build(parent)
 		cue.Name = ("WatchedCue_%d"):format(i)

@@ -651,7 +651,10 @@ Config.Hub = {
 	-- How many tables draw their balls at once. Sixteen racked tables is 256 ball meshes, and
 	-- the ones across the room are a few pixels each. The nearest few are bound to a small
 	-- pool of renderers instead; every table still simulates, it just may not be drawn.
-	RenderedTables = 4,
+	-- 8 (6 on a phone) since 2026-10-10: at 4, players at the tables past the nearest four
+	-- were not posed here and moved in the server's coarse steps (the designer: "2fps").
+	RenderedTables = 8,
+	RenderedTablesPhone = 6, -- a touch device with no keyboard
 	-- How often the pool is re-pointed at the nearest tables. Every frame is wasteful and
 	-- the player cannot cross twenty studs in half a second.
 	RebindEverySeconds = 0.5,
@@ -1329,7 +1332,7 @@ Config.Avatar = {
 		FarStuds = 60,
 		-- ...at most this many times a second out there (a stroke starting or the hand-over to
 		-- idle still lands at once). Nearer, every frame. (tune)
-		FarPosesPerSecond = 15,
+		FarPosesPerSecond = 30, -- was 15 (2026-10-10: smoother from across the room)
 		-- A posed body's parts stop colliding on this client until it is let go, so a body
 		-- posed here over the rail can never shove this player's own character.
 		NoCollidePosed = true,
@@ -7778,9 +7781,11 @@ Config.Multiplayer = {
 	-- follows ShooterStance, so a late joiner or a far table sees the shooter at the table; at
 	-- the shot it goes exactly to the stance spot. Each client poses the body itself.
 	Stance = {
-		ServerMovesPerSecond = 5, -- while aiming, the root follows the aim at most this often (constrain runs at Queue.PollsPerSecond, so more has no effect)
-		ServerMoveStuds = 1, -- ...and only once the stance has moved this far from where the root is
-		ServerMoveDegrees = 20, -- ...or turned this far
+		-- Finer steps since 2026-10-10 (was 5 a second, 1 stud, 20 degrees): a shooter at a table
+		-- this client does not pose moves only by these, and big rare steps read as 2 fps.
+		ServerMovesPerSecond = 10, -- while aiming, the root follows the aim at most this often (constrain runs at Queue.PollsPerSecond, so more has no effect)
+		ServerMoveStuds = 0.3, -- ...and only once the stance has moved this far from where the root is
+		ServerMoveDegrees = 6, -- ...or turned this far
 		-- After the shot the root is held at the shot spot this long (seconds), so the stroke
 		-- and its follow-through play out on the shooter's screen and on every watcher's (a
 		-- network delay behind), and is then let go: the player may walk while the balls
