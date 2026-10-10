@@ -15539,14 +15539,13 @@ Config.UI.Corners = {
 	-- button). true brings both back.
 	ChallengeOn = false,
 	ChallengeFlashSeconds = 1.2, -- one flash of its glow
-	-- The Starter Pack tile's picture (the Shop card's block, cue and money; the designer,
-	-- 2026-10-09): a halo in the Starter card's blue behind it, this much of the icon wide, so
-	-- the silver cue reads on the pale floor (a gold halo lost it); the cue a little more in
-	-- the middle than on the card, clear of the "!" dot (centre x, y, size, of the icon).
+	-- The Starter Pack tile's picture: the Starter lucky block alone, big (designer, 2026-10-10:
+	-- "one focus at a time"; it was the Shop card's block, cue and money), over a halo in the
+	-- Starter card's blue this much of the icon wide (centre x, y, size, of the icon).
 	StarterGlowScale = 1.4, -- softer since the rainbow rays came behind it (2026-10-09)
 	StarterGlowTransparency = 0.45,
 	StarterGlowTint = { 60, 130, 255 },
-	StarterCue = { 0.52, 0.46, 0.98 },
+	StarterBlock = { 0.5, 0.48, 1.2 },
 	SmallPx = 46, -- Invite and Plus (a computer)
 	ShortSmallPx = 38,
 	-- A controller on a corner button (the D-pad's left): the kit's thick gold outline round it
@@ -15588,11 +15587,10 @@ Config.UI.Corners = {
 	OfferRaysShare = 2.1, -- of the tile
 	OfferRaysTransparency = 0,
 	-- The small red X that hides the offer tile for the visit (the designer, 2026-10-09).
-	DismissPx = 26,
-	ShortDismissPx = 22,
+	DismissPx = 23, -- a tiny bit smaller (designer, 2026-10-10; was 26 and 22)
+	ShortDismissPx = 20,
 	DismissInShare = 0.15, -- its middle this much of its size in from the tile's corner
 	DismissHitPx = 36, -- a touch reaches it from this far round (at least this big)
-	OfferNewAt = { 0.6, 0.08 }, -- the soft part's "!" on the offer tile, left of the X (of the tile)
 }
 
 -- Settings (SettingsMenu, src/server/Settings.luau; GUI lane, designer 2026-10-03, C10): each

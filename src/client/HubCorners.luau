@@ -14,7 +14,7 @@
 --   get rid of it"; the Shop still sells it).
 -- - The tutorial hides the challenge, the offer tile, Invite and Plus until its soft part
 --   (Steps.Reveal: Challenge, Offer, Invite, Plus); each pops in as it comes back. The soft
---   part's click-once "!" sits on the challenge and the offer tile (setFresh).
+--   part's click-once "!" sits on the challenge (setFresh; the offer tile has none).
 -- - Bottom left, just right of the money HUD: Invite (Roblox's invite prompt, carrying the
 --   invite's launch data, Progression/Social.launchData) and Roblox Plus (the Store's Plus
 --   prompt; hidden for members and where the shop does not offer Plus).
@@ -33,7 +33,6 @@ local TweenService = game:GetService("TweenService")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
-local CueThumb = require(script.Parent.CueThumb)
 local GuiQA = require(script.Parent.GuiQA)
 local HudParts = require(script.Parent.HudParts)
 local InvitePrompt = require(script.Parent.InvitePrompt)
@@ -113,9 +112,8 @@ local function corner(
 	return { button = button, icon = icon, word = word }
 end
 
--- The Starter Pack's picture on a tile, as the Shop's card draws it (the designer,
--- 2026-10-09): the Starter Lucky Block, the Starter Cue behind it and money in front, in the
--- icon's square (Config.UI.ShopBlocks.Pair's shares; the cue's Config.UI.Corners'). Hidden
+-- The Starter Pack's picture on a tile: the Starter Lucky Block alone, big, in the icon's
+-- square (designer, 2026-10-10: "one focus at a time"; Config.UI.Corners.StarterBlock). Hidden
 -- until drawOffer shows it.
 local function starterArt(tile: Corner): Frame
 	local icon = tile.icon
@@ -128,8 +126,7 @@ local function starterArt(tile: Corner): Frame
 	local square = Instance.new("UIAspectRatioConstraint")
 	square.AspectRatio = 1
 	square.Parent = holder
-	local pair = Config.UI.ShopBlocks.Pair
-	-- A blue halo behind it all: the silver cue reads on any floor.
+	-- A blue halo behind the block.
 	local glow = Instance.new("ImageLabel")
 	glow.Name = "Glow"
 	glow.BackgroundTransparency = 1
@@ -148,13 +145,10 @@ local function starterArt(tile: Corner): Frame
 		object.Size = UDim2.fromScale(at[3], at[3])
 		object.ZIndex = icon.ZIndex + z
 	end
-	local cue = CueThumb.new(holder, Config.Shop.StarterCue)
-	share(cue, C.StarterCue, 0)
 	local kind = (Config.LuckyBlocks.Kinds :: any)[Config.Shop.StarterBlock]
 	local block = HudParts.icon(holder, "StarterPack", "Block")
 	block.Image = if kind then kind.Icon else ""
-	share(block, pair.StarterBlock, 1)
-	share(HudParts.icon(holder, "CashStack", "Cash"), pair.StarterCash, 2)
+	share(block, C.StarterBlock, 1)
 	HudParts.onLit(tile.button, function(lit: boolean)
 		UIAnim.sunRays(holder, lit)
 	end)
@@ -303,15 +297,14 @@ function HubCorners.new(screen: ScreenGui, deps: any): any
 	end)
 	self.offerRays = rays
 
-	-- The soft part's click-once "!" (setFresh): a red dot on a tile's top-right corner.
+	-- The soft part's click-once "!" (setFresh): a red dot on the challenge's top-right corner.
+	-- The offer tile has none (designer, 2026-10-10: busy enough with its timer and X).
 	self.fresh = {} :: { [string]: Frame }
-	for key, tile: any in { Challenge = self.challenge, Offer = offerTile } do
+	for key, tile: any in { Challenge = self.challenge } do
 		local dot =
 			HudParts.pill(HudParts.candyParts(tile.button).body, "New", HudParts.tone("Red"))
 		dot.AnchorPoint = Vector2.new(0.5, 0.5)
-		-- The offer's sits left of its X (the corner is the X's).
-		local at = if key == "Offer" then C.OfferNewAt else { 0.86, 0.1 }
-		dot.Position = UDim2.fromScale(at[1], at[2])
+		dot.Position = UDim2.fromScale(0.86, 0.1)
 		dot.ZIndex = 6
 		dot.Visible = false
 		local words = HudParts.text(dot, "Words", C.WordPx + 1, Strings.Tutorial.New)
@@ -465,8 +458,8 @@ function HubCorners.refreshShown(self: any)
 	end
 end
 
---- The soft part's click-once "!" on the challenge or the offer tile (`key`: "Challenge" or
---- "Offer").
+--- The soft part's click-once "!" on the challenge (`key` "Challenge"; "Offer" is kept but
+--- shows nothing: the offer tile has no dot).
 function HubCorners.setFresh(self: any, key: string, on: boolean)
 	self.freshOn[key] = on
 	if key == "Challenge" then

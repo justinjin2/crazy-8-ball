@@ -4265,3 +4265,6 @@ timer of a new block stay the designer's call.
   been live by mistake (the 2026-10-08 and 10-09 decisions had taken it out of the release, with
   no switch), and a trade between two players was never checked after economy v5 and v6 changed
   the blocks it trades. The code, the 10-win gate and the tests stay for when it comes back.
+- 2026-10-10 (designer): the hub's Starter Pack tile shows the Starter lucky block alone, bigger
+  ("one focus at a time"; no cue or money), has no "!" dot (busy enough), and its X is a tiny bit
+  smaller (23 px, 20 on a phone).
