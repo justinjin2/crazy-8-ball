@@ -13,8 +13,8 @@
 --     joint, the head tilted up. An opponent on this screen is locked in first person: their
 --     camera eases to their own eyes (their body hidden on their screen, their walking held)
 --     and whips round to look away and up. At the reveal it whips back to the cue ball where it
---     is now, the view narrowed to fit the table, the Metal Gear "!" alert plays as it lands
---     (the only sound), it holds, then hands back.
+--     is now, the view narrowed to fit the table, the vine boom plays as it lands, it holds,
+--     then hands back. The Metal Gear "!" alert plays as it is activated (designer, 2026-10-10).
 --   * The shooter moves the cue ball with ball in hand's own drag in the overhead view
 --     (MatchTargets and Main, while Engine.sneakOpen); here only the countdown pill at the top
 --     of their screen.
@@ -739,6 +739,19 @@ local function stepScene(self: LookOverThereFx, scene: Scene, m: any, snap: any?
 		end
 	end
 
+	-- The Metal Gear "!" alert as it is activated: on this screen if it is in the match, else
+	-- from the table.
+	if moment(scene, "alert", t, F.AlertAt) then
+		if kit.screen.involved(self.hub, scene.id) then
+			kit.sound.library(A.LookAlert, nil, nil)
+		else
+			local holder = kit.attachment(scene.id, "LookAlert", centre)
+			kit.sound.library(A.LookAlert, holder, nil)
+			kit.later(scene.id, 4, function()
+				holder:Destroy()
+			end)
+		end
+	end
 	-- What the shooter "says": the bubble and the chat line, once.
 	if moment(scene, "say", t, F.SayAt) then
 		BotChat.say(scene.by, COPY.Shout)
@@ -750,7 +763,7 @@ local function stepScene(self: LookOverThereFx, scene: Scene, m: any, snap: any?
 	end
 	stepCamera(self, scene, m, t, now)
 
-	-- The Metal Gear "!" alert as they turn back: the only sound (Config.Ults.Audio.LookBoom).
+	-- The vine boom as they turn back.
 	if revealAt and moment(scene, "boom", now - revealAt, F.BoomAfter) then
 		local involved = kit.screen.involved(self.hub, scene.id)
 		if involved then
@@ -830,12 +843,18 @@ function LookOverThereFx.start(hub: any, _parent: Instance, kit: any): LookOverT
 		end
 	end)
 	task.spawn(function()
-		local sound = Instance.new("Sound")
-		sound.SoundId = A.LookBoom.Id
+		local sounds = {}
+		for _, clip in { A.LookAlert, A.LookBoom } do
+			local sound = Instance.new("Sound")
+			sound.SoundId = clip.Id
+			table.insert(sounds, sound)
+		end
 		pcall(function()
-			ContentProvider:PreloadAsync({ sound })
+			ContentProvider:PreloadAsync(sounds)
 		end)
-		sound:Destroy()
+		for _, sound in sounds do
+			sound:Destroy()
+		end
 	end)
 	return self
 end

@@ -4527,11 +4527,13 @@ Config.Ults = {
 		},
 		VerityGulp = { Id = "rbxassetid://9113859745", Volume = 0.6, Length = 0.5 },
 		VerityBonk = { Id = "rbxassetid://9113863528", Volume = 0.4 },
-		-- Look Over There!: one sound, as the opponents turn back and catch on. The Metal Gear
-		-- Solid "!" alert (designer, 2026-10-10: "like the snake ! exclamation sound"; it
-		-- replaces the vine boom of the 2026-10-08 round). A public Creator Store upload
-		-- (1011639456, 1.75 s), loads in this experience; the vine boom was 140367458608473.
-		LookBoom = { Id = "rbxassetid://1011639456", Volume = 0.5 },
+		-- Look Over There!: the Metal Gear Solid "!" alert as it is activated (designer,
+		-- 2026-10-10: "like the snake ! exclamation sound"; a public Creator Store upload,
+		-- 1011639456, 1.75 s, loads in this experience), and the vine boom as the opponents turn
+		-- back (the 2026-10-08 round; a public fan upload, the meme's own sound; the licensed
+		-- backup is ProSoundEffects 9125404320).
+		LookAlert = { Id = "rbxassetid://1011639456", Volume = 0.5 },
+		LookBoom = { Id = "rbxassetid://140367458608473", Volume = 0.55 },
 		-- Fire Shot (the designer's third rework round, 2026-10-08; ProSoundEffects library
 		-- clips, each measured in Studio with an AudioAnalyzer: peak, the level most of it
 		-- stays under (p90) and length, at volume 1): the ignition at the arming moment,
@@ -12408,6 +12410,7 @@ Config.UI.LookOverThereFx = {
 	-- What they "say" (Strings.Ults.LookOverThere.Shout): a Roblox chat bubble and a chat line
 	-- in their name (BotChat.say), at SayAt.
 	SayAt = 0.05,
+	AlertAt = 0, -- the Metal Gear "!" alert (Config.Ults.Audio.LookAlert): as it is activated
 	-- The opponents turn round at TurnAt (the whole body about its root joint over
 	-- TwistSeconds, to face straight away from the table, the head tilted up LookUpDegrees),
 	-- and back over ReturnSeconds from the reveal.
