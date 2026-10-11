@@ -15,9 +15,15 @@
 -- comes down on the cloth from a hop (the burn starts again there). A cushion hit says where
 -- it happened (railHit's x, y); a ball hit and a landing do not, so the cue ball's motion at
 -- the step's start (kept by `step`) is carried on to it, or for a later one in the same step,
--- its motion at the step's end carried back. Nothing here changes how any ball moves.
+-- its motion at the step's end carried back.
+--
+-- The guide (designer, 2026-10-10): the first ball the cue ball hits, if it is the shooter's,
+-- gets Magnet's gentle pull near a pocket (Magnet.gentle, Config.Ults.FireShot.Guide: a few
+-- degrees of turn toward the opening, its speed untouched), so a ball sent at a pocket at
+-- double speed rattles in the jaws less often. The first hit is Magnet's record (Magnet.after).
 
 local Config = require(script.Parent.Parent.Parent.Config)
+local Magnet = require(script.Parent.Magnet)
 
 local FireShot = {}
 
@@ -30,7 +36,22 @@ local function findBall(state: any, id: number): any
 	return nil
 end
 
-function FireShot.step(state: any, _dt: number)
+-- Whether ball `id` is the shooter's (overrides.Targets; the 8 only with its pocket called).
+local function own(state: any, id: number): boolean
+	local overrides = state.overrides
+	local targets = overrides and overrides.Targets
+	if type(targets) ~= "table" or id == 0 then
+		return false
+	end
+	for _, t in targets do
+		if t == id then
+			return id ~= 8 or overrides.EightPocket ~= nil
+		end
+	end
+	return false
+end
+
+function FireShot.step(state: any, dt: number)
 	local fx = state.fx
 	local cue = findBall(state, 0)
 	if not fx.launched then
@@ -39,6 +60,15 @@ function FireShot.step(state: any, _dt: number)
 			local k = Config.Ults.FireShot.LaunchSpeedScale
 			cue.vx, cue.vy = cue.vx * k, cue.vy * k
 			cue.wx, cue.wy, cue.wz = cue.wx * k, cue.wy * k, cue.wz * k
+		end
+	end
+	-- The guide: the shooter's own first ball (the 8 only on their called 8 shot).
+	local first = Magnet.firstHit(state)
+	if first ~= nil and own(state, first) then
+		local b = findBall(state, first)
+		if b and not b.pocketed then
+			local G = Config.Ults.FireShot.Guide
+			Magnet.gentle(state, b, state.overrides.EightPocket, G.MaxTurn, G.PerInch, dt)
 		end
 	end
 	-- Where the cue ball starts this step and how it moves (the turns' positions, `after`).
@@ -65,7 +95,8 @@ local function cueHits(events: { any }): { any }?
 	return hits
 end
 
-function FireShot.after(state: any, _dt: number, events: { any }, ops: any)
+function FireShot.after(state: any, dt: number, events: { any }, ops: any)
+	Magnet.after(state, dt, events, ops) -- the first ball hit, for the guide
 	local hits = cueHits(events)
 	if hits == nil then
 		return

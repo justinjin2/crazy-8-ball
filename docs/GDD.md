@@ -559,7 +559,7 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
     shows only once the player starts pulling the cue back, and follows the pull (2026-09-30).
     Its icon is the eagle's eye alone (2026-09-30): a glistening pale-gold iris and big black
     pupil in a yellow ring, a black brow line cutting across its top.
-  - **Fire Shot** (Common, 0; **everyone's starter, free forever**, since the designer's third
+  - **Fire Shot** (Common, 0.11; **everyone's starter, free forever**, since the designer's third
     rework round, 2026-10-08, when it replaced Super Bounce; Super Bounce is back beside it
     since 2026-10-09): armed, the cue ball bursts into flames, seen by everyone at the table. While the
     shooter aims, the guideline draws every line, and the object ball's line and the cue ball's
@@ -572,10 +572,13 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
     cloth and its spin, not a jump's height), the ball a comet of fire with low flames
     trailing behind it along its path (2026-10-09), and it **scorches the cloth** where it
     rolls: a faint dark char line that fades away about a second after the ball burnt it
-    (designer, 2026-10-09: it was "way too aggressive"; cosmetic only). Measured: -0.08 /
-    -0.03 / +0.03 net (about nothing: double speed alone neither pots nor misses more, and the
-    model shooter plays no kicks or banks, where the line helps, nor Difficult or Challenger
-    tables, where it shows what the normal lines hide). Every player starts with it (the
+    (designer, 2026-10-09: it was "way too aggressive"; cosmetic only). **The guide**
+    (designer, 2026-10-10: at double speed a ball sent at a pocket often rattled in the
+    corner's jaws; the starter must be useful, "not too obvious"): the first ball the cue ball
+    hits, if it is yours, is bent a few degrees toward the pocket's opening near a pocket (the
+    tutorial's hidden gentle pull: at most about 7 degrees in all, its speed untouched).
+    Measured with it: +0.20 / +0.12 / +0.06 net (careful shooter by skill; pots 24% to 34% at
+    skill 2), was about nothing, still the weakest Common. Every player starts with it (the
     tutorial's spin lands on Magnet since tutorial v2). Icon: the cue ball as a fireball, a cartoon flame of five curling tongues streaming
     back from it.
   - **Super Bounce** (Common, 0.33; became Fire Shot on 2026-10-08, back as a third Common on
@@ -586,7 +589,8 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
     becomes Magnet when the profile loads.
   - **Rewind** (Uncommon since 2026-10-08, was Rare; 0.53): a shot that drops none of your balls, fouls and scratches
     included, is undone (the foul erased) and redone on a 10 s clock with Eagle's Eye's full
-    path shown; a missed redo rewinds again, two redos a use. Everyone at the table sees the
+    path shown; one redo a use (designer, 2026-10-10: two was "too op"; measured +0.47 net at
+    skill 2). Everyone at the table sees the
     VHS rewind.
   - **Catch-a-Ball** (Epic, 0.96; new in the rework, 2026-10-08; Epic since the designer's
     second round, swapped with Look Over There!): the cue ball becomes a red and white catch

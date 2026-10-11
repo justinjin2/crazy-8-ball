@@ -1484,7 +1484,7 @@ return {
 			CatchABall = "Your cue ball becomes a catch ball. The first ball it hits is caught inside, then it hops to your nearest ball and catches that too. Both count as pocketed.",
 			LookOverThere = "Point up and yell! While your opponent looks away, move the cue ball anywhere you like before they turn back. Then take your shot.",
 			Verity = "Hi, I'm Verity! Trust me... The first ball you hit gets eaten (it counts as pocketed), then she rolls on, shoving every ball out of her way.",
-			Rewind = "Miss, and the table rewinds for another 10 s shot with its full path shown. Up to twice.",
+			Rewind = "Miss, and the table rewinds for another 10 s shot with its full path shown.",
 			TimeStop = "Time freezes a second after contact: you get 8 seconds for one more shot while everything stands still. Hit one of your balls and it rolls into a pocket when time resumes.",
 			ChainLightning = "Lightning strikes the ball of yours you hit and drives it into a pocket, then jumps on to the next ball, pushing it toward a pocket.",
 			Portals = "Place two portals for your whole turn. Balls that roll over one fly out of the other, and yours fly out into the pocket nearest the exit.",

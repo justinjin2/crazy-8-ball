@@ -64,36 +64,6 @@ local function owned(state: any, id: number): boolean
 	return false
 end
 
--- The gentle pull for one step: the turn Magnet.pull would give `b` (worked out on its
--- velocity, then put back), at most Pull.PerInch per inch rolled and within what is left of
--- Pull.MaxTurn for it (fx.pulled), and no change of speed.
-local function gentle(state: any, b: any, eightPocket: number?, dt: number)
-	local vx, vy, wx, wy = b.vx, b.vy, b.wx, b.wy
-	Magnet.pull(state, b, eightPocket, 1, dt)
-	local nx, ny = b.vx, b.vy
-	b.vx, b.vy, b.wx, b.wy = vx, vy, wx, wy
-	local s0 = math.sqrt(vx * vx + vy * vy)
-	local s1 = math.sqrt(nx * nx + ny * ny)
-	if s0 < 1e-9 or s1 < 1e-9 then
-		return
-	end
-	local fx = state.fx
-	fx.pulled = fx.pulled or {}
-	local used = fx.pulled[b.id] or 0
-	local left = math.min(A.Pull.MaxTurn - used, A.Pull.PerInch * s0 * dt)
-	if left <= 0 then
-		return
-	end
-	local s = math.clamp((vx * ny - vy * nx) / (s0 * s1), -left, left)
-	if s == 0 then
-		return
-	end
-	local c = math.sqrt(1 - s * s)
-	b.vx, b.vy = c * vx - s * vy, s * vx + c * vy
-	b.wx, b.wy = c * wx - s * wy, s * wx + c * wy
-	fx.pulled[b.id] = used + math.abs(s)
-end
-
 -- One ball's pull for one step in `mode` (Config.Tutorial.Assist.Pull). Magnet's turns are
 -- summed into fx.pulled too (as sines), so the tools and Studio can see how far the help bent
 -- each ball.
@@ -109,7 +79,7 @@ local function pull(state: any, b: any, eightPocket: number?, dt: number, mode: 
 			fx.pulled[b.id] = (fx.pulled[b.id] or 0) + math.abs(vx * b.vy - vy * b.vx) / (s0 * s1)
 		end
 	elseif mode == "Gentle" then
-		gentle(state, b, eightPocket, dt)
+		Magnet.gentle(state, b, eightPocket, A.Pull.MaxTurn, A.Pull.PerInch, dt)
 	end
 end
 

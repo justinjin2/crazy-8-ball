@@ -453,4 +453,44 @@ function Magnet.pull(state: State, b: Ball, eightPocket: number?, factor: number
 	b.wx, b.wy = c * b.wx - s * b.wy, s * b.wx + c * b.wy
 end
 
+--- The gentle pull for one fixed step (the tutorial's hidden help, Fire Shot's guide): only the
+--- turn Magnet.pull would give `b` at full strength (worked out on its velocity, then put back),
+--- at most `perInch` radians per inch rolled and within what is left of `maxTurn` for that ball
+--- in all (summed as sines in state.fx.pulled, shared by every caller, so two helps on one shot
+--- never add up past the larger cap), and no change of speed: it hides in the throw and drift a
+--- real ball has, and steers a ball heading at a jaw toward the opening.
+function Magnet.gentle(
+	state: any,
+	b: Ball,
+	eightPocket: number?,
+	maxTurn: number,
+	perInch: number,
+	dt: number
+)
+	local vx, vy, wx, wy = b.vx, b.vy, b.wx, b.wy
+	Magnet.pull(state, b, eightPocket, 1, dt)
+	local nx, ny = b.vx, b.vy
+	b.vx, b.vy, b.wx, b.wy = vx, vy, wx, wy
+	local s0 = math.sqrt(vx * vx + vy * vy)
+	local s1 = math.sqrt(nx * nx + ny * ny)
+	if s0 < 1e-9 or s1 < 1e-9 then
+		return
+	end
+	local fx = state.fx
+	fx.pulled = fx.pulled or {}
+	local used = fx.pulled[b.id] or 0
+	local left = math.min(maxTurn - used, perInch * s0 * dt)
+	if left <= 0 then
+		return
+	end
+	local s = math.clamp((vx * ny - vy * nx) / (s0 * s1), -left, left)
+	if s == 0 then
+		return
+	end
+	local c = math.sqrt(1 - s * s)
+	b.vx, b.vy = c * vx - s * vy, s * vx + c * vy
+	b.wx, b.wy = c * wx - s * wy, s * wx + c * wy
+	fx.pulled[b.id] = used + math.abs(s)
+end
+
 return Magnet

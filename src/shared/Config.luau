@@ -4165,13 +4165,13 @@ Config.Ults = {
 		-- double speed alone neither pots nor misses more (an overhit scratches a little more
 		-- often), and the model shooter plays no kicks or banks, where the line helps, nor a
 		-- Difficult or Challenger table, where it shows what the normal lines hide.
-		FireShot = { Rarity = "Common", Built = true, Effect = "FireShot", Worth = 0 },
+		FireShot = { Rarity = "Common", Built = true, Effect = "FireShot", Worth = 0.11 }, -- its guide, 2026-10-10
 		-- Super Bounce, back as a third Common (designer, 2026-10-09: "just more in the
 		-- pool"), as it was before the third round. +0.27 / +0.39 / +0.32.
 		SuperBounce = { Rarity = "Common", Built = true, Effect = "SuperBounce", Worth = 0.33 },
 		-- +0.36 / +0.58 / +0.65 (two redos, each with the full-path guide). Uncommon since the
 		-- rework (designer, 2026-10-08), beside Magnet.
-		Rewind = { Rarity = "Uncommon", Built = true, Worth = 0.53, Redo = true },
+		Rewind = { Rarity = "Uncommon", Built = true, Worth = 0.47, Redo = true }, -- one redo, 2026-10-10
 		-- The rework's three (designer, 2026-10-08). Catch-a-Ball: the first ball the cue ball
 		-- hits is caught (a pot for its owner), then it hops to your nearest ball in reach and
 		-- catches that too (Epic since the designer's second round, swapped with Look Over
@@ -4758,6 +4758,15 @@ Config.Ults.EaglesEye = {
 Config.Ults.FireShot = {
 	LaunchSpeedScale = 2, -- the designer: "increased power like 2x speed"
 	FullLines = true,
+	-- The guide (designer, 2026-10-10: at double speed a ball sent at a pocket "just rattles
+	-- between the corner pocket"; the starter must be useful, "not too obvious"): the first
+	-- ball the cue ball hits, if it is the shooter's, gets the tutorial's gentle pull near a
+	-- pocket (Magnet.gentle: Magnet's turn only, no braking), at most MaxTurn radians in all
+	-- and PerInch per inch rolled. (tune)
+	Guide = {
+		MaxTurn = 0.12, -- about 7 degrees in all
+		PerInch = 0.04, -- about 2.3 degrees per inch rolled: a curve, not a kink
+	},
 }
 
 -- Super Bounce (docs/prompts/ABILITIES_PROMPT.md 7.3; Arming.extras): the cue ball's own
@@ -4936,7 +4945,7 @@ Config.Ults.Shared = {
 	-- second chance comes with the knowledge of how the first one went).
 	RewindRedoGuide = true,
 	-- How many redos one Rewind gives: each miss rewinds again until they run out (tune).
-	RewindRedos = 2,
+	RewindRedos = 1, -- 2 until 2026-10-10 (designer: "too op just one rewind not two")
 	RewindSeconds = 2.4, -- the table rewinding for everyone (tune)
 	-- Time Stop (7.7): the freeze comes this long after the cue ball's first contact and lasts
 	-- this long (the shooter's time to line up and strike; untouched, time resumes by itself);
