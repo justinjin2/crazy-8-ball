@@ -3113,13 +3113,16 @@ Config.LuckyBlocks = {
 ---------------------------------------------------------------------------------------------
 Config.BotCues = {
 	-- Economy v6 (2026-10-10): from the v6 simulation's 1-hour players at the days they hold
-	-- each tier (Bronze days 1-5, Silver 6-17, Gold 17-36, Platinum 36-62; Expert and up get
-	-- guaranteed Legendary and Mythic rank blocks; ~/Desktop/8ball-refs/economy/v6/v6sim.py).
+	-- each tier (Expert and up get guaranteed Legendary and Mythic rank blocks;
+	-- ~/Desktop/8ball-refs/economy/v6/v6sim.py). Silver to Diamond refit to the 2026-10-11
+	-- ladder (tools/botcues_fit.py: the v6 simulation with the new widths and rank money, 6.3
+	-- minutes a match, one Sky block a day, reward cues left out): players now hold Silver on days 3-7, Gold 8-13,
+	-- Platinum 13-19 and Diamond 20-29, so they own fewer good cues there than before.
 	Bronze = { EpicPlus = 0.15, LegendaryPlus = 0.03, MythicPlus = 0.003 },
-	Silver = { EpicPlus = 0.55, LegendaryPlus = 0.15, MythicPlus = 0.01 },
-	Gold = { EpicPlus = 0.85, LegendaryPlus = 0.35, MythicPlus = 0.03 },
-	Platinum = { EpicPlus = 0.97, LegendaryPlus = 0.55, MythicPlus = 0.06 },
-	Diamond = { EpicPlus = 0.99, LegendaryPlus = 0.7, MythicPlus = 0.1 },
+	Silver = { EpicPlus = 0.48, LegendaryPlus = 0.12, MythicPlus = 0.013 },
+	Gold = { EpicPlus = 0.72, LegendaryPlus = 0.2, MythicPlus = 0.022 },
+	Platinum = { EpicPlus = 0.99, LegendaryPlus = 0.4, MythicPlus = 0.047 },
+	Diamond = { EpicPlus = 0.99, LegendaryPlus = 0.6, MythicPlus = 0.08 },
 	Expert = { EpicPlus = 0.99, LegendaryPlus = 0.9, MythicPlus = 0.15 },
 	Veteran = { EpicPlus = 0.99, LegendaryPlus = 0.95, MythicPlus = 0.22 },
 	Master = { EpicPlus = 0.99, LegendaryPlus = 0.98, MythicPlus = 0.3 },

@@ -8,13 +8,14 @@ local function load()
 	return H.require("Progression.BotCues"), H.require("Progression.Catalog"), H.require("Config")
 end
 
--- Economy v6's table (2026-10-10): { Epic+, Legendary+, Mythic+ }.
+-- Economy v6's table (2026-10-10), Silver to Diamond refit to the 2026-10-11 ladder:
+-- { Epic+, Legendary+, Mythic+ }.
 local PLAN: { [string]: { number } } = {
 	Bronze = { 0.15, 0.03, 0.003 },
-	Silver = { 0.55, 0.15, 0.01 },
-	Gold = { 0.85, 0.35, 0.03 },
-	Platinum = { 0.97, 0.55, 0.06 },
-	Diamond = { 0.99, 0.7, 0.1 },
+	Silver = { 0.48, 0.12, 0.013 },
+	Gold = { 0.72, 0.2, 0.022 },
+	Platinum = { 0.99, 0.4, 0.047 },
+	Diamond = { 0.99, 0.6, 0.08 },
 	Expert = { 0.99, 0.9, 0.15 },
 	Veteran = { 0.99, 0.95, 0.22 },
 	Master = { 0.99, 0.98, 0.3 },
