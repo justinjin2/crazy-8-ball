@@ -115,7 +115,8 @@ planned Lucky Rain.)
 
 The first win gives a real Mystery (a normal roll; no scripted Uncommon, no forced Cosmo Cue), its
 block ready at once, plus Bronze's Uncommon block from the Rank claim, also ready at once: both
-open at once.
+open at once. A first game lost (or won against another new player, which drops nothing) gets the
+tutorial's own Mystery once, at the Mystery step; Bronze's rewards then wait for the first win.
 
 ## 4. Cues: sell-back and the Index
 

@@ -29,6 +29,7 @@ local Config = require(Shared.Config)
 local Net = require(Shared.Net)
 local Strings = require(Shared.Strings)
 local Steps = require(Shared.Tutorial.Steps)
+local LuckyBlocks = require(Shared.Progression.LuckyBlocks)
 local PlayerData = require(script.Parent.PlayerData)
 local Rewards = require(script.Parent.Rewards)
 local Funnel = require(script.Parent.Funnel)
@@ -180,10 +181,13 @@ local function logJoined(player: Player)
 	end
 end
 
--- Whether the save holds a lucky block of `kind`.
+-- Whether the save holds a lucky block of `kind` (a saved block's field is Kind: it read
+-- `kind` and was never true, so a won game 1 got a second Mystery and a rejoin at Mystery
+-- skipped to Place).
 local function holdsBlock(data: any, kind: string): boolean
-	for _, block in data.LuckyBlocks.List do
-		if block.kind == kind then
+	local list: { LuckyBlocks.Block } = data.LuckyBlocks.List
+	for _, block in list do
+		if block.Kind == kind then
 			return true
 		end
 	end

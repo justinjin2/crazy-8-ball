@@ -1260,10 +1260,12 @@ helpers, `src/server/TutorialService.luau`, `TutorialGames`, `TutorialBot`, `Tut
   plain foul). Hidden help: Magnet's pull on the lesson shots, an invisible small pull
   elsewhere. The clock pauses while a lesson prompt shows. Target length about 4 minutes.
 - **Path R, a fair game 1:** a real person at their table before the game starts makes it a
-  normal game (no rig, no help); the pool controls come as first-time hints. Won: the same
-  chain as path S (without the bot's line). Lost: back to the arrow; the rigged game comes the
-  next time they sit alone.
-- **The chain after a won game 1:** Result (Continue only, the first win's Rare block) ->
+  normal game (no rig, no help); the pool controls come as first-time hints. Played to its
+  end, won or lost (a quick win too), it goes on to the same chain as path S (without the
+  bot's line): the hub's screens never wait on a win (designer, 2026-10-10). A loss has no
+  rank-up, so Rank passes at once, and the Mystery step gives the tutorial's own Mystery
+  block. A rematch after it is not offered (a game left halfway still goes back to the arrow).
+- **The chain after game 1:** Result (Continue only, the first win's Rare block) ->
   NEW RANK! Bronze -> the bot says one casual line and leaves -> **Rank**: CLAIM (Bronze's
   Mystery block waits there like every rank reward; only CLAIM is ringed, no dim, the hand
   from its side, so the rewards stay in view) -> **Mystery**: its upgrade screen rolls it

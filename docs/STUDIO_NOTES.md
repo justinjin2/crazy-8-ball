@@ -782,6 +782,16 @@ basics (glb textures, face direction, axes, texture alpha) are under "Uploading 
 
 ## Real shots through PoolMatchQA (2026-10-09, the ball streak check)
 
+- **Tutorial game 1 against a "real person" (path R, 2026-10-10):** `PlayerDataQA:Invoke("reset",
+  uid)` then `TutorialQA:Invoke("dev", uid, { "reset" })` makes a brand-new player; `TutorialQA
+  "set" "Pad"` and a `"fixture"` (finalEight, brokeAgo 120, calledPocket 2; `opponent = true` to
+  lose, `brokeAgo = 10` for a quick win) starts game 1 as path R (no rig). Drive the chain from
+  the Client with GuiQA: `resultContinue`, `blockPress` + `mysteryTap` (while "Wait"),
+  `tapBlock`/`throwHeld`/`openLive` (wait for the block to land first), `press` on the anchors
+  (Inventory, InventoryEquip, InventoryClose, Abilities, CodeRedeem, SpinButton, SpinBack).
+  Studio's own Server and Clients test players have negative user ids, which the tutorial
+  counts as bots: a two-player path R needs the live game. Saved blocks use `Kind`, not `kind`.
+
 - `ServerStorage.PoolMatchQA:Invoke("phase", tableId, { phase = "Aiming", seconds = 600, spots
   = {...} })` lays the balls out by hand without a new engine, so match state such as the
   ball streak carries over (`"fixture"` starts a new engine). `spots` keys are ball ids as

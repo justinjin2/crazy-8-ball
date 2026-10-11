@@ -4313,3 +4313,5 @@ timer of a new block stay the designer's call.
   (1839088414) was a 31 s loop whose copies stacked into noise. The old scenes' "Shockwave"
   sound (9120009360) is gone with them.
 - 2026-10-10: A rematch after a lost game 1 (path R) is game 1 (fair): it played under "Join a table!" with the arrow up, and a win there was never counted. The arrow and its line wait while a lost game 1's result screen is up.
+- 2026-10-10: Any first game played to its end moves on to the tutorial's chain, won or lost (designer: the hub's screens never wait on a win; players reported no UI after losing game 1 to a real person). This replaces two of today's lines: a path-R loss and a path-R win under Config.Ranks.RealMatchSeconds no longer replay game 1. With no rank-up, Rank passes at once; the Mystery step gives the tutorial's own Mystery; Bronze's rewards wait for the first win. A game left halfway still goes back to the arrow.
+- 2026-10-10: Bug fix: the tutorial read a saved block's kind as `kind` (the field is `Kind`), so a won game 1 got a second Mystery at the Mystery step and a rejoin at Mystery skipped to Place.

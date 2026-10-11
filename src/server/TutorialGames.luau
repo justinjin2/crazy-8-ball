@@ -11,9 +11,8 @@
 --   person on the pad before the game starts makes it a fair game (path R): no rig, no hidden
 --   help. Walking off the pad goes back to the arrow.
 -- - Game1: the game started. Path S is the rigged game (Tutorial/Rig does the physics side,
---   this the lessons: the TutorialLesson attribute); path R a normal game. A won game 1 moves
---   to Result (the chain); a lost fair game goes back to the arrow (the next time they sit
---   alone it is the rigged game); a game left halfway goes back to the arrow.
+--   this the lessons: the TutorialLesson attribute); path R a normal game. Game 1 played to its
+--   end, won or lost, moves to Result (the chain); a game left halfway goes back to the arrow.
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -32,7 +31,6 @@ local Rig = require(Shared.Tutorial.Rig)
 local Plan = require(Shared.Tutorial.Plan)
 local UltMatch = require(Shared.Ults.Match)
 local Judge = require(Shared.Rules.ShotJudge)
-local Settle = require(Shared.Progression.Settle)
 
 local T = Config.Tutorial
 local G = T.Games
@@ -393,8 +391,8 @@ local function teamOf(t: any, player: Player): number?
 	return nil
 end
 
--- Game 1 is over: a win moves on to the chain (Result), a loss or a game left halfway back to
--- the arrow. True when it was over.
+-- Game 1 is over: a game played to its end, won or lost, moves on to the chain (Result); a game
+-- left halfway goes back to the arrow. True when it was over.
 local function game1Over(player: Player, t: any?): boolean
 	local e = if t then t.engine else nil
 	local path = service.path(player)
@@ -402,12 +400,6 @@ local function game1Over(player: Player, t: any?): boolean
 	if e and e.phase == "Result" and e.result then
 		local team = teamOf(t, player)
 		local won = team ~= nil and e.result.winner == team
-		-- A fair game (path R) won too quickly to count (an early 8, the other player leaving
-		-- in under Config.Ranks.RealMatchSeconds) pays no XP, so Bronze and the chain's steps
-		-- would be empty: it is played again, like a loss (designer, 2026-10-10).
-		if won and path == "R" and not Settle.isReal(e.result.seconds) then
-			won = false
-		end
 		player:SetAttribute("TutorialLesson", "")
 		games[player] = nil
 		Funnel.onboarding(player, "Game1Ended")
@@ -417,6 +409,12 @@ local function game1Over(player: Player, t: any?): boolean
 		if won then
 			Funnel.onboarding(player, "FirstWin")
 			Funnel.once(player, funnel, "Won")
+		end
+		-- Any first game played to its end moves on, a loss or a quick win too (designer,
+		-- 2026-10-10: the hub's screens never wait on a win; a loss sent them back to the
+		-- arrow with every menu still hidden). With no rank-up, Rank has nothing to claim and
+		-- passes at once; the Mystery step gives the tutorial's own block (entered).
+		if team ~= nil then
 			service.setStep(player, "Result")
 		else
 			service.setPath(player, nil)

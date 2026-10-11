@@ -91,6 +91,9 @@ One line each; the long form is the 2026-10-08 entry at the top of
   Max Players, the funnels in the dashboard.
 - **The cue rarity rework** continues after the Unique cues (Beta, Grand Opening, Eclipse,
   Celestial Dragon, Kitsune). Apex's first look was reverted.
+- **Game 1 lost (or a quick win) goes on to the chain** (2026-10-10, DECISIONS; checked in
+  Studio with a pretend opponent: loss, quick win, normal win, rejoins). Open: publish, then
+  a real two-account test on the live game (a brand-new account loses to another account).
 - **The place file:** save `place/8ball.rbxl` and publish once this milestone is done.
 
 ## Not yet checked (the Studio tools cannot do these)

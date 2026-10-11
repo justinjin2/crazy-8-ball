@@ -16,7 +16,7 @@ Steps.Order = {
 	"Arrow", -- the arrow from their chest to an empty table's pad (any empty table counts)
 	"Pad", -- alone on a pad: the bot walks over (path S), or a real player joins (path R)
 	"Game1", -- the first game: rigged against the bot (path S) or fair (path R)
-	"Result", -- a won game 1: the result, the first win's block, NEW RANK! (the bot leaves)
+	"Result", -- game 1 over (won or lost): the result, the first win's block, NEW RANK! (the bot leaves)
 	"Rank", -- open Rank, CLAIM, close
 	"Mystery", -- tap the Mystery block: its upgrade screen climbs once
 	"Place", -- place the Uncommon block and open it (the reel lands the tutorial's cue)
