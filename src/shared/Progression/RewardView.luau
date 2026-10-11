@@ -106,9 +106,11 @@ export type InviteView = {
 	rewarded: boolean, -- their reward as an inviter was given (Config.Social.InviterOnce: once ever)
 }
 
--- The Free Reward page's favorite card (GUI lane, D4): Roblox's favorite prompt, then Claim.
+-- The Free Reward page's favorite card (GUI lane, D4; favorite + like, 2026-10-11): Roblox's
+-- favorite prompt, then Verify (RewardView.favoriteStep).
 export type FavoriteView = {
 	claimed: boolean,
+	asked: boolean, -- a Verify passed before: asked to like the game and rejoin (LikeAskedFlag)
 	reward: RewardOut,
 }
 
@@ -144,6 +146,9 @@ local RewardView = {}
 
 -- The save's Flags key set once the favorite reward was given (GUI lane, D4).
 RewardView.FavoriteFlag = "FavoriteReward"
+-- The save's Flags key set the first time the favorite card's Verify passed: the player was
+-- asked to like the game and rejoin (Config.Social.LikeRejoin).
+RewardView.LikeAskedFlag = "LikeAsked"
 -- The save's Flags key set once the inviter's reward was given (Config.Social.InviterOnce).
 RewardView.InviterFlag = "InviterRewarded"
 -- The save's Flags key set once the first win's block was given (PlayerData's FIRST_WIN_FLAG,
@@ -193,6 +198,25 @@ function RewardView.reward(reward: Daily.Reward): RewardOut
 		lucky = math.max(0, math.floor(num(raw.lucky))),
 		cues = cues,
 	}
+end
+
+--- What a favorite card's Verify (RewardRequest "ClaimFavorite") does, from the save's
+--- `flags`, whether this session already asked the player to rejoin (`askedHere`) and
+--- Config.Social.LikeRejoin (`rejoinOn`): "Claimed" (given already), "Ask" (mark the save and
+--- ask them to like the game and rejoin), "Rejoin" (asked this session: they have not
+--- rejoined yet) or "Give".
+function RewardView.favoriteStep(flags: any, askedHere: boolean, rejoinOn: boolean): string
+	local f = if type(flags) == "table" then flags else {}
+	if f[RewardView.FavoriteFlag] == true then
+		return "Claimed"
+	elseif not rejoinOn then
+		return "Give"
+	elseif f[RewardView.LikeAskedFlag] ~= true then
+		return "Ask"
+	elseif askedHere then
+		return "Rejoin"
+	end
+	return "Give"
 end
 
 --- The save's Titles ({ [titleId] = true }) as a sorted list.
@@ -392,6 +416,7 @@ function RewardView.build(
 		},
 		favorite = {
 			claimed = type(flags) == "table" and flags[RewardView.FavoriteFlag] == true,
+			asked = type(flags) == "table" and flags[RewardView.LikeAskedFlag] == true,
 			reward = RewardView.reward({
 				money = Config.Social.FavoriteReward.Money,
 				blocks = table.clone(Config.Social.FavoriteReward.Blocks),

@@ -25,13 +25,16 @@
 -- (RewardsFlyer): money into the money HUD, blocks to the hotbar, ability spins to the
 -- Abilities tile. A button is off while its request is on its way, and stays off after a
 -- claim until the next state arrives (so a quick second press never asks twice); a refusal
--- shows the server's reason as a notice. Claim All is a Robux product (StoreRequest "Buy":
+-- shows the server's reason as a notice; the favorite card's "Rejoin" (like the game and
+-- rejoin, Config.Social.LikeRejoin) is the kit's dialog, whose Leave & Like sends the player
+-- out with the steps. Claim All is a Robux product (StoreRequest "Buy":
 -- Roblox's own dialog; "Coming soon" until the product is on sale).
 --
 -- Gamepad: opening lands on the first Claim (today's, a gift's, the group's), else on the lit
 -- jump button; LB and RB step through the sections; B closes the Odds & Details, then the menu.
 -- Sizes in Config.UI.FreeReward, words in Strings.FreeReward.
 local GuiService = game:GetService("GuiService")
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
@@ -159,6 +162,21 @@ function FreeRewardMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 				flyer:reward(reply, from)
 			elseif type(reply) == "table" and reply.reason == "NotMember" then
 				ctx.notice(W.NotMember, "Red")
+			elseif type(reply) == "table" and reply.reason == "Rejoin" and frame:isOpen() then
+				-- The favorite card's first Verify (Config.Social.LikeRejoin): like the game and
+				-- rejoin. Leave & Like sends them out with the steps on Roblox's leave screen.
+				frame:confirm({
+					title = W.RejoinTitle,
+					text = W.RejoinText,
+					yes = W.RejoinLeave,
+					no = W.RejoinLater,
+					yesTone = "Green",
+					noTone = "Blue",
+				}, function(yes: boolean)
+					if yes then
+						Players.LocalPlayer:Kick(W.RejoinKick)
+					end
+				end)
 			else
 				ctx.notice(MenuFrame.reason(reply), "Red")
 			end

@@ -168,7 +168,8 @@ Epic block. **VIP every day**: a Mystery and a spin (unchanged).
 
 **Playtime gifts**: 5 min $250, 15 min $250, 30 min $500, 45 min $500, 60 min $1,000 + a spin.
 
-**Social**: the group **1 Mystery**; a favorite **$5,000 + the Lucky 8 block**; invites the
+**Social**: the group **1 Mystery**; like + favorite **$5,000 + the Lucky 8 + a Mystery**
+(2026-10-11; given after a rejoin, see GDD); invites the
 Candy Cane Cue (section 4). **Codes**: WELCOME $5,000, 8BALL $2,500, ROOFTOP $2,500 (to
 2026-12-31), RELEASE 3 spins. **Like codes** (switched on by the designer): 1K $10,000 + a Mystery,
 5K 2 Mysteries, 10K a Rare block + 3 spins, 25K a Rare block + $25,000, 50K 2 Rare blocks, 100K an

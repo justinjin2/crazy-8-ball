@@ -5,12 +5,14 @@
 -- over its glow, a gold title, what it gives and a big green button). Two wide cards side by
 -- side at the top of the page until both are claimed (FreeSocial's welcome; after that the
 -- Group section is the small Lucky 8 card at the bottom of the page): join the group (its
--- blocks and the match money while a member) and favorite the game (the Lucky 8 Block and
--- money). Each picture shows its reward's best block (as many as it gives, up to three) with
+-- blocks and the match money while a member) and like + favorite the game (the Lucky 8 and a
+-- Mystery Block and money). Each picture shows its reward's best block (the favorite card its
+-- Lucky 8; as many as it gives, up to three) with
 -- the group's busts or the favorite star, and the money when it gives some; the sky-blue dice
 -- on the picture opens that block's Odds & Details. Beside it the title, the reward's blocks
 -- and a line (the money, the match money while a member); under them the button: Join (Claim!
--- for a member) or Favorite, then Claimed. Both cards are as tall as the taller needs (a
+-- for a member), or a yellow Favorite (Roblox's favorite prompt) beside a green Verify
+-- (designer, 2026-10-11: FreeSocial.verify), then Claimed. Both cards are as tall as the taller needs (a
 -- phone's 12 px words make them taller), laid out as the Shop's Starter Pack and VIP
 -- (ShopOffers). Sizes in Config.UI.FreeReward.Social.Heroes, words in Strings.FreeReward.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -39,7 +41,8 @@ local rgb, round = ShopCards.rgb, ShopCards.round
 
 export type Actions = {
 	join: (button: GuiObject) -> (), -- FreeSocial.join: Roblox's join prompt, then the claim
-	favorite: (button: GuiObject) -> (), -- FreeSocial.favorite: the favorite prompt, the claim
+	favorite: () -> (), -- FreeSocial.favorite: Roblox's favorite prompt
+	verify: (button: GuiObject) -> (), -- FreeSocial.verify: the favorite checked, the claim
 	odds: (kind: string) -> (), -- a block's Odds & Details (the menu's OddsDetails)
 }
 
@@ -60,6 +63,7 @@ type Hero = {
 	line: TextLabel,
 	lineDot: TextLabel,
 	button: TextButton,
+	verify: TextButton?, -- the favorite card's green Verify beside its yellow Favorite
 	kind: string, -- the block its picture and dice show
 	count: number, -- how many of it the picture shows
 	look: string?, -- the button's look now
@@ -116,7 +120,8 @@ local function hero(
 	key: string,
 	look: any,
 	onPress: (TextButton) -> (),
-	onOdds: (string) -> ()
+	onOdds: (string) -> (),
+	onVerify: ((TextButton) -> ())?
 ): Hero
 	local box = ShopCards.gradientCard(parent, "GroupHero" .. key, look, 3)
 	local frame = box.frame
@@ -168,6 +173,7 @@ local function hero(
 		line = line,
 		lineDot = lineDot,
 		button = nil :: any,
+		verify = nil,
 		kind = kind,
 		count = 0,
 		look = nil,
@@ -178,6 +184,16 @@ local function hero(
 	made.button.Name = "Button"
 	made.button.AnchorPoint = Vector2.new(0.5, 0.5)
 	made.button.ZIndex = 6
+	if onVerify then
+		local verify: TextButton
+		verify = HudParts.candy(frame, W.Verify, function()
+			onVerify(verify)
+		end, "Green", "Check")
+		verify.Name = "Verify"
+		verify.AnchorPoint = Vector2.new(0.5, 0.5)
+		verify.ZIndex = 6
+		made.verify = verify
+	end
 	odds.hit.Activated:Connect(function()
 		UISound.play("Click")
 		onOdds(made.kind)
@@ -193,7 +209,9 @@ function FreeHeroes.new(parent: Instance, actions: Actions): any
 	self.root = root
 	self.cards = {
 		hero(root, "Group", H.Group, actions.join, actions.odds),
-		hero(root, "Favorite", H.Favorite, actions.favorite, actions.odds),
+		hero(root, "Favorite", H.Favorite, function()
+			actions.favorite()
+		end, actions.odds, actions.verify),
 	} :: { Hero }
 	return self
 end
@@ -210,13 +228,21 @@ local function plan(c: Hero, k: number, cardW: number): Plan
 	local colW = math.max(1, cardW - colX - pad)
 	local rowGap = math.max(B.TextGapPx, round(H.RowGapUnits * k))
 	local gap = math.max(B.TextGapPx, round(H.SectionGapUnits * k))
-	-- The title on one line, smaller to fit; the reward and the line wrap.
+	-- The title on one line, else wrapped onto TitleMaxRows, else smaller to fit one line; the
+	-- reward and the line wrap.
 	local titlePx = ShopCards.textPx(H.TitleUnits, k)
 	local titleW = ShopCards.measure(c.title.Text, titlePx)
-	if titleW > colW then
-		titlePx = math.max(MIN_TEXT, math.floor(titlePx * colW / titleW))
-	end
 	local titleH = titlePx + B.TextBoxPx
+	if titleW > colW then
+		local rows = ShopParts.wrapHeight(c.title.Text, titlePx, colW, H.TitleMaxRows + 1)
+			/ (titlePx + 4)
+		if rows <= H.TitleMaxRows then
+			titleH = ShopParts.wrapHeight(c.title.Text, titlePx, colW, H.TitleMaxRows) + B.TextBoxPx
+		else
+			titlePx = math.max(MIN_TEXT, math.floor(titlePx * colW / titleW))
+			titleH = titlePx + B.TextBoxPx
+		end
+	end
 	local headPx = ShopCards.textPx(H.HeadUnits, k)
 	local headH = headPx + B.TextBoxPx
 	local rewardPx = ShopCards.textPx(H.RewardUnits, k)
@@ -298,12 +324,25 @@ local function place(c: Hero, p: Plan, k: number, cardW: number, cardH: number)
 	c.line.Position = UDim2.fromOffset(listX, round(y))
 	c.line.Size = UDim2.fromOffset(listW, math.max(1, p.lineH))
 	HudParts.setTextSize(c.line, p.linePx)
-	-- The button across the card's foot.
+	-- The button across the card's foot; the favorite card's Favorite and Verify share it
+	-- (Claimed alone across it).
 	local button = c.button
-	button.Position = UDim2.fromOffset(round(cardW / 2), round(cardH - p.pad - p.buttonH / 2))
-	button.Size = UDim2.fromOffset(cardW - 2 * p.pad, p.buttonH)
+	local footY = round(cardH - p.pad - p.buttonH / 2)
+	local full = cardW - 2 * p.pad
+	local verify = c.verify
+	local pair = verify ~= nil and verify.Visible
+	local gap = round(H.ButtonGapUnits * k)
+	local half = math.floor((full - gap) / 2)
+	button.Position = UDim2.fromOffset(if pair then p.pad + half / 2 else round(cardW / 2), footY)
+	button.Size = UDim2.fromOffset(if pair then half else full, p.buttonH)
 	HudParts.setButtonTextSize(button, p.buttonTextPx)
 	HudParts.setMinHit(button, TOUCH)
+	if verify then
+		verify.Position = UDim2.fromOffset(cardW - p.pad - half / 2, footY)
+		verify.Size = UDim2.fromOffset(half, p.buttonH)
+		HudParts.setButtonTextSize(verify, p.buttonTextPx)
+		HudParts.setMinHit(verify, TOUCH)
+	end
 end
 
 --- The cards' height at the scale `k` (the taller one's).
@@ -369,9 +408,16 @@ local function setPicture(c: Hero, kind: string, count: number, money: boolean)
 	end
 end
 
--- The button's look: "Claimed" (grey, the check), or green with its words and icon (off
--- while `busy`). Changed only when it changes.
-local function setButton(c: Hero, done: boolean, text: string, icon: string?, busy: boolean)
+-- The button's look: "Claimed" (grey, the check), or `tone` (green by default) with its
+-- words and icon (off while `busy`). Changed only when it changes.
+local function setButton(
+	c: Hero,
+	done: boolean,
+	text: string,
+	icon: string?,
+	busy: boolean,
+	tone: string?
+)
 	local look = if done then "Claimed" else text .. "|" .. (icon or "") .. "|" .. tostring(busy)
 	if c.look == look then
 		return
@@ -384,20 +430,22 @@ local function setButton(c: Hero, done: boolean, text: string, icon: string?, bu
 		HudParts.setEnabled(c.button, false, false)
 		return
 	end
-	HudParts.setTone(c.button, "Green")
+	HudParts.setTone(c.button, tone or "Green")
 	HudParts.setButtonIcon(c.button, icon)
 	HudParts.setText(c.button, text)
 	HudParts.setEnabled(c.button, not busy)
 end
 
 --- Draw a RewardState's group and favorite. `busy(key)` says a claim is on its way;
---- `favoriting` that Roblox's favorite prompt is up. Returns true when the words changed (the
---- cards are laid out again).
+--- `favoriting` that Roblox's favorite prompt is up, `verifying` that Verify is checking the
+--- favorite. Returns true when the words changed or Verify came or went (the cards are laid
+--- out again).
 function FreeHeroes.refresh(
 	self: any,
 	state: any,
 	busy: (string) -> boolean,
-	favoriting: boolean
+	favoriting: boolean,
+	verifying: boolean
 ): boolean
 	if type(state) ~= "table" then
 		return false
@@ -410,6 +458,14 @@ function FreeHeroes.refresh(
 		-- The big words: the blocks (or the money when it gives none); the line: the money
 		-- beside blocks and the group's match money.
 		local best = RewardsParts.bestBlock(reward)
+		if c.key == "Favorite" then
+			-- The favorite card keeps its Lucky 8 in front (its other block in the words).
+			for _, entry in reward.blocks do
+				if entry.kind == H.FavoriteBlock then
+					best = entry
+				end
+			end
+		end
 		local big = if #reward.blocks > 0
 			then RewardsParts.gains(reward, true)
 			else W.HeroMoney:format(Format.money(reward.money))
@@ -435,7 +491,16 @@ function FreeHeroes.refresh(
 			local words = if member then W.Claim else W.Join
 			setButton(c, done, words, if member then nil else "Group", busy("Group"))
 		else
-			setButton(c, done, W.Favorite, "Star", busy("Favorite") or favoriting)
+			-- Favorite (yellow) and Verify (green) side by side until claimed.
+			setButton(c, done, W.Favorite, "Star", favoriting, "Yellow")
+			local verify = c.verify
+			if verify then
+				if verify.Visible == done then
+					verify.Visible = not done
+					changed = true
+				end
+				HudParts.setEnabled(verify, not (busy("Favorite") or verifying))
+			end
 		end
 	end
 	return changed
@@ -465,7 +530,7 @@ function FreeHeroes.register(self: any, stage: Stage.Stage, keep: (UIAnim.Handle
 			keep(ShopCards.all({
 				ShopCards.artLoops(c.art),
 				ShopCards.buttonShine(
-					c.button,
+					c.verify or c.button, -- the favorite card's Verify is the one that claims
 					B.ButtonShineEvery,
 					(index - 1) * B.ShineStaggerSeconds
 				),

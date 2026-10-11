@@ -19,7 +19,8 @@
 --   day's claim; Live codes count only while LiveCodes has them on. A new UTC day also
 --   re-shows every save (PlayerData.refreshAll: the UltFreeSpin attribute) and tells UltSpins
 --   (the spin screen's FREE SPIN). Rewards.start starts UltSpins.
--- - RewardRequest "ClaimFavorite" gives the favorite reward once (GUI lane, D4).
+-- - RewardRequest "ClaimFavorite" (the favorite card's Verify) gives the favorite reward once
+--   (GUI lane, D4), after a rejoin (favorite + like, 2026-10-11: PlayerData.claimFavorite).
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -286,6 +287,7 @@ local REASONS: { [string]: string } = {
 	Invalid = "BadRequest",
 	NotMember = "NotMember",
 	TooFast = "TooFast",
+	Rejoin = "Rejoin", -- the favorite card's first Verify: like the game and rejoin
 }
 
 -- One claim's result: (true, reward) or (false, PlayerData's reason) as a reply. `unknown` is

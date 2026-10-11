@@ -844,15 +844,32 @@ return {
 		local p = RewardView.build(fresh(), nil, nil, NOW)
 		H.expect(not p.favorite.claimed, "not yet")
 		H.expect(p.favorite.reward.money == Config.Social.FavoriteReward.Money, "the money")
-		H.expect(
-			p.favorite.reward.blocks[1].kind == "Lucky8"
-				and p.favorite.reward.blocks[1].count
-					== Config.Social.FavoriteReward.Blocks.Lucky8,
-			"the Lucky 8 block (designer, 2026-10-08)"
-		)
+		local kinds: { [string]: number } = {}
+		for _, entry in p.favorite.reward.blocks do
+			kinds[entry.kind] = entry.count
+		end
+		H.expect(kinds.Lucky8 == 1, "the Lucky 8 block (designer, 2026-10-08)")
+		H.expect(kinds.Mystery == 1, "and a Mystery block (favorite + like, 2026-10-11)")
 		local flags = { [RewardView.FavoriteFlag] = true }
 		local after = RewardView.build(fresh(), nil, nil, NOW, false, nil, false, flags)
 		H.expect(after.favorite.claimed, "claimed")
+	end,
+
+	["RewardView: favorite + like gives only on a Verify after a rejoin (2026-10-11)"] = function()
+		local step = RewardView.favoriteStep
+		local asked = { [RewardView.LikeAskedFlag] = true }
+		H.expect(step({}, false, true) == "Ask", "the first Verify asks for the like and a rejoin")
+		H.expect(step(nil, false, true) == "Ask", "no flags yet: asks")
+		H.expect(step(asked, true, true) == "Rejoin", "asked this session: not rejoined yet")
+		H.expect(step(asked, false, true) == "Give", "asked in an earlier session: gives")
+		local done = { [RewardView.LikeAskedFlag] = true, [RewardView.FavoriteFlag] = true }
+		H.expect(step(done, false, true) == "Claimed", "once only")
+		H.expect(step({ [RewardView.FavoriteFlag] = true }, false, false) == "Claimed", "off: once")
+		H.expect(step({}, false, false) == "Give", "the switch off: the first Verify gives")
+		H.expect(not RewardView.build(fresh(), nil, nil, NOW).favorite.asked, "not asked yet")
+		local later = RewardView.build(fresh(), nil, nil, NOW, false, nil, false, asked)
+		H.expect(later.favorite.asked and not later.favorite.claimed, "the card knows it asked")
+		H.expect(Config.Social.LikeRejoin == true, "on for the live game")
 	end,
 
 	["RewardView: the invite card says whether the inviter's own block was given"] = function()

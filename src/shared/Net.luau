@@ -249,19 +249,21 @@ local REMOTES: { [string]: string } = {
 	--     inviter's own block was given: once ever, Config.Social.InviterOnce) } (the client's
 	--     SocialService:PromptGameInvite with ExperienceInviteOptions.LaunchData =
 	--     Progression/Social.launchData(its own UserId)),
-	--   favorite = { claimed, reward } (GUI lane: the Free Reward page's favorite card),
+	--   favorite = { claimed, asked, reward } (GUI lane: the Free Reward page's favorite card;
+	--     asked: a Verify passed before, Config.Social.LikeRejoin),
 	--   ready (the day, a gift or the group can be claimed) }
 	RewardState = "RemoteEvent",
 	-- client -> server, answered: ("ClaimDaily"), ("ClaimPlaytime", index 1..#gifts),
-	-- ("Redeem", the typed code text), ("ClaimGroup"), ("ClaimFavorite": after Roblox's
-	-- favorite prompt said yes; GUI lane) -> { ok = true, money, blocks = { { kind,
+	-- ("Redeem", the typed code text), ("ClaimGroup"), ("ClaimFavorite": the favorite card's
+	-- Verify, the game favorited; GUI lane) -> { ok = true, money, blocks = { { kind,
 	-- count } }, spins, lucky } or { ok = false, reason }. Reasons: "BadRequest" (an
 	-- unknown action, a bad index, text that is not a string), "TooFast" (a request every
 	-- Config.Daily.RequestCooldownSeconds, a code every RedeemCooldownSeconds, a group claim
 	-- every Config.Social.ClaimCooldownSeconds), "NotLoaded", "AlreadyClaimed" (today's
 	-- claim, that gift or the group), "NotReady" (not enough minutes yet), "Unknown" (no such
 	-- code, or a like code not switched on), "Used" (this code already redeemed), "Expired",
-	-- "NotMember" (not in the group yet), "Error".
+	-- "NotMember" (not in the group yet), "Rejoin" (the favorite card's first Verify, or one
+	-- before a rejoin: like the game and rejoin; Config.Social.LikeRejoin), "Error".
 	RewardRequest = "RemoteFunction",
 	-- Trading (src/server/Trading.luau; the rules are Progression/Trade). An item is a cue id,
 	-- "Block:<kind>" (a READY unclimbed or never-climbing lucky block) or "Climbed:<tier>" (a

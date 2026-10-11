@@ -1073,8 +1073,11 @@ approves the v5 proposal (ECONOMY.md section 11).
   day 28 an Epic block); **playtime gifts**, all within the first hour (5 min $500, 15 min
   $1,000, 30 min $1,500, 45 min $2,000, 60 min $2,500 + 1 spin; 2026-10-10, was $14,000 in
   all); **VIP's Mystery block** each day (2026-10-10; it was an Uncommon block), shown once
-  under the day tiles, never on each tile; the game's **group** (Join and Claim: 2 Mystery blocks once, +10% match
-  money while a member); a **favorite** reward ($10,000 + a Lucky 8 block); six **like codes**
+  under the day tiles, never on each tile; the game's **group** (Join and Claim: 1 Mystery block once, +10% match
+  money while a member); a **like + favorite** reward ($5,000, a Lucky 8 and a Mystery block;
+  a yellow Favorite and a green Verify: the first Verify that finds the favorite asks the
+  player to leave, like the game on its page and rejoin, and a Verify after the rejoin gives
+  it, 2026-10-11, `Config.Social.LikeRejoin`); six **like codes**
   the designer switches on live at like milestones; **invites** (a brand-new friend's first
   real win gives both an Uncommon block; the inviter's once ever, at most 5 a month); **codes**
   (WELCOME, 8BALL, ROOFTOP (an Uncommon block), RELEASE). Codes give only money, lucky blocks

@@ -3536,7 +3536,15 @@ Config.Social = {
 	-- Roblox gives a server no way to check a favorite, so the client reports it.
 	-- v4: a Lucky 8 block (the designer's choice, 2026-10-08; was a Mystery block). Economy v5:
 	-- the Lucky 8 climbs from Uncommon. Economy v6: $5,000 + the Lucky 8 (was $10,000).
-	FavoriteReward = { Money = 5000, Blocks = { Lucky8 = 1 } },
+	-- 2026-10-11 (designer): favorite + like the game gives $5,000, the Lucky 8 and a Mystery
+	-- block (the group keeps 1 Mystery and its match money).
+	FavoriteReward = { Money = 5000, Blocks = { Lucky8 = 1, Mystery = 1 } },
+	-- Favorite + like (designer, 2026-10-11): the card's Verify checks the favorite on the
+	-- client; the first Verify that passes marks the save (RewardView.LikeAskedFlag) and asks
+	-- the player to leave, like the game on its page and rejoin; a Verify in any later
+	-- session gives the reward (a like can't be checked, so the rejoin stands for it). Off:
+	-- the first Verify that passes gives the reward (the old favorite-only claim).
+	LikeRejoin = true,
 	-- A ClaimGroup request (it asks Roblox for the player's groups) at most this often.
 	ClaimCooldownSeconds = 5,
 }
@@ -15491,6 +15499,9 @@ Config.UI.FreeReward = {
 			OddsBadge = { 12, 12, 50 },
 			TextGapUnits = 18, -- between the picture and the words beside it
 			TitleUnits = 50, -- "Join the group", in the kit's gold (smaller to fit)
+			-- A title too long for one line wraps onto this many at its size ("Like + Favorite the
+			-- game", 2026-10-11); one longer still shrinks onto one line.
+			TitleMaxRows = 2,
 			HeadUnits = 30, -- "Reward:" over the list (designer, 2026-10-09)
 			BulletGapUnits = 8, -- between a list row's bullet and its words
 			RewardUnits = 40, -- "3 Mystery Lucky Blocks" (wraps)
@@ -15503,6 +15514,7 @@ Config.UI.FreeReward = {
 			SectionGapUnits = 16, -- between the picture's row and the button
 			ButtonUnits = 74,
 			ButtonTextUnits = 40,
+			ButtonGapUnits = 16, -- between the favorite card's Favorite and Verify (2026-10-11)
 			Group = {
 				Top = { 240, 248, 255 }, -- white into sky blue, a blue rim
 				Bottom = { 200, 228, 255 },

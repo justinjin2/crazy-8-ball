@@ -714,6 +714,7 @@ return {
 			Used = "You already used that code.",
 			Expired = "That code has expired.",
 			NotMember = "Join the group first, then claim!",
+			Rejoin = "Like the game and rejoin first!",
 			-- Trading (TradeRequest's reasons; NotOwned, Owned and Busy above serve trades too).
 			NotHere = "That player isn't here anymore.",
 			Self = "You can't trade with yourself.",
@@ -1299,10 +1300,18 @@ return {
 		GroupTitle = "Free Lucky Blocks",
 		GroupRow = "Join the group",
 		GroupLine = "%s, +%d%% match money", -- the reward's gains, the boost while a member
-		FavoriteRow = "Favorite the game",
+		FavoriteRow = "Like + Favorite the game", -- favorite + like (designer, 2026-10-11)
 		Join = "Join",
 		Favorite = "Favorite",
-		NotYet = "Not favorited yet. Try again!",
+		-- The favorite card's Verify (Config.Social.LikeRejoin): the game not favorited yet,
+		-- then the first Verify's dialog (Leave & Like sends them out with RejoinKick).
+		Verify = "Verify",
+		NeedFavorite = "Like and favorite the game first!",
+		RejoinTitle = "Like the game and rejoin first!",
+		RejoinText = "1. Leave the game\n2. Press the thumbs up on the game's page\n3. Rejoin and press Verify for your reward!",
+		RejoinLeave = "Leave & Like",
+		RejoinLater = "Later",
+		RejoinKick = "Thanks! Press the thumbs up on the game's page, then rejoin and press Verify to get your reward!",
 		-- The first-visit heroes (FreeHeroes): their titles are GroupRow and FavoriteRow, the
 		-- reward's blocks the big words, the rest a line under them.
 		HeroBoost = "+%d%% Permanent Extra Money", -- the group's match money (designer, 2026-10-09)

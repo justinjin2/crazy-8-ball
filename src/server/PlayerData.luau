@@ -44,6 +44,7 @@ local Restock = require(Shared.Progression.Restock)
 local Inventory = require(Shared.Progression.Inventory)
 local LuckyBlocks = require(Shared.Progression.LuckyBlocks)
 local Daily = require(Shared.Progression.Daily)
+local RewardView = require(Shared.Progression.RewardView)
 local SkyBlock = require(Shared.Progression.SkyBlock)
 local Social = require(Shared.Progression.Social)
 local Trade = require(Shared.Progression.Trade)
@@ -3261,9 +3262,16 @@ function PlayerData.claimGroup(player: Player, member: boolean): (boolean, Daily
 	return true, reward
 end
 
---- The favorite reward (Config.Social.FavoriteReward), once per player (GUI lane, D4): the
---- client says Roblox's favorite prompt answered yes (a server cannot check a favorite).
---- Answers (true, Daily.Reward) or (false, "Claimed" | "NotLoaded").
+-- Players this session asked to like the game and rejoin (the favorite card's first Verify;
+-- weak, so a gone Player can be collected): a Verify here is not after a rejoin yet.
+local likeAskedHere: { [Player]: boolean } = setmetatable({}, { __mode = "k" }) :: any
+
+--- The favorite reward (Config.Social.FavoriteReward), once per player (GUI lane, D4;
+--- favorite + like, 2026-10-11): the client's Verify says the game is favorited (a server
+--- cannot check a favorite or a like). The first one marks the save and answers "Rejoin"
+--- (like the game on its page and rejoin); one in a later session gives
+--- (RewardView.favoriteStep, Config.Social.LikeRejoin). Answers (true, Daily.Reward) or
+--- (false, "Claimed" | "Rejoin" | "NotLoaded").
 function PlayerData.claimFavorite(player: Player): (boolean, Daily.Reward | string)
 	local op = "claimFavorite"
 	if not isPlayer(player) then
@@ -3272,8 +3280,18 @@ function PlayerData.claimFavorite(player: Player): (boolean, Daily.Reward | stri
 	local data = liveData(op, player)
 	if data == nil then
 		return false, "NotLoaded"
-	elseif data.Flags[FAVORITE_FLAG] == true then
+	end
+	local verdict =
+		RewardView.favoriteStep(data.Flags, likeAskedHere[player] == true, Config.Social.LikeRejoin)
+	if verdict == "Claimed" then
 		return false, "Claimed"
+	elseif verdict == "Ask" then
+		likeAskedHere[player] = true
+		data.Flags[RewardView.LikeAskedFlag] = true
+		commit(player, data, op)
+		return false, "Rejoin"
+	elseif verdict == "Rejoin" then
+		return false, "Rejoin"
 	end
 	local row = Config.Social.FavoriteReward
 	local reward: Daily.Reward = {
@@ -4028,6 +4046,9 @@ local QA_CALLS: { [string]: (Player, any, any, any, any) -> ...any } = {
 	end,
 	equipCue = function(p, a)
 		return PlayerData.equipCue(p, a)
+	end,
+	setFlag = function(p, a, b)
+		return PlayerData.setFlag(p, a, b)
 	end,
 	markSeen = function(p, a)
 		return PlayerData.markSeen(p, a)
