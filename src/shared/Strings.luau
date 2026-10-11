@@ -1005,9 +1005,18 @@ return {
 	-- waiting on a match, or claimed.
 	LeaveNudge = {
 		Headline = "JUST ONE MORE GAME?",
-		DailyReady = "YOUR FREE DAILY REWARD IS WAITING! CLAIM IT BEFORE YOU GO!",
-		DailyPlay = "PLAY ONE GAME TO UNLOCK TODAY'S FREE DAILY REWARD!",
-		DailyTomorrow = "COME BACK TOMORROW TO CLAIM YOUR DAILY REWARDS!",
+		-- By today's reward: ready to claim, waiting on today's first match, or claimed.
+		Daily = {
+			Ready = "YOUR FREE DAILY REWARD IS WAITING! CLAIM IT BEFORE YOU GO!",
+			Play = "PLAY ONE GAME TO UNLOCK TODAY'S FREE DAILY REWARD!",
+			Tomorrow = "COME BACK TOMORROW TO CLAIM YOUR DAILY REWARDS!",
+		},
+		-- A phone's one line, after the headline (designer, 2026-10-10: "COME TMRW FOR REWARDS").
+		Short = {
+			Ready = "FREE REWARD READY!",
+			Play = "PLAY 1 FOR A FREE REWARD!",
+			Tomorrow = "COME TMRW FOR REWARDS!",
+		},
 	},
 	LuckyBlocks = {
 		Names = {

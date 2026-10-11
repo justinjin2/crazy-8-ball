@@ -11,7 +11,8 @@
 -- the lines go round where the panel is worked out to be (Config.UI.LeaveNudge, measured): the
 -- headline in the band from the top of the screen down to just above it, centred on the screen
 -- clear of Roblox's buttons, and the daily line in the band under it across the whole
--- width (a PC or a tablet); a phone's panel reaches the bottom, so there both share the top. It stacks with the Gift's fall on the first opening: this screen sits over the
+-- width (a PC or a tablet); a phone's panel reaches the bottom, so there both go on one line at
+-- the top, the same size, the daily part in short words ("COME TMRW FOR REWARDS!"). It stacks with the Gift's fall on the first opening: this screen sits over the
 -- Gift's letterbox bars, and the Gift's own line waits until the menu closes (GiftDrop).
 --
 -- Its ScreenGui is on only while the menu is open, whatever else turns it on (a cutscene
@@ -46,6 +47,7 @@ type Parts = {
 	daily: TextLabel,
 	breath: UIScale,
 	rainbow: UIGradient,
+	state: string,
 	dailyX: number,
 	dailyY: number,
 	dailyH: number,
@@ -63,17 +65,19 @@ local function rgb(c: { number }): Color3
 end
 
 -- Today's daily reward line: ready to claim, waiting on today's first match, or claimed.
-local function dailyLine(): string
+-- Today's daily reward: "Ready" to claim, waiting on today's first match ("Play"), or claimed
+-- ("Tomorrow").
+local function dailyState(): string
 	local rewards = ItemState.rewards()
 	local login = if type(rewards) == "table" then rewards.login else nil
 	if type(login) == "table" then
 		if login.canClaim == true then
-			return W.DailyReady
+			return "Ready"
 		elseif login.needsMatch == true then
-			return W.DailyPlay
+			return "Play"
 		end
 	end
-	return W.DailyTomorrow
+	return "Tomorrow"
 end
 
 local function line(parent: Instance, name: string, text: string, tint: Color3?): TextLabel
@@ -140,7 +144,7 @@ local function build(): Parts
 	local breath = Instance.new("UIScale")
 	breath.Parent = headline
 	-- The daily line stands on its own: at the bottom on a PC or tablet (see layout).
-	local daily = line(gui, "Daily", W.DailyTomorrow)
+	local daily = line(gui, "Daily", W.Daily.Tomorrow)
 	-- A rainbow, twice over so it can slide along the line without a seam.
 	local keys: { ColorSequenceKeypoint } = {}
 	local colors = N.DailyRainbow
@@ -179,6 +183,7 @@ local function build(): Parts
 	probe.Parent = playerGui
 	return {
 		rainbow = rainbow,
+		state = "Tomorrow",
 		dailyX = 0,
 		dailyY = 0,
 		dailyH = 0,
@@ -265,22 +270,56 @@ local function layout(p: Parts)
 		label.Size = UDim2.fromOffset(width, math.ceil(slot))
 	end
 	if split then
+		p.daily.Text = (W.Daily :: any)[p.state]
 		place(p.headline, topWidth / 2, 0, topWidth, topHeight, N.MaxTextPx.Headline)
 		local width = math.min(area.X - 2 * N.SidePx, N.MaxWidthPx)
 		place(p.daily, shift.X + area.X / 2, bottomTop, width, bottomHeight, N.MaxTextPx.Daily)
 		p.dailyX, p.dailyY, p.dailyH = shift.X + area.X / 2, bottomTop, bottomHeight
 	else
-		local headSlot = topHeight * N.Shares.Headline
-		local dailySlot = topHeight * N.Shares.Daily
-		place(p.headline, topWidth / 2, 0, topWidth, headSlot, N.MaxTextPx.Headline)
-		place(p.daily, topX, N.TopPx + headSlot, topWidth, dailySlot, N.MaxTextPx.Daily)
-		p.dailyX, p.dailyY, p.dailyH = topX, N.TopPx + headSlot, dailySlot
+		-- A phone: one line, both parts the same big size (designer, 2026-10-10), the short
+		-- daily words after the headline, together centred in the room from just right of
+		-- Roblox's buttons to the safe area's right edge.
+		p.daily.Text = (W.Short :: any)[p.state]
+		local bandRight = shift.X + area.X - N.SidePx
+		local bandWidth = bandRight - left
+		local probeSize = 100
+		local font = HudParts.measureFont(p.headline)
+		local function widthAt(label: TextLabel): number
+			return TextService:GetTextSize(
+				label.Text,
+				probeSize,
+				font,
+				Vector2.new(math.huge, math.huge)
+			).X
+		end
+		local headWide, dailyWide = widthAt(p.headline), widthAt(p.daily)
+		local total = headWide + N.OneLineGapEm * probeSize + dailyWide
+		local most = math.min(N.MaxTextPx.Headline, topHeight * N.LineFill)
+		local size =
+			math.max(N.MinTextPx, math.floor(math.min(most, probeSize * bandWidth / total)))
+		local k = size / probeSize
+		local start = left + (bandWidth - total * k) / 2
+		local headX = start + headWide * k / 2
+		local dailyX = start + (headWide + N.OneLineGapEm * probeSize) * k + dailyWide * k / 2
+		for _, label in { p.headline, p.daily } do
+			HudParts.setTextSize(label, size, size)
+			label.TextYAlignment = Enum.TextYAlignment.Center
+		end
+		-- The headline sits in the words frame (its pop), laid over the same band.
+		p.words.Position = UDim2.fromOffset((left + bandRight) / 2, N.TopPx)
+		p.words.Size = UDim2.fromOffset(bandWidth, topHeight)
+		local wordsLeft = (left + bandRight) / 2 - bandWidth / 2
+		p.headline.Position = UDim2.fromOffset(headX - wordsLeft, 0)
+		p.headline.Size = UDim2.fromOffset(math.ceil(headWide * k) + 4, math.ceil(topHeight))
+		p.daily.Position = UDim2.fromOffset(dailyX, N.TopPx)
+		p.daily.Size = UDim2.fromOffset(math.ceil(dailyWide * k) + 4, math.ceil(topHeight))
+		p.dailyX, p.dailyY, p.dailyH = dailyX, N.TopPx, topHeight
 	end
 end
 
 local function show(p: Parts)
 	openedAt = os.clock()
-	p.daily.Text = dailyLine()
+	p.state = dailyState()
 	p.gui.Enabled = true
 	layout(p)
 	task.defer(layout, p) -- once more after the screen's first layout pass

@@ -12484,9 +12484,10 @@ Config.UI.LeaveNudge = {
 	SidePx = 12,
 	RowFallbackPx = 58, -- Roblox's top row when GuiService reports none
 	MaxWidthPx = 1400,
-	-- Sharing the top (a phone), the two lines' shares of its height; each line is as big as
-	-- its room and the width allow, up to its largest size.
-	Shares = { Headline = 0.58, Daily = 0.42 },
+	-- Without room under the panel (a phone) both go on one line at the top, the same size,
+	-- this many ems apart (designer, 2026-10-10). Each line is as big as its room and the width
+	-- allow, up to its largest size.
+	OneLineGapEm = 0.35,
 	MaxTextPx = { Headline = 140, Daily = 96 },
 	LineFill = 0.92, -- a line's text size, of its share's height
 	MinTextPx = 7,
