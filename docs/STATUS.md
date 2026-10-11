@@ -56,6 +56,10 @@ rooftop map with a day and sunset cycle; pull cutscenes Rare to Secret; the ball
   not-favorited path (now Roblox's favorite prompt, then the notice if closed), the popup, Later, closing the menu over it, Leave & Like sending the
   player out, the flag kept over the rejoin. Open: the designer's look at the popup, a phone
   and a controller. Off switch: `Config.Social.LikeRejoin`.
+- **Emotes** (2026-10-11, DECISIONS): the wheel's empty slots are filled on each spawn, so it
+  no longer says "disabled". Checked in Studio (join, respawn, an emote playing). Watch:
+  emoting at a table (the shooter's pose is ours), on a phone and a controller. Off switch:
+  `Config.Emotes.FillEmptySlots`.
 - **Solo and Practice portals**: a real teleport on the live game.
 - **Launch review leftovers:** server CPU per shot (MicroProfiler live), "+10% Permanent" group wording, the day 7 cue not in the claim flyer, the
   Sky ping trusts the client. Roblox shows products at about 0.8x their price (regional

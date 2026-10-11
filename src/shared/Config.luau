@@ -1135,6 +1135,20 @@ Config.Aim = {
 }
 
 ---------------------------------------------------------------------------------------------
+-- Emotes (designer, 2026-10-11: "its disabled right now allow them"). Roblox's emote wheel says
+-- "Emotes are disabled in this experience" when the character has no emote in its eight slots,
+-- even with StarterPlayer.UserEmotesEnabled on: a player who owns emotes (everyone has
+-- Roblox's free ones) but never put one in a slot. EmoteSlots fills the empty slots with the
+-- owned emotes on each spawn (src/server/EmoteSlots.luau, src/shared/EmotePick.luau). Off: the
+-- wheel as Roblox leaves it. (tune)
+---------------------------------------------------------------------------------------------
+Config.Emotes = {
+	FillEmptySlots = true,
+	Slots = 8, -- the wheel's slots
+	WaitSeconds = 10, -- how long a spawn waits for Roblox to put the avatar's description on
+}
+
+---------------------------------------------------------------------------------------------
 -- Avatar (the shooter's character at the table, R15 or R6)
 ---------------------------------------------------------------------------------------------
 Config.Avatar = {
