@@ -82,7 +82,10 @@ end
 
 local function line(parent: Instance, name: string, text: string, tint: Color3?): TextLabel
 	local label = HudParts.text(parent, name, 20, text, tint)
-	label.TextScaled = false
+	-- Scaled, capped at the size layout works out from the English words: Roblox's automatic
+	-- translation shows other words in the same box, and a longer translation shrinks to fit
+	-- it instead of running past it (on a phone, into Roblox's buttons).
+	label.TextScaled = true
 	label.TextWrapped = false
 	label.AnchorPoint = Vector2.new(0.5, 0)
 	label.Active = false
@@ -264,7 +267,7 @@ local function layout(p: Parts)
 		most: number
 	)
 		local size = fit(label, math.min(most, slot * N.LineFill), width)
-		HudParts.setTextSize(label, size, size)
+		HudParts.setTextSize(label, size, N.MinTextPx)
 		label.TextYAlignment = Enum.TextYAlignment.Center
 		label.Position = UDim2.fromOffset(x, top)
 		label.Size = UDim2.fromOffset(width, math.ceil(slot))
@@ -302,7 +305,7 @@ local function layout(p: Parts)
 		local headX = start + headWide * k / 2
 		local dailyX = start + (headWide + N.OneLineGapEm * probeSize) * k + dailyWide * k / 2
 		for _, label in { p.headline, p.daily } do
-			HudParts.setTextSize(label, size, size)
+			HudParts.setTextSize(label, size, N.MinTextPx)
 			label.TextYAlignment = Enum.TextYAlignment.Center
 		end
 		-- The headline sits in the words frame (its pop), laid over the same band.
