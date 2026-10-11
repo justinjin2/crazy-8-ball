@@ -24,7 +24,7 @@ Bronze to Reyes, and the rarest items can be traded. Built for phones first, wit
 The goal is longevity: the respected, premier 8-ball game on Roblox that people come back to,
 not a trend that dies.
 
-**The first release** (designer, 2026-09-26): the pool game on phone, PC and console, ranks
+**The first release** (designer, 2026-09-26; released 2026-10-10): the pool game on phone, PC and console, ranks
 and EXP, ten bots, cues, the economy, trading and ultimates (the abilities, reworked; designer,
 2026-09-28; section 9). **Not in it:** the pro lobby, which follows about one to two weeks
 after release. The global queue was moved into the release

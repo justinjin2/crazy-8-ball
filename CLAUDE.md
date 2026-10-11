@@ -6,7 +6,8 @@ file; Codex reads AGENTS.md, which is the same file).
 ## Read first, every session
 
 1. `docs/STATUS.md`: where the build is and the current milestone (current state only).
-2. The current milestone in `docs/ROADMAP.md` (the first unticked box).
+2. `docs/ROADMAP.md`: since launch the designer's requests come first; its unticked boxes are
+   the backlog.
 3. `docs/ARCHITECTURE.md` before touching `src/`.
 4. `docs/GDD.md` for design intent; sections are split into Decided and Open. Never guess an
    Open item, ask.
@@ -35,6 +36,35 @@ playtesting shows it does not work.
   quietly building around it.
 - "Decided" in the GDD means "build to this for now", not "forever". The same goes for the
   rules in this file: tools follow them strictly, but the designer can change them.
+
+## The game is live (released 2026-10-10)
+
+Real players are in the game. The work now is QA, quality of life, bug fixes, new features and
+updates, and a slow cleanup of old code and features as the game takes its form (designer,
+2026-10-10). **No update may bring a critical bug or error to the live game.**
+
+- **Small, separate commits.** One fix or feature per commit, so a bad one can be undone alone.
+  Cleanup never shares a commit with a fix or a feature.
+- **Bug fixes:** find the cause before changing code; add a Lune test that fails without the
+  fix when the code is testable. Check what else uses the code you change (grep the callers).
+- **Every change:** `tools/lint.sh`, `tools/test.sh`, then a Studio check of the main path it
+  touches, console clean. Anything touching join, the tutorial, the first match, saves,
+  purchases or the lobby's popups and menus also gets a fresh-player run in Studio (join,
+  tutorial or skip, first match, the popups), because a break there loses new players.
+- **Saves are real players' now.** Never wipe, rename or swap a store. Change a save's shape
+  only through a SaveSchema migration with a test that loads the old shape. A server refuses a
+  save from a newer version, so a version bump goes out with "Restart Servers for Updates" and
+  is never rolled back.
+- **Big or risky features behind a Config switch** (off means the old behaviour, like
+  `Config.Trade.Enabled`), so a bad one is turned off with a one-line publish instead of a
+  revert.
+- **Money and Robux:** never change a price, payout, drop rate or product without the
+  designer's say; purchase handling stays safe to replay.
+- **Cleanup, slowly:** remove only code proven unused (grep, tests pass, Studio checked) or a
+  feature the designer retires; one area at a time; keep the save fields old saves still have.
+- **Publishing is the designer's.** After pushing, tell them what is waiting to publish, what
+  could break and what to check by hand on the live game, then to use "Restart Servers for
+  Updates". STATUS lists what is pushed but not yet published.
 
 ## Non-negotiable rules
 
@@ -66,8 +96,8 @@ playtesting shows it does not work.
 
 ## How we work
 
-One milestone at a time. Plan in plan mode first for anything that touches more than one
-module. The milestone loop: `tools/lint.sh`, `tools/test.sh`, confirm Rojo sync, playtest in
+One request or milestone at a time. Plan in plan mode first for anything that touches more
+than one module. The milestone loop: `tools/lint.sh`, `tools/test.sh`, confirm Rojo sync, playtest in
 Studio through MCP on phone, PC and gamepad emulation, read the console, screenshot, fix. Then
 tell the user plainly what was built, what was verified and what to try by hand. Commit as soon
 as a step is verified (the user does not want to be asked for approval), push, tick the box in
@@ -80,7 +110,7 @@ session to verify is allowed.
 **The place file.** Scripts are Rojo's job and are never saved by hand. Only Edit-mode
 content (imported meshes, textures, MaterialVariants, lighting, anything built in Studio)
 lives in the place. Team Create already saves that to the cloud continuously, so do NOT ask
-the user to save after every change. Ask once **per milestone**: save to `place/8ball.rbxl`
+the user to save after every change. Ask once **per update**: save to `place/8ball.rbxl`
 so git has the place, and publish so it is live. If a change would be expensive to redo (a
 fresh import, a long Edit-mode build), say so once at the time and then let it go.
 

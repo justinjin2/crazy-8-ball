@@ -2,7 +2,8 @@
 
 How to use this file:
 
-- **The current milestone is the first unticked box.** Work on one at a time, top to bottom.
+- **Since launch (2026-10-10) the designer's requests come first** and the unticked boxes are
+  the backlog; before launch the current milestone was the first unticked box. One at a time.
 - Every milestone ends in something you can play or see. "Done means" is the test.
 - **Standing rule for every milestone:** works on phone, PC and gamepad and is checked on all
   three; lint and tests pass; playtested in Studio; console clean; screenshot taken; STATUS.md
@@ -14,6 +15,12 @@ How to use this file:
   this page is the order of work.
 
 Rewritten 2026-09-20; reordered 2026-09-26 to the designer's road to release (below).
+
+**The game is live (released 2026-10-10).** Since launch the designer's requests come first:
+QA, quality of life, bug fixes, new features and updates, and a slow cleanup of old code and
+features. The unticked boxes below are the backlog, not a fixed order; the release ones that
+were not finished (zone signs, phone and controller checks, the performance pass, the funnels)
+stay open as live work. Every update follows CLAUDE.md, "The game is live".
 
 ---
 
@@ -517,9 +524,11 @@ daily rewards, trading's gates, Roblox policy): `docs/ECONOMY.md`.*
 - [ ] **4.4 Performance pass.** Low-end phone with sixteen busy tables: streaming, LOD, shadow
   and light budget, no stutter.
 - [ ] **8.3 Name, icon, thumbnails, game page.** Final name check.
-- [ ] **8.4 Public release.** Watch where players quit. Everything above must exist.
+- [x] **8.4 Public release.** Released 2026-10-10 (economy v6, every save started over first).
+  Watch where players quit.
 
-**RELEASE.** Review what players love and ignore. That decides the order after the first weeks.
+**RELEASED 2026-10-10.** Review what players love and ignore. That decides the order after the
+first weeks.
 
 ---
 
