@@ -1350,7 +1350,7 @@ return {
 			Sfx = "Clicks, shots and ability sounds.",
 			LowFx = "Fewer particles. Smoother on slower devices.",
 			ShowFlag = "Other players see it in the player list.",
-			ShotCam = "Top: from above. Player: from behind you.",
+			ShotCam = "Top: the whole table. Player: your own camera.",
 		},
 		On = "ON",
 		Off = "OFF",

@@ -6,8 +6,7 @@
 -- framing the screen allows. Zooming in closes on the cue ball. While a shot plays it holds
 -- the framing the shot was taken from for a beat, then pulls out so the whole table shows: by
 -- default it swings round to a fixed semi-top-down view from the nearer long side
--- (Config.Camera.Shot.PullOutView), and swings back when the balls stop; a player who turned
--- on "Player view after a shot" (setPlayerView) gets the whole table along the aim instead.
+-- (Config.Camera.Shot.PullOutView), and swings back when the balls stop.
 --
 -- Every turn starts in the HOME VIEW (Config.Camera.View.ZoomDefault, the pre-multiplayer
 -- framing, untouched by the match HUD), and the camera always comes back to it: after every
@@ -75,8 +74,6 @@ local pullOutWanted = true
 -- The "Side" pull-out (Shot.PullOutView): the flat world direction the side view looks across
 -- the table, chosen once when this shot pulls out; nil while it has not.
 local sideAcross: Vector3? = nil
--- Settings' "Player view after a shot" (setPlayerView): the "Aim" pull-out instead of "Side".
-local playerView = false
 -- A pose as an orbit round the point on the cloth it looks through (see orbitOf).
 type Orbit = { pivot: Vector3, yaw: number, pitch: number, distance: number }
 -- A swing in flight: from the pose the camera was showing, round the table to a target pose,
@@ -884,10 +881,7 @@ function Camera.update(
 	--
 	-- Where it pulls out to is Shot.PullOutView: "Side" swings round to the side view, "Aim"
 	-- zooms out to the whole table along the aim.
-	-- A shot already pulled out keeps the view it took (sideAcross), whatever the switch says now.
-	local side = if pullOutStart
-		then sideAcross ~= nil
-		else S.PullOutView == "Side" and not playerView
+	local side = S.PullOutView == "Side"
 	local zoomOverride: number? = nil
 	if playing and S.ZoomOut then
 		if pullOutStart == nil then
@@ -974,12 +968,6 @@ function Camera.beginShot(cueSpeed: number, wx: number?, wy: number?)
 	local S = Config.Camera.Shot
 	local reach = Cue.rollOutDistance(cueSpeed, wx, wy)
 	pullOutWanted = reach >= S.MinTravelTableLengths * Config.Table.LengthInches
-end
-
---- Settings' "Player view after a shot" (Config.Settings.Defaults.ShotCam): `on` pulls the
---- next shot out along the aim, behind the player, instead of to the side view.
-function Camera.setPlayerView(on: boolean)
-	playerView = on
 end
 
 --- Snap straight to the view (used once at start so there is no swoop from the spawn).

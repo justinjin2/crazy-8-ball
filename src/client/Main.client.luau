@@ -1506,6 +1506,13 @@ local function renderFrame(dt: number)
 	targets:setEnabled(not modal and awaitingAt == nil and not match:isBusy() and not picking)
 	input:setPlaceAllowed(targets:canPlace())
 	local phase = snapshot.phase
+	-- Settings' "Camera after a shot" on PLAYER (designer, 2026-10-11): once the stroke has
+	-- played, the camera and the body are the player's own (their zoom, free look, shift lock,
+	-- walking) until their next turn takes them again. Never in the guided tutorial.
+	local ownCamera = phase == "Resolving"
+		and not avatar:stroking()
+		and SettingsState.get("ShotCam")
+		and player:GetAttribute("TutorialActive") == false
 	-- Only the shooter's camera is taken. The coin flip is a HUD overlay watched with the
 	-- ordinary camera; the breaker is handed the home view at Intro. A solo player keeps it
 	-- through a foul, since the ball in hand that follows is their own.
@@ -1514,6 +1521,7 @@ local function renderFrame(dt: number)
 		and phase ~= "CoinFlip"
 		and (phase ~= "Foul" or snapshot.solo ~= nil)
 		and phase ~= "Result"
+		and not ownCamera
 	if take ~= controlled then
 		controlled = take
 		if take then
@@ -1583,10 +1591,6 @@ local function renderFrame(dt: number)
 		-- The view holds still while the cue ball is dragged or sits in a pocket.
 		local cueBall = match:findCueBall()
 		local hold = targets:isHolding() or (cueBall ~= nil and cueBall.pocketed)
-		-- The player's own "Player view after a shot"; the guided tutorial keeps the side view.
-		Camera.setPlayerView(
-			SettingsState.get("ShotCam") and player:GetAttribute("TutorialActive") == false
-		)
 		Camera.update(
 			dt,
 			cueWorld(),

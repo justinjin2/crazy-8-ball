@@ -1071,8 +1071,7 @@ Config.Camera = {
 		-- table centred, the same view every shot. It takes the long side that needs the
 		-- smaller turn from where the shot was aimed, so the camera never turns more than about
 		-- a quarter of the way round, and when the balls stop it swings back the same way.
-		-- "Aim": the older pull-out, the whole table seen along the aim line. A player who turns
-		-- on Settings' "Player view after a shot" (Config.Settings.Defaults.ShotCam) gets "Aim".
+		-- "Aim": the older pull-out, the whole table seen along the aim line.
 		PullOutView = "Side",
 		-- The "Side" swing out takes this long, eased in and out (smoothstep) and not smoothed
 		-- on top, so the camera arrives at exactly this time. The designer chose about 0.9 s:
@@ -15872,10 +15871,10 @@ Config.Settings = {
 		Music = true, -- the lobby music on (Config.Music; designer, 2026-10-10: music is back)
 		LowFx = false, -- Lower effects (Quality: fewer particles, calmer UI loops)
 		ShowFlag = false, -- show my country flag in the player list (off until turned on)
-		-- After a shot the camera stays behind the player, the whole table seen along the aim
-		-- (Camera.Shot.PullOutView's "Aim"), instead of swinging round to the top-down side
-		-- view. Off for everyone until they turn it on; the guided tutorial always uses the
-		-- side view (designer, 2026-10-11: mainly for clips).
+		-- "Camera after a shot": false is TOP (the shot camera's top-down side view), true is
+		-- PLAYER: once the stroke has played the player has their own Roblox camera and body
+		-- back (free look, shift lock, walking) until their next turn. TOP for everyone until
+		-- they pick PLAYER; the guided tutorial always uses TOP (designer, 2026-10-11: for clips).
 		ShotCam = false,
 		ListOpen = false, -- the player list left open (designer 2026-10-07: folded until opened)
 	} :: { [string]: boolean },
@@ -15915,7 +15914,7 @@ Config.UI.Settings = {
 	-- switch's Kit colour on each side (its words in Strings.Settings.Choices). Off is the
 	-- default side, the knob at the left.
 	Choices = {
-		ShotCam = { Off = "Blue", On = "Gold" }, -- TOP (the side view) or PLAYER (behind you)
+		ShotCam = { Off = "Blue", On = "Gold" }, -- TOP (the side view) or PLAYER (your own camera)
 	},
 	-- Each row's Kit.Icons key.
 	Icons = {

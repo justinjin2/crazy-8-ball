@@ -55,9 +55,10 @@ rooftop map with a day and sunset cycle; pull cutscenes Rare to Secret; the ball
   player out, the flag kept over the rejoin. Open: the designer's look at the popup, a phone
   and a controller. Off switch: `Config.Social.LikeRejoin`.
 - **Camera after a shot** (2026-10-11, DECISIONS): a Settings switch, blue TOP (default) or
-  gold PLAYER; PLAYER pulls the shot camera out behind the player along the aim instead of the top-down side
-  view (never in the guided tutorial). Checked in Studio on PC: the fifth row, ON and OFF on a
-  real break. Open: the row on a phone and a controller.
+  gold PLAYER; PLAYER hands the player their own Roblox camera and body once the stroke has
+  played, until their next turn (never in the guided tutorial). Checked in Studio on PC: the
+  row both ways; PLAYER on a break (Roblox's camera, walking, the table view back next turn);
+  TOP unchanged. Open: a real stroke (QA shots skip it), a phone and a controller.
 - **Emotes** (2026-10-11, DECISIONS): the wheel's empty slots are filled on each spawn, so it
   no longer says "disabled". Checked in Studio (join, respawn, an emote playing). Watch:
   emoting at a table (the shooter's pose is ours), on a phone and a controller. Off switch:

@@ -155,9 +155,11 @@ Every feature is checked against these. If it serves none, it waits.
     edge. (A test, 2026-09-26; `Config.Camera.Shot.PullOutView = "Aim"` restores the older
     whole-table view along the aim.)
   - **Camera after a shot** (Settings, a two-sided switch: blue TOP, the default, or gold
-    PLAYER; designer, 2026-10-11, mainly for clips): a player who picks PLAYER gets that older pull-out instead, the whole table seen
-    from behind them along the aim, with no swing round the table. Top-down stays everyone's
-    default, and the guided tutorial always uses it whatever the switch says.
+    PLAYER; designer, 2026-10-11, mainly for clips): with PLAYER, once the stroke has played
+    the camera eases back into the player's own Roblox camera (their zoom, free look, shift
+    lock) and their body is theirs to walk, until their next turn takes the table view again.
+    Top-down stays everyone's default, and the guided tutorial always uses it whatever the
+    switch says.
   - Cue-ball placement (break and ball in hand) happens in this 3D view; the camera holds still
     while the ball is dragged.
   - The one exception: the shooter's view goes top-down to call the 8-ball pocket, and returns
