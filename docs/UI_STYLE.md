@@ -1020,8 +1020,9 @@ player's first win shows its Rare block).
   member) and "Favorite the game" (gold: the Lucky 8 Block with a star and cash, "+1 Lucky 8
   Block", "+$10,000", Favorite with the star; every reward says its count, `RewardsParts.gains`); each picture wears its block's dice; a claimed
   one's button turns grey "Claimed". Since 2026-10-11 the gold card is "Like + Favorite the
-  game" (the title wraps onto two lines at its size, `TitleMaxRows`): "+1 Mystery Lucky Block,
-  +1 Lucky 8", "+$5,000", and its foot split into a yellow Favorite (the star) and a green
+  game" (the title wraps onto two lines at its size, `TitleMaxRows`): one bullet a reward,
+  "+1 Lucky 8 Block", "+1 Mystery Lucky Block", "+$5,000", a small Mystery block at the
+  Lucky 8's foot in the picture (`Heroes.Extra`), and its foot split into a yellow Favorite (the star) and a green
   Verify (the check, shining); Claimed alone across it. The first Verify that passes opens the
   **"ALMOST THERE!" popup** (`LikeRejoinPopup`, `Config.UI.FreeReward.LikePopup`; concept A,
   2026-10-11): the house slam with no burst, "Like the game to unlock your reward", three step

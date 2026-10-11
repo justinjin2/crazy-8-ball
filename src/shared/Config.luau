@@ -15501,6 +15501,10 @@ Config.UI.FreeReward = {
 			Badge = { 0.8, 0.18, 0.34 }, -- the group's busts or the favorite star
 			BadgeRock = { 8, 2.2 }, -- it rocks this many degrees each way, over these seconds
 			Cash = { 0.82, 0.84, 0.4 }, -- the money, when the reward gives some
+			-- A small picture of the reward's other block (the favorite card's Mystery beside its
+			-- Lucky 8; designer, 2026-10-11).
+			Extra = { 0.2, 0.84, 0.36 },
+			ListRows = 4, -- the list's rows at most: the blocks, the money, the match money
 			-- The sky-blue dice on the picture's top left corner: its centre this far in from the
 			-- corner (x, y), its size.
 			OddsBadge = { 12, 12, 50 },

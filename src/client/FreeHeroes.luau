@@ -55,19 +55,22 @@ type Hero = {
 	copies: { ImageLabel }, -- the copies behind it
 	badge: ImageLabel, -- the group's busts or the star
 	cash: ImageLabel,
+	extra: ImageLabel, -- a small picture of the reward's other block (the favorite's Mystery)
 	odds: ShopCards.Badge,
 	title: TextLabel,
 	head: TextLabel, -- "Reward:" over the list
-	reward: TextLabel,
+	reward: TextLabel, -- the list's first row: the block in front
 	rewardDot: TextLabel, -- the list's bullets, the words wrapping clear of them
-	line: TextLabel,
-	lineDot: TextLabel,
+	lines: { ListRow }, -- the rest, one bullet each: other blocks, the money, the match money
 	button: TextButton,
 	verify: TextButton?, -- the favorite card's green Verify beside its yellow Favorite
 	kind: string, -- the block its picture and dice show
 	count: number, -- how many of it the picture shows
 	look: string?, -- the button's look now
 }
+
+-- A list row under the first: its bullet and its words.
+type ListRow = { dot: TextLabel, words: TextLabel }
 
 -- Where a card's pieces go at one size (pixels), worked out before the pair's height is known.
 type Plan = {
@@ -85,7 +88,7 @@ type Plan = {
 	rewardPx: number,
 	rewardH: number,
 	linePx: number,
-	lineH: number,
+	lineHs: { number }, -- each further row's height (0: no words)
 	textH: number,
 	topH: number,
 	buttonH: number,
@@ -140,6 +143,9 @@ local function hero(
 	local cash = ShopCards.image(art.holder, "Cash", ICONS.CashStack, 7)
 	cash.Visible = false
 	share(cash, H.Cash)
+	local extra = ShopCards.image(art.holder, "Extra", "", 7)
+	extra.Visible = false
+	share(extra, H.Extra)
 	for _, twinkle in art.twinkles do
 		twinkle.ZIndex = 8
 	end
@@ -153,9 +159,12 @@ local function hero(
 	local reward = words(frame, "Reward", nil)
 	local rewardDot = words(frame, "RewardDot", nil)
 	rewardDot.Text = W.Bullet
-	local line = words(frame, "Line", nil)
-	local lineDot = words(frame, "LineDot", nil)
-	lineDot.Text = W.Bullet
+	local lines: { ListRow } = {}
+	for index = 1, H.ListRows - 1 do
+		local dot = words(frame, "LineDot" .. index, nil)
+		dot.Text = W.Bullet
+		table.insert(lines, { dot = dot, words = words(frame, "Line" .. index, nil) })
+	end
 	local made: Hero = {
 		key = key,
 		frame = frame,
@@ -165,13 +174,13 @@ local function hero(
 		copies = copies,
 		badge = badge,
 		cash = cash,
+		extra = extra,
 		odds = odds,
 		title = title,
 		head = head,
 		reward = reward,
 		rewardDot = rewardDot,
-		line = line,
-		lineDot = lineDot,
+		lines = lines,
 		button = nil :: any,
 		verify = nil,
 		kind = kind,
@@ -250,15 +259,17 @@ local function plan(c: Hero, k: number, cardW: number): Plan
 	local listW = math.max(1, colW - dotW)
 	local rewardH = ShopParts.wrapHeight(c.reward.Text, rewardPx, listW, H.RewardMaxRows)
 	local linePx = ShopCards.textPx(H.LineUnits, k)
-	local lineH = if c.line.Text ~= ""
-		then ShopParts.wrapHeight(c.line.Text, linePx, listW, H.LineMaxRows)
-		else 0
-	local textH = titleH
-		+ rowGap
-		+ headH
-		+ rowGap
-		+ rewardH
-		+ (if lineH > 0 then rowGap + lineH else 0)
+	local lineHs: { number } = {}
+	local textH = titleH + rowGap + headH + rowGap + rewardH
+	for index, row in c.lines do
+		local text = row.words.Text
+		lineHs[index] = if text ~= ""
+			then ShopParts.wrapHeight(text, linePx, listW, H.LineMaxRows)
+			else 0
+		if lineHs[index] > 0 then
+			textH += rowGap + lineHs[index]
+		end
+	end
 	local topH = math.max(art, textH)
 	local buttonH = ShopCards.buttonPx(H.ButtonUnits, k)
 	return {
@@ -276,7 +287,7 @@ local function plan(c: Hero, k: number, cardW: number): Plan
 		rewardPx = rewardPx,
 		rewardH = rewardH,
 		linePx = linePx,
-		lineH = lineH,
+		lineHs = lineHs,
 		textH = textH,
 		topH = topH,
 		buttonH = buttonH,
@@ -315,15 +326,22 @@ local function place(c: Hero, p: Plan, k: number, cardW: number, cardH: number)
 	c.reward.Position = UDim2.fromOffset(listX, round(y))
 	c.reward.Size = UDim2.fromOffset(listW, p.rewardH)
 	HudParts.setTextSize(c.reward, p.rewardPx)
-	y += p.rewardH + p.rowGap
-	c.line.Visible = p.lineH > 0
-	c.lineDot.Visible = p.lineH > 0
-	c.lineDot.Position = UDim2.fromOffset(p.colX, round(y))
-	c.lineDot.Size = UDim2.fromOffset(p.dotW, p.linePx + B.TextBoxPx)
-	HudParts.setTextSize(c.lineDot, p.linePx)
-	c.line.Position = UDim2.fromOffset(listX, round(y))
-	c.line.Size = UDim2.fromOffset(listW, math.max(1, p.lineH))
-	HudParts.setTextSize(c.line, p.linePx)
+	y += p.rewardH
+	for index, row in c.lines do
+		local h = p.lineHs[index] or 0
+		row.dot.Visible = h > 0
+		row.words.Visible = h > 0
+		if h > 0 then
+			y += p.rowGap
+			row.dot.Position = UDim2.fromOffset(p.colX, round(y))
+			row.dot.Size = UDim2.fromOffset(p.dotW, p.linePx + B.TextBoxPx)
+			HudParts.setTextSize(row.dot, p.linePx)
+			row.words.Position = UDim2.fromOffset(listX, round(y))
+			row.words.Size = UDim2.fromOffset(listW, h)
+			HudParts.setTextSize(row.words, p.linePx)
+			y += h
+		end
+	end
 	-- The button across the card's foot; the favorite card's Favorite and Verify share it
 	-- (Claimed alone across it).
 	local button = c.button
@@ -385,6 +403,11 @@ local function setText(label: TextLabel, text: string)
 	if label.Text ~= text then
 		label.Text = text
 	end
+end
+
+-- One block's list row: "+1 Lucky 8", "+2 Mystery Lucky Blocks".
+local function blockWords(entry: { kind: string, count: number }): string
+	return RewardsParts.gains({ money = 0, blocks = { entry }, spins = 0, lucky = 0 }, true)
 end
 
 -- The picture: `count` of block `kind` (the last copy in front), the money when it gives some.
@@ -455,36 +478,52 @@ function FreeHeroes.refresh(
 		local view = if c.key == "Group" then state.group else state.favorite
 		view = if type(view) == "table" then view else {}
 		local reward = RewardsParts.reward(view.reward)
-		-- The big words: the blocks (or the money when it gives none); the line: the money
-		-- beside blocks and the group's match money.
+		-- The list, one bullet a row (designer, 2026-10-11): the block in front first (the
+		-- favorite card's Lucky 8), each other block, the money, the group's match money.
 		local best = RewardsParts.bestBlock(reward)
 		if c.key == "Favorite" then
-			-- The favorite card keeps its Lucky 8 in front (its other block in the words).
 			for _, entry in reward.blocks do
 				if entry.kind == H.FavoriteBlock then
 					best = entry
 				end
 			end
 		end
-		local big = if #reward.blocks > 0
-			then RewardsParts.gains(reward, true)
-			else W.HeroMoney:format(Format.money(reward.money))
-		local parts: { string } = {}
-		if #reward.blocks > 0 and reward.money > 0 then
-			table.insert(parts, W.HeroMoney:format(Format.money(reward.money)))
+		local rows: { string } = {}
+		local other: string? = nil -- the first other block, small in the picture
+		if best then
+			table.insert(rows, blockWords(best))
+		end
+		for _, entry in reward.blocks do
+			if entry ~= best then
+				table.insert(rows, blockWords(entry))
+				other = other or entry.kind
+			end
+		end
+		if reward.money > 0 then
+			table.insert(rows, W.HeroMoney:format(Format.money(reward.money)))
 		end
 		local boost = round((tonumber(view.boost) or 0) * 100)
 		if c.key == "Group" and boost > 0 then
-			table.insert(parts, W.HeroBoost:format(boost))
+			table.insert(rows, W.HeroBoost:format(boost))
 		end
-		local line = table.concat(parts, "\n")
-		if c.reward.Text ~= big or c.line.Text ~= line then
+		local big = rows[1] or ""
+		if c.reward.Text ~= big then
 			changed = true
 		end
 		setText(c.reward, big)
-		setText(c.line, line)
+		for index, row in c.lines do
+			local text = rows[index + 1] or ""
+			if row.words.Text ~= text then
+				changed = true
+			end
+			setText(row.words, text)
+		end
 		local kind = if best then best.kind else c.kind
 		setPicture(c, kind, if best then math.min(best.count, #H.Copies) else 1, reward.money > 0)
+		c.extra.Visible = other ~= nil
+		if other then
+			c.extra.Image = FreeParts.blockImage(other)
+		end
 		local done = view.claimed == true
 		if c.key == "Group" then
 			local member = view.member == true
