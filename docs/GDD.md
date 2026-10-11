@@ -1077,8 +1077,8 @@ approves the v5 proposal (ECONOMY.md section 11).
   and spins. **Everything is claimed in the Rewards menu**: nothing is given by itself on join
   or at a playtime mark, and there are no reward popups, reminder toasts or come-back screens
   (designer, 2026-10-04), except the **Daily Rewards popup**: once after the first finished match (in the tutorial's
-  soft part, or after any first match once the tutorial is over another way: skipped or
-  ended by an error), then once a visit while today's reward is ready to claim, every day
+  soft part), or at once in the lobby for a player who skipped the tutorial (or whose
+  tutorial ended by an error), then once a visit while today's reward is ready to claim, every day
   they come back (designer, 2026-10-09 and 2026-10-10). The invite popup follows the first
   one, once ever. The other exception is the **Gift lucky block** (designer, 2026-10-07; Roblox's menu,
   2026-10-10): given once, **the first time a player opens Roblox's own menu** after the

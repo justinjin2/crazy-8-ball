@@ -12,8 +12,8 @@
 --   a quiet lobby (Progression.quiet).
 -- - The Daily Rewards popup, once, as the lobby goes quiet after the icons (day 1 to claim,
 --   day 7's prize on show; DailyRewardsMenu); then the invite popup, once: a small card,
---   Invite and a big X. A player whose tutorial is over another way (skipped, or the
---   fail-safe) gets both after their first finished match; and anyone past the guided part
+--   Invite and a big X. A player whose tutorial ended early (skipped, or the fail-safe)
+--   gets both at once in the quiet lobby; and anyone past the guided part
 --   gets Daily Rewards again once a visit while today's reward is ready to claim.
 -- - Free Reward's first open lands on Group (FreeRewardMenu); its join and favorite get a gold
 --   ring and a light sweeping over them until they are pressed (or claimed), its like line a
@@ -132,8 +132,9 @@ end
 local IS_ARENA = workspace:GetAttribute(Config.Arena.ModeAttribute) == "Arena"
 
 -- Whether the Daily Rewards and invite popups may come: in the soft part once its icons are
--- out, or for anyone whose tutorial is over (finished, skipped, or ended by the fail-safe)
--- once they have finished a match (the Played moment; designer, 2026-10-10).
+-- out; at once for a tutorial ended early (Skip, or the fail-safe: TutorialWhy); and for any
+-- other player past the tutorial once they have finished a match (the Played moment;
+-- designer, 2026-10-10).
 local function popupsReady(): boolean
 	if stopped or IS_ARENA or player:GetAttribute("TutorialActive") ~= false then
 		return false
@@ -141,7 +142,9 @@ local function popupsReady(): boolean
 	if step() == "Soft" then
 		return TutorialAnchors.seen("Icons")
 	end
-	return step() == "" and TutorialAnchors.seen("Played")
+	local why = player:GetAttribute("TutorialWhy")
+	return step() == ""
+		and ((type(why) == "string" and why ~= "") or TutorialAnchors.seen("Played"))
 end
 
 local function seen(name: string): boolean
@@ -469,23 +472,27 @@ end
 -- The Daily Rewards popup, once the lobby has been quiet a moment: the first time as soon as
 -- the popups may come (before the invite popup, which waits for it to close), then once a
 -- visit while today's reward is ready to claim (designer, 2026-10-10: every day they come
--- back; with Config.Daily.NeedsMatch that is after the day's first match).
+-- back; with Config.Daily.NeedsMatch that is after the day's first match). A first one that
+-- read "Play a match" (a skipper's) comes back once the match makes it claimable.
 local dailySince: number? = nil
-local dailyShown = false -- it came up this visit
+local dailyShownReady = false -- it came up this visit with today's reward ready to claim
 local function dailyReady(): boolean
 	local rewards = ItemState.rewards()
 	local login = if type(rewards) == "table" then rewards.login else nil
 	return type(login) == "table" and login.canClaim == true
 end
 local function updateDaily(quiet: boolean, now: number)
-	local due = popupsReady() and not dailyShown and (not seen("Daily") or dailyReady())
+	local ready = dailyReady()
+	local due = popupsReady()
+		and not popupUp
+		and (not seen("Daily") or (ready and not dailyShownReady))
 	if not due or not quiet then
 		dailySince = nil
 		return
 	end
 	dailySince = dailySince or now
 	if now - (dailySince :: number) >= S.DailyAfterSeconds and Menus.open("DailyRewards") then
-		dailyShown = true
+		dailyShownReady = dailyShownReady or ready
 		click("Daily")
 	end
 end
