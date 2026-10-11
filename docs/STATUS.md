@@ -44,6 +44,9 @@ One line each; the long form is the 2026-10-08 entry at the top of
   frame rate. **The Gift drop on the first opening of Roblox's menu** (2026-10-10, DECISIONS):
   `/giftdrop`, then press Escape; not yet by a real Escape press (Studio's test tools cannot
   press it), on a phone (the Roblox button) or a controller (Start).
+  **The Gift drop over a closing menu** (2026-10-10, DECISIONS): fixed and checked in Studio
+  (the scene waited for the Shop to close; a screen hidden mid-close stayed off after); not yet
+  checked live on the designer's exact case (Daily Rewards popping as the Gift falls).
 
 ## Open, waiting on the designer
 

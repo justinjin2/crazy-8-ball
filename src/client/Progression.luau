@@ -46,6 +46,7 @@ local RankClaimBlock = require(script.Parent.RankClaimBlock)
 local ShopMenu = require(script.Parent.ShopMenu)
 local DailyRewardsMenu = require(script.Parent.DailyRewardsMenu)
 local FreeRewardMenu = require(script.Parent.FreeRewardMenu)
+local GiftDrop = require(script.Parent.GiftDrop)
 local HubCorners = require(script.Parent.HubCorners)
 local PlayerList = require(script.Parent.PlayerList)
 local ResultCutscene = require(script.Parent.ResultCutscene)
@@ -328,8 +329,9 @@ function Progression.start(screen: ScreenGui, hooks: Hooks)
 		{ rankHud.holder, corners.gearTile.button, corners.gearTile.word, playerList.panel },
 		beside
 	)
+	-- No menu opens over the Gift's cutscene (it hides every screen and puts them back after).
 	Menus.setBlocker(function(): boolean
-		return lastState.inMatch or popupUp()
+		return lastState.inMatch or popupUp() or GiftDrop.isPlaying()
 	end)
 	LuckyClient.start(screen) -- lucky blocks: the hotbar, the throw, the reel
 	local player = Players.LocalPlayer
@@ -385,13 +387,15 @@ function Progression.isBusy(): boolean
 end
 
 --- Whether the lobby is quiet: no match or its result, no popup, reel, menu or teleport screen,
---- and no cutscene (the tutorial's soft part shows its quest and its popup only then).
+--- and no cutscene, the Gift's included (the tutorial's soft part shows its quest and its
+--- popup only then).
 function Progression.quiet(): boolean
 	return started
 		and not lastState.inMatch
 		and not lastState.afterMatch
 		and not popupUp()
 		and not ResultCutscene.isPlaying()
+		and not GiftDrop.isPlaying()
 		and not Menus.isOpen()
 		and not teleportUp()
 end

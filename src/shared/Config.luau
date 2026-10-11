@@ -2395,6 +2395,9 @@ Config.LuckyBlocks = {
 	GiftDrop = {
 		DelaySeconds = 3, -- on a visit: after the player's character is in, before it falls
 		MenuDelaySeconds = 0.5, -- on the first opening of Roblox's menu: this soon after (right away)
+		-- The screen must stay free this long before it falls (a menu or popup that just closed
+		-- finishes its close first; the scene hides every screen and puts them back after).
+		FreeSeconds = 0.75,
 		-- A client's "menu opened" heard at most this often per player (the server's check; the
 		-- client sends no more often either).
 		MenuCooldownSeconds = 5,

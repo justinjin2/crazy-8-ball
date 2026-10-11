@@ -330,6 +330,14 @@ function MenuFrame.new(screen: ScreenGui, opts: Options): any
 		self:dismiss()
 	end)
 	self.dim = dim
+	-- Only open() turns the menu's screen on. Something else turning it back on while the menu
+	-- is shut (the Gift's cutscene puts back every screen it hid, this one too if it was still
+	-- closing then) would leave an empty frame whose dim eats every click: kept off.
+	gui:GetPropertyChangedSignal("Enabled"):Connect(function()
+		if gui.Enabled and not self.opened then
+			gui.Enabled = false
+		end
+	end)
 
 	local panel = HudParts.frame(root, "Panel")
 	panel.AnchorPoint = Vector2.new(0.5, 0.5)

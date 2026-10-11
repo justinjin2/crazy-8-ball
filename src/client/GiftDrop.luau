@@ -783,15 +783,23 @@ local function play(at: CFrame, kind: string)
 	end)
 end
 
--- Plays the drop once nothing else holds the screen (a menu, a popup, a reel: setBusy) and no
--- other drop is falling; one waiting drop per kind.
+-- Plays the drop once nothing else has held the screen (a menu, a popup, a reel: setBusy) for
+-- G.FreeSeconds and no other drop is falling; one waiting drop per kind.
 local function playWhenFree(at: CFrame, kind: string)
 	if waiting[kind] then
 		return
 	end
 	waiting[kind] = true
 	task.spawn(function()
-		while busy() or playing do
+		local freeSince: number? = nil
+		while true do
+			if busy() or playing then
+				freeSince = nil
+			elseif freeSince == nil then
+				freeSince = os.clock()
+			elseif os.clock() - freeSince >= G.FreeSeconds then
+				break
+			end
 			task.wait(0.25)
 		end
 		waiting[kind] = nil
@@ -800,6 +808,11 @@ local function playWhenFree(at: CFrame, kind: string)
 end
 
 --- What keeps the drop waiting (Main: a menu, a popup, the result screen or a reel is up).
+--- Whether the drop's cutscene has the screen (menus and popups wait for it: Progression).
+function GiftDrop.isPlaying(): boolean
+	return playing
+end
+
 function GiftDrop.setBusy(fn: () -> boolean)
 	busy = fn
 end
