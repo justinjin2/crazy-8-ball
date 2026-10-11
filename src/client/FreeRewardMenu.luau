@@ -26,8 +26,8 @@
 -- Abilities tile. A button is off while its request is on its way, and stays off after a
 -- claim until the next state arrives (so a quick second press never asks twice); a refusal
 -- shows the server's reason as a notice; the favorite card's "Rejoin" (like the game and
--- rejoin, Config.Social.LikeRejoin) is the kit's dialog, whose Leave & Like sends the player
--- out with the steps. Claim All is a Robux product (StoreRequest "Buy":
+-- rejoin, Config.Social.LikeRejoin) is the "ALMOST THERE!" popup (LikeRejoinPopup), whose
+-- Leave & Like sends the player out with the steps. Claim All is a Robux product (StoreRequest "Buy":
 -- Roblox's own dialog; "Coming soon" until the product is on sale).
 --
 -- Gamepad: opening lands on the first Claim (today's, a gift's, the group's), else on the lit
@@ -50,10 +50,12 @@ local GuiQA = require(script.Parent.GuiQA)
 local HudParts = require(script.Parent.HudParts)
 local ItemState = require(script.Parent.ItemState)
 local JumpRail = require(script.Parent.JumpRail)
+local LikeRejoinPopup = require(script.Parent.LikeRejoinPopup)
 local MenuFrame = require(script.Parent.MenuFrame)
 local Menus = require(script.Parent.Menus)
 local OddsDetails = require(script.Parent.OddsDetails)
 local RewardsFlyer = require(script.Parent.RewardsFlyer)
+local RewardsParts = require(script.Parent.RewardsParts)
 local ShopMysteryOdds = require(script.Parent.ShopMysteryOdds)
 local ShopParts = require(script.Parent.ShopParts)
 local UIAnim = require(script.Parent.UIAnim)
@@ -163,20 +165,23 @@ function FreeRewardMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 			elseif type(reply) == "table" and reply.reason == "NotMember" then
 				ctx.notice(W.NotMember, "Red")
 			elseif type(reply) == "table" and reply.reason == "Rejoin" and frame:isOpen() then
-				-- The favorite card's first Verify (Config.Social.LikeRejoin): like the game and
-				-- rejoin. Leave & Like sends them out with the steps on Roblox's leave screen.
-				frame:confirm({
-					title = W.RejoinTitle,
-					text = W.RejoinText,
-					yes = W.RejoinLeave,
-					no = W.RejoinLater,
-					yesTone = "Green",
-					noTone = "Blue",
-				}, function(yes: boolean)
-					if yes then
+				-- The favorite card's first Verify (Config.Social.LikeRejoin): the "ALMOST THERE!"
+				-- popup. Leave & Like sends them out with the steps on Roblox's leave screen.
+				local rewards = ItemState.rewards()
+				local view = if type(rewards) == "table" then rewards.favorite else nil
+				local reward = if type(view) == "table"
+					then RewardsParts.reward(view.reward)
+					else nil
+				local release: (() -> ())? = nil
+				local dialog = LikeRejoinPopup.show(frame.panel, reward, function(leave: boolean)
+					if release then
+						release()
+					end
+					if leave then
 						Players.LocalPlayer:Kick(W.RejoinKick)
 					end
 				end)
+				release = frame:hold(dialog)
 			else
 				ctx.notice(MenuFrame.reason(reply), "Red")
 			end

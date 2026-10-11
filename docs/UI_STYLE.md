@@ -1019,7 +1019,17 @@ player's first win shows its Rare block).
   money while you're in the group", a full-width green Join with the busts, Claim! for a
   member) and "Favorite the game" (gold: the Lucky 8 Block with a star and cash, "+1 Lucky 8
   Block", "+$10,000", Favorite with the star; every reward says its count, `RewardsParts.gains`); each picture wears its block's dice; a claimed
-  one's button turns grey "Claimed". The invite card under them, the panel as tall as both
+  one's button turns grey "Claimed". Since 2026-10-11 the gold card is "Like + Favorite the
+  game" (the title wraps onto two lines at its size, `TitleMaxRows`): "+1 Mystery Lucky Block,
+  +1 Lucky 8", "+$5,000", and its foot split into a yellow Favorite (the star) and a green
+  Verify (the check, shining); Claimed alone across it. The first Verify that passes opens the
+  **"ALMOST THERE!" popup** (`LikeRejoinPopup`, `Config.UI.FreeReward.LikePopup`; concept A,
+  2026-10-11): the house slam with no burst, "Like the game to unlock your reward", three step
+  cards popping in one by one with arrows between (1 the door: Leave the game; 2 lit gold, a
+  rocking thumbs up: Press the thumbs up on the game's page; 3 the check: Rejoin and press
+  Verify), the reward in a white pill (its words, each block's picture, the money), then a blue
+  Later and a green shining Leave & Like with the door. No X; the tutorial's rings wait under
+  it. The invite card under them, the panel as tall as both
   with "- DAILY -" peeking. Once both are claimed the next open is the page below, Group last.
   Decided as the menu opens, so a claim never moves the page under a finger.
 - **Daily**: the navy pill says "FIRST WEEK" or "DAILY STREAK" with the time to the next day.

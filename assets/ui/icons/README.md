@@ -36,6 +36,7 @@ in the table below.
 | `sad.png` | Sad | a loss | 83322300789151 |
 | `coin.png` | Coin | the coin flip (never money) | 94354793241176 |
 | `hand.png` | Hand | ball in hand | 98407510851293 |
+| `thumbs_up.png` | ThumbsUp | like the game: the Like + Favorite card's popup (2026-10-11; decal 91422886227298) | 134302668917855 |
 | `target.png` | Target | choose a pocket | 101004180917014 |
 | `rolling.png` | Rolling | balls moving | 117937533191868 |
 | `lightning.png` | Lightning | abilities | 79533357402482 |

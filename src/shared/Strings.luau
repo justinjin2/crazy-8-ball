@@ -1307,8 +1307,15 @@ return {
 		-- then the first Verify's dialog (Leave & Like sends them out with RejoinKick).
 		Verify = "Verify",
 		NeedFavorite = "Like and favorite the game first!",
-		RejoinTitle = "Like the game and rejoin first!",
-		RejoinText = "1. Leave the game\n2. Press the thumbs up on the game's page\n3. Rejoin and press Verify for your reward!",
+		-- The "ALMOST THERE!" popup (LikeRejoinPopup; concept A, 2026-10-11).
+		RejoinTitle = "ALMOST THERE!",
+		RejoinSub = "Like the game to unlock your reward",
+		RejoinSteps = {
+			"Leave the game",
+			"Press the thumbs up on the game's page",
+			"Rejoin and press Verify",
+		},
+		RejoinReward = "Your reward:",
 		RejoinLeave = "Leave & Like",
 		RejoinLater = "Later",
 		RejoinKick = "Thanks! Press the thumbs up on the game's page, then rejoin and press Verify to get your reward!",

@@ -5,6 +5,7 @@
 --   PlayerScripts.GuiQA:Invoke("close")                close the open menu
 --   PlayerScripts.GuiQA:Invoke("press", anchor)        press the candy button a tutorial
 --                                                      anchor names (TutorialAnchors)
+--   PlayerScripts.GuiQA:Invoke("pressButton", button)  press that candy button (an Instance)
 --   PlayerScripts.GuiQA:Invoke("<action>", ...)        any action a screen added with `add`
 -- Screens add their own actions (play a moment with fake data, jump a cutscene) with
 -- GuiQA.add, which does nothing outside Studio.
@@ -35,6 +36,9 @@ GuiQA.add("close", function()
 end)
 GuiQA.add("press", function(anchor: string): boolean
 	return HudParts.pressCandy(TutorialAnchors.get(anchor))
+end)
+GuiQA.add("pressButton", function(button: Instance): boolean
+	return HudParts.pressCandy(button)
 end)
 GuiQA.add("list", function()
 	local names = {}

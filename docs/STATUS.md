@@ -51,10 +51,11 @@ rooftop map with a day and sunset cycle; pull cutscenes Rare to Secret; the ball
   the menu. Open: a real tablet and phone (the panel's place is worked out, not read), a
   controller's Start.
 - **Like + Favorite** (2026-10-11, DECISIONS): Favorite and Verify on the Free Reward card,
-  the like-and-rejoin dialog, the reward after a rejoin ($5,000 + Lucky 8 + Mystery). Checked
-  in Studio on PC (the card, the dialog, the server's three answers); not yet pressed by
-  hand (the MCP's clicks did not reach the game), on a phone or with a controller. Off
-  switch: `Config.Social.LikeRejoin`.
+  the "ALMOST THERE!" popup (concept A), the reward after a rejoin ($5,000 + Lucky 8 +
+  Mystery). Checked in Studio on PC through the real buttons (GuiQA `pressButton`): the
+  not-favorited notice, the popup, Later, closing the menu over it, Leave & Like sending the
+  player out, the flag kept over the rejoin. Open: the designer's look at the popup, a phone
+  and a controller. Off switch: `Config.Social.LikeRejoin`.
 - **Solo and Practice portals**: a real teleport on the live game.
 - **Launch review leftovers:** server CPU per shot (MicroProfiler live), "+10% Permanent" group wording, the day 7 cue not in the claim flyer, the
   Sky ping trusts the client. Roblox shows products at about 0.8x their price (regional

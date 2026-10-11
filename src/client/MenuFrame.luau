@@ -1139,6 +1139,19 @@ function MenuFrame.confirm(target: any, opts: ConfirmOptions, callback: (boolean
 	return dialog
 end
 
+--- Keep a popup of the menu's own (`dialog`, made like MenuFrame.ask's) over this menu: closing
+--- the menu cancels it, and the menu leaves the gamepad alone while it is up. Call the
+--- returned function once it has closed.
+function MenuFrame.hold(self: any, dialog: Dialog): () -> ()
+	table.insert(self.dialogs, dialog)
+	return function()
+		local at = table.find(self.dialogs, dialog)
+		if at then
+			table.remove(self.dialogs, at)
+		end
+	end
+end
+
 function MenuFrame.destroy(self: any)
 	if not self.alive then
 		return

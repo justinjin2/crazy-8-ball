@@ -7416,6 +7416,7 @@ Config.UI = {
 			Sad = "rbxassetid://83322300789151", -- a loss
 			Coin = "rbxassetid://94354793241176", -- the coin flip
 			Hand = "rbxassetid://98407510851293", -- ball in hand
+			ThumbsUp = "rbxassetid://134302668917855", -- like the game (the Like + Favorite card's popup)
 			Target = "rbxassetid://101004180917014", -- choose a pocket
 			Rolling = "rbxassetid://117937533191868", -- balls moving
 			Lightning = "rbxassetid://79533357402482", -- abilities
@@ -15536,6 +15537,39 @@ Config.UI.FreeReward = {
 			FavoriteBlock = "Lucky8",
 		},
 	},
+}
+
+-- The Like + Favorite card's "ALMOST THERE!" popup (LikeRejoinPopup; the designer's pick "A" on
+-- the concept page, 2026-10-11: three step cards, the reward under them, Later and Leave &
+-- Like, no X). Laid out in its own units and scaled by one factor k to fit the menu's panel
+-- (at most MaxScale pixels a unit). (tune)
+Config.UI.FreeReward.LikePopup = {
+	Units = { 900, 600 }, -- the card
+	MaxScale = 0.8, -- never bigger than this many pixels a unit (a big PC screen)
+	MarginPx = 12, -- from the panel's edges on a small screen
+	ZIndex = 62, -- over the page, its notices and the kit's dialogs
+	CornerUnits = 40,
+	TitleY = 64,
+	TitleUnits = 66, -- "ALMOST THERE!" in the kit's gold
+	SubY = 122,
+	SubUnits = 30,
+	-- The three step cards: each this wide and tall, their centres across, their top.
+	Step = { W = 236, H = 246, Xs = { 162, 450, 738 }, Top = 166 },
+	StepCornerUnits = 26,
+	StepEdgeUnits = 4,
+	StepHot = { Fill = { 255, 244, 200 }, Edge = { 236, 170, 30 } }, -- the like step, lit gold
+	Badge = { Units = 58, Blue = { 59, 155, 255 }, Gold = { 255, 201, 40 }, TextUnits = 34 },
+	IconUnits = 104, -- each step's picture, its centre this far under the card's top:
+	IconY = 92,
+	CaptionY = 186, -- the caption's middle under the card's top (up to three lines)
+	CaptionUnits = 27,
+	ArrowUnits = 46, -- the arrows between the cards
+	ThumbRock = { 10, 1.4 }, -- the like step's thumbs up rocks this many degrees, over seconds
+	-- The reward under the cards: a white pill of the words, the blocks and the money.
+	Reward = { Y = 458, H = 74, ImageUnits = 62, TextUnits = 30, GapUnits = 12, PadUnits = 26 },
+	-- The buttons at the foot: Later (blue) and Leave & Like (green, shining).
+	Buttons = { Y = 546, H = 76, LaterW = 210, LeaveW = 360, GapUnits = 24, TextUnits = 38 },
+	StepStaggerSeconds = 0.06, -- the cards pop in one after another after the slam
 }
 
 -- The Free Reward menu's open (the Shop's rhythm, Config.UI.Shop.Open; no animatic: designer,

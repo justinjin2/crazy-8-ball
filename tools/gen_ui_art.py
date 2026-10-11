@@ -442,6 +442,26 @@ def icon_hand():
     return "".join(parts)
 
 
+def icon_thumbs_up():
+    # A gold thumbs up in a blue cuff: the Like + Favorite card's like step (2026-10-11).
+    hand = (
+        "M92 122 L126 48 C132 34 152 32 158 48 C164 62 158 84 152 106 L206 106 "
+        "C224 106 234 120 230 136 L216 206 C212 220 200 226 188 226 L92 226 Z"
+    )
+    return "".join(
+        [
+            '<rect x="34" y="114" width="48" height="114" rx="13" fill="url(#blue)"/>',
+            f'<path d="{hand}" fill="url(#gold)" stroke="url(#gold)" stroke-width="8" stroke-linejoin="round"/>',
+            ink_line([(156, 142), (226, 142)], 6),
+            ink_line([(156, 172), (220, 172)], 6),
+            ink_line([(156, 200), (214, 200)], 6),
+            ink_line([(156, 106), (156, 220)], 6),
+            gloss(134, 66, 9, 22, angle=22),
+            gloss(58, 140, 7, 18, angle=0, opacity=0.6),
+        ]
+    )
+
+
 def double_arrow(x0, y0, x1, y1, head=26, stem=13, colour="url(#blue)"):
     """A two-headed arrow from (x0, y0) to (x1, y1): a stem and a triangle at each end."""
     dx, dy = x1 - x0, y1 - y0
@@ -2358,6 +2378,7 @@ ICONS = {
     "sad": icon_sad,
     "coin": icon_coin,
     "hand": icon_hand,
+    "thumbs_up": icon_thumbs_up,
     "target": icon_target,
     "rolling": icon_rolling,
     "lightning": icon_lightning,

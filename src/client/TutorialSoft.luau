@@ -612,10 +612,12 @@ function TutorialSoft.update(_dt: number)
 		click("Ready")
 	end
 
-	-- Free Reward's rings, and a light sweeping over the join and the favorite now and then.
+	-- Free Reward's rings, and a light sweeping over the join and the favorite now and then;
+	-- none while a popup covers the menu (the Like + Favorite card's, TutorialAnchors.covered).
 	local shine = now - shinedAt >= S.ShineSeconds
+	local covered = TutorialAnchors.covered()
 	for _, key in RINGED do
-		if setRing(key, on and not seen(key), now, "Card") then
+		if setRing(key, on and not seen(key) and not covered, now, "Card") then
 			if key == "Like" then
 				likeShown = true
 			elseif shine then

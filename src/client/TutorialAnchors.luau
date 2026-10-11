@@ -61,6 +61,20 @@ function TutorialAnchors.showing(name: string): boolean
 	return false
 end
 
+-- Popups over a menu that its rings must not draw over (LikeRejoinPopup), by name.
+local covers: { [string]: boolean? } = {}
+
+--- A popup named `key` is up (`on`) over the Free Reward menu, or has gone: while any is up the
+--- soft part's rings on that menu's frames wait (TutorialSoft).
+function TutorialAnchors.setCovered(key: string, on: boolean)
+	covers[key] = if on then true else nil
+end
+
+--- Whether a popup covers the Free Reward menu's frames now (TutorialAnchors.setCovered).
+function TutorialAnchors.covered(): boolean
+	return next(covers) ~= nil
+end
+
 --- Whether the tutorial hides `name` now (the column and HUD items it brings in one by one).
 function TutorialAnchors.hidden(name: string): boolean
 	return hiddenSet[name] == true
