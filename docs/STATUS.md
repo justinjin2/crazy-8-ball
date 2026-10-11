@@ -17,13 +17,9 @@ entry of `docs/archive/STATUS_HISTORY.md`.
   and updates, and a slow cleanup of old code and features as the game takes its form. Every
   update must not bring a critical bug or error to the live game: the rules are in CLAUDE.md,
   "The game is live".
-- **Published:** the evening publish (8:59 PM EDT) has everything up to `a8d5b26`. **Not yet
-  published** unless the designer has since: `860f04c` (any first game goes on to the
-  tutorial chain), `92cadc0` and `30d27cf` (Daily Rewards and invite popups for everyone and
-  skippers), `d2cf290` (Rewind one redo, Fire Shot's guide), `8013e7a` (the stuck empty menu
-  after the Gift drop), "Just one more game?" over Roblox's menu and Like + Favorite (both
-  below). Publish, then
-  "Restart Servers for Updates".
+- **Published:** the 2026-10-11 publish (about 5:15 AM EDT) has everything up to `1a2b25c`
+  (Like + Favorite with one Verify, emotes, "Just one more game?", the onboarding fixes), and
+  servers were restarted. Nothing pushed is waiting to publish.
 - **Lint and tests (2026-10-11, `gui-v4`):** lint OK (four old LocalShadow warnings); all 1219
   Lune tests pass.
 
