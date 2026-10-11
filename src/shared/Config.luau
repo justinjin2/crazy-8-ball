@@ -15504,6 +15504,11 @@ Config.UI.FreeReward = {
 			-- A small picture of the reward's other block (the favorite card's Mystery beside its
 			-- Lucky 8; designer, 2026-10-11).
 			Extra = { 0.2, 0.84, 0.36 },
+			-- The favorite card's thumbs up (the like; designer, 2026-10-11: "a wiggling thumbs
+			-- up ... since it matches with it all"), on the picture's left, and its wiggle:
+			-- degrees each way, seconds (quicker than the star's rock).
+			Thumb = { 0.06, 0.46, 0.3 },
+			ThumbRock = { 12, 1.1 },
 			ListRows = 4, -- the list's rows at most: the blocks, the money, the match money
 			-- The sky-blue dice on the picture's top left corner: its centre this far in from the
 			-- corner (x, y), its size.

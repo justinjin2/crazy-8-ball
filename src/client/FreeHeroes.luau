@@ -54,6 +54,7 @@ type Hero = {
 	art: ShopCards.Art, -- its picture: the block in front
 	copies: { ImageLabel }, -- the copies behind it
 	badge: ImageLabel, -- the group's busts or the star
+	thumb: ImageLabel?, -- the favorite card's thumbs up (the like), wiggling with the star
 	cash: ImageLabel,
 	extra: ImageLabel, -- a small picture of the reward's other block (the favorite's Mystery)
 	odds: ShopCards.Badge,
@@ -140,6 +141,13 @@ local function hero(
 	local badge = HudParts.icon(art.holder, if key == "Group" then "Group" else "Star", "Badge")
 	badge.ZIndex = 7
 	share(badge, H.Badge)
+	local thumb: ImageLabel? = nil
+	if key == "Favorite" then
+		local made = HudParts.icon(art.holder, "ThumbsUp", "Thumb")
+		made.ZIndex = 7
+		share(made, H.Thumb)
+		thumb = made
+	end
 	local cash = ShopCards.image(art.holder, "Cash", ICONS.CashStack, 7)
 	cash.Visible = false
 	share(cash, H.Cash)
@@ -173,6 +181,7 @@ local function hero(
 		art = art,
 		copies = copies,
 		badge = badge,
+		thumb = thumb,
 		cash = cash,
 		extra = extra,
 		odds = odds,
@@ -561,12 +570,13 @@ end
 
 --- Register both cards with the menu's `stage` (ids "GroupHero1", "GroupHero2" in
 --- Config.UI.FreeReward.Open); on landing each starts its picture's loops, its button's shine
---- and its badge rocking, held by `keep` until the menu closes.
+--- and its badge rocking (the favorite card's thumbs up too), held by `keep` until the menu
+--- closes.
 function FreeHeroes.register(self: any, stage: Stage.Stage, keep: (UIAnim.Handle) -> ())
 	for index, c in self.cards :: { Hero } do
 		stage:add("GroupHero" .. index, c.frame, function()
 			local R = H.BadgeRock
-			keep(ShopCards.all({
+			local loops: { UIAnim.Handle } = {
 				ShopCards.artLoops(c.art),
 				ShopCards.buttonShine(
 					c.verify or c.button, -- the favorite card's Verify is the one that claims
@@ -574,7 +584,11 @@ function FreeHeroes.register(self: any, stage: Stage.Stage, keep: (UIAnim.Handle
 					(index - 1) * B.ShineStaggerSeconds
 				),
 				UIAnim.turn(c.badge, 0, if index == 1 then R[1] else -R[1], R[2]),
-			}))
+			}
+			if c.thumb then
+				table.insert(loops, UIAnim.turn(c.thumb, 0, H.ThumbRock[1], H.ThumbRock[2]))
+			end
+			keep(ShopCards.all(loops))
 		end)
 	end
 end
