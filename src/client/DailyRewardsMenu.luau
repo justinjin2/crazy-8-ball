@@ -3,8 +3,9 @@
 -- popup of its own, 2026-10-09: "wheres the daily calendar popup"). The lively frame
 -- (MenuFrame: the panel unrolls, "Daily Rewards" by the calendar, the red X, the 8-ball flair)
 -- round the login row's seven days and Claim All: FreeDaily, the same section the Free Reward
--- menu shows under "- DAILY -", where the row lives day to day. The tutorial's soft part opens
--- it once, day 1 to claim and day 7's prize on show (TutorialSoft). Claims go as the Free
+-- menu shows under "- DAILY -", where the row lives day to day. TutorialSoft opens it after
+-- the first finished match (day 1 to claim, day 7's prize on show), then once a visit while
+-- today's reward is ready to claim. Claims go as the Free
 -- Reward menu's: RewardRequest through ItemState, what a claim gave flying out of its button
 -- (RewardsFlyer), a refusal as a notice; Claim All is a Robux product. Gamepad: opening lands
 -- on today's Claim!; B closes the Odds & Details, then the popup. Its open in

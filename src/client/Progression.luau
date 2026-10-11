@@ -14,8 +14,8 @@
 -- Every full menu (the roadmap too) opens through Menus, one at a time. The left column hides
 -- in a match and under the popups (the result screen, NEW RANK!, a lucky block's reel, the
 -- teleport screen); a match starting (or its result screen) closes the reel and any open
--- menu. No reward ever pops up by itself: the daily login and playtime gifts are claimed in
--- Rewards (designer, 2026-10-04). Nothing here ever sends an amount back: the numbers are
+-- menu. No reward pops up by itself but Daily Rewards (TutorialSoft: after the first match, then
+-- once a visit while today's is ready): the gifts are claimed in Rewards (designer, 2026-10-04). Nothing here ever sends an amount back: the numbers are
 -- already in the save.
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")

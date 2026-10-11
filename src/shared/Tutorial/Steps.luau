@@ -244,6 +244,7 @@ Steps.Seen = {
 	"Ready", -- the first-win Rare block's "Ready!" glow, until it is taken in hand
 	"InviteAnswered", -- the invite popup's Invite or X was pressed (its InvitePopup event)
 	"Daily", -- the Daily Rewards popup came up (once, before the invite popup)
+	"Played", -- a match finished (any kind): the popups' gate once the tutorial is over (server)
 }
 
 -- The moments a client may report itself (TutorialEvent "Seen"); the rest the server sees.

@@ -94,6 +94,9 @@ One line each; the long form is the 2026-10-08 entry at the top of
 - **Game 1 lost (or a quick win) goes on to the chain** (2026-10-10, DECISIONS; checked in
   Studio with a pretend opponent: loss, quick win, normal win, rejoins). Open: publish, then
   a real two-account test on the live game (a brand-new account loses to another account).
+- **Daily Rewards and invite popups for everyone after the first match** (2026-10-10,
+  DECISIONS; checked in Studio: a skipper's first match, rejoin unclaimed, claimed, day 2).
+  Open: publish, then the same on the live game.
 - **The place file:** save `place/8ball.rbxl` and publish once this milestone is done.
 
 ## Not yet checked (the Studio tools cannot do these)

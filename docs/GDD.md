@@ -1076,8 +1076,11 @@ approves the v5 proposal (ECONOMY.md section 11).
   (WELCOME, 8BALL, ROOFTOP (an Uncommon block), RELEASE). Codes give only money, lucky blocks
   and spins. **Everything is claimed in the Rewards menu**: nothing is given by itself on join
   or at a playtime mark, and there are no reward popups, reminder toasts or come-back screens
-  (designer, 2026-10-04), except the **Daily Rewards popup** once in the tutorial's soft part
-  (designer, 2026-10-09: day 1 to claim, day 7's prize on show). The other exception is the **Gift lucky block** (designer, 2026-10-07; Roblox's menu,
+  (designer, 2026-10-04), except the **Daily Rewards popup**: once after the first finished match (in the tutorial's
+  soft part, or after any first match once the tutorial is over another way: skipped or
+  ended by an error), then once a visit while today's reward is ready to claim, every day
+  they come back (designer, 2026-10-09 and 2026-10-10). The invite popup follows the first
+  one, once ever. The other exception is the **Gift lucky block** (designer, 2026-10-07; Roblox's menu,
   2026-10-10): given once, **the first time a player opens Roblox's own menu** after the
   tutorial (Escape, the Roblox button at the top left, a controller's Start: the way out of the
   game), a reward to keep them from leaving. It falls from the sky **right away**, behind the

@@ -37,6 +37,7 @@ local Economy = require(script.Parent.Economy)
 local PlayerData = require(script.Parent.PlayerData)
 local Counters = require(script.Parent.Counters)
 local Announce = require(script.Parent.Announce)
+local TutorialHints = require(script.Parent.TutorialHints)
 
 local E = Config.Economy
 local IS_STUDIO = RunService:IsStudio()
@@ -581,6 +582,9 @@ local function settle(e: any)
 		local paid = results[i]
 		local tally = Economy.tally(key, p.UserId)
 		local reward = if paid.xp then paid.xp.rewardTotal else 0
+		-- A finished match (saved once): the Daily Rewards and invite popups' gate for anyone
+		-- whose tutorial is over (TutorialSoft).
+		TutorialHints.markSeen(p, "Played")
 		Net.get("MatchSummary"):FireClient(p, {
 			key = key,
 			tableId = e.id,
