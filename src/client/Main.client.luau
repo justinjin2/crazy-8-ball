@@ -47,6 +47,7 @@ local MapAmbience = require(script.Parent.MapAmbience)
 local Hub = require(script.Parent.Hub)
 local PowerCue = require(script.Parent.PowerCue)
 local SpinSelector = require(script.Parent.SpinSelector)
+local SettingsState = require(script.Parent.SettingsState)
 local ZoomHint = require(script.Parent.ZoomHint)
 local PadGuide = require(script.Parent.PadGuide)
 local PadMode = require(script.Parent.PadMode)
@@ -1582,6 +1583,10 @@ local function renderFrame(dt: number)
 		-- The view holds still while the cue ball is dragged or sits in a pocket.
 		local cueBall = match:findCueBall()
 		local hold = targets:isHolding() or (cueBall ~= nil and cueBall.pocketed)
+		-- The player's own "Player view after a shot"; the guided tutorial keeps the side view.
+		Camera.setPlayerView(
+			SettingsState.get("ShotCam") and player:GetAttribute("TutorialActive") == false
+		)
 		Camera.update(
 			dt,
 			cueWorld(),

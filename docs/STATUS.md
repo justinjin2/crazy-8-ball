@@ -19,8 +19,8 @@ entry of `docs/archive/STATUS_HISTORY.md`.
   "The game is live".
 - **Published:** the 2026-10-11 publish (about 5:15 AM EDT) has everything up to `1a2b25c`
   (Like + Favorite with one Verify, emotes, "Just one more game?", the onboarding fixes), and
-  servers were restarted. Nothing pushed is waiting to publish.
-- **Lint and tests (2026-10-11, `gui-v4`):** lint OK (four old LocalShadow warnings); all 1219
+  servers were restarted. **Not yet published:** Settings' "Player view after a shot" (below).
+- **Lint and tests (2026-10-11, `gui-v4`):** lint OK (four old LocalShadow warnings); all 1220
   Lune tests pass.
 
 ## In the game
@@ -53,6 +53,10 @@ rooftop map with a day and sunset cycle; pull cutscenes Rare to Secret; the ball
   not-favorited path (now Roblox's favorite prompt, then the notice if closed), the popup, Later, closing the menu over it, Leave & Like sending the
   player out, the flag kept over the rejoin. Open: the designer's look at the popup, a phone
   and a controller. Off switch: `Config.Social.LikeRejoin`.
+- **Player view after a shot** (2026-10-11, DECISIONS): a Settings switch, off by default;
+  on, the shot camera pulls out behind the player along the aim instead of the top-down side
+  view (never in the guided tutorial). Checked in Studio on PC: the fifth row, ON and OFF on a
+  real break. Open: the row on a phone and a controller.
 - **Emotes** (2026-10-11, DECISIONS): the wheel's empty slots are filled on each spawn, so it
   no longer says "disabled". Checked in Studio (join, respawn, an emote playing). Watch:
   emoting at a table (the shooter's pose is ours), on a phone and a controller. Off switch:

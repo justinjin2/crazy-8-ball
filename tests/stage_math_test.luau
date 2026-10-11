@@ -263,6 +263,21 @@ return {
 		H.expect(finish >= 0.8 and finish <= 2, "the open lasts about 1 to 2 s")
 	end,
 
+	["every Settings row has its words and icon; the shot camera starts off (top-down)"] = function()
+		local _, Config = load()
+		local Strings = H.require("Strings")
+		local C, W = Config.Settings, Strings.Settings
+		for _, key in C.Order do
+			H.expect(C.Defaults[key] ~= nil, "a row is a saved switch: " .. key)
+			H.expect(type(W.Rows[key]) == "string", "a row has its name: " .. key)
+			H.expect(type(W.Lines[key]) == "string", "a row has its line: " .. key)
+			H.expect(Config.UI.Settings.Icons[key] ~= nil, "a row has its icon: " .. key)
+		end
+		H.expect(table.find(C.Order, "ShotCam") ~= nil, "the shot camera has a row")
+		H.expect(C.Defaults.ShotCam == false, "everyone starts in the top-down side view")
+		H.expect(Config.Camera.Shot.PullOutView == "Side", "the side view stays the default")
+	end,
+
 	["the ability spin screen's open names every piece it stages and lands SPIN last"] = function()
 		local S, Config = load()
 		local M, U = Config.UI.Motion, Config.UI.UltScreen

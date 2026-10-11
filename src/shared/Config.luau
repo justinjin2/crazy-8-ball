@@ -1071,7 +1071,8 @@ Config.Camera = {
 		-- table centred, the same view every shot. It takes the long side that needs the
 		-- smaller turn from where the shot was aimed, so the camera never turns more than about
 		-- a quarter of the way round, and when the balls stop it swings back the same way.
-		-- "Aim": the older pull-out, the whole table seen along the aim line.
+		-- "Aim": the older pull-out, the whole table seen along the aim line. A player who turns
+		-- on Settings' "Player view after a shot" (Config.Settings.Defaults.ShotCam) gets "Aim".
 		PullOutView = "Side",
 		-- The "Side" swing out takes this long, eased in and out (smoothstep) and not smoothed
 		-- on top, so the camera arrives at exactly this time. The designer chose about 0.9 s:
@@ -15871,9 +15872,15 @@ Config.Settings = {
 		Music = true, -- the lobby music on (Config.Music; designer, 2026-10-10: music is back)
 		LowFx = false, -- Lower effects (Quality: fewer particles, calmer UI loops)
 		ShowFlag = false, -- show my country flag in the player list (off until turned on)
+		-- After a shot the camera stays behind the player, the whole table seen along the aim
+		-- (Camera.Shot.PullOutView's "Aim"), instead of swinging round to the top-down side
+		-- view. Off for everyone until they turn it on; the guided tutorial always uses the
+		-- side view (designer, 2026-10-11: mainly for clips).
+		ShotCam = false,
 		ListOpen = false, -- the player list left open (designer 2026-10-07: folded until opened)
 	} :: { [string]: boolean },
-	Order = { "Music", "Sfx", "LowFx", "ShowFlag" }, -- the rows, top to bottom (music back 2026-10-10)
+	-- The rows, top to bottom (music back 2026-10-10, the shot camera 2026-10-11).
+	Order = { "Music", "Sfx", "LowFx", "ShowFlag", "ShotCam" },
 	-- Saved switches with no row on the Settings screen (the HUD remembers them).
 	Hidden = { "ListOpen" },
 	-- The kinds Seen may mark (anything else is refused).
@@ -15904,7 +15911,14 @@ Config.UI.Settings = {
 	SwitchUnits = { 184, 74 }, -- the ON / OFF switch: width, height
 	SwitchTextShare = 0.42, -- ON / OFF, of the switch's height
 	KnobInsetPx = 3, -- the white knob in from the track's edge
-	Icons = { Music = "Sound", Sfx = "Sound", LowFx = "Effects", ShowFlag = "Globe" }, -- each row's Kit.Icons key
+	-- Each row's Kit.Icons key.
+	Icons = {
+		Music = "Sound",
+		Sfx = "Sound",
+		LowFx = "Effects",
+		ShowFlag = "Globe",
+		ShotCam = "Cue",
+	},
 	-- The Codes strip: the code icon at its left, "Codes" with the server's answer beside it,
 	-- the box and the green Redeem under them.
 	CodesUnits = 150, -- its height
@@ -15923,9 +15937,14 @@ Config.UI.Settings = {
 			{ Ids = { "Panel" }, Kind = "Unroll", At = 0 },
 			{ Ids = { "Header" }, Kind = "Fade", At = 0.12, Length = 0.15 },
 			{ Ids = { "Basket", "Title", "Money", "Close" }, Kind = "Pop", At = 0.18 },
-			{ Ids = { "Row1", "Row2", "Row3", "Row4" }, Kind = "Pop", At = 0.22, Stagger = 1.5 },
 			{
-				Ids = { "Switch1", "Switch2", "Switch3", "Switch4" },
+				Ids = { "Row1", "Row2", "Row3", "Row4", "Row5" },
+				Kind = "Pop",
+				At = 0.22,
+				Stagger = 1.5,
+			},
+			{
+				Ids = { "Switch1", "Switch2", "Switch3", "Switch4", "Switch5" },
 				Kind = "Pop",
 				At = 0.3,
 				Stagger = 1.5,
