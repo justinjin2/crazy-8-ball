@@ -19,8 +19,8 @@ entry of `docs/archive/STATUS_HISTORY.md`.
   "The game is live".
 - **Published:** the 2026-10-11 publish (about 5:15 AM EDT) has everything up to `1a2b25c`
   (Like + Favorite with one Verify, emotes, "Just one more game?", the onboarding fixes), and
-  servers were restarted. **Not yet published:** Settings' "Camera after a shot" (below) and unbox announcements
-  without their "(1 in N)".
+  servers were restarted. **Not yet published:** Settings' "Camera after a shot" (below), unbox announcements
+  without their "(1 in N)", and "Gonna let that slide?" wiggling over Rematch for the side that lost.
 - **Lint and tests (2026-10-11, `gui-v4`):** lint OK (four old LocalShadow warnings); all 1221
   Lune tests pass.
 

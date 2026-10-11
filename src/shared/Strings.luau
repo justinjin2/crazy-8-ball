@@ -251,6 +251,7 @@ return {
 		Lobby = "Lobby", -- back to the lobby server you came from (arena)
 		Leave = "Leave", -- a lobby table: no rematch, the table frees
 		OpponentLeft = "Opponent left",
+		Taunt = "Gonna let that slide?", -- over Rematch, wiggling, for the side that lost
 		TeamWaiting = "Team %d/%d", -- Play another in a team game waits for every teammate
 		Series = "SERIES", -- over the score
 		SeriesScore = "%d - %d", -- your side first

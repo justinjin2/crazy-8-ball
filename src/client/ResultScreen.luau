@@ -585,7 +585,7 @@ function ResultScreen.build(self: any, view: any)
 			if self.onChoice and self.view == view and not view.closing then
 				self.onChoice(kind, summary)
 			end
-		end)
+		end, not solo and winner ~= nil and winner ~= mine)
 	end
 
 	-- The rewards card. Its faint 8-balls scroll (designer, 2026-10-07): the lively header's

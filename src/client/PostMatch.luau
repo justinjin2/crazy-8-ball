@@ -9,12 +9,15 @@
 -- - Buttons: Rematch (green; everyone must press it), then in an arena Play another (blue, a
 --   new opponent from the global queue; a team waits for every teammate) and Lobby (red),
 --   or on a lobby table Leave (red). While Play another searches, Cancel replaces it.
+-- - The side that lost sees "Gonna let that slide?" wiggling over Rematch while it can still
+--   be pressed (designer, 2026-10-11).
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local HudParts = require(script.Parent.HudParts)
 local TutorialAnchors = require(script.Parent.TutorialAnchors)
+local UIAnim = require(script.Parent.UIAnim)
 local UISound = require(script.Parent.UISound)
 
 local C = Config.UI.Progress.Result
@@ -41,8 +44,8 @@ export type State = {
 }
 
 --- The row, built into `parent`. `onChoice(kind)` runs for "Rematch", "Another",
---- "CancelAnother", "Lobby" and "Leave".
-function PostMatch.new(parent: Instance, onChoice: (string) -> ()): any
+--- "CancelAnother", "Lobby" and "Leave". `lost`: your side lost (the taunt over Rematch).
+function PostMatch.new(parent: Instance, onChoice: (string) -> (), lost: boolean?): any
 	local self: any = setmetatable({}, PostMatch)
 	local root = HudParts.frame(parent, "PostMatch")
 	root.ZIndex = 2
@@ -75,6 +78,16 @@ function PostMatch.new(parent: Instance, onChoice: (string) -> ()): any
 		HudParts.setButtonTextSize(b, C.ChoiceTextPx)
 		b.Visible = false
 	end
+	self.taunt = nil
+	self.tauntShake = nil
+	if lost then
+		local taunt = HudParts.text(root, "Taunt", C.TauntTextPx, Copy.Taunt, HudParts.tone("Gold"))
+		taunt.TextWrapped = false
+		taunt.AnchorPoint = Vector2.new(0.5, 1)
+		taunt.ZIndex = 3
+		taunt.Visible = false
+		self.taunt = taunt
+	end
 	self.width, self.height = 0, 0
 	self.buttons = {}
 	return self
@@ -106,6 +119,13 @@ function PostMatch.layout(self: any, width: number)
 	for i, b in shown do
 		b.Position = UDim2.fromOffset(left + (i - 1) * (each + C.ChoiceGap), lineHeight + 4)
 		b.Size = UDim2.fromOffset(each, C.ButtonHeight)
+	end
+	-- The taunt sits on Rematch's top edge, centred over it.
+	local taunt = self.taunt
+	if taunt then
+		local x = self.rematch.Position.X.Offset + self.rematch.Size.X.Offset / 2
+		taunt.Position = UDim2.fromOffset(x, lineHeight + 3)
+		taunt.Size = UDim2.fromOffset(C.TauntWidth, C.TauntTextPx + 4)
 	end
 end
 
@@ -184,6 +204,19 @@ function PostMatch.set(self: any, state: State, now: number)
 		line = Copy.OpponentLeft
 	end
 	self.status.Text = line
+	-- The taunt, while the loser can still press Rematch.
+	local taunt = self.taunt
+	if taunt then
+		local on = r == "open" and not leaving and self.rematch.Visible
+		if on and not self.tauntShake then
+			UIAnim.popIn(taunt)
+			self.tauntShake = UIAnim.shake(taunt, "Wiggle")
+		elseif not on and self.tauntShake then
+			self.tauntShake.stop()
+			self.tauntShake = nil
+			taunt.Visible = false
+		end
+	end
 	local left = if state.deadline
 			and not searching
 			and not leaving

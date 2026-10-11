@@ -7130,6 +7130,10 @@ Config.UI = {
 			CountdownWidth = 44, -- the seconds left, at the row's right
 			CountdownPx = 24,
 			ChoiceTextPx = 18,
+			-- "Gonna let that slide?" over Rematch for the side that lost (designer,
+			-- 2026-10-11), wiggling (Kit.Motion.Shake.Wiggle) until they press it.
+			TauntTextPx = 20,
+			TauntWidth = 240, -- wider than the button, centred over it
 		},
 		-- NEW RANK! (NewRankPopup), laid out at the natural size below and scaled to fit, so the
 		-- badge is about 40% of the screen's short side. XP is never lost: no rank-down card.
