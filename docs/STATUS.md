@@ -21,7 +21,8 @@ entry of `docs/archive/STATUS_HISTORY.md`.
   published** unless the designer has since: `860f04c` (any first game goes on to the
   tutorial chain), `92cadc0` and `30d27cf` (Daily Rewards and invite popups for everyone and
   skippers), `d2cf290` (Rewind one redo, Fire Shot's guide), `8013e7a` (the stuck empty menu
-  after the Gift drop). Publish, then "Restart Servers for Updates".
+  after the Gift drop), and "Just one more game?" over Roblox's menu (below). Publish, then
+  "Restart Servers for Updates".
 - **Lint and tests (2026-10-10, `gui-v4`):** lint OK (four old LocalShadow warnings); all 1214
   Lune tests pass.
 
@@ -44,6 +45,10 @@ rooftop map with a day and sunset cycle; pull cutscenes Rare to Secret; the ball
   Rewards and invite popups after the first match (skippers at once); the Gift drop over a
   closing menu. Check with a brand-new account once published (recipes: STUDIO_NOTES "Real
   shots through PoolMatchQA" and the last DECISIONS lines).
+- **"Just one more game?" over Roblox's menu** (2026-10-10, DECISIONS): checked in Studio
+  with the designer on PC (1722 x 814) and the phone emulator, with the Gift falling behind
+  the menu. Open: a real tablet and phone (the panel's place is worked out, not read), a
+  controller's Start.
 - **Solo and Practice portals**: a real teleport on the live game.
 - **Launch review leftovers:** server CPU per shot (MicroProfiler live), the favorite reward
   (unverifiable), "+10% Permanent" group wording, the day 7 cue not in the claim flyer, the

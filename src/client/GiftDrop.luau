@@ -8,9 +8,8 @@
 -- again on the next visit.
 --
 -- When the server sends { at = CFrame } (and none of our menus, popups or reels is up:
--- setBusy): black letterbox bars slide in with "Wait... what is this?" big at the top, just
--- under the top bar (like the tutorial's line), the rest of the HUD steps aside and the player
--- stands still. The camera, behind the player, looks up at the sky:
+-- setBusy): black letterbox bars slide in with "Wait... what is this?" big in the middle of the
+-- screen, the rest of the HUD steps aside and the player stands still. The camera, behind the player, looks up at the sky:
 -- the Gift streaks down on a slant with a glowing gold trail, sparks and a glint, spinning, and
 -- crashes at `at` with a white flash, a camera shake, a shockwave ring and bursts of dust and
 -- gold confetti, bouncing as it lands. The line gives way to the title in the bottom bar; the camera holds
@@ -384,7 +383,9 @@ local function makeScreen(kind: string): Screen?
 	-- Everything else of ours steps aside (it comes back after).
 	local hidden: { ScreenGui } = {}
 	for _, gui in playerGui:GetChildren() do
-		if gui:IsA("ScreenGui") and gui.Enabled then
+		-- A screen that must stay over the scene ("Just one more game?" over Roblox's menu,
+		-- LeaveNudge) keeps its place.
+		if gui:IsA("ScreenGui") and gui.Enabled and not gui:GetAttribute("CutsceneKeep") then
 			gui.Enabled = false
 			table.insert(hidden, gui)
 		end
@@ -417,16 +418,30 @@ local function makeScreen(kind: string): Screen?
 	flash.Parent = gui
 	-- While it falls, a line in the bottom bar (designer, 2026-10-10); the title replaces it at
 	-- the crash.
-	-- Big, at the top just under the top bar, like the tutorial's line (designer, 2026-10-10).
+	-- Big, in the middle of the screen (designer, 2026-10-10: the top is "Just one more
+	-- game?"'s while Roblox's menu is open, LeaveNudge).
 	local camera = workspace.CurrentCamera
 	local phone = camera ~= nil and camera.ViewportSize.Y < Config.Multiplayer.Style.ShortHeight
 	local wonderPx = if phone then G.WonderPhoneTextPx else G.WonderTextPx
 	local wonder = HudParts.text(gui, "Wonder", wonderPx, W.GiftWonder)
-	wonder.AnchorPoint = Vector2.new(0.5, 0)
-	wonder.Position = UDim2.new(0.5, 0, 0, Letterbox.px(G.BarsShare) + G.WonderGapPx)
+	wonder.AnchorPoint = Vector2.new(0.5, 0.5)
+	wonder.Position = UDim2.fromScale(0.5, G.WonderYShare)
 	wonder.Size = UDim2.new(0.9, 0, 0, math.ceil(wonderPx * 1.3))
 	wonder.TextTransparency = 1
 	wonder.ZIndex = 3
+	-- Over Roblox's menu the top of the screen is "Just one more game?"'s (LeaveNudge,
+	-- designer 2026-10-10): this line waits until the menu closes.
+	wonder.Visible = not GuiService.MenuIsOpen
+	local menuOpened = GuiService.MenuOpened:Connect(function()
+		wonder.Visible = false
+	end)
+	local menuClosed = GuiService.MenuClosed:Connect(function()
+		wonder.Visible = true
+	end)
+	gui.Destroying:Connect(function()
+		menuOpened:Disconnect()
+		menuClosed:Disconnect()
+	end)
 	-- The title sits in the bottom bar.
 	local words = (W.Drops :: any)[kind] or W.Drops.Gift
 	local title = HudParts.text(bars[2], "Title", 30, words.Title)

@@ -1000,6 +1000,15 @@ return {
 		},
 	},
 	-- Lucky blocks (the test build, 2026-10-03; LuckyHotbar, LuckyWorld, LuckyOpening).
+	-- Don't leave (LeaveNudge; designer, 2026-10-10): over the top of Roblox's menu while it is
+	-- open, two lines in capitals as big as the room allows. The daily line follows today's reward: ready,
+	-- waiting on a match, or claimed.
+	LeaveNudge = {
+		Headline = "JUST ONE MORE GAME?",
+		DailyReady = "YOUR FREE DAILY REWARD IS WAITING! CLAIM IT BEFORE YOU GO!",
+		DailyPlay = "PLAY ONE GAME TO UNLOCK TODAY'S FREE DAILY REWARD!",
+		DailyTomorrow = "COME BACK TOMORROW TO CLAIM YOUR DAILY REWARDS!",
+	},
 	LuckyBlocks = {
 		Names = {
 			Standard = "Standard Lucky Block",
@@ -1020,7 +1029,7 @@ return {
 		Ready = "READY!",
 		-- The Gift's fall from the sky (GiftDrop): the line in the cutscene's bottom bar while it
 		-- falls (designer, 2026-10-10), then the title and the line under it after the crash.
-		GiftWonder = "Wait... what is this?",
+		GiftWonder = "WAIT... WHAT IS THIS?",
 		GiftPickUp = "Pick up",
 		-- Each falling kind's title and the line under it (GiftDrop: the Gift and, economy v6,
 		-- the Sky Lucky Block).

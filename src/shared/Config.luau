@@ -2403,9 +2403,11 @@ Config.LuckyBlocks = {
 		MenuCooldownSeconds = 5,
 		-- "Wait... what is this?" while it falls: big at the top, just under the top bar, like the
 		-- tutorial's line (designer, 2026-10-10: "bigger and higher"; the tutorial's is 34 / 24).
-		WonderTextPx = 46,
-		WonderPhoneTextPx = 30, -- a phone on its side (Config.Multiplayer.Style.ShortHeight)
-		WonderGapPx = 14, -- under the top bar
+		-- In the middle of the screen and big (designer, 2026-10-10: "Just one more game?" over
+		-- Roblox's menu has the top of the screen; it was 46 / 30 at the top).
+		WonderTextPx = 130,
+		WonderPhoneTextPx = 72, -- a phone on its side (Config.Multiplayer.Style.ShortHeight)
+		WonderYShare = 0.5, -- its middle, of the screen's height
 		AheadStuds = 12, -- it lands this far in front of the player
 		PickupStuds = 16, -- the server's check: the player this close to where it landed
 		SizeStuds = 4.5, -- the block's edge on the floor (its bow on top)
@@ -9254,6 +9256,8 @@ Config.UI.Menu = {
 			"Purchased", -- a purchase's thank-you over the Shop (2026-10-09: it was hidden there)
 			"RankClaimBlock", -- the roadmap's claim card
 			"MenuColumnLinger", -- a pressed column tile, staying a moment as its menu opens
+			"LeaveNudge", -- "Just one more game?" over Roblox's menu (only while that is open)
+			"LeaveNudgeProbe", -- its invisible probe of the safe area
 		},
 		KeepWith = {
 			LuckyBag = { "LuckyHotbar" }, -- the bag opens over its hotbar
@@ -12440,6 +12444,71 @@ Config.UI.CatchABallFx = {
 	CamTargetShare = 0.35,
 	CamUpBallRadii = 1.2,
 	CamOutSeconds = 0.4,
+}
+
+-- Don't leave (src/client/LeaveNudge.luau; designer, 2026-10-10): while Roblox's own menu is
+-- open (Escape, the Roblox button, a controller's Start: about to leave) the screen darkens, a
+-- soft yellow aura breathes round its edges and "Just one more game?" with today's daily-reward
+-- line under it sits at the top, above the menu's panel, as big as the room there allows: an
+-- encouragement to stay, never a warning. (tune)
+Config.UI.LeaveNudge = {
+	DisplayOrder = 70, -- over the Gift's letterbox bars (Config.Cutscenes.DisplayOrder 60)
+	DimTransparency = 0.5, -- the black over the whole screen (Roblox's menu adds its own)
+	FadeSeconds = 0.2, -- the dim and the words coming in
+	AuraColor = { 255, 205, 60 },
+	-- Each edge's glow: this deep (of the screen's shorter side), from the edge's transparency
+	-- to clear; KneeShare of the way in it is at KneeTransparency.
+	AuraDepthShare = 0.22,
+	AuraKneeShare = 0.35,
+	AuraKneeTransparency = 0.72,
+	-- The gentle pulse: the edge's transparency swings between these, one breath a PulseSeconds.
+	AuraBrightTransparency = 0.25,
+	AuraSoftTransparency = 0.6,
+	PulseSeconds = 2.4,
+	HeadlineBreath = 0.03, -- the headline grows by this share at the top of each breath
+	-- Where the words may go: a game cannot read where Roblox's menu panel is, so it is worked
+	-- out from the designer's screenshots (2026-10-10). The panel is about MenuHalfHeightPx
+	-- over and under the screen's middle (MenuCenterPx lower), never higher than just under
+	-- Roblox's top row; the words fill from the top of the screen down to MenuGapPx above it,
+	-- from just right of Roblox's buttons (GuiService.TopbarInset) to the screen's right edge,
+	-- SidePx to spare each side (designer: "as big as possible, all the space").
+	MenuHalfHeightPx = 350, -- measured 347 on a 1722 x 814 PC window (2026-10-10)
+	MenuCenterPx = 10,
+	MenuGapPx = 4,
+	TopPx = 4, -- the words start this far down from the very top of the screen
+	BottomPx = 4, -- and the bottom line ends this far up from the safe area's bottom
+	-- With at least this much room under the panel (a PC or a tablet), the daily line goes
+	-- there across the whole width and the headline has the top to itself (designer,
+	-- 2026-10-10); a phone's panel reaches the bottom, so there both lines share the top.
+	BottomMinPx = 28,
+	SidePx = 12,
+	RowFallbackPx = 58, -- Roblox's top row when GuiService reports none
+	MaxWidthPx = 1400,
+	-- Sharing the top (a phone), the two lines' shares of its height; each line is as big as
+	-- its room and the width allow, up to its largest size.
+	Shares = { Headline = 0.58, Daily = 0.42 },
+	MaxTextPx = { Headline = 140, Daily = 96 },
+	LineFill = 0.92, -- a line's text size, of its share's height
+	MinTextPx = 7,
+	HeadlineColors = { { 255, 236, 120 }, { 255, 190, 40 } }, -- the gold, top to bottom
+	-- The daily line in a rainbow sliding along it, floating gently up and down (designer,
+	-- 2026-10-10: "rainbow or more enticing, like moving text").
+	DailyRainbow = {
+		{ 255, 90, 90 },
+		{ 255, 170, 60 },
+		{ 255, 235, 80 },
+		{ 110, 230, 110 },
+		{ 80, 200, 255 },
+		{ 170, 120, 255 },
+		{ 255, 110, 210 },
+	},
+	RainbowSeconds = 3, -- one whole slide of the rainbow across the line
+	DailyFloatShare = 0.06, -- how far it floats, of its line's height
+	DailyFloatSeconds = 1.6,
+	-- The Metal Gear "!" (Config.Ults.Audio.LookAlert, Look Over There's): once a visit, the
+	-- first time the menu opens (designer, 2026-10-10: "sound once a visit").
+	SoundOncePerVisit = true,
+	SoundVolumeScale = 0.6, -- of the ability's level (designer: "lower it a bit")
 }
 
 -- Look Over There! (src/client/LookOverThereFx.luau; the rework, designer 2026-10-08): the

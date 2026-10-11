@@ -1092,12 +1092,24 @@ approves the v5 proposal (ECONOMY.md section 11).
   once the table is free; never over one of our menus: once it closes). A player who never
   opened the menu gets it the first time they leave the game instead (the backup; not a
   teleport to a match) and it falls on their next lobby visit. Its 12-hour wait runs from when
-  it was earned (then it climbs from Uncommon). The cutscene: black bars, "Wait... what is
-  this?" big at the top just under the top bar (like the tutorial's line), a glowing gold trail,
+  it was earned (then it climbs from Uncommon). The cutscene: black bars, "WAIT... WHAT IS
+  THIS?" very big in the middle of the screen (2026-10-10; while Roblox's menu is open it waits
+  for the menu to close, since "Just one more game?" has the screen), a glowing gold trail,
   a crash with a flash, shake, shockwave and particles, then "A GIFT FELL FROM THE SKY!" and
   "Pick it up!" in the bottom bar.
   It waits on the floor until they pick it up (hold E, X or touch). Not picked up: it falls
   again, with the cutscene, on every visit until it is.
+- **"Just one more game?" over Roblox's menu** (designer, 2026-10-10; `LeaveNudge`): every
+  time Roblox's own menu opens (Escape, the Roblox button, a controller's Start), anywhere, the
+  screen darkens with a soft yellow aura breathing gently round its edges (an encouragement to
+  stay, never a red warning) and "JUST ONE MORE GAME?" in gold sits centred at the top, above
+  the menu's panel, as big as the room allows. Under it, in a sliding rainbow that floats: the
+  daily reward's state ("YOUR FREE DAILY REWARD IS WAITING! CLAIM IT BEFORE YOU GO!", "PLAY
+  ONE GAME TO UNLOCK TODAY'S FREE DAILY REWARD!" or "COME BACK TOMORROW TO CLAIM YOUR DAILY
+  REWARDS!"), at the bottom under the panel on a PC or tablet, under the headline on a phone
+  (whose panel reaches the bottom). Look Over There's Metal Gear "!" plays the first time each
+  visit, a little quieter. It stacks with the Gift's fall on the first opening (it sits over
+  the cutscene's bars).
   ECONOMY.md section 10.
 - **Ult spins** ("Ability Spins" to players; designer, 2026-09-28, section 9): the spin
   screen gives ults; spins come from play (starter, daily, VIP's extra daily spin, rank-ups,

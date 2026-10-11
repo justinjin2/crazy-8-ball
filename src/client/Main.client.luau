@@ -1770,6 +1770,8 @@ require(script.Parent.GuiQA).add(
 )
 -- One thing at a time: a full menu hides the rest of the HUD (HudFocus).
 require(script.Parent.HudFocus).start()
+-- "Just one more game?" over Roblox's own menu, while it is open (LeaveNudge).
+require(script.Parent.LeaveNudge).start()
 -- The lively Shop's motion spike (Studio only; GuiQA "spike").
 require(script.Parent.MotionSpike).start()
 -- The lively Shop's gate 2 mock-ups (Studio only; GuiQA "lab").
