@@ -53,7 +53,7 @@ rooftop map with a day and sunset cycle; pull cutscenes Rare to Secret; the ball
 - **Like + Favorite** (2026-10-11, DECISIONS): Favorite and Verify on the Free Reward card,
   the "ALMOST THERE!" popup (concept A), the reward after a rejoin ($5,000 + Lucky 8 +
   Mystery). Checked in Studio on PC through the real buttons (GuiQA `pressButton`): the
-  not-favorited notice, the popup, Later, closing the menu over it, Leave & Like sending the
+  not-favorited path (now Roblox's favorite prompt, then the notice if closed), the popup, Later, closing the menu over it, Leave & Like sending the
   player out, the flag kept over the rejoin. Open: the designer's look at the popup, a phone
   and a controller. Off switch: `Config.Social.LikeRejoin`.
 - **Solo and Practice portals**: a real teleport on the live game.

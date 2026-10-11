@@ -12,9 +12,10 @@
 --     Roblox's own join prompt (GroupService:PromptJoinAsync), then the server asks Roblox
 --     again and gives the reward (RewardRequest "ClaimGroup"); a member's button reads Claim.
 --   * Like + Favorite the game ($5,000, a Lucky 8 and a Mystery Block): Verify asks Roblox
---     whether the game is favorited (GetFavorite), then claims (RewardRequest
---     "ClaimFavorite", once: a server cannot check a favorite or a like). The first claim
---     answers "Rejoin" (like the game and rejoin: the menu's dialog); one after a rejoin gives
+--     whether the game is favorited (GetFavorite, else Roblox's favorite prompt), then
+--     claims (RewardRequest "ClaimFavorite", once: a server cannot check a favorite or a
+--     like). The first claim answers "Rejoin" (like the game and rejoin: the menu's "ALMOST
+--     THERE!" popup, LikeRejoinPopup); one after a rejoin gives
 --     (designer, 2026-10-11; Config.Social.LikeRejoin). The hero card has the Favorite button
 --     too (Roblox's own favorite prompt, AvatarEditorService:PromptSetFavorite).
 --   A claimed row's box is ticked and its button goes.
@@ -253,34 +254,43 @@ function FreeSocial.join(self: any, button: GuiObject?)
 	end)
 end
 
+-- Roblox's favorite prompt (yields until it is answered): true for a yes, which also marks the
+-- game favorited in this session. Nil when it is up already.
+local function promptFavorite(self: any): boolean?
+	if self.favoriting then
+		return nil
+	end
+	self.favoriting = true
+	self.ctx.refresh()
+	local result: any = nil
+	local connection = AvatarEditorService.PromptSetFavoriteCompleted:Connect(function(r: any)
+		result = r
+	end)
+	local ok = pcall(function()
+		AvatarEditorService:PromptSetFavorite(game.PlaceId, Enum.AvatarItemType.Asset, true)
+	end)
+	local waited = 0
+	while ok and result == nil and waited < 120 do
+		waited += task.wait(0.2)
+	end
+	connection:Disconnect()
+	local yes = result == Enum.AvatarPromptResult.Success
+	if yes then
+		self.favoritedHere = true
+	end
+	self.favoriting = false
+	self.ctx.refresh()
+	return yes
+end
+
 -- Favorite (the hero's yellow button): Roblox's favorite prompt, nothing more; Verify claims.
 function FreeSocial.favorite(self: any)
 	if self.favoriting then
 		return
 	end
 	TutorialAnchors.notePress("Favorite")
-	self.favoriting = true
 	UISound.play("Click")
-	self.ctx.refresh()
-	task.spawn(function()
-		local result: any = nil
-		local connection = AvatarEditorService.PromptSetFavoriteCompleted:Connect(function(r: any)
-			result = r
-		end)
-		local ok = pcall(function()
-			AvatarEditorService:PromptSetFavorite(game.PlaceId, Enum.AvatarItemType.Asset, true)
-		end)
-		local waited = 0
-		while ok and result == nil and waited < 120 do
-			waited += task.wait(0.2)
-		end
-		connection:Disconnect()
-		if result == Enum.AvatarPromptResult.Success then
-			self.favoritedHere = true
-		end
-		self.favoriting = false
-		self.ctx.refresh()
-	end)
+	task.spawn(promptFavorite, self)
 end
 
 -- Whether the game is favorited: Roblox's answer (GetFavorite). Just after a yes in this
@@ -308,11 +318,13 @@ local function isFavorited(self: any): boolean
 	end
 end
 
--- Verify (from `button`, the hero's green one or the row's): not favorited says so; else the
--- server's claim (RewardRequest "ClaimFavorite"), whose first answer is "Rejoin" (the menu's
--- like-and-rejoin dialog) and gives after a rejoin (Config.Social.LikeRejoin).
+-- Verify (from `button`, the hero's green one or the row's): the favorite unseen, Roblox's
+-- favorite prompt (a player who favorited on an earlier visit says yes there; designer,
+-- 2026-10-11), and no yes says "Like and favorite the game first!"; else the server's claim
+-- (RewardRequest "ClaimFavorite"), whose first answer is "Rejoin" (the menu's "ALMOST THERE!"
+-- popup) and gives after a rejoin (Config.Social.LikeRejoin).
 function FreeSocial.verify(self: any, button: GuiObject?)
-	if self.verifying then
+	if self.verifying or self.favoriting then
 		return
 	end
 	TutorialAnchors.notePress("Favorite")
@@ -324,6 +336,9 @@ function FreeSocial.verify(self: any, button: GuiObject?)
 		local favorited = isFavorited(self)
 		self.verifying = false
 		self.ctx.refresh()
+		if not favorited then
+			favorited = promptFavorite(self) == true
+		end
 		if not favorited then
 			self.ctx.notice(W.NeedFavorite, "Red")
 			return
