@@ -118,6 +118,10 @@ local ATTR = {
 	-- The highest division whose NEW RANK! popup was shown (Flags.RankShown): the client shows
 	-- the rest, up to PeakDivision, once it is free in a lobby server (designer, 2026-10-07).
 	RankShown = "RankShown",
+	-- The divisions a ladder change's catch-up passed: above RankCatchUpFrom up to RankCatchUp
+	-- (Flags; 0 and 0 if none). NEW RANK! for those says why the player moved up.
+	RankCatchUpFrom = "RankCatchUpFrom",
+	RankCatchUp = "RankCatchUp",
 	WinStreak = "WinStreak", -- wins in a row against people (Stats.WinStreak), over the head
 	-- GUI lane: wins against people ever (Stats.Wins), for the player list and the boards.
 	WinsVsPlayers = "WinsVsPlayers",
@@ -750,6 +754,8 @@ local function replicate(player: Player, data: any)
 	setAttribute(player, ATTR.RatedMatches, data.RatedMatches)
 	setAttribute(player, ATTR.PeakDivision, data.PeakDivision)
 	setAttribute(player, ATTR.RankShown, data.Flags.RankShown)
+	setAttribute(player, ATTR.RankCatchUpFrom, data.Flags.RankCatchUpFrom or 0)
+	setAttribute(player, ATTR.RankCatchUp, data.Flags.RankCatchUp or 0)
 	setAttribute(player, ATTR.RankTier, rank.tier)
 	setAttribute(player, ATTR.RankDivision, rank.division)
 	setAttribute(player, ATTR.RankIndex, rank.index)
@@ -945,6 +951,24 @@ local function prepare(player: Player, profile: Profile): string?
 	-- every popup up to its peak (no backlog of old rank-ups).
 	if valid.Flags.RankShown == nil then
 		valid.Flags.RankShown = valid.PeakDivision
+	end
+	-- A ladder change (2026-10-11) can put a save's XP in a higher division than its peak: the
+	-- peak catches up, RankClaimed and RankShown stay, so the skipped divisions' rewards wait in
+	-- Rank and their NEW RANK! popups play in the lobby, saying why (Flags.RankCatchUpFrom to
+	-- Flags.RankCatchUp: the divisions the catch-up passed, above the old peak).
+	local caughtUp = Ranks.catchUpPeak(valid)
+	if caughtUp > valid.PeakDivision then
+		print(
+			("[8ball] PlayerData: rank catch-up for %d: peak %d -> %d (%d XP)"):format(
+				player.UserId,
+				valid.PeakDivision,
+				caughtUp,
+				valid.RankXp
+			)
+		)
+		valid.Flags.RankCatchUpFrom = valid.PeakDivision
+		valid.Flags.RankCatchUp = caughtUp
+		valid.PeakDivision = caughtUp
 	end
 	profile.Data = valid
 	return nil

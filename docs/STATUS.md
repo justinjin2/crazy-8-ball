@@ -20,8 +20,9 @@ entry of `docs/archive/STATUS_HISTORY.md`.
 - **Published:** the 2026-10-11 publish (about 5:15 AM EDT) has everything up to `1a2b25c`
   (Like + Favorite with one Verify, emotes, "Just one more game?", the onboarding fixes), and
   servers were restarted. **Not yet published:** Settings' "Camera after a shot" (below), unbox announcements
-  without their "(1 in N)", and "Gonna let that slide?" wiggling over Rematch for the side that lost.
-- **Lint and tests (2026-10-11, `gui-v4`):** lint OK (four old LocalShadow warnings); all 1221
+  without their "(1 in N)", "Gonna let that slide?" wiggling over Rematch for the side that lost,
+  and **the new rank ladder** (below; needs "Restart Servers for Updates").
+- **Lint and tests (2026-10-11, `gui-v4`):** lint OK (four old LocalShadow warnings); all 1224
   Lune tests pass.
 
 ## In the game
@@ -39,6 +40,11 @@ rooftop map with a day and sunset cycle; pull cutscenes Rare to Secret; the ball
 
 ## Watch on the live game (fixed or built, not yet seen live)
 
+- **The new rank ladder** (2026-10-11, ECONOMY 2, DECISIONS): Reyes in about a year at an hour
+  a day; saves catch up as they load (about 1,110 of 4,112 move up, NEW RANK! says why, rewards
+  claimed in Rank). Checked in Studio on PC (an old save caught up and claimed, a fresh first
+  win, a normal rank-up). Watch live: the `rank catch-up` server lines, claims, a phone and a
+  controller on the popup, win rates against bots from Gold up (bots now meet players sooner).
 - **Onboarding** (2026-10-10): game 1 lost or quick-won goes on to the chain; the Daily
   Rewards and invite popups after the first match (skippers at once); the Gift drop over a
   closing menu. Check with a brand-new account once published (recipes: STUDIO_NOTES "Real

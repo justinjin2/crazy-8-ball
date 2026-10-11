@@ -178,6 +178,14 @@ local function closeScreens()
 	Menus.close()
 end
 
+-- Whether reaching division `index` came from a ladder change's catch-up as the save loaded
+-- (the RankCatchUpFrom and RankCatchUp attributes), not from a win.
+local function caughtUp(index: number): boolean
+	local player = Players.LocalPlayer
+	local from, to = player:GetAttribute("RankCatchUpFrom"), player:GetAttribute("RankCatchUp")
+	return type(from) == "number" and type(to) == "number" and index > from and index <= to
+end
+
 -- NEW RANK! for reaching division `index` from the one below (its rewards worked out here, as
 -- the server pays them; they wait to be claimed in Rank, and their money is not owed).
 local function rankUp(index: number): any
@@ -204,6 +212,7 @@ local function rankUp(index: number): any
 		rewardSpins = reward.spins,
 		held = true,
 		paid = true,
+		catchUp = caughtUp(index), -- NEW RANK! says the ranks changed, not a win
 	}
 end
 

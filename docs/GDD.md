@@ -746,8 +746,8 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
 - **Pro lobby:** a separate Roblox place, reached by a teleport door, for Diamond I *(tune)*
   and above, where only Difficult and Challenger are available. All its tables have black frames
   (blue felt 1v1, red 2v2, charcoal 3v3; section 16); the rest of its look is decided later (a dim, moody neon room is the candidate).
-  Not in the release (designer, 2026-09-26): nobody can reach Diamond I at launch, so it
-  follows about one to two weeks after release.
+  Not in the release (designer, 2026-09-26): nobody could reach Diamond I at launch, so it
+  follows after release (Diamond I is about 18 hours of play since the 2026-10-11 ladder).
 - A player's win streak shows above their head, and their country flag next to their name.
   **Built (designer, 2026-09-28):** "🔥 3" on a line over the rank badge and name, from the
   first win in a row (it starts at 1), saved across sessions. A real win against people adds
@@ -825,23 +825,27 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   lost**, so nobody ever drops a rank.
 - **XP comes only from winning, and only skill speeds it up** (designer, 2026-10-02, after
   friends reached Gold in a few hours): **a win is 100 XP, a loss 0**. No Rookie Boost, no
-  first-win-of-the-day bonus, no VIP XP. The ladder is counted in wins: **1 win to Bronze I,
-  2 more to Bronze II, then 3, 4, 5... one more win each division to Platinum**, then a
-  steady ramp (never a smaller step than the one before). Reyes is a fixed **307,500 XP**
-  (3,075 Classic wins). All numbers: [ECONOMY.md](ECONOMY.md) section 4.
+  first-win-of-the-day bonus, no VIP XP. The ladder is counted in wins (designer,
+  2026-10-11): **each tier climbs a win more per division, then the next tier starts a little
+  lower** (a quick first rank-up in every tier): Bronze 1 (after the first win), 2, 3, 4, 5;
+  Silver 2 to 6; Gold 3 to 7; Platinum 4 to 8; then faster growth from Diamond (6 to 14) to
+  Grandmaster (90 to 350 wins a division). Reyes is a fixed **186,600 XP** (1,866 Classic
+  wins). All numbers: [ECONOMY.md](ECONOMY.md) section 2.
 - Every match against a person or PC can give XP. Solo never does. **Skill sets the speed**:
   harder difficulties pay more (Classic 1, Difficult 1.25, Challenger 1.5; no Classic fade
   since 2026-10-02), a win streak gives +25% from the 3rd win in a row, and beating stronger
   players pays more and much weaker ones less (an Elo gap factor). PC matches give x0.75 XP
   below Expert and x0.5 from Expert at launch. Teams: every player by the same rules against
   the other team's average.
-- Targets, for a **3-hour-a-day player who wins half their games** (designer, 2026-10-02):
-  Silver after about 6 hours of play (never before 2), Expert in about a month, Veteran 2
-  months, Master 3.5, Grandmaster 6, Reyes about 9. An hour-a-day player takes three times
-  as long.
+- Targets, for an **hour-a-day player who wins half their games** (designer, 2026-10-11; the
+  2026-10-02 ladder took about 600 hours to Reyes and only one player reached Silver on launch
+  day): Silver after about 3 hours of play, Gold 7, Platinum 12, Diamond 18, Expert about 4
+  weeks, Veteran 1.5 months, Master 2.7, Grandmaster 5, **Reyes about a year**. A save that
+  had XP before the switch caught up as it loaded: its rewards waited in Rank and NEW RANK!
+  said "Ranks got faster! Your XP moved you up."
 - **Difficulty unlocks by rank** (designer, 2026-09-27; Challenger moved to Gold I
-  2026-10-02): host Difficult and Challenger from Gold I (about 18 hours of play since the
-  rank rework); guests may join with a warning.
+  2026-10-02): host Difficult and Challenger from Gold I (about 7 hours of play since the
+  2026-10-11 ladder); guests may join with a warning.
 - **Ten bots, one per tier** (designer, 2026-09-26; built 2026-10-02, `docs/prompts/BOTS_PROMPT.md`):
   one skill level per tier; the player's chance of beating the bot of their own rank is
   Bronze 90%, Silver 80, Gold 65, Platinum 57, Diamond 50, Expert 50, Veteran 45, Master 40,
@@ -863,14 +867,14 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
 - **Forfeits** (built 2026-09-27, the small version of 13): whoever surrenders, leaves or runs
   out of timeouts gets no XP. The winner is paid only after the one-minute mark; under it the
   match pays nobody.
-- **Rank-up rewards**, once, the first time you reach them (plan, 2026-10-02): money for each
-  new division ($1,000 a Bronze division up to $150,000 a Grandmaster one); for each new tier
-  money, lucky blocks (Bronze: an Uncommon block at once, the tutorial's, and a Mystery block;
-  Silver a Rare block; from economy v4, 2026-10-08, Platinum an Epic block, Expert the first
-  Legendary block, up to Reyes 2 Mythic blocks and $2,000,000; since economy v5, 2026-10-09,
-  they climb from their names, so Expert's Legendary block is a guaranteed Legendary), the
-  tier's cue (the Ranked rarity, never tradable), the chat tag and ability spins. ECONOMY.md
-  section 4.8.
+- **Rank-up rewards**, once, the first time you reach them, claimed in Rank (plan, 2026-10-02;
+  money resized with the 2026-10-11 ladder): money for each new division ($1,000 a Bronze
+  division up to $50,000 a Grandmaster one); for each new tier money, lucky blocks (Bronze an
+  Uncommon block, the tutorial's; Silver and Gold a Rare block; Platinum and Diamond an Epic
+  block; Expert and Veteran a Legendary block, Master 2; Grandmaster a Mythic block; Reyes 2
+  Mythic blocks and $1,000,000; since economy v5, 2026-10-09, they climb from their names, so
+  Expert's Legendary block is a guaranteed Legendary), the tier's cue (the Ranked rarity, never
+  tradable), the chat tag and ability spins. ECONOMY.md section 2.
 - **Rank and money show** in the top left rank HUD (badge, name, XP bar), over every head
   (badge then username), under each portrait in the match bar, and as Rank and Money columns
   in Roblox's player list (designer, 2026-09-27).
@@ -1311,8 +1315,8 @@ helpers, `src/server/TutorialService.luau`, `TutorialGames`, `TutorialBot`, `Tut
   0/1" stays until won; the **Daily Rewards popup** once (day 1 to claim, day 7 on show), then
   a small invite popup once (an honest line on when the reward comes); Free Reward's group,
   favorite and like frames light once; Play Global glows after the invite is answered. The
-  rank HUD always shows the next goal under the bar ("2 WINS TO BRONZE II!", "ONE MORE
-  WIN!"). **Game 2** is a real game through the new search; after it, win or lose,
+  rank HUD always shows the next goal under the bar ("ONE MORE WIN!" right after the first
+  win, then "2 WINS TO BRONZE 3!"). **Game 2** is a real game through the new search; after it, win or lose,
   the tutorial is done.
 - **First-time hints, for everyone:** the first time each thing happens (the full ability bar,
   a rank-up to claim, a lucky block to place, a Mystery block, a cue won, Abilities, ball in

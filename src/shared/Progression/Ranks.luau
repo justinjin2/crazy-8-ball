@@ -623,6 +623,15 @@ local function readSave(save: RankSave): (number, boolean, number, number)
 	return xp, rated, clampIndex(fields.PeakDivision), ratedMatches
 end
 
+--- The peak a save should hold for its XP. XP is never lost, so when the ladder changes
+--- (2026-10-11) and a save's XP now reaches a higher division than its peak, the peak rises to
+--- it: PlayerData does this as the save loads, the skipped divisions' rewards then wait in Rank
+--- and NEW RANK! plays for each. Never lowers a peak; an unrated save keeps its peak.
+function Ranks.catchUpPeak(save: RankSave): number
+	local xp, rated, peak = readSave(save)
+	return math.max(peak, Ranks.fromXp(xp, rated).index)
+end
+
 --- A finished match for one player (`ctx` as Ranks.matchXp): their XP, how it was built,
 --- their new peak and every reward it passed. Counts the match (RatedMatches + 1) once the
 --- player is rated: an Unranked player stays Unranked (and uncounted) until a match gives

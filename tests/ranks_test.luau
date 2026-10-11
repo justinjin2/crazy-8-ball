@@ -1,6 +1,6 @@
 --!strict
 -- Ranks: total XP to rank and back, match XP, the opponent gap, the streak boost, peaks and
--- rank-up rewards. Every expected number is written out from docs/ECONOMY.md section 4 (not read
+-- rank-up rewards. Every expected number is written out from docs/ECONOMY.md section 2 (not read
 -- from Config), so these tests check Config against the document.
 
 local H = require("./harness")
@@ -141,30 +141,30 @@ return {
 		H.expect(Ranks.tierIndex("Unranked") == 0 and Ranks.tierIndex("nope") == nil)
 	end,
 
-	-- ECONOMY 4.2 "The ladder" (2026-10-02): every division's width and the fixed starts.
-	["the ladder is ECONOMY 4.2's: Grandmaster I at 202,500, Reyes at 307,500"] = function()
+	-- ECONOMY 2 "The ladder" (designer, 2026-10-11): every division's width and the fixed starts.
+	["the ladder is ECONOMY 2's: Grandmaster I at 76,600, Reyes at 186,600"] = function()
 		local Ranks = load()
 		local widths: { [string]: { number } } = {
-			Bronze = { 300, 300, 400, 500, 600 },
-			Silver = { 700, 800, 900, 1000, 1100 },
-			Gold = { 1200, 1300, 1400, 1500, 1600 },
-			Platinum = { 1700, 1800, 1900, 2000, 2200 },
-			Diamond = { 2500, 2800, 3200, 3600, 4000 },
-			Expert = { 4500, 5000, 5600, 6200, 6900 },
-			Veteran = { 7700, 8800, 10000, 11300, 12700 },
-			Master = { 14300, 15700, 17000, 18000, 19500 },
-			Grandmaster = { 20000, 20500, 21000, 21500, 22000 },
+			Bronze = { 200, 200, 300, 400, 500 },
+			Silver = { 200, 300, 400, 500, 600 },
+			Gold = { 300, 400, 500, 600, 700 },
+			Platinum = { 400, 500, 600, 700, 800 },
+			Diamond = { 600, 800, 1000, 1200, 1400 },
+			Expert = { 1200, 1600, 2000, 2400, 2800 },
+			Veteran = { 2500, 3000, 3500, 4000, 4500 },
+			Master = { 4000, 5500, 7000, 8500, 10000 },
+			Grandmaster = { 9000, 15000, 22000, 29000, 35000 },
 		}
 		local tierTotals: { [string]: number } = {
-			Bronze = 2100,
-			Silver = 4500,
-			Gold = 7000,
-			Platinum = 9600,
-			Diamond = 16100,
-			Expert = 28200,
-			Veteran = 50500,
-			Master = 84500,
-			Grandmaster = 105000,
+			Bronze = 1600,
+			Silver = 2000,
+			Gold = 2500,
+			Platinum = 3000,
+			Diamond = 5000,
+			Expert = 10000,
+			Veteran = 17500,
+			Master = 35000,
+			Grandmaster = 110000,
 		}
 		local start = 0
 		for _, tier in TIERS do
@@ -188,44 +188,160 @@ return {
 			H.expect(sum == tierTotals[tier], tier .. " total")
 			start += sum
 		end
-		H.expect(Ranks.startXp(Ranks.indexOf("Grandmaster", 1)) == 202500, "Grandmaster I")
-		H.expect(Ranks.startXp(Ranks.indexOf("Reyes")) == 307500, "Reyes")
-		H.expect(start == 307500)
+		H.expect(Ranks.startXp(Ranks.indexOf("Grandmaster", 1)) == 76600, "Grandmaster I")
+		H.expect(Ranks.startXp(Ranks.indexOf("Reyes")) == 186600, "Reyes")
+		H.expect(start == 186600)
 		-- The tier starts ECONOMY quotes elsewhere, in wins of 100 XP (the first win is at 0).
-		H.expect(Ranks.startXp(Ranks.indexOf("Silver")) == 2100, "Silver I: 21 wins")
-		H.expect(Ranks.startXp(Ranks.indexOf("Gold")) == 6600, "Gold I: 66 wins")
-		H.expect(Ranks.startXp(Ranks.indexOf("Diamond")) == 23200)
-		H.expect(Ranks.startXp(Ranks.indexOf("Expert")) == 39300)
-		-- 1 win to Bronze I, 2 more to II, then one more win each division to Platinum V.
-		for index = 2, 19 do
-			H.expect(Ranks.width(index) == (index + 1) * 100, "one more win at " .. index)
+		H.expect(Ranks.startXp(Ranks.indexOf("Silver")) == 1600, "Silver I: 16 wins")
+		H.expect(Ranks.startXp(Ranks.indexOf("Gold")) == 3600, "Gold I: 36 wins")
+		H.expect(Ranks.startXp(Ranks.indexOf("Platinum")) == 6100, "Platinum I: 61 wins")
+		H.expect(Ranks.startXp(Ranks.indexOf("Diamond")) == 9100)
+		H.expect(Ranks.startXp(Ranks.indexOf("Expert")) == 14100)
+		-- The first win lands in Bronze I one win from Bronze II; then 2, 3, 4, 5 wins.
+		H.expect(Ranks.width(1) - 100 == 100, "one win from Bronze II after the first")
+		-- Bronze to Platinum: a win more each division, each tier starting a win above the last.
+		for t = 1, 4 do
+			for division = 1, 5 do
+				local index = (t - 1) * 5 + division
+				if index > 1 then
+					H.expect(
+						Ranks.width(index) == (t + division - 1) * 100,
+						"a win more at " .. index
+					)
+				end
+			end
 		end
-		-- Never a smaller step than the one before (no cliff, no dip).
-		for index = 2, Ranks.count() - 1 do
-			H.expect(
-				(Ranks.width(index) :: number) >= (Ranks.width(index - 1) :: number),
-				"widths never shrink at " .. index
-			)
+		-- Every tier: its steps grow (Bronze from II: Bronze I also holds the first win), it
+		-- starts lower than the last tier ended (a quick first rank-up), and it is longer than
+		-- the tier below.
+		local lastTotal = 0
+		for t, tier in TIERS do
+			local first = Ranks.indexOf(tier, 1) :: number
+			for division = if t == 1 then 3 else 2, 5 do
+				H.expect(
+					(Ranks.width(first + division - 1) :: number)
+						> Ranks.width(first + division - 2) :: number,
+					tier .. " grows at " .. division
+				)
+			end
+			if t > 1 then
+				H.expect(
+					(Ranks.width(first) :: number) < (Ranks.width(first - 1) :: number),
+					tier .. " I starts lower than the tier below ended"
+				)
+			end
+			H.expect(tierTotals[tier] > lastTotal, tier .. " is longer than the tier below")
+			lastTotal = tierTotals[tier]
 		end
+	end,
+
+	-- The 2026-10-11 switch moved nobody down: every division starts at or below where the
+	-- 2026-10-02 ladder had it, so any save's XP is in the same division or a higher one.
+	["the new ladder never puts a save in a lower division than the old one"] = function()
+		local Ranks = load()
+		local old: { [string]: { number } } = {
+			Bronze = { 300, 300, 400, 500, 600 },
+			Silver = { 700, 800, 900, 1000, 1100 },
+			Gold = { 1200, 1300, 1400, 1500, 1600 },
+			Platinum = { 1700, 1800, 1900, 2000, 2200 },
+			Diamond = { 2500, 2800, 3200, 3600, 4000 },
+			Expert = { 4500, 5000, 5600, 6200, 6900 },
+			Veteran = { 7700, 8800, 10000, 11300, 12700 },
+			Master = { 14300, 15700, 17000, 18000, 19500 },
+			Grandmaster = { 20000, 20500, 21000, 21500, 22000 },
+		}
+		local oldStarts: { number } = {}
+		local x = 0
+		for _, tier in TIERS do
+			for _, w in old[tier] do
+				table.insert(oldStarts, x)
+				x += w
+			end
+		end
+		table.insert(oldStarts, x) -- Reyes, 307,500
+		H.expect(#oldStarts == Ranks.count())
+		for index = 1, Ranks.count() do
+			H.expect(Ranks.startXp(index) <= oldStarts[index], "starts no later at " .. index)
+		end
+		-- Every save on the live boards on 2026-10-11 (their XP), old division to new.
+		local function oldIndex(xp: number): number
+			local k = 1
+			for i, s in oldStarts do
+				if xp >= s then
+					k = i
+				end
+			end
+			return k
+		end
+		for xp = 0, 3000, 5 do
+			H.expect(Ranks.fromXp(xp, true).index >= oldIndex(xp), "never lower at " .. xp)
+		end
+		H.expect(Ranks.name(Ranks.fromXp(2792, true)) == "Silver 4", "the top player: Silver 4")
+		H.expect(Ranks.name(Ranks.fromXp(100, true)) == "Bronze 1", "one win: still Bronze 1")
+		H.expect(Ranks.name(Ranks.fromXp(200, true)) == "Bronze 2", "two wins: Bronze 2")
+	end,
+
+	-- The tutorial's first game is against a bot wearing Silver (Config.Bots.Tutorial.FirstTier):
+	-- beating it gives 145 to 150 XP, which must land in Bronze I one win from Bronze II (ONE
+	-- MORE WIN! under the bar), never straight in Bronze II.
+	["the tutorial's first win lands in Bronze I, one win from Bronze II"] = function()
+		local Ranks = load()
+		for division = 1, 5 do
+			local silver = Ranks.indexOf("Silver", division)
+			local first = Ranks.applyMatch(unranked(), ctx("Win", { opponentIndex = silver }))
+			H.expect(first.after.tier == "Bronze" and first.after.division == 1, "Bronze I")
+			H.expect(first.xpAfter >= 140 and first.xpAfter <= 150, "145-150 XP: " .. first.xpAfter)
+			local next = Ranks.applyMatch(nextSave(first), ctx("Win"))
+			H.expect(next.after.tier == "Bronze" and next.after.division == 2, "one more win")
+		end
+	end,
+
+	["catchUpPeak raises a peak to its XP's division and never lowers one"] = function()
+		local Ranks = load()
+		-- The top player on 2026-10-11: Silver I (6) on the old ladder, Silver IV (9) now.
+		H.expect(Ranks.catchUpPeak({ RankXp = 2792, PeakDivision = 6, RatedMatches = 30 }) == 9)
+		-- One win: Bronze I either way, nothing to catch up.
+		H.expect(Ranks.catchUpPeak({ RankXp = 100, PeakDivision = 1, RatedMatches = 1 }) == 1)
+		-- Two wins: Bronze II now.
+		H.expect(Ranks.catchUpPeak({ RankXp = 200, PeakDivision = 1, RatedMatches = 2 }) == 2)
+		-- A peak above the XP's division stays (never lowered).
+		H.expect(Ranks.catchUpPeak({ RankXp = 0, PeakDivision = 11, RatedMatches = 1 }) == 11)
+		-- Unrated: Unranked whatever the XP; its peak stays.
+		H.expect(Ranks.catchUpPeak({ RankXp = 9000, PeakDivision = 0, RatedMatches = 0 }) == 0)
+		H.expect(Ranks.catchUpPeak({ RankXp = 9000, PeakDivision = 3, RatedMatches = 0 }) == 3)
+		-- A save at its peak already, and bad values, change nothing and never crash.
+		H.expect(
+			Ranks.catchUpPeak({ RankXp = 186600, PeakDivision = 46, RatedMatches = 900 }) == 46
+		)
+		H.expect(Ranks.catchUpPeak(nil :: any) == 0)
+		H.expect(Ranks.catchUpPeak({ RankXp = 0 / 0, PeakDivision = -4, RatedMatches = 1 }) == 1)
+		H.expect(
+			Ranks.catchUpPeak({ RankXp = math.huge, PeakDivision = 999, RatedMatches = 1 }) == 46
+		)
+		-- Idempotent: a caught-up save catches up to the same peak again.
+		local save = { RankXp = 5000, PeakDivision = 2, RatedMatches = 40 }
+		save.PeakDivision = Ranks.catchUpPeak(save)
+		H.expect(save.PeakDivision == Ranks.fromXp(5000, true).index)
+		H.expect(Ranks.catchUpPeak(save) == save.PeakDivision)
 	end,
 
 	["fromXp finds the division at every boundary"] = function()
 		local Ranks = load()
 		expectRank(Ranks.fromXp(0, true), "Bronze", 1, 0, "0")
-		expectRank(Ranks.fromXp(299, true), "Bronze", 1, 299, "299")
-		expectRank(Ranks.fromXp(300, true), "Bronze", 2, 0, "300")
-		expectRank(Ranks.fromXp(2099, true), "Bronze", 5, 599, "2099")
-		expectRank(Ranks.fromXp(2100, true), "Silver", 1, 0, "2100")
-		expectRank(Ranks.fromXp(23200, true), "Diamond", 1, 0, "23200")
-		expectRank(Ranks.fromXp(307499, true), "Grandmaster", 5, 21999, "Grandmaster V top")
-		local reyes = Ranks.fromXp(307500, true)
-		expectRank(reyes, "Reyes", 1, 0, "307500")
+		expectRank(Ranks.fromXp(199, true), "Bronze", 1, 199, "199")
+		expectRank(Ranks.fromXp(200, true), "Bronze", 2, 0, "200")
+		expectRank(Ranks.fromXp(1599, true), "Bronze", 5, 499, "1599")
+		expectRank(Ranks.fromXp(1600, true), "Silver", 1, 0, "1600")
+		expectRank(Ranks.fromXp(9100, true), "Diamond", 1, 0, "9100")
+		expectRank(Ranks.fromXp(186599, true), "Grandmaster", 5, 34999, "Grandmaster V top")
+		local reyes = Ranks.fromXp(186600, true)
+		expectRank(reyes, "Reyes", 1, 0, "186600")
 		H.expect(reyes.index == 46 and reyes.width == nil, "Reyes has no top")
 		local huge = Ranks.fromXp(123456789, true)
-		expectRank(huge, "Reyes", 1, 123456789 - 307500, "huge")
+		expectRank(huge, "Reyes", 1, 123456789 - 186600, "huge")
 		H.expect(huge.width == nil)
-		local gold3 = Ranks.fromXp(9200, true)
-		H.expect(gold3.width == 1400 and gold3.index == 13 and gold3.xpInDivision == 100)
+		local gold3 = Ranks.fromXp(4400, true)
+		H.expect(gold3.width == 500 and gold3.index == 13 and gold3.xpInDivision == 100)
 		local none = Ranks.fromXp(9000, false)
 		H.expect(none.tier == "Unranked" and none.index == 0 and none.division == 0)
 		H.expect(none.xpInDivision == 0 and none.width == nil, "unrated is Unranked")
@@ -233,13 +349,13 @@ return {
 
 	["startXp width and toXp"] = function()
 		local Ranks = load()
-		H.expect(Ranks.startXp(0) == 0 and Ranks.startXp(1) == 0 and Ranks.startXp(2) == 300)
-		H.expect(Ranks.startXp(46) == 307500)
-		H.expect(Ranks.width(0) == nil and Ranks.width(46) == nil and Ranks.width(1) == 300)
-		H.expect(Ranks.toXp("gold", 3, 520) == 9100 + 520, "Gold III 520")
-		H.expect(Ranks.toXp("gold", 3, 5000) == 9100 + 1399, "clamped into the division")
-		H.expect(Ranks.toXp("gold", 3, -5) == 9100, "negative into is 0")
-		H.expect(Ranks.toXp("reyes", nil, 99999) == 307500 + 99999, "Reyes unbounded")
+		H.expect(Ranks.startXp(0) == 0 and Ranks.startXp(1) == 0 and Ranks.startXp(2) == 200)
+		H.expect(Ranks.startXp(46) == 186600)
+		H.expect(Ranks.width(0) == nil and Ranks.width(46) == nil and Ranks.width(1) == 200)
+		H.expect(Ranks.toXp("gold", 3, 320) == 4300 + 320, "Gold III 320")
+		H.expect(Ranks.toXp("gold", 3, 5000) == 4300 + 499, "clamped into the division")
+		H.expect(Ranks.toXp("gold", 3, -5) == 4300, "negative into is 0")
+		H.expect(Ranks.toXp("reyes", nil, 99999) == 186600 + 99999, "Reyes unbounded")
 		H.expect(Ranks.toXp("unranked") == 0 and Ranks.toXp("golden") == nil)
 		for index = 1, Ranks.count() do
 			local tier, division = Ranks.at(index)
@@ -250,11 +366,11 @@ return {
 
 	["display names and badge keys"] = function()
 		local Ranks = load()
-		H.expect(Ranks.name(Ranks.fromXp(9100, true)) == "Gold 3", "Gold 3, never Roman")
-		H.expect(Ranks.name(Ranks.fromXp(307500, true)) == "Reyes", "Reyes")
+		H.expect(Ranks.name(Ranks.fromXp(4300, true)) == "Gold 3", "Gold 3, never Roman")
+		H.expect(Ranks.name(Ranks.fromXp(186600, true)) == "Reyes", "Reyes")
 		H.expect(Ranks.name(Ranks.fromXp(0, false)) == "Unranked", "Unranked")
 		H.expect(Ranks.name(Ranks.fromXp(0, true)) == "Bronze 1", "Bronze 1")
-		H.expect(Ranks.name(Ranks.fromXp(307499, true)) == "Grandmaster 5")
+		H.expect(Ranks.name(Ranks.fromXp(186599, true)) == "Grandmaster 5")
 		H.expect(Ranks.tierName("gold") == "Gold" and Ranks.tierName("unranked") == "Unranked")
 		H.expect(Ranks.badgeKey("Gold", 3) == "gold_3", "gold_3")
 		H.expect(Ranks.badgeKey("reyes", 1) == "reyes", "reyes")
@@ -471,36 +587,37 @@ return {
 			save = nextSave(result)
 		end
 		H.expect(paid == 45, "every division above Bronze I paid once, got " .. paid)
-		H.expect(wins == 2050, "307,500 / 150 = 2,050 Challenger wins, got " .. wins)
+		H.expect(wins == 1244, "186,600 / 150 = 1,244 Challenger wins, got " .. wins)
 		local top = Ranks.applyMatch(save, challenger)
 		H.expect(top.after.tier == "Reyes" and top.delta == 150, "Reyes keeps going")
 	end,
 
-	-- Economy v6 (2026-10-10): every row of the rank rewards table.
-	["rank rewards are the economy plan's table"] = function()
+	-- Every row of the rank rewards table (the money resized with the 2026-10-11 ladder; the
+	-- blocks and cues are economy v6's).
+	["rank rewards are ECONOMY 2's table"] = function()
 		local Ranks = load()
 		local steps: { [string]: number } = {
 			Bronze = 1000,
-			Silver = 2000,
-			Gold = 3000,
-			Platinum = 5000,
-			Diamond = 10000,
-			Expert = 20000,
-			Veteran = 30000,
-			Master = 50000,
-			Grandmaster = 75000,
+			Silver = 1250,
+			Gold = 1500,
+			Platinum = 2000,
+			Diamond = 3000,
+			Expert = 5000,
+			Veteran = 10000,
+			Master = 20000,
+			Grandmaster = 50000,
 		}
 		-- { money, blocks, cue } (Bronze's block is an Uncommon one, economy v6)
 		local firsts: { [string]: { any } } = {
 			Bronze = { 2500, { Uncommon = 1 }, "BronzeCue" },
-			Silver = { 5000, { Rare = 1 }, "SilverCue" },
-			Gold = { 10000, { Rare = 1 }, "GoldCue" },
-			Platinum = { 20000, { Epic = 1 }, "PlatinumCue" },
-			Diamond = { 40000, { Epic = 1 }, "DiamondCue" },
-			Expert = { 75000, { Legendary = 1 }, "ExpertCue" },
-			Veteran = { 150000, { Legendary = 1 }, "VeteranCue" },
-			Master = { 250000, { Legendary = 2 }, "MasterCue" },
-			Grandmaster = { 500000, { Mythic = 1 }, "GrandmasterCue" },
+			Silver = { 4000, { Rare = 1 }, "SilverCue" },
+			Gold = { 6000, { Rare = 1 }, "GoldCue" },
+			Platinum = { 7500, { Epic = 1 }, "PlatinumCue" },
+			Diamond = { 10000, { Epic = 1 }, "DiamondCue" },
+			Expert = { 15000, { Legendary = 1 }, "ExpertCue" },
+			Veteran = { 30000, { Legendary = 1 }, "VeteranCue" },
+			Master = { 50000, { Legendary = 2 }, "MasterCue" },
+			Grandmaster = { 100000, { Mythic = 1 }, "GrandmasterCue" },
 			Reyes = { 1000000, { Mythic = 2 }, "ReyesCue" },
 		}
 		for _, tier in ALL_TIERS do
@@ -534,16 +651,16 @@ return {
 		for _, r in all do
 			total += r.money
 		end
-		local steps4 = (1000 + 2000 + 3000 + 5000 + 10000 + 20000 + 30000 + 50000 + 75000) * 4
+		local steps4 = (1000 + 1250 + 1500 + 2000 + 3000 + 5000 + 10000 + 20000 + 50000) * 4
 		local firstSum = 2500
-			+ 5000
+			+ 4000
+			+ 6000
+			+ 7500
 			+ 10000
-			+ 20000
-			+ 40000
-			+ 75000
-			+ 150000
-			+ 250000
-			+ 500000
+			+ 15000
+			+ 30000
+			+ 50000
+			+ 100000
 			+ 1000000
 		H.expect(total == steps4 + firstSum, "all the rank money")
 		H.expect(#Ranks.rewardsBetween(10, 10) == 0 and #Ranks.rewardsBetween(12, 3) == 0)
@@ -551,7 +668,7 @@ return {
 
 	["an Unranked player's first win makes them Bronze I, from 0 XP"] = function()
 		local Ranks = load()
-		-- A first win (100) is Bronze I, a third of the way: 2 more wins to Bronze II.
+		-- A first win (100) is Bronze I, half way: one more win to Bronze II.
 		local win = Ranks.applyMatch(unranked(), ctx("Win"))
 		H.expect(win.before.tier == "Unranked" and win.before.index == 0)
 		expectRank(win.after, "Bronze", 1, 100, "first win")
@@ -562,11 +679,14 @@ return {
 		H.expect(sameValue(win.rewardBlocks, { Uncommon = 1 }), "Bronze's one block")
 		H.expect(sameValue(win.rewardCues, { "BronzeCue" }))
 		H.expect(win.newTier and win.promoted, "Unranked to Bronze is new")
-		-- Two more wins: Bronze II.
+		-- One more win: Bronze II and its step money; two more: Bronze III.
 		local w2 = Ranks.applyMatch(nextSave(win), ctx("Win"))
+		expectRank(w2.after, "Bronze", 2, 0, "second win")
+		H.expect(w2.promoted and w2.rewardTotal == 1000, "Bronze II pays its step")
 		local w3 = Ranks.applyMatch(nextSave(w2), ctx("Win"))
-		expectRank(w2.after, "Bronze", 1, 200, "second win")
-		expectRank(w3.after, "Bronze", 2, 0, "third win")
+		local w4 = Ranks.applyMatch(nextSave(w3), ctx("Win"))
+		expectRank(w3.after, "Bronze", 2, 100, "third win")
+		expectRank(w4.after, "Bronze", 3, 0, "fourth win")
 		-- A win against PC gives no XP since economy v6: still Unranked.
 		local pc = Ranks.applyMatch(unranked(), ctx("Win", { opponent = "PC" }))
 		H.expect(pc.after.tier == "Unranked" and pc.xpAfter == 0, "first PC win: Unranked")
@@ -605,37 +725,37 @@ return {
 	["rank rewards are paid once per division, blocks and cues merged"] = function()
 		local Ranks = load()
 		-- Gold V to Platinum I: a tier's money, its Epic block and its cue.
-		local r1 = Ranks.applyMatch(saveAt(Ranks, "Gold", 5, 1550), ctx("Win"))
+		local r1 = Ranks.applyMatch(saveAt(Ranks, "Gold", 5, 650), ctx("Win"))
 		expectRank(r1.after, "Platinum", 1, 50, "Gold V win")
-		H.expect(#r1.rewards == 1 and r1.rewards[1].index == 16 and r1.rewards[1].money == 20000)
-		H.expect(r1.rewardTotal == 20000 and r1.newTier and r1.promoted)
+		H.expect(#r1.rewards == 1 and r1.rewards[1].index == 16 and r1.rewards[1].money == 7500)
+		H.expect(r1.rewardTotal == 7500 and r1.newTier and r1.promoted)
 		H.expect(
 			sameValue(r1.rewardBlocks, { Epic = 1 }) and sameValue(r1.rewardCues, { "PlatinumCue" })
 		)
 		-- Gold IV to V is a step: money only.
-		local r2 = Ranks.applyMatch(saveAt(Ranks, "Gold", 4, 1450), ctx("Win"))
-		H.expect(r2.rewardTotal == 3000 and r2.promoted and not r2.newTier)
+		local r2 = Ranks.applyMatch(saveAt(Ranks, "Gold", 4, 550), ctx("Win"))
+		H.expect(r2.rewardTotal == 1500 and r2.promoted and not r2.newTier)
 		H.expect(next(r2.rewardBlocks) == nil and #r2.rewardCues == 0)
 		-- A jump from Bronze II to Gold II pays everything passed, in order, merged.
-		local jump = Ranks.applyXp(saveAt(Ranks, "Bronze", 2, 0), 7800 - 300)
+		local jump = Ranks.applyXp(saveAt(Ranks, "Bronze", 2, 0), 3900 - 200)
 		expectRank(jump.after, "Gold", 2, 0, "jump")
 		local indexes = {}
 		for _, r in jump.rewards do
 			table.insert(indexes, r.index)
 		end
 		H.expect(sameValue(indexes, { 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 }), "bottom first")
-		H.expect(jump.rewardTotal == 1000 * 3 + 5000 + 2000 * 4 + 10000 + 3000, "the money")
+		H.expect(jump.rewardTotal == 1000 * 3 + 4000 + 1250 * 4 + 6000 + 1500, "the money")
 		H.expect(sameValue(jump.rewardBlocks, { Rare = 2 }), "Silver's Rare + Gold's")
 		H.expect(sameValue(jump.rewardCues, { "SilverCue", "GoldCue" }), "cues bottom first")
 		-- Below an old peak (a bad save's) pays nothing until past it.
 		local save = saveAt(Ranks, "Expert", 1, 0, 27)
-		local up = Ranks.applyXp(save, 4500)
+		local up = Ranks.applyXp(save, 1200)
 		H.expect(up.promoted and up.after.index == 27 and #up.rewards == 0 and up.rewardTotal == 0)
 		H.expect(up.peakBefore == 27 and up.peakAfter == 27)
-		local past = Ranks.applyXp(nextSave(up), 5000)
-		H.expect(#past.rewards == 1 and past.rewards[1].index == 28 and past.rewardTotal == 20000)
+		local past = Ranks.applyXp(nextSave(up), 1600)
+		H.expect(#past.rewards == 1 and past.rewards[1].index == 28 and past.rewardTotal == 5000)
 		-- The whole ladder at once: every tier's blocks.
-		local everything = Ranks.applyXp(unranked(), 307500)
+		local everything = Ranks.applyXp(unranked(), 186600)
 		H.expect(everything.after.tier == "Reyes" and #everything.rewards == 46)
 		H.expect(sameValue(everything.rewardBlocks, {
 			Uncommon = 1,
@@ -710,7 +830,7 @@ return {
 		expectRank(Ranks.fromXp(nan, true), "Bronze", 1, 0, "NaN")
 		expectRank(Ranks.fromXp(-50, true), "Bronze", 1, 0, "negative")
 		expectRank(Ranks.fromXp(math.huge, true), "Bronze", 1, 0, "inf")
-		expectRank(Ranks.fromXp(350.9, true), "Bronze", 2, 50, "fraction floors")
+		expectRank(Ranks.fromXp(250.9, true), "Bronze", 2, 50, "fraction floors")
 		local r = Ranks.applyMatch(
 			{ RankXp = nan, PeakDivision = -3, RatedMatches = math.huge } :: any,
 			ctx("Win")
@@ -741,7 +861,7 @@ return {
 			H.expect(entry.reward == reward.money and entry.cue == reward.cue)
 			H.expect(sameValue(entry.blocks, reward.blocks))
 		end
-		H.expect(list[46].width == nil and list[46].reward == 1000000 and list[16].reward == 20000)
+		H.expect(list[46].width == nil and list[46].reward == 1000000 and list[16].reward == 7500)
 		H.expect(Ranks.rulesLine == nil and Ranks.floorXp == nil, "the loss rules are gone")
 	end,
 

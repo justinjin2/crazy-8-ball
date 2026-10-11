@@ -434,6 +434,17 @@ function NewRankPopup.openUp(self: any, item: any)
 		C.ChipRowGap
 	)
 	view.height = chipsTop + rowsHeight + C.Gap + C.ButtonHeight
+	-- A rank reached by a ladder change's catch-up, not a win (2026-10-11): a line says why.
+	local linesTop = chipsTop + rowsHeight + 4
+	if event.catchUp == true then
+		local why = HudParts.text(stage, "CatchUpLine", C.RewardTextPx, P.RankCatchUp)
+		why.TextWrapped = false
+		why.Position = UDim2.fromOffset(0, linesTop)
+		why.Size = UDim2.fromOffset(C.Width, C.NameHeight)
+		why.ZIndex = 4
+		linesTop += C.NameHeight
+		view.height += C.NameHeight
+	end
 	-- Held rewards (the tutorial lane, designer 2026-10-03): they wait in Rank, so nothing flies
 	-- and a line says where to claim them.
 	if event.held == true then
@@ -445,7 +456,7 @@ function NewRankPopup.openUp(self: any, item: any)
 			tone("Gold")
 		)
 		line.TextWrapped = false
-		line.Position = UDim2.fromOffset(0, chipsTop + rowsHeight + 4)
+		line.Position = UDim2.fromOffset(0, linesTop)
 		line.Size = UDim2.fromOffset(C.Width, C.NameHeight)
 		line.ZIndex = 4
 		view.height += C.NameHeight

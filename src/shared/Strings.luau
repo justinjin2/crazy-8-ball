@@ -544,6 +544,8 @@ return {
 		Continue = "Continue",
 		NewRank = "NEW RANK!",
 		NewTier = "%s!", -- the tier's name, huge: "PLATINUM!"
+		-- NEW RANK! for a division reached by a ladder change, not a win (2026-10-11)
+		RankCatchUp = "Ranks got faster! Your XP moved you up.",
 		RankedTitle = "Ranked",
 		EarnXp = "Win matches to earn XP",
 		TopRank = "You are at the top!",

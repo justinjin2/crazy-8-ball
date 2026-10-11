@@ -10,7 +10,8 @@ checklist: `docs/prompts/ECONOMY_V6_PLAN.md`. Every number lives in `src/shared/
 
 **Rules that did not change in v6** are still described in `docs/archive/ECONOMY_V5.md`: match
 money per ball, nice shots and the ball streak (3.1), team matches (3.3), difficulty (3.4), boosts
-(3.5), anti-farming (3.6), the XP ladder and its speed (4.1 to 4.7), seasons, rarities and the
+(3.5), anti-farming (3.6), how match XP is worked out (4.1, 4.3 to 4.7; the ladder itself is
+section 2 here since 2026-10-11), seasons, rarities and the
 catalog rules (6), the climb mechanics and the reel (7.1, 7.6, 7.7), announcements (7.8), the
 restock's timing and slots (9.1), copies in existence (9.3), money packs, VIP and the Starter
 Pack (11.1 to 11.4), ability spins (11.8), trading rules (12) and the Roblox rules checklist (13).
@@ -42,23 +43,57 @@ Where that file and this one disagree, **this one wins**.
 Practice is reachable only through the developer commands until the Solo and Practice portals
 are built (planned with the designer, 2026-10-10).
 
-## 2. Ranks: the rank-up rewards
+## 2. Ranks: the ladder and the rank-up rewards
 
-Division steps (each division of the tier, paid once): Bronze $1,000, Silver $2,000, Gold $3,000,
-Platinum $5,000, Diamond $10,000, Expert $20,000, Veteran $30,000, Master $50,000, Grandmaster
-$75,000. Tier rewards (the tier's first division), with the spins as before:
+**The ladder (designer, 2026-10-11).** A win against an equal player is 100 XP, a loss 0 (the gap,
+the table's difficulty and the win streak still scale it: archive 4.2 to 4.5). Each tier climbs a
+win more per division, then the next tier starts a little lower than the last one ended, so every
+new tier opens with a quick rank-up. From Diamond the steps grow faster so Reyes takes about a year
+at an hour a day. Times are for a player who wins half their games at the pace measured live on
+2026-10-11 (about 6.3 minutes a match with the lobby time, 9.6 matches an hour):
+
+| Tier | Wins per division (1 to 5) | Tier starts at | Reached after | At 1 h a day |
+|---|---|---|---|---|
+| Bronze | 1 (after the first win, which lands in Bronze 1 at about 150 of 200) · 2 · 3 · 4 · 5 | 0 XP | the first win | day 1 |
+| Silver | 2 · 3 · 4 · 5 · 6 | 1,600 | about 3 h | day 4 |
+| Gold | 3 · 4 · 5 · 6 · 7 | 3,600 | 7 h | day 8 |
+| Platinum | 4 · 5 · 6 · 7 · 8 | 6,100 | 12 h | day 12 |
+| Diamond | 6 · 8 · 10 · 12 · 14 | 9,100 | 18 h | day 18 |
+| Expert | 12 · 16 · 20 · 24 · 28 | 14,100 | 28 h | about 4 weeks |
+| Veteran | 25 · 30 · 35 · 40 · 45 | 24,100 | 47 h | about 1.5 months |
+| Master | 40 · 55 · 70 · 85 · 100 | 41,600 | 82 h | about 2.7 months |
+| Grandmaster | 90 · 150 · 220 · 290 · 350 | 76,600 | 150 h | about 5 months |
+| Reyes | (no top) | 186,600 | 366 h | about a year |
+
+A 40% player takes about 15 months to Reyes, a 60% one about 10; a 3-hours-a-day player about 4
+months. Challenger tables (x1.5 XP, from Gold) are faster; from Expert the strict gap makes wins
+over much weaker players worth little. Every division starts at or below where the 2026-10-02
+ladder had it, so the switch moved nobody down.
+
+**The switch for players who already had XP (2026-10-11).** XP is kept. A save whose XP now
+reaches a higher division than its peak catches up as it loads: the peak rises, the skipped
+divisions' rewards wait in Rank (the red "!"), and a NEW RANK! popup plays for each in the lobby
+with the line "Ranks got faster! Your XP moved you up." On the 2026-10-11 boards that was 1,110
+of 4,112 ranked players, the highest to Silver 4.
+
+**Rank-up rewards**, paid once and claimed in Rank. A tier's division steps plus the next tier's
+money come to about a quarter of the match money earned climbing that tier (about $2,050 a win
+at 50%, its loss included); Reyes keeps $1,000,000, one prize for about a year of play. Division
+steps (each division 2 to 5 of the tier): Bronze $1,000, Silver $1,250, Gold $1,500, Platinum
+$2,000, Diamond $3,000, Expert $5,000, Veteran $10,000, Master $20,000, Grandmaster $50,000. Tier
+rewards (the tier's division 1), with the tier's cue, chat tag and spins as before:
 
 | Tier | Money | Block |
 |---|---|---|
 | Bronze | $2,500 | an Uncommon block (ready at once: the tutorial's second block) |
-| Silver | $5,000 | a Rare block |
-| Gold | $10,000 | a Rare block |
-| Platinum | $20,000 | an Epic block |
-| Diamond | $40,000 | an Epic block |
-| Expert | $75,000 | a Legendary block |
-| Veteran | $150,000 | a Legendary block |
-| Master | $250,000 | 2 Legendary blocks |
-| Grandmaster | $500,000 | a Mythic block |
+| Silver | $4,000 | a Rare block |
+| Gold | $6,000 | a Rare block |
+| Platinum | $7,500 | an Epic block |
+| Diamond | $10,000 | an Epic block |
+| Expert | $15,000 | a Legendary block |
+| Veteran | $30,000 | a Legendary block |
+| Master | $50,000 | 2 Legendary blocks |
+| Grandmaster | $100,000 | a Mythic block |
 | Reyes | $1,000,000 | 2 Mythic blocks |
 
 ## 3. Lucky blocks

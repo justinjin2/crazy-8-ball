@@ -1730,10 +1730,10 @@ Config.Save = {
 
 ---------------------------------------------------------------------------------------------
 -- Ranks (src/shared/Progression/Ranks.luau; GDD section 11). Every number is from
--- docs/ECONOMY.md section 4 (reworked 2026-10-02). One number, rank XP (the save's RankXp), is
--- the only progression, and it is never lost: nobody drops a division or a tier. XP comes only
--- from winning: 100 a win, 0 a loss, no Rookie, VIP or first-win boosts (designer, 2026-10-02).
--- Change a number here, in ECONOMY.md and in tools/economy_model.py together. (tune)
+-- docs/ECONOMY.md section 2 (the ladder and its rewards reworked 2026-10-11). One number, rank
+-- XP (the save's RankXp), is the only progression, and it is never lost: nobody drops a division
+-- or a tier. XP comes only from winning: 100 a win, 0 a loss, no Rookie, VIP or first-win boosts
+-- (designer, 2026-10-02). Change a number here and in ECONOMY.md together. (tune)
 ---------------------------------------------------------------------------------------------
 Config.Ranks = {
 	-- Bottom to top. Each has divisions I to V (I the bottom) except the last, which has one.
@@ -1750,23 +1750,28 @@ Config.Ranks = {
 		"Reyes",
 	},
 	DivisionsPerTier = 5,
-	-- XP to climb through each division, I to V, per tier (ECONOMY 4.2), counted in wins of
-	-- 100 XP: 1 win to Bronze I (a player is Unranked until their first win), 2 more to Bronze
-	-- II, then 3, 4, 5... one more win each division to Platinum, then a steady ramp sized so a
-	-- 3 h a day, 50% player reaches Expert in about a month, Veteran 2, Master 3.5,
-	-- Grandmaster 6 and Reyes 9. The first win's 100 XP lands inside Bronze I, so it is 300 wide.
-	-- Silver I starts at 2,100 XP (21 wins), Grandmaster I at 202,500 and Reyes at 307,500
+	-- XP to climb through each division, I to V, per tier (ECONOMY 2; designer, 2026-10-11),
+	-- in wins of 100 XP. Each tier climbs a win more per division, then the next tier starts a
+	-- little lower than the last one ended (a quick first rank-up in every tier):
+	-- - Bronze 1-2-3-4-5 wins: the first win (the tutorial's) lands in Bronze I at 100 of 200,
+	--   one win from Bronze II. Silver 2-6, Gold 3-7, Platinum 4-8 wins.
+	-- - From Diamond the steps grow faster so Reyes takes about a year at an hour a day: a 50%
+	--   player (about 9.6 matches an hour, measured live) reaches Silver in about 3 h, Gold 7 h,
+	--   Platinum 12 h, Diamond 18 h, Expert 28 h, Veteran 47 h, Master 82 h, Grandmaster 150 h
+	--   and Reyes 366 h. Grandmaster is the wall: 90 to 350 wins a division.
+	-- Silver I starts at 1,600 XP, Grandmaster I at 76,600 and Reyes at 186,600; every division
+	-- starts at or below where the 2026-10-02 ladder had it, so the switch moved nobody down
 	-- (tests/ranks_test checks these). Reyes has no top.
 	DivisionXp = {
-		Bronze = { 300, 300, 400, 500, 600 },
-		Silver = { 700, 800, 900, 1000, 1100 },
-		Gold = { 1200, 1300, 1400, 1500, 1600 },
-		Platinum = { 1700, 1800, 1900, 2000, 2200 },
-		Diamond = { 2500, 2800, 3200, 3600, 4000 },
-		Expert = { 4500, 5000, 5600, 6200, 6900 },
-		Veteran = { 7700, 8800, 10000, 11300, 12700 },
-		Master = { 14300, 15700, 17000, 18000, 19500 },
-		Grandmaster = { 20000, 20500, 21000, 21500, 22000 },
+		Bronze = { 200, 200, 300, 400, 500 },
+		Silver = { 200, 300, 400, 500, 600 },
+		Gold = { 300, 400, 500, 600, 700 },
+		Platinum = { 400, 500, 600, 700, 800 },
+		Diamond = { 600, 800, 1000, 1200, 1400 },
+		Expert = { 1200, 1600, 2000, 2400, 2800 },
+		Veteran = { 2500, 3000, 3500, 4000, 4500 },
+		Master = { 4000, 5500, 7000, 8500, 10000 },
+		Grandmaster = { 9000, 15000, 22000, 29000, 35000 },
 	},
 	-- A match's XP against an equal opponent, by YOUR tier, before the mode, fade, gap, PC and
 	-- streak (ECONOMY 4.2). One win is 100 XP at every tier and a loss gives nothing (designer,
@@ -1827,32 +1832,34 @@ Config.Ranks = {
 	-- and the tier's cue (an Exclusive catalog id, never tradable or sellable). The chat tag
 	-- comes from the tier itself (ChatTags).
 	Rewards = {
-		-- Economy v6 (designer, 2026-10-10; docs/prompts/ECONOMY_V6_PLAN.md): each new division
-		-- pays about 10-20% of the match money earned climbing it.
+		-- Resized with the 2026-10-11 ladder (designer): a tier's steps plus the next tier's
+		-- money come to about a quarter of the match money earned climbing it (about $2,050 a
+		-- win at 50%, its loss included), and every tier pays more than the one below.
 		Step = {
 			Bronze = 1000,
-			Silver = 2000,
-			Gold = 3000,
-			Platinum = 5000,
-			Diamond = 10000,
-			Expert = 20000,
-			Veteran = 30000,
-			Master = 50000,
-			Grandmaster = 75000,
+			Silver = 1250,
+			Gold = 1500,
+			Platinum = 2000,
+			Diamond = 3000,
+			Expert = 5000,
+			Veteran = 10000,
+			Master = 20000,
+			Grandmaster = 50000,
 		},
 		-- Blocks: lucky blocks by kind. Every reward waits until the player claims it in Rank
-		-- (designer, 2026-10-03; the tutorial claims Bronze for the player). Economy v6: each new
-		-- tier pays about double the last; Bronze is an Uncommon block (designer, 2026-10-10).
+		-- (designer, 2026-10-03; the tutorial claims Bronze for the player). The blocks and cues
+		-- are economy v6's (Bronze an Uncommon block); the money was resized with the 2026-10-11
+		-- ladder. Reyes keeps its $1,000,000: one prize for about a year of play.
 		Tier = {
 			Bronze = { Money = 2500, Blocks = { Uncommon = 1 }, Cue = "BronzeCue" },
-			Silver = { Money = 5000, Blocks = { Rare = 1 }, Cue = "SilverCue" },
-			Gold = { Money = 10000, Blocks = { Rare = 1 }, Cue = "GoldCue" },
-			Platinum = { Money = 20000, Blocks = { Epic = 1 }, Cue = "PlatinumCue" },
-			Diamond = { Money = 40000, Blocks = { Epic = 1 }, Cue = "DiamondCue" },
-			Expert = { Money = 75000, Blocks = { Legendary = 1 }, Cue = "ExpertCue" },
-			Veteran = { Money = 150000, Blocks = { Legendary = 1 }, Cue = "VeteranCue" },
-			Master = { Money = 250000, Blocks = { Legendary = 2 }, Cue = "MasterCue" },
-			Grandmaster = { Money = 500000, Blocks = { Mythic = 1 }, Cue = "GrandmasterCue" },
+			Silver = { Money = 4000, Blocks = { Rare = 1 }, Cue = "SilverCue" },
+			Gold = { Money = 6000, Blocks = { Rare = 1 }, Cue = "GoldCue" },
+			Platinum = { Money = 7500, Blocks = { Epic = 1 }, Cue = "PlatinumCue" },
+			Diamond = { Money = 10000, Blocks = { Epic = 1 }, Cue = "DiamondCue" },
+			Expert = { Money = 15000, Blocks = { Legendary = 1 }, Cue = "ExpertCue" },
+			Veteran = { Money = 30000, Blocks = { Legendary = 1 }, Cue = "VeteranCue" },
+			Master = { Money = 50000, Blocks = { Legendary = 2 }, Cue = "MasterCue" },
+			Grandmaster = { Money = 100000, Blocks = { Mythic = 1 }, Cue = "GrandmasterCue" },
 			Reyes = { Money = 1000000, Blocks = { Mythic = 2 }, Cue = "ReyesCue" },
 		},
 	},
