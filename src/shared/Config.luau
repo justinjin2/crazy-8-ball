@@ -15546,7 +15546,6 @@ Config.UI.FreeReward = {
 			SectionGapUnits = 16, -- between the picture's row and the button
 			ButtonUnits = 74,
 			ButtonTextUnits = 40,
-			ButtonGapUnits = 16, -- between the favorite card's Favorite and Verify (2026-10-11)
 			Group = {
 				Top = { 240, 248, 255 }, -- white into sky blue, a blue rim
 				Bottom = { 200, 228, 255 },

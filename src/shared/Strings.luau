@@ -1303,7 +1303,6 @@ return {
 		GroupLine = "%s, +%d%% match money", -- the reward's gains, the boost while a member
 		FavoriteRow = "Like + Favorite the game", -- favorite + like (designer, 2026-10-11)
 		Join = "Join",
-		Favorite = "Favorite",
 		-- The favorite card's Verify (Config.Social.LikeRejoin): the game not favorited yet,
 		-- then the first Verify's dialog (Leave & Like sends them out with RejoinKick).
 		Verify = "Verify",

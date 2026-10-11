@@ -16,8 +16,8 @@
 --     claims (RewardRequest "ClaimFavorite", once: a server cannot check a favorite or a
 --     like). The first claim answers "Rejoin" (like the game and rejoin: the menu's "ALMOST
 --     THERE!" popup, LikeRejoinPopup); one after a rejoin gives
---     (designer, 2026-10-11; Config.Social.LikeRejoin). The hero card has the Favorite button
---     too (Roblox's own favorite prompt, AvatarEditorService:PromptSetFavorite).
+--     (designer, 2026-10-11; Config.Social.LikeRejoin). The hero card has only Verify too
+--     (designer, 2026-10-11: one button, its favorite prompt is enough).
 --   A claimed row's box is ticked and its button goes.
 -- - The invite card: the invite envelope and an Uncommon Lucky Block, "Invite a friend", what an
 --   invite gives (both get the block when the friend wins their first match; the inviter's own
@@ -107,9 +107,6 @@ function FreeSocial.new(parent: Instance, ctx: any): any
 	self.heroes = FreeHeroes.new(root, {
 		join = function(button: GuiObject)
 			self:join(button)
-		end,
-		favorite = function()
-			self:favorite()
 		end,
 		verify = function(button: GuiObject)
 			self:verify(button)
@@ -281,16 +278,6 @@ local function promptFavorite(self: any): boolean?
 	self.favoriting = false
 	self.ctx.refresh()
 	return yes
-end
-
--- Favorite (the hero's yellow button): Roblox's favorite prompt, nothing more; Verify claims.
-function FreeSocial.favorite(self: any)
-	if self.favoriting then
-		return
-	end
-	TutorialAnchors.notePress("Favorite")
-	UISound.play("Click")
-	task.spawn(promptFavorite, self)
 end
 
 -- Whether the game is favorited: Roblox's answer (GetFavorite). Just after a yes in this

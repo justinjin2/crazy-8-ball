@@ -24,7 +24,7 @@ entry of `docs/archive/STATUS_HISTORY.md`.
   after the Gift drop), "Just one more game?" over Roblox's menu and Like + Favorite (both
   below). Publish, then
   "Restart Servers for Updates".
-- **Lint and tests (2026-10-10, `gui-v4`):** lint OK (four old LocalShadow warnings); all 1214
+- **Lint and tests (2026-10-11, `gui-v4`):** lint OK (four old LocalShadow warnings); all 1219
   Lune tests pass.
 
 ## In the game
@@ -50,7 +50,8 @@ rooftop map with a day and sunset cycle; pull cutscenes Rare to Secret; the ball
   with the designer on PC (1722 x 814) and the phone emulator, with the Gift falling behind
   the menu. Open: a real tablet and phone (the panel's place is worked out, not read), a
   controller's Start.
-- **Like + Favorite** (2026-10-11, DECISIONS): Favorite and Verify on the Free Reward card,
+- **Like + Favorite** (2026-10-11, DECISIONS): one Verify on the Free Reward card (the
+  Favorite button went: Verify opens the favorite prompt itself),
   the "ALMOST THERE!" popup (concept A), the reward after a rejoin ($5,000 + Lucky 8 +
   Mystery). Checked in Studio on PC through the real buttons (GuiQA `pressButton`): the
   not-favorited path (now Roblox's favorite prompt, then the notice if closed), the popup, Later, closing the menu over it, Leave & Like sending the

@@ -1075,7 +1075,7 @@ approves the v5 proposal (ECONOMY.md section 11).
   all); **VIP's Mystery block** each day (2026-10-10; it was an Uncommon block), shown once
   under the day tiles, never on each tile; the game's **group** (Join and Claim: 1 Mystery block once, +10% match
   money while a member); a **like + favorite** reward ($5,000, a Lucky 8 and a Mystery block;
-  a yellow Favorite and a green Verify: the first Verify that finds the favorite asks the
+  one green Verify (2026-10-11; it opens Roblox's favorite prompt when needed): the first Verify that finds the favorite asks the
   player to leave, like the game on its page and rejoin, and a Verify after the rejoin gives
   it, 2026-10-11, `Config.Social.LikeRejoin`); six **like codes**
   the designer switches on live at like milestones; **invites** (a brand-new friend's first
