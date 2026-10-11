@@ -5,7 +5,8 @@
 -- - /day and /sunset fade the light to that state for the whole server and hold it
 --   there; /cycle fades back into the running cycle (LightCycle.shown): the hold goes on
 --   workspace attributes every client's DayCycle reads.
--- - The rank and money ones (/rank, /xp, /money, /addmoney, /result, /newrank, /resetdata;
+-- - The rank and money ones (/rank, /xp, /money, /addmoney, /result, /newrank, /resetdata,
+--   /resetfavorite;
 --   /rankhelp lists them) and the economy ones (/econhelp lists them) act on the caller only
 --   and answer privately (DevNotice). A /party or a /restock is this server's, like the real ones.
 --   They go through the same server APIs as the game (PlayerData, Ranking, Items, Store,
@@ -39,6 +40,7 @@ local Catalog = require(Shared.Progression.Catalog)
 local Inventory = require(Shared.Progression.Inventory)
 local LuckyBlocks = require(Shared.Progression.LuckyBlocks)
 local Daily = require(Shared.Progression.Daily)
+local RewardView = require(Shared.Progression.RewardView)
 local PlayerData = require(script.Parent.PlayerData)
 local Ranking = require(script.Parent.Ranking)
 local Items = require(script.Parent.Items)
@@ -1261,6 +1263,17 @@ function DevCommands.start()
 		end
 		uncount(snapshot)
 		tell(player, Dev.Reset)
+	end)
+	command("ResetFavorite", D.ResetFavorite, function(player)
+		-- The Like + Favorite card back to unclaimed and not asked (RewardView's flags).
+		local okAsked = PlayerData.setFlag(player, RewardView.LikeAskedFlag, nil)
+		local okClaimed = PlayerData.setFlag(player, RewardView.FavoriteFlag, nil)
+		if not (okAsked and okClaimed) then
+			tell(player, Dev.NotLoaded)
+			return
+		end
+		require(script.Parent.Rewards).refresh(player)
+		tell(player, Dev.FavoriteReset)
 	end)
 	command("RankHelp", D.RankHelp, function(player)
 		tell(player, Dev.Help)

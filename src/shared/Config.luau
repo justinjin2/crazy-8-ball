@@ -15137,6 +15137,7 @@ Config.Debug = {
 			"Lucky",
 			"Ult",
 			"AbilitySetup",
+			"ResetFavorite",
 		},
 		-- Ranks and money, acting on the caller (or a named player: Gives) (DevCommands;
 		-- `/rankhelp` lists them).
@@ -15149,6 +15150,9 @@ Config.Debug = {
 		Result = "/result",
 		NewRank = "/newrank", -- /newrank [tier] [division]: preview NEW RANK! with its reward chips
 		ResetData = "/resetdata", -- your own save back to a fresh one
+		-- The Like + Favorite card back to unclaimed and not asked (2026-10-11), to try its
+		-- Verify and "ALMOST THERE!" popup again.
+		ResetFavorite = "/resetfavorite",
 		RankHelp = "/rankhelp", -- lists these
 		-- The economy (DevCommands; `/econhelp` lists them), acting on the caller only (a sale
 		-- and a Money Party are this server's, like the real ones).

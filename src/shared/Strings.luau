@@ -297,7 +297,7 @@ return {
 	},
 	-- The developer chat commands' private replies (DevCommands; shown only to the caller).
 	Dev = {
-		Help = "Rank and money commands: /rank <tier> [1-5] [xp], /rank unranked, /xp <amount>, /money <amount>, /addmoney <amount>, /result win|lose|draw|firstwin|track, /newrank [tier] [1-5], /resetdata. Economy commands: /econhelp. Ability commands: /abilityhelp. Put a player's username last to give it to them instead (/rank, /xp, /money, /addmoney, /givecue, /giveblock, /spins, /lucky, /ability, /abilitysetup).",
+		Help = "Rank and money commands: /rank <tier> [1-5] [xp], /rank unranked, /xp <amount>, /money <amount>, /addmoney <amount>, /result win|lose|draw|firstwin|track, /newrank [tier] [1-5], /resetdata, /resetfavorite. Economy commands: /econhelp. Ability commands: /abilityhelp. Put a player's username last to give it to them instead (/rank, /xp, /money, /addmoney, /givecue, /giveblock, /spins, /lucky, /ability, /abilitysetup).",
 		BadRank = "Try /rank gold 3, /rank reyes or /rank unranked.",
 		BadAmount = "Give a whole number, like %s 500.",
 		XpNeverLost = "XP is never lost: give a gain, like %s 250.",
@@ -306,6 +306,7 @@ return {
 		RankSet = "Rank set to %s.",
 		MoneySet = "Money set to %s.",
 		Reset = "Your save was reset.",
+		FavoriteReset = "Like + Favorite reset: press Verify to try it again.",
 		-- The economy commands (/econhelp). Usage: the alias first (%s), then what follows it;
 		-- What: one line on what it does. A bad argument answers Try with the usage.
 		EconHelp = "Economy commands (they act on you; [player]: a username in this server, to give it to them):",
