@@ -140,7 +140,7 @@ local function hero(
 	end
 	local badge = HudParts.icon(art.holder, if key == "Group" then "Group" else "Star", "Badge")
 	badge.ZIndex = 7
-	share(badge, H.Badge)
+	share(badge, if key == "Favorite" then H.Star else H.Badge)
 	local thumb: ImageLabel? = nil
 	if key == "Favorite" then
 		local made = HudParts.icon(art.holder, "ThumbsUp", "Thumb")
