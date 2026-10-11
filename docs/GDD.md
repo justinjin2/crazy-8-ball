@@ -154,8 +154,8 @@ Every feature is checked against these. If it serves none, it waits.
     (about 35% power and under) stay in the aiming view unless a ball reaches the screen
     edge. (A test, 2026-09-26; `Config.Camera.Shot.PullOutView = "Aim"` restores the older
     whole-table view along the aim.)
-  - **Player view after a shot** (Settings, off by default; designer, 2026-10-11, mainly for
-    clips): a player who turns it on gets that older pull-out instead, the whole table seen
+  - **Camera after a shot** (Settings, a two-sided switch: blue TOP, the default, or gold
+    PLAYER; designer, 2026-10-11, mainly for clips): a player who picks PLAYER gets that older pull-out instead, the whole table seen
     from behind them along the aim, with no swing round the table. Top-down stays everyone's
     default, and the guided tutorial always uses it whatever the switch says.
   - Cue-ball placement (break and ball in hand) happens in this 3D view; the camera holds still

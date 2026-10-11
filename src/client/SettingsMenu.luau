@@ -48,6 +48,9 @@ type Row = {
 	track: Frame,
 	knob: Frame,
 	state: TextLabel,
+	choice: { Off: string, On: string }?, -- a two-view row's colours (Config.UI.Settings.Choices)
+	words: { Off: string, On: string }?, -- and its words (Strings.Settings.Choices)
+	onX: number, -- the words' centre across the switch with the knob right, as a share
 }
 
 local function round(n: number): number
@@ -83,7 +86,7 @@ function SettingsMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 	local geo: MenuFrame.Geo? = nil
 
 	-- The switch: green with ON at its left and the knob right, or grey with the knob left
-	-- and OFF at its right.
+	-- and OFF at its right. A two-view row names both sides in their own colours instead.
 	local function paint(row: Row, animate: boolean)
 		local on = SettingsState.get(row.key)
 		local inset = U.KnobInsetPx
@@ -97,9 +100,17 @@ function SettingsMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 			row.knob.Position = goal.Position
 			row.knob.AnchorPoint = goal.AnchorPoint
 		end
-		row.track.BackgroundColor3 = if on then HudParts.tone("Green") else HudParts.tone("Grey")
-		row.state.Text = if on then W.On else W.Off
-		row.state.Position = if on then UDim2.fromScale(0.32, 0.5) else UDim2.fromScale(0.68, 0.5)
+		local choice, words = row.choice, row.words
+		if choice and words then
+			row.track.BackgroundColor3 = HudParts.tone(if on then choice.On else choice.Off)
+			row.state.Text = if on then words.On else words.Off
+		else
+			row.track.BackgroundColor3 = if on
+				then HudParts.tone("Green")
+				else HudParts.tone("Grey")
+			row.state.Text = if on then W.On else W.Off
+		end
+		row.state.Position = UDim2.fromScale(if on then row.onX else 1 - row.onX, 0.5)
 	end
 
 	for _, key in Config.Settings.Order do
@@ -169,6 +180,9 @@ function SettingsMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 			track = track,
 			knob = knob,
 			state = state,
+			choice = (U.Choices :: any)[key],
+			words = (W.Choices :: any)[key],
+			onX = 0.32,
 		}
 		table.insert(rows, row)
 		button.Activated:Connect(function()
@@ -274,10 +288,19 @@ function SettingsMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 			row.line.Size = UDim2.fromOffset(textW, linePx + 2)
 			row.track.Size = UDim2.fromOffset(switchW, switchH)
 			row.track.Position = UDim2.new(1, -pad, 0.5, 0)
-			HudParts.setTextSize(
-				row.state,
-				math.max(U.MinTextPx, round(switchH * U.SwitchTextShare))
-			)
+			local statePx = math.max(U.MinTextPx, round(switchH * U.SwitchTextShare))
+			local words = row.words
+			if words then
+				-- Both sides' words fit the room beside the knob, at one size.
+				local room = math.max(1, switchW - switchH - 4 * U.KnobInsetPx)
+				local widest = math.max(textWidth(words.Off, statePx), textWidth(words.On, statePx))
+				if widest > room then
+					statePx = math.max(U.MinTextPx, math.floor(statePx * room / widest))
+				end
+				row.state.Size = UDim2.new(0, room, 0.8, 0)
+				row.onX = (switchW - switchH) / 2 / math.max(switchW, 1)
+			end
+			HudParts.setTextSize(row.state, statePx)
 			paint(row, false)
 			y += rowH + gap
 		end

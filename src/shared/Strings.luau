@@ -1343,17 +1343,21 @@ return {
 			Sfx = "Sound effects",
 			LowFx = "Lower effects",
 			ShowFlag = "Show my country flag",
-			ShotCam = "Player view after a shot",
+			ShotCam = "Camera after a shot",
 		},
 		Lines = {
 			Music = "The background music.",
 			Sfx = "Clicks, shots and ability sounds.",
 			LowFx = "Fewer particles. Smoother on slower devices.",
 			ShowFlag = "Other players see it in the player list.",
-			ShotCam = "The camera stays behind you instead of going top-down.",
+			ShotCam = "Top: from above. Player: from behind you.",
 		},
 		On = "ON",
 		Off = "OFF",
+		-- A two-view row's sides instead of ON / OFF (Config.UI.Settings.Choices).
+		Choices = {
+			ShotCam = { Off = "TOP", On = "PLAYER" },
+		},
 		Codes = "Codes", -- the strip under the rows (the box and Redeem)
 	},
 	-- The player list and the global boards (PlayerList, Leaderboards; GUI lane, C7).

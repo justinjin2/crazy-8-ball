@@ -15911,6 +15911,12 @@ Config.UI.Settings = {
 	SwitchUnits = { 184, 74 }, -- the ON / OFF switch: width, height
 	SwitchTextShare = 0.42, -- ON / OFF, of the switch's height
 	KnobInsetPx = 3, -- the white knob in from the track's edge
+	-- A row that picks one of two views instead of ON / OFF (designer, 2026-10-11): the
+	-- switch's Kit colour on each side (its words in Strings.Settings.Choices). Off is the
+	-- default side, the knob at the left.
+	Choices = {
+		ShotCam = { Off = "Blue", On = "Gold" }, -- TOP (the side view) or PLAYER (behind you)
+	},
 	-- Each row's Kit.Icons key.
 	Icons = {
 		Music = "Sound",

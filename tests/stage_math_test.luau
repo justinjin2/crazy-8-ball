@@ -263,7 +263,7 @@ return {
 		H.expect(finish >= 0.8 and finish <= 2, "the open lasts about 1 to 2 s")
 	end,
 
-	["every Settings row has its words and icon; the shot camera starts off (top-down)"] = function()
+	["every Settings row has its words and icon; the shot camera starts on TOP"] = function()
 		local _, Config = load()
 		local Strings = H.require("Strings")
 		local C, W = Config.Settings, Strings.Settings
@@ -273,6 +273,15 @@ return {
 			H.expect(type(W.Lines[key]) == "string", "a row has its line: " .. key)
 			H.expect(Config.UI.Settings.Icons[key] ~= nil, "a row has its icon: " .. key)
 		end
+		for key, tones in Config.UI.Settings.Choices do
+			local words = W.Choices[key]
+			H.expect(table.find(C.Order, key) ~= nil, "a two-view row is a row: " .. key)
+			H.expect(words and words.Off and words.On, "both sides have words: " .. key)
+			for _, tone in { tones.Off, tones.On } do
+				H.expect(Config.UI.Kit.Colors[tone] ~= nil, "a Kit colour: " .. tostring(tone))
+			end
+		end
+		H.expect(Config.UI.Settings.Choices.ShotCam ~= nil, "the shot camera picks TOP or PLAYER")
 		H.expect(table.find(C.Order, "ShotCam") ~= nil, "the shot camera has a row")
 		H.expect(C.Defaults.ShotCam == false, "everyone starts in the top-down side view")
 		H.expect(Config.Camera.Shot.PullOutView == "Side", "the side view stays the default")
