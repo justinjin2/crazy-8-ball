@@ -906,10 +906,11 @@ local function buy(player: Player, args: { string })
 	end
 end
 
--- /vip off: play as a regular player without VIP for this session (designer, 2026-10-09):
--- every perk reads the Vip attribute, so timers, money, the Shop, rewards and the VIP tag all
--- go regular (Store.actAsRegular). /vip on: back to their own VIP; with none of their own,
--- it fakes owning the pass (the old /vip on).
+-- /vip off: play as a regular player without VIP (designer, 2026-10-09): every perk reads the
+-- Vip attribute, so timers, money, the Shop, rewards and the VIP tag all go regular
+-- (Store.actAsRegular). Kept in the save, so it is still off on the next visit until /vip on
+-- (designer, 2026-10-11; DevCommands.start puts it back on join). /vip on: back to their own
+-- VIP; with none of their own, it fakes owning the pass (the old /vip on).
 local function vip(player: Player, args: { string })
 	local on = ({ on = true, off = false } :: { [string]: boolean })[args[1] or ""]
 	if on == nil then
@@ -919,9 +920,11 @@ local function vip(player: Player, args: { string })
 	if not on then
 		Store.setPass(player, "Vip", nil) -- no faked pass left over: /vip on gives the real one back
 		Store.actAsRegular(player, true)
+		PlayerData.setActingRegular(player, true)
 		tell(player, Dev.VipOff)
 		return
 	end
+	PlayerData.setActingRegular(player, false)
 	if not Store.actAsRegular(player, false) then
 		Store.setPass(player, "Vip", true)
 		tell(player, Dev.VipFaked)
@@ -1193,6 +1196,13 @@ local function econHelp(player: Player)
 end
 
 function DevCommands.start()
+	-- The designer's /vip off, kept in their save, holds again from the moment it loads.
+	PlayerData.Loaded:Connect(function(player: Player)
+		if isDesigner(player.UserId) and PlayerData.actingRegular(player) then
+			Store.setPass(player, "Vip", nil)
+			Store.actAsRegular(player, true)
+		end
+	end)
 	for _, hold in { "Day", "Sunset", "Cycle" } do
 		command(hold, D[hold], function()
 			DevCommands.toward(hold)

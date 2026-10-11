@@ -293,6 +293,7 @@ return {
 		WinsToGo = "%d WINS TO GO!", -- a phone's short name row
 		ChatTag = "[%s]", -- before a name in chat, the tier in capitals: "[PLATINUM]" (ChatTags)
 		VipTag = "[VIP]", -- first before a VIP player's name in chat, in the house rainbow (ChatTags)
+		OwnerTag = "[OWNER]", -- the designer's only tag in chat (ChatTags, Config.Ranks.Owner)
 	},
 	-- The developer chat commands' private replies (DevCommands; shown only to the caller).
 	Dev = {
@@ -411,7 +412,7 @@ return {
 		Buying = "Granting %s...",
 		Bought = "%s granted.",
 		BuyFailed = "%s not granted: %s.",
-		VipOff = "VIP off: you play as a regular player this session (new blocks get timers; blocks you hold keep theirs). /vip on to get it back.",
+		VipOff = "VIP off: you play as a regular player, on later visits too (new blocks get timers; blocks you hold keep theirs). /vip on to get it back.",
 		VipOn = "VIP on: your own VIP is back.",
 		VipFaked = "VIP on (faked for this session: you own no VIP).",
 		Party = "Money Party on in this server for %d more minutes.",

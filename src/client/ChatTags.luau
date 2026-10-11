@@ -6,7 +6,8 @@
 -- letter by letter like Reyes, then the rank tag, then their name in Roblox's own colour
 -- (designer, 2026-09-28: "[VIP] [GOLD] Name"; the rainbow name is for over the head only).
 -- Every client draws them from the speaker's RankTier and Vip attributes, which only the
--- server sets (PlayerData, Store), so nobody can give themselves a tag. Over heads the
+-- server sets (PlayerData, Store), so nobody can give themselves a tag. The designer's account
+-- (by user id, Config.Ranks.Owner) shows "[OWNER]" alone instead (2026-10-11). Over heads the
 -- nameplates show the badge and a VIP's slowly moving rainbow name.
 --
 -- It also posts the game's own lines in the chat window (system messages, this client only):
@@ -129,6 +130,17 @@ function ChatTags.start()
 		local player = Players:GetPlayerByUserId(source.UserId)
 		if not player then
 			return nil
+		end
+		-- The designer: "[OWNER]" and nothing else (designer, 2026-10-11).
+		if table.find(Config.Ranks.Owner.UserIds, player.UserId) then
+			local properties = Instance.new("TextChatMessageProperties")
+			local owner = Config.Ranks.Owner
+			properties.PrefixText = ('<stroke color="%s" thickness="%d">%s</stroke>'):format(
+				hex(owner.Outline),
+				owner.OutlinePx,
+				ChatTags.paint(Strings.Ranks.OwnerTag, Color3.fromRGB(table.unpack(owner.Color)))
+			) .. " " .. message.PrefixText
+			return properties
 		end
 		local tags = {}
 		if player:GetAttribute("Vip") == true then

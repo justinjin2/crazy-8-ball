@@ -1857,6 +1857,15 @@ Config.Ranks = {
 		Master = { 195, 135, 255 },
 		Grandmaster = { 255, 196, 40 }, -- the badge's gold (its black would vanish)
 	},
+	-- The designer's own chat tag (designer, 2026-10-11): "[OWNER]" alone before their name,
+	-- no rank or VIP tag; every client draws it from the speaker's user id (Painicane's, the
+	-- same as Config.Debug.Commands.UserIds), so nobody else can show it.
+	Owner = {
+		UserIds = { 544959133 },
+		Color = { 0, 0, 0 }, -- black (designer, 2026-10-11)...
+		Outline = { 255, 255, 255 }, -- ...outlined in white, or it vanishes on the dark chat window
+		OutlinePx = 1,
+	},
 	ChatRainbow = {
 		{ 255, 77, 77 },
 		{ 255, 159, 28 },

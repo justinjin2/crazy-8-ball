@@ -3337,6 +3337,32 @@ function PlayerData.markMomentSeen(player: Player, kind: string): boolean
 	return true
 end
 
+--- The designer's /vip off, kept across visits until /vip on (designer, 2026-10-11):
+--- Flags.ActingRegular. DevCommands lets only the designer's account set it.
+function PlayerData.setActingRegular(player: Player, on: boolean): boolean
+	local op = "setActingRegular"
+	if not isPlayer(player) then
+		return refuse(op, player, "not a player")
+	end
+	local data = liveData(op, player)
+	if data == nil then
+		return false
+	end
+	local value = if on then true else nil
+	if data.Flags.ActingRegular == value then
+		return true
+	end
+	data.Flags.ActingRegular = value
+	commit(player, data, op)
+	return true
+end
+
+--- Whether the save keeps /vip off (PlayerData.setActingRegular).
+function PlayerData.actingRegular(player: Player): boolean
+	local data = PlayerData.read(player)
+	return data ~= nil and data.Flags.ActingRegular == true
+end
+
 ---------------------------------------------------------------------------------------------
 -- Mutations: purchases (the Store service)
 ---------------------------------------------------------------------------------------------
