@@ -34,6 +34,7 @@
 -- jump button; LB and RB step through the sections; B closes the Odds & Details, then the menu.
 -- Sizes in Config.UI.FreeReward, words in Strings.FreeReward.
 local GuiService = game:GetService("GuiService")
+local LocalizationService = game:GetService("LocalizationService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -145,6 +146,25 @@ function FreeRewardMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		end
 	end
 
+	-- The words on Roblox's leave screen after Leave & Like. Roblox shows a kick's words as they
+	-- are, untranslated, so a player not playing in English gets the popup's own step lines
+	-- (on screen, so Roblox's automatic translation has them) through the game's translator;
+	-- English, or no translator, keeps RejoinKick.
+	local function rejoinKick(): string
+		local player = Players.LocalPlayer
+		if string.sub(string.lower(player.LocaleId), 1, 2) == "en" then
+			return W.RejoinKick
+		end
+		local ok, text = pcall(function(): string
+			local translator = LocalizationService:GetTranslatorForPlayerAsync(player)
+			local steps = W.RejoinSteps
+			return translator:Translate(game, steps[2])
+				.. "\n"
+				.. translator:Translate(game, steps[3])
+		end)
+		return if ok and type(text) == "string" and text ~= "" then text else W.RejoinKick
+	end
+
 	--- Ask the server for a claim (`action` and `arg` as Net.luau's RewardRequest), with the
 	--- button that asked (the reward flies from there).
 	function ctx.claim(action: string, arg: any, key: string, button: GuiObject)
@@ -178,7 +198,7 @@ function FreeRewardMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 						release()
 					end
 					if leave then
-						Players.LocalPlayer:Kick(W.RejoinKick)
+						Players.LocalPlayer:Kick(rejoinKick())
 					end
 				end)
 				release = frame:hold(dialog)
