@@ -32,7 +32,9 @@ return {
 				count += 1
 			end
 		end
-		H.expect(count > 20, "different bots differ")
+		-- Gold spans 31 values on the 2026-10-11 ladder (25 to 55): well spread, not all one.
+		local range = Config.UI.PlayerList.BotWins.Gold
+		H.expect(count > (range[2] - range[1] + 1) / 2, "different bots differ: " .. count)
 	end,
 
 	["a country code becomes its flag"] = function()

@@ -16060,18 +16060,22 @@ Config.UI.PlayerList = {
 	PopoutGapPx = 8, -- between the popout and the list
 	FooterSeconds = 3, -- a trade invite's answer shows this long under the rows
 	-- Disguised and tutorial bots show a fixed, believable "wins vs players" for their tier
-	-- (D10): somewhere in { low, high }, picked from the bot's id so it never changes.
+	-- (D10): somewhere in { low, high }, picked from the bot's id so it never changes. Fit to
+	-- the 2026-10-11 ladder (ECONOMY 2: Silver from 16 wins, Gold 36, Platinum 61, Diamond 91,
+	-- Expert 141, Veteran 241, Master 416, Grandmaster 766, Reyes 1,866): from about 0.7 of the
+	-- tier's first win (streaks, harder tables and stronger opponents give more XP) to just
+	-- under the next tier's.
 	BotWins = {
 		Bronze = { 0, 12 },
-		Silver = { 8, 40 },
-		Gold = { 30, 110 },
-		Platinum = { 90, 260 },
-		Diamond = { 200, 520 },
-		Expert = { 420, 900 },
-		Veteran = { 800, 1500 },
-		Master = { 1300, 2400 },
-		Grandmaster = { 2200, 3800 },
-		Reyes = { 3500, 6000 },
+		Silver = { 10, 32 },
+		Gold = { 25, 55 },
+		Platinum = { 42, 85 },
+		Diamond = { 65, 130 },
+		Expert = { 100, 225 },
+		Veteran = { 170, 390 },
+		Master = { 290, 720 },
+		Grandmaster = { 540, 1750 },
+		Reyes = { 1300, 3000 },
 	} :: { [string]: { number } },
 }
 
