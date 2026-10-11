@@ -987,8 +987,9 @@ approves the v5 proposal (ECONOMY.md section 11).
   one block at a time: v5's **"Open all" is gone** (designer, 2026-10-10: a player does not
   open many blocks). ECONOMY.md section 7.6.
 - **Announcements**: Mythic and Secret pulls are announced in every server, Legendary pulls in
-  the server only ("X unboxed a Legendary Cue!"), each with the **"1 in N"** of that exact cue
-  from the block it started as (v5). The every-server line (designer, 2026-10-05) reads
+  the server only ("X unboxed a Legendary Cue!"), with **no odds** (v5's "1 in N" after the
+  line went 2026-10-11: from a Mythic block it read "1 in 3" and undersold the pull). The
+  every-server line (designer, 2026-10-05) reads
   **[GLOBAL]: <username> pulled a Mythical Cue!** in a pastel rainbow, or **... a Secret
   Cue!** in red, on the top banner and in chat. No announcement names the cue, only its
   rarity. A Legendary or Mythic block in the restock is announced in every server too (v4).

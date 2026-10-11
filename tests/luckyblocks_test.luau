@@ -454,10 +454,6 @@ return {
 		H.expect(Format.oneIn(2610) == "2,610" and Format.oneIn(84700) == "84,700", "commas")
 		H.expect(Format.oneIn(8.24) == "8.24" and Format.oneIn(37.6) == "37.6", "decimals")
 		H.expect(Format.oneIn(12) == "12", "a whole number")
-		local Strings = H.require("Strings")
-		H.expect(
-			Strings.Banner.OneIn:format("A!", "2,610") == "A! (1 in 2,610)",
-			"the banner's words"
-		)
+		-- The banner no longer shows it (2026-10-11; catalog_test).
 	end,
 }

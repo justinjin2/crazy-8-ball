@@ -29,7 +29,6 @@ local Config = require(Shared.Config)
 local Net = require(Shared.Net)
 local Catalog = require(Shared.Progression.Catalog)
 local BlockOdds = require(Shared.Progression.BlockOdds)
-local LuckyBlocks = require(Shared.Progression.LuckyBlocks)
 local UltCatalog = require(Shared.Ults.Catalog)
 local Counters = require(script.Parent.Counters)
 local PlayerData = require(script.Parent.PlayerData)
@@ -177,8 +176,7 @@ end
 --- `player` unboxed `cueId`: a Legendary (BlockOdds.announcesHere) is a banner for this server,
 --- a Mythic or Secret (BlockOdds.announces) for every server, Config.Items.UnboxAnnounceDelaySeconds
 --- later so the opener's reel settles first. `climb`: the kind the block started as and
---- whether the Grand Opening Luck was live at its climb, for the "1 in N" (economy v5 plan
---- 3.9; LuckyBlocks.oneIn). Never yields.
+--- whether the Grand Opening Luck was live at its climb. Never yields.
 function Announce.unbox(player: Player, cueId: string, climb: { from: string, luck: boolean }?)
 	local cue = Catalog.get(cueId)
 	if not isPlayer(player) or cue == nil then
@@ -194,9 +192,6 @@ function Announce.unbox(player: Player, cueId: string, climb: { from: string, lu
 		name = player.Name,
 		cue = cue.Id,
 		rarity = cue.Rarity,
-		-- The "1 in N" (economy v5 plan 3.9): that exact cue's chance from the block it started
-		-- as, with the odds live at its climb. nil when unknown (the banner leaves it out).
-		oneIn = if climb then LuckyBlocks.oneIn(cue.Id, climb.from, climb.luck) else nil,
 		from = if climb then climb.from else nil,
 	}
 	task.delay(I.UnboxAnnounceDelaySeconds, function()

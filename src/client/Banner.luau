@@ -216,18 +216,12 @@ function Banner.onBanner(self: any, payload: any)
 		end
 		local rarity = name(payload.rarity) or CueThumb.rarityOf(cue)
 		local global: { [string]: string } = COPY.Global :: any
-		-- The "1 in N" (economy v5 plan 3.9), when the server sent it.
-		local oneIn = payload.oneIn
-		local function withOdds(text: string): string
-			if type(oneIn) == "number" and oneIn == oneIn and oneIn >= 1 and oneIn < 1e12 then
-				return COPY.OneIn:format(text, Format.oneIn(oneIn))
-			end
-			return text
-		end
+		-- No "1 in N" after the sentence (designer, 2026-10-11: "1 in 3" from a Mythic block
+		-- undersold the pull); an older server's payload.oneIn is ignored.
 		if global[rarity] then
 			-- A Mythic or Secret pull (every server): "[GLOBAL]: ...", Mythic in a pastel
 			-- rainbow, Secret in red (designer 2026-10-05).
-			local text = withOdds(global[rarity]:format(who))
+			local text = global[rarity]:format(who)
 			if rarity == "Mythic" then
 				self:push({ text = text, colours = B.GlobalMythic, at = os.clock() })
 				ChatTags.system(ChatTags.letters(text, B.GlobalMythic))
@@ -239,7 +233,7 @@ function Banner.onBanner(self: any, payload: any)
 		else
 			local sentences: { [string]: string } = COPY.Unbox :: any
 			local sentence = sentences[rarity] or sentences.Default
-			local text = withOdds(sentence:format(who))
+			local text = sentence:format(who)
 			local tint = CueThumb.accentColor(rarity)
 			self:push({ text = text, color = tint, at = os.clock() })
 			ChatTags.system(ChatTags.paint(text, tint))

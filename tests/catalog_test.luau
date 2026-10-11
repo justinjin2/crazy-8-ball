@@ -221,4 +221,15 @@ return {
 			"Default and unknown"
 		)
 	end,
+
+	["an unbox announcement names the rarity and never the odds"] = function()
+		local _, _, Strings = load()
+		local B = Strings.Banner
+		H.expect(B.OneIn == nil, "no (1 in N) line")
+		for _, group in { B.Unbox, B.Global } do
+			for rarity, line in group do
+				H.expect(not string.find(line, "1 in", 1, true), "no odds: " .. rarity)
+			end
+		end
+	end,
 }
