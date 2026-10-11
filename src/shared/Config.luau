@@ -12527,7 +12527,9 @@ Config.UI.LeaveNudge = {
 	-- The Metal Gear "!" (Config.Ults.Audio.LookAlert, Look Over There's): once a visit, the
 	-- first time the menu opens (designer, 2026-10-10: "sound once a visit").
 	SoundOncePerVisit = true,
-	SoundVolumeScale = 0.6, -- of the ability's level (designer: "lower it a bit")
+	-- Of the ability's level (designer: "lower it a bit", 0.6; "lower the volume even more",
+	-- 2026-10-11).
+	SoundVolumeScale = 0.3,
 }
 
 -- Look Over There! (src/client/LookOverThereFx.luau; the rework, designer 2026-10-08): the
