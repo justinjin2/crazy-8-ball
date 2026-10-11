@@ -1012,11 +1012,12 @@ return {
 			Play = "PLAY ONE GAME TO UNLOCK TODAY'S FREE DAILY REWARD!",
 			Tomorrow = "COME BACK TOMORROW TO CLAIM YOUR DAILY REWARDS!",
 		},
-		-- A phone's one line, after the headline (designer, 2026-10-10: "COME TMRW FOR REWARDS").
+		-- A phone's one line, after the headline, in plain words that translate well (designer,
+		-- 2026-10-11: "PLAY FOR REWARDS"; "COME TMRW FOR REWARDS" before).
 		Short = {
 			Ready = "FREE REWARD READY!",
-			Play = "PLAY 1 FOR A FREE REWARD!",
-			Tomorrow = "COME TMRW FOR REWARDS!",
+			Play = "PLAY FOR REWARDS!",
+			Tomorrow = "PLAY FOR REWARDS!",
 		},
 	},
 	LuckyBlocks = {

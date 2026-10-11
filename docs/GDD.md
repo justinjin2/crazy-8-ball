@@ -1107,8 +1107,8 @@ approves the v5 proposal (ECONOMY.md section 11).
   daily reward's state ("YOUR FREE DAILY REWARD IS WAITING! CLAIM IT BEFORE YOU GO!", "PLAY
   ONE GAME TO UNLOCK TODAY'S FREE DAILY REWARD!" or "COME BACK TOMORROW TO CLAIM YOUR DAILY
   REWARDS!"), at the bottom under the panel on a PC or tablet; on a phone (whose panel reaches
-  the bottom) on the headline's line, the same size, in short words ("FREE REWARD READY!",
-  "PLAY 1 FOR A FREE REWARD!", "COME TMRW FOR REWARDS!"). Look Over There's Metal Gear "!" plays the first time each
+  the bottom) on the headline's line, the same size, in short words ("FREE REWARD READY!" when
+  today's is ready, else "PLAY FOR REWARDS!"). Look Over There's Metal Gear "!" plays the first time each
   visit, a little quieter. It stacks with the Gift's fall on the first opening (it sits over
   the cutscene's bars).
   ECONOMY.md section 10.

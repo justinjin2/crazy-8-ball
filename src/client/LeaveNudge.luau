@@ -12,7 +12,7 @@
 -- headline in the band from the top of the screen down to just above it, centred on the screen
 -- clear of Roblox's buttons, and the daily line in the band under it across the whole
 -- width (a PC or a tablet); a phone's panel reaches the bottom, so there both go on one line at
--- the top, the same size, the daily part in short words ("COME TMRW FOR REWARDS!"). It stacks with the Gift's fall on the first opening: this screen sits over the
+-- the top, the same size, the daily part in short words ("PLAY FOR REWARDS!"). It stacks with the Gift's fall on the first opening: this screen sits over the
 -- Gift's letterbox bars, and the Gift's own line waits until the menu closes (GiftDrop).
 --
 -- Its ScreenGui is on only while the menu is open, whatever else turns it on (a cutscene
