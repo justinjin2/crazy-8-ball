@@ -5,7 +5,9 @@
 -- the crown rocking gently and "VIP" in the house rainbow (the chat tag's, UIAnim.rainbow).
 -- Hovering shows the perks card over it ("VIP perks active" and a ticked line per perk); a click
 -- or tap pins it open for PinSeconds (a second press closes it). Bought VIP just now: the card
--- slams in by itself (showPerks, the purchase thank-you), so a new VIP sees what they got.
+-- slams in by itself (showPerks, the purchase thank-you), so a new VIP sees what they got. In a
+-- match hovering and pressing do nothing (setInMatch; designer, 2026-10-12: a phone's camera
+-- drag kept opening it over half the screen); out of one it works as before.
 --
 -- It lives inside the money HUD's root (it moves with it); MenuColumn measures the money HUD's
 -- top from this tag while it shows. VIP is the player's `Vip` attribute (the Store sets it);
@@ -54,6 +56,7 @@ function VipTag.new(money: any): any
 	self.hovered = false
 	self.pinned = false
 	self.on = false
+	self.inMatch = false
 
 	local tag = Instance.new("TextButton")
 	tag.Name = "VipTag"
@@ -108,7 +111,9 @@ function VipTag.new(money: any): any
 
 	tag.MouseEnter:Connect(function()
 		self.hovered = true
-		self:showCard(false)
+		if not self.inMatch then
+			self:showCard(false)
+		end
 	end)
 	tag.MouseLeave:Connect(function()
 		self.hovered = false
@@ -117,6 +122,9 @@ function VipTag.new(money: any): any
 		end
 	end)
 	tag.Activated:Connect(function()
+		if self.inMatch then
+			return
+		end
 		UISound.play("Click")
 		if self.pinned then
 			self.pinned = false
@@ -269,6 +277,21 @@ function VipTag.pin(self: any, seconds: number, big: boolean?)
 			end
 		end
 	end)
+end
+
+--- Whether the player is in a match: there the tag stays shut to hovers and presses, and an
+--- open card closes as the match starts (a purchase's card still comes, showPerks).
+function VipTag.setInMatch(self: any, on: boolean)
+	if on == self.inMatch then
+		return
+	end
+	self.inMatch = on
+	self.tag.Active = not on
+	if on then
+		self.pinned = false
+		self.pinToken += 1
+		self:hideCard()
+	end
 end
 
 --- VIP was just bought: the tag shows at once and the perks card slams in for a while.

@@ -581,6 +581,7 @@ function Progression.update(state: State)
 		not state.inMatch and (not busy or catching) and not reelUp and not teleportUp()
 	)
 	corners:setVisible(not state.inMatch and not busy and not reelUp and not teleportUp())
+	vipTag:setInMatch(state.inMatch == true) -- its perks card stays shut in a match
 	playerList:setVisible(
 		not state.inMatch and not busy and not reelUp and not teleportUp() and not Menus.isOpen()
 	)
