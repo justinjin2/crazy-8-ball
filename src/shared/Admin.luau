@@ -162,7 +162,7 @@ function Admin.check(action: any, args: any): (Request?, string?)
 		if total == nil then
 			return nil, "BadAmount"
 		end
-		return { action = action, total = total }
+		return { action = action, total = total, everyServer = a.everyServer == true }
 	end
 	return nil, "BadAction"
 end

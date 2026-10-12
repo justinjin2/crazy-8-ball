@@ -10,6 +10,8 @@
 -- comes within PickupStuds of a landed bill gets its money (PlayerData.addMoney, reason
 -- "AdminRain") with the flying cash; a bill nobody takes is gone after LifeSeconds. Everyone in
 -- the server sees "MONEY RAIN!" as it starts (Net MoneyRainStart). Lobby only.
+-- A rain sent to every server (the panel's All servers; Announce carries it) falls the same
+-- way in each other lobby server with players in it, round its SpawnLocation (rainHere).
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -158,6 +160,43 @@ local function makeBill(value: number, at: Vector3): Bill
 	return { part = part, value = value, to = to, landAt = landAt, landed = false }
 end
 
+-- The raycast for floor spots: everything but the bills and the players.
+local function floorParams(): RaycastParams
+	local params = RaycastParams.new()
+	params.FilterType = Enum.RaycastFilterType.Exclude
+	local ignore: { Instance } = { folder() }
+	for _, player in Players:GetPlayers() do
+		if player.Character then
+			table.insert(ignore, player.Character)
+		end
+	end
+	params.FilterDescendantsInstances = ignore
+	params.RespectCanCollide = true
+	return params
+end
+
+-- "MONEY RAIN!" for everyone here, then `values` falling round `centre` (floor at `feet`) in
+-- their own thread.
+local function pour(centre: Vector3, feet: number, values: { number }, total: number)
+	local params = floorParams()
+	pcall(function()
+		(Net.get("MoneyRainStart") :: RemoteEvent):FireAllClients({ total = total })
+	end)
+	task.spawn(function()
+		local gap = R.SpawnSeconds / #values
+		for _, value in values do
+			local at = spot(centre, feet, params)
+				or Vector3.new(
+					centre.X + rng:NextNumber(-3, 3),
+					feet,
+					centre.Z + rng:NextNumber(-3, 3)
+				)
+			table.insert(bills, makeBill(value, at))
+			task.wait(gap)
+		end
+	end)
+end
+
 --- Rains `total` money round `owner` (the owner only, in a lobby). Returns true and the number
 --- of bills, or false and why ("NotOwner", "NotLobby", "BadAmount", "NoBody", "RainBusy").
 --- The bills fall in their own thread; this returns at once.
@@ -177,36 +216,41 @@ function MoneyRain.rain(owner: Player, total: number): (boolean, string | number
 	if root == nil then
 		return false, "NoBody"
 	end
-	local centre = root.Position
 	local humanoid = (owner.Character :: Model):FindFirstChildOfClass("Humanoid") :: Humanoid
-	local feet = centre.Y - root.Size.Y / 2 - humanoid.HipHeight
-	local params = RaycastParams.new()
-	params.FilterType = Enum.RaycastFilterType.Exclude
-	local ignore: { Instance } = { folder() }
-	for _, player in Players:GetPlayers() do
-		if player.Character then
-			table.insert(ignore, player.Character)
-		end
-	end
-	params.FilterDescendantsInstances = ignore
-	params.RespectCanCollide = true
+	local feet = root.Position.Y - root.Size.Y / 2 - humanoid.HipHeight
 	print(("[8ball] Admin: %s made it rain $%d in %d bills"):format(owner.Name, total, #values))
-	pcall(function()
-		(Net.get("MoneyRainStart") :: RemoteEvent):FireAllClients({ total = total })
-	end)
-	task.spawn(function()
-		local gap = R.SpawnSeconds / #values
-		for _, value in values do
-			local at = spot(centre, feet, params)
-				or Vector3.new(
-					centre.X + rng:NextNumber(-3, 3),
-					feet,
-					centre.Z + rng:NextNumber(-3, 3)
-				)
-			table.insert(bills, makeBill(value, at))
-			task.wait(gap)
-		end
-	end)
+	pour(root.Position, feet, values, total)
+	return true, #values
+end
+
+--- A rain the owner (`byName`) sent to every server, arriving here: `total` falls round this
+--- server's SpawnLocation (where everyone comes in). Returns true and the number of bills, or
+--- false and why ("NotLobby", "Empty": nobody here, "BadAmount", "RainBusy", "NoSpawn").
+function MoneyRain.rainHere(total: number, byName: string): (boolean, string | number)
+	if not lobby then
+		return false, "NotLobby"
+	elseif #Players:GetPlayers() == 0 then
+		return false, "Empty"
+	end
+	local values = Admin.bills(total)
+	if #values == 0 then
+		return false, "BadAmount"
+	elseif #bills + #values > R.MaxBills then
+		return false, "RainBusy"
+	end
+	local spawn = workspace:FindFirstChildWhichIsA("SpawnLocation")
+	if spawn == nil then
+		return false, "NoSpawn"
+	end
+	local top = spawn.Position.Y + spawn.Size.Y / 2
+	print(
+		("[8ball] Admin: %s's rain from another server, $%d in %d bills"):format(
+			byName,
+			total,
+			#values
+		)
+	)
+	pour(Vector3.new(spawn.Position.X, top, spawn.Position.Z), top, values, total)
 	return true, #values
 end
 

@@ -2105,6 +2105,7 @@ return {
 			Dropped = "Dropped %d %s.",
 			DroppedShort = "Dropped %d of %d %s: %s",
 			Raining = "Raining %s in %d bills!",
+			RainingAll = "Raining %s in %d bills here, and the same in every other lobby server!",
 			-- Why something did not happen.
 			NoPlayer = 'Nobody here matches "%s".',
 			NotLoaded = "That save is not loaded yet.",

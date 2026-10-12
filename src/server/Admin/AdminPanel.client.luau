@@ -186,6 +186,21 @@ local function button(
 	return object
 end
 
+-- A "This server" / "All servers" switch (blue, red once on All servers); returns a function
+-- giving whether it is on All servers now.
+local function scopeSwitch(parent: Instance, size: UDim2): () -> boolean
+	local every = false
+	local object: TextButton
+	object = button(parent, W.ThisServer, "Blue", size, function()
+		every = not every
+		object.Text = if every then W.AllServers else W.ThisServer
+		object.BackgroundColor3 = if every then tone("Red") else tone("Blue")
+	end)
+	return function()
+		return every
+	end
+end
+
 -- A ◀ name ▶ picker over `ids`; returns a function giving the id picked now.
 local function picker(ids: { string }, nameOf: (string) -> string): () -> string
 	local line = row()
@@ -266,16 +281,10 @@ message:GetPropertyChangedSignal("Text"):Connect(function()
 		message.Text = string.sub(message.Text, 1, cut - 1)
 	end
 end)
-local everyServer = false
 local announceRow = row()
-local scope: TextButton
-scope = button(announceRow, W.ThisServer, "Blue", wide(0.6, 2), function()
-	everyServer = not everyServer
-	scope.Text = if everyServer then W.AllServers else W.ThisServer
-	scope.BackgroundColor3 = if everyServer then tone("Red") else tone("Blue")
-end)
+local announceEverywhere = scopeSwitch(announceRow, wide(0.6, 2))
 button(announceRow, W.Send, "Green", wide(0.4, 2), function()
-	if send("Announce", { text = message.Text, everyServer = everyServer }) then
+	if send("Announce", { text = message.Text, everyServer = announceEverywhere() }) then
 		message.Text = ""
 	end
 end)
@@ -383,8 +392,9 @@ label(W.DropHint, tone("Soft"), P.RowPx * 1.2).TextSize = P.TextPx - 3
 heading(W.Rain)
 local rainRow = row()
 local total = box(W.RainHint, rainRow, wide(0.55, 2))
-button(rainRow, W.MakeItRain, "Green", wide(0.45, 2), function()
-	send("Rain", { total = amountOf(total.Text) })
+local rainEverywhere = scopeSwitch(rainRow, wide(0.45, 2))
+button(row(), W.MakeItRain, "Green", wide(1, 1), function()
+	send("Rain", { total = amountOf(total.Text), everyServer = rainEverywhere() })
 end)
 
 -- The server's answers

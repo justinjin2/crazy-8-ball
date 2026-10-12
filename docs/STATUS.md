@@ -47,7 +47,8 @@ rooftop map with a day and sunset cycle; pull cutscenes Rare to Secret; the ball
   sparkles, same floor only, 60 s life, CashLand on pickup). Announcements now open with a white
   streak and a button pop, then type out with the designer's keyboard click, just
   under the Sky Lucky Block timer. Live: an all-servers message, the text filter, a second player
-  picking up drops and bills, a phone (button above the jump), the click's loudness.
+  picking up drops and bills, a phone (button above the jump), the click's loudness, an
+  All servers money rain (it falls round each other lobby's spawn).
 
 - **The new rank ladder** (2026-10-11, ECONOMY 2, DECISIONS): fast to Gold, then each tier about
   twice the last; from Expert Classic wins fade (x0.5 down to x0.25) and Difficult x1.5 /

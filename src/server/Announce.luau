@@ -20,6 +20,9 @@
 -- own remote (Net "OwnerMessage": { userId, name, text }), to this server or to every server
 -- through the same topic (kind "Owner"); an arriving one is shown only if its user id is the
 -- owner's (Admin.isOwner) and its text is short enough. The text was filtered before it left.
+-- The owner's money rain sent to every server goes the same way (kind "Rain", { userId, name,
+-- total }; Announce.ownerRain): each other server checks it (owner, Admin.check) and rains it
+-- round its own spawn (MoneyRain.rainHere).
 -- The first Reyes ever (Counters.claimFirst) also gets the one-of-one title
 -- (Config.Items.FirstReyesTitle) through PlayerData.addTitle; a first who left before the title
 -- landed gets it on their next join here (a Reyes player without it looks the key up once).
@@ -36,6 +39,7 @@ local Catalog = require(Shared.Progression.Catalog)
 local BlockOdds = require(Shared.Progression.BlockOdds)
 local UltCatalog = require(Shared.Ults.Catalog)
 local Counters = require(script.Parent.Counters)
+local MoneyRain = require(script.Parent.MoneyRain)
 local PlayerData = require(script.Parent.PlayerData)
 
 local I = Config.Items
@@ -111,6 +115,24 @@ local function onMessage(message: any)
 			and #text <= Config.Admin.Message.MaxLength * 4
 		then
 			fireOwner(userId, name, text)
+		end
+		return
+	elseif kind == "Rain" then
+		local checked = Admin.check("Rain", { total = data.total })
+		if
+			Admin.isOwner(userId)
+			and type(name) == "string"
+			and #name <= MAX_NAME_LENGTH
+			and checked ~= nil
+		then
+			local ok, why = MoneyRain.rainHere(checked.total, name)
+			if not ok and why ~= "NotLobby" and why ~= "Empty" then
+				warn(
+					("[8ball] Announce: the owner's rain did not fall here: %s"):format(
+						tostring(why)
+					)
+				)
+			end
 		end
 		return
 	end
@@ -302,6 +324,16 @@ function Announce.owner(player: Player, text: string, everyServer: boolean)
 		local payload = { kind = "Owner", userId = player.UserId, name = player.Name, text = text }
 		task.spawn(publish, payload, "owner message")
 	end
+end
+
+--- The owner's money rain of `total` to every other server (it already fell here): each lobby
+--- server with players rains it round its spawn. The owner only. Never yields.
+function Announce.ownerRain(player: Player, total: number)
+	if not isPlayer(player) or not Admin.isOwner(player.UserId) or type(total) ~= "number" then
+		return
+	end
+	local payload = { kind = "Rain", userId = player.UserId, name = player.Name, total = total }
+	task.spawn(publish, payload, "owner rain")
 end
 
 --- A restock with block kind `kind` in it began here (the Legendary block: plan section 3):

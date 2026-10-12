@@ -15,7 +15,8 @@
 --   SetMoney and AddMoney (PlayerData.setMoney / addMoney, a gain with the flying cash; a
 --   negative Add takes money, never below 0), GiveBlocks (into the owner's own hotbar, ready at
 --   once), DropBlocks and DropHeld (LuckyBlockService.dropForAll, lobby only) and Rain
---   (MoneyRain, lobby only). The player for SetAbility and the money is whoever in this
+--   (MoneyRain, lobby only; All servers: the same rain in every other lobby server too, round
+--   its spawn, through Announce.ownerRain). The player for SetAbility and the money is whoever in this
 --   server the typed text means (Admin.match). Each action is printed as "[8ball] Admin: ...".
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -215,6 +216,10 @@ function ACTIONS.Rain(owner: Player, r: any): Answer
 	local ok, result = MoneyRain.rain(owner, r.total)
 	if not ok then
 		return answer(false, tostring(result))
+	elseif r.everyServer then
+		Announce.ownerRain(owner, r.total)
+		print(("[8ball] Admin: %s sent the $%d rain to every server"):format(owner.Name, r.total))
+		return answer(true, "RainingAll", Format.money(r.total), result)
 	end
 	return answer(true, "Raining", Format.money(r.total), result)
 end

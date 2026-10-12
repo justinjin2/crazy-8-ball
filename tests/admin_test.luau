@@ -107,7 +107,10 @@ return {
 				== "BlackHole"
 		)
 		H.expect(Admin.check("SetAbility", { target = "bob", ability = "" }) == nil)
-		H.expect((Admin.check("Rain", { total = 5000 }) :: any).total == 5000)
+		local rain = Admin.check("Rain", { total = 5000 }) :: any
+		H.expect(rain.total == 5000 and rain.everyServer == false, "a rain here only")
+		H.expect((Admin.check("Rain", { total = 5000, everyServer = true }) :: any).everyServer)
+		H.expect(not (Admin.check("Rain", { total = 5, everyServer = "yes" }) :: any).everyServer)
 		H.expect(Admin.check("Rain", { total = A.Rain.MaxTotal + 1 }) == nil)
 		H.expect((Admin.check("DropHeld", nil) :: any).action == "DropHeld")
 		H.expect(Admin.check("Wipe", {}) == nil and Admin.check(nil, {}) == nil, "unknown action")
