@@ -14388,44 +14388,66 @@ Config.Bots = {
 	},
 	-- Lobby bots (the designer, 2026-10-02; public lobby servers only, never a private server
 	-- or an arena): the server looks like People people, so there are People minus the real
-	-- players of them (none at People real players). They stroll, sit, wait on 1v1 pads and
-	-- play each other there (one game, then they walk off), never at 2v2/3v3 tables. A real
-	-- player can step onto a waiting bot's pad to play it (at its badge's level). They do not
-	-- answer a real "needs an opponent!" (designer, 2026-10-07: Play Global is the way to a
-	-- bot). When a real player joins, a bot leaves:
-	-- idle ones first, then bot-vs-bot players, and one playing a real player only once the
-	-- server holds People real players (its forfeit pays in full). Off by default everywhere
-	-- (designer, 2026-10-07: only real people in a server); the designer's /lobbybots turns
-	-- them on in one server.
+	-- players of them (none at People real players). Back on everywhere since 2026-10-12 (the
+	-- designer, after a tester's notes; off 2026-10-07 .. 10-12), reworked (src/server/Bots/
+	-- LobbyBots.luau): they roam like the tutorial's bot (Config.Tutorial.Bot.Natural: short
+	-- stops, a swaying path, looks round, the odd hop; never on the map's seats), now and then
+	-- stand near a real player who has nobody to play, walk over to a lonely player's 1v1 pad
+	-- to play them, play each other only while every real player is in a match, and a few wait
+	-- on pads. When a real player joins, a bot leaves: roaming ones first, then waiting, then
+	-- bot-vs-bot players, and one playing a real player only once the server holds People real
+	-- players. Never near the tutorial's guided part (its players and reserved tables).
 	Lobby = {
-		OnByDefault = false, -- true: live public lobbies start with lobby bots on by themselves
+		OnByDefault = true, -- false: no lobby bots unless the designer's /lobbybots (one server)
 		People = 11,
-		-- Their badges (weights, in this order): mostly Bronze to Gold, a few Platinum and
-		-- Diamond, none above.
+		-- Their badges (weights, in this order): mostly Bronze, none above Gold (designer,
+		-- 2026-10-12).
 		Tiers = {
-			{ name = "Bronze", weight = 30 },
-			{ name = "Silver", weight = 30 },
-			{ name = "Gold", weight = 25 },
-			{ name = "Platinum", weight = 10 },
-			{ name = "Diamond", weight = 5 },
+			{ name = "Bronze", weight = 60 },
+			{ name = "Silver", weight = 25 },
+			{ name = "Gold", weight = 15 },
 		},
 		TickSeconds = 1, -- how often the director looks
 		JoinGapSeconds = { 3, 9 }, -- between one bot "joining" the server and the next
-		-- What an idle bot does next (weights); Play needs a second idle bot and a table.
-		Activities = {
-			{ name = "Play", weight = 40 },
-			{ name = "Wait", weight = 20 },
-			{ name = "Sit", weight = 15 },
-			{ name = "Stroll", weight = 25 },
-		},
-		MinFreeTables = 3, -- bot-vs-bot games start only while this many 1v1 tables stay free
-		PlayShare = 0.6, -- at most this share of the lobby bots are in bot-vs-bot games
-		MaxWaiting = 2, -- bots waiting on pads at once
-		WaitSeconds = { 45, 120 }, -- a waiting bot gives up on its pad after this long
-		SitSeconds = { 15, 45 },
-		StrollPauseSeconds = { 4, 12 }, -- standing about between walks
-		StrollSteps = { 1, 3 }, -- spots a stroll visits
-		WalkTimeoutSeconds = 12, -- a walk that has not arrived by now is cut short
+		-- Coming to play: a real player alone on a 1v1 pad (no search, not the tutorial's) with
+		-- no free real player within NearStuds gets one bot, which starts walking over
+		-- ComeAfterSeconds after they stepped on; with a free real player near (they may play
+		-- each other) it comes after ComeAnywaySeconds. The bot whose badge is closest to their
+		-- rank comes (the nearest of those) and plays at their rank's skill; with every bot
+		-- busy, a bot-vs-bot game ends at once to free one. A walk that has not arrived by
+		-- ComeTimeoutSeconds seats it on the pad (a last resort).
+		NearStuds = 30,
+		ComeAfterSeconds = 2,
+		ComeAnywaySeconds = 15,
+		ComeTimeoutSeconds = 20,
+		PadSideStuds = 4, -- its spot on the pad: this far from the middle, away from the player
+		-- Roaming: to a stroll spot within RoamStuds (never within KeepStuds of a real player),
+		-- standing about RoamPauseSeconds (fidgeting), then its next thing.
+		RoamStuds = 45,
+		KeepStuds = 8,
+		RoamPauseSeconds = { 3, 9 },
+		-- Lingering (LingerShare of its choices): near a free real player with no other free
+		-- real player within NearStuds and nobody lingering by them, LingerStuds away, for
+		-- LingerSeconds, turning to them now and then. It never follows: when they move
+		-- LingerLeaveStuds off, or a free real player comes near them, it walks away. Then
+		-- nobody lingers by them for LingerCooldownSeconds.
+		LingerShare = 0.35,
+		LingerStuds = { 8, 14 },
+		LingerSeconds = { 12, 25 },
+		LingerLeaveStuds = 24,
+		LingerCooldownSeconds = { 30, 60 },
+		-- Bot-vs-bot games start only while every real player is in a match (or guided by the
+		-- tutorial), PlayShare of its choices then, only while MinFreeTables 1v1 tables stay
+		-- free, at most MaxPlayShare of the bots playing. One game, then they walk off.
+		PlayShare = 0.5,
+		MaxPlayShare = 0.6,
+		MinFreeTables = 3,
+		-- Waiting on a free 1v1 pad (WaitShare of its choices, while MinFreeTables stay free):
+		-- at most MaxWaiting at once, for WaitSeconds; a real player may step on and play it.
+		WaitShare = 0.15,
+		MaxWaiting = 2,
+		WaitSeconds = { 30, 75 },
+		WalkTimeoutSeconds = 15, -- an ordinary walk that has not arrived by now is cut short
 	},
 	-- A bot's money for the player list (its Money attribute): a random amount in this range
 	-- times its tier's place (Bronze 1 ... Diamond 5), so higher ranks look richer.

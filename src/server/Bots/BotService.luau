@@ -9,7 +9,7 @@
 --   BotService.joinTable(bot, t, options)   appear on t's pad after a delay and sit (a request)
 --   BotService.stand(bot, at) -> ok         stand it in the lobby (no table)
 --   BotService.tutorialBot() / tutorialSecondBot()   the tutorial's two opponents
---   BotService.startLobby(options)          lobby bots on/off (the tutorial's fake lobby: a count)
+--   BotService.startLobby(options)          lobby bots on/off (/lobbybots; a count for testing)
 --   BotService.remove(bot, how)             "Vanish" (gone at once) or "Angry" (AUGHHHH!)
 --   BotService.say(bot, text)               a chat bubble and a chat line in its name
 --   BotService.matchEnded                   BindableEvent: (botId, { won, reason, epoch })
@@ -658,7 +658,8 @@ end
 -- tableId); ("join", id, tableId, delay); ("remove", id, "Vanish"|"Angry"); ("say", id, text);
 -- ("ult", id, ultId) sets a bot's ability; ("pc", tableId, userId, tier?) starts Play against PC
 -- there for that player, as /bot does (true when it started); ("list") -> { "id name kind tier
--- cue ult avatar" }.
+-- cue ult avatar" }; ("lobby", opts or nil) turns the lobby bots on or off as /lobbybots does;
+-- ("lobbyState") -> each lobby bot's state (LobbyBots.state).
 local function studioHook()
 	local hook = Instance.new("BindableFunction")
 	hook.Name = "BotsQA"
@@ -693,6 +694,11 @@ local function studioHook()
 				)
 			end
 			return out
+		elseif command == "lobby" then
+			LobbyBots.set(args[1])
+			return LobbyBots.isOn()
+		elseif command == "lobbyState" then
+			return LobbyBots.state()
 		end
 		local bot = bots[args[1]]
 		if not bot then

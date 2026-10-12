@@ -1113,7 +1113,8 @@ local function botRank(player: Player, args: { string })
 end
 
 -- /lobbybots on | off | <count>: the lobby bots in this server (the Bots lane's testing
--- tool; every server starts with them off since 2026-10-07).
+-- tool; live public lobbies start with them on, Config.Bots.Lobby.OnByDefault, since
+-- 2026-10-12; Studio starts with them off).
 local function lobbyBots(player: Player, args: { string })
 	local word = string.lower(args[1] or "")
 	local n = tonumber(word)
