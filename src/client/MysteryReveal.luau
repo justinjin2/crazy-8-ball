@@ -44,6 +44,7 @@ local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local LuckyBlocks = require(Shared:WaitForChild("Progression"):WaitForChild("LuckyBlocks"))
 local HudParts = require(script.Parent.HudParts)
+local PadMode = require(script.Parent.PadMode)
 local Quality = require(script.Parent.Quality)
 local ReelFx = require(script.Parent.ReelFx)
 local ScreenBlur = require(script.Parent.ScreenBlur)
@@ -142,6 +143,29 @@ local function hint(done: boolean): string
 		return if done then W.Collect else W.Tap
 	end
 	return if done then W.CollectMouse else W.TapMouse
+end
+
+-- The hint button's words and picture: on a controller the A button's own picture on an ink
+-- disc (PlayStation's white Cross would vanish on the white button; designer, 2026-10-11: it
+-- said "Click!"), else the pointing hand.
+local function setHint(button: TextButton, done: boolean)
+	HudParts.setText(button, hint(done))
+	local parts = HudParts.candyParts(button)
+	if parts == nil then
+		return
+	end
+	local icon: ImageLabel = parts.icon
+	local pad = ReelFx.gamepad()
+	icon.Image = if pad then PadMode.glyph(Enum.KeyCode.ButtonA) else R.TapIcon
+	icon.BackgroundColor3 = HudParts.tone("Ink")
+	icon.BackgroundTransparency = if pad then 0 else 1
+	local round = icon:FindFirstChild("PadDisc") :: UICorner?
+	if round == nil then
+		local corner = Instance.new("UICorner")
+		corner.Name = "PadDisc"
+		corner.CornerRadius = UDim.new(0.5, 0)
+		corner.Parent = icon
+	end
 end
 
 -- The screen shake's offset at `since` seconds after the impact: smooth noise on each axis,
@@ -1256,7 +1280,7 @@ function Reveal.play(
 			and self.phase ~= "Done"
 			and not self.hint.Visible
 		then
-			HudParts.setText(self.hint, hint(false))
+			setHint(self.hint, false)
 			self:layout()
 			self.hint.Visible = true
 			UIAnim.popIn(self.hint)
@@ -1472,7 +1496,7 @@ function Reveal.done(self: any)
 	end
 	task.delay(R.DoneHintDelay, function()
 		if self.open and self.phase == "Done" and self.id == id then
-			HudParts.setText(self.hint, hint(true))
+			setHint(self.hint, true)
 			self:layout()
 			self.hint.Visible = true
 			UIAnim.popIn(self.hint)

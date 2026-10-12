@@ -15,6 +15,7 @@ local Catalog = require(ProgressionRules:WaitForChild("Catalog"))
 local CueThumb = require(script.Parent.CueThumb)
 local HudParts = require(script.Parent.HudParts)
 local MenuFrame = require(script.Parent.MenuFrame)
+local PadMode = require(script.Parent.PadMode)
 local UISound = require(script.Parent.UISound)
 
 local C = Config.UI.Reel
@@ -29,7 +30,7 @@ local Fx = {}
 --------------------------------------------------------------------------------------------
 
 function Fx.gamepad(): boolean
-	return string.sub(UserInputService:GetLastInputType().Name, 1, 7) == "Gamepad"
+	return PadMode.active() -- the last input a gamepad (or Studio's forced controller)
 end
 
 function Fx.touch(): boolean

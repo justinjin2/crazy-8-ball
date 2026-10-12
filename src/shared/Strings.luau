@@ -1131,10 +1131,10 @@ return {
 			Count = "%s - %d / %d",
 			Tap = "Tap!", -- the white button under the block while presses are left
 			TapMouse = "Click!",
-			TapPad = "Press A",
+			TapPad = "Press!", -- after the A button's picture
 			Collect = "Tap to collect", -- after the last press
 			CollectMouse = "Click to collect",
-			CollectPad = "Press A to collect",
+			CollectPad = "Collect", -- after the A button's picture
 		},
 		-- A rare chance as "1 in N" (BlockOdds.oneIn): on the reel's showcase card's chip (its
 		-- rarity is on its bar) and beside the rare rows of the odds screens.
