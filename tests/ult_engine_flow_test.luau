@@ -511,7 +511,34 @@ function tests.portals_must_be_clear_of_cushions_pockets_balls_and_each_other()
 	end)
 end
 
-function tests.portals_stay_open_for_the_rest_of_the_turn()
+-- Designer, 2026-10-12: kept for the whole turn they lasted as long as every portal shot
+-- potted ("stays forever ... too op"): now TurnShots shots at most, the ult shot included.
+function tests.portals_close_after_their_shots_even_while_the_shooter_keeps_potting()
+	built("Portals", function()
+		local m = midGame()
+		armNow(m, "Portals")
+		expect(pick(m, { ax = -30, ay = -10, bx = 30, by = -10 }), "a pair out of the way")
+		local shots = U.Catalog.Portals.TurnShots
+		expect(type(shots) == "number" and shots >= 1, "a shot limit")
+		for n = 1, shots :: number do
+			local wire = E.acceptShot(m, 11, potShot(m, n), m.phaseStartedAt)
+			expect(
+				wire and wire.overrides and wire.overrides.Effect == "Portals",
+				"portal shot " .. n
+			)
+			expire(m)
+			expect(m.shooter == 11 and m.phase == "Aiming", "the pot keeps the table " .. n)
+		end
+		expect(m.ults.kept == nil and E.snapshot(m).ults.kept == nil, "closed after its shots")
+		local after = E.acceptShot(m, 11, missShot(m), m.phaseStartedAt)
+		expect(
+			after and (after.overrides == nil or after.overrides.Effect == nil),
+			"the next shot is a plain one"
+		)
+	end)
+end
+
+function tests.portals_stay_open_while_the_shooter_keeps_the_table()
 	built("Portals", function()
 		local m = midGame()
 		armNow(m, "Portals")

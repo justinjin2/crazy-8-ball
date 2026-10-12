@@ -23,6 +23,7 @@ type Row = {
 	Area: boolean?,
 	Redo: boolean?,
 	Turn: boolean?,
+	TurnShots: number?,
 	Sneak: boolean?,
 }
 local ROWS: { [string]: Row } = U.Catalog :: any
@@ -43,8 +44,10 @@ export type Ult = {
 	Area: boolean?,
 	-- Rewind (7.6): a shot that drops none of the shooter's balls is undone and redone.
 	Redo: boolean?,
-	-- Portals (7.9): it acts on every shot of the rest of the shooter's turn too.
+	-- Portals (7.9): it acts on every shot of the rest of the shooter's turn too...
 	Turn: boolean?,
+	-- ... this many shots at most, the ult shot included (nil: no limit).
+	TurnShots: number?,
 	-- Look Over There! (the rework): after arming, the Sneak phase (a ball dragged into a
 	-- pocket) instead of an effect on the next shot.
 	Sneak: boolean?,
@@ -88,6 +91,7 @@ function Catalog.get(id: any): Ult?
 		Area = row.Area == true,
 		Redo = row.Redo == true,
 		Turn = row.Turn == true,
+		TurnShots = row.TurnShots,
 		Sneak = row.Sneak == true,
 	}
 end

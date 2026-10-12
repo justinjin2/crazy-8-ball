@@ -1531,7 +1531,7 @@ return {
 			Rewind = "Miss, and the table rewinds for another 10 s shot with its full path shown.",
 			TimeStop = "Time freezes a second after contact: you get 8 seconds for one more shot while everything stands still. Hit one of your balls and it rolls into a pocket when time resumes.",
 			ChainLightning = "Lightning strikes the ball of yours you hit and drives it into a pocket, then jumps on to the next ball, pushing it toward a pocket.",
-			Portals = "Place two portals for your whole turn. Balls that roll over one fly out of the other, and yours fly out into the pocket nearest the exit.",
+			Portals = "Place two portals for this shot and your next one. Balls that roll over one fly out of the other, and yours fly out into the pocket nearest the exit.",
 			SteelBall = "The ball of yours you hit is guided in, and the cue ball curves on to your next and lines it up.",
 			BlackFlash = "The first ball you hit shatters in a black flash, counted as pocketed, and the blast nudges the balls round it toward pockets.",
 			BlackHole = "A black hole opens at your first hit and swallows the balls near it, counted as pocketed.",

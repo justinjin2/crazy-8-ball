@@ -4302,6 +4302,10 @@ Config.Ults = {
 			Worth = 0.69,
 			Pick = "Portals",
 			Turn = true,
+			-- Designer, 2026-10-12: it stayed the whole turn, and with every portal shot potting
+			-- that was "forever ... too op"; "2 turns at most or 1 depending on what rarity it is,
+			-- you make the call". Rare, the middle rarity: the ult shot and one more. (tune)
+			TurnShots = 2,
 		},
 		-- +0.54 / +0.68 / +0.74 after the one-pot cap (2026-10-09; was +1.00 / +1.11 / +1.18 with
 		-- up to 3 in): the shot only, so the lined-up second ball's worth on the next shot is
@@ -4358,8 +4362,10 @@ Config.Ults = {
 			-- Rewind (7.6): a shot that drops none of the shooter's balls is undone and redone.
 			Redo: boolean?,
 			-- Portals (7.9): it keeps acting on every shot of the shooter's turn (the same
-			-- pick), until the turn passes or the game ends.
+			-- pick), until the turn passes or the game ends...
 			Turn: boolean?,
+			-- ... or it has acted on this many shots, the ult shot included (nil: no limit).
+			TurnShots: number?,
 			-- Look Over There! (the rework): after arming, the Sneak phase instead of an
 			-- effect on the next shot.
 			Sneak: boolean?,

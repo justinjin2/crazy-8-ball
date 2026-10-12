@@ -36,7 +36,8 @@
 --   the end of the game.
 -- * A Turn ult (Portals, 7.9) keeps acting after its shot: while its shooter keeps the table
 --   (a legal pot), each of their next shots is an ult shot again with the same pick (`kept`),
---   until the turn passes, a foul, or the game ends.
+--   until the turn passes, a foul, the game ends, or it has acted on its row's TurnShots shots
+--   (designer, 2026-10-12: it "stays forever", every portal shot potting).
 -- * A Sneak ult (Look Over There!, the rework) is not a shot: it arms at once (no cutscene,
 --   no pause: nobody may be warned), MatchEngine opens its Sneak phase (Match.sneakDue), and
 --   the armed ult is spent at the window's end. Never on the break, nor with ball in hand
@@ -63,6 +64,7 @@ export type Armed = {
 	-- The aim-phase pick, once made and checked (Arming.pick): { ballId } or the two portal
 	-- spots { ax, ay, bx, by }. Nil until then (a pick ult's shot waits for it).
 	pick: { number }?,
+	shots: number?, -- a kept Turn ult's shots so far, the ult shot included
 }
 
 export type State = {
@@ -532,14 +534,24 @@ function Match.onShot(
 	local armed = shotArmed(t)
 	local ultShot = armed ~= nil and not armed.practice
 	Match.clearArmed(t)
-	-- A Turn ult (Portals) goes on acting while its shooter keeps the table with this shot.
+	-- A Turn ult (Portals) goes on acting while its shooter keeps the table with this shot,
+	-- for TurnShots shots at most (this one included).
 	local row = if armed then Catalog.get(armed.id) else nil
 	local keeps = not rewound and j.keep == true and j.foul == nil and j.winner == nil
-	if armed and row and row.Built and row.Turn and keeps then
+	local shots = if armed then (armed.shots or 0) + 1 else 0
+	if
+		armed
+		and row
+		and row.Built
+		and row.Turn
+		and keeps
+		and shots < (row.TurnShots or math.huge)
+	then
+		armed.shots = shots
 		if ults.kept ~= armed then
 			ults.kept = armed
-			t.revision += 1
 		end
+		t.revision += 1
 	elseif ults.kept ~= nil and not rewound then
 		ults.kept = nil
 		t.revision += 1
