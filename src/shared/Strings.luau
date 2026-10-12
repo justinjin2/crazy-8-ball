@@ -2065,6 +2065,7 @@ return {
 	-- AdminService) and the owner's announcements everyone sees (OwnerMessage).
 	Admin = {
 		MessageLine = "%s: %s", -- an announcement, after the [OWNER] tag: the name, the words
+		MoneyRain = "MONEY RAIN!", -- big and green for everyone when the owner makes it rain
 		Toggle = "ADMIN",
 		Title = "Owner panel",
 		Announce = "Announce",

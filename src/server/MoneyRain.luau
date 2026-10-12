@@ -8,7 +8,8 @@
 -- attributes Value, To (CFrame) and LandAt (server time); every client's MoneyRainFx flies it
 -- down from the sky and the server puts it at To when it lands. The first player whose root
 -- comes within PickupStuds of a landed bill gets its money (PlayerData.addMoney, reason
--- "AdminRain") with the flying cash; a bill nobody takes is gone after LifeSeconds. Lobby only.
+-- "AdminRain") with the flying cash; a bill nobody takes is gone after LifeSeconds. Everyone in
+-- the server sees "MONEY RAIN!" as it starts (Net MoneyRainStart). Lobby only.
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -190,6 +191,9 @@ function MoneyRain.rain(owner: Player, total: number): (boolean, string | number
 	params.FilterDescendantsInstances = ignore
 	params.RespectCanCollide = true
 	print(("[8ball] Admin: %s made it rain $%d in %d bills"):format(owner.Name, total, #values))
+	pcall(function()
+		(Net.get("MoneyRainStart") :: RemoteEvent):FireAllClients({ total = total })
+	end)
 	task.spawn(function()
 		local gap = R.SpawnSeconds / #values
 		for _, value in values do

@@ -5576,6 +5576,10 @@ Config.Audio = {
 		-- the Equip sound: they celebrate.
 		RobuxThanks = { Id = "rbxassetid://89021084156464", Volume = 0.3 },
 		MoneyPayout = { Id = "rbxassetid://85019514683132", Volume = 0.7 },
+		-- "MONEY RAIN!" (the owner's money rain; designer, 2026-10-11): their "Treasure Chest
+		-- Magic Sparkles Reveal" (assets/audio/ui/MoneyRain.wav, 7 s; peak 0.95, loudest half
+		-- second RMS 0.27: loud, so it plays quiet).
+		MoneyRain = { Id = "rbxassetid://91981544084497", Volume = 0.2 },
 		-- The Mystery block's upgrade screen (designer, 2026-10-09; MysteryReveal). Opening it (the
 		-- click that jumps the block out of the hotbar): their "magical accent whoosh shimmer"
 		-- (assets/audio/ui/MysteryOpen.wav, 3.6 s; peak 0.74, loudest half second RMS 0.14). A
@@ -15952,6 +15956,17 @@ Config.Admin = {
 		BobStuds = 0.15, -- up and down once down
 		SwayStuds = 1.5, -- side to side while it falls
 		LabelColor = { 255, 221, 87 }, -- the amount's gold
+		-- "MONEY RAIN!" for everyone in the server when a rain starts (designer, 2026-10-11): green,
+		-- the size of the purchase thank-you (Config.UI.Purchased.ThanksPx / ShortThanksPx) in its
+		-- straight title style, slammed in, with the designer's treasure-chest sparkle sound.
+		Title = {
+			Style = "Thanks", -- a Config.UI.Kit.ArchTitle key
+			Color = { 90, 225, 95 },
+			CentreShare = 0.3, -- its middle this far down the screen (clear of announcements)
+			WidthShare = 0.6,
+			HoldSeconds = 3,
+			Sound = "MoneyRain", -- a Config.Audio.Ui key (the designer's treasure-chest sparkles)
+		},
 		Sparkle = {
 			Texture = "rbxasset://textures/particles/sparkles_main.dds", -- built into Roblox
 			Rate = 10, -- a second

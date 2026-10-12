@@ -314,6 +314,9 @@ local REMOTES: { [string]: string } = {
 	-- { userId, name, text }, the text already filtered. OwnerMessage shows it big at the top
 	-- middle and in chat. Only an owner's user id (Admin.isOwner) is ever shown.
 	OwnerMessage = "RemoteEvent",
+	-- server -> all: the owner's money rain began here (src/server/MoneyRain.luau): { total }.
+	-- MoneyRainFx slams "MONEY RAIN!" in for everyone.
+	MoneyRainStart = "RemoteEvent",
 	-- Ults in a match (src/server/UltService.luau, Ults/Match; the table's snapshot carries
 	-- `ults` = { on, bars = { [tostring(userId)] = { bar, used, ready } }, armed = { by, id,
 	-- stage = "Arming" | "Armed", at, readyAt, seq, practice }?, pausedUntil? }).
