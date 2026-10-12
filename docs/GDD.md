@@ -646,8 +646,10 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
     once, to the nearest ball within 20 in, pushing it toward its closest pocket with a clear
     line in (theirs at half). The Rare+ buff (2026-10-08): pots 83-95% of uses, +0.87 / +1.07 /
     +1.03 net (three jumps with the driven charge measured +1.4, above the Legendaries).
-  - **Portals** (Rare since 2026-09-30, was Epic; 0.69): place two portals for your whole turn (they
-    close when the turn passes or the game ends). Any ball whose centre crosses a portal's ring
+  - **Portals** (Rare since 2026-09-30, was Epic; 0.69): place two portals for the ability shot
+    and, if it keeps the table, one more shot (designer, 2026-10-12: they stayed the whole turn,
+    "forever" with every portal shot potting; `TurnShots` 2); they close sooner when the turn
+    passes or the game ends. Any ball whose centre crosses a portal's ring
     (2.9 in from its centre) comes out of the other with the same motion; yours come out lined
     up: sent down the clear line into the pocket nearest the exit (put the exit by the pocket
     you mean), never slower than they went in (with no clear line, turned toward the pocket

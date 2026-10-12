@@ -24,8 +24,8 @@ entry of `docs/archive/STATUS_HISTORY.md`.
   **the new rank ladder** (below; needs "Restart Servers for Updates"), **the owner admin
   panel** (below: announcements now type out on screen only, money rain has This server / All
   servers), **Sell Duplicate / Keep on a duplicate's reveal card**, **the controller fixes**
-  and **the tutorial batch of 2026-10-12** (both below) and **the VIP tag shut in a match**.
-  All pushed up to the docs commit after `f99de00`.
+  and **the tutorial batch of 2026-10-12** (both below), **the VIP tag shut in a match** and
+  **Portals lasting 2 shots** (DECISIONS). All pushed up to the docs commit after `49dd537`.
 - **Now (designer, 2026-10-11):** fixing console (gamepad) controls for this update, from the
   designer's own tutorial run on a controller. Done: the 8's pocket by D-pad rows, the tutorial's
   D-pad fine aim, a Mystery held out and opened with R2, the Mystery screen's A button, the
