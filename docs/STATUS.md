@@ -21,8 +21,9 @@ entry of `docs/archive/STATUS_HISTORY.md`.
   (Like + Favorite with one Verify, emotes, "Just one more game?", the onboarding fixes), and
   servers were restarted. **Not yet published:** Settings' "Camera after a shot" (below), unbox announcements
   without their "(1 in N)", "Gonna let that slide?" wiggling over Rematch for the side that lost,
-  and **the new rank ladder** (below; needs "Restart Servers for Updates").
-- **Lint and tests (2026-10-11, `gui-v4`):** lint OK (four old LocalShadow warnings); all 1224
+  **the new rank ladder** (below; needs "Restart Servers for Updates") and **the owner admin
+  panel** (below).
+- **Lint and tests (2026-10-11, `gui-v4`):** lint OK (four old LocalShadow warnings); all 1228
   Lune tests pass.
 
 ## In the game
@@ -39,6 +40,12 @@ rooftop map with a day and sunset cycle; pull cutscenes Rare to Secret; the ball
 (`Config.UI.Corners.ChallengeOn`).
 
 ## Watch on the live game (fixed or built, not yet seen live)
+
+- **The owner admin panel** (2026-10-11, DECISIONS; `Config.Admin.Enabled`): ADMIN bottom right,
+  Painicane only. Checked in Studio on PC: announcements (big + chat), Give/Drop/Backspace drops
+  and pickup, ability and money by part of a name, money rain (standing icons, amounts,
+  sparkles, same floor only, 60 s life, CashLand on pickup). Live: an all-servers message, the
+  text filter, a second player picking up drops and bills, a phone (button above the jump).
 
 - **The new rank ladder** (2026-10-11, ECONOMY 2, DECISIONS): fast to Gold, then each tier about
   twice the last; from Expert Classic wins fade (x0.5 down to x0.25) and Difficult x1.5 /

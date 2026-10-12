@@ -151,7 +151,11 @@ Server (`src/server`): `Bootstrap` (builds the tables, publishes assets), `Table
 `DevCommands` (the developer's chat commands, `/day`, `/sunset`, `/cycle` and the rest, checked on the server),
 `BotService`, `PlayerData` (session-locked saves), `Economy`, `Ranking`, `Analytics`,
 `FallGuard` (anyone more than `Config.FallGuard.BelowFloorStuds` below the lowest floor is put
-back on the spawn mat at once, the last resort against falling out of the map).
+back on the spawn mat at once, the last resort against falling out of the map),
+`AdminService` (the owner's admin panel, Painicane only: its LocalScript `Admin/AdminPanel` stays in
+ServerScriptService and is cloned into the owner's PlayerGui alone, with its RemoteFunction; every
+request is checked again on the server; pure rules in `src/shared/Admin`), `MoneyRain` (the
+owner's money rain, lobby only; `MoneyRainFx` draws the fall).
 
 Client (`src/client`): `Main` (wiring), `Match` (replays shots), `BallRenderer`, `Input`
 (mouse, touch, gamepad: on a pad one power level, A up and Y down, R2 fires it, B zeroes it),
