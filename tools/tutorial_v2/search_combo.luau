@@ -7,7 +7,8 @@
 -- with the standard rack, read by rack spot, the numbers are dealt so that the following
 -- holds, and every deal is replayed with its own order and kept only if it still does:
 --
--- - exactly two balls drop, both solids, the later one creeping on the lip (SLOW seconds);
+-- - exactly DOWN balls drop (COMBO_DOWN, 2 by default), all solids, the last one creeping on
+--   the lip (SLOW seconds);
 --   no scratch; the 8 (always the rack's centre spot) stops by a pocket (Break.eightPlaced);
 -- - two other solids end as a combination pair into a corner (the game's own Plan.pairs);
 -- - a fifth solid gives the aim lesson an easy pot whose lines keep off the pair (Plan.aim);
@@ -15,7 +16,7 @@
 --   hold one solid and one stripe (the standard rack's rule).
 --
 -- Two passes. collect (slow, run it on many processes: run_combo.sh) plays the breaks with
--- the standard rack and keeps every one with two balls down, no scratch and the 8 placed, with
+-- the standard rack and keeps every one with DOWN balls down, no scratch and the 8 placed, with
 -- the second drop's time on the lip and where every ball stopped. deal (fast) deals the
 -- numbers for each kept break (several deals each), plays each deal again with its own rack
 -- order and keeps it only if the game's own Plan finds the pair and the aim pot on it.
@@ -51,6 +52,9 @@ local OFFSETS = { -0.25, -0.1875, -0.125, -0.0625, 0, 0.0625, 0.125, 0.1875, 0.2
 local TURNS_DEG = { -0.15, -0.1125, -0.075, -0.0375, 0, 0.0375, 0.075, 0.1125, 0.15 }
 local POWERS = { 1, 0.95, 0.9 }
 local SLOW = tonumber(env.COMBO_SLOW) or 0.6
+-- COMBO_DOWN: how many solids the break drops (default 2; 3 since the designer's 2026-10-12
+-- "bigger break"); the last one is the one that creeps.
+local DOWN = tonumber(env.COMBO_DOWN) or 2
 local DEALS = tonumber(env.COMBO_DEALS) or 12
 local SWAPS = tonumber(env.COMBO_SWAPS) or 4 -- swap choices tried per choice of solid spots
 local RANDOM = tonumber(env.COMBO_RANDOM) or 2 -- shuffled deals tried per choice of solid spots
@@ -341,7 +345,7 @@ local function verify(ids: { number }, row: any): (any?, string?)
 	local layout = layoutOf(ids)
 	local outcome, paths, rackBalls = play(layout, row.seed, row.cx, row.cy, row.angle, row.power, true)
 	local down, scratch = Sim.down(outcome)
-	if scratch or #down ~= 2 then
+	if scratch or #down ~= DOWN then
 		return nil, "drops"
 	end
 	for _, id in down do
@@ -354,7 +358,7 @@ local function verify(ids: { number }, row: any): (any?, string?)
 		return nil, "judge"
 	end
 	local drops = dropsOf(outcome, paths)
-	if drops[2].near < SLOW then
+	if drops[DOWN].near < SLOW then
 		return nil, "slow"
 	end
 	local balls = outcome.finalBalls
@@ -388,7 +392,7 @@ local function verify(ids: { number }, row: any): (any?, string?)
 		power = row.power,
 		layout = layout,
 		drops = drops,
-		slow = drops[2].near,
+		slow = drops[DOWN].near,
 		pair = { a = pair.a, b = pair.b, pocket = pair.pocket, cut = pair.cut, back = pair.back, toMouth = pair.toMouth },
 		aim = { ball = aim.ball, pocket = aim.pocket, cut = aim.cut, toGhost = aim.toGhost, toPocket = aim.toPocket },
 		balls = final,
@@ -414,7 +418,7 @@ if mode == "collect" then
 					local angle = math.atan2(Sim.footY - cy, Sim.footX - cx) + math.rad(turn)
 					local outcome = play(STANDARD, seed, cx, cy, angle, power)
 					local down, scratch = Sim.down(outcome)
-					if scratch or #down ~= 2 or table.find(down, 8) then
+					if scratch or #down ~= DOWN or table.find(down, 8) then
 						continue
 					end
 					if not Break.eightPlaced(geometry, outcome.finalBalls) then
@@ -440,7 +444,7 @@ if mode == "collect" then
 							angle = angle,
 							power = power,
 							down = down,
-							slow = drops[2].near,
+							slow = drops[DOWN].near,
 							balls = final,
 						})
 					)
@@ -507,17 +511,35 @@ elseif mode == "deal" then
 				end
 				local cornerA, cornerB = STANDARD_IDS[CORNERS[1]], STANDARD_IDS[CORNERS[2]]
 				local options = {}
-				for i = 1, #spare do
-					for k = i + 1, #spare do
+				-- The spare solids: 7 less the drops, the pair and the aim ball (two for a
+				-- two-ball break, one for three).
+				local picks = {}
+				local need = 7 - DOWN - 3
+				local function choose(from: number, chosen: { number })
+					if #chosen == need then
+						table.insert(picks, table.clone(chosen))
+						return
+					end
+					for i = from, #spare do
+						table.insert(chosen, spare[i])
+						choose(i + 1, chosen)
+						table.remove(chosen)
+					end
+				end
+				choose(1, {})
+				for _, pick in picks do
+					do
 						local solid = {
-							[down[1]] = true,
-							[down[2]] = true,
 							[pair.a] = true,
 							[pair.b] = true,
 							[aim.ball] = true,
-							[spare[i]] = true,
-							[spare[k]] = true,
 						}
+						for _, id in down do
+							solid[id] = true
+						end
+						for _, id in pick do
+							solid[id] = true
+						end
 						if (solid[cornerA] == true) == (solid[cornerB] == true) then
 							continue
 						end

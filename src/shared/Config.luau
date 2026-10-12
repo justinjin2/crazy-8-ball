@@ -14654,28 +14654,30 @@ Config.Tutorial = {
 	-- "Invisible": the cue ball at most 1/4 in off the head spot, the aim at most 0.2 degrees
 	-- off straight at the apex. Inches and radians, table coordinates (+x towards the foot rail).
 	Break = {
-		Seed = 4430, -- the rack's seed (Rack.newGame: its tiny offsets)
+		-- Three solids since 2026-10-12 (designer: "bigger break"; tools/tutorial_v2/
+		-- search_combo.luau with COMBO_DOWN=3; it was seed 4430's two).
+		Seed = 340, -- the rack's seed (Rack.newGame: its tiny offsets)
 		CueX = -25, -- where the cue ball stands for the break (the head spot)
-		CueY = -0.125, -- 1/8 in off it
-		Angle = 0.0018455, -- the break's direction (0.04 degrees off straight at the apex)
+		CueY = -0.25, -- 1/4 in off it
+		Angle = 0.00499996, -- the break's direction (0.29 degrees off straight at the apex)
 		Power = 1, -- any pull of at least Lessons.BreakMinPower plays the break at this power
 		-- The rack's numbers (rows from the apex), chosen after the break's physics: a normal
 		-- rack (the 8 in the middle, a solid and a stripe in the back corners), only for game 1.
 		Layout = {
 			{ 1 },
-			{ 6, 2 },
-			{ 10, 8, 15 },
-			{ 11, 4, 5, 12 },
-			{ 7, 9, 14, 3, 13 },
+			{ 3, 2 },
+			{ 4, 8, 9 },
+			{ 11, 10, 12, 5 },
+			{ 6, 13, 14, 7, 15 },
 		},
-		Solids = 2, -- the break pots exactly this many solids and nothing else
+		Solids = 3, -- the break pots exactly this many solids and nothing else
 		-- Each ball the break pots steps the ball streak up (x1, x2, x3; Rules/Streak's
 		-- breakEach), only in this game (designer, 2026-10-12: "more dopamine"); x3 pays the usual
 		-- streak bonus. False: the break is x1 however many drop, as in every other game.
 		StreakEach = true,
 		-- The last of them creeps: at least this long within 2 in of where it drops (the
-		-- layout guard test, tests/tutorial_game_test.luau; this break: 0.57 s, 6 s in).
-		CreepSeconds = 0.55,
+		-- layout guard test, tests/tutorial_game_test.luau; this break: 0.35 s, 4.4 s in).
+		CreepSeconds = 0.3,
 		-- The aim lesson's pot (Break.lesson): a cut no wider than this, the cue ball no
 		-- farther than LessonMaxInches from the ghost ball; cost per inch of travel.
 		LessonMaxCutDegrees = 20,

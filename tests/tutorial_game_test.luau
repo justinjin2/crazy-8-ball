@@ -126,20 +126,31 @@ tests["the layout guard: the break, the 8, the aim lesson and the combination"] 
 	expect(pair ~= nil, "a combination pair")
 	expect(aim.ball ~= pair.a and aim.ball ~= pair.b, "the aim lesson leaves the pair alone")
 
-	-- The aim lesson played straight at a middle power pots its ball and leaves the
-	-- combination ready to play.
-	local m = rigged()
-	E.advance(m, m.deadline or 0) -- the intro
-	shoot(m, PLAYER, { angle = 0, power = 1 }, 1)
-	local now = settle(m, 1)
-	expect(m.tutorial.lesson == "Aim", "turn 2 is the aim lesson")
-	local j = shoot(m, PLAYER, { angle = m.tutorial.plan.angle, power = 0.45 }, now)
-	expect(j.keep and j.foul == nil, "the aim lesson's pot goes in")
-	now = settle(m, now)
-	expect(m.tutorial.lesson == "Combo", "then the combination")
+	-- The aim lesson played straight pots its ball and leaves the pair standing at every
+	-- middle power; a gentle one leaves the combination ready to play at once. (The
+	-- three-solid break, 2026-10-12: from a harder one the cue ball stops off the pair's line,
+	-- and the combination comes with ball in hand, Rig's cueMoved; about two games in three.)
+	for _, power in { 0.25, 0.45, 0.7 } do
+		local m = rigged()
+		E.advance(m, m.deadline or 0) -- the intro
+		shoot(m, PLAYER, { angle = 0, power = 1 }, 1)
+		local now = settle(m, 1)
+		expect(m.tutorial.lesson == "Aim", "turn 2 is the aim lesson")
+		local j = shoot(m, PLAYER, { angle = m.tutorial.plan.angle, power = power }, now)
+		expect(j.keep and j.foul == nil, ("the aim lesson's pot goes in (%.2f)"):format(power))
+		now = settle(m, now)
+		local still = false
+		for _, p in Plan.pairs(geometry, m.state.balls, "solids") do
+			still = still or (p.a == pair.a and p.b == pair.b)
+		end
+		expect(still, ("the pair still stands (%.2f)"):format(power))
+		if power == 0.25 then
+			expect(m.tutorial.lesson == "Combo", "then the combination")
+		end
+	end
 end
 
-tests["the second ball of the break creeps on the lip"] = function()
+tests["the last ball of the break creeps on the lip"] = function()
 	-- Traced like Break.play: the last ball to drop spends at least CreepSeconds within 2 in of
 	-- where it falls ("to edge the player").
 	local shot = Break.shot()
@@ -224,9 +235,10 @@ tests["the lessons come in order and the combination earns NICE SHOT!"] = functi
 	E.advance(m, m.deadline or 0)
 	shoot(m, PLAYER, { angle = 0, power = 1 }, 1)
 	local now = settle(m, 1)
-	-- Turn 2: the aim lesson, its pot played straight.
+	-- Turn 2: the aim lesson, its pot played straight and gently (the layout guard: the
+	-- combination is then on at once).
 	expect(m.tutorial.lesson == "Aim" and m.deadline == nil, "the aim lesson, no clock")
-	shoot(m, PLAYER, { angle = m.tutorial.plan.angle, power = 0.45 }, now)
+	shoot(m, PLAYER, { angle = m.tutorial.plan.angle, power = 0.25 }, now)
 	now = settle(m, now)
 	-- The combination, played on its line: the front ball drops, knocked in by the back one.
 	local rig = m.tutorial
