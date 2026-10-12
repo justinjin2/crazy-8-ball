@@ -7317,6 +7317,8 @@ Config.UI = {
 			RewardsShare = { 0.53, 0.48 },
 			CardPadShare = 0.07, -- inside a card (of its height)
 			RankBadgeShare = 0.94, -- your badge on the rank card (of the card's height)
+			RankBadgeMaxWidthShare = 0.38, -- ...and never more than this of the card's width
+			MinBarPx = 60, -- a shorter XP bar puts "250 / 1,000 XP" under it instead of beside
 			CardTint = 0.3, -- the rank card fades to this much of your tier's colour
 			NextRowShare = 0.2, -- the next-division line (of the card's height; at least a text line)
 			NextArrowShare = 0.8, -- its arrow (of the line)
@@ -15873,6 +15875,9 @@ Config.UI.Ranked = {
 	-- On a phone the panel takes this share of the screen's width, not the lively frame's 0.66:
 	-- at 0.66 the ten tiers, the rank card and the five reward tiles cut their words.
 	PhoneWidthShare = 0.96,
+	-- A narrow computer window or a tablet: never narrower than this (up to PhoneWidthShare of
+	-- the screen; 2026-10-12, a tester's 800 px window cut the rank card's XP and money).
+	MinWidthPx = 780,
 	Open = {
 		OpenSeconds = 0.91,
 		Steps = {

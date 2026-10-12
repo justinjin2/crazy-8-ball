@@ -84,6 +84,9 @@ export type Options = {
 	phoneWidthShare: number?,
 	-- ...and on a computer this share (Settings: a compact panel).
 	widthShare: number?,
+	-- A lively frame on a narrow computer or tablet never gets narrower than this (up to its
+	-- phone share): the Ranked screen's cards cut their words at 66% of an 800 px window.
+	minWidthPx: number?,
 }
 
 -- The sizes of the last layout, for the pages (onLayout).
@@ -277,6 +280,7 @@ function MenuFrame.new(screen: ScreenGui, opts: Options): any
 	self.showMoney = opts.money == true
 	self.phoneWidthShare = opts.phoneWidthShare
 	self.widthShare = opts.widthShare
+	self.minWidthPx = opts.minWidthPx
 	self.opened = false
 	self.alive = true
 	self.selected = nil :: string?
@@ -648,7 +652,11 @@ function MenuFrame.layout(self: any): boolean
 		local share = if phone
 			then self.phoneWidthShare or LV.MaxWidthShare
 			else self.widthShare or LV.MaxWidthShare
-		w = math.min(w, math.floor(size.X * share))
+		local least = math.min(
+			self.minWidthPx or 0,
+			math.floor(size.X * (self.phoneWidthShare or LV.MaxWidthShare))
+		)
+		w = math.min(w, math.max(math.floor(size.X * share), least))
 	end
 	local h = math.floor(math.min(roomHeight - 2 * margin, FR.MaxSizePx[2]))
 	local left = math.floor((size.X - w) / 2)

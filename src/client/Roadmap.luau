@@ -169,6 +169,9 @@ type NextLine = {
 	amountX: number,
 	amountW: number,
 	fits: boolean, -- the words fit on one line
+	-- The chip would leave the words under half their width beside it: it goes on its own
+	-- line under them instead (a narrow card; 2026-10-12, it ran off the card's edge).
+	chipBelow: boolean,
 }
 
 -- The tier row as last laid out.
@@ -731,6 +734,7 @@ function Roadmap.build(self: any)
 			Menus.open("Shop", "Money")
 		end,
 		phoneWidthShare = Config.UI.Ranked.PhoneWidthShare,
+		minWidthPx = Config.UI.Ranked.MinWidthPx,
 	})
 	self.frame = frame
 	self.panel = frame.panel
@@ -1001,7 +1005,8 @@ function Roadmap.drawRankCard(self: any, live: boolean, moved: boolean)
 	local body, heading = geo.body, geo.heading
 	local p = math.max(4, round(h * R.CardPadShare))
 	local inset = math.max(3, round(p * 0.6))
-	local badge = round(h * R.RankBadgeShare)
+	-- Never so big that the words beside it are squeezed (a narrow card).
+	local badge = math.min(round(h * R.RankBadgeShare), round(w * R.RankBadgeMaxWidthShare))
 	self.rankBadgeHolder.Size = UDim2.fromOffset(badge, badge)
 	self.rankBadgeHolder.Position = UDim2.fromOffset(inset, round((h - badge) / 2))
 	self.rankBadge:setSize(badge)
@@ -1014,10 +1019,15 @@ function Roadmap.drawRankCard(self: any, live: boolean, moved: boolean)
 	local nameH, labelH, barRowH, helpH = heading + 4, body + 2, body + 4, body + 2
 	local lineH = math.max(body + 8, round(h * R.NextRowShare))
 	local nextLine = self:measureNext(colW, lineH, body)
-	local nextH = if nextLine.fits then lineH else math.max(lineH, body * 2 + 8)
+	local wordsH = if nextLine.fits then lineH else math.max(lineH, body * 2 + 8)
 	local rowGap = math.max(2, round(h * 0.03))
+	local nextH = wordsH + (if nextLine.chipBelow then nextLine.chipH + rowGap else 0)
+	-- "250 / 1,000 XP" beside the bar, or under it when the bar would be too short.
+	local xpW = math.ceil(textWidth(state.xpWords, body)) + 4
+	local xpBelow = colW - xpW - 6 < R.MinBarPx
+	local xpRowH = if xpBelow then labelH + rowGap else 0
 	local inner = h - 2 * p
-	local lines = nameH + labelH + barRowH + nextH + 3 * rowGap
+	local lines = nameH + labelH + barRowH + xpRowH + nextH + 3 * rowGap
 	local showLabel = lines <= inner
 	if not showLabel then
 		lines -= labelH + rowGap
@@ -1038,20 +1048,26 @@ function Roadmap.drawRankCard(self: any, live: boolean, moved: boolean)
 		self.rankLabel.Size = UDim2.fromOffset(colW, labelH)
 		y += labelH + rowGap
 	end
-	-- The XP bar, then "250 / 1,000 XP" beside it.
+	-- The XP bar, then "250 / 1,000 XP" beside it (or under it, xpBelow).
 	self.rankXp.Text = state.xpWords
 	HudParts.setTextSize(self.rankXp, body)
-	local xpW = math.ceil(textWidth(state.xpWords, body)) + 4
-	local barW = math.max(40, colW - xpW - 6)
+	local barW = if xpBelow then colW else colW - xpW - 6
 	local barH = math.max(8, round(barRowH * 0.62))
 	self.rankBar.Position = UDim2.fromOffset(x, y + round((barRowH - barH) / 2))
 	self.rankBar.Size = UDim2.fromOffset(barW, barH)
-	self.rankXp.Position = UDim2.fromOffset(x + barW + 6, y)
-	self.rankXp.Size = UDim2.fromOffset(math.max(1, colW - barW - 6), barRowH)
-	y += barRowH + rowGap
+	if xpBelow then
+		y += barRowH + rowGap
+		self.rankXp.Position = UDim2.fromOffset(x, y)
+		self.rankXp.Size = UDim2.fromOffset(colW, labelH)
+		y += labelH + rowGap
+	else
+		self.rankXp.Position = UDim2.fromOffset(x + barW + 6, y)
+		self.rankXp.Size = UDim2.fromOffset(math.max(1, colW - barW - 6), barRowH)
+		y += barRowH + rowGap
+	end
 	self.nextRow.Position = UDim2.fromOffset(x, y)
 	self.nextRow.Size = UDim2.fromOffset(colW, nextH)
-	self:drawNext(nextLine, colW, nextH, body)
+	self:drawNext(nextLine, colW, wordsH, body, rowGap)
 	y += nextH + rowGap
 	self.help.Visible = showHelp
 	if showHelp then
@@ -1125,7 +1141,9 @@ function Roadmap.measureNext(self: any, width: number, lineH: number, body: numb
 		and lead + math.ceil(textW / 2) + gapX + withSpinsW + endPad <= width
 	local pays = money or spins
 	local chipW = if spins then withSpinsW + endPad elseif money then moneyW + endPad else 0
-	local chipRoom = if pays then gapX + chipW else 0
+	-- Beside the words only while they keep half their width; else under them.
+	local chipBelow = pays and lead + math.ceil(textW / 2) + gapX + chipW > width
+	local chipRoom = if pays and not chipBelow then gapX + chipW else 0
 	local showBadge = not top and lead + badge + gapX + textW + chipRoom <= width
 	local used = lead + (if showBadge then badge + gapX else 0) + textW + chipRoom
 	return {
@@ -1152,12 +1170,21 @@ function Roadmap.measureNext(self: any, width: number, lineH: number, body: numb
 		amountX = amountX,
 		amountW = amountW,
 		fits = used <= width,
+		chipBelow = chipBelow,
 	}
 end
 
 -- Draw the measured next-division line into its row (`height` is one line, or two when its
--- words wrap); the arrow, badge and chip stay centred on it.
-function Roadmap.drawNext(self: any, line: NextLine, width: number, height: number, body: number)
+-- words wrap); the arrow, badge and chip stay centred on it. A chip below (chipBelow) sits
+-- `gap` under the words, from the words' left, never past the row's right end.
+function Roadmap.drawNext(
+	self: any,
+	line: NextLine,
+	width: number,
+	height: number,
+	body: number,
+	gap: number
+)
 	local words = self.nextLine
 	HudParts.setTextSize(words, body)
 	words.Text = line.words
@@ -1176,15 +1203,22 @@ function Roadmap.drawNext(self: any, line: NextLine, width: number, height: numb
 		self.nextBadge.Position = UDim2.fromOffset(x, round((height - line.badge) / 2))
 		x += line.badge + line.gapX
 	end
-	local chipRoom = if line.pays then line.gapX + line.chipW else 0
+	local chipRoom = if line.pays and not line.chipBelow then line.gapX + line.chipW else 0
 	local textRoom = math.max(1, math.min(line.textW, width - x - chipRoom))
 	words.Position = UDim2.fromOffset(x, 0)
 	words.Size = UDim2.fromOffset(textRoom, height)
+	local wordsX = x
 	x += textRoom + line.gapX
 	if line.pays then
 		local chipH = line.chipH
-		self.chip.Size = UDim2.fromOffset(line.chipW, chipH)
-		self.chip.Position = UDim2.fromOffset(x, round((height - chipH) / 2))
+		local chipW, chipY = line.chipW, round((height - chipH) / 2)
+		if line.chipBelow then
+			x = math.max(0, math.min(wordsX, width - chipW))
+			chipW = math.min(chipW, width - x)
+			chipY = height + gap
+		end
+		self.chip.Size = UDim2.fromOffset(chipW, chipH)
+		self.chip.Position = UDim2.fromOffset(x, chipY)
 		self.chipCash.Visible = line.money
 		self.chipAmount.Visible = line.money
 		self.chipCash.Size = UDim2.fromOffset(line.cash, line.cash)
@@ -1192,7 +1226,8 @@ function Roadmap.drawNext(self: any, line: NextLine, width: number, height: numb
 		self.chipAmount.Text = line.amountWords
 		HudParts.setTextSize(self.chipAmount, body)
 		self.chipAmount.Position = UDim2.fromOffset(line.amountX, 0)
-		self.chipAmount.Size = UDim2.fromOffset(line.amountW, chipH)
+		self.chipAmount.Size =
+			UDim2.fromOffset(math.max(1, math.min(line.amountW, chipW - line.amountX - 2)), chipH)
 		self.chipSpin.Visible = line.spins
 		self.chipSpins.Visible = line.spins
 		self.chipSpin.Size = UDim2.fromOffset(line.cash, line.cash)
