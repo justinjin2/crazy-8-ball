@@ -7892,6 +7892,14 @@ Config.Multiplayer = {
 		PollsPerSecond = 10,
 		-- Join the moment you are on it (designer, 2026-09-26: "it needs to be instant").
 		DwellSeconds = 0,
+		-- After a match a player still standing on its pad is queued again RejoinGraceSeconds
+		-- after their seat went, time to step off if they mean to (designer, 2026-10-12: "its
+		-- not joining them till they step off ... after like a second or two it should start
+		-- queuing them again"). Pressing leave on a waiting pad, or the guided tutorial, still
+		-- needs a step off the pad and back on. Off: the old rule, everyone freed stays off until
+		-- out of the queue area round the pad. (tune)
+		RejoinOnPad = true,
+		RejoinGraceSeconds = 1.5,
 		ExitGraceSeconds = 0.5, -- off it this long before you leave: forgive edge jitter
 		-- The host pressed Start before the pad was full: the game starts by itself this long
 		-- after the pad fills, so someone who walked on by accident can step off (designer,

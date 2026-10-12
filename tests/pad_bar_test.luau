@@ -177,4 +177,15 @@ function tests.nobody_free_when_alone_or_everyone_else_is_busy()
 	expect(PadBar.nobodyFree({ 8 }, { result }), "on the result screen")
 end
 
+-- The queue pad after a match (designer, 2026-10-12: still on the pad, "its not joining them
+-- till they step off"): a short grace to step off, then they are queued again.
+function tests.after_a_match_you_are_queued_again_after_a_short_grace()
+	local grace = Config.Multiplayer.Queue.RejoinGraceSeconds
+	expect(type(grace) == "number" and grace > 0 and grace <= 2, "a second or two")
+	expect(PadBar.rejoinReady(nil, 100), "nothing to wait for: at once")
+	expect(not PadBar.rejoinReady(100, 100), "just freed: time to step off")
+	expect(not PadBar.rejoinReady(100, 100 + grace - 0.1), "still the grace")
+	expect(PadBar.rejoinReady(100, 100 + grace), "then queued again")
+end
+
 return tests

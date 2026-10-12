@@ -200,4 +200,13 @@ function PadBar.autoRequest(args: {
 	return args.lastAt == nil or args.now - args.lastAt >= M.Queue.AutoRequestCooldownSeconds
 end
 
+--- Whether a player freed from a table's seat may be seated from its pad again (designer,
+--- 2026-10-12: after a match "give them a slight buffer for them to get off but otherwise
+--- after like a second or two it should start queuing them again"): `freedAt` is when their
+--- seat went while they stood on the pad (nil: nothing to wait for), and they are seated
+--- Queue.RejoinGraceSeconds after it if still on.
+function PadBar.rejoinReady(freedAt: number?, now: number): boolean
+	return freedAt == nil or now - freedAt >= M.Queue.RejoinGraceSeconds
+end
+
 return PadBar

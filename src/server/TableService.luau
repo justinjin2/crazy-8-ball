@@ -784,8 +784,20 @@ local function releaseMissing(t: any)
 	for id, tableId in seatOf do
 		if tableId == t.engine.id and not Engine.seat(t.engine, id) then
 			seatOf[id] = nil
-			t.blocked[id] = true
 			local p = Players:GetPlayerByUserId(id)
+			-- Still on the pad (a match just ended): queued again after Queue.RejoinGraceSeconds
+			-- (PadBar.rejoinReady). One who pressed leave on this pad, or in the guided tutorial,
+			-- is kept off until they step off it and back on.
+			if
+				not M.Queue.RejoinOnPad
+				or t.left[id]
+				or (p ~= nil and p:GetAttribute("TutorialActive") == true)
+			then
+				t.blocked[id] = true
+			else
+				t.freedAt[id] = now()
+			end
+			t.left[id] = nil
 			if p then
 				restore(p)
 			end
@@ -829,8 +841,11 @@ local function poll(t: any, time: number)
 		local root = rootOf(p)
 		local inside = root ~= nil and onPad(t, root, 0)
 		local inQueueArea = root ~= nil and onPad(t, root, Q.AreaMargin)
-		if not inQueueArea then
+		-- Off the pad itself, a player kept off may come back, and the grace is over (the old
+		-- rule: out of the queue area round it).
+		if not (if Queue.RejoinOnPad then inside else inQueueArea) then
 			t.blocked[p.UserId] = nil
+			t.freedAt[p.UserId] = nil
 		end
 		local s = Engine.seat(e, p.UserId)
 		if s then
@@ -870,12 +885,14 @@ local function poll(t: any, time: number)
 			and inside
 			and not seatOf[p.UserId]
 			and not t.blocked[p.UserId]
+			and PadBar.rejoinReady(t.freedAt[p.UserId], time)
 			and p:GetAttribute("DataLoaded") == true -- no seat before the save is open
 		then
 			t.dwell[p.UserId] = t.dwell[p.UserId] or time
 			if time - t.dwell[p.UserId] >= Queue.DwellSeconds then
 				if Engine.join(e, p.UserId, p.Name, p.DisplayName, time) then
 					seatOf[p.UserId] = e.id
+					t.freedAt[p.UserId] = nil
 					askForOpponent(t, p, time)
 				end
 			end
@@ -1659,6 +1676,8 @@ function Service.start(parent: Instance, mode: string?)
 			dwell = {},
 			outside = {},
 			blocked = {},
+			freedAt = {}, -- when a seat went, for the rejoin grace (releaseMissing)
+			left = {}, -- pressed leave on this waiting pad: kept off until they step off
 			sentRevision = 0,
 		}
 		t.engine.fixed = arena or nil
@@ -1738,6 +1757,9 @@ function Service.start(parent: Instance, mode: string?)
 		Service.advance(t, now())
 		-- The coin for a host's Start is the server's, like the rack seed.
 		local accepted = Engine.action(t.engine, p.UserId, payload, now(), rng:NextInteger(1, 2))
+		if accepted and payload.kind == "LeaveQueue" then
+			t.left[p.UserId] = true
+		end
 		releaseMissing(t)
 		if accepted or t.engine.revision ~= t.sentRevision then
 			Service.broadcast(t) -- one snapshot per accepted Place (a drag release)
@@ -1871,6 +1893,8 @@ function Service.start(parent: Instance, mode: string?)
 			t.dwell[p.UserId] = nil
 			t.outside[p.UserId] = nil
 			t.blocked[p.UserId] = nil
+			t.freedAt[p.UserId] = nil
+			t.left[p.UserId] = nil
 		end
 	end)
 	require(script.Parent.StudioMatchQA).start(
