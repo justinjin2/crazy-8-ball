@@ -2021,6 +2021,17 @@ return {
 			Touch = "Now tap Redeem!",
 			Gamepad = "Press {A} on Redeem!",
 		},
+		-- Config.Tutorial.Chain.RedeemOnly: the code comes typed in, Redeem gives its spins.
+		RedeemFree = {
+			Mouse = "Click Redeem for %d free spins!",
+			Touch = "Tap Redeem for %d free spins!",
+			Gamepad = "Press {A} on Redeem for %d free spins!",
+		},
+		Redeemed = {
+			Mouse = "You got %d free spins! Spin, or close Abilities.",
+			Touch = "You got %d free spins! Spin, or close Abilities.",
+			Gamepad = "You got %d free spins! Spin, or press {B} to close Abilities.",
+		},
 		Spin = {
 			Mouse = "Click SPIN!",
 			Touch = "Tap SPIN!",

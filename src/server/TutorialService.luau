@@ -194,8 +194,28 @@ local function holdsBlock(data: any, kind: string): boolean
 	return false
 end
 
+-- The first ready block the save holds that is not a Mystery block (the one a Mystery became),
+-- or nil.
+local function readyBlock(data: any): string?
+	local list: { LuckyBlocks.Block } = data.LuckyBlocks.List
+	local now = os.time()
+	for _, block in list do
+		if block.Kind ~= T.MysteryKind and LuckyBlocks.isReady(block, now) then
+			return block.Kind
+		end
+	end
+	return nil
+end
+
 -- What happens once when a step is entered.
 local function entered(player: Player, step: string, _previous: string?)
+	-- The skipped steps' first-time hints (Config.Tutorial.Chain.Skip) count as done once the
+	-- chain is past them: nobody points at Rank's claim or Cues' equip later (the designer).
+	if Steps.chain(step) or step == "Soft" then
+		for _, name in Steps.skippedHints(step) do
+			TutorialHints.done(player, name)
+		end
+	end
 	if step == "Arrow" then
 		Funnel.onboarding(player, "ArrowShown")
 	elseif step == "Mystery" then
@@ -209,6 +229,12 @@ local function entered(player: Player, step: string, _previous: string?)
 			and PlayerData.giveLuckyBlocks(player, T.MysteryKind, 1)
 		then
 			PlayerData.setFlag(player, MYSTERY_FLAG, true)
+		end
+	elseif step == "Abilities" then
+		-- RELEASE already used (before they left, or an older save): the code part is done.
+		local data = PlayerData.read(player)
+		if data and data.Codes[Config.Ults.CodeBanner.ActiveCode :: string] == true then
+			TutorialService.mark(player, "Redeemed")
 		end
 	elseif step == "Soft" then
 		-- Counted from the soft part's first start (a rejoin keeps them).
@@ -358,6 +384,15 @@ local function onLoaded(player: Player)
 	if step == "Mystery" and not holdsBlock(data, T.MysteryKind) then
 		step = "Place"
 	end
+	-- At Place the block to open is the one the Mystery became (this server never heard which):
+	-- the first ready block they hold; none left (opened before they left) goes on.
+	if step == "Place" then
+		local kind = readyBlock(data)
+		player:SetAttribute("TutorialBlock", kind)
+		if kind == nil then
+			step = Steps.after("Place") :: string
+		end
+	end
 	-- The onboarding funnel follows new players only: its first step is a brand-new save
 	-- starting the tutorial (logged once the device is known), and no later step is logged
 	-- for anyone without it.
@@ -405,12 +440,9 @@ local function onLoaded(player: Player)
 	TutorialHints.publish(player)
 	publish(player, step)
 	log(("%s joins at %s"):format(player.Name, step))
+	-- (entered: RELEASE redeemed before they left, the Abilities step points at SPIN again)
 	if step ~= "Arrow" then
 		entered(player, step, if type(saved) == "string" then saved else nil)
-	end
-	-- RELEASE redeemed before they left: the Abilities step points at SPIN again.
-	if step == "Abilities" and data.Codes[Config.Ults.CodeBanner.ActiveCode :: string] == true then
-		TutorialService.mark(player, "Redeemed")
 	end
 	stepChanged:Fire(player, step, saved)
 end
@@ -549,9 +581,11 @@ local function equipped(player: Player, _cueId: string)
 	end
 end
 
--- A new save's first spin lands on Config.Tutorial.SpinUlt (Magnet) at the Abilities step.
+-- A new save's first spin lands on Config.Tutorial.SpinUlt (Magnet) at the Abilities step;
+-- with Chain.RedeemOnly it is a real random spin.
 local function forcedSpin(player: Player): string?
-	return if TutorialService.step(player) == "Abilities"
+	return if not T.Chain.RedeemOnly
+			and TutorialService.step(player) == "Abilities"
 			and not TutorialService.marked(player, "Spun")
 		then T.SpinUlt
 		else nil
@@ -640,6 +674,10 @@ local function watchGame2(player: Player)
 	end
 end
 
+-- The moment the Abilities step is done at: the spin, or with Chain.RedeemOnly (designer,
+-- 2026-10-12: no forced spin, Fire Shot may stay) RELEASE redeemed.
+local ABILITIES_DONE = if T.Chain.RedeemOnly then "Redeemed" else "Spun"
+
 -- Each second, per player: the chain's moves that need no report, and its fallbacks.
 local function watchChain(player: Player)
 	local step = TutorialService.step(player)
@@ -667,8 +705,13 @@ local function watchChain(player: Player)
 			TutorialService.advance(player, "Cues")
 		end
 	elseif step == "Abilities" then
-		local at = TutorialService.marked(player, "Spun")
-		if at and clock() - at >= fallbackOf("Abilities") then
+		-- Done once spun (with Chain.RedeemOnly: once RELEASE is redeemed; closing Abilities
+		-- moves on, this is the fallback if it stays open).
+		local at = TutorialService.marked(player, ABILITIES_DONE)
+		local wait = if T.Chain.RedeemOnly
+			then Timing.AbilitiesDoneSeconds
+			else fallbackOf("Abilities")
+		if at and clock() - at >= wait then
 			TutorialService.advance(player, "Abilities")
 		elseif
 			at == nil
@@ -725,7 +768,7 @@ local CLOSE_REPORTS: { [string]: { step: string, mark: string } } = {
 	RankClosed = { step = "Rank", mark = "RankClaimed" },
 	MysteryDone = { step = "Mystery", mark = "Revealed" }, -- the upgrade screen finished
 	CuesClosed = { step = "Cues", mark = "Equipped" },
-	AbilitiesClosed = { step = "Abilities", mark = "Spun" },
+	AbilitiesClosed = { step = "Abilities", mark = ABILITIES_DONE },
 }
 
 -- The soft part's moments that are Social funnel steps (the rest it logs itself: Invited, and

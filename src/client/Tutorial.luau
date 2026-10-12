@@ -176,10 +176,11 @@ local function refreshHidden()
 		end
 	end
 	-- A step's new icons wait while a block opens (Place's open moves the server to Cues at the
-	-- E-hold: Cues comes after the reel and its reveal; the designer, 2026-10-09).
+	-- E-hold: Cues comes after the reel and its reveal; the designer, 2026-10-09). A skipped
+	-- step's icons are the next step's (Steps.forward).
 	if not broken and step ~= "" and LuckyClient.busy() then
 		for item, from in Steps.Reveal do
-			if from == step then
+			if Steps.forward(from) == step then
 				hidden[item] = true
 			end
 		end
@@ -734,14 +735,24 @@ local function codeInput(): TextBox?
 	return if input and input:IsA("TextBox") then input else nil
 end
 
--- Abilities: open it, type the code, Redeem, SPIN, close.
+-- Abilities: open it, type the code, Redeem, SPIN, close. With Chain.RedeemOnly (designer,
+-- 2026-10-12): open it, the code comes typed in, Redeem; the spins are theirs to use or not
+-- (Fire Shot may stay), and closing Abilities ends the guided part.
 local function abilitiesScene(device: string): string
 	local open = Menus.isOpen(ULTS)
 	local code: string = Config.Ults.CodeBanner.ActiveCode
 	local row = Config.Daily.Codes[code]
 	local spins = if row and row.Spins then row.Spins else 0
-	if Tutorial.marked("Spun") then
-		if open and not TutorialAnchors.flag("UltSpinning") then
+	local redeemOnly = Config.Tutorial.Chain.RedeemOnly == true
+	if Tutorial.marked(if redeemOnly then "Redeemed" else "Spun") then
+		if open and redeemOnly then
+			-- No hand: they may spin or close. The line hides while a spin plays.
+			local text = if TutorialAnchors.flag("UltSpinning")
+				then nil
+				else words(Copy.Redeemed, device):format(spins)
+			lineOnly(text)
+			return if text then "abilitiesFree" .. device else "abilitiesSpinning"
+		elseif open and not TutorialAnchors.flag("UltSpinning") then
 			local key = "abilitiesClose" .. device
 			pointAt("SpinBack", words(Copy.AbilitiesClose, device), device, shownKey ~= key, "Near")
 			return key
@@ -771,15 +782,15 @@ local function abilitiesScene(device: string): string
 		pointAt("SpinButton", words(Copy.Spin, device), device, shownKey ~= key, "Near")
 		return key
 	end
-	-- The box comes filled in on a controller (no typing there), and for anyone once the step's
-	-- fallback time is up; the hand then moves to Redeem.
+	-- The box comes filled in on a controller (no typing there), for anyone with RedeemOnly, and
+	-- for anyone once the step's fallback time is up; the hand then moves to Redeem.
 	local input = codeInput()
 	if
 		not filledCode
 		and input
 		and input.Text == ""
 		and TutorialAnchors.showing("CodeBox")
-		and (device == "gamepad" or Tutorial.since() >= fallbackOf("Abilities"))
+		and (redeemOnly or device == "gamepad" or Tutorial.since() >= fallbackOf("Abilities"))
 	then
 		input.Text = code
 		filledCode = true
@@ -794,7 +805,12 @@ local function abilitiesScene(device: string): string
 		local target = TutorialOverlay.guiTarget("CodeRedeem")
 		overlay:dim(target, false, true)
 		hand:point(target)
-		overlay:say(words(Copy.CodeRedeem, device), "Near")
+		overlay:say(
+			if redeemOnly
+				then words(Copy.RedeemFree, device):format(spins)
+				else words(Copy.CodeRedeem, device),
+			"Near"
+		)
 		selectOn("CodeRedeem", device, shownKey ~= key)
 		return key
 	end
@@ -841,8 +857,15 @@ local function scene(step: string, device: string): string
 		TutorialAnchors.setFlag("MysteryLanded", false)
 	end
 	-- Never over a block screen (the upgrade screen, the reel, its reveal): they end by themselves.
+	-- Nor once RELEASE is redeemed with Chain.RedeemOnly: closing Abilities is the way on.
+	local redeemed = step == "Abilities"
+		and Config.Tutorial.Chain.RedeemOnly == true
+		and Tutorial.marked("Redeemed")
 	overlay:setNext(
-		NEXT_STEPS[step] == true and Tutorial.since() >= fallbackOf(step) and not LuckyClient.busy(),
+		NEXT_STEPS[step] == true
+			and Tutorial.since() >= fallbackOf(step)
+			and not LuckyClient.busy()
+			and not redeemed,
 		function()
 			Tutorial.report("Next")
 		end

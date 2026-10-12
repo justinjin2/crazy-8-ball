@@ -11,6 +11,19 @@ local function load()
 	return H.require("Tutorial.Steps")
 end
 
+-- Runs `fn` with `skip` as the chain's skipped steps (Config.Tutorial.Chain.Skip), then puts
+-- the Config's set back.
+local function withSkip(skip: { [string]: boolean }, fn: (any) -> ())
+	local Steps = load()
+	local saved = Steps.Skip
+	Steps.Skip = skip
+	local ok, err = pcall(fn, Steps)
+	Steps.Skip = saved
+	if not ok then
+		error(err, 0)
+	end
+end
+
 -- Every .luau file under `dir`.
 local function files(dir: string, out: { string }): { string }
 	for _, name in fs.readDir(dir) do
@@ -91,6 +104,9 @@ return {
 	["the order moves on one step at a time and ends at Done"] = function()
 		local Steps = load()
 		H.expect(Steps.after("Arrow") == "Pad" and Steps.after("Game1") == "Result", "")
+		withSkip({}, function()
+			H.expect(Steps.after("Result") == "Rank" and Steps.after("Place") == "Cues", "")
+		end)
 		H.expect(Steps.after("Abilities") == "Soft" and Steps.after("Soft") == "Done", "")
 		H.expect(Steps.after("Done") == "Done" and Steps.after("Skipped") == nil, "the ends")
 		H.expect(Steps.atLeast("Cues", "Rank") and not Steps.atLeast("Rank", "Cues"), "")
@@ -106,52 +122,105 @@ return {
 	end,
 
 	["a rejoin plays game 1 again from the arrow and resumes the chain"] = function()
+		withSkip({}, function(Steps)
+			H.expect(Steps.resume("Pad") == "Arrow" and Steps.resume("Game1") == "Arrow", "game 1")
+			H.expect(Steps.resume("Result") == "Rank", "the result screens are gone")
+			for _, step in { "Rank", "Mystery", "Place", "Cues", "Abilities", "Soft" } do
+				H.expect(Steps.resume(step) == step, step .. " resumes where it was")
+			end
+		end)
+	end,
+
+	["the chain passes over the skipped steps (Rank, Cues: designer 2026-10-12)"] = function()
 		local Steps = load()
-		H.expect(Steps.resume("Pad") == "Arrow" and Steps.resume("Game1") == "Arrow", "game 1")
-		H.expect(Steps.resume("Result") == "Rank", "the result screens are gone")
-		for _, step in { "Rank", "Mystery", "Place", "Cues", "Abilities", "Soft" } do
-			H.expect(Steps.resume(step) == step, step .. " resumes where it was")
+		H.expect(Steps.Skip.Rank == true and Steps.Skip.Cues == true, "the Config's set")
+		H.expect(Steps.after("Result") == "Mystery", "no forced claim in Rank")
+		H.expect(Steps.after("Mystery") == "Place", "the Mystery block is still guided")
+		H.expect(Steps.after("Place") == "Abilities", "no forced equip in Cues")
+		H.expect(Steps.after("Abilities") == "Soft", "")
+		-- A save at a skipped step (the update came out while they were there) goes on.
+		H.expect(Steps.resume("Result") == "Mystery", "the result screens are gone")
+		H.expect(Steps.resume("Rank") == "Mystery" and Steps.resume("Cues") == "Abilities", "")
+		H.expect(
+			Steps.load("Rank", 1, 1) == "Mystery" and Steps.load("Cues", 1, 1) == "Abilities",
+			""
+		)
+		H.expect(Steps.load("Game1", 1, 1) == "Mystery", "game 1 won as the server stopped")
+		H.expect(
+			Steps.load("Drop", 1, 1) == "Mystery" and Steps.load("Equip", 1, 1) == "Abilities",
+			""
+		)
+		for _, step in Steps.Order do
+			H.expect(not Steps.Skip[Steps.resume(step)], step .. " never resumes at a skipped step")
+			local nextStep = Steps.after(step)
+			H.expect(
+				nextStep and not Steps.Skip[nextStep],
+				step .. " never moves to a skipped step"
+			)
 		end
+		-- Their first-time hints count as done once the chain is past them.
+		H.expect(#Steps.skippedHints("Result") == 0, "nothing skipped yet")
+		local hints = table.concat(Steps.skippedHints("Mystery"), ",")
+		H.expect(hints == "RankUp", "Rank's claim hint: " .. hints)
+		hints = table.concat(Steps.skippedHints("Abilities"), ",")
+		H.expect(hints == "RankUp,Cue", "and the equip hint: " .. hints)
+		H.expect(table.concat(Steps.skippedHints("Soft"), ",") == "RankUp,Cue", "")
+		H.expect(#Steps.skippedHints("Skipped") == 0 and #Steps.skippedHints(nil) == 0, "ends")
+		-- The HUD items of a skipped step come with the next one.
+		H.expect(Steps.forward("Rank") == "Mystery" and Steps.forward("Cues") == "Abilities", "")
+		H.expect(Steps.forward("Soft") == "Soft" and Steps.forward("Done") == "Done", "")
+		H.expect(Steps.shows("Mystery", "Rank") and Steps.shows("Mystery", "Money"), "")
+		H.expect(
+			not Steps.shows("Place", "Inventory") and Steps.shows("Abilities", "Inventory"),
+			""
+		)
+		withSkip({}, function(S)
+			H.expect(#S.skippedHints("Soft") == 0, "nothing skipped: every step teaches its own")
+		end)
 	end,
 
 	["an old save's step is repaired (the migration map)"] = function()
-		local Steps = load()
-		H.expect(Steps.load("Drop", 1, 1) == "Rank", "v1's Drop bug: after game 1's win")
-		H.expect(Steps.load("RareDrop", 1, 1) == "Rank", "")
-		H.expect(
-			Steps.load("Arrow1", 0, 0) == "Arrow" and Steps.load("Request", 0, 0) == "Arrow",
-			""
-		)
-		H.expect(Steps.load("Game1", 0, 0) == "Arrow", "a v2 game 1 starts over")
-		H.expect(
-			Steps.load("Game1", 1, 1) == "Rank" and Steps.load("Pad", 1, 1) == "Rank",
-			"game 1 won as the server stopped: on to Rank, not a second game 1"
-		)
-		H.expect(
-			Steps.load("Arrow1", 2, 0) == "Done" and Steps.load("Request", 1, 1) == "Done",
-			"a v1 save before game 1 that has played since never starts the tutorial"
-		)
-		H.expect(
-			Steps.load("Equip", 1, 1) == "Cues" and Steps.load("Spin", 1, 1) == "Abilities",
-			""
-		)
-		H.expect(Steps.load("Queue", 1, 1) == "Soft" and Steps.load("Nudges", 2, 1) == "Soft", "")
-		H.expect(Steps.load("Cancelled", 1, 0) == "Skipped", "v1's cancel is an end")
-		H.expect(
-			Steps.load("Done", 3, 2) == "Done" and Steps.load("Skipped", 0, 0) == "Skipped",
-			""
-		)
-		H.expect(Steps.load("Bogus", 2, 0) == "Done", "unknown, has played: done")
-		H.expect(Steps.load("Bogus", 0, 0) == "Arrow", "unknown, brand new: the arrow")
-		H.expect(
-			Steps.load(nil, 0, 0) == "Arrow" and Steps.load(nil, 5, 2) == "Done",
-			"no step yet"
-		)
-		H.expect(Steps.load(42, 0, 0) == "Arrow", "not a string")
-		for old, new in Steps.Migrate do
-			H.expect(Steps.known(new), old .. " maps to a real step")
-			H.expect(not Steps.known(old) or old == "Game1", old .. " is not a v2 name")
-		end
+		withSkip({}, function(Steps)
+			H.expect(Steps.load("Drop", 1, 1) == "Rank", "v1's Drop bug: after game 1's win")
+			H.expect(Steps.load("RareDrop", 1, 1) == "Rank", "")
+			H.expect(
+				Steps.load("Arrow1", 0, 0) == "Arrow" and Steps.load("Request", 0, 0) == "Arrow",
+				""
+			)
+			H.expect(Steps.load("Game1", 0, 0) == "Arrow", "a v2 game 1 starts over")
+			H.expect(
+				Steps.load("Game1", 1, 1) == "Rank" and Steps.load("Pad", 1, 1) == "Rank",
+				"game 1 won as the server stopped: on to Rank, not a second game 1"
+			)
+			H.expect(
+				Steps.load("Arrow1", 2, 0) == "Done" and Steps.load("Request", 1, 1) == "Done",
+				"a v1 save before game 1 that has played since never starts the tutorial"
+			)
+			H.expect(
+				Steps.load("Equip", 1, 1) == "Cues" and Steps.load("Spin", 1, 1) == "Abilities",
+				""
+			)
+			H.expect(
+				Steps.load("Queue", 1, 1) == "Soft" and Steps.load("Nudges", 2, 1) == "Soft",
+				""
+			)
+			H.expect(Steps.load("Cancelled", 1, 0) == "Skipped", "v1's cancel is an end")
+			H.expect(
+				Steps.load("Done", 3, 2) == "Done" and Steps.load("Skipped", 0, 0) == "Skipped",
+				""
+			)
+			H.expect(Steps.load("Bogus", 2, 0) == "Done", "unknown, has played: done")
+			H.expect(Steps.load("Bogus", 0, 0) == "Arrow", "unknown, brand new: the arrow")
+			H.expect(
+				Steps.load(nil, 0, 0) == "Arrow" and Steps.load(nil, 5, 2) == "Done",
+				"no step yet"
+			)
+			H.expect(Steps.load(42, 0, 0) == "Arrow", "not a string")
+			for old, new in Steps.Migrate do
+				H.expect(Steps.known(new), old .. " maps to a real step")
+				H.expect(not Steps.known(old) or old == "Game1", old .. " is not a v2 name")
+			end
+		end)
 	end,
 
 	["the guided part hides the menus and brings them back one by one"] = function()

@@ -10,6 +10,8 @@
 -- one in the chain). Soft is the soft part (every menu, the Win a Match quest, game 2); after
 -- game 2 the tutorial is Done. Skipped ends it early (the first-time hints still come).
 
+local Config = require(script.Parent.Parent.Config)
+
 local Steps = {}
 
 Steps.Order = {
@@ -36,10 +38,25 @@ Steps.Paths = { S = true, R = true }
 -- Why the tutorial ended early (Flags.TutorialWhy): the Skip button, or the fail-safe.
 Steps.Reasons = { Skip = true, Error = true }
 
+-- The chain's steps passed over (Config.Tutorial.Chain.Skip; designer 2026-10-12: Rank and
+-- Cues): never entered, a save at one goes on to the next step.
+Steps.Skip = (Config.Tutorial.Chain.Skip or {}) :: { [string]: boolean }
+
 local INDEX: { [string]: number } = {}
 for i, name in Steps.Order do
 	INDEX[name] = i
 end
+
+--- `step`, or the first step after it that is not passed over (where a skipped step's HUD
+--- items come back).
+function Steps.forward(step: string): string
+	local i = INDEX[step]
+	while i and i < #Steps.Order and Steps.Skip[Steps.Order[i]] do
+		i += 1
+	end
+	return if i then Steps.Order[i] else step
+end
+local forward = Steps.forward
 
 --- The step's place in the order (0 for an end state or anything unknown).
 function Steps.index(step: string?): number
@@ -74,25 +91,44 @@ function Steps.atLeast(step: string?, other: string): boolean
 	return i > 0 and i >= (INDEX[other] or math.huge)
 end
 
---- The next step after `step` (Done after the last; nil for an end state).
+--- The next step after `step` (Done after the last; nil for an end state), passing over the
+--- skipped steps (Steps.Skip).
 function Steps.after(step: string): string?
 	local i = INDEX[step]
 	if i == nil then
 		return nil
 	end
-	return Steps.Order[math.min(i + 1, #Steps.Order)]
+	return forward(Steps.Order[math.min(i + 1, #Steps.Order)])
 end
 
 --- Where a player picks up when they join again with `step` saved. A match cannot be saved
 --- halfway, so game 1 starts over from the arrow; the result screens are gone, so the chain
---- picks up at Rank; every other step stays.
+--- picks up at the step after Result; a skipped step goes on to the next; every other step
+--- stays.
 function Steps.resume(step: string): string
 	if step == "Pad" or step == "Game1" then
 		return "Arrow"
 	elseif step == "Result" then
-		return "Rank"
+		return Steps.after("Result") :: string
 	end
-	return step
+	return forward(step)
+end
+
+--- The first-time hints of the skipped steps before `step` (Steps.Taught): nobody is taught
+--- them, so they count as done once the chain is past them (no later pointer either).
+function Steps.skippedHints(step: string?): { string }
+	local hints = {}
+	local at = Steps.index(step)
+	for i = 1, at - 1 do
+		local name = Steps.Order[i]
+		local taught: { string }? = Steps.Taught[name]
+		if Steps.Skip[name] and taught then
+			for _, hint in taught do
+				table.insert(hints, hint)
+			end
+		end
+	end
+	return hints
 end
 
 --- The step a save starts at when it has none: a player who has played before (any match or
@@ -136,7 +172,7 @@ function Steps.load(saved: any, matches: number?, wins: number?): string
 		return saved
 	elseif INDEX[saved] then
 		if (saved == "Pad" or saved == "Game1") and (wins or 0) > 0 then
-			return "Rank" -- game 1 was won as the server stopped: its result was missed
+			return Steps.resume("Result") -- game 1 was won as the server stopped: its result was missed
 		end
 		return Steps.resume(saved)
 	end

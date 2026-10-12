@@ -14598,6 +14598,9 @@ Config.Tutorial = {
 		},
 		ZoomSkipSeconds = 20, -- game 1's zoom lesson is skipped after this (the pocket still glows)
 		AbilitiesRedeemSeconds = 60, -- the RELEASE code is redeemed for them after this
+		-- With Chain.RedeemOnly: once RELEASE is redeemed, the Abilities step ends by itself this
+		-- long later if Abilities is never closed (time for the 3 free spins).
+		AbilitiesDoneSeconds = 90,
 		NextGraceSeconds = 1, -- a "Next" may come this much before the server's clock says so
 		ReportAgainSeconds = 1, -- a chain step's done report repeats this often while it holds
 		StepTimeMaxSeconds = 3600, -- a StepTime longer than this is sent as this (AFK)
@@ -14940,8 +14943,20 @@ Config.Tutorial = {
 	-- notice) before the line says to close it.
 	EquipCloseSeconds = 1.2,
 	-- A new save's first ability spin lands on this ability (tutorial v2 4.11: Magnet, for
-	-- every new player; Fire Shot is everyone's starter).
+	-- every new player; Fire Shot is everyone's starter). Not with Chain.RedeemOnly (designer,
+	-- 2026-10-12: the first spin is a real random spin).
 	SpinUlt = "Magnet",
+	-- The chain after game 1 (designer, 2026-10-12, a tester's notes): no forced claim in Rank
+	-- (NEW RANK! says to claim it) and no forced equip in Cues (its red dot shows the new cue);
+	-- the Mystery block and its block are still guided, then Abilities. Skip: the steps passed
+	-- over (a save at one goes on to the next, its first-time hint counts as done); empty
+	-- brings them back. RedeemOnly: Abilities comes with RELEASE typed in on every device, the
+	-- hand on Redeem, no forced spin; closing Abilities ends the guided part (false: type the
+	-- code, Redeem, SPIN onto SpinUlt, close).
+	Chain = {
+		Skip = { Rank = true, Cues = true },
+		RedeemOnly = true,
+	},
 	-- The art (tools/gen_tutorial_art.py; uploaded to the group, tools/upload_manifest_tutorial
 	-- .json): the pointer hand (upright, index finger up; redrawn 2026-10-03 after the designer's
 	-- "tap here" icon) and its tap lines, and the mouse. The arrow's images are in Arrow.
