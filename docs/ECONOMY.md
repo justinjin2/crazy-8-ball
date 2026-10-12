@@ -45,30 +45,37 @@ are built (planned with the designer, 2026-10-10).
 
 ## 2. Ranks: the ladder and the rank-up rewards
 
-**The ladder (designer, 2026-10-11).** A win against an equal player is 100 XP, a loss 0 (the gap,
-the table's difficulty and the win streak still scale it: archive 4.2 to 4.5). Each tier climbs a
-win more per division, then the next tier starts a little lower than the last one ended, so every
-new tier opens with a quick rank-up. From Diamond the steps grow faster so Reyes takes about a year
-at an hour a day. Times are for a player who wins half their games at the pace measured live on
-2026-10-11 (about 6.3 minutes a match with the lobby time, 9.6 matches an hour):
+**The ladder (designer, 2026-10-11).** A win against an equal player is 100 XP, a loss 0. The
+table's difficulty multiplies it like its money: **Difficult x1.5, Challenger x2**. From Expert a
+**Classic win fades**: x0.5 in Expert, x0.4 Veteran, x0.3 Master, x0.25 Grandmaster and Reyes,
+so the climb from Expert is Difficult's and Challenger's (an Expert win: Classic 50 XP,
+Difficult 150, Challenger 200). The gap and the win streak still scale it (archive 4.3 to 4.5).
+Bronze to Gold climb a win more per division; from Platinum each tier costs about twice the last,
+so progress is fast to Gold and then slows. Every new tier opens with a quick rank-up (its first
+division is shorter than the last tier's top one). Times are for a player who wins half their
+games at the pace measured live on 2026-10-11 (about 6.3 minutes a match with the lobby time, 9.6
+matches an hour); hours of play equal days at 1 h a day:
 
-| Tier | Wins per division (1 to 5) | Tier starts at | Reached after | At 1 h a day |
+| Tier | Wins of 100 XP per division (1 to 5) | Tier starts at | Classic only | Challenger from Gold |
 |---|---|---|---|---|
-| Bronze | 1 (after the first win, which lands in Bronze 1 at about 150 of 200) · 2 · 3 · 4 · 5 | 0 XP | the first win | day 1 |
-| Silver | 2 · 3 · 4 · 5 · 6 | 1,600 | about 3 h | day 4 |
-| Gold | 3 · 4 · 5 · 6 · 7 | 3,600 | 7 h | day 8 |
-| Platinum | 4 · 5 · 6 · 7 · 8 | 6,100 | 12 h | day 12 |
-| Diamond | 6 · 8 · 10 · 12 · 14 | 9,100 | 18 h | day 18 |
-| Expert | 12 · 16 · 20 · 24 · 28 | 14,100 | 28 h | about 4 weeks |
-| Veteran | 25 · 30 · 35 · 40 · 45 | 24,100 | 47 h | about 1.5 months |
-| Master | 40 · 55 · 70 · 85 · 100 | 41,600 | 82 h | about 2.7 months |
-| Grandmaster | 90 · 150 · 220 · 290 · 350 | 76,600 | 150 h | about 5 months |
-| Reyes | (no top) | 186,600 | 366 h | about a year |
+| Bronze | 1 (after the first win, which lands in Bronze 1 at about 150 of 200) · 2 · 3 · 4 · 5 | 0 XP | the first win | the first win |
+| Silver | 2 · 3 · 4 · 5 · 6 | 1,600 | 3 h | 3 h |
+| Gold | 3 · 4 · 5 · 6 · 7 | 3,600 | 7 h | 7 h |
+| Platinum | 5 · 7 · 9 · 11 · 13 | 6,100 | 12 h | 10 h |
+| Diamond | 8 · 12 · 16 · 20 · 24 | 10,600 | 21 h | 14 h |
+| Expert | 20 · 30 · 40 · 50 · 60 | 18,600 | 36 h | 22 h |
+| Veteran | 50 · 60 · 70 · 80 · 90 | 38,600 | 115 h | 41 h |
+| Master | 80 · 110 · 140 · 170 · 200 | 73,600 | 286 h | 76 h |
+| Grandmaster | 180 · 300 · 440 · 580 · 700 | 143,600 | 744 h | 144 h |
+| Reyes | (no top) | 363,600 | about 2,500 h | **360 h, about a year** |
 
-A 40% player takes about 15 months to Reyes, a 60% one about 10; a 3-hours-a-day player about 4
-months. Challenger tables (x1.5 XP, from Gold) are faster; from Expert the strict gap makes wins
-over much weaker players worth little. Every division starts at or below where the 2026-10-02
-ladder had it, so the switch moved nobody down.
+On Difficult from Gold, Reyes takes about 480 h. A 40% Challenger player takes about 15 months to
+Reyes, a 60% one about 10; a 3-hours-a-day player about 4 months. From Expert the strict gap also
+makes wins over much weaker players worth little. Every division to Grandmaster 4 starts at or
+below where the 2026-10-02 ladder had it (Grandmaster 5 and Reyes start later, far past any save
+at the switch), so the switch moved nobody down. **Until the difficulty picker returns** (it left
+with the host card on 2026-10-07) every match is Classic, so for now Expert and up climb at the
+Classic speed.
 
 **The switch for players who already had XP (2026-10-11).** XP is kept. A save whose XP now
 reaches a higher division than its peak catches up as it loads: the peak rises, the skipped

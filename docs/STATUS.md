@@ -40,11 +40,15 @@ rooftop map with a day and sunset cycle; pull cutscenes Rare to Secret; the ball
 
 ## Watch on the live game (fixed or built, not yet seen live)
 
-- **The new rank ladder** (2026-10-11, ECONOMY 2, DECISIONS): Reyes in about a year at an hour
-  a day; saves catch up as they load (about 1,110 of 4,112 move up, NEW RANK! says why, rewards
-  claimed in Rank). Checked in Studio on PC (an old save caught up and claimed, a fresh first
-  win, a normal rank-up). Watch live: the `rank catch-up` server lines, claims, a phone and a
-  controller on the popup, win rates against bots from Gold up (bots now meet players sooner).
+- **The new rank ladder** (2026-10-11, ECONOMY 2, DECISIONS): fast to Gold, then each tier about
+  twice the last; from Expert Classic wins fade (x0.5 down to x0.25) and Difficult x1.5 /
+  Challenger x2 carry the climb (Reyes about a year on Challenger at an hour a day). Until the
+  difficulty picker returns every match is Classic, so Expert and up climb slowly. Saves catch up
+  as they load (about 1,110 of 4,112 move up, NEW RANK! says why, rewards claimed in Rank).
+  Checked in Studio on PC (an old save caught up and claimed, a fresh first win, a normal
+  rank-up, Expert 1's "28 WINS TO EXPERT 2!" at 50 XP a Classic win). Watch live: the `rank
+  catch-up` server lines, claims, a phone and a controller on the popup, win rates against bots
+  from Gold up (bots now meet players sooner).
 - **Onboarding** (2026-10-10): game 1 lost or quick-won goes on to the chain; the Daily
   Rewards and invite popups after the first match (skippers at once); the Gift drop over a
   closing menu. Check with a brand-new account once published (recipes: STUDIO_NOTES "Real

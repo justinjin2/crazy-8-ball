@@ -1754,24 +1754,27 @@ Config.Ranks = {
 	-- in wins of 100 XP. Each tier climbs a win more per division, then the next tier starts a
 	-- little lower than the last one ended (a quick first rank-up in every tier):
 	-- - Bronze 1-2-3-4-5 wins: the first win (the tutorial's) lands in Bronze I at 100 of 200,
-	--   one win from Bronze II. Silver 2-6, Gold 3-7, Platinum 4-8 wins.
-	-- - From Diamond the steps grow faster so Reyes takes about a year at an hour a day: a 50%
-	--   player (about 9.6 matches an hour, measured live) reaches Silver in about 3 h, Gold 7 h,
-	--   Platinum 12 h, Diamond 18 h, Expert 28 h, Veteran 47 h, Master 82 h, Grandmaster 150 h
-	--   and Reyes 366 h. Grandmaster is the wall: 90 to 350 wins a division.
-	-- Silver I starts at 1,600 XP, Grandmaster I at 76,600 and Reyes at 186,600; every division
-	-- starts at or below where the 2026-10-02 ladder had it, so the switch moved nobody down
-	-- (tests/ranks_test checks these). Reyes has no top.
+	--   one win from Bronze II. Silver 2-6, Gold 3-7 wins: Gold comes fast (about 7 h).
+	-- - From Platinum each tier costs about twice the last (designer, 2026-10-11, the same day:
+	--   fast to Gold, then slowing), and from Expert Classic wins fade (ClassicWinFade) so the
+	--   climb is Difficult's and Challenger's. A 50% player (about 9.6 matches an hour, measured
+	--   live) on Challenger from Gold reaches Platinum in about 10 h, Diamond 14 h, Expert 22 h,
+	--   Veteran 41 h, Master 76 h, Grandmaster 144 h and Reyes 360 h (a year at an hour a day);
+	--   on Difficult Reyes takes about 480 h, on Classic alone about 2,500 h.
+	-- Silver I starts at 1,600 XP, Gold I at 3,600, Expert I at 18,600, Grandmaster I at 143,600
+	-- and Reyes at 363,600. Every division to Grandmaster IV starts at or below where the
+	-- 2026-10-02 ladder had it, so the switch moved nobody down (tests/ranks_test checks these).
+	-- Reyes has no top.
 	DivisionXp = {
 		Bronze = { 200, 200, 300, 400, 500 },
 		Silver = { 200, 300, 400, 500, 600 },
 		Gold = { 300, 400, 500, 600, 700 },
-		Platinum = { 400, 500, 600, 700, 800 },
-		Diamond = { 600, 800, 1000, 1200, 1400 },
-		Expert = { 1200, 1600, 2000, 2400, 2800 },
-		Veteran = { 2500, 3000, 3500, 4000, 4500 },
-		Master = { 4000, 5500, 7000, 8500, 10000 },
-		Grandmaster = { 9000, 15000, 22000, 29000, 35000 },
+		Platinum = { 500, 700, 900, 1100, 1300 },
+		Diamond = { 800, 1200, 1600, 2000, 2400 },
+		Expert = { 2000, 3000, 4000, 5000, 6000 },
+		Veteran = { 5000, 6000, 7000, 8000, 9000 },
+		Master = { 8000, 11000, 14000, 17000, 20000 },
+		Grandmaster = { 18000, 30000, 44000, 58000, 70000 },
 	},
 	-- A match's XP against an equal opponent, by YOUR tier, before the mode, fade, gap, PC and
 	-- streak (ECONOMY 4.2). One win is 100 XP at every tier and a loss gives nothing (designer,
@@ -1788,12 +1791,21 @@ Config.Ranks = {
 		Grandmaster = { Win = 100, Loss = 0 },
 		Reyes = { Win = 100, Loss = 0 },
 	},
-	-- The table's difficulty multiplies XP (ECONOMY 4.2): a harder table's win is worth more.
-	ModeXp = { Classic = 1, Difficult = 1.25, Challenger = 1.5 },
-	-- Classic's WINS can fade up the ladder: { [tier] = factor }, a tier not listed keeps x1.
-	-- Empty since 2026-10-02 (was x0.5 in Diamond, x0.2 from Expert): a Classic win is always
-	-- a full win; Difficult and Challenger still pay more.
-	ClassicWinFade = {} :: { [string]: number },
+	-- The table's difficulty multiplies XP (ECONOMY 4.2): a harder table's win is worth more,
+	-- the same as its money (Config.Difficulty.MoneyMultiplier; designer, 2026-10-11, was
+	-- Difficult 1.25, Challenger 1.5).
+	ModeXp = { Classic = 1, Difficult = 1.5, Challenger = 2 },
+	-- Classic's WINS fade up the ladder: { [tier] = factor }, a tier not listed keeps x1. From
+	-- Expert the climb is meant for Difficult and Challenger (designer, 2026-10-11): an Expert
+	-- Classic win is 50 XP against Difficult's 150 and Challenger's 200. {} turns the fade off
+	-- (it was off 2026-10-02 to 2026-10-11; before that x0.5 in Diamond, x0.2 from Expert).
+	ClassicWinFade = {
+		Expert = 0.5,
+		Veteran = 0.4,
+		Master = 0.3,
+		Grandmaster = 0.25,
+		Reyes = 0.25,
+	} :: { [string]: number },
 	-- Beating much lower players pays less (ECONOMY 4.4). gap = your division index minus the
 	-- opponent's (Bronze I = 1 ... Grandmaster V = 45, Reyes 46; an Unranked player counts as
 	-- Bronze I; a team uses the other team's average). E = 1 / (1 + 10^(-gap / scale)), factor

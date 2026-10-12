@@ -47,10 +47,10 @@ function tests.ratings_count_divisions_and_how_far_into_one()
 	expect(Matchmaker.rating(0, false) == 1, "unranked counts as Bronze I")
 	expect(Matchmaker.rating(9000, false) == 1, "unrated XP does not count")
 	expect(Matchmaker.rating(0, true) == 1, "Bronze I with no XP")
-	-- Division widths grow up the ladder (ECONOMY 2): Bronze I is 200 XP, Diamond II 800.
+	-- Division widths grow up the ladder (ECONOMY 2): Bronze I is 200 XP, Diamond II 1,200.
 	expect(Matchmaker.rating(100, true) == 1.5, "half way into Bronze I")
 	expect(Matchmaker.rating(400, true) == 3, "Bronze III")
-	local diamond2 = Ranks.toXp("Diamond", 2, 400)
+	local diamond2 = Ranks.toXp("Diamond", 2, 600)
 	expect(Matchmaker.rating(diamond2, true) == 22.5, "half way into Diamond II")
 	expect(Matchmaker.rating(Ranks.toXp("Reyes", nil, 5e6), true) == 46, "Reyes has no top")
 	local top = Matchmaker.rating(Ranks.toXp("Grandmaster", 5, 1e9), true)

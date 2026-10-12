@@ -747,7 +747,7 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   and above, where only Difficult and Challenger are available. All its tables have black frames
   (blue felt 1v1, red 2v2, charcoal 3v3; section 16); the rest of its look is decided later (a dim, moody neon room is the candidate).
   Not in the release (designer, 2026-09-26): nobody could reach Diamond I at launch, so it
-  follows after release (Diamond I is about 18 hours of play since the 2026-10-11 ladder).
+  follows after release (Diamond I is about 14 to 21 hours of play on the 2026-10-11 ladder).
 - A player's win streak shows above their head, and their country flag next to their name.
   **Built (designer, 2026-09-28):** "🔥 3" on a line over the rank badge and name, from the
   first win in a row (it starts at 1), saved across sessions. A real win against people adds
@@ -828,19 +828,23 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   first-win-of-the-day bonus, no VIP XP. The ladder is counted in wins (designer,
   2026-10-11): **each tier climbs a win more per division, then the next tier starts a little
   lower** (a quick first rank-up in every tier): Bronze 1 (after the first win), 2, 3, 4, 5;
-  Silver 2 to 6; Gold 3 to 7; Platinum 4 to 8; then faster growth from Diamond (6 to 14) to
-  Grandmaster (90 to 350 wins a division). Reyes is a fixed **186,600 XP** (1,866 Classic
-  wins). All numbers: [ECONOMY.md](ECONOMY.md) section 2.
+  Silver 2 to 6; Gold 3 to 7. **From Platinum each tier costs about twice the last** (designer,
+  2026-10-11: fast to Gold, then slowing): Platinum 5 to 13 wins a division, Diamond 8 to 24, up
+  to Grandmaster 180 to 700. Reyes is a fixed **363,600 XP** (1,818 Challenger wins). All
+  numbers: [ECONOMY.md](ECONOMY.md) section 2.
 - Every match against a person or PC can give XP. Solo never does. **Skill sets the speed**:
-  harder difficulties pay more (Classic 1, Difficult 1.25, Challenger 1.5; no Classic fade
-  since 2026-10-02), a win streak gives +25% from the 3rd win in a row, and beating stronger
+  harder difficulties pay more (Classic 1, Difficult 1.5, Challenger 2, like their money), and
+  **from Expert a Classic win fades** (x0.5 Expert down to x0.25 Grandmaster and Reyes;
+  designer, 2026-10-11) so climbing past Diamond means Difficult or Challenger. A win streak
+  gives +25% from the 3rd win in a row, and beating stronger
   players pays more and much weaker ones less (an Elo gap factor). PC matches give x0.75 XP
   below Expert and x0.5 from Expert at launch. Teams: every player by the same rules against
   the other team's average.
 - Targets, for an **hour-a-day player who wins half their games** (designer, 2026-10-11; the
   2026-10-02 ladder took about 600 hours to Reyes and only one player reached Silver on launch
-  day): Silver after about 3 hours of play, Gold 7, Platinum 12, Diamond 18, Expert about 4
-  weeks, Veteran 1.5 months, Master 2.7, Grandmaster 5, **Reyes about a year**. A save that
+  day): Silver after about 3 hours of play, Gold 7, then on Challenger Platinum 10, Diamond 14,
+  Expert 22, Veteran 41, Master 76, Grandmaster about 5 months, **Reyes about a year**; on
+  Classic alone Diamond 21 and Expert 36 hours, then hardly any further. A save that
   had XP before the switch caught up as it loaded: its rewards waited in Rank and NEW RANK!
   said "Ranks got faster! Your XP moved you up."
 - **Difficulty unlocks by rank** (designer, 2026-09-27; Challenger moved to Gold I
