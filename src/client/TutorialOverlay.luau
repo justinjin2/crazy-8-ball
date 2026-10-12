@@ -56,6 +56,7 @@ export type Overlay = typeof(setmetatable(
 		line: TextLabel,
 		row: Frame, -- the line with button pictures (a gamepad line's tokens)
 		rowFit: UIScale,
+		dpads: { ImageLabel }, -- the line's {DPad} pictures, lit each way in turn (update)
 		lineText: string?,
 		linePx: number, -- the line's text size now (a phone's or a computer's)
 		big: TextLabel,
@@ -318,6 +319,7 @@ function TutorialOverlay.new(): Overlay
 		onNext = nil,
 		ding = ding,
 		clock = 0,
+		dpads = {},
 		shakeAt = -math.huge,
 		avoid = nil,
 	}, TutorialOverlay)
@@ -490,12 +492,20 @@ local TOKENS: { [string]: Enum.KeyCode } = {
 	Y = Enum.KeyCode.ButtonY,
 	LS = Enum.KeyCode.Thumbstick1,
 	RS = Enum.KeyCode.Thumbstick2,
-	DPad = Enum.KeyCode.DPadUp,
+	DPad = Enum.KeyCode.DPadUp, -- cycles round DPAD_CYCLE on screen
 	DLeft = Enum.KeyCode.DPadLeft,
 	DRight = Enum.KeyCode.DPadRight,
 	DUp = Enum.KeyCode.DPadUp,
 	DDown = Enum.KeyCode.DPadDown,
 	View = Enum.KeyCode.ButtonSelect,
+}
+
+-- The ways a {DPad} picture lights in turn.
+local DPAD_CYCLE = {
+	Enum.KeyCode.DPadUp,
+	Enum.KeyCode.DPadRight,
+	Enum.KeyCode.DPadDown,
+	Enum.KeyCode.DPadLeft,
 }
 
 --- `text` with each {token} as a plain word (for where no picture can go).
@@ -516,6 +526,7 @@ local function fillRow(self: Overlay, text: string, px: number)
 			child:Destroy()
 		end
 	end
+	table.clear(self.dpads)
 	local order = 0
 	local function word(chunk: string)
 		if chunk == "" then
@@ -562,6 +573,9 @@ local function fillRow(self: Overlay, text: string, px: number)
 			icon.Position = UDim2.fromScale(0.5, 0.5)
 			icon.Size = UDim2.fromScale(O.KeyPictureShare, O.KeyPictureShare)
 			icon.Parent = back
+			if name == "DPad" then
+				table.insert(self.dpads, icon)
+			end
 			back.Parent = fit
 		else
 			word(TutorialOverlay.plain("{" .. (name :: string) .. "}"))
@@ -821,6 +835,15 @@ end
 
 function TutorialOverlay.update(self: Overlay, dt: number)
 	self.clock += dt
+	if #self.dpads > 0 then
+		local way = DPAD_CYCLE[math.floor(self.clock / O.DPadCycleSeconds) % #DPAD_CYCLE + 1]
+		local image = PadMode.glyph(way)
+		for _, icon in self.dpads do
+			if image ~= "" then
+				icon.Image = image
+			end
+		end
+	end
 	local camera = workspace.CurrentCamera
 	if camera == nil then
 		return

@@ -14909,6 +14909,9 @@ Config.Tutorial = {
 		KeyScale = 1.25, -- a button picture's size against the text
 		KeyBackTransparency = 0.25, -- its dark disc (so a light picture shows on a white background)
 		KeyPictureShare = 0.86, -- the picture's size on its disc
+		-- A {DPad} picture lights each way in turn, up, right, down, left, this long each
+		-- (designer, 2026-10-11: up alone looked like the only way to move).
+		DPadCycleSeconds = 0.45,
 		BigTextPx = 72, -- the big text in the middle ("Place it!"; was 96)
 		BigPhoneTextPx = 44, -- (was 64)
 		BigYShare = 0.3, -- its middle this far down the play area
