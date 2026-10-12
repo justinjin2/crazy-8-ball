@@ -414,6 +414,17 @@ function Progression.quiet(): boolean
 		and not teleportUp()
 end
 
+--- A gold chip worth `amount` flies from `from` (absolute screen pixels) into the money HUD,
+--- which counts up as it lands (the tutorial quest's reward). False before the HUD is built.
+function Progression.flyMoney(amount: number, from: Vector2): boolean
+	if not started or money == nil or flyer == nil then
+		return false
+	end
+	money:expect(amount)
+	flyer:fly(amount, from, "Reward", 0)
+	return true
+end
+
 --- The rematch row on the result screen (designer, 2026-09-28): Main presses its buttons
 --- (`fn(kind, summary)`), asks which summary's row is up, draws its state and ends it.
 function Progression.setChoiceHandler(fn: (string, any) -> ())

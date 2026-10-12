@@ -5602,6 +5602,9 @@ Config.Audio = {
 		-- (MoneyPayout.wav, 2 s; peak 0.66, RMS 0.06). These Volumes put both a little over
 		-- the Equip sound: they celebrate.
 		RobuxThanks = { Id = "rbxassetid://89021084156464", Volume = 0.3 },
+		-- The tutorial's quest won ("Have fun!"; designer, 2026-10-12): the same achievement
+		-- chime.
+		TutorialDone = { Id = "rbxassetid://89021084156464", Volume = 0.3 },
 		MoneyPayout = { Id = "rbxassetid://85019514683132", Volume = 0.7 },
 		-- "MONEY RAIN!" (the owner's money rain; designer, 2026-10-11): their "Treasure Chest
 		-- Magic Sparkles Reveal" (assets/audio/ui/MoneyRain.wav, 7 s; peak 0.95, loudest half
@@ -15119,10 +15122,19 @@ Config.Tutorial = {
 		RingLow = 0,
 		RingHigh = 0.45,
 		ShineSeconds = 2.4, -- a light sweeps over Free Reward's join and favorite this often
-		-- The quest ("Win a Match 0/1"): white words with the ink outline, centred under Roblox's
-		-- bar (under the top banner while one shows). Once won it shows "1/1" for
-		-- QuestCountSeconds, then "Done!" for QuestDoneSeconds.
+		-- The quest ("Now go win a match! 0/1"): white words with the ink outline, centred under
+		-- Roblox's bar (under the top banner while one shows). Once won it shows "1/1" for
+		-- QuestCountSeconds, then "Have fun!" for QuestDoneSeconds (designer, 2026-10-12), with
+		-- the completion sound (Audio.Ui.TutorialDone) and its reward flying into the money HUD.
 		QuestWins = 1, -- the wins it asks for (the server counts from the soft part's start)
+		-- The reward for winning it (designer, 2026-10-12: "some money reward that has the flying
+		-- cash animation"): about two wins' money, the same as the 8BALL code and Bronze's tier
+		-- money. Paid once by the server when "Have fun!" shows (the client's claim), or
+		-- QuestRewardFallbackSeconds after it was owed if no claim came (it pays silently).
+		-- Off: the words only, no money (quests won while off are never owed).
+		QuestReward = true,
+		QuestRewardMoney = 2500,
+		QuestRewardFallbackSeconds = 120,
 		QuestTextPx = 32,
 		QuestPhoneTextPx = 24,
 		QuestTopGapPx = 10,

@@ -34,6 +34,7 @@ local TRANSACTION: { [string]: string } = {
 	Group = "Onboarding",
 	Invite = "Onboarding",
 	Favorite = "Onboarding", -- GUI lane: the Free Reward page's favorite reward
+	TutorialQuest = "Onboarding", -- the tutorial's "Now go win a match!" won
 	Purchase = "IAP",
 	SellBack = "Shop",
 	Duplicate = "Shop", -- a duplicate Common or Uncommon paid as its sell money (economy v6)

@@ -7,9 +7,10 @@
 --   tiles, the offer tile, the money "+", and the Daily Challenge once challenges are built
 --   (Config.Tutorial.Soft.ChallengeBuilt). Free Reward stands out most: it also glows and
 --   bounces. After game 2 the Shop glows too, until it is opened.
--- - "Win a Match 0/1", top centre (under the top banner while one shows), until a win: then
---   "1/1", "Done!", and the daily win track takes its place (WinTrack waits meanwhile). Only in
---   a quiet lobby (Progression.quiet).
+-- - "Now go win a match! 0/1", top centre (under the top banner while one shows), until a win:
+--   then "1/1", "Have fun!" with the completion sound and its reward flying into the money HUD
+--   (Config.Tutorial.Soft.QuestReward; the server pays it once), and the daily win track takes
+--   its place (WinTrack waits meanwhile). Only in a quiet lobby (Progression.quiet).
 -- - The Daily Rewards popup, once, as the lobby goes quiet after the icons (day 1 to claim,
 --   day 7's prize on show; DailyRewardsMenu); then the invite popup, once: a small card,
 --   Invite and a big X. A player whose tutorial ended early (skipped, or the fail-safe)
@@ -104,10 +105,11 @@ local freePulse: UIAnim.Handle? = nil -- Free Reward breathing (its tile's)
 local shinedAt = 0
 local likeShown = false
 
--- The quest: "on" (Win a Match 0/1), "count" (1/1), "done" (Done!), or "off".
+-- The quest: "on" (Now go win a match! 0/1), "count" (1/1), "done" (Have fun!), or "off".
 local questPhase = "off"
 local questAt = 0
-local questSeen = false -- it showed this session (so its Done! is shown)
+local questSeen = false -- it showed this session (so its Have fun! is shown)
+local questClaimed = false -- its reward was claimed this session
 
 -- The invite popup: when the lobby went quiet for it (os.clock), and whether it is up.
 local quietSince: number? = nil
@@ -333,6 +335,26 @@ local function showQuest(text: string, slam: boolean)
 	end
 end
 
+-- The quest's reward is owed and not paid or claimed yet (the server owes it once won).
+local function questOwed(): boolean
+	return S.QuestReward
+		and not questClaimed
+		and TutorialAnchors.seen("QuestOwed")
+		and not TutorialAnchors.seen("QuestPaid")
+end
+
+-- "Have fun!": the completion sound, and the reward (when owed) flies from the quest line into
+-- the money HUD as the server is asked to pay it.
+local function finishQuest()
+	UISound.play("TutorialDone")
+	if not questOwed() then
+		return
+	end
+	questClaimed = true
+	Progression.flyMoney(S.QuestRewardMoney, quest.AbsolutePosition + quest.AbsoluteSize / 2)
+	Net.get("TutorialEvent"):FireServer("QuestReward")
+end
+
 -- Every frame: the quest's words and phase.
 local function updateQuest(quiet: boolean, now: number)
 	local on = soft() and TutorialAnchors.seen("Quest") and not TutorialAnchors.seen("QuestDone")
@@ -340,7 +362,13 @@ local function updateQuest(quiet: boolean, now: number)
 		if on then
 			questPhase = "on"
 		elseif questPhase == "on" and TutorialAnchors.seen("QuestDone") then
-			-- Won: the count fills, then Done!, once the lobby is quiet.
+			-- Won: the count fills, then Have fun!, once the lobby is quiet.
+			questPhase = "count"
+			questAt = -1
+		elseif soft() and questOwed() then
+			-- Its reward still owed (won in an arena, say): it finishes here, shown again if
+			-- something cuts in, like a quest that showed here.
+			questSeen = true
 			questPhase = "count"
 			questAt = -1
 		else
@@ -350,7 +378,7 @@ local function updateQuest(quiet: boolean, now: number)
 	if not quiet then
 		quest.Visible = false
 		if questAt >= 0 and questPhase ~= "on" and questPhase ~= "off" then
-			questAt = -1 -- the count and Done! start again once it is quiet
+			questAt = -1 -- the count and Have fun! start again once it is quiet
 			questPhase = "count"
 		end
 		return
@@ -374,6 +402,7 @@ local function updateQuest(quiet: boolean, now: number)
 			questPhase = "done"
 			questAt = now
 			showQuest(Copy.QuestDone, true)
+			finishQuest()
 		else
 			placeQuest()
 		end

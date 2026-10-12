@@ -2033,8 +2033,8 @@ return {
 			Gamepad = "Press {B} to close Abilities!",
 		},
 		-- The soft part (4.5 steps 10-14, 4.6).
-		Quest = "Win a Match %d/%d",
-		QuestDone = "Done!",
+		Quest = "Now go win a match! %d/%d",
+		QuestDone = "Have fun!", -- with the quest's reward flying in (Config.Tutorial.Soft.QuestReward)
 		InviteTitle = "Invite a friend?",
 		InviteBody = "You both get the %s!", -- the cue ("Candy Cane Cue": Config.Social.InviteCue)
 		InviteWhen = "You get it when your friend wins their first match.",

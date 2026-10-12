@@ -415,6 +415,33 @@ local function onLoaded(player: Player)
 	stepChanged:Fire(player, step, saved)
 end
 
+-- The Win a Match quest's reward (Config.Tutorial.Soft.QuestRewardMoney), once: owed since the
+-- quest was won with the reward on (QuestOwed), paid when the client's "Have fun!" claims it
+-- (TutorialEvent "QuestReward") or QuestRewardFallbackSeconds after it was owed here. QuestPaid
+-- is marked before the money, so a replayed claim or a second fallback never pays twice.
+local function payQuest(player: Player)
+	if
+		T.Soft.QuestReward
+		and PlayerData.isLoaded(player)
+		and TutorialHints.seen(player, "QuestOwed")
+		and TutorialHints.markSeen(player, "QuestPaid")
+	then
+		PlayerData.addMoney(player, T.Soft.QuestRewardMoney, "TutorialQuest")
+	end
+end
+
+-- Pays the quest's reward later if no claim came by then (the player left before the lobby
+-- was quiet, or won it in an arena and came back to a lobby that does not show it).
+local function payQuestLater(player: Player)
+	task.delay(T.Soft.QuestRewardFallbackSeconds, function()
+		if player.Parent then
+			TutorialService.guard(player, "Quest", function()
+				payQuest(player)
+			end)
+		end
+	end)
+end
+
 -- After any save change: the onboarding funnel's third match, and game 2's end (the soft
 -- part's next match ends the tutorial).
 local function onChanged(player: Player)
@@ -449,9 +476,15 @@ local function onChanged(player: Player)
 		type(wonAt) == "number"
 		and (data.Progress.Wins or 0) >= wonAt + T.Soft.QuestWins
 		and TutorialHints.seen(player, "Quest")
-		and TutorialHints.markSeen(player, "QuestDone")
+		and not TutorialHints.seen(player, "QuestDone")
 	then
-		Funnel.onboarding(player, "QuestDone")
+		-- Owed before it is done: a save that took one and not the other is still paid.
+		if T.Soft.QuestReward and TutorialHints.markSeen(player, "QuestOwed") then
+			payQuestLater(player)
+		end
+		if TutorialHints.markSeen(player, "QuestDone") then
+			Funnel.onboarding(player, "QuestDone")
+		end
 	end
 end
 
@@ -785,6 +818,9 @@ local function onEvent(player: Player, kind: any, data: any)
 		end
 	elseif kind == "Invited" then
 		Funnel.social(player, "Invited")
+	elseif kind == "QuestReward" then
+		-- "Have fun!" is up and its money is flying: paid now if it is owed and not yet paid.
+		payQuest(player)
 	elseif kind == "Next" then
 		next(player)
 	elseif kind == "Lesson" then
@@ -1002,6 +1038,12 @@ function TutorialService.start()
 		TutorialService.guard(player, "Load", function()
 			onLoaded(player)
 			onChanged(player) -- a game 2 or quest won in another server (an arena)
+			if
+				TutorialHints.seen(player, "QuestOwed")
+				and not TutorialHints.seen(player, "QuestPaid")
+			then
+				payQuestLater(player) -- the client claims it first if it shows "Have fun!"
+			end
 		end)
 	end)
 	PlayerData.Changed:Connect(function(player: Player)

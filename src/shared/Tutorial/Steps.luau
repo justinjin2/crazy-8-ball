@@ -245,6 +245,8 @@ Steps.Seen = {
 	"InviteAnswered", -- the invite popup's Invite or X was pressed (its InvitePopup event)
 	"Daily", -- the Daily Rewards popup came up (once, before the invite popup)
 	"Played", -- a match finished (any kind): the popups' gate once the tutorial is over (server)
+	"QuestOwed", -- the quest was won with its reward on (Config.Tutorial.Soft.QuestReward)
+	"QuestPaid", -- ... and its money was paid (marked before paying, so it pays once)
 }
 
 -- The moments a client may report itself (TutorialEvent "Seen"); the rest the server sees.

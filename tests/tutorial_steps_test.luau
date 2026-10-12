@@ -192,6 +192,11 @@ return {
 			not Steps.ClientSeen.QuestDone and not Steps.ClientSeen.Game2,
 			"server-only moments"
 		)
+		-- The quest's reward (2026-10-12) came after the live saves' moments: their bits keep
+		-- their meaning, and only the server marks it owed or paid.
+		H.expect(Steps.seenBit("Played") == 18 and Steps.seenBit("QuestDone") == 13, "old bits")
+		H.expect(Steps.seenBit("QuestOwed") == 19 and Steps.seenBit("QuestPaid") == 20, "new bits")
+		H.expect(not Steps.ClientSeen.QuestOwed and not Steps.ClientSeen.QuestPaid, "server only")
 		local mask = 0
 		H.expect(not Steps.has(mask, 3), "not yet")
 		mask = Steps.mark(mask, 3)
