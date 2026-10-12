@@ -523,6 +523,7 @@ function MatchHUD.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 	self.turnBall = HudParts.ball(self.turnGroup)
 	self.turnBall.root.Visible = false
 	self.turnIsGroup = false -- the popup shows the group, not a turn
+	self.turnHeld = false -- it shows someone else's turn, held until ours (heldTurn)
 	self.popupSeconds = S.TurnPopupSeconds -- how long the current popup stays up
 	self.groupEpoch = nil -- the match whose group reveal is being watched
 	self.knownGroup = nil -- our group in that match as last seen (nil: not decided yet)
@@ -1568,22 +1569,81 @@ function MatchHUD.update(self: any, now: number)
 	self:updatePresentation(now)
 end
 
+-- The phases of someone else's turn that keep its popup up (MatchHUD.heldTurn).
+local HOLD_PHASES = {
+	Intro = true,
+	Placement = true,
+	PocketChoice = true,
+	Aiming = true,
+	Resolving = true,
+	Frozen = true,
+	Rewinding = true,
+	Sneak = true,
+	SneakReveal = true,
+}
+
+--- Whose turn the popup holds for now: "Their" (an opponent shooting) or "Ally" (a teammate),
+--- else nil. Someone else's turn keeps OPPONENT'S TURN up until the table comes back to us
+--- (designer, 2026-10-12, a tester: "make it more obvious when the other player is shooting"):
+--- through their shots, a kept table and their balls rolling. Never in solo.
+function MatchHUD.heldTurn(self: any, snapshot: any): string?
+	if not S.TurnPopupHoldTheirs or snapshot.solo ~= nil or not HOLD_PHASES[snapshot.phase] then
+		return nil
+	end
+	local shooter = snapshot.shooter
+	if shooter == nil or shooter == self.localUserId then
+		return nil
+	end
+	local team = self:shooterTeam()
+	if team == nil then
+		return nil
+	end
+	return if team == self.ours then "Ally" else "Their"
+end
+
 -- The turn popup: pops in when its turn starts (or when a foul popup before it ends), holds,
 -- and fades out. Only while that turn lasts; YOU ARE SOLIDS / STRIPES runs its full time into
 -- the shooter's next turn (a kept table pops no YOUR TURN over it; designer, 2026-10-09).
+-- Someone else's turn holds it until ours (heldTurn): after a foul popup or the group's, it
+-- pops in again with their words.
 function MatchHUD.updateTurn(self: any, now: number)
 	local snapshot = self.snapshot
 	local key = ("%d:%d"):format(snapshot.epoch, snapshot.turnId)
 	local elapsed = now - self.turnStart
 	local left = self.popupSeconds - elapsed
-	local show = (key == self.turnKey or (self.turnIsGroup and self.groupEpoch == snapshot.epoch))
-		and elapsed >= 0
-		and left > 0
-		and snapshot.phase ~= "Result"
-		and not self:isModal()
+	local held = self:heldTurn(snapshot)
+	local open = snapshot.phase ~= "Result" and not self:isModal()
+	local groupOn = self.turnIsGroup and self.groupEpoch == snapshot.epoch and left > 0
+	local popOn = not self.turnIsGroup and key == self.turnKey and (left > 0 or held ~= nil)
+	local show = (groupOn or popOn) and elapsed >= 0 and open
+	-- Someone else's turn with no popup of its own up (their kept table, or after the
+	-- group's): their words, held. A foul popup still has the row first.
+	local holding = not show and held ~= nil and open and now >= self.foulUntil
+	if holding then
+		local Status = Copy.Status
+		local words = if held == "Ally" then Status.AllyTurn else Status.TheirTurn
+		if not self.turnGroup.Visible or self.turnTitle.Text ~= words then
+			self.turnTitle.Text = words
+			self.turnTitle.TextColor3 = tone("White")
+			HudParts.setIcon(self.turnIcon, "Hourglass")
+			self.turnStart = now -- pops in
+			self.turnIsGroup = false
+			self.turnMine = false
+			self.turnBounced = true
+			self.popupSeconds = S.TurnPopupSeconds
+			elapsed, left = 0, S.TurnPopupSeconds
+		end
+		self.turnKey = key
+		show = true
+	end
 	self.turnGroup.Visible = show
+	-- Held: the ball streak slides under it, as under YOU ARE SOLIDS (StreakHud.popup).
+	self.turnHeld = show and held ~= nil and not self.turnIsGroup
 	if not show then
 		return
+	end
+	if self.turnHeld then
+		left = math.huge -- no fade
 	end
 	if self.turnMine and not self.turnBounced then
 		self.turnBounced = true

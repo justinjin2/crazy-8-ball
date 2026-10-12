@@ -445,8 +445,9 @@ function StreakHud.middle(self: any): number
 		+ StreakMath.slide(self.under) * (row + C.UnderGroup.GapPx)
 end
 
--- The match popup showing in the words' row: "group" (YOU ARE SOLIDS / STRIPES: the words
--- slide under it), "other" (a turn or a foul: they step aside) or nil.
+-- The match popup showing in the words' row: "group" (YOU ARE SOLIDS / STRIPES, or someone
+-- else's turn held until ours: the words slide under it), "other" (a turn or a foul: they
+-- step aside) or nil.
 function StreakHud.popup(self: any): string?
 	local hud = self.hud
 	if not hud then
@@ -456,7 +457,7 @@ function StreakHud.popup(self: any): string?
 		return "other"
 	end
 	if hud.turnGroup and hud.turnGroup.Visible then
-		return if hud.turnIsGroup then "group" else "other"
+		return if hud.turnIsGroup or hud.turnHeld then "group" else "other"
 	end
 	return nil
 end

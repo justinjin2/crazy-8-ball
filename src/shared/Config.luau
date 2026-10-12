@@ -8112,6 +8112,10 @@ Config.Multiplayer = {
 		-- starts, like the foul popup but smaller. (tune)
 		TurnPopupTitleSize = 24,
 		TurnPopupSeconds = 2, -- up this long
+		-- Someone else's turn keeps OPPONENT'S TURN / ALLY'S TURN up until yours, the ball
+		-- streak sliding under it (designer, 2026-10-12). false: it goes after
+		-- TurnPopupSeconds like YOUR TURN.
+		TurnPopupHoldTheirs = true,
 		TurnPopupFadeSeconds = 0.35, -- and fades out over its last part
 		-- The same popup says YOU ARE SOLIDS or YOU ARE STRIPES when the groups are decided
 		-- (designer, 2026-09-27), up longer: 3.5 s (designer, 2026-09-27: a second more). (tune)
