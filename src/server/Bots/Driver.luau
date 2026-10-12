@@ -87,6 +87,15 @@ local function decide(
 		local stuck = misses > 0 and misses % Config.Tutorial.BotPlan.StuckMisses == 0
 		-- The player's combination lesson waits: leave them lined up for it.
 		local combo = rig ~= nil and rig.done.Aim == true and not rig.done.Combo
+		-- From its second visit, an "accident" first: one of its balls knocks one of theirs in
+		-- (BotPlan.gift; designer, 2026-10-12: game 1 ran too long).
+		local G = Config.Tutorial.BotPlan.Gift
+		if G.On and not stuck and bot.visit >= G.FromVisit then
+			local d = BotPlan.gift(view, rng, hand, yield, combo)
+			if d then
+				return d
+			end
+		end
 		return BotPlan.leave(view, rng, hand, yield, stuck, combo)
 	end
 	return Brain.decide(view, bot.skill, rng, { ballInHand = hand, yield = yield })
