@@ -10984,6 +10984,29 @@ Config.UI.Ults = {
 	-- share of the screen; the fade's canvas widens to hold it, so it is never cut off.
 	ArmedMaxWidthShare = 0.8,
 	NoteTextPx = 14, -- "Coming soon" over a placeholder's pill
+	-- What your ability does (UltInfo; designer, 2026-10-12): a disc with the ability's icon
+	-- and a blue "i" at the bar's right end; hover (mouse), tap, click or RB opens a card over
+	-- the bar with its name and description. Pairs: a phone's, then a computer's. (tune)
+	Info = {
+		DiscPx = { 32, 40 }, -- the disc
+		GapPx = { 4, 6 }, -- between the pill's right end and the disc
+		IconShare = 0.78, -- the icon, of the disc
+		BadgeShare = 0.46, -- the "i" (or the controller's button), of the disc
+		BadgeAt = { 0.86, 0.14 }, -- its centre, in shares of the disc (top right)
+		BadgeLetter = "i",
+		TouchPx = 44, -- the press area round the disc at least (UI_STYLE 5)
+		GamepadKey = "ButtonR1", -- RB / R1: free in a match
+		PinSeconds = 6, -- a tap, click or RB keeps the card open this long (or until pressed again)
+		CardWidthPx = { 250, 320 },
+		CardMaxWidthShare = 0.9, -- never wider than this share of the screen
+		CardPadPx = { 8, 12 },
+		CardCornerPx = 14,
+		CardGapPx = 6, -- between the icon and the name, and the name row and the description
+		CardAbovePx = { 6, 8 }, -- the card's bottom this far over the bar (or its prompt)
+		CardIconShare = 1.5, -- the card's icon, of the name's size
+		NamePx = { 17, 20 },
+		BodyPx = { 14, 15 },
+	},
 	-- A refusal (UltNotice), for a moment over the bar.
 	NoticeTextPx = { 14, 18 },
 	NoticeSeconds = 2.2,

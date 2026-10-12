@@ -48,6 +48,7 @@ type Item = {
 	arrows: string?, -- "sideways" or "updown"
 	words: string,
 	ult: boolean?, -- shown only while the ult bar offers its press (setUlt)
+	info: boolean?, -- shown only while the ability info answers RB (setInfo)
 }
 
 -- The strip's contents, in reading order.
@@ -88,6 +89,14 @@ local ITEMS: { Item } = {
 		keys = { (Enum.KeyCode :: any)[Config.UI.Ults.GamepadKey] },
 		words = Copy.Ult,
 		ult = true,
+	},
+	-- What the ability does (UltInfo binds RB / R1 while its bar shows; Config.UI.Ults.Info).
+	{
+		set = "aim",
+		row = 3,
+		keys = { (Enum.KeyCode :: any)[Config.UI.Ults.Info.GamepadKey] },
+		words = Copy.UltInfo,
+		info = true,
 	},
 	{ set = "spin", row = 1, keys = { Enum.KeyCode.Thumbstick1 }, words = Copy.Spin },
 	{
@@ -184,7 +193,9 @@ function PadGuide.new(screen: ScreenGui): any
 	self.stacks = {} :: { Frame }
 	self.leaveHint = nil :: ImageLabel?
 	self.ultShown = false
+	self.infoShown = false
 	self.ultItems = {} :: { Frame }
+	self.infoItems = {} :: { Frame }
 
 	local root = HudParts.frame(screen, "PadGuide")
 	root.AnchorPoint = Vector2.new(0, 1)
@@ -214,6 +225,9 @@ function PadGuide.new(screen: ScreenGui): any
 		if item.ult then
 			entry.Visible = false
 			table.insert(self.ultItems, entry)
+		elseif item.info then
+			entry.Visible = false
+			table.insert(self.infoItems, entry)
 		end
 		local order = 0
 		local function nextOrder(): number
@@ -376,6 +390,17 @@ function PadGuide.setUlt(self: any, shown: boolean)
 	end
 	self.ultShown = shown
 	for _, entry in self.ultItems do
+		entry.Visible = shown
+	end
+end
+
+--- Show the ability info's line (RB) while UltInfo's button is bound.
+function PadGuide.setInfo(self: any, shown: boolean)
+	if self.infoShown == shown then
+		return
+	end
+	self.infoShown = shown
+	for _, entry in self.infoItems do
 		entry.Visible = shown
 	end
 end

@@ -25,6 +25,7 @@ return {
 		Angle = "Angle", -- the right stick, up and down: the cue's angle
 		CenterSpin = "Center spin", -- Y (spelt like the spin panel's Center button)
 		Ult = "Ability", -- X (Xbox X, PlayStation Square) while your ability bar is ready
+		UltInfo = "Ability info", -- RB / R1 while your ability bar shows (UltInfo)
 	},
 	PowerPercent = "%d%%",
 	Spin = { Center = "Center", Done = "Done", Degrees = "%d°" },

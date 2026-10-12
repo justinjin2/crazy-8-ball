@@ -50,6 +50,7 @@ local HudParts = require(script.Parent.HudParts)
 local PadMode = require(script.Parent.PadMode)
 local UIAnim = require(script.Parent.UIAnim)
 local UltBar = require(script.Parent.UltBar)
+local UltInfo = require(script.Parent.UltInfo)
 local TutorialAnchors = require(script.Parent.TutorialAnchors)
 
 local U = Config.UI.Ults
@@ -214,6 +215,9 @@ function UltHud.new(screen: ScreenGui, activate: () -> ()): any
 	TutorialAnchors.set("UltPrompt", self.bar.prompt) -- PRESS G TO ACTIVATE: pointed at from its side
 	self.armed = wordPill(content, "Armed")
 	self.opponent = wordPill(content, "OpponentArmed")
+	-- What the ability does: a disc at the bar's right end, a card over it (UltInfo).
+	self.info = UltInfo.new(holder, self.bar.root)
+	self.infoReach = 0
 
 	-- The whole bar is the button while it is offered (touch, and a click too).
 	local hit = Instance.new("TextButton")
@@ -269,6 +273,7 @@ function UltHud.layout(self: any)
 	local s = UltBar.sizes(short, size.X)
 	local g = self.bar:layout(s)
 	self.geo = g
+	self.infoReach = self.info:layout(s, g, short, size.X)
 	local margin = if short then U.BottomMarginPx[1] else U.BottomMarginPx[2]
 	self.margin = margin
 	self.holder.Position = UDim2.new(0.5, 0, 1, -margin)
@@ -353,7 +358,7 @@ function UltHud.fitCanvas(self: any)
 	end
 	local width = self.bar.sizes.width
 	local reach = math.max(self.armed.reach, self.opponent.reach) - math.floor(width / 2)
-	local padX = math.max(self.canvasPad, reach + 4)
+	local padX = math.max(self.canvasPad, reach + 4, (self.infoReach or 0) + 4)
 	self.canvasPadX = padX
 	self.canvas.Position = UDim2.fromOffset(-padX, -self.canvasAbove)
 	self.canvas.Size =
@@ -836,6 +841,7 @@ function UltHud.update(self: any, dt: number, pulling: boolean)
 	self.hit.Visible = offer and not pulling
 	self.pressable = offer
 	self:bind(self.pressable and not pulling)
+	self.info:update(mode == "bar" and self.slideDone, pulling)
 	-- Room kept above it for MatchHUD's bottom lines.
 	local g = self.geo
 	local reserve = 0

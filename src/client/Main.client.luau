@@ -1458,6 +1458,7 @@ local function renderFrame(dt: number)
 	ultHud:update(dt, currentPull > 0 and (not input.padPower or input:levelMoving()))
 	hud:setUltReserve(ultHud:reservedBottom())
 	padGuide:setUlt(ultHud:promptShown())
+	padGuide:setInfo(ultHud.info.bound == true)
 	if not snapshot or not match then
 		-- The lobby: the controller guide only while a lucky block is held (R2 places it) or a
 		-- Mystery is picked (R2 opens it).
@@ -1769,6 +1770,13 @@ require(script.Parent.GuiQA).add(
 		then
 			ultHud:press()
 			return "ability"
+		elseif
+			ultHud.info.bound
+			and key == (Enum.KeyCode :: any)[Config.UI.Ults.Info.GamepadKey]
+			and state == Enum.UserInputState.Begin
+		then
+			ultHud.info:toggle()
+			return "info"
 		elseif input.gamepadBound and input:handleGamepad(state, fake) == sink then
 			return "table"
 		elseif state == Enum.UserInputState.Begin and HubPad.press(key) then
