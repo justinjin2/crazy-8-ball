@@ -1291,8 +1291,10 @@ helpers, `src/server/TutorialService.luau`, `TutorialGames`, `TutorialBot`, `Tut
   0.5-2 s after the player. If they step off before the game, it gets up and strolls nearby.
 - **Path S, the rigged game 1** (whoever sits down alone): the break with the aim locked
   (under half power the bar springs back; half or more plays the fixed break: 2 solids, the
-  second creeping in); turn 2's aim lesson (a small turn, then a zoom with the pocket glowing: any pinch or wheel
-  notch either way ends it, and the HUD's own zoom hint stays hidden in the guided part);
+  second creeping in); turn 2's aim lesson (a small turn, then zoom out with the pocket
+  glowing, then "Now ... zoom all the way in!" on every device, waiting until the view is
+  closer than the default, then the shoot line; the HUD's own zoom hint stays hidden in the
+  guided part);
   the combination (two of their balls lined up, shown as a ghost replay on the table: a
   see-through cue strikes, the cue ball rolls into the first ball, it into the second, that one
   into the glowing pocket; NICE SHOT!); the ability lesson (a full bar,
@@ -1319,8 +1321,10 @@ helpers, `src/server/TutorialService.luau`, `TutorialGames`, `TutorialBot`, `Tut
   step re-prompts, offers Next after its fallback time, and resumes where it was after a
   rejoin.
 - **The soft part:** every icon pops in, each with a "!" until clicked once (Free Reward
-  stands out most, breathing slowly; its first open lands on the group to join); "Win a Match
-  0/1" stays until won; the **Daily Rewards popup** once (day 1 to claim, day 7 on show), then
+  stands out most, breathing slowly; its first open lands on the group to join); "Now go win
+  a match! 0/1" stays until won, then "1/1" and "Have fun!" with the achievement chime and a
+  **$2,500** reward flying into the money HUD (paid once by the server, also for a quest won in
+  an arena; `Config.Tutorial.Soft.QuestReward`); the **Daily Rewards popup** once (day 1 to claim, day 7 on show), then
   a small invite popup once (an honest line on when the reward comes); Free Reward's group,
   favorite and like frames light once; Play Global glows after the invite is answered. The
   rank HUD always shows the next goal under the bar ("ONE MORE WIN!" right after the first
@@ -1432,6 +1436,9 @@ Design-level rules; the technical detail is in ARCHITECTURE.md.
 
 ## 18. Parked ideas (not scheduled)
 
+- **A questline at the top of the screen** (designer, 2026-10-12: "eventually a questline will
+  be added on the top to give people things to do"): it would follow the tutorial's "Now go win
+  a match!" quest in the same spot. Nothing decided yet.
 - **Copy numbers on early cues** (asked and approved 2026-10-08, planned after the Cues
   menu): the first 100 copies of every Rare, Epic, Legendary, Mythic
   and Secret cue are numbered #1 to #100 from the public release; Commons and Uncommons never

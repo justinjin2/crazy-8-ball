@@ -1192,8 +1192,9 @@ screen's width (`WidthShare`), the frame's 66% on a phone.
   the same sound.
 - **The VIP tag** (`VipTag`, `Config.UI.VipTag`): a navy pill with a gold rim over the money
   pill, the crown rocking and "VIP" in the rainbow, for a VIP only. Hover shows the card "VIP
-  perks active" with a tick per perk; a press keeps it open 6 s. The left column keeps above
-  the tag.
+  perks active" with a tick per perk; a press keeps it open 6 s. In a match hover and press do
+  nothing and an open card closes (designer, 2026-10-12: a phone's camera drag kept opening
+  it). The left column keeps above the tag.
 - **VIP's pocket money** (`CashFlyer`, `Config.UI.Progress.Cash.Vip`): a pot VIP doubled pops
   as the plain pay ("+$100", green), a gold tilted "x2" stamps on beside it, the words turn to
   the paid "+$200" in gold with a small bump, then it flies; about 0.6 s, every such pot.

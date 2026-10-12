@@ -23,12 +23,14 @@ entry of `docs/archive/STATUS_HISTORY.md`.
   without their "(1 in N)", "Gonna let that slide?" wiggling over Rematch for the side that lost,
   **the new rank ladder** (below; needs "Restart Servers for Updates"), **the owner admin
   panel** (below: announcements now type out on screen only, money rain has This server / All
-  servers), **Sell Duplicate / Keep on a duplicate's reveal card** and **the first controller
-  fixes** (below). All pushed up to the docs commit after `cda9e9e`.
+  servers), **Sell Duplicate / Keep on a duplicate's reveal card**, **the controller fixes**
+  and **the tutorial batch of 2026-10-12** (both below) and **the VIP tag shut in a match**.
+  All pushed up to the docs commit after `f99de00`.
 - **Now (designer, 2026-10-11):** fixing console (gamepad) controls for this update, from the
   designer's own tutorial run on a controller. Done: the 8's pocket by D-pad rows, the tutorial's
-  D-pad fine aim, a Mystery held out and opened with R2 (below). The designer lists the next
-  ones; check each with gamepad emulation in Studio, touch and mouse unchanged (CLAUDE.md).
+  D-pad fine aim, a Mystery held out and opened with R2, the Mystery screen's A button, the
+  D-pad picture lighting each way (below). The designer lists the next ones; check each with
+  gamepad emulation in Studio, touch and mouse unchanged (CLAUDE.md).
 - **Lint and tests (2026-10-12, `gui-v4`):** lint OK (four old LocalShadow warnings); all 1229
   Lune tests pass.
 
@@ -54,6 +56,18 @@ rooftop map with a day and sunset cycle; pull cutscenes Rare to Secret; the ball
   forced (QA presses) and a tutorial run from Arrow on path S. Live: a real controller (Xbox
   and PlayStation glyphs), the burst's look from the player's own camera, others seeing a
   Mystery in someone's hands, the designer's look at the lit pocket.
+
+- **The tutorial batch** (2026-10-12, DECISIONS): the aim lesson's "zoom all the way in" part
+  (waits until closer than the default view), a {DPad} picture lighting each way, the Mystery
+  screen's A button on a controller, and the quest "Now go win a match! 0/1" ending in "Have
+  fun!" with the chime and **$2,500** flying into the money HUD (`Config.Tutorial.Soft.QuestReward`).
+  Checked in Studio on PC: the zoom-in part, the quest's words, the reward paid once (a second
+  claim refused), a quest owed from elsewhere finishing on rejoin, a fresh join at Arrow. Live:
+  the reward's money in the logs (TutorialQuest), a phone's spread-fingers hand, the quest line
+  on a narrow phone, the chime by ear.
+- **The VIP tag in a match** (2026-10-12, DECISIONS): hover and press do nothing in a match.
+  Checked in Studio (the tag shut in a QA match, live in the lobby). Live: a phone dragging
+  the camera over the tag.
 
 - **Sell Duplicate / Keep on a duplicate's reveal card** (2026-10-11, DECISIONS;
   `Config.BlockOdds.DuplicateChoice`): checked in Studio on PC through the real reveal screen
