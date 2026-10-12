@@ -11,7 +11,7 @@
 --
 --   (L-stick) Spin   (R-stick) ^v Angle   (Y) Center spin
 --
--- while the 8's pocket is called: (L-stick) Point at a pocket, (D-pad) Next pocket, (A) Pick;
+-- while the 8's pocket is called: (D-pad) Move, (A) Pick (designer, 2026-10-11: no stick);
 -- while an ability's pick is owed (UltPick), its controls: (L-stick) Move, (D-pad) Next
 -- ball, (A) Pick, (X) Confirm for a ball; (L-stick) Move, (A) Place, (Y) Switch portal, (L1)
 -- Reset, (X) Confirm for portals; in the lobby while a lucky block is held: (R2) Place,
@@ -98,13 +98,17 @@ local ITEMS: { Item } = {
 		words = Copy.Angle,
 	},
 	{ set = "spin", row = 1, keys = { Enum.KeyCode.ButtonY }, words = Copy.CenterSpin },
-	-- Calling the 8's pocket (MatchTargets).
-	{ set = "call", row = 1, keys = { Enum.KeyCode.Thumbstick1 }, words = Copy.PointPocket },
+	-- Calling the 8's pocket (MatchTargets): the D-pad walks the pockets, A picks.
 	{
 		set = "call",
 		row = 1,
-		keys = { Enum.KeyCode.DPadLeft, Enum.KeyCode.DPadRight },
-		words = Copy.NextPocket,
+		keys = {
+			Enum.KeyCode.DPadLeft,
+			Enum.KeyCode.DPadRight,
+			Enum.KeyCode.DPadUp,
+			Enum.KeyCode.DPadDown,
+		},
+		words = Copy.MovePocket,
 	},
 	{ set = "call", row = 1, keys = { Enum.KeyCode.ButtonA }, words = Copy.PickPocket },
 	-- The lobby with a lucky block held (LuckyClient): R2 places it, LB / RB switch; a

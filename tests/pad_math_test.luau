@@ -76,4 +76,51 @@ function tests.dpadStepsToTheNearestPocketThatWay()
 	check(PadMath.stepToward(POCKETS, 9, 1, 0, 0.5) == 9, "an unknown pocket stays put")
 end
 
+-- The rows as ids, for the checks below.
+local function ids(rows: { { PadMath.Point } }): string
+	local out = {}
+	for _, row in rows do
+		local line = {}
+		for _, point in row do
+			table.insert(line, tostring(point.id))
+		end
+		table.insert(out, table.concat(line, ","))
+	end
+	return table.concat(out, "/")
+end
+
+function tests.pocketsMakeTwoRowsOfThreeOnAWideTable()
+	check(ids(PadMath.pocketRows(POCKETS)) == "1,2,3/6,5,4", ids(PadMath.pocketRows(POCKETS)))
+	-- The table turned round on screen: the rows still read top to bottom, left to right.
+	local flipped: { PadMath.Point } = {}
+	for _, point in POCKETS do
+		table.insert(flipped, { id = point.id, x = 1000 - point.x, y = 600 - point.y })
+	end
+	check(ids(PadMath.pocketRows(flipped)) == "4,5,6/3,2,1", ids(PadMath.pocketRows(flipped)))
+	check(#PadMath.pocketRows({}) == 0, "no pockets on screen, no rows")
+end
+
+function tests.aTallTableMakesThreeRowsOfTwo()
+	local tall: { PadMath.Point } = {}
+	for _, point in POCKETS do
+		table.insert(tall, { id = point.id, x = point.y, y = point.x })
+	end
+	check(ids(PadMath.pocketRows(tall)) == "1,6/2,5/3,4", ids(PadMath.pocketRows(tall)))
+end
+
+function tests.dpadWalksTheRowsAndStopsAtTheEnds()
+	local rows = PadMath.pocketRows(POCKETS)
+	check(PadMath.rowStep(rows, 1, 1, 0) == 2, "right from top left: top middle")
+	check(PadMath.rowStep(rows, 2, 1, 0) == 3, "right again: top right")
+	check(PadMath.rowStep(rows, 3, 1, 0) == 3, "the end of the row: it stays")
+	check(PadMath.rowStep(rows, 1, -1, 0) == 1, "nothing left of top left: it stays")
+	check(PadMath.rowStep(rows, 3, 0, 1) == 4, "down from top right: bottom right")
+	check(PadMath.rowStep(rows, 2, 0, 1) == 5, "down from top middle: bottom middle")
+	check(PadMath.rowStep(rows, 5, 0, 1) == 5, "nothing under the bottom row: it stays")
+	check(PadMath.rowStep(rows, 6, 0, -1) == 1, "up from bottom left: top left")
+	check(PadMath.rowStep(rows, 4, -1, 0) == 5, "left from bottom right: bottom middle")
+	check(PadMath.rowStep(rows, 9, 1, 0) == 1, "an unknown pocket starts at the top left")
+	check(PadMath.rowStep({}, 3, 1, 0) == 3, "no rows: it stays")
+end
+
 return tests

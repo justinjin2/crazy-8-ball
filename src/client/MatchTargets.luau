@@ -8,10 +8,11 @@
 -- unreliable aim stream (takeStream) and once more reliably when the gesture ends (onCommit).
 -- Both share a per-turn sequence number, so a late packet can never drag the ball backwards.
 --
--- Calling the 8 on a controller (designer, 2026-10-10: "move their left joystick wherever to
--- pick a pocket and then just use A"): while the call is owed, the left stick points from the
--- table's middle at a pocket (PadMath.pocketToward), the D-pad steps to the pocket that way,
--- and A calls the one lit. It starts lit on the tutorial's pocket, else the one nearest the 8.
+-- Calling the 8 on a controller (designer, 2026-10-11: "dont make it joystick anymore, make
+-- it dpad"): while the call is owed, the D-pad walks the pockets as the table lies on screen,
+-- two rows of three (PadMath.pocketRows): right and left along a row, stopping at its end, down
+-- and up to the other row (PadMath.rowStep). A calls the one lit. It starts lit on the top
+-- left, or on the tutorial's own pocket. The left stick is held (sunk) but picks nothing.
 -- Bound at High + 1 (UltPick's way), never through Roblox's GUI selection.
 local ContextActionService = game:GetService("ContextActionService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -157,7 +158,7 @@ function MatchTargets.new(
 	self.grabX, self.grabY = 0, 0
 	self.stickHolding = false -- LT + left stick is moving the ball
 	self.padPick = nil -- the pocket the controller has lit while the 8 is called (an id)
-	self.padStick = Vector2.zero
+	self.padMoved = false -- the D-pad has moved the lit pocket since this call began
 	self.padBound = false
 	self.blocked = false -- the ball could not follow the pointer (something in the way)
 	self.root = Instance.new("Frame")
@@ -523,6 +524,7 @@ function MatchTargets.setSnapshot(
 	end
 	if phaseChanged then
 		self.padPick = nil -- a new call starts lit on its own pocket (padStart)
+		self.padMoved = false
 	end
 end
 
@@ -575,29 +577,14 @@ function MatchTargets.padPoints(self: any): { PadMath.Point }
 end
 
 -- The pocket lit when a controller's call starts: the tutorial's (TutorialPocket), else the
--- pocket nearest the 8.
+-- top left on screen (designer, 2026-10-11).
 function MatchTargets.padStart(self: any): number?
 	local tutorial = Players.LocalPlayer:GetAttribute("TutorialPocket")
 	if type(tutorial) == "number" and self.geometry.pockets[tutorial] then
 		return tutorial
 	end
-	local eight = nil
-	for _, ball in self.state.balls do
-		if ball.id == 8 and not ball.pocketed then
-			eight = ball
-		end
-	end
-	if eight == nil then
-		return 1
-	end
-	local best, bestDistance = 1, math.huge
-	for id, pocket in self.geometry.pockets do
-		local distance = (pocket.x - eight.x) ^ 2 + (pocket.y - eight.y) ^ 2
-		if distance < bestDistance then
-			best, bestDistance = id, distance
-		end
-	end
-	return best
+	local rows = PadMath.pocketRows(self:padPoints())
+	return if rows[1] then rows[1][1].id else nil
 end
 
 -- The controller's keys while the 8 is called (High + 1, over the aim's own binding).
@@ -606,7 +593,6 @@ function MatchTargets.bindPad(self: any, on: boolean)
 		return
 	end
 	self.padBound = on
-	self.padStick = Vector2.zero
 	if not on then
 		ContextActionService:UnbindAction(PAD_ACTION)
 		return
@@ -622,8 +608,8 @@ function MatchTargets.bindPad(self: any, on: boolean)
 	)
 end
 
---- A controller key while the 8 is called: the stick is read every frame (update), the D-pad
---- steps to the pocket that way, A calls the lit one.
+--- A controller key while the 8 is called: the D-pad steps through the rows, A calls the lit
+--- one, the left stick is swallowed (it would walk or turn the aim behind the call).
 function MatchTargets.handlePad(
 	self: any,
 	state: Enum.UserInputState,
@@ -633,19 +619,12 @@ function MatchTargets.handlePad(
 		return Enum.ContextActionResult.Pass
 	end
 	local code = obj.KeyCode
-	local ended = state == Enum.UserInputState.End or state == Enum.UserInputState.Cancel
-	if code == Enum.KeyCode.Thumbstick1 then
-		self.padStick = if ended then Vector2.zero else Vector2.new(obj.Position.X, obj.Position.Y)
-	elseif state == Enum.UserInputState.Begin then
+	if state == Enum.UserInputState.Begin then
 		local way = DPAD[code]
 		if way and self.padPick then
-			self.padPick = PadMath.stepToward(
-				self:padPoints(),
-				self.padPick,
-				way.X,
-				way.Y,
-				S.PocketNavAcrossWeight
-			)
+			self.padPick =
+				PadMath.rowStep(PadMath.pocketRows(self:padPoints()), self.padPick, way.X, way.Y)
+			self.padMoved = true
 		elseif code == Enum.KeyCode.ButtonA and self.padPick then
 			self:call(self.padPick)
 		end
@@ -653,9 +632,10 @@ function MatchTargets.handlePad(
 	return Enum.ContextActionResult.Sink
 end
 
--- Every frame of a controller's call: bind while it is owed, light the pocket the stick points
--- at (the table's middle on screen is where it points from).
-function MatchTargets.updatePad(self: any, camera: Camera, canCall: boolean)
+-- Every frame of a controller's call: bind while it is owed and light the pick. Until the
+-- D-pad first moves it the start is worked out again each frame, since the camera is still
+-- easing to the top-down view when the call begins.
+function MatchTargets.updatePad(self: any, canCall: boolean)
 	local on = canCall and PadMode.active()
 	self:bindPad(on)
 	if not on then
@@ -664,21 +644,8 @@ function MatchTargets.updatePad(self: any, camera: Camera, canCall: boolean)
 		end
 		return
 	end
-	if self.padPick == nil then
+	if self.padPick == nil or not self.padMoved then
 		self.padPick = self:padStart()
-	end
-	local stick = self.padStick
-	local centre = self:project(camera, 0, 0, S.TargetHeightInches)
-	local toward = PadMath.pocketToward(
-		self:padPoints(),
-		centre.X,
-		centre.Y,
-		stick.X,
-		stick.Y,
-		Config.Input.Gamepad.PocketDeadZone
-	)
-	if toward then
-		self.padPick = toward
 	end
 	for _, target in self.pockets do
 		target.padHover = target.id == self.padPick
@@ -746,7 +713,7 @@ function MatchTargets.update(self: any, dt: number, camera: Camera)
 		end
 		target.button.Size = UDim2.fromOffset(size, size)
 	end
-	self:updatePad(camera, canCall)
+	self:updatePad(canCall)
 	if canPlace then
 		-- The ring hugs the ball as the camera zooms: its projected radius, scaled up so it
 		-- is easy to grab, and never smaller than a comfortable touch target.
@@ -807,6 +774,7 @@ end
 function MatchTargets.clear(self: any)
 	self:bindPad(false)
 	self.padPick = nil
+	self.padMoved = false
 	self.snapshot, self.state = nil, nil
 	self.previewX, self.previewY = nil, nil
 	self.committedX, self.committedY = nil, nil

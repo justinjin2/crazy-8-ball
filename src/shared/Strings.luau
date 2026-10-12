@@ -14,8 +14,7 @@ return {
 		PowerDown = "Power down", -- hold Y
 		Shoot = "Shoot", -- R2: shoots the power shown
 		-- Calling the 8's pocket:
-		PointPocket = "Point at a pocket", -- the left stick
-		NextPocket = "Next pocket", -- the D-pad
+		MovePocket = "Move", -- the D-pad, through the pockets as the table lies
 		PickPocket = "Pick", -- A
 		-- The lobby, a lucky block held:
 		PlaceBlock = "Place", -- R2
@@ -1900,7 +1899,7 @@ return {
 		Eight = {
 			Mouse = "SELECT WHICH POCKET!",
 			Touch = "SELECT WHICH POCKET!",
-			Gamepad = "SELECT WHICH POCKET! Point {LS} at it, {A} to pick.",
+			Gamepad = "SELECT WHICH POCKET! {DPad} to move, {A} to pick.",
 		},
 		-- After game 1: the result, the first win's block, NEW RANK!.
 		Continue = {
