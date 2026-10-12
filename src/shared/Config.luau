@@ -1618,9 +1618,6 @@ Config.Input = {
 			Down = "ButtonY",
 			Fire = "ButtonR2",
 		},
-		-- Calling the 8 (MatchTargets): the left stick points from the table's middle at a
-		-- pocket, A calls it, the D-pad steps round. A push under this (0-1) picks nothing.
-		PocketDeadZone = 0.35,
 		-- The lobby's buttons (HubPad; designer, 2026-10-10). The D-pad's up, right and down
 		-- are Config.UI.Menu.Column.PadKeys; X is the Abilities tile's.
 		Hub = {
@@ -8178,9 +8175,6 @@ Config.Multiplayer = {
 		OpponentBallFill = { 70, 74, 82 }, -- grey wash over the other group's balls
 		OpponentBallFillTransparency = 0.5, -- clearly dimmed, still recognisable
 		TargetSize = 44, -- minimum pocket hit target
-		-- Calling the 8 with the D-pad (MatchTargets, PadMath.stepToward): a ring off to the side
-		-- of a push counts this many times its sideways distance, so the straight one wins.
-		PocketNavAcrossWeight = 2,
 		-- The pocket the controller has lit (designer, 2026-10-11: "highlight it in yellow ...
 		-- blue ring needs to be bigger or breathing"): its blue ring this much bigger, breathing
 		-- by PadPickBreathe either way every PadPickBreatheSeconds, a see-through gold disc

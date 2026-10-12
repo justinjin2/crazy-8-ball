@@ -1,7 +1,6 @@
 --!strict
 -- PadMath (src/shared/PadMath.luau): the controller's power level (A up, Y down, a straight
--- line at one rate), the stick picking the 8's pocket from the table's middle, and the D-pad's
--- step to the pocket that way.
+-- line at one rate) and the D-pad walking the 8's pockets as rows.
 
 local H = require("./harness")
 
@@ -48,32 +47,6 @@ function tests.powerStaysInsideTheBar()
 	check(PadMath.stepPower(0.4, true, true, 1, 1) == 0.4, "both held: it stays")
 	check(PadMath.stepPower(0.4, false, false, 1, 1) == 0.4, "neither: it stays")
 	check(PadMath.stepPower(0.4, true, false, 0, 1) == 0.4, "no time, no change")
-end
-
-function tests.stickPicksThePocketThatWay()
-	local function pick(sx: number, sy: number): number?
-		return PadMath.pocketToward(POCKETS, 500, 300, sx, sy, 0.3)
-	end
-	check(pick(0, 1) == 2, "up is the top middle")
-	check(pick(0, -1) == 5, "down is the bottom middle")
-	check(pick(1, 1) == 3, "up and right is the top right corner")
-	check(pick(-1, -1) == 6, "down and left is the bottom left corner")
-	check(pick(-1, 0.4) == 1, "mostly left, a little up: top left")
-	check(pick(1, -0.4) == 4, "mostly right, a little down: bottom right")
-end
-
-function tests.stickInsideTheDeadZonePicksNothing()
-	check(PadMath.pocketToward(POCKETS, 500, 300, 0.1, 0.2, 0.3) == nil, "a resting stick")
-	check(PadMath.pocketToward({}, 500, 300, 1, 0, 0.3) == nil, "no pockets on screen")
-end
-
-function tests.dpadStepsToTheNearestPocketThatWay()
-	check(PadMath.stepToward(POCKETS, 1, 1, 0, 0.5) == 2, "right from top left: top middle")
-	check(PadMath.stepToward(POCKETS, 2, 1, 0, 0.5) == 3, "right again: top right")
-	check(PadMath.stepToward(POCKETS, 3, 0, 1, 0.5) == 4, "down from top right: bottom right")
-	check(PadMath.stepToward(POCKETS, 4, -1, 0, 0.5) == 5, "left from bottom right: bottom middle")
-	check(PadMath.stepToward(POCKETS, 3, 1, 0, 0.5) == 3, "nothing further right: it stays")
-	check(PadMath.stepToward(POCKETS, 9, 1, 0, 0.5) == 9, "an unknown pocket stays put")
 end
 
 -- The rows as ids, for the checks below.
