@@ -883,8 +883,9 @@ band, restock tiles and pass bands.
 - **The restock (B)**: "RESTOCK", a stopwatch and the time in its pill; three slot cards
   across the band (economy v5), each the block big in its rarity's glow with the dice at the top
   right, "**Rare** Lucky Block", a navy "x2 left" pill, the green Robux button over the gold
-  money button (no gift square: restock items cannot be gifted). Slot 1 wears a tilted tag in
-  its floor's colour at its top left ("Epic or better!"). The 3rd is the VIP slot: cream with a
+  money button (no gift square: restock items cannot be gifted). No "Epic or better!" tag on
+  slot 1 any more (designer, 2026-10-12: over a Legendary block it read as the block's prize).
+  The 3rd is the VIP slot: cream with a
   gold edge, a crown rocking over its block; without VIP it says "VIP only" in gold and shows
   one Get VIP button between the two button rows. The cards run left to right from least rare
   to rarest block (ties keep slot order), re-sorted on each restock; no odds text under them

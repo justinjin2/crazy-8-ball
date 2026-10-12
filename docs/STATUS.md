@@ -23,7 +23,7 @@ entry of `docs/archive/STATUS_HISTORY.md`.
   tutorial batch (zoom-in lesson, the quest's $2,500 reward), the VIP tag shut in a match,
   Portals lasting 2 shots and the pad queuing you again 1.5 s after a match. The rank ladder
   needs "Restart Servers for Updates" (the designer was reminded). **Not yet published:**
-  nothing.
+  the Shop restock's "Epic or better!" tag removed (DECISIONS).
 - **Now (designer, 2026-10-11):** fixing console (gamepad) controls for this update, from the
   designer's own tutorial run on a controller. Done: the 8's pocket by D-pad rows, the tutorial's
   D-pad fine aim, a Mystery held out and opened with R2, the Mystery screen's A button, the
