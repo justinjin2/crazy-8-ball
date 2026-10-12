@@ -279,6 +279,10 @@ Every feature is checked against these. If it serves none, it waits.
   (the pad's bar takes over) or when someone is free; it may come back each time nobody is. Pressed, the search runs from where
   they stand (1v1, ults on): "Searching... 0:03" with the red X, a bot of their level at 5 s,
   then the arena, like a pad search. Stepping onto a pad mid-search cancels it.
+- **After a match, still on the pad:** a player standing on its pad when the game ends is
+  queued again **1.5 s** *(tune)* later (time to step off); before, they had to walk off and
+  back on (designer, 2026-10-12). Pressing leave on a waiting pad, or the guided tutorial,
+  still needs a step off the pad and back on.
 - **A full pad starts by itself**, **3 s** *(tune)* after the last one stepped on ("Starting in
   3"), so someone who walked on by accident can step off. Then straight to the coin flip,
   about 3 s and a few words at a time: "WHO BREAKS?" over the flip, then "YOU BREAK", "<NAME>

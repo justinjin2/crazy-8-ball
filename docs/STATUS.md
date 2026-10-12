@@ -25,7 +25,8 @@ entry of `docs/archive/STATUS_HISTORY.md`.
   panel** (below: announcements now type out on screen only, money rain has This server / All
   servers), **Sell Duplicate / Keep on a duplicate's reveal card**, **the controller fixes**
   and **the tutorial batch of 2026-10-12** (both below), **the VIP tag shut in a match** and
-  **Portals lasting 2 shots** (DECISIONS). All pushed up to the docs commit after `49dd537`.
+  **Portals lasting 2 shots** and **the pad queuing you again 1.5 s after a match**
+  (DECISIONS). All pushed up to the docs commit after `9bc2e59`.
 - **Now (designer, 2026-10-11):** fixing console (gamepad) controls for this update, from the
   designer's own tutorial run on a controller. Done: the 8's pocket by D-pad rows, the tutorial's
   D-pad fine aim, a Mystery held out and opened with R2, the Mystery screen's A button, the
@@ -65,6 +66,11 @@ rooftop map with a day and sunset cycle; pull cutscenes Rare to Secret; the ball
   claim refused), a quest owed from elsewhere finishing on rejoin, a fresh join at Arrow. Live:
   the reward's money in the logs (TutorialQuest), a phone's spread-fingers hand, the quest line
   on a narrow phone, the chime by ear.
+- **The queue pad after a match** (2026-10-12, DECISIONS; `Config.Multiplayer.Queue.RejoinOnPad`):
+  still on the pad, queued again after 1.5 s. Lune-tested; pushed at the designer's word before
+  a Studio check (their Studio session ran the old code). Check: finish a match standing on the
+  pad (Leave on the result, and Rematch running out), a 2v2 pad, pressing B / Escape on a
+  waiting pad (needs a step off).
 - **The VIP tag in a match** (2026-10-12, DECISIONS): hover and press do nothing in a match.
   Checked in Studio (the tag shut in a QA match, live in the lobby). Live: a phone dragging
   the camera over the tag.
