@@ -3129,12 +3129,13 @@ Config.BotCues = {
 	-- ~/Desktop/8ball-refs/economy/v6/v6sim.py). Silver to Diamond refit to the 2026-10-11
 	-- ladder (tools/botcues_fit.py: the v6 simulation with the new widths and rank money, 6.3
 	-- minutes a match, one Sky block a day, reward cues left out): players now hold Silver on days 3-7, Gold 8-13,
-	-- Platinum 13-19 and Diamond 20-29, so they own fewer good cues there than before.
+	-- Platinum 13-21 and Diamond 23-38 (the ladder's later tiers widened the same day), so
+	-- they own fewer good cues there than before.
 	Bronze = { EpicPlus = 0.15, LegendaryPlus = 0.03, MythicPlus = 0.003 },
 	Silver = { EpicPlus = 0.48, LegendaryPlus = 0.12, MythicPlus = 0.013 },
 	Gold = { EpicPlus = 0.72, LegendaryPlus = 0.2, MythicPlus = 0.022 },
-	Platinum = { EpicPlus = 0.99, LegendaryPlus = 0.4, MythicPlus = 0.047 },
-	Diamond = { EpicPlus = 0.99, LegendaryPlus = 0.6, MythicPlus = 0.08 },
+	Platinum = { EpicPlus = 0.99, LegendaryPlus = 0.44, MythicPlus = 0.047 },
+	Diamond = { EpicPlus = 0.99, LegendaryPlus = 0.67, MythicPlus = 0.09 },
 	Expert = { EpicPlus = 0.99, LegendaryPlus = 0.9, MythicPlus = 0.15 },
 	Veteran = { EpicPlus = 0.99, LegendaryPlus = 0.95, MythicPlus = 0.22 },
 	Master = { EpicPlus = 0.99, LegendaryPlus = 0.98, MythicPlus = 0.3 },

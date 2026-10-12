@@ -9,7 +9,7 @@ spec = importlib.util.spec_from_file_location("sim", os.path.join(os.path.dirnam
 sim = importlib.util.module_from_spec(spec); spec.loader.exec_module(sim)
 R = sim.R
 T = ["Bronze","Silver","Gold","Platinum","Diamond","Expert","Veteran","Master","Grandmaster"]
-W = {"Bronze":[200,200,300,400,500],"Silver":[200,300,400,500,600],"Gold":[300,400,500,600,700],"Platinum":[400,500,600,700,800],"Diamond":[600,800,1000,1200,1400],"Expert":[1200,1600,2000,2400,2800],"Veteran":[2500,3000,3500,4000,4500],"Master":[4000,5500,7000,8500,10000],"Grandmaster":[9000,15000,22000,29000,35000]}
+W = {"Bronze":[200,200,300,400,500],"Silver":[200,300,400,500,600],"Gold":[300,400,500,600,700],"Platinum":[500,700,900,1100,1300],"Diamond":[800,1200,1600,2000,2400],"Expert":[2000,3000,4000,5000,6000],"Veteran":[5000,6000,7000,8000,9000],"Master":[8000,11000,14000,17000,20000],"Grandmaster":[18000,30000,44000,58000,70000]}
 sim.WIDTHS = W; sim.TIERS = T
 sim.DIVS.clear(); x = 0
 for t in T:
