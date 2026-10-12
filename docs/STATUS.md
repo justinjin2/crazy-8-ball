@@ -4,7 +4,7 @@ Current state only, rewritten in place. Keep it to about two screens (under 100 
 step is finished and verified, move its dated entry to the top of
 `docs/archive/STATUS_HISTORY.md` and keep only what is still true or still open here.
 
-Updated 2026-10-12. **The game is live** (officially released 2026-10-10). Work goes on
+Updated 2026-10-12 (after the publish). **The game is live** (officially released 2026-10-10). Work goes on
 in `~/Desktop/8ball`, branch `gui-v4`. The STATUS from just before launch, in full, is the top
 entry of `docs/archive/STATUS_HISTORY.md`.
 
@@ -17,16 +17,13 @@ entry of `docs/archive/STATUS_HISTORY.md`.
   and updates, and a slow cleanup of old code and features as the game takes its form. Every
   update must not bring a critical bug or error to the live game: the rules are in CLAUDE.md,
   "The game is live".
-- **Published:** the 2026-10-11 publish (about 5:15 AM EDT) has everything up to `1a2b25c`
-  (Like + Favorite with one Verify, emotes, "Just one more game?", the onboarding fixes), and
-  servers were restarted. **Not yet published:** Settings' "Camera after a shot" (below), unbox announcements
-  without their "(1 in N)", "Gonna let that slide?" wiggling over Rematch for the side that lost,
-  **the new rank ladder** (below; needs "Restart Servers for Updates"), **the owner admin
-  panel** (below: announcements now type out on screen only, money rain has This server / All
-  servers), **Sell Duplicate / Keep on a duplicate's reveal card**, **the controller fixes**
-  and **the tutorial batch of 2026-10-12** (both below), **the VIP tag shut in a match** and
-  **Portals lasting 2 shots** and **the pad queuing you again 1.5 s after a match**
-  (DECISIONS). All pushed up to the docs commit after `9bc2e59`.
+- **Published:** the 2026-10-12 publish has everything up to `c499ecf`: the new rank ladder,
+  the owner admin panel, Sell Duplicate / Keep, Settings' "Camera after a shot", unbox
+  announcements without "(1 in N)", "Gonna let that slide?", the controller fixes, the
+  tutorial batch (zoom-in lesson, the quest's $2,500 reward), the VIP tag shut in a match,
+  Portals lasting 2 shots and the pad queuing you again 1.5 s after a match. The rank ladder
+  needs "Restart Servers for Updates" (the designer was reminded). **Not yet published:**
+  nothing.
 - **Now (designer, 2026-10-11):** fixing console (gamepad) controls for this update, from the
   designer's own tutorial run on a controller. Done: the 8's pocket by D-pad rows, the tutorial's
   D-pad fine aim, a Mystery held out and opened with R2, the Mystery screen's A button, the
