@@ -140,9 +140,9 @@ function UltInfo.new(holder: Frame, content: Frame): any
 	cardIcon.ZIndex = 9
 	cardIcon.Parent = card
 	self.cardIcon = cardIcon
+	-- Kept TextScaled (TextWrapped left on): a long name shrinks to its line, never past it.
 	local name = HudParts.text(card, "Name", 20, "")
 	name.AutoLocalize = false -- the ability's name, from Strings
-	name.TextWrapped = false
 	name.TextXAlignment = Enum.TextXAlignment.Left
 	name.ZIndex = 9
 	self.name = name

@@ -322,7 +322,16 @@ function UltSlots.layout(self: any, g: Parts.Geo, x: number, y: number): Vector2
 			else pad * 2
 		local lockRoom = if card.lock.Visible then lockPx + 2 else 0
 		local nameW = math.max(1, w - left - pad - lockRoom)
-		local nameH = nameText + 6
+		-- A name too long for one line at its size ("Guangdong Tiger" ran past the card,
+		-- 2026-10-12) scales into two lines; a short one keeps its fixed size. TextScaled on
+		-- turns TextWrapped on, TextWrapped off turns TextScaled off (STUDIO_NOTES, UI facts).
+		local wraps = Parts.textWidth(card.name.Text, nameText) > nameW
+		if wraps then
+			card.name.TextScaled = true
+		else
+			card.name.TextWrapped = false
+		end
+		local nameH = if wraps then nameText * 2 + 6 else nameText + 6
 		local stripGap = math.max(2, math.floor(pad / 3))
 		local block = nameH + (if card.strip.Visible then stripGap + stripH else 0)
 		local nameY = roomTop + math.floor((roomH - block) / 2)
