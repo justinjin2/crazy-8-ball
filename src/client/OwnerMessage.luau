@@ -2,9 +2,9 @@
 -- OwnerMessage: the owner's announcements (the admin panel, designer 2026-10-11; Grow a
 -- Garden style). Big white words with a dark outline at the top middle of the screen,
 -- "[OWNER]" first in black outlined in white (ChatTags.ownerTag), then "Painicane: message".
--- It opens with a white streak and the cue Equip sound, the tag pops in, the rest
+-- It opens with a white streak and a button pop (Intro.Sound), the tag pops in, the rest
 -- types out with soft key clicks, it stays for Config.Admin.Message's reading time and pops
--- out; queued one at a time. The same line goes in the chat window as a system line at once.
+-- out; queued one at a time. On screen only, never in the chat window (designer, 2026-10-11).
 -- Only a message from an owner's user id (Admin.isOwner) is shown, whoever sent it on.
 -- It shows in a match too: an announcement is rare and meant for everyone at once.
 local Players = game:GetService("Players")
@@ -37,15 +37,15 @@ local label: TextLabel? = nil
 local limit: UITextSizeConstraint? = nil
 local started = false
 
--- The line as RichText: the tag, then "name: text" in white with the kit's ink outline
--- (`big`: on screen, the tag's white outline thicker so it reads over the world).
-local function richLine(line: Line, big: boolean?): string
+-- The line as RichText: the tag (its white outline thicker so it reads over the world),
+-- then "name: text" in white with the kit's ink outline.
+local function richLine(line: Line): string
 	local ink = HudParts.tone("Ink"):ToHex()
 	local words = ChatTags.paint(
 		Strings.Admin.MessageLine:format(line.name, line.text),
 		HudParts.tone("White")
 	)
-	return ChatTags.ownerTag(if big then M.TagOutlinePx else nil)
+	return ChatTags.ownerTag(M.TagOutlinePx)
 		.. ' <stroke color="#'
 		.. ink
 		.. '" thickness="2">'
@@ -184,7 +184,7 @@ local function play(line: Line)
 	local gui = object.Parent :: ScreenGui
 	fit(object)
 	-- Laid out in full but showing nothing for a frame, to measure where the words sit.
-	object.Text = richLine(line, true)
+	object.Text = richLine(line)
 	object.MaxVisibleGraphemes = 0
 	UIAnim.scaleOf(object).Scale = 1
 	object.Visible = true
@@ -245,9 +245,7 @@ local function onMessage(payload: any)
 	if name == "" or text == "" or utf8.len(text) == nil then
 		return
 	end
-	local line: Line = { name = name, text = text }
-	ChatTags.system(richLine(line))
-	table.insert(queue, line)
+	table.insert(queue, { name = name, text = text })
 	showNext()
 end
 

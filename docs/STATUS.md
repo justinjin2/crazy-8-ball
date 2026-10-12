@@ -42,10 +42,10 @@ rooftop map with a day and sunset cycle; pull cutscenes Rare to Secret; the ball
 ## Watch on the live game (fixed or built, not yet seen live)
 
 - **The owner admin panel** (2026-10-11, DECISIONS; `Config.Admin.Enabled`): ADMIN bottom right,
-  Painicane only. Checked in Studio on PC: announcements (big + chat), Give/Drop/Backspace drops
+  Painicane only. Checked in Studio on PC: announcements (on screen only), Give/Drop/Backspace drops
   and pickup, ability and money by part of a name, money rain (standing icons, amounts,
   sparkles, same floor only, 60 s life, CashLand on pickup). Announcements now open with a white
-  streak and the cue Equip sound, then type out with the designer's keyboard click, just
+  streak and a button pop, then type out with the designer's keyboard click, just
   under the Sky Lucky Block timer. Live: an all-servers message, the text filter, a second player
   picking up drops and bills, a phone (button above the jump), the click's loudness.
 

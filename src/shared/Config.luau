@@ -5585,6 +5585,8 @@ Config.Audio = {
 		-- together like real typing. A typewriter at 0.15 was "way too loud and obnoxious"; a
 		-- soft click at 0.1 could not be heard.
 		OwnerTyping = { Id = "rbxassetid://72826565018765", Volume = 0.35, Overlap = true },
+		-- ...and as it opens, Roblox's old "button.wav" (0.29 s; the designer's pick, 2026-10-11).
+		OwnerPop = { Id = "rbxassetid://12221967", Volume = 0.3 },
 		-- The Mystery block's upgrade screen (designer, 2026-10-09; MysteryReveal). Opening it (the
 		-- click that jumps the block out of the hotbar): their "magical accent whoosh shimmer"
 		-- (assets/audio/ui/MysteryOpen.wav, 3.6 s; peak 0.74, loudest half second RMS 0.14). A
@@ -15914,7 +15916,7 @@ Config.Admin = {
 		Seconds = 8, -- on screen at least this long
 		SecondsPerChar = 0.05, -- plus this per character, for long ones
 		MaxSeconds = 14,
-		TagOutlinePx = 2, -- the black [OWNER]'s white outline on screen (chat keeps Owner's)
+		TagOutlinePx = 2, -- the black [OWNER]'s white outline (their chat lines keep Owner's)
 		TextPx = 34, -- the line's size on a computer...
 		PhoneTextPx = 22, -- ...and on a phone (a short screen)
 		PhoneBelowPx = 500, -- a screen shorter than this counts as a phone
@@ -15923,10 +15925,10 @@ Config.Admin = {
 		-- and a new player's quest line beneath it (higher than before, designer 2026-10-11).
 		TopPx = 58,
 		-- Before the words (designer, 2026-10-11): a white streak opens out from the middle of
-		-- where they will sit, with the cue Equip sound (the designer's pick, after the restock
-		-- banner's), then fades as the [OWNER] tag pops in...
+		-- where they will sit, with a button pop (the designer's pick, after the restock banner's
+		-- and the cue Equip sound), then fades as the [OWNER] tag pops in...
 		Intro = {
-			Sound = "Equip", -- a Config.Audio.Ui key
+			Sound = "OwnerPop", -- a Config.Audio.Ui key
 			StreakPx = 3, -- the streak's thickness
 			GlowPx = 26, -- the soft glow round it (Config.UI.Kit.Art.SoftGlow)
 			GlowTransparency = 0.45,
