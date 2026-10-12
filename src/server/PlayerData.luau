@@ -2027,6 +2027,30 @@ function PlayerData.moveLuckyBlock(player: Player, id: number, to: number): bool
 	return true
 end
 
+--- Takes the block `id` out of the save (the owner's drop for anyone to pick up,
+--- LuckyBlockService.dropForAll): returns its kind, or nil when there is no such block or the
+--- save is not loaded.
+function PlayerData.takeLuckyBlock(player: Player, id: number): string?
+	local op = "takeLuckyBlock"
+	if not isPlayer(player) then
+		refuse(op, player, "not a player")
+		return nil
+	elseif not intIn(id, 1, S.StatCap) then
+		refuse(op, player, ("bad block %s"):format(tostring(id)))
+		return nil
+	end
+	local data = liveData(op, player)
+	if data == nil then
+		return nil
+	end
+	local block = LuckyBlocks.remove(data.LuckyBlocks, id)
+	if block == nil then
+		return nil
+	end
+	commit(player, data, op)
+	return block.Kind
+end
+
 --- Select a timer for a paid skip. An existing saved credit is used before another prompt.
 function PlayerData.prepareLuckySkip(player: Player, id: number): (boolean, boolean)
 	if not isPlayer(player) or not intIn(id, 1, S.StatCap) then

@@ -15873,6 +15873,98 @@ Config.UI.Corners = {
 	DismissHitPx = 36, -- a touch reaches it from this far round (at least this big)
 }
 
+---------------------------------------------------------------------------------------------
+-- The owner's admin panel (designer, 2026-10-11; src/shared/Admin.luau, AdminService, the panel
+-- src/server/Admin/AdminPanel.client.luau): only the accounts in Config.Debug.Commands.UserIds
+-- (Painicane) ever get it, and the server checks every request. Off: no panel, nothing listens.
+---------------------------------------------------------------------------------------------
+Config.Admin = {
+	Enabled = true,
+	RequestBurst = 8, -- the panel's requests: this many at once...
+	RequestsPerSecond = 4, -- ...then this many a second (a held key, a stuck button)
+	MaxNameLength = 40, -- a typed player or ability name longer than this is refused
+	-- The panel itself: plain on purpose (designer: "do not need to put much effort in the GUI").
+	Panel = {
+		-- The ADMIN button sits in the bottom-right corner (designer, 2026-10-11), the window
+		-- opening above it; on a touch screen it sits higher, clear of Roblox's jump button.
+		ToggleSizePx = { 86, 34 },
+		EdgePx = 8, -- from the screen's right and bottom edges, and between button and window
+		TouchLiftPx = 190, -- a touch screen's button this much higher (the jump button's room)
+		WidthPx = 340,
+		HeightShare = 0.7, -- of the screen's height at most; the rows scroll inside
+		RowPx = 34,
+		TextPx = 18,
+		GapPx = 6,
+		PadPx = 10,
+		CornerPx = 8,
+		BackTransparency = 0.08,
+	},
+	-- The owner's announcements: big at the top middle of every screen and in chat (OwnerMessage).
+	Message = {
+		MaxLength = 150, -- characters the panel takes
+		Seconds = 8, -- on screen at least this long
+		SecondsPerChar = 0.05, -- plus this per character, for long ones
+		MaxSeconds = 14,
+		TagOutlinePx = 2, -- the black [OWNER]'s white outline on screen (chat keeps Owner's)
+		TextPx = 34, -- the line's size on a computer...
+		PhoneTextPx = 22, -- ...and on a phone (a short screen)
+		PhoneBelowPx = 500, -- a screen shorter than this counts as a phone
+		WidthShare = 0.8, -- of the screen's width
+		TopShare = 0.16, -- its top this far down the screen (under the HUD row)
+		FadeSeconds = 0.35,
+	},
+	-- Lucky blocks given or dropped from the panel (LuckyBlockService.dropForAll).
+	Blocks = {
+		MaxCount = 50, -- one Give or Drop moves at most this many
+		MaxDrops = 100, -- dropped blocks lying in the server at once
+		PickupStuds = 4.5, -- a player's root this close to a landed drop picks it up
+		PickupTickSeconds = 0.2,
+	},
+	Money = {
+		MaxAmount = 1e9, -- Set and Add take at most this (PlayerData's own caps still apply)
+	},
+	-- Money rain (src/server/MoneyRain.luau; the fall src/client/MoneyRainFx.luau).
+	Rain = {
+		MaxTotal = 10000000, -- one rain pays out at most this in all
+		Bills = 50, -- the total splits into this many bills (one a dollar under $50)
+		SpawnSeconds = 8, -- the bills start falling over this long
+		FallSeconds = 1.6, -- each bill's fall (designer, 2026-10-11: faster, was 3.5)
+		SkyStuds = 60, -- how high above its spot a bill starts
+		RadiusStuds = 70, -- bills land at most this far round the owner
+		-- A spot's floor must be this close to the owner's feet: the same floor as them, so a
+		-- bill never lands on a table, its invisible cover or an umbrella (designer, 2026-10-11).
+		FloorWithinStuds = 1.5,
+		SpotTries = 20, -- random spots tried for a bill before it lands at the owner's feet
+		PickupStuds = 5,
+		PickupTickSeconds = 0.2,
+		LifeSeconds = 60, -- a bill nobody takes is gone this long after it lands (designer)
+		MaxBills = 400, -- bills lying or falling in the server at once (a new rain waits)
+		-- A bill is the money icon standing up, always facing the camera (no turning), its
+		-- amount above it and white-and-gold sparkles round it so players go for it (designer,
+		-- 2026-10-11: no green slab lying flat). The part under it is invisible: it carries the
+		-- picture (a BillboardGui) and the sparkles.
+		SizeStuds = { 1.8, 1.8, 0.1 }, -- the invisible part (the sparkles come from it)
+		IconStuds = 1.65, -- the icon's size (designer: a tiny bit bigger, was 1.4)
+		LabelStuds = 0.8, -- the amount's height above the icon
+		LabelWidthStuds = 3, -- room for "$100,000"
+		ShowStuds = 150, -- seen from at most this far
+		HoverStuds = 0.4, -- the icon's bottom this far above the floor once down
+		BobStuds = 0.15, -- up and down once down
+		SwayStuds = 1.5, -- side to side while it falls
+		LabelColor = { 255, 221, 87 }, -- the amount's gold
+		Sparkle = {
+			Texture = "rbxasset://textures/particles/sparkles_main.dds", -- built into Roblox
+			Rate = 10, -- a second
+			Lifetime = { 0.5, 1.1 },
+			Speed = { 0.4, 1.4 },
+			SizeStuds = 0.35,
+			Colors = { { 255, 255, 255 }, { 255, 226, 110 } }, -- white to gold
+			LightEmission = 1,
+		},
+		Folder = "MoneyRain", -- the workspace folder the bills fall into
+	},
+}
+
 -- Settings (SettingsMenu, src/server/Settings.luau; GUI lane, designer 2026-10-03, C10): each
 -- switch and its default, saved in the save's Settings map; the moments a player has seen
 -- once (so their Skip shows) saved in Flags as "Seen:<kind>".

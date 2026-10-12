@@ -28,6 +28,11 @@
 --   block this way.
 -- - A thrown block nobody opens goes after ReturnSeconds, or once its owner is ReturnStuds
 --   away; it was never taken from the save, so it is simply back in the hotbar.
+-- - The owner's drops (the admin panel, AdminService; designer 2026-10-11): dropForAll takes a
+--   block out of the owner's save and throws it into the live folder with Owner 0 (so nobody
+--   gets an open prompt; LuckyWorld flies and bounces it like any thrown block). The first
+--   player to walk within Config.Admin.Blocks.PickupStuds of it once it lands gets a block of
+--   that kind, ready at once (paid). It stays until someone takes it; a full hotbar leaves it.
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -49,6 +54,7 @@ local PlayerData = require(script.Parent.PlayerData)
 local Store = require(script.Parent.Store)
 
 local L = Config.LuckyBlocks
+local AB = Config.Admin.Blocks
 
 type Held = { id: number, model: Model }
 type Live = {
@@ -90,6 +96,9 @@ local qaScript: string? = nil
 -- Config's own start of the Grand Opening Luck's deal (LuckyBlockQA "luck" goes back to it).
 local qaLuckStartsAt: number = (Config.Shop.Deals :: any)[Config.BlockOdds.Climb.Luck.With].StartsAt
 local warnedMissing: { [string]: boolean } = {}
+-- The owner's drops lying in the server (dropForAll), oldest first.
+type Drop = { kind: string, model: Model, to: CFrame, landed: boolean }
+local drops: { Drop } = {}
 
 local function refuse(reason: string): Reply
 	return { ok = false, reason = reason }
@@ -416,6 +425,13 @@ local function landing(root: BasePart, humanoid: Humanoid, kind: string): CFrame
 		local feet = root.Position.Y - root.Size.Y / 2 - humanoid.HipHeight
 		local at = Vector3.new(spot.X, if floor then floor.Position.Y else feet, spot.Z)
 		local occupied = false
+		for _, drop in drops do
+			local gap = math.max(L.PlacementGapStuds, floorReach(kind) + floorReach(drop.kind))
+			if (drop.to.Position - at).Magnitude < gap then
+				occupied = true
+				break
+			end
+		end
 		for _, entries in live do
 			for _, entry in entries do
 				local gap = math.max(L.PlacementGapStuds, floorReach(kind) + floorReach(entry.kind))
@@ -507,6 +523,142 @@ function HANDLERS.Throw(player: Player, r: LuckyBlocks.Request, data: any): Repl
 		end
 	end)
 	return { ok = true }
+end
+
+---------------------------------------------------------------------------------------------
+-- The owner's drops (the admin panel; designer 2026-10-11)
+---------------------------------------------------------------------------------------------
+
+--- The owner's drop for anyone: takes the block `id` (nil: the one in their hands) out of the
+--- owner's save and throws it on the floor in front of them; the first player to walk into it
+--- once it lands gets one of that kind, ready at once. True and the block's kind, or false and
+--- why ("NotOwner", "TooMany", "NotHeld", "NotOwned", "Busy", "NoBody", "NoRoom", "Error").
+function LuckyBlockService.dropForAll(player: Player, id: number?): (boolean, string?)
+	if not isTester(player) then
+		return false, "NotOwner"
+	elseif #drops >= AB.MaxDrops then
+		return false, "TooMany"
+	end
+	local h = held[player]
+	local inHands = h ~= nil and h.model.Parent ~= nil
+	local which = id or (if inHands and h then h.id else nil)
+	if which == nil then
+		return false, "NotHeld"
+	end
+	local data = PlayerData.read(player)
+	local block = if data and type(data.LuckyBlocks) == "table"
+		then LuckyBlocks.find(data.LuckyBlocks, which)
+		else nil
+	if block == nil then
+		return false, "NotOwned"
+	elseif live[player] and live[player][which] then
+		return false, "Busy" -- thrown on the floor for its owner to open
+	end
+	local root, humanoid = bodyOf(player)
+	if root == nil or humanoid == nil then
+		return false, "NoBody"
+	end
+	local kind = block.Kind
+	local to = landing(root, humanoid, kind)
+	if to == nil then
+		return false, "NoRoom"
+	end
+	local model = makeModel(kind, L.FloorSizeStuds, true)
+	if model == nil then
+		return false, "Error"
+	end
+	local fromCentre = if inHands
+			and h
+			and h.id == which
+		then h.model:GetBoundingBox().Position
+		else root.Position + Vector3.new(0, 1, 0)
+	if PlayerData.takeLuckyBlock(player, which) ~= kind then
+		model:Destroy()
+		return false, "NotOwned"
+	end
+	if inHands and h and h.id == which then
+		dropHeld(player)
+	end
+	local edge = model:GetAttribute("SizeStuds")
+	local floorEdge = if type(edge) == "number" then edge else L.FloorSizeStuds
+	model:PivotTo(CFrame.new(fromCentre - Vector3.new(0, floorEdge / 2, 0)) * to.Rotation)
+	model.Name = "LuckyDrop_" .. kind
+	model:SetAttribute("Owner", 0)
+	model:SetAttribute("Public", true)
+	model:SetAttribute("ReadyAt", 0)
+	model:SetAttribute("To", to)
+	model:SetAttribute("Phase", "Flying")
+	model:SetAttribute("PhaseAt", serverNow())
+	model.Parent = liveFolder()
+	local drop: Drop = { kind = kind, model = model, to = to, landed = false }
+	table.insert(drops, drop)
+	task.delay(L.Throw.Seconds, function()
+		if model.Parent then
+			model:PivotTo(to)
+			model:SetAttribute("Phase", "Landed")
+			model:SetAttribute("PhaseAt", serverNow())
+			drop.landed = true
+		end
+	end)
+	print(("[8ball] Admin: %s dropped a %s block for anyone"):format(player.Name, kind))
+	return true, kind
+end
+
+--- Drops up to `count` of the owner's `kind` blocks (dropForAll for each, the one in their
+--- hands too). Returns how many went down and, if it stopped short, why.
+function LuckyBlockService.dropKind(player: Player, kind: string, count: number): (number, string?)
+	local data = PlayerData.read(player)
+	if data == nil or type(data.LuckyBlocks) ~= "table" then
+		return 0, "NotLoaded"
+	end
+	local ids: { number } = {}
+	for _, block in data.LuckyBlocks.List do
+		if block.Kind == kind and not (live[player] and live[player][block.Id]) then
+			table.insert(ids, block.Id)
+		end
+	end
+	local dropped = 0
+	for _, id in ids do
+		if dropped >= count then
+			break
+		end
+		local ok, why = LuckyBlockService.dropForAll(player, id)
+		if not ok then
+			return dropped, why
+		end
+		dropped += 1
+	end
+	return dropped, if dropped < count then "NotEnough" else nil
+end
+
+-- A landed drop goes to the first player close enough whose hotbar has room.
+local function pickUpDrops()
+	for i = #drops, 1, -1 do
+		local drop = drops[i]
+		if drop.model.Parent == nil then
+			table.remove(drops, i)
+			continue
+		end
+		if not drop.landed then
+			continue
+		end
+		for _, player in Players:GetPlayers() do
+			local root = bodyOf(player)
+			if root and (root.Position - drop.to.Position).Magnitude <= AB.PickupStuds then
+				if PlayerData.giveLuckyBlocks(player, drop.kind, 1, nil, true) then
+					drop.model:Destroy()
+					table.remove(drops, i)
+					print(
+						("[8ball] Admin: %s picked up a dropped %s block"):format(
+							player.Name,
+							drop.kind
+						)
+					)
+					break
+				end
+			end
+		end
+	end
 end
 
 --- The tutorial lane's hooks on Open: `force(player, kind)` names the cue the block gives
@@ -911,6 +1063,20 @@ function LuckyBlockService.start()
 			end)
 			if not ok then
 				warn("[8ball] LuckyBlockService: " .. tostring(err))
+			end
+		end
+	end)
+	task.spawn(function()
+		while true do
+			task.wait(AB.PickupTickSeconds)
+			if #drops > 0 then
+				local ok, err = pcall(function(): any
+					pickUpDrops()
+					return nil
+				end)
+				if not ok then
+					warn("[8ball] LuckyBlockService: a drop's pickup failed: " .. tostring(err))
+				end
 			end
 		end
 	end)
