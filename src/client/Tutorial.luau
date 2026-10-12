@@ -636,9 +636,16 @@ local function mysteryScene(device: string, fresh: boolean): string
 		return "mysteryNone"
 	end
 	if LuckyClient.aimedKind() == Config.Tutorial.MysteryKind then
-		-- A controller picked it (LB / RB): R2 opens its upgrade screen.
+		-- A controller holds it out (LB / RB): R2 opens its upgrade screen, R2 pressed on the
+		-- screen (the block is in their hands now, not in the slot).
 		local key = "mysteryOpen" .. slot .. device
-		pointAt("HotbarSlot" .. slot, words(Copy.MysteryOpen, device), device, false)
+		if device == "gamepad" then
+			overlay:dim(nil)
+			hand:gesture("press", Enum.KeyCode.ButtonR2)
+			overlay:say(words(Copy.MysteryOpen, device))
+		else
+			pointAt("HotbarSlot" .. slot, words(Copy.MysteryOpen, device), device, false)
+		end
 		return key
 	end
 	local key = "mystery" .. slot .. device

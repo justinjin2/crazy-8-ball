@@ -2560,6 +2560,23 @@ Config.LuckyBlocks = {
 		OffsetR6 = { 0, 0.1, -1.9 },
 		TimerLiftStuds = 2.2, -- the countdown floats this far over the block's centre
 	},
+	-- A Mystery picked with LB / RB on a controller is held out like any block, and R2 opens its
+	-- upgrade screen with a white burst in the hands instead of a throw (designer, 2026-10-11;
+	-- LuckyClient, LuckyHandBurst; the server lets a Mystery be held, never thrown). Off: the
+	-- old way, picked but not held.
+	PadHoldMystery = true,
+	-- That burst: a white glow ball swelling from the block's size to GrowScale times it and
+	-- fading over Seconds, and Sparkles white twinkles flying out about SparkleSpeed studs a
+	-- second.
+	HandBurst = {
+		Seconds = 0.35,
+		GrowScale = 1.8,
+		StartTransparency = 0.15,
+		Sparkles = 24,
+		SparkleSpeed = 9,
+		SparkleSeconds = 0.5,
+		SparkleSizeStuds = 0.9,
+	},
 	-- The throw: the block lands this far in front of the root (shorter when a wall is
 	-- closer), on the floor found under that spot, and flies there on an arc in Seconds.
 	Throw = {

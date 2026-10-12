@@ -1950,9 +1950,9 @@ return {
 		Mystery = {
 			Mouse = "Click your Mystery block!",
 			Touch = "Tap your Mystery block!",
-			Gamepad = "Press {LB}{RB} to pick your Mystery block!",
+			Gamepad = "Press {LB}{RB} to hold your Mystery block!",
 		},
-		-- A controller picked it with LB / RB (only a controller gets here).
+		-- A controller holds it out after LB / RB (only a controller gets here).
 		MysteryOpen = {
 			Mouse = "Click your Mystery block!",
 			Touch = "Tap your Mystery block!",

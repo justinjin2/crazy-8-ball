@@ -10,8 +10,9 @@
 --   or more per player; Open (after the owner's native prompt hold) rolls the block's climb
 --   (economy v5.2: an unclimbed block climbs as it opens, the reel shows it) and the cue with
 --   server RNG, opens it through PlayerData.openLuckyBlock and starts the rise; Reveal is the
---   Mystery's upgrade screen (its roll turns it into a block, PlayerData.climbBlock; Hold and
---   Throw refuse a Mystery with "Reveal"); Move reorders the hotbar and bag. Every answer is
+--   Mystery's upgrade screen (its roll turns it into a block, PlayerData.climbBlock; Throw
+--   refuses a Mystery with "Reveal", and so does Hold unless Config.LuckyBlocks.PadHoldMystery:
+--   a controller holds it out before R2 opens its screen); Move reorders the hotbar and bag. Every answer is
 --   { ok = true, ... } or { ok = false, reason }.
 -- - A thrown block's model carries attributes every client animates from (LuckyWorld): Owner
 --   (UserId), BlockId, Kind, Phase ("Flying", "Landed", "Rising", "Burst") and PhaseAt (server
@@ -332,7 +333,7 @@ function HANDLERS.Hold(player: Player, r: LuckyBlocks.Request, data: any): Reply
 	local block = LuckyBlocks.find(data.LuckyBlocks, id)
 	if block == nil then
 		return refuse("NotOwned")
-	elseif LuckyBlocks.needsRoll(block) then
+	elseif LuckyBlocks.needsRoll(block) and not L.PadHoldMystery then
 		return refuse("Reveal") -- a Mystery rolls on its upgrade screen first (Reveal)
 	end
 	local l = live[player]

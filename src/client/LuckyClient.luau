@@ -15,10 +15,12 @@
 --   block bursts at the top of its rise, the reel plays at the climb's odds, every time
 --   (economy v5.2: a Rare block's strip is Rare 82%, Epic 16.2%...; a Rare or better cue's
 --   pull cutscene follows, LuckyOpening).
--- - A Mystery (economy v5.1; since v5.2 the only block with an upgrade screen) is never held
---   as it is: its slot says OPEN! and a tap, a click or its key opens its upgrade screen
---   (MysteryReveal), where its roll turns it into a tier's block, which jumps back into its
---   slot on its timer. On a gamepad LB / RB pick its slot and R2 opens it.
+-- - A Mystery (economy v5.1; since v5.2 the only block with an upgrade screen): its slot says
+--   OPEN! and a tap, a click or its key opens its upgrade screen (MysteryReveal), where its roll
+--   turns it into a tier's block, which jumps back into its slot on its timer. On a gamepad LB /
+--   RB hold it out like any block and R2 opens it: no throw, it bursts white in the hands
+--   (LuckyHandBurst) and the screen's block starts from there (designer, 2026-10-11;
+--   Config.LuckyBlocks.PadHoldMystery, off: picked but not held, R2 opens it).
 -- The tutorial (Tutorial.luau) reads which slot holds a kind (slotOf), what is held and what
 -- lies on the floor, and the hotbar registers its slots as anchors.
 -- - The bag: the ` (or ~) key, the bag button, or L3. A click on a block in it equips it with
@@ -39,6 +41,7 @@ local BlockDrop = require(Progression:WaitForChild("BlockDrop"))
 local BlockOdds = require(Progression:WaitForChild("BlockOdds"))
 local Catalog = require(Progression:WaitForChild("Catalog"))
 local LuckyBlocks = require(Progression:WaitForChild("LuckyBlocks"))
+local LuckyHandBurst = require(script.Parent.LuckyHandBurst)
 local LuckyHotbar = require(script.Parent.LuckyHotbar)
 local LuckyOpening = require(script.Parent.LuckyOpening)
 local MysteryReveal = require(script.Parent.MysteryReveal)
@@ -76,7 +79,9 @@ local opening: any = nil
 -- flying money; nil until LuckyClient.setDeps.
 local deps: any = nil
 local reveal: any = nil
-local aimedId: number? = nil -- a Mystery the gamepad's LB / RB picked (R2 opens its screen)
+-- A Mystery the gamepad's LB / RB picked without holding it (PadHoldMystery off; R2 opens its
+-- screen).
+local aimedId: number? = nil
 local entries: { Entry } = {}
 local heldId: number? = nil
 local liveIds: { [number]: boolean } = {}
@@ -282,8 +287,9 @@ local function requestSkip(id: number)
 end
 
 -- A Mystery's upgrade screen: its icon jumps out of its slot (MysteryReveal asks the server,
--- which turns it into the block its roll reached before anything is shown).
-local function revealBlock(id: number)
+-- which turns it into the block its roll reached before anything is shown). `fromHands`: held
+-- out on a controller, it bursts white in the hands and the icon starts from there.
+local function revealBlock(id: number, fromHands: boolean?)
 	if not visible or throwing or opening:isOpen() or reveal:isBusy() then
 		return
 	end
@@ -298,10 +304,49 @@ local function revealBlock(id: number)
 		refresh()
 		return
 	end
+	local inHands = LuckyHandBurst.heldModel()
 	putAway()
 	local from, px = hotbar:slotOf(id)
+	if fromHands and inHands and inHands:GetAttribute("BlockId") == id then
+		from = LuckyHandBurst.play(inHands) or from
+	end
 	reveal:play(id, from, px, nil, entry.kind)
 	refresh()
+end
+
+-- Block `id` into the hands (the Hold animation; the server puts its model there for everyone).
+-- A refusal puts it away and says why.
+local function takeOut(id: number)
+	heldId = id
+	playHold()
+	refresh()
+	task.spawn(function()
+		local reply = request("Hold", id)
+		if not reply.ok and heldId == id then
+			heldId = nil
+			stopHold()
+			refresh()
+			hotbar:say(reasonText(reply))
+		end
+	end)
+end
+
+-- A Mystery picked with LB / RB (PadHoldMystery): held out like any block (again puts it away);
+-- R2 then opens it (throw).
+local function holdMystery(id: number)
+	if throwing or opening:isOpen() or reveal:isBusy() then
+		return
+	end
+	aimedId = nil
+	if heldId == id then
+		putAway()
+		return
+	end
+	local entry = find(id)
+	if entry == nil or liveIds[id] then
+		return
+	end
+	takeOut(id)
 end
 
 local function holdBlock(id: number)
@@ -323,18 +368,7 @@ local function holdBlock(id: number)
 	end
 	-- A tapped block: the tutorial's RareBlock step counts the win's Rare block seen.
 	TutorialAnchors.setFlag("BlockTapped", true)
-	heldId = id
-	playHold()
-	refresh()
-	task.spawn(function()
-		local reply = request("Hold", id)
-		if not reply.ok and heldId == id then
-			heldId = nil
-			stopHold()
-			refresh()
-			hotbar:say(reasonText(reply))
-		end
-	end)
+	takeOut(id)
 end
 
 local function move(id: number, to: number)
@@ -357,6 +391,11 @@ local function throw()
 	end
 	local entry = find(id)
 	if entry == nil then
+		return
+	end
+	if rollsFirst(entry) then
+		-- A Mystery held out (a controller): never thrown, its upgrade screen opens.
+		revealBlock(id, true)
 		return
 	end
 	if entry.readyAt > serverNow() then
@@ -537,7 +576,9 @@ local function onInput(input: InputObject, processed: boolean)
 		local step = if key == Enum.KeyCode.ButtonR1 then 1 else -1
 		local nextIndex = if at == 0 then (if step > 0 then 1 else n) else (at - 1 + step) % n + 1
 		local entry = hotbar:slotEntry(nextIndex)
-		if entry and rollsFirst(entry) then
+		if entry and rollsFirst(entry) and L.PadHoldMystery then
+			holdMystery(entry.id) -- held out; R2 opens its upgrade screen
+		elseif entry and rollsFirst(entry) then
 			-- Picked, not held: R2 opens its climb screen.
 			putAway()
 			aimedId = entry.id
@@ -984,9 +1025,14 @@ function LuckyClient.heldKind(): string?
 	return if entry then entry.kind else nil
 end
 
---- A Mystery the gamepad's LB / RB picked (R2 opens its screen): its kind, or nil.
+--- A Mystery the gamepad's LB / RB picked, held out or (PadHoldMystery off) only picked: R2
+--- opens its screen. Its kind, or nil.
 function LuckyClient.aimedKind(): string?
-	local entry = if heldId == nil then find(aimedId) else nil
+	local held = find(heldId)
+	if held then
+		return if rollsFirst(held) then held.kind else nil
+	end
+	local entry = find(aimedId)
 	return if entry then entry.kind else nil
 end
 
