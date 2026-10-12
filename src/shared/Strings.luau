@@ -790,8 +790,6 @@ return {
 				Pity = "%s guaranteed in %d", -- "Rare guaranteed in 10" (a pity bar: the tier's name)
 				PityNext = "Your next one is %s!", -- the guarantee is the very next block
 				RestockTitle = "RESTOCK",
-				-- Slot 1's tag (economy v5: its own table, from its lowest kind): "Epic or better!".
-				SlotFloor = "%s or better!",
 				Left = "x%d left", -- a restock slot's stock: "x2 left"
 				SoldOut = "Sold out",
 				VipOnly = "VIP only",

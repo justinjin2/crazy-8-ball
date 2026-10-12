@@ -55,7 +55,6 @@ type Slot = {
 	art: ShopCards.Art,
 	badge: ShopCards.Badge,
 	crown: ImageLabel?,
-	floor: ShopCards.Tag?, -- slot 1's "Epic or better!"
 	name: TextLabel,
 	stock: Frame,
 	stockWords: TextLabel,
@@ -143,16 +142,6 @@ function ShopRestock.new(parent: Instance, actions: Actions): any
 			made.ZIndex = 7
 			crown = made
 		end
-		local floorTag: ShopCards.Tag? = nil
-		if floor and not vip then
-			floorTag = ShopCards.tag(
-				box.frame,
-				"Floor",
-				string.format(COPY.SlotFloor, SHORT[floor] or floor),
-				ShopCards.rarityColor(floor),
-				7
-			)
-		end
 		local name = ShopCards.label(box.frame, "Name", "", nil, 5)
 		name.RichText = true
 		local stock, stockWords = ShopCards.pill(box.frame, "Stock", "", rgb(R.StockColor), 5)
@@ -177,7 +166,6 @@ function ShopRestock.new(parent: Instance, actions: Actions): any
 			art = art,
 			badge = badge,
 			crown = crown,
-			floor = floorTag,
 			name = name,
 			stock = stock,
 			stockWords = stockWords,
@@ -304,10 +292,6 @@ function ShopRestock.layout(self: any, width: number, k: number, y: number): num
 		ShopCards.layoutBadge(slot.badge, k, R.OddsBadge[1], R.OddsBadge[2], R.OddsBadge[3])
 		if slot.crown then
 			ShopCards.put(slot.crown, k, R.Crown[1], R.Crown[2], R.Crown[3], R.Crown[3])
-		end
-		if slot.floor then
-			local f = R.Floor
-			ShopCards.layoutTag(slot.floor, k, f[1], f[2], f[3], f[4], R.FloorTextUnits)
 		end
 		-- The stock pill over the Robux row, the name over the pill: on a small screen their
 		-- words keep the smallest text size, so they move up to make room.

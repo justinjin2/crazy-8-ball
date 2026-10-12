@@ -10475,10 +10475,6 @@ Config.UI.ShopBlocks = {
 		Rays = 300,
 		OddsBadge = { 366, 36, 44 },
 		Crown = { 200, 30, 58 }, -- the VIP slot's crown over its block
-		-- Slot 1's tag at its top left ("Epic or better!", economy v5: its own odds table),
-		-- tilted as the Mystery card's ribbon: centre x, centre y, width, height; its words.
-		Floor = { 96, 34, 168, 38 },
-		FloorTextUnits = 20,
 		CrownRock = { 6, 2.4 }, -- it rocks this many degrees each way, over this many seconds
 		NameY = 228,
 		NameUnits = 25,
