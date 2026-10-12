@@ -8212,6 +8212,11 @@ Config.Multiplayer = {
 		PadPickFillTransparency = 0.55,
 		PadPickGlowScale = 2.6,
 		PadPickGlowTransparency = 0.05,
+		-- Calling the 8 (MatchTargets; designer, 2026-10-12): the kit's arrow (Kit.Icons.Arrow)
+		-- on the cloth by each pocket, pointing out at it and
+		-- bobbing BobPx toward it every BobSeconds; on a controller only the lit pocket has one.
+		-- The rings' "Pocket N" captions hide meanwhile. On = false: the captions, no arrows.
+		PocketArrows = { On = true, Px = 48, GapPx = 0, BobPx = 8, BobSeconds = 0.9 },
 		-- After the call, the chosen pocket's marker sits inside its hole while you shoot, so it
 		-- never covers the jaws (designer, 2026-09-27): its outer edge (ink included) spans this
 		-- share of the hole's narrow way on screen, before the pulse (TargetPulse) adds 15%.

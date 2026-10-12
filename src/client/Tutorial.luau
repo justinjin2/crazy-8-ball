@@ -475,7 +475,7 @@ local function game1Scene(device: string, fresh: boolean): string
 	-- The break: a release under half power does nothing (the bar springs back, the line
 	-- shakes: weakRelease).
 	TutorialAnchors.setMinPower(if lesson == "Break" then L.BreakMinPower else nil)
-	if lesson ~= "Aim" and lesson ~= "Combo" and lesson ~= "Eight" then
+	if lesson ~= "Aim" and lesson ~= "Combo" then
 		glow:hide()
 	end
 	if lesson == "Break" then
@@ -532,16 +532,10 @@ local function game1Scene(device: string, fresh: boolean): string
 		end
 		overlay:say(words(Copy.BallInHand, device))
 	elseif lesson == "Eight" then
-		-- The pocket the 8 sits by glows, the hand on its button (every pocket stays clickable).
-		local id, at = player:GetAttribute("TutorialTable"), player:GetAttribute("TutorialPocket")
-		glow:show(
-			if type(id) == "number" then id else nil,
-			if type(at) == "number" then at else nil
-		)
-		local pocket = TutorialOverlay.guiTarget("Pocket" .. tostring(at))
-		overlay:dim(pocket)
-		hand:point(pocket)
-		overlay:say(words(Copy.Eight, device))
+		-- Any pocket: the match's own arrows point at all six (MatchTargets); no dim, no glow
+		-- and no hand on one pocket (designer, 2026-10-12: kids found the suggestion confusing).
+		-- The hidden help carries the 8 to whichever they call (Rig.assist).
+		lineOnly(words(Copy.Eight, device))
 	elseif lesson == "Away" then
 		lineOnly(Copy.Away)
 	else

@@ -12,13 +12,12 @@
 -- it dpad"): while the call is owed, the D-pad walks the pockets as the table lies on screen,
 -- two rows of three (PadMath.pocketRows): right and left along a row, stopping at its end, down
 -- and up to the other row (PadMath.rowStep). A calls the one lit. It starts lit on the top
--- left, or on the tutorial's own pocket. The left stick is held (sunk) but picks nothing.
+-- left. The left stick is held (sunk) but picks nothing.
 -- Bound at High + 1 (UltPick's way), never through Roblox's GUI selection.
 local ContextActionService = game:GetService("ContextActionService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
 local GuiService = game:GetService("GuiService")
-local Players = game:GetService("Players")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
@@ -184,6 +183,18 @@ function MatchTargets.new(
 		glow.Visible = false
 		glow.ZIndex = 1
 		glow.Parent = self.root
+		-- A white arrow on the cloth pointing at the pocket, bobbing toward it, while the 8 is
+		-- called (Style.PocketArrows; on a controller only on the lit pocket).
+		local arrow = Instance.new("ImageLabel")
+		arrow.Name = "PocketArrow" .. id
+		arrow.AnchorPoint = Vector2.new(0.5, 0.5)
+		arrow.BackgroundTransparency = 1
+		arrow.Image = Config.UI.Kit.Icons.Arrow
+		arrow.ScaleType = Enum.ScaleType.Fit
+		arrow.Active = false
+		arrow.Visible = false
+		arrow.ZIndex = 3
+		arrow.Parent = self.root
 		local item: any = {
 			id = id,
 			button = button,
@@ -191,6 +202,7 @@ function MatchTargets.new(
 			ink = ink,
 			caption = caption,
 			glow = glow,
+			arrow = arrow,
 			hover = false,
 			padHover = false, -- the controller's pick
 		}
@@ -591,13 +603,9 @@ function MatchTargets.padPoints(self: any): { PadMath.Point }
 	return points
 end
 
--- The pocket lit when a controller's call starts: the tutorial's (TutorialPocket), else the
--- top left on screen (designer, 2026-10-11).
+-- The pocket lit when a controller's call starts: the top left on screen (designer,
+-- 2026-10-11), the tutorial's too since 2026-10-12 (it no longer suggests a pocket).
 function MatchTargets.padStart(self: any): number?
-	local tutorial = Players.LocalPlayer:GetAttribute("TutorialPocket")
-	if type(tutorial) == "number" and self.geometry.pockets[tutorial] then
-		return tutorial
-	end
 	local rows = PadMath.pocketRows(self:padPoints())
 	return if rows[1] then rows[1][1].id else nil
 end
@@ -684,6 +692,14 @@ function MatchTargets.update(self: any, dt: number, camera: Camera)
 		self:finishGesture(open)
 	end
 	local pulse = (math.sin(self.elapsed * math.pi * 2 / S.PulsePeriod) + 1) / 2
+	-- The arrows point from the table's middle out at each pocket, on the cloth (never under
+	-- the top bar), and bob toward it (designer, 2026-10-12: "moving gentle pointing arrows on
+	-- each 6 telling them to pick any of them"); on a controller only the lit pocket has one.
+	local A = S.PocketArrows
+	local arrows = A.On and canCall
+	local middle = if arrows then self:project(camera, 0, 0, S.TargetHeightInches) else nil
+	local bob = A.BobPx * (1 - math.cos(self.elapsed * math.pi * 2 / A.BobSeconds)) / 2
+	local onPad = PadMode.active()
 	for _, target in self.pockets do
 		local pocket = self.geometry.pockets[target.id]
 		local chosen = snapshot.calledPocket == target.id
@@ -716,6 +732,7 @@ function MatchTargets.update(self: any, dt: number, camera: Camera)
 		-- The marker has no caption: the words would cover the pocket's near jaw.
 		target.caption.Visible = highlighted
 			and not marker
+			and not arrows -- the arrows say it instead (they would cover the caption)
 			and (hover or chosen or snapshot.phase == "PocketChoice")
 		-- The controller's pick: bigger, breathing, gold inside and glowing round.
 		local picked = canCall and target.padHover
@@ -736,6 +753,21 @@ function MatchTargets.update(self: any, dt: number, camera: Camera)
 		target.glow.Visible = picked and target.button.Visible
 		target.glow.Position = target.button.Position
 		target.glow.Size = UDim2.fromOffset(size * S.PadPickGlowScale, size * S.PadPickGlowScale)
+		local arrow = target.arrow
+		local out = if middle then position - middle else Vector2.zero
+		arrow.Visible = arrows
+			and target.button.Visible
+			and (picked or not onPad)
+			and out.Magnitude > 1
+		if arrow.Visible then
+			local dir = out.Unit
+			local back = size / 2 + A.GapPx + A.Px / 2 + (A.BobPx - bob)
+			local at = position - dir * back
+			arrow.Position = UDim2.fromOffset(at.X, at.Y)
+			arrow.Size = UDim2.fromOffset(A.Px, A.Px)
+			-- The kit's arrow points right: turned so it points along `dir` (screen y grows down).
+			arrow.Rotation = math.deg(math.atan2(dir.Y, dir.X))
+		end
 	end
 	self:updatePad(canCall)
 	if canPlace then

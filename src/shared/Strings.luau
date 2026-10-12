@@ -1908,9 +1908,9 @@ return {
 			Gamepad = "Ball in hand! Hold {L2} and tilt {LS} to move it.",
 		},
 		Eight = {
-			Mouse = "SELECT WHICH POCKET!",
-			Touch = "SELECT WHICH POCKET!",
-			Gamepad = "SELECT WHICH POCKET! {DPad} to move, {A} to pick.",
+			Mouse = "PICK ANY POCKET FOR THE 8!",
+			Touch = "PICK ANY POCKET FOR THE 8!",
+			Gamepad = "PICK ANY POCKET FOR THE 8! {DPad} to move, {A} to pick.",
 		},
 		-- After game 1: the result, the first win's block, NEW RANK!.
 		Continue = {
