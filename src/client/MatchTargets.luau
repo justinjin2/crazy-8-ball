@@ -170,12 +170,27 @@ function MatchTargets.new(
 		local button, stroke, ink, caption =
 			ring(self.root, "Pocket" .. id, S.TargetSize, tone("Blue"))
 		caption.Text = string.format(Strings.Match.PocketLabel, id)
+		button.BackgroundColor3 = tone("Gold") -- the controller's pick fills gold (update)
+		button.ZIndex = 2
+		-- The controller's pick glows gold behind its ring.
+		local glow = Instance.new("ImageLabel")
+		glow.Name = "PadGlow" .. id
+		glow.AnchorPoint = Vector2.new(0.5, 0.5)
+		glow.BackgroundTransparency = 1
+		glow.Image = Config.UI.Kit.Art.SoftGlow
+		glow.ImageColor3 = tone("Gold")
+		glow.ImageTransparency = S.PadPickGlowTransparency
+		glow.Active = false
+		glow.Visible = false
+		glow.ZIndex = 1
+		glow.Parent = self.root
 		local item: any = {
 			id = id,
 			button = button,
 			stroke = stroke,
 			ink = ink,
 			caption = caption,
+			glow = glow,
 			hover = false,
 			padHover = false, -- the controller's pick
 		}
@@ -702,9 +717,13 @@ function MatchTargets.update(self: any, dt: number, camera: Camera)
 		target.caption.Visible = highlighted
 			and not marker
 			and (hover or chosen or snapshot.phase == "PocketChoice")
+		-- The controller's pick: bigger, breathing, gold inside and glowing round.
+		local picked = canCall and target.padHover
+		local breathe = 1
+			+ S.PadPickBreathe * math.sin(self.elapsed * math.pi * 2 / S.PadPickBreatheSeconds)
 		local size = base
 			* (1 + (if chosen then S.TargetPulse * pulse else 0))
-			* (if canCall and target.padHover then S.PadPickScale else 1)
+			* (if picked then S.PadPickScale * breathe else 1)
 		if self.confirmedPocket == target.id and self.confirmedAt then
 			local t = (self.elapsed - self.confirmedAt) / S.Motion
 			if t < 1 then
@@ -712,6 +731,11 @@ function MatchTargets.update(self: any, dt: number, camera: Camera)
 			end
 		end
 		target.button.Size = UDim2.fromOffset(size, size)
+		target.button.BackgroundTransparency = if picked then S.PadPickFillTransparency else 1
+		target.caption.TextColor3 = if picked then tone("Gold") else tone("Blue")
+		target.glow.Visible = picked and target.button.Visible
+		target.glow.Position = target.button.Position
+		target.glow.Size = UDim2.fromOffset(size * S.PadPickGlowScale, size * S.PadPickGlowScale)
 	end
 	self:updatePad(canCall)
 	if canPlace then
@@ -786,6 +810,7 @@ function MatchTargets.clear(self: any)
 	self.handle.Visible = false
 	for _, target in self.pockets do
 		target.button.Visible = false
+		target.glow.Visible = false
 	end
 	for _, dot in self.dots do
 		dot.Visible = false

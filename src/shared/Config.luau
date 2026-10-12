@@ -8164,7 +8164,16 @@ Config.Multiplayer = {
 		-- Calling the 8 with the D-pad (MatchTargets, PadMath.stepToward): a ring off to the side
 		-- of a push counts this many times its sideways distance, so the straight one wins.
 		PocketNavAcrossWeight = 2,
-		PadPickScale = 1.2, -- the pocket the controller has lit is drawn this much bigger
+		-- The pocket the controller has lit (designer, 2026-10-11: "highlight it in yellow ...
+		-- blue ring needs to be bigger or breathing"): its blue ring this much bigger, breathing
+		-- by PadPickBreathe either way every PadPickBreatheSeconds, a see-through gold disc
+		-- inside it and a soft gold glow round it (PadPickGlowScale times the ring).
+		PadPickScale = 1.5,
+		PadPickBreathe = 0.12,
+		PadPickBreatheSeconds = 1.1,
+		PadPickFillTransparency = 0.55,
+		PadPickGlowScale = 2.6,
+		PadPickGlowTransparency = 0.05,
 		-- After the call, the chosen pocket's marker sits inside its hole while you shoot, so it
 		-- never covers the jaws (designer, 2026-09-27): its outer edge (ink included) spans this
 		-- share of the hole's narrow way on screen, before the pulse (TargetPulse) adds 15%.
