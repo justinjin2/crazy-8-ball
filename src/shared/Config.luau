@@ -14647,6 +14647,10 @@ Config.Tutorial = {
 			{ 7, 9, 14, 3, 13 },
 		},
 		Solids = 2, -- the break pots exactly this many solids and nothing else
+		-- Each ball the break pots steps the ball streak up (x1, x2, x3; Rules/Streak's
+		-- breakEach), only in this game (designer, 2026-10-12: "more dopamine"); x3 pays the usual
+		-- streak bonus. False: the break is x1 however many drop, as in every other game.
+		StreakEach = true,
 		-- The last of them creeps: at least this long within 2 in of where it drops (the
 		-- layout guard test, tests/tutorial_game_test.luau; this break: 0.57 s, 6 s in).
 		CreepSeconds = 0.55,

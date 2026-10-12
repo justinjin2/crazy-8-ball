@@ -7,7 +7,9 @@
 -- when it pays its $100), so the screen and the money never disagree:
 -- - nothing on a foul shot (designer: a foul that also pots your ball ends the streak, its
 --   ball does not raise it);
--- - every object ball on the break, but the break as a whole is x1 however many drop;
+-- - every object ball on the break, but the break as a whole is x1 however many drop (the
+--   tutorial's game 1 apart, `breakEach`: each break ball steps up, x1 x2 x3; designer,
+--   2026-10-12);
 -- - the legal pot that picks the colours, and after that only the team's own group;
 -- - the 8 only when it wins the game for the shooter;
 -- - in Solo every object ball (the player has both groups), so Solo can pass x8.
@@ -32,6 +34,9 @@ export type Context = {
 	winner: number?,
 	reason: string?, -- "LegalEight" = the 8 won it
 	solo: boolean, -- a solo game: both groups are the player's
+	-- The tutorial's game 1 (Config.Tutorial.Break.StreakEach): each ball of the break steps the
+	-- streak up instead of the break being x1.
+	breakEach: boolean?,
 }
 
 local Streak = {}
@@ -75,7 +80,7 @@ function Streak.step(
 	local any = false
 	for _, drop in drops do
 		if Streak.counts(drop.ball, ctx) then
-			if ctx.breakShot then
+			if ctx.breakShot and not ctx.breakEach then
 				count = 1 -- the break is x1 however many balls it drops
 			else
 				count += 1

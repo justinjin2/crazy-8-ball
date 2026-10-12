@@ -1251,6 +1251,7 @@ function finalizeShot(t: any, before: { any }, outcome: any, now: number, from: 
 			winner = j.winner,
 			reason = j.reason,
 			solo = t.solo ~= nil,
+			breakEach = t.tutorial ~= nil and Config.Tutorial.Break.StreakEach == true,
 		})
 		t.streak = streak
 		shot.streaks = steps

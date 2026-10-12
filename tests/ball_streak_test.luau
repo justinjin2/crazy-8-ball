@@ -59,6 +59,20 @@ function tests.the_break_is_x1_however_many_drop()
 	expect(again ~= nil and again.count == 1)
 end
 
+function tests.the_tutorials_break_steps_up_on_each_ball()
+	-- Game 1 of the tutorial (designer, 2026-10-12): three solids on the break go x1, x2, x3.
+	local state, steps = Streak.step(
+		{ team = 1, count = 5 },
+		drops(3, 5, 6),
+		ctx({ breakShot = true, breakEach = true, groupsBefore = {}, groupsAfter = {} })
+	)
+	expect(state ~= nil and state.count == 3, "three on the tutorial's break: x3")
+	expect(levels(steps) == "3:1 5:2 6:3", levels(steps))
+	-- The next pot carries on from x3.
+	state, steps = Streak.step(state, drops(2), ctx())
+	expect(state ~= nil and state.count == 4 and levels(steps) == "2:4", levels(steps))
+end
+
 function tests.each_later_ball_steps_up_and_two_in_one_shot_step_twice()
 	local state, steps = Streak.step({ team = 1, count = 1 }, drops(2), ctx())
 	expect(state ~= nil and state.count == 2 and levels(steps) == "2:2")
