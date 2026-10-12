@@ -7972,6 +7972,12 @@ Config.Multiplayer = {
 	CameraSideFraction = 0.1, -- pocket/rail clearance
 	ActionRetrySeconds = 2, -- recover controls if an acknowledgement is lost
 	MaxReplayStepsPerFrame = 32, -- bounded catch-up work per visible table
+	-- A shot's replay that arrives late (the server's work + the trip down) starts at the
+	-- strike and runs Rate fast until level with the server, instead of jumping ahead and
+	-- skipping the hit (ReplayPace; 2026-10-12, a tester's "the balls teleport"). A lag over
+	-- MaxLagSeconds (a late joiner, a stall) is skipped down to it. MaxLagSeconds = 0 is the
+	-- old jump ahead.
+	ReplayCatchUp = { MaxLagSeconds = 0.5, Rate = 1.3 },
 	SnapshotIntervalSeconds = 2, -- recover late/missed client subscriptions
 	YourTurnSound = "rbxassetid://120722072794939", -- user supplied; preload verified
 	FoulSound = "rbxassetid://128802141795458", -- user supplied; preload verified

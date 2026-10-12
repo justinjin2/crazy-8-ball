@@ -36,6 +36,7 @@ local TableGeometry = require(Physics:WaitForChild("Table"))
 local TableBuilder = require(Shared:WaitForChild("TableBuilder"))
 local TimeStop =
 	require(Shared:WaitForChild("Ults"):WaitForChild("Effects"):WaitForChild("TimeStop"))
+local ReplayPace = require(Shared:WaitForChild("ReplayPace"))
 local BallRenderer = require(script.Parent:WaitForChild("BallRenderer"))
 
 type Shot = Cue.Shot
@@ -83,6 +84,7 @@ export type Match = typeof(setmetatable(
 		-- nil when the table is still; otherwise the shot in progress.
 		shot: {
 			elapsed: number, -- shot seconds the render clock has asked for so far
+			lag: number?, -- shot seconds still to catch up on the server (ReplayPace)
 			steps: number,
 			events: { Event },
 			nextEvent: number,
@@ -525,11 +527,15 @@ function Match.replay(
 	self.pendingFinal = final
 	self.pendingChecksum = checksum
 	-- If this arrived late, catch up to where the shot already is instead of replaying it
-	-- from the start and finishing several seconds after everyone else.
+	-- from the start and finishing several seconds after everyone else: a small lag gently
+	-- (running a little fast, so the strike and the first hit are still drawn), a big one by
+	-- skipping ahead (ReplayPace).
 	local behind =
 		math.clamp(workspace:GetServerTimeNow() - startedAt, 0, Config.Physics.MaxShotSeconds)
+	local elapsed, lag = ReplayPace.start(behind, Config.Multiplayer.ReplayCatchUp)
 	self.shot = {
-		elapsed = behind,
+		elapsed = elapsed,
+		lag = lag,
 		steps = 0,
 		events = { { t = 0, type = "cueStrike", ball = 0, speed = Ball.speed(cue) } },
 		nextEvent = 1,
@@ -700,7 +706,13 @@ function Match.update(self: Match, dt: number): boolean
 			rate *= slow.scale
 		end
 	end
-	shot.elapsed += math.min(dt, Config.Debug.MaxPlaybackStepSeconds) * rate
+	local played
+	played, shot.lag = ReplayPace.advance(
+		math.min(dt, Config.Debug.MaxPlaybackStepSeconds) * rate,
+		shot.lag or 0,
+		Config.Multiplayer.ReplayCatchUp
+	)
+	shot.elapsed += played
 	if self.holdAt then
 		shot.elapsed = math.min(shot.elapsed, self.holdAt)
 	end
