@@ -16,6 +16,10 @@
 -- topic Config.Items.AnnounceTopic with this server's id, and every other server's subscriber
 -- fires it for its own players (this server ignores its own message, so nobody sees it twice).
 -- A subscribe that fails is tried again a few times, further apart each time.
+-- The owner's announcements (the admin panel, AdminService; designer 2026-10-11) go on their
+-- own remote (Net "OwnerMessage": { userId, name, text }), to this server or to every server
+-- through the same topic (kind "Owner"); an arriving one is shown only if its user id is the
+-- owner's (Admin.isOwner) and its text is short enough. The text was filtered before it left.
 -- The first Reyes ever (Counters.claimFirst) also gets the one-of-one title
 -- (Config.Items.FirstReyesTitle) through PlayerData.addTitle; a first who left before the title
 -- landed gets it on their next join here (a Reyes player without it looks the key up once).
@@ -27,6 +31,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared.Config)
 local Net = require(Shared.Net)
+local Admin = require(Shared.Admin)
 local Catalog = require(Shared.Progression.Catalog)
 local BlockOdds = require(Shared.Progression.BlockOdds)
 local UltCatalog = require(Shared.Ults.Catalog)
@@ -72,13 +77,43 @@ local function fire(payload: { [string]: any }, only: Player?)
 	end
 end
 
--- A Reyes, unbox or ult-roll message from another server, checked before it is shown here.
+-- The owner's line to everyone in this server. Never errors.
+local function fireOwner(userId: number, name: string, text: string)
+	local ok, err = pcall(function()
+		(Net.get("OwnerMessage") :: RemoteEvent):FireAllClients({
+			userId = userId,
+			name = name,
+			text = text,
+		})
+	end)
+	if not ok then
+		warn(("[8ball] Announce: the owner's message failed: %s"):format(tostring(err)))
+	end
+end
+
+-- A Reyes, unbox or ult-roll message (or the owner's line) from another server, checked
+-- before it is shown here.
 local function onMessage(message: any)
 	local data = if type(message) == "table" then message.Data else nil
 	if type(data) ~= "table" or data.from == SERVER then
 		return
 	end
 	local kind, userId, name = data.kind, data.userId, data.name
+	if kind == "Owner" then
+		local text = data.text
+		if
+			Admin.isOwner(userId)
+			and type(name) == "string"
+			and name ~= ""
+			and #name <= MAX_NAME_LENGTH
+			and type(text) == "string"
+			and text ~= ""
+			and #text <= Config.Admin.Message.MaxLength * 4
+		then
+			fireOwner(userId, name, text)
+		end
+		return
+	end
 	if
 		(kind ~= "Reyes" and kind ~= "FirstReyes" and kind ~= "Ult" and kind ~= "Unbox")
 		or type(userId) ~= "number"
@@ -250,6 +285,23 @@ function Announce.ult(player: Player, ultId: string)
 			publish(payload, "ult roll")
 		end
 	end)
+end
+
+--- The owner's announcement (the admin panel): `text`, already filtered by the caller, to
+--- everyone in this server, and with `everyServer` to every server. Only the owner's account
+--- is ever sent. Yields only in its own thread for the cross-server publish.
+function Announce.owner(player: Player, text: string, everyServer: boolean)
+	if not isPlayer(player) or not Admin.isOwner(player.UserId) then
+		return
+	end
+	if type(text) ~= "string" or text == "" then
+		return
+	end
+	fireOwner(player.UserId, player.Name, text)
+	if everyServer then
+		local payload = { kind = "Owner", userId = player.UserId, name = player.Name, text = text }
+		task.spawn(publish, payload, "owner message")
+	end
 end
 
 --- A restock with block kind `kind` in it began here (the Legendary block: plan section 3):

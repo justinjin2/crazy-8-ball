@@ -310,6 +310,10 @@ local REMOTES: { [string]: string } = {
 	--   { kind = "Reyes" | "FirstReyes", userId, name } a player reached Reyes, in every
 	--     server (MessagingService); FirstReyes: the first player ever
 	Banner = "RemoteEvent",
+	-- server -> all: the owner's announcement (the admin panel; src/server/Announce.luau):
+	-- { userId, name, text }, the text already filtered. OwnerMessage shows it big at the top
+	-- middle and in chat. Only an owner's user id (Admin.isOwner) is ever shown.
+	OwnerMessage = "RemoteEvent",
 	-- Ults in a match (src/server/UltService.luau, Ults/Match; the table's snapshot carries
 	-- `ults` = { on, bars = { [tostring(userId)] = { bar, used, ready } }, armed = { by, id,
 	-- stage = "Arming" | "Armed", at, readyAt, seq, practice }?, pausedUntil? }).

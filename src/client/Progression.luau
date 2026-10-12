@@ -29,6 +29,7 @@ local Ranks = require(Shared:WaitForChild("Progression"):WaitForChild("Ranks"))
 local Banner = require(script.Parent.Banner)
 local CashFlyer = require(script.Parent.CashFlyer)
 local ChatTags = require(script.Parent.ChatTags)
+local OwnerMessage = require(script.Parent.OwnerMessage)
 local InventoryMenu = require(script.Parent.InventoryMenu)
 local ItemState = require(script.Parent.ItemState)
 local LuckClover = require(script.Parent.LuckClover)
@@ -281,6 +282,7 @@ function Progression.start(screen: ScreenGui, hooks: Hooks)
 	Portals.start() -- the Solo and Practice portals at the front, once the tutorial is over
 	plates = Nameplates.new()
 	ChatTags.start() -- the [TIER] tag before names in chat
+	OwnerMessage.start() -- the owner's announcements, big at the top and in chat
 	-- The tutorial lane's hand points at these (TutorialAnchors).
 	TutorialAnchors.set("Rank", rankHud.holder)
 	TutorialAnchors.set("MoneyHud", money.root)

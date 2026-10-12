@@ -117,6 +117,18 @@ function ChatTags.system(richText: string)
 	print("[8ball] " .. richText)
 end
 
+--- The designer's "[OWNER]" tag as RichText: black, outlined in white (Config.Ranks.Owner;
+--- `outlinePx`: a thicker outline, for the big announcement). Their chat lines and their
+--- announcements (OwnerMessage) both use it.
+function ChatTags.ownerTag(outlinePx: number?): string
+	local owner = Config.Ranks.Owner
+	return ('<stroke color="%s" thickness="%d">%s</stroke>'):format(
+		hex(owner.Outline),
+		outlinePx or owner.OutlinePx,
+		ChatTags.paint(Strings.Ranks.OwnerTag, Color3.fromRGB(table.unpack(owner.Color)))
+	)
+end
+
 --- Put each speaker's tags before their name in the chat window: [VIP], then the rank tag.
 --- Progression calls this once.
 function ChatTags.start()
@@ -134,12 +146,7 @@ function ChatTags.start()
 		-- The designer: "[OWNER]" and nothing else (designer, 2026-10-11).
 		if table.find(Config.Ranks.Owner.UserIds, player.UserId) then
 			local properties = Instance.new("TextChatMessageProperties")
-			local owner = Config.Ranks.Owner
-			properties.PrefixText = ('<stroke color="%s" thickness="%d">%s</stroke>'):format(
-				hex(owner.Outline),
-				owner.OutlinePx,
-				ChatTags.paint(Strings.Ranks.OwnerTag, Color3.fromRGB(table.unpack(owner.Color)))
-			) .. " " .. message.PrefixText
+			properties.PrefixText = ChatTags.ownerTag() .. " " .. message.PrefixText
 			return properties
 		end
 		local tags = {}
