@@ -5581,10 +5581,10 @@ Config.Audio = {
 		-- second RMS 0.27: loud, so it plays quiet).
 		MoneyRain = { Id = "rbxassetid://91981544084497", Volume = 0.2 },
 		-- The owner's announcement typing out (OwnerMessage; designer, 2026-10-11): their pick,
-		-- "keyboard click" (0.65 s), every few letters, overlapping so the clicks run together
-		-- like real typing. A typewriter at 0.15 was "way too loud and obnoxious"; this click is
-		-- soft, and at 0.1 could not be heard (designer, 2026-10-11).
-		OwnerTyping = { Id = "rbxassetid://96591611478915", Volume = 0.35, Overlap = true },
+		-- "Keyboard Clicked ASMR" (0.15 s), every few letters, overlapping so the clicks run
+		-- together like real typing. A typewriter at 0.15 was "way too loud and obnoxious"; a
+		-- soft click at 0.1 could not be heard.
+		OwnerTyping = { Id = "rbxassetid://72826565018765", Volume = 0.35, Overlap = true },
 		-- The Mystery block's upgrade screen (designer, 2026-10-09; MysteryReveal). Opening it (the
 		-- click that jumps the block out of the hotbar): their "magical accent whoosh shimmer"
 		-- (assets/audio/ui/MysteryOpen.wav, 3.6 s; peak 0.74, loudest half second RMS 0.14). A
