@@ -2197,6 +2197,10 @@ Config.BlockOdds = {
 	-- Economy v6 (designer, 2026-10-10, B): a block that gives a cue of one of these rarities
 	-- the player already owns pays its SellBack money instead of adding a copy.
 	DuplicateToMoney = { Common = true, Uncommon = true },
+	-- On (designer, 2026-10-11): no duplicate pays by itself; every duplicate that can be sold is
+	-- added as a copy and its reveal card offers "Sell Duplicate +$200" or "Keep" (Sell: the
+	-- copy is sold back at once). Off: DuplicateToMoney above, and every card says tap to continue.
+	DuplicateChoice = true,
 	ConfirmSellFrom = "Epic", -- the client asks "are you sure?" from this rarity up
 	-- Unboxing one of these is announced in every server (7.4); AnnounceHere only in the
 	-- opener's server (plan section 3: Legendary pulls).
@@ -3106,6 +3110,15 @@ Config.LuckyBlocks = {
 		CardRaysDegreesPerSecond = 25,
 		CardInSeconds = 0.35,
 		CardDismissAfterSeconds = 0.6, -- a tap before this does nothing (no accidental skip)
+		-- A duplicate's choice under the card (Config.BlockOdds.DuplicateChoice; designer,
+		-- 2026-10-11): "Sell Duplicate +$200" (yellow, the Sell icon) left, "Keep" (green) right,
+		-- popping in at CardDismissAfterSeconds so a tap meant for the reel cannot press them.
+		ChoiceWidthPx = 430, -- the row's width
+		ChoiceButtonPx = 54, -- the buttons' height
+		ChoiceGapPx = 12, -- between the two
+		ChoiceTopPx = 6, -- room above the row
+		ChoiceSellShare = 0.64, -- Sell's share of the row (its words are longer)
+		ChoiceStaggerSeconds = 0.06, -- Keep pops in this long after Sell
 		MinScale = 0.55,
 		MaxScale = 1.4,
 		MarginPx = 12,

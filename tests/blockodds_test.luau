@@ -482,6 +482,29 @@ return {
 		H.expect(BlockOdds.sellValue("Nope") == 0 and BlockOdds.sellValue(nil) == 0, "unknown ids")
 	end,
 
+	["a duplicate is offered Sell or Keep while DuplicateChoice is on"] = function()
+		local BlockOdds, _, Config = load()
+		local C = Config.BlockOdds
+		H.expect(C.DuplicateChoice == true, "on by default (designer, 2026-10-11)")
+		for _, rarity in C.Rarities do
+			H.expect(not BlockOdds.duplicatePays(rarity), rarity .. " never pays by itself")
+		end
+		H.expect(BlockOdds.offersSale("MidnightCue", 2), "a second Common")
+		H.expect(BlockOdds.offersSale("EclipseCue", 5), "a sixth Secret")
+		H.expect(not BlockOdds.offersSale("MidnightCue", 1), "the first copy is not a duplicate")
+		H.expect(not BlockOdds.offersSale("VipCue", 2), "an Exclusive never sells")
+		H.expect(not BlockOdds.offersSale("Nope", 2) and not BlockOdds.offersSale(nil, 2))
+		H.expect(not BlockOdds.offersSale("MidnightCue", nil), "no count")
+		C.DuplicateChoice = false
+		local ok, err = pcall(function()
+			H.expect(BlockOdds.duplicatePays("Common") and BlockOdds.duplicatePays("Uncommon"))
+			H.expect(not BlockOdds.duplicatePays("Rare"), "Rare kept a copy before too")
+			H.expect(not BlockOdds.offersSale("MidnightCue", 2), "off: no buttons")
+		end)
+		C.DuplicateChoice = true
+		H.expect(ok, tostring(err))
+	end,
+
 	["Legendary pulls announce in the server; Mythic and Secret in every server"] = function()
 		local BlockOdds, _, Config = load()
 		for _, rarity in Config.BlockOdds.Rarities do

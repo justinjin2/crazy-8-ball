@@ -41,6 +41,11 @@ rooftop map with a day and sunset cycle; pull cutscenes Rare to Secret; the ball
 
 ## Watch on the live game (fixed or built, not yet seen live)
 
+- **Sell Duplicate / Keep on a duplicate's reveal card** (2026-10-11, DECISIONS;
+  `Config.BlockOdds.DuplicateChoice`): checked in Studio on PC through the real reveal screen
+  (buttons, Escape keeps, Sell sold the copy for $200). Live: a real pull's Sell on a phone and
+  with a gamepad, the money flying into the HUD, Common duplicates now kept unless sold.
+
 - **The owner admin panel** (2026-10-11, DECISIONS; `Config.Admin.Enabled`): ADMIN bottom right,
   Painicane only. Checked in Studio on PC: announcements (on screen only), Give/Drop/Backspace drops
   and pickup, ability and money by part of a name, money rain (standing icons, amounts,

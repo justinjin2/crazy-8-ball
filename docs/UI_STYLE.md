@@ -470,7 +470,10 @@ then; the reel's rules hold for the blocks.
   The strip slides under a gold centre marker and eases to a
   stop on the prize, ticking as cards pass; the timings are `Config.UI.Reel`. Then the prize
   pops with its rarity sting: the pull cutscene from Rare, then the "YOU GOT" card over the
-  dimmed world (the cue's card big in the middle with all its motion, the rays behind it). A Rare or better pull fades everything to black from a second before the reel stops;
+  dimmed world (the cue's card big in the middle with all its motion, the rays behind it). A
+  duplicate's card has two candies instead of tap to continue: yellow "Sell Duplicate +$200" with
+  the Sell icon on the left, green "Keep" on the right, popping in once a tap may count; only they
+  close it (B or Escape keeps, a gamepad starts on Keep). A Rare or better pull fades everything to black from a second before the reel stops;
   Rare then swells a soft blue glow from the middle to a full blue screen, flashes white on
   the riser's peak and fades the white off the card (about 1.6 s, never skipped). Epic is a
   purple vortex: a bass hit and a longer riser with the fade, a ring pulse in the black, purple

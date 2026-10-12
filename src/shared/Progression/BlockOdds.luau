@@ -518,6 +518,23 @@ function BlockOdds.needsConfirm(cueId: any): boolean
 	return Catalog.rarityRank(cue.Rarity) >= Catalog.rarityRank(C.ConfirmSellFrom)
 end
 
+--- True when a block giving a cue of `rarity` the player already owns pays its sell money
+--- instead of a copy (economy v6, Config.BlockOdds.DuplicateToMoney). Never while
+--- Config.BlockOdds.DuplicateChoice is on: the reveal card asks Sell Duplicate or Keep instead.
+function BlockOdds.duplicatePays(rarity: any): boolean
+	return C.DuplicateChoice ~= true and (C.DuplicateToMoney :: any)[rarity] == true
+end
+
+--- True when the reveal card offers Sell Duplicate / Keep for a pulled cue the player now holds
+--- `count` copies of (Config.BlockOdds.DuplicateChoice, designer 2026-10-11): a duplicate
+--- that can be sold (not Exclusive, Unique or Classic).
+function BlockOdds.offersSale(cueId: any, count: any): boolean
+	return C.DuplicateChoice == true
+		and type(count) == "number"
+		and count > 1
+		and BlockOdds.sellValue(cueId) > 0
+end
+
 --- True when unboxing a cue of this rarity is announced in every server (Mythic, Secret).
 function BlockOdds.announces(rarity: string): boolean
 	return ANNOUNCE[rarity] == true

@@ -1080,6 +1080,9 @@ return {
 		YouGot = "YOU GOT %s!", -- the result card: the cue's name
 		-- A duplicate Common or Uncommon paid as its sell money instead of a copy (economy v6).
 		Duplicate = "Duplicate · +%s",
+		-- A duplicate's choice on the result card (designer, 2026-10-11): the sell money ("+$200").
+		SellDuplicate = "Sell Duplicate +%s",
+		Keep = "Keep",
 		Continue = "Tap to continue",
 		ContinuePad = "Press A to continue",
 		ContinueMouse = "Click to continue",

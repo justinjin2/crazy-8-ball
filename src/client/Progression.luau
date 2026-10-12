@@ -305,6 +305,7 @@ function Progression.start(screen: ScreenGui, hooks: Hooks)
 	-- (the win's block and rank rewards fly to the hotbar or deps.column).
 	result:setDeps(deps)
 	newRank:setDeps(deps)
+	LuckyClient.setDeps(deps) -- a duplicate sold from its reveal card flies its money
 	deps.purchased = Purchased.new(screen, deps) -- a Robux purchase's thank-you and flow
 	ShopMenu.new(screen, deps)
 	InventoryMenu.new(screen, deps)

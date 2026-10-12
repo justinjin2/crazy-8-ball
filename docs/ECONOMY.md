@@ -128,8 +128,12 @@ Rare 10 min, Epic 1 h, Legendary 12 h, Mythic 24 h. A Mystery waits the timer of
 turns into. **Skips**: 1 R$ (10 min or less left), 4 R$ (1 h or less), 9 R$ (12 h or less), 15 R$
 (any).
 
-**Duplicates**: a block that gives a **Common or Uncommon cue you already own** pays its sell money
-instead ("Duplicate · +$200"); no copy is added and the copies in existence do not change.
+**Duplicates** (designer, 2026-10-11; `Config.BlockOdds.DuplicateChoice`): a block that gives a
+cue you already own adds the copy, and its "YOU GOT" card offers **Sell Duplicate +$200** (the
+cue's sell money above) or **Keep** instead of tap to continue. Sell sells that copy back at once,
+so it never stays in the inventory. Exclusive, Unique and Classic cues never sell, so their card
+keeps tap to continue. With the switch off, the economy v6 rule returns: a Common or Uncommon
+duplicate pays its sell money instead of a copy ("Duplicate · +$200").
 
 **The Grand Opening block** (Rare or better, money or Robux): Rare 85.875%, Epic 9%, Legendary 1.3%,
 Mythic 0.12%, Secret 0.005%, the numbered Firework Cue 3.5% (1,000 ever), the numbered Beta Cue

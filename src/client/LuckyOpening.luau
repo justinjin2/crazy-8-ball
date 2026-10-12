@@ -10,12 +10,17 @@
 -- black, and the scene plays; then the big "YOU GOT
 -- <CUE>!" card (LuckyResult) over the dimmed world with rays in the rarity's colour. A tap,
 -- click or A skips the reel, then the cutscene (an old one, once it has been seen; never Rare),
--- then closes the card; the cue is already in the inventory. The rest of the HUD
--- hides while it is up. A climb that reached the Secret skips the reel (`pull`): its pull
+-- then closes the card; the cue is already in the inventory. A duplicate that can be sold
+-- (Config.BlockOdds.DuplicateChoice; designer, 2026-10-11) has "Sell Duplicate +$200" and
+-- "Keep" on its card instead (setChoice): only those close it (B or Escape keeps; a tap on the
+-- dim does nothing), Sell sells the copy back (ItemRequest "SellCue") and onSold flies the
+-- money into the money HUD once the card is gone; closed any other way, it is kept. The rest
+-- of the HUD hides while it is up. A climb that reached the Secret skips the reel (`pull`): its pull
 -- cutscene, then the card. A Common or Uncommon cue (economy v5 plan 3.8) skips the reel too
 -- (`quick`): the card alone, a little smaller, gone by itself after a second and a half.
 -- Tuning in Config.LuckyBlocks.UI; the reel's own in Config.UI.Reel.
 local ContextActionService = game:GetService("ContextActionService")
+local GuiService = game:GetService("GuiService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
@@ -57,6 +62,11 @@ function Opening.new(screen: ScreenGui): any
 	self.shownAt = 0 -- os.clock when the quick card or the summary showed
 	self.hidden = nil :: { ScreenGui }?
 	self.onClosed = nil :: (() -> ())?
+	self.choice = nil :: { cueId: string, money: number }? -- a duplicate's Sell / Keep
+	self.selling = false
+	-- Set by LuckyClient: a sold duplicate's money flying from `from` (screen pixels) into the
+	-- money HUD.
+	self.onSold = nil :: ((number, Vector2?) -> ())?
 	self:build()
 	return self
 end
@@ -164,9 +174,9 @@ end
 local function bindTap(self: any)
 	ContextActionService:BindActionAtPriority(
 		TAP_ACTION,
-		function(_, state: Enum.UserInputState)
+		function(_, state: Enum.UserInputState, input: InputObject)
 			if state == Enum.UserInputState.Begin then
-				self:tap()
+				self:tap(input.KeyCode)
 			end
 			return Enum.ContextActionResult.Sink
 		end,
@@ -313,7 +323,8 @@ function Opening.quick(self: any, cueId: string, rarity: string, onClosed: (() -
 	local playId = self.playId
 	task.delay(Config.LuckyBlocks.QuickRevealSeconds, function()
 		local phase: string = self.phase
-		if self.open and self.playId == playId and phase == "Quick" then
+		-- A duplicate's choice waits for its answer.
+		if self.open and self.playId == playId and phase == "Quick" and not self.choice then
 			UIAnim.popOut(card.root, function()
 				local now: string = self.phase
 				if self.open and self.playId == playId and now == "Quick" then
@@ -412,7 +423,7 @@ function Opening.layout(self: any)
 		return
 	end
 	if self.phase == "Card" and self.card then
-		local size = LuckyResult.size()
+		local size = self.card:sizeOf()
 		local natural = stage.fit(
 			size + Vector2.new(2, 2) * CO.CardMarginPx,
 			U.MinScale,
@@ -426,7 +437,7 @@ function Opening.layout(self: any)
 		return
 	end
 	if self.phase == "Quick" and self.card and self.holder then
-		local size = LuckyResult.size()
+		local size = self.card:sizeOf()
 		local natural = stage.fit(
 			size * U.QuickScale + Vector2.new(2, 2) * CO.CardMarginPx,
 			U.MinScale,
@@ -518,13 +529,97 @@ function Opening.showCard(self: any)
 		card:setDuplicate(self.dupMoney)
 	end
 	self.card = card
+	self:offerChoice()
 	self:layout()
 	card:show(self.stage.frame)
 end
 
-function Opening.tap(self: any)
+-- The duplicate's Sell / Keep on the card showing now, when there is one to offer.
+function Opening.offerChoice(self: any)
+	local choice, card = self.choice, self.card
+	if choice and card then
+		card:setChoice(choice.money, function()
+			self:sell()
+		end, function()
+			self:keep()
+		end)
+	end
+end
+
+--- A duplicate that can be sold (BlockOdds.offersSale): its card offers "Sell Duplicate
+--- +<money>" or "Keep". Call it after play / quick / pull; it lasts until the opening closes.
+function Opening.setChoice(self: any, cueId: string, money: number)
+	if not self.open or money <= 0 then
+		return
+	end
+	self.choice = { cueId = cueId, money = money }
+	if self.card then
+		self:offerChoice()
+		self:layout()
+	end
+end
+
+-- Keep: the copy stays (it is already in the inventory).
+function Opening.keep(self: any)
+	if self.choice and not self.selling then
+		self:close()
+	end
+end
+
+-- Sell: the server sells the copy back (the same request as the Cues menu's Sell); on a yes the
+-- card closes and the money flies from the button into the money HUD, on a no the card says
+-- why and stays.
+function Opening.sell(self: any)
+	local choice, card = self.choice, self.card
+	if not choice or not card or self.selling then
+		return
+	end
+	self.selling = true
+	card:setBusy(true)
+	local playId = self.playId
+	task.spawn(function()
+		local reply = ItemState.request("ItemRequest", "SellCue", choice.cueId, 1)
+		self.selling = false
+		local money = if reply.ok and type(reply.money) == "number" then reply.money else 0
+		local here = self.open and self.playId == playId and self.card == card
+		if reply.ok then
+			local button = if here then card:choiceButtons() else nil
+			local from = if button then button.AbsolutePosition + button.AbsoluteSize / 2 else nil
+			if here then
+				self:close()
+			end
+			if money > 0 and self.onSold then
+				self.onSold(money, from)
+			end
+		elseif here then
+			card:setBusy(false)
+			local reasons: { [string]: string } = Strings.Menus.Reasons :: any
+			card:say(reasons[reply.reason or ""] or reasons.Default)
+		end
+	end)
+end
+
+function Opening.tap(self: any, key: Enum.KeyCode?)
 	if not self.open then
 		return
+	end
+	local sellButton = if self.card and self.choice then self.card:choiceButtons() else nil
+	if sellButton then
+		-- Only the buttons close a duplicate's card: A, Return or Space press the selected one
+		-- (Keep unless a gamepad moved to Sell), B or Escape keep it; the dim does nothing.
+		if self.selling or not self:canDismiss() or key == nil then
+			return
+		end
+		local back = key == Enum.KeyCode.ButtonB or key == Enum.KeyCode.Escape
+		if not back and GuiService.SelectedObject == sellButton then
+			self:sell()
+		else
+			self:keep()
+		end
+		return
+	end
+	if self.choice and (self.phase == "Card" or self.phase == "Quick") then
+		return -- its buttons are still popping in
 	end
 	if self.phase == "Reel" and self.reel then
 		if self.reelSkippable then
@@ -559,6 +654,8 @@ end
 
 function Opening.close(self: any)
 	self.dupMoney = 0
+	self.choice = nil
+	self.selling = false
 	if not self.open then
 		return
 	end

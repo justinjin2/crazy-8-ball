@@ -2396,13 +2396,10 @@ function PlayerData.openLuckyBlock(
 	LuckyBlocks.noteOpened(data.LuckyBlocks, block.Kind)
 	-- A cue of a Config.BlockOdds.DuplicateToMoney rarity already held pays its sell money
 	-- instead of a copy (economy v6, designer 2026-10-10: "Duplicate · +$200"); its Index and
-	-- pity are as for any open.
+	-- pity are as for any open. Not while DuplicateChoice is on (BlockOdds.duplicatePays): the
+	-- copy is added and the reveal card offers Sell Duplicate or Keep.
 	local dupMoney = 0
-	if
-		not unique
-		and (Config.BlockOdds.DuplicateToMoney :: any)[cue.Rarity] == true
-		and Inventory.count(data, cueId) > 0
-	then
+	if not unique and BlockOdds.duplicatePays(cue.Rarity) and Inventory.count(data, cueId) > 0 then
 		dupMoney = BlockOdds.sellValue(cueId)
 	end
 	local first = false

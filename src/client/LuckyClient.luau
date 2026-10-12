@@ -72,6 +72,9 @@ local LuckyClient = {}
 
 local hotbar: any = nil
 local opening: any = nil
+-- The economy screens' shared table (Progression's deps: money, flyer), for a sold duplicate's
+-- flying money; nil until LuckyClient.setDeps.
+local deps: any = nil
 local reveal: any = nil
 local aimedId: number? = nil -- a Mystery the gamepad's LB / RB picked (R2 opens its screen)
 local entries: { Entry } = {}
@@ -416,9 +419,14 @@ function nextReveal()
 			if type(reward.glimpse) == "string" then reward.glimpse else nil
 		)
 	end
-	-- A duplicate Common or Uncommon paid as money (economy v6).
+	-- A duplicate Common or Uncommon paid as money (economy v6; Config.BlockOdds.DuplicateChoice
+	-- off).
 	if type(reward.dupMoney) == "number" and reward.dupMoney > 0 then
 		opening:setDuplicate(math.floor(reward.dupMoney))
+	end
+	-- A duplicate that can be sold: Sell Duplicate or Keep on its card (DuplicateChoice on).
+	if reward.copy == nil and BlockOdds.offersSale(reward.cue, reward.count) then
+		opening:setChoice(reward.cue, BlockOdds.sellValue(reward.cue))
 	end
 end
 
@@ -564,6 +572,14 @@ function LuckyClient.start(screen: ScreenGui)
 		skip = requestSkip,
 	})
 	opening = LuckyOpening.new(screen)
+	-- A duplicate sold from its card: the money flies from the Sell button into the money HUD.
+	opening.onSold = function(money: number, from: Vector2?)
+		local flyer, hud = deps and deps.flyer, deps and deps.money
+		if flyer and hud then
+			hud:expect(money)
+			flyer:fly(money, from or flyer:centre(), nil, 0)
+		end
+	end
 	reveal = MysteryReveal.new(screen.Parent :: Instance, {
 		request = function(id: number): any
 			return request("Reveal", id)
@@ -863,6 +879,12 @@ end
 --- cutscene, its reveal, or more reveals queued (the tutorial's next step waits for this).
 function LuckyClient.busy(): boolean
 	return started and (pendingOpens > 0 or revealing or #reveals > 0 or LuckyClient.isOpen())
+end
+
+--- The economy screens' shared table (Progression: money, flyer), for a sold duplicate's
+--- flying money.
+function LuckyClient.setDeps(shared: any)
+	deps = shared
 end
 
 --- Close the reel (and its cutscene) at once: a match is starting, or the result screen
