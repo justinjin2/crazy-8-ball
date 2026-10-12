@@ -298,7 +298,9 @@ end
 -- The lesson shown last, so a new one can start its own way (the aim suggestion).
 local lastLesson = ""
 -- The aim lesson's part (turn 2): "aim" (adjust the angle), "zoom" (zoom out, the pocket
--- glows), "zoomed" ("You can zoom in and out any time."), "shoot"; and when it began.
+-- glows), "zoomIn" (zoom back in past the default view: designer, 2026-10-11, players did not
+-- know they could), "zoomed" ("You can zoom in and out any time."), "shoot"; and when it
+-- began.
 local aimPart = "aim"
 local aimPartAt = 0
 -- The combination's part: "combo" (the ghost replay and its line), "fine" (a controller only:
@@ -329,8 +331,8 @@ local function shootPrompt(device: string)
 	overlay:say(words(Copy.Shoot, device))
 end
 
--- The aim lesson (turn 2): adjust the angle, zoom out to see it better (the pocket glows), then
--- shoot.
+-- The aim lesson (turn 2): adjust the angle, zoom out to see it better (the pocket glows), zoom
+-- all the way back in (it waits until the view is closer than the default), then shoot.
 local function aimLesson(device: string, fresh: boolean): string
 	local now = os.clock()
 	if fresh then
@@ -352,10 +354,14 @@ local function aimLesson(device: string, fresh: boolean): string
 		local moved = math.max(zoom / math.max(zoomFrom, 1e-3), zoomFrom / math.max(zoom, 1e-3))
 		if zoom >= L.ZoomedOut or moved >= L.ZoomMovedRatio then
 			Tutorial.report("Lesson", "Zoomed")
-			aimPart, aimPartAt = "zoomed", now
+			aimPart, aimPartAt = "zoomIn", now
 		elseif now - aimPartAt >= Timing.ZoomSkipSeconds then
-			aimPart, aimPartAt = "shoot", now -- not zooming: the pocket still glows
+			aimPart, aimPartAt = "zoomIn", now -- not zooming out: on to zooming in all the same
 		end
+	end
+	-- Zooming in has no time limit: the lesson waits for it (they can still shoot any time).
+	if aimPart == "zoomIn" and Camera.getZoom() * L.ZoomInPastRatio <= Camera.defaultZoom() then
+		aimPart, aimPartAt = "zoomed", now
 	end
 	if aimPart == "zoomed" and now - aimPartAt >= L.ZoomDoneSeconds then
 		aimPart, aimPartAt = "shoot", now
@@ -379,6 +385,13 @@ local function aimLesson(device: string, fresh: boolean): string
 			hand:gesture(if device == "touch" then "pinch" else "scroll")
 		end
 		overlay:say(words(Copy.Zoom, device))
+	elseif aimPart == "zoomIn" then
+		if device == "gamepad" then
+			hand:gesture("stickY", Enum.KeyCode.Thumbstick2)
+		else
+			hand:gesture(if device == "touch" then "spread" else "scroll")
+		end
+		overlay:say(words(Copy.ZoomIn, device))
 	elseif aimPart == "zoomed" then
 		hand:hide()
 		overlay:say(Copy.ZoomDone)

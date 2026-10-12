@@ -1876,6 +1876,12 @@ return {
 			Touch = "Pinch to zoom out and see the angle better!",
 			Gamepad = "Tilt {RS} to zoom out and see the angle better!",
 		},
+		-- Then all the way back in (designer, 2026-10-11: players did not know they could).
+		ZoomIn = {
+			Mouse = "Now scroll to zoom all the way in!",
+			Touch = "Now spread two fingers to zoom all the way in!",
+			Gamepad = "Now push {RS} up to zoom all the way in!",
+		},
 		ZoomDone = "You can zoom in and out any time.",
 		Shoot = {
 			Mouse = "Now pull the power bar to shoot!",

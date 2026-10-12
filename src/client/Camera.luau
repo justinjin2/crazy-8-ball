@@ -294,9 +294,19 @@ function Camera.setBallInHand(inHand: boolean)
 	local V = Config.Camera.View
 	local step = Config.Input.ZoomStep
 	local phone = Workspace.CurrentCamera.ViewportSize.Y < Config.Multiplayer.Style.ShortHeight
-	local home = if phone then V.ZoomDefault / step ^ V.PhoneZoomNotchesIn else V.ZoomDefault
+	local home = Camera.defaultZoom()
 	local notches = if phone then V.PhoneBallInHandZoomNotches else V.BallInHandZoomNotches
 	homeZoom = if inHand then math.min(home * step ^ notches, V.ZoomMax) else home
+end
+
+--- The plain home view's zoom on this screen (a phone's PhoneZoomNotchesIn closer), never a
+--- ball-in-hand turn's: the tutorial's "zoom in past the default view" (designer, 2026-10-11).
+function Camera.defaultZoom(): number
+	local V = Config.Camera.View
+	local phone = Workspace.CurrentCamera.ViewportSize.Y < Config.Multiplayer.Style.ShortHeight
+	return if phone
+		then V.ZoomDefault / Config.Input.ZoomStep ^ V.PhoneZoomNotchesIn
+		else V.ZoomDefault
 end
 
 function Camera.getZoom(): number

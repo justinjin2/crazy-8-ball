@@ -14793,6 +14793,9 @@ Config.Tutorial = {
 		-- any real pinch, or one wheel notch (Input.ZoomStep 1.12) (designer, 2026-10-10: the
 		-- line stayed after they had zoomed).
 		ZoomMovedRatio = 1.1,
+		-- Then zooming back in is done once the view is this many times closer than the default
+		-- (Camera.defaultZoom; about half a wheel notch past it: Input.ZoomStep is 1.12).
+		ZoomInPastRatio = 1.05,
 		ZoomDoneSeconds = 2.5, -- "You can zoom in and out any time." shows this long
 		ComboShootSeconds = 5, -- the combination's pointer, then the line says to shoot
 		-- On a controller, between them: the D-pad's fine aim, until the aim has moved and

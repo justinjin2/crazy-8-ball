@@ -26,7 +26,9 @@
 --     "scroll"                the mouse with the up-and-down sign beside it (its arrows bob
 --                             apart, its dashes run down; zoom on a computer);
 --     "pinch"                 two pointing hands, fingertips closing in on a diagonal (zoom
---                             out on a phone: fingers spreading would zoom in).
+--                             out on a phone: fingers spreading would zoom in);
+--     "spread"                the same two hands, fingertips moving apart (zoom in on a phone;
+--                             the zoom lesson's second half, designer 2026-10-11).
 -- Everything sits in the overlay's pixels (TutorialOverlay: targets, the play area), so it
 -- lines up on any screen, a phone's notch included.
 -- The up-and-down sign (the designer's reference, 2026-10-09): an arrowhead, a column of
@@ -505,12 +507,17 @@ function TutorialHand.update(self: Hand, dt: number)
 		self.mouse.ImageTransparency = 0
 		local signH = m * H.SignShare
 		placeSign(self, at + Vector2.new(m * H.SignBesideShare, m * 0.3), signH, phase)
-	elseif mode == "pinch" then
+	elseif mode == "pinch" or mode == "spread" then
 		-- Two hands on a diagonal through the middle of the play area, fingertips toward each
-		-- other, closing in (zoom out); they meet, hold, fade, and start apart again.
+		-- other, closing in (zoom out); they meet, hold, fade, and start apart again. "spread"
+		-- runs it the other way: from together to apart (zoom in).
 		local centre = spot(0.5, H.GlyphHeightShare)
 		local handPx = size * H.PinchHandShare
-		local apart = handPx * (H.PinchFarShare + (H.PinchNearShare - H.PinchFarShare) * move)
+		local from, to = H.PinchFarShare, H.PinchNearShare
+		if mode == "spread" then
+			from, to = to, from
+		end
+		local apart = handPx * (from + (to - from) * move)
 		local dir = Vector2.new(1, -H.PinchSlope).Unit -- toward the upper right hand
 		aimHand(self.hand, centre - dir * apart, dir, handPx, alpha)
 		aimHand(self.hand2, centre + dir * apart, -dir, handPx, alpha)
