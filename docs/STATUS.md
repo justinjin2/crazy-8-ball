@@ -45,7 +45,7 @@ rooftop map with a day and sunset cycle; pull cutscenes Rare to Secret; the ball
   Painicane only. Checked in Studio on PC: announcements (big + chat), Give/Drop/Backspace drops
   and pickup, ability and money by part of a name, money rain (standing icons, amounts,
   sparkles, same floor only, 60 s life, CashLand on pickup). Announcements now open with a white
-  streak and the restock banner's sound, then type out with the designer's keyboard click, just
+  streak and the cue Equip sound, then type out with the designer's keyboard click, just
   under the Sky Lucky Block timer. Live: an all-servers message, the text filter, a second player
   picking up drops and bills, a phone (button above the jump), the click's loudness.
 

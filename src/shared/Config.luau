@@ -5582,9 +5582,9 @@ Config.Audio = {
 		MoneyRain = { Id = "rbxassetid://91981544084497", Volume = 0.2 },
 		-- The owner's announcement typing out (OwnerMessage; designer, 2026-10-11): their pick,
 		-- "keyboard click" (0.65 s), every few letters, overlapping so the clicks run together
-		-- like real typing. Gentle and quiet: a typewriter at 0.15 was "way too loud and
-		-- obnoxious".
-		OwnerTyping = { Id = "rbxassetid://96591611478915", Volume = 0.1, Overlap = true },
+		-- like real typing. A typewriter at 0.15 was "way too loud and obnoxious"; this click is
+		-- soft, and at 0.1 could not be heard (designer, 2026-10-11).
+		OwnerTyping = { Id = "rbxassetid://96591611478915", Volume = 0.35, Overlap = true },
 		-- The Mystery block's upgrade screen (designer, 2026-10-09; MysteryReveal). Opening it (the
 		-- click that jumps the block out of the hotbar): their "magical accent whoosh shimmer"
 		-- (assets/audio/ui/MysteryOpen.wav, 3.6 s; peak 0.74, loudest half second RMS 0.14). A
@@ -15923,10 +15923,10 @@ Config.Admin = {
 		-- and a new player's quest line beneath it (higher than before, designer 2026-10-11).
 		TopPx = 58,
 		-- Before the words (designer, 2026-10-11): a white streak opens out from the middle of
-		-- where they will sit, with the sound a Legendary or Mythic restock line makes (the
-		-- Banner's; the designer's pick), then fades as the [OWNER] tag pops in...
+		-- where they will sit, with the cue Equip sound (the designer's pick, after the restock
+		-- banner's), then fades as the [OWNER] tag pops in...
 		Intro = {
-			Sound = "Banner", -- a Config.Audio.Ui key
+			Sound = "Equip", -- a Config.Audio.Ui key
 			StreakPx = 3, -- the streak's thickness
 			GlowPx = 26, -- the soft glow round it (Config.UI.Kit.Art.SoftGlow)
 			GlowTransparency = 0.45,

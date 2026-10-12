@@ -2,7 +2,7 @@
 -- OwnerMessage: the owner's announcements (the admin panel, designer 2026-10-11; Grow a
 -- Garden style). Big white words with a dark outline at the top middle of the screen,
 -- "[OWNER]" first in black outlined in white (ChatTags.ownerTag), then "Painicane: message".
--- It opens with a white streak and the restock banner's sound, the tag pops in, the rest
+-- It opens with a white streak and the cue Equip sound, the tag pops in, the rest
 -- types out with soft key clicks, it stays for Config.Admin.Message's reading time and pops
 -- out; queued one at a time. The same line goes in the chat window as a system line at once.
 -- Only a message from an owner's user id (Admin.isOwner) is shown, whoever sent it on.
