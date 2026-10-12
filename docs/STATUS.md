@@ -4,7 +4,7 @@ Current state only, rewritten in place. Keep it to about two screens (under 100 
 step is finished and verified, move its dated entry to the top of
 `docs/archive/STATUS_HISTORY.md` and keep only what is still true or still open here.
 
-Updated 2026-10-11 (night). **The game is live** (officially released 2026-10-10). Work goes on
+Updated 2026-10-12. **The game is live** (officially released 2026-10-10). Work goes on
 in `~/Desktop/8ball`, branch `gui-v4`. The STATUS from just before launch, in full, is the top
 entry of `docs/archive/STATUS_HISTORY.md`.
 
@@ -23,12 +23,13 @@ entry of `docs/archive/STATUS_HISTORY.md`.
   without their "(1 in N)", "Gonna let that slide?" wiggling over Rematch for the side that lost,
   **the new rank ladder** (below; needs "Restart Servers for Updates"), **the owner admin
   panel** (below: announcements now type out on screen only, money rain has This server / All
-  servers) and **Sell Duplicate / Keep on a duplicate's reveal card** (below). All pushed up to
-  `7da66b3`.
-- **Next (designer, 2026-10-11):** fix some console (gamepad) controls for this update. The
-  designer will say which controls are wrong; ask if unclear, then check each fix with gamepad
-  emulation in Studio. Every control must still work by touch and mouse (CLAUDE.md).
-- **Lint and tests (2026-10-11, `gui-v4`):** lint OK (four old LocalShadow warnings); all 1229
+  servers), **Sell Duplicate / Keep on a duplicate's reveal card** and **the first controller
+  fixes** (below). All pushed up to the docs commit after `cda9e9e`.
+- **Now (designer, 2026-10-11):** fixing console (gamepad) controls for this update, from the
+  designer's own tutorial run on a controller. Done: the 8's pocket by D-pad rows, the tutorial's
+  D-pad fine aim, a Mystery held out and opened with R2 (below). The designer lists the next
+  ones; check each with gamepad emulation in Studio, touch and mouse unchanged (CLAUDE.md).
+- **Lint and tests (2026-10-12, `gui-v4`):** lint OK (four old LocalShadow warnings); all 1229
   Lune tests pass.
 
 ## In the game
@@ -45,6 +46,14 @@ rooftop map with a day and sunset cycle; pull cutscenes Rare to Secret; the ball
 (`Config.UI.Corners.ChallengeOn`).
 
 ## Watch on the live game (fixed or built, not yet seen live)
+
+- **Controller fixes** (2026-10-11, DECISIONS): the 8's call by D-pad rows (starts top left, the
+  tutorial's on its pocket; the lit pocket gold, glowing, its ring bigger and breathing), the
+  combination turn's "Fine-tune your aim" line, a Mystery held with LB / RB and opened with R2
+  (white burst; `Config.LuckyBlocks.PadHoldMystery`). Checked in Studio with the controller
+  forced (QA presses) and a tutorial run from Arrow on path S. Live: a real controller (Xbox
+  and PlayStation glyphs), the burst's look from the player's own camera, others seeing a
+  Mystery in someone's hands, the designer's look at the lit pocket.
 
 - **Sell Duplicate / Keep on a duplicate's reveal card** (2026-10-11, DECISIONS;
   `Config.BlockOdds.DuplicateChoice`): checked in Studio on PC through the real reveal screen

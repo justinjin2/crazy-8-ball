@@ -113,15 +113,19 @@ Every feature is checked against these. If it serves none, it waits.
     with no power B is Leave (its confirm). L1 held: the left stick moves the spin, the right
     stick raises or lowers the cue, Y centres the spin. L2 held plus the left stick moves the
     ball in hand. X (Square) is the ability.
-  - **Calling the 8's pocket:** point the left stick at a pocket (the ring that way from the
-    table's centre lights up) and press A; the D-pad also steps round. Nothing else to press.
+  - **Calling the 8's pocket** (2026-10-11): the D-pad walks the pockets as the table lies on
+    screen, two rows of three: right / left along a row (stopping at its end), down / up to the
+    other row; A picks. It starts on the top left (the tutorial: on its own pocket). The lit
+    pocket fills see-through gold with a gold glow and its blue ring is bigger and breathing.
+    The left stick does nothing here.
   - **The lobby:** the sticks and A walk, look and jump as in any Roblox game. D-pad up / right /
     down open the Shop, Cues and Free Reward; **D-pad left jumps to the right side** (the Daily
     Challenge first, then the offer, Settings, Invite, Plus and the player list; the stick
     moves, A presses, B or D-pad left goes back to walking). **Y opens and closes Rank** (its
     picture on the Rank badge). X opens Abilities (but holding X at a placed lucky block or a
-    gift opens that). LB / RB pick a lucky block, R2 places it (or opens a picked Mystery), L3
-    the bag. **L2 is Play Global** on a waiting pad (again stops the search) and Join on an
+    gift opens that). LB / RB pick a lucky block and hold it out, a Mystery too (2026-10-11);
+    R2 places it, or opens a held Mystery's upgrade screen (no throw: it bursts white in the
+    hands). L3 the bag. **L2 is Play Global** on a waiting pad (again stops the search) and Join on an
     opponent's ask. B leaves a pad and closes menus. **View (Share or the touchpad on PS) is
     Skip tutorial** and **R3 (the right stick pressed in) is the tutorial's Next**.
   - **The stick always walks** unless the player chose a button: nothing in the lobby HUD is a
