@@ -169,6 +169,8 @@ require(script.Parent:WaitForChild("GiftDropService")).start(not isArena)
 -- The Sky Lucky Block (economy v6): its clock everywhere, its fall only in a lobby.
 require(script.Parent:WaitForChild("SkyDropService")).start(not isArena)
 DevCommands.start() -- /day and /sunset, for the developer only
+-- The owner's money rain (the admin panel's), only in a lobby.
+require(script.Parent:WaitForChild("MoneyRain")).start(not isArena)
 GlobalQueue.start(not isArena) -- every server takes its turn pairing the global queue
 if isArena then
 	ArenaService.start(record)
