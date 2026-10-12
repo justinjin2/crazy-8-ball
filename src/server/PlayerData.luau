@@ -4125,6 +4125,16 @@ local QA_CALLS: { [string]: (Player, any, any, any, any) -> ...any } = {
 	redeemCode = function(p, a)
 		return PlayerData.redeemCode(p, a)
 	end,
+	-- Code `a` unused again (Studio QA of the tutorial's RELEASE step on a save that used it).
+	forgetCode = function(p, a)
+		local data = liveData("forgetCode", p)
+		if data == nil or type(a) ~= "string" then
+			return false
+		end
+		data.Codes[a] = nil
+		commit(p, data, "forgetCode")
+		return true
+	end,
 	applyPurchase = function(p, a, b, c)
 		return PlayerData.applyPurchase(p, a, b, c)
 	end,
