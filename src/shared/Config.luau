@@ -14784,6 +14784,10 @@ Config.Tutorial = {
 		ZoomMovedRatio = 1.1,
 		ZoomDoneSeconds = 2.5, -- "You can zoom in and out any time." shows this long
 		ComboShootSeconds = 5, -- the combination's pointer, then the line says to shoot
+		-- On a controller, between them: the D-pad's fine aim, until the aim has moved and
+		-- ComboFineMinSeconds have passed, or ComboFineSeconds at most (designer, 2026-10-11).
+		ComboFineSeconds = 8,
+		ComboFineMinSeconds = 1.5,
 		-- Ball in hand lined up for the combination: "drag the white ball" shows this long (or
 		-- until they move it), then the combination's pointer.
 		HandComboSeconds = 5,
@@ -14978,6 +14982,13 @@ Config.Tutorial = {
 		StickSeconds = 1.4,
 		StickDegrees = 18,
 		StickShiftPx = 22,
+		-- "press" and "dpad": one press of a glyph every PressSeconds (the D-pad's two in turn),
+		-- squishing by PressSquish, resting this see-through; the two glyphs' centres
+		-- PressApartShare glyphs apart.
+		PressSeconds = 0.9,
+		PressSquish = 0.18,
+		PressRestTransparency = 0.45,
+		PressApartShare = 1.25,
 		GhostBallShare = 0.32, -- the dragged ghost cue ball against the hand
 		GhostBallTransparency = 0.45,
 		NudgeSeconds = 0.45, -- the re-prompt's grow and settle

@@ -18,6 +18,10 @@
 --     "stick" (keyCode)       a gamepad stick glyph tilting left and right;
 --     "stickY" (keyCode)      a gamepad stick glyph pushed up and down, the up-and-down sign
 --                             beside it (zoom on a controller);
+--     "press" (keyCode)       a gamepad button glyph pressed again and again (R2 opens the
+--                             Mystery held out);
+--     "dpad"  (key, key)      two gamepad glyphs side by side, pressed in turn (the D-pad's left
+--                             and right: the combination's fine aim, designer 2026-10-11);
 --     "drag"  (from, to)      from one target to another, carrying a ghost cue ball;
 --     "scroll"                the mouse with the up-and-down sign beside it (its arrows bob
 --                             apart, its dashes run down; zoom on a computer);
@@ -57,6 +61,7 @@ export type Hand = typeof(setmetatable(
 		scale: UIScale,
 		mouse: ImageLabel,
 		glyph: ImageLabel,
+		glyph2: ImageLabel, -- the "dpad" gesture's second button
 		ghost: Frame,
 		ghost2: Frame, -- the pinch's second fingertip
 		bar: Frame,
@@ -69,6 +74,7 @@ export type Hand = typeof(setmetatable(
 		target: Target?,
 		other: Target?,
 		key: Enum.KeyCode?,
+		key2: Enum.KeyCode?, -- the "dpad" gesture's second button
 		withMouse: boolean,
 		small: boolean, -- point(..., small)
 		clock: number,
@@ -117,6 +123,9 @@ function TutorialHand.new(gui: ScreenGui): Hand
 	local glyph = image(root, "Glyph", "")
 	glyph.AnchorPoint = Vector2.new(0.5, 0.5)
 	glyph.ZIndex = 9
+	local glyph2 = image(root, "Glyph2", "")
+	glyph2.AnchorPoint = Vector2.new(0.5, 0.5)
+	glyph2.ZIndex = 9
 
 	local ghost = HudParts.frame(root, "GhostBall")
 	ghost.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -177,6 +186,7 @@ function TutorialHand.new(gui: ScreenGui): Hand
 		scale = scale,
 		mouse = mouse,
 		glyph = glyph,
+		glyph2 = glyph2,
 		ghost = ghost,
 		ghost2 = ghost2,
 		bar = bar,
@@ -190,6 +200,7 @@ function TutorialHand.new(gui: ScreenGui): Hand
 		small = false,
 		other = nil,
 		key = nil,
+		key2 = nil,
 		withMouse = false,
 		clock = 0,
 		nudgedAt = -math.huge,
@@ -225,10 +236,14 @@ end
 --- Starts a see-through demonstration (see the header).
 function TutorialHand.gesture(self: Hand, kind: string, a: any?, b: any?)
 	self.key = nil
+	self.key2 = nil
 	self.withMouse = false
 	self.small = false
-	if kind == "hold" or kind == "stick" or kind == "stickY" then
+	if kind == "hold" or kind == "stick" or kind == "stickY" or kind == "press" then
 		self.key = a
+		self:set(kind, nil)
+	elseif kind == "dpad" then
+		self.key, self.key2 = a, b
 		self:set(kind, nil)
 	elseif kind == "swipe" then
 		self.withMouse = a == true
@@ -256,6 +271,8 @@ local function reset(self: Hand)
 	self.rays.Visible = false
 	self.mouse.Visible = false
 	self.glyph.Visible = false
+	self.glyph2.Visible = false
+	self.glyph.ImageTransparency = 0
 	self.ghost.Visible = false
 	self.ghost2.Visible = false
 	self.bar.Visible = false
@@ -449,6 +466,34 @@ function TutorialHand.update(self: Hand, dt: number)
 			self.bar.Position = UDim2.fromOffset(at.X, at.Y + g * 0.62)
 			self.bar.Size = UDim2.fromOffset(g * 1.6, H.HoldBarPx)
 			self.barFill.Size = UDim2.fromScale(held, 1)
+		end
+	elseif mode == "press" or mode == "dpad" then
+		local key = self.key
+		if key == nil then
+			return
+		end
+		local at = spot(0.5, H.GlyphHeightShare)
+		local g = size * H.GlyphShare
+		-- A press: the glyph squishes quickly, then rests a little see-through. The D-pad's two
+		-- take turns, one press each.
+		local function press(glyph: ImageLabel, code: Enum.KeyCode, x: number, p: number)
+			local dip = if p < 0.35 then math.sin(p / 0.35 * math.pi) else 0
+			local s = g * (1 - H.PressSquish * dip)
+			glyph.Visible = true
+			glyph.Image = UserInputService:GetImageForKeyCode(code)
+			glyph.Rotation = 0
+			glyph.Size = UDim2.fromOffset(s, s)
+			glyph.Position = UDim2.fromOffset(x, at.Y)
+			glyph.ImageTransparency = H.PressRestTransparency * (1 - dip)
+		end
+		local second = self.key2
+		if mode == "dpad" and second then
+			local loop = (t % (2 * H.PressSeconds)) / H.PressSeconds -- 0..2: left, then right
+			local apart = g * H.PressApartShare / 2
+			press(self.glyph, key, at.X - apart, if loop < 1 then loop else 1)
+			press(self.glyph2, second, at.X + apart, if loop >= 1 then loop - 1 else 1)
+		else
+			press(self.glyph, key, at.X, (t % H.PressSeconds) / H.PressSeconds)
 		end
 	elseif mode == "scroll" then
 		-- The mouse at the middle, the up-and-down sign beside it (no hand: it hid the wheel).

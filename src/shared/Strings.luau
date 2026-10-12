@@ -1884,6 +1884,12 @@ return {
 		},
 		-- The combination (designer, 2026-10-09): the hand points at their two lined-up balls.
 		Combo = "Try a combo! Hit this ball into that one!",
+		-- Then, on a controller only, the D-pad's fine aim (designer, 2026-10-11).
+		ComboFine = {
+			Mouse = "Fine-tune your aim!",
+			Touch = "Fine-tune your aim!",
+			Gamepad = "Fine-tune your aim with {DLeft}{DRight}!",
+		},
 		-- Their turn again after they let the last one run out (no clock now).
 		Away = "Your turn! Take your shot.",
 		Ability = {

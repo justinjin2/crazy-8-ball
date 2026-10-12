@@ -301,6 +301,9 @@ local lastLesson = ""
 -- glows), "zoomed" ("You can zoom in and out any time."), "shoot"; and when it began.
 local aimPart = "aim"
 local aimPartAt = 0
+-- The combination's part: "combo" (the ghost replay and its line), "fine" (a controller only:
+-- the D-pad's fine aim, designer 2026-10-11), "shoot".
+local comboPart = "combo"
 local zoomFrom = 0 -- the zoom when the zoom lesson began
 
 -- The table and pocket of a lesson's pot (TutorialAimPocket), or nil.
@@ -386,14 +389,18 @@ local function aimLesson(device: string, fresh: boolean): string
 end
 
 -- The combination (designer, 2026-10-09): the aim opens on it, the hand points at the two
--- balls, their pocket glows; after a moment the line says to shoot.
+-- balls, their pocket glows; after a moment the line says to shoot. On a controller the D-pad's
+-- fine aim comes first (designer, 2026-10-11): its line and the two buttons pressed in turn,
+-- until the aim has moved (or ComboFineSeconds).
 local function comboLesson(device: string, fresh: boolean): string
+	local now = os.clock()
 	if fresh then
 		local angle = player:GetAttribute("TutorialAimAngle")
 		if type(angle) == "number" then
 			TutorialAnchors.suggestAim(angle)
 		end
-		aimPartAt = os.clock()
+		aimPartAt = now
+		comboPart = "combo"
 	end
 	local id, pocket = lessonPocket()
 	glow:show(id, pocket)
@@ -406,7 +413,25 @@ local function comboLesson(device: string, fresh: boolean): string
 	else
 		ghost:hide()
 	end
-	if os.clock() - aimPartAt >= L.ComboShootSeconds then
+	if comboPart == "combo" and now - aimPartAt >= L.ComboShootSeconds then
+		comboPart, aimPartAt = if device == "gamepad" then "fine" else "shoot", now
+		TutorialAnchors.resetTurn()
+	end
+	if comboPart == "fine" then
+		local waited = now - aimPartAt
+		if
+			device ~= "gamepad"
+			or waited >= L.ComboFineSeconds
+			or (TutorialAnchors.turned() > 0 and waited >= L.ComboFineMinSeconds)
+		then
+			comboPart, aimPartAt = "shoot", now
+		end
+	end
+	if comboPart == "fine" then
+		hand:gesture("dpad", Enum.KeyCode.DPadLeft, Enum.KeyCode.DPadRight)
+		overlay:say(words(Copy.ComboFine, device))
+		return "ComboFine"
+	elseif comboPart == "shoot" then
 		shootPrompt(device)
 		return "ComboShoot"
 	end
@@ -1087,6 +1112,8 @@ local function startQA()
 			TutorialAnchors.noteWeakRelease() -- the break's too-soft release: the line shakes
 		elseif op == "aimPart" then
 			return aimPart
+		elseif op == "comboPart" then
+			return comboPart, TutorialAnchors.turned()
 		elseif op == "notePress" then
 			-- The soft part (QA): as if the button the tutorial knows as `a` was pressed.
 			TutorialAnchors.notePress(a)
