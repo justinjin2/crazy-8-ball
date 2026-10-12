@@ -44,8 +44,10 @@ rooftop map with a day and sunset cycle; pull cutscenes Rare to Secret; the ball
 - **The owner admin panel** (2026-10-11, DECISIONS; `Config.Admin.Enabled`): ADMIN bottom right,
   Painicane only. Checked in Studio on PC: announcements (big + chat), Give/Drop/Backspace drops
   and pickup, ability and money by part of a name, money rain (standing icons, amounts,
-  sparkles, same floor only, 60 s life, CashLand on pickup). Live: an all-servers message, the
-  text filter, a second player picking up drops and bills, a phone (button above the jump).
+  sparkles, same floor only, 60 s life, CashLand on pickup). Announcements now open with a white
+  streak and the restock banner's sound, then type out with the designer's keyboard click, just
+  under the Sky Lucky Block timer. Live: an all-servers message, the text filter, a second player
+  picking up drops and bills, a phone (button above the jump), the click's loudness.
 
 - **The new rank ladder** (2026-10-11, ECONOMY 2, DECISIONS): fast to Gold, then each tier about
   twice the last; from Expert Classic wins fade (x0.5 down to x0.25) and Difficult x1.5 /

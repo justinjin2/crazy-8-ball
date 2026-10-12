@@ -5580,6 +5580,11 @@ Config.Audio = {
 		-- Magic Sparkles Reveal" (assets/audio/ui/MoneyRain.wav, 7 s; peak 0.95, loudest half
 		-- second RMS 0.27: loud, so it plays quiet).
 		MoneyRain = { Id = "rbxassetid://91981544084497", Volume = 0.2 },
+		-- The owner's announcement typing out (OwnerMessage; designer, 2026-10-11): their pick,
+		-- "keyboard click" (0.65 s), every few letters, overlapping so the clicks run together
+		-- like real typing. Gentle and quiet: a typewriter at 0.15 was "way too loud and
+		-- obnoxious".
+		OwnerTyping = { Id = "rbxassetid://96591611478915", Volume = 0.1, Overlap = true },
 		-- The Mystery block's upgrade screen (designer, 2026-10-09; MysteryReveal). Opening it (the
 		-- click that jumps the block out of the hotbar): their "magical accent whoosh shimmer"
 		-- (assets/audio/ui/MysteryOpen.wav, 3.6 s; peak 0.74, loudest half second RMS 0.14). A
@@ -15914,8 +15919,28 @@ Config.Admin = {
 		PhoneTextPx = 22, -- ...and on a phone (a short screen)
 		PhoneBelowPx = 500, -- a screen shorter than this counts as a phone
 		WidthShare = 0.8, -- of the screen's width
-		TopShare = 0.16, -- its top this far down the screen (under the HUD row)
-		FadeSeconds = 0.35,
+		-- Its top this many pixels under Roblox's top bar: just under the Sky Lucky Block timer
+		-- and a new player's quest line beneath it (higher than before, designer 2026-10-11).
+		TopPx = 58,
+		-- Before the words (designer, 2026-10-11): a white streak opens out from the middle of
+		-- where they will sit, with the sound a Legendary or Mythic restock line makes (the
+		-- Banner's; the designer's pick), then fades as the [OWNER] tag pops in...
+		Intro = {
+			Sound = "Banner", -- a Config.Audio.Ui key
+			StreakPx = 3, -- the streak's thickness
+			GlowPx = 26, -- the soft glow round it (Config.UI.Kit.Art.SoftGlow)
+			GlowTransparency = 0.45,
+			OpenSeconds = 0.25, -- opening out to the words' width
+			FadeSeconds = 0.45, -- then fading while the words type
+		},
+		-- ...then "Painicane: message" types out after it, a soft key every few letters
+		-- (Config.Audio.Ui.OwnerTyping). The reading time (Seconds above) starts once it is typed.
+		Type = {
+			LetterSeconds = 0.035, -- a letter every this long...
+			MaxSeconds = 3, -- ...quicker for a long line, so it never types for longer than this
+			TickEvery = 3, -- a key every this many letters (spaces make none)
+			TickPitch = { 0.85, 1 }, -- each key's pitch, picked in this range (low: softer)
+		},
 	},
 	-- Lucky blocks given or dropped from the panel (LuckyBlockService.dropForAll).
 	Blocks = {
