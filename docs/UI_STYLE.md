@@ -233,7 +233,14 @@ below are the summary; the skill has the numbers and code.
 - **Calling the 8** (designer, 2026-09-27): choosing, every pocket gets a 44 px ring with its
   name. Once called, while you shoot, the chosen pocket keeps a ring sized to sit inside its
   hole on screen (it grows and shrinks with the zoom), with no caption, so nothing covers
-  the pocket's jaws.
+  the pocket's jaws. **Pocket arrows** (designer, 2026-10-12): while choosing, the kit's arrow
+  (48 px) points at each ring from the table's middle and bobs 8 px toward it (0.9 s), in every
+  match; the rings' names hide while they show; with a controller only the lit pocket's arrow.
+- **Ability info** (designer, 2026-10-12): at the in-match ability bar's right end a small
+  white disc holds the ability's icon with a blue "i" badge (the R1 / RB picture on an ink disc
+  while a gamepad is in use), its press area 44 px. Hovering the bar, clicking or tapping the
+  disc, or RB / R1 pops a card above the bar: the icon, the name in its rarity's colour, the
+  catalog description; a click or tap pins it 6 s.
 - **Phones** (2026-09-26): the top bar is compact and sits in Roblox's own top row beside its
   menu, chat and voice buttons (it asks Roblox for that room, ScreenInsets.TopbarSafeInsets),
   so the table keeps the screen. The host menu stays one column on the right, short enough to
@@ -247,7 +254,9 @@ below are the summary; the skill has the numbers and code.
   shows while a clock runs. No names under the portraits (a rank badge goes there later).
 - **No status card** (designer, 2026-09-26): whose turn it is shows as a small popup under the
   bar for 2 s when a turn starts ("YOUR TURN" in green with the cue, "OPPONENT'S TURN",
-  "ALLY'S TURN"), like the foul popup but smaller; only when the table comes to a new shooter,
+  "ALLY'S TURN"), like the foul popup but smaller; since 2026-10-12 OPPONENT'S TURN (and
+  ALLY'S TURN) stays up until it is your turn again, the ball streak sliding in under it on a
+  computer or tablet (a phone keeps its brief streak); only when the table comes to a new shooter,
   not again after each pot of a shooter who keeps it (designer, 2026-10-09; its sound too). The same popup says "YOU ARE SOLIDS" or
   "YOU ARE STRIPES" in gold, with a solid or striped ball, for 3.5 s when the break's first
   legal ball decides the groups (2026-09-27; its full time even into the same shooter's next
@@ -315,7 +324,9 @@ below are the summary; the skill has the numbers and code.
     under the cards (designer, 2026-09-27). The < and > arrows carry one white chevron image
     each, drawn as a single stroke. Its slight dim is shared since 2026-09-28 by the full
     menus; the block opening has its own dark one (section 14); NEW RANK! has its own
-    (section 2). Since 2026-10-08 it sits in the lively frame (section 23).
+    (section 2). Since 2026-10-08 it sits in the lively frame (section 23). On a narrow
+    computer window or a tablet it is never narrower than 780 px (up to 96% of the screen),
+    so the rank card's XP and money are not cut (2026-10-12).
   - *Chat tags*: "[PLATINUM]" in the tier's colour before your name in chat (Reyes in the
     rainbow, letter by letter); none for Unranked. A VIP's rainbow "[VIP]" comes first
     (section 10).

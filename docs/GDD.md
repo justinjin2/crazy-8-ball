@@ -115,9 +115,15 @@ Every feature is checked against these. If it serves none, it waits.
     ball in hand. X (Square) is the ability.
   - **Calling the 8's pocket** (2026-10-11): the D-pad walks the pockets as the table lies on
     screen, two rows of three: right / left along a row (stopping at its end), down / up to the
-    other row; A picks. It starts on the top left (the tutorial: on its own pocket). The lit
-    pocket fills see-through gold with a gold glow and its blue ring is bigger and breathing.
-    The left stick does nothing here.
+    other row; A picks. It starts on the top left (the tutorial too, since 2026-10-12). The lit
+    pocket fills see-through gold with a gold glow and its blue ring is bigger and breathing,
+    with the pocket arrow bobbing on it (only the lit one on a controller). The left stick does
+    nothing here.
+  - **Calling the 8, every device** (2026-10-12): a gently bobbing arrow points at each of the
+    six pockets in every match (`Config.Multiplayer.Style.PocketArrows`); the tutorial no longer
+    suggests a pocket.
+  - **Ability info** (2026-10-12): RB / R1 opens the in-match ability card (its name and
+    description; the disc with an "i" at the bar's end does it by hover, click or tap).
   - **The lobby:** the sticks and A walk, look and jump as in any Roblox game. D-pad up / right /
     down open the Shop, Cues and Free Reward; **D-pad left jumps to the right side** (the Daily
     Challenge first, then the offer, Settings, Invite, Plus and the player list; the stick
@@ -301,7 +307,8 @@ Every feature is checked against these. If it serves none, it waits.
   a small popup at the bottom of the screen, the host's face and "<name> needs an opponent!"
   (or "needs players!") with **Join** (stands them on the host's pad) and **Dismiss**, small
   and low so it never covers the player's legs. It goes by itself after 15 s *(tune)* or as
-  soon as the pad fills or the host leaves. Lobby bots no longer answer it.
+  soon as the pad fills or the host leaves. Lobby bots do not answer the popup, but since
+  2026-10-12 one walks over to a lonely player's pad by itself (section 13's bots).
 - Every match is played on the one standard table model, in one of its looks (section 16).
   Collectible table skins are parked until after release (section 18).
 - **Modes at release: Solo, 1v1, 2v2, 3v3.** Lobby 2v2/3v3 tables: bots never join by
@@ -364,7 +371,8 @@ Every feature is checked against these. If it serves none, it waits.
   - Arena matches are rated and paid exactly like lobby matches.
 - Servers hold about 30 players *(tune)*. Every table seats 1v1, 2v2 or 3v3, decided by who
   is in its box. Lobby bots may play each other at 1v1 tables while at least 3 stay free
-  (designer, 2026-10-02; was "PC never plays PC").
+  (designer, 2026-10-02; was "PC never plays PC"), only while every real player is busy
+  (2026-10-12).
 
 - **Spectator seating:** the chairs and sofas are sittable, and sitting is free look - the
   player is seated and the camera is left alone. Watching a table through its own camera is
@@ -868,13 +876,25 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   **Disguised bots** (the search's fallback after 5 s for 1v1, in the player's own server at a
   free table since 2026-10-09 (10 s until 2026-10-07), and 5 s for teams (25 s until
   2026-10-09), the
-  lobby bots, off by default since 2026-10-07 so a server holds only real people, the tutorial) wear real Roblox avatars of random
+  lobby bots, the tutorial) wear real Roblox avatars of random
   accounts with made-up names (designer's call, 2026-10-02); their wins pay like a real match
   with no win streak and are stored as PC wins (never on the most-wins board). After 20
   disguised wins in a day they pay the PC rows and move no win-track step, with nothing on screen
   (plan, 2026-10-02; designer, 2026-10-03: hidden). A bot's equipped cue is picked by its tier
   to match what real players at that rank own, and is never the Secret cue (ECONOMY.md
   section 15).
+- **Lobby bots** (designer, 2026-10-12, after a tester's notes; was off 2026-10-07 .. 10-12):
+  a public lobby looks like **11 people** (bots fill up to 11 with the real players). Badges
+  mostly Bronze (60 / 25 / 15 Bronze, Silver, Gold, none higher). They roam like the tutorial
+  bot (short stops, a swaying walk, looks round, the odd hop) and never sit on the map's
+  seats; now and then one stands a little way from a real player who has nobody free near
+  them, never following, and walks off when they move away or a free real player comes near.
+  A real player alone on a 1v1 pad gets **one bot walking over about 2 s after** they step on
+  (15 s when a free real player is near, so they may play each other first): the bot with the
+  badge closest to their rank, playing at **their rank's skill** (so a Bronze player usually
+  wins). Bots play each other only while every real player is in a match, and such a game
+  ends at once when a lonely player needs a bot and none is free; a few wait on pads.
+  `Config.Bots.Lobby` (`OnByDefault` false turns them off).
 - Rating is saved under a season label ("Season 0"). **Ranks never reset** (designer,
   2026-09-28); seasons may give rewards for the highest tier reached that season. (Save
   version 6, 2026-10-03, started every save over before release: only friends had played.)
@@ -1296,8 +1316,9 @@ helpers, `src/server/TutorialService.luau`, `TutorialGames`, `TutorialBot`, `Tut
   (a closed kiosk), walks over naturally (stop-and-go, look-arounds, the odd jump) and steps on
   0.5-2 s after the player. If they step off before the game, it gets up and strolls nearby.
 - **Path S, the rigged game 1** (whoever sits down alone): the break with the aim locked
-  (under half power the bar springs back; half or more plays the fixed break: 2 solids, the
-  second creeping in); turn 2's aim lesson (a small turn, then zoom out with the pocket
+  (under half power the bar springs back; half or more plays the fixed break: 3 solids, the
+  last creeping in, each stepping the ball streak x1, x2, x3 in this game only; 2026-10-12,
+  it was 2 solids); turn 2's aim lesson (a small turn, then zoom out with the pocket
   glowing, then "Now ... zoom all the way in!" on every device, waiting until the view is
   closer than the default, then the shoot line; the HUD's own zoom hint stays hidden in the
   guided part);
@@ -1305,8 +1326,10 @@ helpers, `src/server/TutorialService.luau`, `TutorialGames`, `TutorialBot`, `Tut
   see-through cue strikes, the cue ball rolls into the first ball, it into the second, that one
   into the glowing pocket; NICE SHOT!); the ability lesson (a full bar,
   Fire Shot's long line); the first miss gives the bot a visit that pots one then scratches,
-  which teaches ball in hand; later bot visits miss and leave a makeable shot; SELECT WHICH
-  POCKET with the right pocket glowing. They cannot lose game 1 (a losing 8 is put back as a
+  which teaches ball in hand; later bot visits first try an "accident" that knocks one of the
+  player's balls in (never the 8, the table comes back; 2026-10-12, a shorter game 1), else
+  miss and leave a makeable shot; "PICK ANY POCKET FOR THE 8!" with the arrows on every
+  pocket (no suggested pocket since 2026-10-12). They cannot lose game 1 (a losing 8 is put back as a
   plain foul). Hidden help: Magnet's pull on the lesson shots, an invisible small pull
   elsewhere. The clock pauses while a lesson prompt shows. Target length about 4 minutes.
 - **Path R, a fair game 1:** a real person at their table before the game starts makes it a
@@ -1315,17 +1338,18 @@ helpers, `src/server/TutorialService.luau`, `TutorialGames`, `TutorialBot`, `Tut
   bot's line): the hub's screens never wait on a win (designer, 2026-10-10). A loss has no
   rank-up, so Rank passes at once, and the Mystery step gives the tutorial's own Mystery
   block. A rematch after it is not offered (a game left halfway still goes back to the arrow).
-- **The chain after game 1:** Result (Continue only, the first win's Rare block) ->
-  NEW RANK! Bronze -> the bot says one casual line and leaves -> **Rank**: CLAIM (Bronze's
-  Mystery block waits there like every rank reward; only CLAIM is ringed, no dim, the hand
-  from its side, so the rewards stay in view) -> **Mystery**: its upgrade screen rolls it
-  into an Uncommon block, ready at once (economy v5's scripted roll) -> **Place**: "Place it!", throw and open; the
-  reel pauses on its cards, the Secret cue flashes past, it lands on the Cosmo Cue (the Cues
-  step waits until the reel and its reveal are done) -> **Cues**:
-  open, the new cue, Equip, close -> **Abilities**: 0 spins; "Type RELEASE for 3 free spins!"
-  (filled in on a controller); the first spin lands on Magnet; 2 left -> the soft part. Each
-  step re-prompts, offers Next after its fallback time, and resumes where it was after a
-  rejoin.
+- **The chain after game 1** (shortened 2026-10-12, a tester's notes; `Config.Tutorial.Chain`):
+  Result (Continue only, the first win's block) -> NEW RANK! Bronze (it says to claim in Rank;
+  nothing forces the claim or points at it later) -> **Mystery**: its upgrade screen rolls it
+  into a block, ready at once -> **Place**: "Place it!", throw and open; the reel pauses on its
+  cards, the Secret cue flashes past, it lands on a real roll -> **Abilities** (the Cues tile
+  appears with its red "1" for the new cue; nothing forces an equip): open Abilities, RELEASE
+  comes typed in on every device, the hand on Redeem: "Click Redeem for 3 free spins!", then
+  "You got 3 free spins! Spin, or close Abilities." (no forced spin, a real random roll; Fire
+  Shot may stay) -> closing Abilities ends the guided part -> the soft part. Each step
+  re-prompts, offers Next after its fallback time, and resumes where it was after a rejoin (a
+  save at the old Rank or Cues step goes on to the next step). Until 2026-10-12 the chain also
+  had Rank (CLAIM) and Cues (Equip), and the first spin landed on Magnet.
 - **The soft part:** every icon pops in, each with a "!" until clicked once (Free Reward
   stands out most, breathing slowly; its first open lands on the group to join); "Now go win
   a match! 0/1" stays until won, then "1/1" and "Have fun!" with the achievement chime and a

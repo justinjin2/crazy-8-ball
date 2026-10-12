@@ -5,6 +5,88 @@ when `docs/STATUS.md` became current state only. Finished work moves here from S
 on top. Read it only to answer "when or why did X change"; it is not part of the read-first list.
 An entry marked "(latest)" was the latest when written.
 
+**2026-10-12 (evening): "Watch on the live game" in long form** (moved here when STATUS took
+the tester's QA batch; STATUS keeps one line each):
+
+- **Controller fixes** (2026-10-11, DECISIONS): the 8's call by D-pad rows (starts top left, the
+  tutorial's on its pocket; the lit pocket gold, glowing, its ring bigger and breathing), the
+  combination turn's "Fine-tune your aim" line, a Mystery held with LB / RB and opened with R2
+  (white burst; `Config.LuckyBlocks.PadHoldMystery`). Checked in Studio with the controller
+  forced (QA presses) and a tutorial run from Arrow on path S. Live: a real controller (Xbox
+  and PlayStation glyphs), the burst's look from the player's own camera, others seeing a
+  Mystery in someone's hands, the designer's look at the lit pocket.
+
+- **The tutorial batch** (2026-10-12, DECISIONS): the aim lesson's "zoom all the way in" part
+  (waits until closer than the default view), a {DPad} picture lighting each way, the Mystery
+  screen's A button on a controller, and the quest "Now go win a match! 0/1" ending in "Have
+  fun!" with the chime and **$2,500** flying into the money HUD (`Config.Tutorial.Soft.QuestReward`).
+  Checked in Studio on PC: the zoom-in part, the quest's words, the reward paid once (a second
+  claim refused), a quest owed from elsewhere finishing on rejoin, a fresh join at Arrow. Live:
+  the reward's money in the logs (TutorialQuest), a phone's spread-fingers hand, the quest line
+  on a narrow phone, the chime by ear.
+- **The queue pad after a match** (2026-10-12, DECISIONS; `Config.Multiplayer.Queue.RejoinOnPad`):
+  still on the pad, queued again after 1.5 s. Lune-tested; pushed at the designer's word before
+  a Studio check (their Studio session ran the old code). Check: finish a match standing on the
+  pad (Leave on the result, and Rematch running out), a 2v2 pad, pressing B / Escape on a
+  waiting pad (needs a step off).
+- **The VIP tag in a match** (2026-10-12, DECISIONS): hover and press do nothing in a match.
+  Checked in Studio (the tag shut in a QA match, live in the lobby). Live: a phone dragging
+  the camera over the tag.
+
+- **Sell Duplicate / Keep on a duplicate's reveal card** (2026-10-11, DECISIONS;
+  `Config.BlockOdds.DuplicateChoice`): checked in Studio on PC through the real reveal screen
+  (buttons, Escape keeps, Sell sold the copy for $200). Live: a real pull's Sell on a phone and
+  with a gamepad, the money flying into the HUD, Common duplicates now kept unless sold.
+
+- **The owner admin panel** (2026-10-11, DECISIONS; `Config.Admin.Enabled`): ADMIN bottom right,
+  Painicane only. Checked in Studio on PC: announcements (on screen only), Give/Drop/Backspace drops
+  and pickup, ability and money by part of a name, money rain (standing icons, amounts,
+  sparkles, same floor only, 60 s life, CashLand on pickup). Announcements now open with a white
+  streak and a button pop, then type out with the designer's keyboard click, just
+  under the Sky Lucky Block timer. Live: an all-servers message, the text filter, a second player
+  picking up drops and bills, a phone (button above the jump), the click's loudness, an
+  All servers money rain (it falls round each other lobby's spawn).
+
+- **The new rank ladder** (2026-10-11, ECONOMY 2, DECISIONS): fast to Gold, then each tier about
+  twice the last; from Expert Classic wins fade (x0.5 down to x0.25) and Difficult x1.5 /
+  Challenger x2 carry the climb (Reyes about a year on Challenger at an hour a day). Until the
+  difficulty picker returns every match is Classic, so Expert and up climb slowly. Saves catch up
+  as they load (about 1,110 of 4,112 move up, NEW RANK! says why, rewards claimed in Rank).
+  Checked in Studio on PC (an old save caught up and claimed, a fresh first win, a normal
+  rank-up, Expert 1's "28 WINS TO EXPERT 2!" at 50 XP a Classic win). Watch live: the `rank
+  catch-up` server lines, claims, a phone and a controller on the popup, win rates against bots
+  from Gold up (bots now meet players sooner).
+- **Onboarding** (2026-10-10): game 1 lost or quick-won goes on to the chain; the Daily
+  Rewards and invite popups after the first match (skippers at once); the Gift drop over a
+  closing menu. Check with a brand-new account once published (recipes: STUDIO_NOTES "Real
+  shots through PoolMatchQA" and the last DECISIONS lines).
+- **"Just one more game?" over Roblox's menu** (2026-10-10, DECISIONS): checked in Studio
+  with the designer on PC (1722 x 814) and the phone emulator, with the Gift falling behind
+  the menu. Open: a real tablet and phone (the panel's place is worked out, not read), a
+  controller's Start.
+- **Like + Favorite** (2026-10-11, DECISIONS): one Verify on the Free Reward card (the
+  Favorite button went: Verify opens the favorite prompt itself),
+  the "ALMOST THERE!" popup (concept A), the reward after a rejoin ($5,000 + Lucky 8 +
+  Mystery). Checked in Studio on PC through the real buttons (GuiQA `pressButton`): the
+  not-favorited path (now Roblox's favorite prompt, then the notice if closed), the popup, Later, closing the menu over it, Leave & Like sending the
+  player out, the flag kept over the rejoin. Open: the designer's look at the popup, a phone
+  and a controller. Off switch: `Config.Social.LikeRejoin`.
+- **Camera after a shot** (2026-10-11, DECISIONS): a Settings switch, blue TOP (default) or
+  gold PLAYER; PLAYER hands the player their own Roblox camera and body once the stroke has
+  played, until their next turn (never in the guided tutorial). Checked in Studio on PC: the
+  row both ways; PLAYER on a break (Roblox's camera, walking, the table view back next turn);
+  TOP unchanged. Open: a real stroke (QA shots skip it), a phone and a controller.
+- **Emotes** (2026-10-11, DECISIONS): the wheel's empty slots are filled on each spawn, so it
+  no longer says "disabled". Checked in Studio (join, respawn, an emote playing). Watch:
+  emoting at a table (the shooter's pose is ours), on a phone and a controller. Off switch:
+  `Config.Emotes.FillEmptySlots`.
+- **Solo and Practice portals**: a real teleport on the live game.
+- **Launch review leftovers:** server CPU per shot (MicroProfiler live), "+10% Permanent" group wording, the day 7 cue not in the claim flyer, the
+  Sky ping trusts the client. Roblox shows products at about 0.8x their price (regional
+  pricing or price optimization). Server size 24 in the Creator Dashboard.
+- **The funnels** in the Creator Dashboard (roadmap 8.2; `docs/TUTORIAL_FUNNELS.md`): where
+  new players quit.
+
 **2026-10-10 (night): the game went live; STATUS as it stood just before the live rewrite**
 (every open item below was kept in STATUS in short form):
 
