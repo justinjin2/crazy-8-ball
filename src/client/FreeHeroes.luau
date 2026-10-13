@@ -6,7 +6,7 @@
 -- side at the top of the page until both are claimed (FreeSocial's welcome; after that the
 -- Group section is the small Lucky 8 card at the bottom of the page): join the group (its
 -- blocks and the match money while a member) and favorite the game (the Lucky 8 and a
--- Mystery Block and money; a blue "+ Like the game if you enjoy!" under its title). Each picture shows its reward's best block (the favorite card its
+-- Mystery Block and money; a blue "Like if you enjoy!" under its "Favorite +"). Each picture shows its reward's best block (the favorite card its
 -- Lucky 8; as many as it gives, up to three) with
 -- the group's busts or the favorite star, and the money when it gives some; the sky-blue dice
 -- on the picture opens that block's Odds & Details. Beside it the title, the reward's blocks
@@ -58,7 +58,7 @@ type Hero = {
 	extra: ImageLabel, -- a small picture of the reward's other block (the favorite's Mystery)
 	odds: ShopCards.Badge,
 	title: TextLabel,
-	like: TextLabel?, -- the favorite card's "+ Like the game if you enjoy!", blue
+	like: TextLabel?, -- the favorite card's "Like if you enjoy!", blue
 	head: TextLabel, -- "Reward:" over the list
 	reward: TextLabel, -- the list's first row: the block in front
 	rewardDot: TextLabel, -- the list's bullets, the words wrapping clear of them
@@ -257,7 +257,7 @@ local function plan(c: Hero, k: number, cardW: number): Plan
 			titleH = titlePx + B.TextBoxPx
 		end
 	end
-	-- The like line on one line: smaller to fit.
+	-- The like line on one line, filling the column up to LikeUnits.
 	local likePx = ShopCards.textPx(H.LikeUnits, k)
 	local likeH = 0
 	if c.like then

@@ -15898,9 +15898,9 @@ Config.UI.FreeReward = {
 			-- A title too long for one line wraps onto this many at its size ("Like + Favorite the
 			-- game", 2026-10-11); one longer still shrinks onto one line.
 			TitleMaxRows = 2,
-			-- The favorite card's "+ Like the game if you enjoy!" under its title (designer, 2026-10-13):
-			-- blue, a little smaller than the title, on one line (smaller still to fit).
-			LikeUnits = 40,
+			-- The favorite card's "Like if you enjoy!" under its "Favorite +" (designer, 2026-10-13):
+			-- blue, on one line, as wide as the words' column allows, never bigger than this.
+			LikeUnits = 50,
 			LikeColor = { 92, 182, 255 },
 			HeadUnits = 30, -- "Reward:" over the list (designer, 2026-10-09)
 			BulletGapUnits = 8, -- between a list row's bullet and its words
