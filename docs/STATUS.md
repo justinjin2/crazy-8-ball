@@ -22,7 +22,9 @@ entry of `docs/archive/STATUS_HISTORY.md`.
   list says "Gold chat tag" instead of "Rainbow chat tag" (`2c6972f`); the favorite card rewards
   the favorite only (`3037341`: "Favorite +" over a big blue "Like if you enjoy!", Verify is Roblox's
   favorite prompt, cancel says "Favorite the game first!", a favorite opens the check steps and
-  the reward comes on Verify after a rejoin); a new tier plays the divisions' rank-up sound.
+  the reward comes on Verify after a rejoin); a new tier plays the divisions' rank-up sound; Eagle's Eye draws Fire Shot's full aim lines;
+  the spin packs' crossed-out prices (20 / 40 / 200 R$). Already live on Roblox (synced): restock
+  Epic 149 and Legendary 599 R$, spins 4 / 17 / 33 / 129 R$.
 - **Now (2026-10-12): a tester's QA batch, committed on `gui-v4`, NOT pushed**, held until the
   designer approves the test page (Artifact "Oct 12 Fixes Checklist"). Rounds 1 and 2 (the
   tester's 8 notes, then the designer's first notes) are listed in STATUS_HISTORY's top entry.

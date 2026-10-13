@@ -216,7 +216,7 @@ stays below buying its money in packs (a test checks it).
 | Restock Epic block | **$125,000** ($500,000) | **149 R$** (was 199) |
 | Restock Legendary block | **$600,000** ($2,500,000) | **599 R$** (was 999) |
 | Restock Mythic block | **$2,500,000** ($5,000,000) | 1,699 R$ |
-| Ability spin | **$10,000** each (unchanged) | 9 R$ (packs as before) |
+| Ability spin | **$10,000** each (unchanged) | **4 R$**; 5 for **17**, 10 for **33**, 50 for **129** (2026-10-13; were 9 / 39 / 75 / 299) |
 
 Restock slots, stock and odds are unchanged (archive 9.1).
 
