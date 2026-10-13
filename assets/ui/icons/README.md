@@ -43,6 +43,7 @@ in the table below.
 | `check.png` | Check | ready, even split | 102199824142465 |
 | `x.png` | X | a pocketed ball, a wrong target | 114855661740318 |
 | `arrow.png` | Arrow | points right; turned for the others | 135119886891841 |
+| `arrow_white.png` | ArrowWhite | the same arrow in white: the pocket arrows when calling the 8 | 131376205317815 |
 | `chevron_right.png` | ChevronRight | the roadmap's > button | 83677689417587 |
 | `chevron_left.png` | ChevronLeft | the roadmap's < button | 139144449776506 |
 | `chevron_up.png` | ChevronUp | the controller guide's arrows by a stick | 86978612733332 |

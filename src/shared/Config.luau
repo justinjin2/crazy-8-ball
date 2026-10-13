@@ -7513,6 +7513,9 @@ Config.UI = {
 			Check = "rbxassetid://102199824142465", -- ready, even split
 			X = "rbxassetid://114855661740318", -- a pocketed ball, a wrong target
 			Arrow = "rbxassetid://135119886891841", -- points right; turned for the others
+			-- The same arrow in white (tools/gen_ui_art.py arrow_white): the pocket arrows on the
+			-- blue cloth when calling the 8 (designer, 2026-10-12: white, to contrast).
+			ArrowWhite = "rbxassetid://131376205317815",
 			-- The roadmap's < and > buttons: one white chevron each, drawn as a single stroke so
 			-- the tip is one clean joint (2026-09-27; four rotated bars left a seam there).
 			ChevronRight = "rbxassetid://83677689417587",
@@ -8214,8 +8217,8 @@ Config.Multiplayer = {
 		PadPickFillTransparency = 0.55,
 		PadPickGlowScale = 2.6,
 		PadPickGlowTransparency = 0.05,
-		-- Calling the 8 (MatchTargets; designer, 2026-10-12): the kit's arrow (Kit.Icons.Arrow)
-		-- on the cloth by each pocket, pointing out at it and
+		-- Calling the 8 (MatchTargets; designer, 2026-10-12): the kit's arrow in white
+		-- (Kit.Icons.ArrowWhite; blue was lost on the cloth) by each pocket, pointing out at it and
 		-- bobbing BobPx toward it every BobSeconds; on a controller only the lit pocket has one.
 		-- The rings' "Pocket N" captions hide meanwhile. On = false: the captions, no arrows.
 		PocketArrows = { On = true, Px = 48, GapPx = 0, BobPx = 8, BobSeconds = 0.9 },

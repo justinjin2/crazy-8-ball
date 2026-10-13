@@ -627,6 +627,16 @@ def icon_arrow():
     )
 
 
+def icon_arrow_white():
+    """The kit arrow in white with its ink outline: the pocket arrows when calling the 8 stand
+    out on the blue cloth (designer, 2026-10-12)."""
+    shape = "M36 104 L136 104 L136 58 L222 128 L136 198 L136 152 L36 152 Z"
+    return (
+        f'<path d="{shape}" fill="url(#white)" stroke="url(#white)" stroke-width="14" stroke-linejoin="round"/>'
+        + gloss(90, 112, 40, 6, angle=0, opacity=0.6)
+    )
+
+
 def chevron_icon(dir):
     """A white chevron pointing right (dir 1) or left (dir -1), drawn as one stroke so its tip
     is a single clean joint: the roadmap's arrow buttons. Two images rather than one turned,
@@ -2386,6 +2396,7 @@ ICONS = {
     "check": icon_check,
     "x": icon_x,
     "arrow": icon_arrow,
+    "arrow_white": icon_arrow_white,
     "chevron_right": icon_chevron_right,
     "chevron_left": icon_chevron_left,
     "chevron_up": icon_chevron_up,

@@ -189,7 +189,7 @@ function MatchTargets.new(
 		arrow.Name = "PocketArrow" .. id
 		arrow.AnchorPoint = Vector2.new(0.5, 0.5)
 		arrow.BackgroundTransparency = 1
-		arrow.Image = Config.UI.Kit.Icons.Arrow
+		arrow.Image = Config.UI.Kit.Icons.ArrowWhite
 		arrow.ScaleType = Enum.ScaleType.Fit
 		arrow.Active = false
 		arrow.Visible = false
