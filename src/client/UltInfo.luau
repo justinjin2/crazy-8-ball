@@ -131,7 +131,10 @@ function UltInfo.new(holder: Frame, content: Frame): any
 	card.AnchorPoint = Vector2.new(0.5, 1)
 	card.Visible = false
 	card.ZIndex = 8
-	HudParts.corner(card, I.CardCornerPx)
+	-- A card, not a pill: its corners only a little round. The pill's own round ends are set
+	-- here (a second UICorner is ignored), so the words stay inside (designer, 2026-10-13).
+	local round = card:FindFirstChildOfClass("UICorner") :: UICorner
+	round.CornerRadius = UDim.new(0, I.CardCornerPx)
 	self.card = card
 	local cardIcon = Instance.new("ImageLabel")
 	cardIcon.Name = "Icon"
