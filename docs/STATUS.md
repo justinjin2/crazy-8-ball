@@ -32,7 +32,10 @@ entry of `docs/archive/STATUS_HISTORY.md`.
   `Config.Bots.HonestMisses`). Fourth round (2026-10-13, DECISIONS): the ability card's words
   inside (`dbcd213`), NEXT under the win track's tile (`9f5c39c`), a phone's Sky clock as icon
   and time (`4ddd9f1`), ADMIN in the corner on touch (`81e2b8e`), the table below Roblox's
-  buttons (`fd554f5`), level same-size pocket arrows in the normal view (`69e3f7e`). No save
+  buttons (`fd554f5`), level same-size pocket arrows in the normal view (`69e3f7e`), in one
+  line per row with two at each side pocket (`c3ff8e5`), a phone's result screen smaller and
+  centred (`6595703`), no Play Global under a result (`65b231e`), the onboarding funnel
+  rebuilt (`0077c50`: read the dashboard from the publish day). No save
   change (three tutorial moment bits appended). After approval: push, the designer publishes (Restart Servers
   optional), then watch a new account's tutorial on a phone, a lobby with bots and a phone
   match live.
