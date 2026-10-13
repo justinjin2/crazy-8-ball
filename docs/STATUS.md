@@ -27,14 +27,18 @@ entry of `docs/archive/STATUS_HISTORY.md`.
   Sky clock top right (`e60d105`), the win track open with no blocks and its folded amount
   (`8bc09de`), Play Global always (`15eb238`), the Rank then Cues pointer and the Cues glow
   (`b139ad8`, `43939a8`), the arrows off the table (`00a9c00`), the ABILITY IS READY popup
-  (`2918d64`), a controller's suggested pocket (`dc94272`). No save change (three tutorial
-  moment bits appended). After approval: push, the designer publishes (Restart Servers
+  (`2918d64`), a controller's suggested pocket (`dc94272`), rank bots that miss honestly, no
+  planned scratch (`b33a4f2`, `382f003`, `c3f00be`, `343a20c`, `40d17f6`;
+  `Config.Bots.HonestMisses`). No save change (three tutorial moment bits appended). After approval: push, the designer publishes (Restart Servers
   optional), then watch a new account's tutorial on a phone, a lobby with bots and a phone
   match live.
 - **Lint and tests (2026-10-12 late night, `gui-v4`):** lint OK (four old LocalShadow
-  warnings); all 1247 Lune tests pass. The third round was checked in Studio at computer size
+  warnings); all 1253 Lune tests pass. The third round was checked in Studio at computer size
   (1920 x 1080; the phone emulator was off): the pointer, the quest line, the arrows, the popup,
-  the suggested pocket, the lobby's win track over Play Global; console clean. The Studio
+  the suggested pocket, the lobby's win track over Play Global, a Play against PC game with the
+  Bronze bot (7 shots: blunders and near misses, none scratched or fouled); console clean.
+  Open from the bot duel (DECISIONS): Bronze measures 85% player wins against a 90% target
+  (the model player's own 8-ball losses), Reyes 15% against 30% (drifted before this change). The Studio
   save was put back as it was (Done, $15,820, 2 matches).
 
 ## In the game
