@@ -200,7 +200,10 @@ with a win held about $7,500 and had played 2 matches; the top 1% held about $30
 about $22,000 a day (about $2,100 a match with the free rewards); 1 of those 80 could afford a
 $100,000 block. Players had spent about 8% of the money they earned. The rule: a Grand Opening
 block is about one good day of play, and every block costs at least twice its tier's sell-back
-(Mythic only halved: its cue sells back for about $1,225,000 on average). Robux prices unchanged.
+(Mythic only halved: its cue sells back for about $1,225,000 on average). Robux prices unchanged,
+except restock Epic and Legendary (synced to Roblox 2026-10-13): at 199 and 999 R$ the money packs
+bought their new money prices for the same Robux or less, so a restock block's Robux price now
+stays below buying its money in packs (a test checks it).
 
 | | Money (v6 before) | Robux |
 |---|---|---|
@@ -210,8 +213,8 @@ block is about one good day of play, and every block costs at least twice its ti
 | 3 Grand Opening blocks | **$70,000** ($270,000) | **99 R$** |
 | 10 Grand Opening blocks | **$220,000** ($850,000) | **299 R$** |
 | Restock Rare block | **$25,000** ($100,000) | 39 R$ |
-| Restock Epic block | **$125,000** ($500,000) | **199 R$** |
-| Restock Legendary block | **$600,000** ($2,500,000) | **999 R$** |
+| Restock Epic block | **$125,000** ($500,000) | **149 R$** (was 199) |
+| Restock Legendary block | **$600,000** ($2,500,000) | **599 R$** (was 999) |
 | Restock Mythic block | **$2,500,000** ($5,000,000) | 1,699 R$ |
 | Ability spin | **$10,000** each (unchanged) | 9 R$ (packs as before) |
 
