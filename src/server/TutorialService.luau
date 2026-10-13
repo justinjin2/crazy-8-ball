@@ -447,10 +447,11 @@ local function onLoaded(player: Player)
 	stepChanged:Fire(player, step, saved)
 end
 
--- The Win a Match quest's reward (Config.Tutorial.Soft.QuestRewardMoney), once: owed since the
--- quest was won with the reward on (QuestOwed), paid when the client's "Have fun!" claims it
--- (TutorialEvent "QuestReward") or QuestRewardFallbackSeconds after it was owed here. QuestPaid
--- is marked before the money, so a replayed claim or a second fallback never pays twice.
+-- The Win a Match quest's reward (Config.Tutorial.Soft.QuestRewardBlock, a lucky block; or
+-- QuestRewardMoney when no block is set), once: owed since the quest was won with the reward on
+-- (QuestOwed), paid when the client's "Have fun!" claims it (TutorialEvent "QuestReward") or
+-- QuestRewardFallbackSeconds after it was owed here. QuestPaid is marked before the reward, so
+-- a replayed claim or a second fallback never pays twice.
 local function payQuest(player: Player)
 	if
 		T.Soft.QuestReward
@@ -458,7 +459,14 @@ local function payQuest(player: Player)
 		and TutorialHints.seen(player, "QuestOwed")
 		and TutorialHints.markSeen(player, "QuestPaid")
 	then
-		PlayerData.addMoney(player, T.Soft.QuestRewardMoney, "TutorialQuest")
+		local kind = T.Soft.QuestRewardBlock
+		if kind == nil then
+			PlayerData.addMoney(player, T.Soft.QuestRewardMoney, "TutorialQuest")
+		elseif not PlayerData.giveLuckyBlocks(player, kind, 1) then
+			warn(
+				("[8ball] Tutorial: %s's quest block (%s) was not given"):format(player.Name, kind)
+			)
+		end
 	end
 end
 

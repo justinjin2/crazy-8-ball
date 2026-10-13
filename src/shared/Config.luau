@@ -15246,15 +15246,20 @@ Config.Tutorial = {
 		-- The quest ("Now go win a match! 0/1"): white words with the ink outline, centred under
 		-- Roblox's bar (under the top banner while one shows). Once won it shows "1/1" for
 		-- QuestCountSeconds, then "Have fun!" for QuestDoneSeconds (designer, 2026-10-12), with
-		-- the completion sound (Audio.Ui.TutorialDone) and its reward flying into the money HUD.
+		-- the completion sound (Audio.Ui.TutorialDone) and its reward flying in.
 		QuestWins = 1, -- the wins it asks for (the server counts from the soft part's start)
-		-- The reward for winning it (designer, 2026-10-12: "some money reward that has the flying
-		-- cash animation"): about two wins' money, the same as the 8BALL code and Bronze's tier
-		-- money. Paid once by the server when "Have fun!" shows (the client's claim), or
+		-- The reward for winning it: a Mystery lucky block (designer, 2026-10-12: "reward for
+		-- winning their first match should be a mystery lucky block instead of money ... Reward:
+		-- (mystery block icon)"; it was $2,500, QuestRewardMoney). The quest line ends in
+		-- "Reward:" and the block's picture; at "Have fun!" the block flies to the hotbar. Paid
+		-- once by the server when "Have fun!" shows (the client's claim), or
 		-- QuestRewardFallbackSeconds after it was owed if no claim came (it pays silently).
-		-- Off: the words only, no money (quests won while off are never owed).
+		-- Off: the words only, no reward (quests won while off are never owed).
 		QuestReward = true,
-		QuestRewardMoney = 2500,
+		QuestRewardBlock = "Mystery" :: string?, -- a lucky block kind; nil: QuestRewardMoney instead
+		QuestRewardMoney = 2500, -- the money reward, only while QuestRewardBlock is nil
+		QuestRewardIconScale = 1.4, -- the block's picture, this many times the words' size
+		QuestRewardGapPx = 6, -- between "Reward:" and the picture
 		QuestRewardFallbackSeconds = 120,
 		QuestTextPx = 32,
 		QuestPhoneTextPx = 24,

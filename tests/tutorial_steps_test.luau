@@ -93,6 +93,15 @@ local function used(source: string): { { name: string, line: number } }
 end
 
 return {
+	["the Win a Match quest's reward is a real lucky block (a Mystery, designer 2026-10-12)"] = function()
+		local Config = H.require("Config")
+		local soft = Config.Tutorial.Soft
+		local kind = soft.QuestRewardBlock
+		H.expect(kind == "Mystery", "a Mystery block, not money: " .. tostring(kind))
+		H.expect((Config.LuckyBlocks.Kinds :: any)[kind] ~= nil, "a lucky block kind")
+		H.expect(type((Config.LuckyBlocks.Kinds :: any)[kind].Icon) == "string", "its picture")
+		H.expect(soft.QuestRewardMoney > 0, "money stays the fallback with no block set")
+	end,
 	["a new save starts at the arrow; a player who has played never enters"] = function()
 		local Steps = load()
 		H.expect(Steps.initial(0, 0) == "Arrow", "brand new")

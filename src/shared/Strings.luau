@@ -2045,6 +2045,7 @@ return {
 		-- The soft part (4.5 steps 10-14, 4.6).
 		Quest = "Now go win a match! %d/%d",
 		QuestDone = "Have fun!", -- with the quest's reward flying in (Config.Tutorial.Soft.QuestReward)
+		QuestReward = "Reward:", -- after the quest's count, then the reward block's picture
 		InviteTitle = "Invite a friend?",
 		InviteBody = "You both get the %s!", -- the cue ("Candy Cane Cue": Config.Social.InviteCue)
 		InviteWhen = "You get it when your friend wins their first match.",

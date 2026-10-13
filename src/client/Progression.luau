@@ -60,6 +60,7 @@ local TradeMenu = require(script.Parent.TradeMenu)
 local UISound = require(script.Parent.UISound)
 local LuckyClient = require(script.Parent.LuckyClient)
 local Purchased = require(script.Parent.Purchased)
+local RewardsFlyer = require(script.Parent.RewardsFlyer)
 local VipTag = require(script.Parent.VipTag)
 local WinTrack = require(script.Parent.WinTrack)
 local SkyBanner = require(script.Parent.SkyBanner)
@@ -107,6 +108,9 @@ local playerList: any = nil
 local winTrack: any = nil
 local skyBanner: any = nil
 local vipTag: any = nil
+local hudScreen: ScreenGui? = nil
+local economyDeps: any = nil -- the economy screens' shared table (start)
+local rewardFlyer: any = nil -- the tutorial quest's block flight, made on its first use
 local started = false
 -- RankEvents (the /newrank preview) held while you shoot or a result screen is up, shown in
 -- order afterwards.
@@ -304,6 +308,7 @@ function Progression.start(screen: ScreenGui, hooks: Hooks)
 	}
 	-- The result screen and NEW RANK! were built before this table: they read it when used
 	-- (the win's block and rank rewards fly to the hotbar or deps.column).
+	hudScreen, economyDeps = screen, deps
 	result:setDeps(deps)
 	newRank:setDeps(deps)
 	LuckyClient.setDeps(deps) -- a duplicate sold from its reveal card flies its money
@@ -425,6 +430,20 @@ function Progression.flyMoney(amount: number, from: Vector2): boolean
 	end
 	money:expect(amount)
 	flyer:fly(amount, from, "Reward", 0)
+	return true
+end
+
+--- A reward (`value` as RewardsFlyer.reward takes it: { blocks = { { kind, count } } }) flies
+--- from `from` (absolute screen pixels): a lucky block to the hotbar (the tutorial quest's
+--- block). False before the HUD is built.
+function Progression.flyReward(value: any, from: Vector2): boolean
+	if not started or hudScreen == nil or economyDeps == nil then
+		return false
+	end
+	if rewardFlyer == nil then
+		rewardFlyer = RewardsFlyer.new(hudScreen :: ScreenGui, economyDeps)
+	end
+	rewardFlyer:reward(value, from)
 	return true
 end
 

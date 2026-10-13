@@ -78,6 +78,7 @@ local PRESSES: { [string]: string } = {
 
 local gui: ScreenGui
 local quest: TextLabel
+local rewardIcon: ImageLabel -- the quest reward block's picture, after the line's "Reward:"
 local popup: Frame
 local popupInvite: TextButton
 local popupClose: TextButton
@@ -314,9 +315,36 @@ local BANNER = TutorialOverlay.guiTarget("Banner", 0)
 -- (designer's phone, 2026-10-12).
 local ONE_MORE = TutorialOverlay.guiTargets({ "RankOneMore", "SkyBanner" }, 0)
 
+-- The quest's reward block (Config.Tutorial.Soft.QuestRewardBlock), or nil (money, or none).
+local function rewardBlock(): string?
+	local kind = S.QuestRewardBlock
+	local kinds: { [string]: any } = Config.LuckyBlocks.Kinds :: any
+	return if S.QuestReward and kind and kinds[kind] then kind else nil
+end
+
+-- "Now go win a match! 0/1", and "Reward:" after it while a block is the reward (its picture
+-- follows: placeQuest).
+local function questLine(count: number): string
+	local line = Copy.Quest:format(count, S.QuestWins)
+	return if rewardBlock() then line .. "  " .. Copy.QuestReward else line
+end
+
 local function placeQuest()
 	local px = if phone() then S.QuestPhoneTextPx else S.QuestTextPx
 	HudParts.setTextSize(quest, px)
+	-- The reward's picture just right of the words; the line shifts left by half of it, so the
+	-- words and the picture stay centred together.
+	local kind = rewardBlock()
+	local iconPx = math.floor(px * S.QuestRewardIconScale)
+	local withIcon = kind ~= nil and string.sub(quest.Text, -#Copy.QuestReward) == Copy.QuestReward
+	local wordsW = TextService:GetTextSize(quest.Text, px, quest.Font, Vector2.new(10000, 1000)).X
+	rewardIcon.Visible = withIcon
+	if withIcon then
+		rewardIcon.Image = (Config.LuckyBlocks.Kinds :: any)[kind].Icon
+		rewardIcon.Size = UDim2.fromOffset(iconPx, iconPx)
+		rewardIcon.Position = UDim2.new(0.5, wordsW / 2 + S.QuestRewardGapPx, 0.5, 0)
+	end
+	local shift = if withIcon then (iconPx + S.QuestRewardGapPx) / 2 else 0
 	-- Centred on the play area (in from a phone's notch), under Roblox's top bar, a banner, the
 	-- rank pill's goal line and the Sky clock.
 	local play = TutorialOverlay.areas().play
@@ -327,7 +355,7 @@ local function placeQuest()
 			top = math.max(top, centre.Y + size.Y / 2 + S.QuestTopGapPx)
 		end
 	end
-	quest.Position = UDim2.fromOffset(play.x + play.w / 2, top)
+	quest.Position = UDim2.fromOffset(play.x + play.w / 2 - shift, top)
 	quest.Size = UDim2.fromOffset(play.w - 2 * S.QuestTopGapPx, px + 8)
 end
 
@@ -350,15 +378,21 @@ local function questOwed(): boolean
 		and not TutorialAnchors.seen("QuestPaid")
 end
 
--- "Have fun!": the completion sound, and the reward (when owed) flies from the quest line into
--- the money HUD as the server is asked to pay it.
+-- "Have fun!": the completion sound, and the reward (when owed) flies from the quest line to
+-- the hotbar (a block) or into the money HUD as the server is asked to pay it.
 local function finishQuest()
 	UISound.play("TutorialDone")
 	if not questOwed() then
 		return
 	end
 	questClaimed = true
-	Progression.flyMoney(S.QuestRewardMoney, quest.AbsolutePosition + quest.AbsoluteSize / 2)
+	local from = quest.AbsolutePosition + quest.AbsoluteSize / 2
+	local kind = rewardBlock()
+	if kind then
+		Progression.flyReward({ blocks = { { kind = kind, count = 1 } } }, from)
+	else
+		Progression.flyMoney(S.QuestRewardMoney, from)
+	end
 	Net.get("TutorialEvent"):FireServer("QuestReward")
 end
 
@@ -392,7 +426,7 @@ local function updateQuest(quiet: boolean, now: number)
 	end
 	if questPhase == "on" then
 		questSeen = true
-		local text = Copy.Quest:format(0, S.QuestWins)
+		local text = questLine(0)
 		if not quest.Visible or quest.Text ~= text then
 			showQuest(text, false)
 		else
@@ -403,7 +437,7 @@ local function updateQuest(quiet: boolean, now: number)
 			questPhase = "off" -- won without it ever showing here: nothing to finish
 		elseif questAt < 0 then
 			questAt = now
-			showQuest(Copy.Quest:format(S.QuestWins, S.QuestWins), false)
+			showQuest(questLine(S.QuestWins), false)
 			UIAnim.thump(quest)
 		elseif now - questAt >= S.QuestCountSeconds then
 			questPhase = "done"
@@ -737,6 +771,14 @@ function TutorialSoft.start()
 	quest.TextWrapped = false
 	quest.ZIndex = 3
 	quest.Visible = false
+	rewardIcon = Instance.new("ImageLabel")
+	rewardIcon.Name = "RewardBlock"
+	rewardIcon.AnchorPoint = Vector2.new(0, 0.5)
+	rewardIcon.BackgroundTransparency = 1
+	rewardIcon.ScaleType = Enum.ScaleType.Fit
+	rewardIcon.ZIndex = 4
+	rewardIcon.Visible = false
+	rewardIcon.Parent = quest
 
 	popup = HudParts.card(gui, "InvitePopup")
 	popup.AnchorPoint = Vector2.new(0.5, 0.5)
