@@ -351,6 +351,13 @@ end
 ---------------------------------------------------------------------------------------------
 
 -- The onboarding funnel (Roblox's own, everyone new): fields device (first step) and path.
+-- Rebuilt 2026-10-13 for the tutorial as it now runs (designer: "make sure its displaying
+-- accurate funnels"): the chain no longer asks for the rank's claim, the cue's equip or a spin
+-- (those were steps 7, 9 and 10, now optional, so they read as drops), the soft part's pointer
+-- leads to Rank then Cues, and the player's return visits close it. Its own save mask
+-- (Config.Tutorial.Funnel.OnboardingFlag "Funnel2"), so only players new from that update
+-- enter it; read the dashboard from that day on (the 16-step list before it, and the old
+-- 22-step one's leftovers at 17 to 22, were other lists under the same funnel).
 Steps.Funnel = {
 	"Joined",
 	"ArrowShown",
@@ -358,17 +365,33 @@ Steps.Funnel = {
 	"Game1Started",
 	"Game1Ended",
 	"FirstWin",
-	"RankClaimed",
+	"MysteryTapped", -- the Mystery step done (the Place step begins)
 	"BlockOpened",
-	"CueEquipped",
-	"AbilitySpun",
+	"CodeRedeemed", -- RELEASE redeemed at the Abilities step
 	"ChainDone",
+	"RankOpened", -- Rank opened while the soft part's pointer showed it (Seen PointerRank)
+	"CuesOpened", -- then Cues (Seen PointerCues)
 	"Game2Searched",
 	"Game2Started",
 	"Game2Ended",
 	"QuestDone",
 	"ThirdMatch",
+	"ReturnedNextDay", -- back on the UTC day after their first
+	"ReturnedWeekLater", -- back ReturnWeekDays or more UTC days after their first
 }
+
+--- The return-visit step a session on UTC day `today` earns a player first seen on day
+--- `firstDay` (Daily.dayOf): ReturnedNextDay on the next day, ReturnedWeekLater from
+--- `weekDays` days on, else nil.
+function Steps.returnStep(firstDay: number, today: number, weekDays: number): string?
+	local days = today - firstDay
+	if days == 1 then
+		return "ReturnedNextDay"
+	elseif days >= weekDays then
+		return "ReturnedWeekLater"
+	end
+	return nil
+end
 
 -- The one-time funnels, each step once per player (its own Flags mask).
 Steps.Funnels = {

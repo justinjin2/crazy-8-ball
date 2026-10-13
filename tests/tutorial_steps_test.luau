@@ -297,12 +297,49 @@ return {
 		H.expect(not Steps.has(nil, 1) and not Steps.has(-5, 1) and not Steps.has(0 / 0, 1), "junk")
 	end,
 
+	["the onboarding funnel follows the tutorial as it runs now"] = function()
+		local Steps = load()
+		-- The chain no longer asks for these (2026-10-13): they would read as drops.
+		for _, gone in { "RankClaimed", "CueEquipped", "AbilitySpun" } do
+			H.expect(Steps.funnelNumber(gone) == nil, gone .. " is not an onboarding step")
+		end
+		local seen = {}
+		for _, step in Steps.Funnel do
+			H.expect(not seen[step], "onboarding names " .. step .. " once")
+			seen[step] = true
+		end
+		-- Every step is logged somewhere: its name is in the server's code (a call, or a
+		-- table of names it logs) or is a return visit (Steps.returnStep).
+		local server = ""
+		for _, path in files("src/server", {}) do
+			server ..= fs.readFile(path)
+		end
+		for _, step in Steps.Funnel do
+			local logged = string.find(server, '"' .. step .. '"', 1, true) ~= nil
+				or Steps.returnStep(0, 1, 7) == step
+				or Steps.returnStep(0, 7, 7) == step
+			H.expect(logged, step .. " is logged by the server")
+		end
+	end,
+
+	["a return visit counts the next day and a week later"] = function()
+		local Steps = load()
+		H.expect(Steps.returnStep(100, 100, 7) == nil, "the first day is not a return")
+		H.expect(Steps.returnStep(100, 101, 7) == "ReturnedNextDay", "the next day")
+		H.expect(Steps.returnStep(100, 102, 7) == nil, "two to six days: neither")
+		H.expect(Steps.returnStep(100, 106, 7) == nil, "")
+		H.expect(Steps.returnStep(100, 107, 7) == "ReturnedWeekLater", "a week on")
+		H.expect(Steps.returnStep(100, 140, 7) == "ReturnedWeekLater", "or later")
+		H.expect(Steps.returnStep(100, 99, 7) == nil, "a clock behind the first day")
+	end,
+
 	["every funnel fits Roblox's limits and names its steps once"] = function()
 		local Steps = load()
 		local Config = H.require("Config")
 		H.expect(#Steps.Funnel <= 31, "onboarding fits a Flags number")
 		H.expect(
-			Steps.funnelNumber("Joined") == 1 and Steps.funnelNumber("ThirdMatch") == #Steps.Funnel,
+			Steps.funnelNumber("Joined") == 1
+				and Steps.funnelNumber("ReturnedWeekLater") == #Steps.Funnel,
 			""
 		)
 		local funnels = 1 + 3 -- onboarding + Shop, Block, AbilitySpins

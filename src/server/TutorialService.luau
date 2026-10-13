@@ -30,6 +30,7 @@ local Net = require(Shared.Net)
 local Strings = require(Shared.Strings)
 local Steps = require(Shared.Tutorial.Steps)
 local LuckyBlocks = require(Shared.Progression.LuckyBlocks)
+local Daily = require(Shared.Progression.Daily)
 local PlayerData = require(script.Parent.PlayerData)
 local Rewards = require(script.Parent.Rewards)
 local Funnel = require(script.Parent.Funnel)
@@ -218,6 +219,8 @@ local function entered(player: Player, step: string, _previous: string?)
 	end
 	if step == "Arrow" then
 		Funnel.onboarding(player, "ArrowShown")
+	elseif step == "Place" then
+		Funnel.onboarding(player, "MysteryTapped")
 	elseif step == "Mystery" then
 		-- The step opens a Mystery block; a first win against a real new player dropped none
 		-- (designer, 2026-10-10: the win still earns it), so the tutorial gives one, once.
@@ -235,6 +238,7 @@ local function entered(player: Player, step: string, _previous: string?)
 		local data = PlayerData.read(player)
 		if data and data.Codes[Config.Ults.CodeBanner.ActiveCode :: string] == true then
 			TutorialService.mark(player, "Redeemed")
+			Funnel.onboarding(player, "CodeRedeemed")
 		end
 	elseif step == "Soft" then
 		-- Counted from the soft part's first start (a rejoin keeps them).
@@ -376,6 +380,16 @@ local function onLoaded(player: Player)
 	local data = PlayerData.read(player)
 	if data == nil then
 		return
+	end
+	-- The onboarding funnel's return visits (only for players in it: Funnel.onboarding).
+	local firstJoin = data.Shop.FirstJoin
+	if type(firstJoin) == "number" and firstJoin > 0 then
+		local now = os.time()
+		local back =
+			Steps.returnStep(Daily.dayOf(firstJoin), Daily.dayOf(now), T.Funnel.ReturnWeekDays)
+		if back then
+			Funnel.onboarding(player, back)
+		end
 	end
 	local saved = data.Flags[STEP_FLAG]
 	local step = Steps.load(saved, data.Stats.Matches, data.Progress.Wins)
@@ -581,7 +595,6 @@ end
 
 -- Equipping a cue at the Cues step moves on once Cues is closed (or after the fallback).
 local function equipped(player: Player, _cueId: string)
-	Funnel.onboarding(player, "CueEquipped")
 	TutorialHints.done(player, "Cue")
 	player:SetAttribute("TutorialNewCue", nil)
 	if TutorialService.step(player) == "Cues" then
@@ -601,7 +614,6 @@ end
 
 local function spun(player: Player, _id: string)
 	Funnel.spins(player, "Spun")
-	Funnel.onboarding(player, "AbilitySpun")
 	TutorialHints.done(player, "Abilities")
 	if TutorialService.step(player) == "Abilities" then
 		TutorialService.mark(player, "Spun")
@@ -618,6 +630,7 @@ local function codeRedeemed(player: Player, code: string)
 		and typed == Config.Ults.CodeBanner.ActiveCode
 	then
 		TutorialService.mark(player, "Redeemed")
+		Funnel.onboarding(player, "CodeRedeemed")
 	end
 end
 
@@ -781,6 +794,12 @@ local CLOSE_REPORTS: { [string]: { step: string, mark: string } } = {
 
 -- The soft part's moments that are Social funnel steps (the rest it logs itself: Invited, and
 -- DailyClaimed from Rewards).
+-- The soft part's pointer moments that are onboarding funnel steps (Seen -> step).
+local POINTER_FUNNEL: { [string]: string } = {
+	PointerRank = "RankOpened",
+	PointerCues = "CuesOpened",
+}
+
 local SOCIAL_SEEN: { [string]: string } = {
 	Invite = "InviteShown",
 	FreeReward = "FreeRewardOpened",
@@ -851,7 +870,11 @@ local function onEvent(player: Player, kind: any, data: any)
 		end
 	elseif kind == "Seen" then
 		if type(data) == "string" and Steps.ClientSeen[data] then
-			if TutorialHints.markSeen(player, data) and SOCIAL_SEEN[data] then
+			local first = TutorialHints.markSeen(player, data)
+			if first and POINTER_FUNNEL[data] then
+				Funnel.onboarding(player, POINTER_FUNNEL[data])
+			end
+			if first and SOCIAL_SEEN[data] then
 				Funnel.social(player, SOCIAL_SEEN[data])
 				if data == "Invite" then
 					Funnel.event(player, "InvitePopup", 1, "Shown", Funnel.device(player))

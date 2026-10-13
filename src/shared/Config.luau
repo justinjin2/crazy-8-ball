@@ -15395,7 +15395,10 @@ Config.Tutorial = {
 	-- lists: Tutorial/Steps (Funnel, Funnels) and the repeating ones below.
 	Funnel = {
 		Print = true, -- Studio prints each logged step in the output (never live)
-		OnboardingFlag = "Funnel",
+		-- The onboarding funnel's save mask: "Funnel2" since its steps were rebuilt for the
+		-- new tutorial (2026-10-13; Steps.Funnel); old saves keep "Funnel", unread.
+		OnboardingFlag = "Funnel2",
+		ReturnWeekDays = 7, -- ReturnedWeekLater: back this many UTC days after the first, or more
 		-- One-time funnels (Steps.Funnels): the funnel's name on the dashboard -> its Flags key.
 		Once = {
 			PathS = "FunnelS",
