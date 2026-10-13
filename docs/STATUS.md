@@ -18,7 +18,8 @@ entry of `docs/archive/STATUS_HISTORY.md`.
   update must not bring a critical bug or error to the live game: the rules are in CLAUDE.md,
   "The game is live".
 - **Published:** everything up to `c499ecf` (2026-10-12; the list is in STATUS_HISTORY). **Not
-  yet published:** the Shop restock's "Epic or better!" tag removed (DECISIONS).
+  yet published:** the Shop restock's "Epic or better!" tag removed (DECISIONS); the VIP card's perk
+  list says "Gold chat tag" instead of "Rainbow chat tag" (`2c6972f`).
 - **Now (2026-10-12): a tester's QA batch, committed on `gui-v4`, NOT pushed**, held until the
   designer approves the test page (Artifact "Oct 12 Fixes Checklist"). Rounds 1 and 2 (the
   tester's 8 notes, then the designer's first notes) are listed in STATUS_HISTORY's top entry.
