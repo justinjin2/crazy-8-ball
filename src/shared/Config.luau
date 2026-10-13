@@ -7104,6 +7104,11 @@ Config.UI = {
 			UseDisplayName = false, -- false: usernames, as over the players' heads
 			MarginPx = 10, -- kept clear round the screen's edge
 			MaxScale = 1.25, -- grows up to this much on a big screen
+			-- On a phone (under Multiplayer.Style.ShortHeight tall) it fits in this share of the
+			-- room and is centred on the whole screen, Roblox's top row included (designer,
+			-- 2026-10-13: "on iphone is a bit too big should be a bit more center and also a bit
+			-- smaller"; it filled the height under the row, behind the money and jump buttons).
+			PhoneShare = 0.8,
 			-- Natural sizes, side by side (the stage), in pixels before scaling.
 			FaceWidth = 390, -- the face-off column
 			RewardsWidth = 290, -- the rewards card

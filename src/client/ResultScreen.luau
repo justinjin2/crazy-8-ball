@@ -888,6 +888,11 @@ function ResultScreen.layout(self: any, settled: boolean?)
 	local gap = C.ColumnGap
 	local availableX = screenSize.X - C.MarginPx * 2
 	local availableY = screenSize.Y - C.MarginPx * 2
+	local phone = workspace.CurrentCamera.ViewportSize.Y < Config.Multiplayer.Style.ShortHeight
+	if phone then
+		availableX *= C.PhoneShare
+		availableY *= C.PhoneShare
+	end
 	view.holder.AnchorPoint = Vector2.new(0.5, 0.5)
 	view.holder.Position = UDim2.fromScale(0.5, 0.5)
 	-- Side by side, or the rewards under the face-off: whichever lets it be bigger.
@@ -916,6 +921,13 @@ function ResultScreen.layout(self: any, settled: boolean?)
 	end
 	local scale = math.max(0.1, math.min(C.MaxScale, if stacked then stackScale else wideScale))
 	view.fit.Scale = scale
+	if phone then
+		-- Centred on the whole screen: up by half of Roblox's top row (this screen starts under
+		-- it), never closer than MarginPx to that row.
+		local spare = (screenSize.Y - (columnsHeight + extra) * scale) / 2 - C.MarginPx
+		local lift = math.clamp(GuiService:GetGuiInset().Y / 2, 0, math.max(0, spare))
+		view.holder.Position = UDim2.new(0.5, 0, 0.5, -lift)
+	end
 	-- Small words are measured as drawn at this scale (drawnPx): once more with it (at most
 	-- once).
 	local textScale = math.min(1, scale)
