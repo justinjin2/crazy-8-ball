@@ -738,7 +738,7 @@ return {
 			Used = "You already used that code.",
 			Expired = "That code has expired.",
 			NotMember = "Join the group first, then claim!",
-			Rejoin = "Favorite the game first!",
+			Rejoin = "Rejoin the game, then press Verify!",
 			-- Trading (TradeRequest's reasons; NotOwned, Owned and Busy above serve trades too).
 			NotHere = "That player isn't here anymore.",
 			Self = "You can't trade with yourself.",
@@ -1333,13 +1333,14 @@ return {
 		FavoriteHeroPlus = "+", -- white, after the title (designer, 2026-10-13)
 		FavoriteLike = "Like if you enjoy!", -- under the hero's title, blue, one line, as big as fits
 		Join = "Join",
-		-- The favorite card's Verify: Roblox's favorite prompt; no favorite there opens the
-		-- "ALMOST THERE!" popup (Leave Game sends them out with RejoinKick).
+		-- The favorite card's Verify: Roblox's favorite prompt; cancelled says NeedFavorite, a
+		-- favorite opens the "ALMOST THERE!" popup (Leave Game sends them out with RejoinKick).
 		Verify = "Verify",
+		NeedFavorite = "Favorite the game first!",
 		-- The "ALMOST THERE!" popup (LikeRejoinPopup; concept A 2026-10-11, the favorite steps
 		-- 2026-10-13).
 		RejoinTitle = "ALMOST THERE!",
-		-- Shown after Roblox's favorite prompt, so it asks for a check, not a favorite
+		-- Shown after a yes in Roblox's favorite prompt, so it asks for a check, not a favorite
 		-- (designer, 2026-10-13).
 		RejoinSub = "Check the game is favorited to unlock your reward",
 		RejoinSteps = {

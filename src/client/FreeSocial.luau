@@ -14,9 +14,10 @@
 --   * Favorite the game ($5,000, a Lucky 8 and a Mystery Block; the hero adds "+ Like the
 --     game if you enjoy!", never rewarded): Verify asks Roblox whether the game is
 --     favorited (Roblox's favorite prompt answers it), then claims (RewardRequest
---     "ClaimFavorite", once: a server cannot check a favorite). No favorite there opens the
---     menu's "ALMOST THERE!" popup (LikeRejoinPopup: leave, favorite on the game's page,
---     rejoin and Verify; designer, 2026-10-13).
+--     "ClaimFavorite", once: a server cannot check a favorite). Cancelled says "Favorite the
+--     game first!". The first claim answers "Rejoin": the menu's "ALMOST THERE!" popup
+--     (LikeRejoinPopup: leave, check the favorite and like it if you enjoy, rejoin and
+--     Verify); a Verify after the rejoin gives (designer, 2026-10-13; Config.Social.LikeRejoin).
 --   A claimed row's box is ticked and its button goes.
 -- - The invite card: the invite envelope and an Uncommon Lucky Block, "Invite a friend", what an
 --   invite gives (both get the block when the friend wins their first match; the inviter's own
@@ -268,8 +269,9 @@ local function promptFavorite(): boolean
 end
 
 -- Verify (from `button`, the hero's green one or the row's): Roblox's favorite prompt, then the
--- server's claim (RewardRequest "ClaimFavorite"); no favorite there opens the menu's "ALMOST
--- THERE!" popup with the steps to favorite on the game's page (designer, 2026-10-13).
+-- server's claim (RewardRequest "ClaimFavorite"), whose first answer is "Rejoin" (the menu's
+-- "ALMOST THERE!" popup); no favorite there says "Favorite the game first!" (designer,
+-- 2026-10-13).
 function FreeSocial.verify(self: any, button: GuiObject?)
 	if self.verifying then
 		return
@@ -286,7 +288,7 @@ function FreeSocial.verify(self: any, button: GuiObject?)
 		if favorited then
 			self.ctx.claim("ClaimFavorite", nil, "Favorite", from)
 		else
-			self.ctx.askFavorite()
+			self.ctx.notice(W.NeedFavorite, "Red")
 		end
 	end)
 end

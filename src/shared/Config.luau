@@ -3611,12 +3611,12 @@ Config.Social = {
 	-- 2026-10-11 (designer): favorite + like the game gives $5,000, the Lucky 8 and a Mystery
 	-- block (the group keeps 1 Mystery and its match money).
 	FavoriteReward = { Money = 5000, Blocks = { Lucky8 = 1, Mystery = 1 } },
-	-- Favorite + like (designer, 2026-10-11): on, the first Verify that passes marks the save
-	-- (RewardView.LikeAskedFlag) and asks the player to leave, like the game and rejoin; a
-	-- Verify in a later session gives (the rejoin stood for the like, which can't be checked).
-	-- Off since 2026-10-13 (designer: rewarding a like nobody checks was misleading): the
-	-- first Verify that passes gives; the card only asks for a like, never rewards it.
-	LikeRejoin = false,
+	-- On: the first Verify whose favorite prompt says yes marks the save
+	-- (RewardView.LikeAskedFlag) and opens the steps popup (leave, check the favorite on the
+	-- game's page and like it if you enjoy, rejoin); a Verify in a later session gives. The
+	-- like is only asked for, never required (designer, 2026-10-13; 2026-10-11 it stood for
+	-- a like). Off: the first Verify that passes gives.
+	LikeRejoin = true,
 	-- A ClaimGroup request (it asks Roblox for the player's groups) at most this often.
 	ClaimCooldownSeconds = 5,
 }

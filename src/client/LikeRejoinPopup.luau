@@ -1,7 +1,8 @@
 --!strict
 -- LikeRejoinPopup: the favorite card's "ALMOST THERE!" popup (the designer's pick "A" on the
--- concept page, 2026-10-11; the favorite steps 2026-10-13). A Verify that finds the game not
--- favorited yet opens it over the Free Reward menu's panel: the gold title and a line, three
+-- concept page, 2026-10-11; the check steps 2026-10-13). The favorite card's Verify after a
+-- yes in Roblox's favorite prompt, before a rejoin, is answered "Rejoin" by the server
+-- (Config.Social.LikeRejoin), and the Free Reward menu shows this over its panel: the gold title and a line, three
 -- step cards in a row (leave the game; check that the game is favorited and give a like if you
 -- enjoy, lit gold, its star and thumbs up rocking side by side, the like asked for, never
 -- rewarded; rejoin and press Verify) with arrows between them, the reward in a white pill (its

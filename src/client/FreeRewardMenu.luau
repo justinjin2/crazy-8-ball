@@ -25,9 +25,9 @@
 -- (RewardsFlyer): money into the money HUD, blocks to the hotbar, ability spins to the
 -- Abilities tile. A button is off while its request is on its way, and stays off after a
 -- claim until the next state arrives (so a quick second press never asks twice); a refusal
--- shows the server's reason as a notice. A favorite card's Verify with the game not favorited
--- yet (or the server's "Rejoin", Config.Social.LikeRejoin) is the "ALMOST THERE!" popup
--- (LikeRejoinPopup), whose Leave Game sends the player out with the steps. Claim All is a Robux product (StoreRequest "Buy":
+-- shows the server's reason as a notice. The favorite card's "Rejoin" (Config.Social
+-- .LikeRejoin: favorited, not rejoined yet) is the "ALMOST THERE!" popup (LikeRejoinPopup),
+-- whose Leave Game sends the player out with the steps. Claim All is a Robux product (StoreRequest "Buy":
 -- Roblox's own dialog; "Coming soon" until the product is on sale).
 --
 -- Gamepad: opening lands on the first Claim (today's, a gift's, the group's), else on the lit
@@ -211,7 +211,7 @@ function FreeRewardMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 			elseif type(reply) == "table" and reply.reason == "NotMember" then
 				ctx.notice(W.NotMember, "Red")
 			elseif type(reply) == "table" and reply.reason == "Rejoin" and frame:isOpen() then
-				-- The favorite card's first Verify with Config.Social.LikeRejoin on: the popup.
+				-- The favorite card's Verify before a rejoin (Config.Social.LikeRejoin): the popup.
 				ctx.askFavorite()
 			else
 				ctx.notice(MenuFrame.reason(reply), "Red")
