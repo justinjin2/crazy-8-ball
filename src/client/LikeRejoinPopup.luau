@@ -2,11 +2,10 @@
 -- LikeRejoinPopup: the favorite card's "ALMOST THERE!" popup (the designer's pick "A" on the
 -- concept page, 2026-10-11; the favorite steps 2026-10-13). A Verify that finds the game not
 -- favorited yet opens it over the Free Reward menu's panel: the gold title and a line, three
--- step cards in a row (leave the game, press the Favorite star on the game's page, rejoin and
--- press Verify; the favorite step lit gold, its star rocking) with arrows between them, "Give
--- the game a like if you enjoy!" in a tilted gold pill with a rocking thumbs up (asked for,
--- never rewarded), the reward in a white pill (its words, each block's picture, the money),
--- then Later (blue) and Leave Game (green, shining). No X: Later closes it. Leave Game answers
+-- step cards in a row (leave the game; check that the game is favorited and give a like if you
+-- enjoy, lit gold, its star and thumbs up rocking side by side, the like asked for, never
+-- rewarded; rejoin and press Verify) with arrows between them, the reward in a white pill (its
+-- words, each block's picture, the money), then Later (blue) and Leave Game (green, shining). No X: Later closes it. Leave Game answers
 -- true (the menu sends the player out with the steps).
 --
 -- It slams in (the house popup entrance) with no burst, its cards popping in one by one after.
@@ -63,6 +62,7 @@ type Step = {
 	badgeEdge: UIStroke,
 	number: TextLabel,
 	icon: ImageLabel,
+	thumb: ImageLabel?, -- step 2's thumbs up beside its star
 	caption: TextLabel,
 }
 
@@ -85,6 +85,9 @@ local function step(parent: Instance, index: number, hot: boolean): Step
 	number.Size = UDim2.fromScale(0.9, 0.9)
 	local key = if index == 1 then "Door" elseif index == 2 then "Star" else "Check"
 	local icon = ShopCards.image(box.frame, "Icon", ICONS[key] or "", 5)
+	local thumb = if index == 2
+		then ShopCards.image(box.frame, "Thumb", ICONS.ThumbsUp or "", 5)
+		else nil
 	local caption = ShopCards.note(box.frame, "Caption", W.RejoinSteps[index] or "", 5)
 	caption.TextWrapped = true
 	return {
@@ -93,6 +96,7 @@ local function step(parent: Instance, index: number, hot: boolean): Step
 		badgeEdge = badgeEdge,
 		number = number,
 		icon = icon,
+		thumb = thumb,
 		caption = caption,
 	}
 end
@@ -138,21 +142,6 @@ function LikeRejoinPopup.show(parent: GuiObject, reward: Reward?, callback: (boo
 	for index = 1, 2 do
 		arrows[index] = ShopCards.image(card, "Arrow" .. index, ICONS.Arrow or "", 5)
 	end
-
-	-- The like pill: a tilted gold pill, its thumbs up and its outlined words.
-	local like = HudParts.frame(card, "Like")
-	like.BackgroundTransparency = 0
-	like.BackgroundColor3 = rgb(L.LikeFill)
-	like.AnchorPoint = Vector2.new(0.5, 0.5)
-	like.Rotation = L.Like.Tilt
-	like.ZIndex = 4
-	HudParts.corner(like, 999)
-	local likeEdge = Instance.new("UIStroke")
-	likeEdge.Color = rgb(K.Colors.Ink)
-	likeEdge.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-	likeEdge.Parent = like
-	local thumb = ShopCards.image(like, "Thumb", ICONS.ThumbsUp or "", 5)
-	local likeWords = ShopCards.label(like, "Words", W.RejoinLike, nil, 5)
 
 	-- The reward pill: its words, each block's picture, the money.
 	local pill: Frame? = nil
@@ -237,32 +226,26 @@ function LikeRejoinPopup.show(parent: GuiObject, reward: Reward?, callback: (boo
 		ShopCards.put(s.badge, k, S.W / 2, 0, bu, bu)
 		s.badgeEdge.Thickness = ShopCards.strokePx(k)
 		HudParts.setTextSize(s.number, ShopCards.textPx(L.Badge.TextUnits, k))
-		ShopCards.put(s.icon, k, S.W / 2, L.IconY, L.IconUnits, L.IconUnits)
-		ShopCards.putPx(s.caption, S.W / 2 * k, L.CaptionY * k, (S.W - 24) * k, 3 * captionPx + 8)
+		local thumb = s.thumb
+		if thumb then
+			local o, u = L.PairOffsetUnits, L.PairUnits
+			ShopCards.put(s.icon, k, S.W / 2 - o, L.IconY, u, u)
+			ShopCards.put(thumb, k, S.W / 2 + o, L.IconY, u, u)
+		else
+			ShopCards.put(s.icon, k, S.W / 2, L.IconY, L.IconUnits, L.IconUnits)
+		end
+		ShopCards.putPx(
+			s.caption,
+			S.W / 2 * k,
+			L.CaptionY * k,
+			(S.W - 24) * k,
+			L.CaptionRows * captionPx + 8
+		)
 		HudParts.setTextSize(s.caption, captionPx)
 	end
 	for index, arrow in arrows do
 		local x = (S.Xs[index] + S.W / 2 + S.Xs[index + 1] - S.W / 2) / 2
 		ShopCards.put(arrow, k, x, S.Top + S.H / 2, L.ArrowUnits, L.ArrowUnits)
-	end
-	do
-		local Lk = L.Like
-		local textPx = ShopCards.textPx(Lk.TextUnits, k)
-		local img = Lk.ImageUnits * k
-		local pad = Lk.PadUnits * k
-		local wordsW = ShopCards.measure(likeWords.Text, textPx)
-		local roomW = (L.Units[1] - 60) * k - pad * 3 - img -- a long translation shrinks
-		if wordsW > roomW then
-			textPx = math.max(1, math.floor(textPx * roomW / wordsW))
-			wordsW = ShopCards.measure(likeWords.Text, textPx)
-		end
-		local width = pad * 3 + img + wordsW
-		local h = math.max(round(Lk.H * k), textPx + 2 * B.PillPadPx)
-		ShopCards.putPx(like, cx * k, Lk.Y * k, width, h)
-		likeEdge.Thickness = ShopCards.strokePx(k)
-		ShopCards.putPx(thumb, pad + img / 2, h / 2, img, img)
-		ShopCards.putPx(likeWords, pad * 2 + img + wordsW / 2, h / 2, wordsW, textPx + B.TextBoxPx)
-		HudParts.setTextSize(likeWords, textPx)
 	end
 	if pill and pillEdge and pillWords then
 		local R = L.Reward
@@ -310,7 +293,7 @@ function LikeRejoinPopup.show(parent: GuiObject, reward: Reward?, callback: (boo
 		HudParts.setMinHit(button, Config.UI.Menu.Frame.TouchMinPx)
 	end
 
-	-- The open: the card slams in, then its step cards pop in one by one; the star and the
+	-- The open: the card slams in, then its step cards pop in one by one; step 2's star and
 	-- thumbs up rock and Leave Game shines while it is up.
 	UIAnim.slam(card, nil, { burst = false, shake = "Nudge" })
 	for index, s in steps do
@@ -323,8 +306,11 @@ function LikeRejoinPopup.show(parent: GuiObject, reward: Reward?, callback: (boo
 	end
 	local R = L.StarRock
 	table.insert(loops, UIAnim.turn(steps[2].icon, 0, R[1], R[2]))
-	local T = L.ThumbRock
-	table.insert(loops, UIAnim.turn(thumb, 0, T[1], T[2]))
+	local thumb = steps[2].thumb
+	if thumb then
+		local T = L.ThumbRock
+		table.insert(loops, UIAnim.turn(thumb, 0, T[1], T[2]))
+	end
 	table.insert(loops, ShopCards.buttonShine(leave, B.ButtonShineEvery, 0))
 
 	local escape: RBXScriptConnection? = nil

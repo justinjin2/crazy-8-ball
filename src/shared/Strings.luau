@@ -1339,17 +1339,18 @@ return {
 		-- The "ALMOST THERE!" popup (LikeRejoinPopup; concept A 2026-10-11, the favorite steps
 		-- 2026-10-13).
 		RejoinTitle = "ALMOST THERE!",
-		RejoinSub = "Favorite the game to unlock your reward",
+		-- Shown after Roblox's favorite prompt, so it asks for a check, not a favorite
+		-- (designer, 2026-10-13).
+		RejoinSub = "Check the game is favorited to unlock your reward",
 		RejoinSteps = {
 			"Leave the game",
-			"Press Favorite on the game's page",
+			"Check that the game is favorited and give a like if you enjoy!",
 			"Rejoin and press Verify",
 		},
-		RejoinLike = "Give the game a like if you enjoy!", -- the big line under the steps
 		RejoinReward = "Your reward:",
 		RejoinLeave = "Leave Game",
 		RejoinLater = "Later",
-		RejoinKick = "Thanks! Press the Favorite star on the game's page (and give it a like if you enjoy!), then rejoin and press Verify to get your reward!",
+		RejoinKick = "Thanks! Check that the game is favorited on its page (and give it a like if you enjoy!), then rejoin and press Verify to get your reward!",
 		-- The first-visit heroes (FreeHeroes): their titles are GroupRow and FavoriteHero, the
 		-- reward's blocks the big words, the rest a line under them.
 		HeroBoost = "+%d%% Permanent Extra Money", -- the group's match money (designer, 2026-10-09)

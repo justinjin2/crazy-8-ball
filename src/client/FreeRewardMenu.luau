@@ -161,8 +161,6 @@ function FreeRewardMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 			return translator:Translate(game, steps[2])
 				.. "\n"
 				.. translator:Translate(game, steps[3])
-				.. "\n"
-				.. translator:Translate(game, W.RejoinLike)
 		end)
 		return if ok and type(text) == "string" and text ~= "" then text else W.RejoinKick
 	end

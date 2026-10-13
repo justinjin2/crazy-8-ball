@@ -15938,12 +15938,12 @@ Config.UI.FreeReward = {
 	},
 }
 
--- The Like + Favorite card's "ALMOST THERE!" popup (LikeRejoinPopup; the designer's pick "A" on
--- the concept page, 2026-10-11: three step cards, the reward under them, Later and Leave &
--- Like, no X). Laid out in its own units and scaled by one factor k to fit the menu's panel
+-- The favorite card's "ALMOST THERE!" popup (LikeRejoinPopup; the designer's pick "A" on the
+-- concept page, 2026-10-11: three step cards, the reward under them, Later and Leave Game, no
+-- X; step 2 the star and the thumbs up together, 2026-10-13). Laid out in its own units and scaled by one factor k to fit the menu's panel
 -- (at most MaxScale pixels a unit). (tune)
 Config.UI.FreeReward.LikePopup = {
-	Units = { 900, 670 }, -- the card
+	Units = { 900, 644 }, -- the card
 	MaxScale = 0.8, -- never bigger than this many pixels a unit (a big PC screen)
 	MarginPx = 12, -- from the panel's edges on a small screen
 	ZIndex = 62, -- over the page, its notices and the kit's dialogs
@@ -15953,27 +15953,27 @@ Config.UI.FreeReward.LikePopup = {
 	SubY = 122,
 	SubUnits = 30,
 	-- The three step cards: each this wide and tall, their centres across, their top.
-	Step = { W = 236, H = 246, Xs = { 162, 450, 738 }, Top = 166 },
+	Step = { W = 236, H = 290, Xs = { 162, 450, 738 }, Top = 166 },
 	StepCornerUnits = 26,
 	StepEdgeUnits = 4,
-	StepHot = { Fill = { 255, 244, 200 }, Edge = { 236, 170, 30 } }, -- the like step, lit gold
+	StepHot = { Fill = { 255, 244, 200 }, Edge = { 236, 170, 30 } }, -- step 2, lit gold
 	Badge = { Units = 58, Blue = { 59, 155, 255 }, Gold = { 255, 201, 40 }, TextUnits = 34 },
 	IconUnits = 104, -- each step's picture, its centre this far under the card's top:
 	IconY = 92,
-	CaptionY = 186, -- the caption's middle under the card's top (up to three lines)
+	CaptionY = 212, -- the caption's middle under the card's top
+	CaptionRows = 4, -- step 2's check and like take four lines
+	-- Step 2's star and thumbs up side by side: each this big, their centres this far either
+	-- side of the card's middle.
+	PairUnits = 88,
+	PairOffsetUnits = 44,
 	CaptionUnits = 27,
 	ArrowUnits = 46, -- the arrows between the cards
-	ThumbRock = { 10, 1.4 }, -- the like line's thumbs up rocks this many degrees, over seconds
-	StarRock = { 8, 2.2 }, -- the favorite step's star rocks this many degrees, over seconds
-	-- "Give the game a like if you enjoy!" under the cards (designer, 2026-10-13): a gold pill,
-	-- tilted, its thumbs up and outlined words; its centre, height, tilt (degrees), words, the
-	-- thumbs up's size, its room each side.
-	Like = { Y = 450, H = 62, Tilt = -1.5, TextUnits = 34, ImageUnits = 50, PadUnits = 24 },
-	LikeFill = { 255, 227, 154 },
+	ThumbRock = { 10, 1.4 }, -- step 2's thumbs up rocks this many degrees, over seconds
+	StarRock = { 8, 2.2 }, -- step 2's star rocks this many degrees, over seconds
 	-- The reward under them: a white pill of the words, the blocks and the money.
-	Reward = { Y = 528, H = 74, ImageUnits = 62, TextUnits = 30, GapUnits = 12, PadUnits = 26 },
+	Reward = { Y = 502, H = 74, ImageUnits = 62, TextUnits = 30, GapUnits = 12, PadUnits = 26 },
 	-- The buttons at the foot: Later (blue) and Leave Game (green, shining).
-	Buttons = { Y = 616, H = 76, LaterW = 210, LeaveW = 360, GapUnits = 24, TextUnits = 38 },
+	Buttons = { Y = 590, H = 76, LaterW = 210, LeaveW = 360, GapUnits = 24, TextUnits = 38 },
 	StepStaggerSeconds = 0.06, -- the cards pop in one after another after the slam
 }
 
