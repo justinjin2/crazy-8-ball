@@ -20,7 +20,7 @@ entry of `docs/archive/STATUS_HISTORY.md`.
 - **Published:** everything up to `c499ecf` (2026-10-12; the list is in STATUS_HISTORY). **Not
   yet published:** the Shop restock's "Epic or better!" tag removed (DECISIONS); the VIP card's perk
   list says "Gold chat tag" instead of "Rainbow chat tag" (`2c6972f`); the favorite card rewards
-  the favorite only (`3037341`: "Favorite" + "+ Like the game if you enjoy!", Verify is Roblox's
+  the favorite only (`3037341`: "Favorite +" over a big blue "Like if you enjoy!", Verify is Roblox's
   favorite prompt, no favorite opens the steps popup).
 - **Now (2026-10-12): a tester's QA batch, committed on `gui-v4`, NOT pushed**, held until the
   designer approves the test page (Artifact "Oct 12 Fixes Checklist"). Rounds 1 and 2 (the

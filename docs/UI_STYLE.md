@@ -1054,9 +1054,9 @@ player's first win shows its Rare block).
   money while you're in the group", a full-width green Join with the busts, Claim! for a
   member) and "Favorite the game" (gold: the Lucky 8 Block with a star and cash, "+1 Lucky 8
   Block", "+$10,000", Favorite with the star; every reward says its count, `RewardsParts.gains`); each picture wears its block's dice; a claimed
-  one's button turns grey "Claimed". Since 2026-10-13 the gold card's title is "Favorite" with
-  "+ Like the game if you enjoy!" in blue under it on one line (smaller to fit,
-  `Heroes.LikeUnits`, `LikeColor`): one bullet a reward,
+  one's button turns grey "Claimed". Since 2026-10-13 the gold card's title is "Favorite +" with
+  "Like if you enjoy!" in blue under it on one line, as wide as the column allows
+  (`Heroes.LikeUnits`, `LikeColor`): one bullet a reward,
   "+1 Lucky 8 Block", "+1 Mystery Lucky Block", "+$5,000", a small Mystery block at the
   Lucky 8's foot in the picture (`Heroes.Extra`) and a thumbs up beside the star at the
   top right, both a little smaller, wiggling with it (`Heroes.Star`, `Heroes.Thumb`), and one green
