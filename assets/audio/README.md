@@ -117,8 +117,7 @@ Nobody has listened to them yet: swap any by changing its id in `Config.Audio.Ui
 | MoneyTick | the money total counting up (pitched 1.4) | 15675032796 "Roblox_UI_Small_Click" | 0.13 s |
 | XpTick | the XP bar filling (pitch rising 0.9 to 1.5) | 15675059323 "Roblox_UI_Bright_Click" | 0.37 s |
 | XpFull | the XP bar reaching a division's top | 15675043410 "Roblox_UI_Tonal_Stinger" | 1.5 s |
-| RankUp | NEW RANK! | 1844692556 "Game Show" (APM Music) | 2.2 s |
-| NewTier | a new tier (bigger fanfare) | 1844584807 "Glamour Fanfare 4" (APM Music) | 3.7 s |
+| RankUp | NEW RANK! (a new division, and a new tier since 2026-10-13) | 2789429656 (the designer's pick, 2026-10-03) | |
 | BadgeHover | the rank badge under the mouse | 15675055424 "Roblox_UI_Cute_Pop" | 2.7 s (tail) |
 | Click | a button pressed: a warm little boop (designer, 2026-10-08) | 97683569351041 "UI pop" (a free Creator Store upload, not Roblox's own; checked to load) | 0.18 s |
 | Equip | a cue equipped in the Cues menu (designer's pick, 2026-10-08) | 117649901456711 (the designer's id; checked to load) | 0.55 s |

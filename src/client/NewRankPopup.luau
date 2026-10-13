@@ -587,7 +587,8 @@ function NewRankPopup.stepUp(self: any, view: any)
 				end
 			end)
 			UIAnim.popIn(view.name)
-			UISound.play("NewTier")
+			-- The divisions' sound for a new tier too (designer, 2026-10-13: not the old fanfare).
+			UISound.play("RankUp")
 		end
 		view.badge:burst()
 		UIAnim.glowBurst(view.badge.root, tone("Gold"))

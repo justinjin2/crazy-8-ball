@@ -5596,10 +5596,9 @@ Config.Audio = {
 		XpTick = { Id = "rbxassetid://15675059323", Volume = 0.15, Overlap = true },
 		-- "Roblox_UI_Tonal_Stinger" (Roblox, 1.5 s): the XP bar reaching a division's top.
 		XpFull = { Id = "rbxassetid://15675043410", Volume = 0.3 },
-		-- Rank-up sound picked by the designer, 2026-10-03.
+		-- Rank-up sound picked by the designer, 2026-10-03: a new division, and a new tier too
+		-- (designer, 2026-10-13; the tier's "Glamour Fanfare 4" is gone).
 		RankUp = { Id = "rbxassetid://2789429656", Volume = 0.21 },
-		-- "Glamour Fanfare 4" (APM Music via Roblox, 3.7 s): a new tier, the bigger fanfare.
-		NewTier = { Id = "rbxassetid://1844584807", Volume = 0.23 },
 		-- "RBLX UI Hover 01 (SFX)" (Roblox, 0.2 s, a soft tone near 900 Hz): the mouse or a
 		-- gamepad on a badge or a roadmap tier (designer, 2026-09-27: short and pleasant; was
 		-- "Roblox_UI_Cute_Pop", 2.7 s with its tail). Its 0.23 peak x 0.22 sits just under Click.
