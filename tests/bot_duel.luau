@@ -133,6 +133,11 @@ export type GameResult = {
 	reason: string?,
 	tries: number, -- the player's pot attempts and how many dropped the ball aimed at
 	pots: number,
+	-- The bot's shots that dropped the cue ball, fouled, and met none of its own balls first
+	-- (the cue ball touched nothing, or another ball first).
+	botScratches: number,
+	botFouls: number,
+	botOffOwn: number,
 }
 
 --- One game: the player (side 1, breaks) against the bot of `botTier` (side 2).
@@ -145,6 +150,7 @@ function Duel.game(seed: number, botTier: string, playerTier: string, overrides:
 	local kinds: { [string]: number } = {}
 	local botShots = 0
 	local tries, pots = 0, 0
+	local botScratches, botFouls, botOffOwn = 0, 0, 0
 	for shot = 1, Duel.MAX_SHOTS do
 		local view = {
 			geometry = geometry,
@@ -174,6 +180,17 @@ function Duel.game(seed: number, botTier: string, playerTier: string, overrides:
 			called = Finder.nearestPocket(geometry, eight.x, eight.y)
 		end
 		local trial = Brain.simulate(view :: any, d, d.cueX, d.cueY, called)
+		if shooter == 2 and not breakShot then
+			if trial.scratch then
+				botScratches += 1
+			end
+			if trial.foul and trial.foul ~= "Capped" then
+				botFouls += 1
+			end
+			if trial.first == nil or not Judge.legalTarget(balls, groups[shooter], trial.first) then
+				botOffOwn += 1
+			end
+		end
 		if shooter == 1 and d.kind == "pot" then
 			tries += 1
 			for _, id in trial.pockets do
@@ -191,6 +208,9 @@ function Duel.game(seed: number, botTier: string, playerTier: string, overrides:
 				reason = if trial.winner == shooter then "LegalEight" else "Lost8",
 				tries = tries,
 				pots = pots,
+				botScratches = botScratches,
+				botFouls = botFouls,
+				botOffOwn = botOffOwn,
 			}
 		end
 		groups = trial.groups
@@ -211,13 +231,18 @@ function Duel.game(seed: number, botTier: string, playerTier: string, overrides:
 		botKinds = kinds,
 		tries = tries,
 		pots = pots,
+		botScratches = botScratches,
+		botFouls = botFouls,
+		botOffOwn = botOffOwn,
 	}
 end
 
 --- `games` games of the tier's bot against a player of the same rank: the player's win share
---- (no-result games left out) and the shot kinds the bot played.
+--- (no-result games left out), the shot kinds the bot played and how often its shots (the
+--- break left out) scratched, fouled or met none of its own balls first.
 function Duel.run(tier: string, games: number, seed: number, overrides: any?): any
 	local wins, played, shots, tries, pots = 0, 0, 0, 0, 0
+	local botShots, scratches, fouls, offOwn = 0, 0, 0, 0
 	local kinds: { [string]: number } = {}
 	for i = 1, games do
 		local r = Duel.game(
@@ -235,6 +260,10 @@ function Duel.run(tier: string, games: number, seed: number, overrides: any?): a
 		shots += r.shots
 		tries += r.tries
 		pots += r.pots
+		botShots += r.botShots
+		scratches += r.botScratches
+		fouls += r.botFouls
+		offOwn += r.botOffOwn
 		for k, n in r.botKinds do
 			kinds[k] = (kinds[k] or 0) + n
 		end
@@ -247,6 +276,10 @@ function Duel.run(tier: string, games: number, seed: number, overrides: any?): a
 		meanShots = shots / games,
 		playerPotRate = if tries > 0 then pots / tries else 0,
 		kinds = kinds,
+		botShots = botShots,
+		botScratchRate = if botShots > 0 then scratches / botShots else 0,
+		botFoulRate = if botShots > 0 then fouls / botShots else 0,
+		botOffOwnRate = if botShots > 0 then offOwn / botShots else 0,
 	}
 end
 

@@ -86,6 +86,7 @@ export type Trial = {
 	groups: { [number]: string }, -- the groups after the shot
 	respot: { number }, -- object balls that flew off (back on the foot spot)
 	respotEight: boolean, -- the 8 went down or off on the break
+	first: number?, -- the ball the cue ball met first (nil: none)
 }
 
 --- Plays `shot` on a copy of the table (the cue ball at (cueX, cueY) when given) and judges
@@ -106,6 +107,7 @@ function Brain.simulate(view: View, shot: any, cueX: number?, cueY: number?, cal
 			groups = view.groups :: any,
 			respot = nil,
 			respotEight = nil,
+			first = nil,
 		} :: any
 	end
 	local before = Ball.cloneList(sim.balls)
@@ -142,6 +144,7 @@ function Brain.simulate(view: View, shot: any, cueX: number?, cueY: number?, cal
 		groups = verdict.groups :: any,
 		respot = verdict.respot,
 		respotEight = verdict.respotEight,
+		first = out.firstContact,
 	}
 end
 

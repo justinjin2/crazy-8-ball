@@ -77,9 +77,13 @@ if #tiers == 0 then
 	tiers = table.clone(Config.Ranks.Tiers)
 end
 
-local results = {}
-if fs.isFile(RESULTS) then
-	results = serde.decode("json", fs.readFile(RESULTS))
+-- The results file, read afresh before each tier is written, so runs of different tiers side
+-- by side (one process each) keep each other's rows.
+local function readResults(): any
+	if fs.isFile(RESULTS) then
+		return serde.decode("json", fs.readFile(RESULTS))
+	end
+	return {}
 end
 
 for _, tier in tiers do
@@ -103,18 +107,30 @@ for _, tier in tiers do
 			table.concat(kinds, ", ")
 		)
 	)
+	print(
+		("%-12s bot shots %d: scratched %.1f%%, fouled %.1f%%, met none of its balls first %.1f%%"):format(
+			"",
+			r.botShots,
+			r.botScratchRate * 100,
+			r.botFoulRate * 100,
+			r.botOffOwnRate * 100
+		)
+	)
 	if write then
+		local results = readResults()
 		results[tier] = {
 			playerWins = r.playerWins,
 			target = TARGET[tier],
 			games = r.games,
 			played = r.played,
+			seed = seed,
 			make = (Config.Bots.Tiers :: any)[tier].Make,
+			-- Of the bot's shots: the cue ball dropped, a foul, none of its balls met first.
+			botScratchPerShot = r.botScratchRate,
+			botFoulPerShot = r.botFoulRate,
+			botOffOwnPerShot = r.botOffOwnRate,
 			at = DateTime.now():toIsoDate(),
 		}
+		fs.writeFile(RESULTS, serde.encode("json", results, true))
 	end
-end
-
-if write then
-	fs.writeFile(RESULTS, serde.encode("json", results, true))
 end
