@@ -8,6 +8,8 @@
 --   lune run tools/bot_duel.luau Gold --games 200
 --   lune run tools/bot_duel.luau Gold --make 0.55 --no-write    # try a Make chance
 --   lune run tools/bot_duel.luau Gold --player Silver --no-write  # a weaker player
+--   lune run tools/bot_duel.luau Bronze --set Blunder=0.3 --set SetUp=1   # try tier numbers
+--   lune run tools/bot_duel.luau Bronze --old    # Config.Bots.HonestMisses off (the old bots)
 
 local DateTime = require("@lune/datetime")
 local fs = require("@lune/fs")
@@ -18,6 +20,7 @@ local Duel = require("../tests/bot_duel")
 local H = require("../tests/harness")
 
 local Config = H.require("Config")
+local Brain = H.require("Bots.Brain")
 
 local RESULTS = "tools/bot_duel_results.json"
 
@@ -66,6 +69,19 @@ while i <= #args do
 		overrides.skill.power = tonumber(args[i + 1])
 		write = false
 		i += 1
+	elseif a == "--set" then
+		-- Name=value: one of the tier's numbers (Brain.tier) for this run.
+		local name, value = string.match(args[i + 1], "^(%w+)=(.+)$")
+		overrides.set = overrides.set or {}
+		overrides.set[name :: string] = if value == "true"
+			then true
+			elseif value == "false" then false
+			else tonumber(value)
+		write = false
+		i += 1
+	elseif a == "--old" then
+		Config.Bots.HonestMisses = false
+		write = false
 	elseif a == "--no-write" then
 		write = false
 	else
@@ -88,6 +104,13 @@ end
 
 for _, tier in tiers do
 	local started = os.clock()
+	if overrides.set then
+		local row = Brain.tier(tier) :: any
+		for name, value in overrides.set do
+			row[name] = value
+		end
+		overrides.tier = row
+	end
 	local r = Duel.run(tier, games, seed, overrides)
 	local kinds = {}
 	for k, n in r.kinds do
@@ -124,7 +147,9 @@ for _, tier in tiers do
 			games = r.games,
 			played = r.played,
 			seed = seed,
-			make = (Config.Bots.Tiers :: any)[tier].Make,
+			make = Brain.tier(tier).Make,
+			blunder = Brain.tier(tier).Blunder,
+			setUp = Brain.tier(tier).SetUp,
 			-- Of the bot's shots: the cue ball dropped, a foul, none of its balls met first.
 			botScratchPerShot = r.botScratchRate,
 			botFoulPerShot = r.botFoulRate,

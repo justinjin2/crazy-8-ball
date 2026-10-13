@@ -14225,8 +14225,11 @@ Config.Bots = {
 	-- rank, kept rising with the rank).
 	--   Make: how often it lands a pot it goes for (else a near miss, never wild).
 	--   Behind: added to Make while it has BehindBalls or more balls left than the opponent.
-	--   Blunder: share of pot attempts played as a full-ball hit with no real angle (Bronze).
-	--   Scratch: share of shots it scratches by accident when it can find such a shot.
+	--   Blunder: share of pot attempts played as a full-ball hit with no real angle (Bronze);
+	--     never one that scratches or fouls (HonestMisses).
+	--   SetUp: share of its misses (near miss, blunder, soft hit) that are the one of its tries
+	--     leaving the opponent the easiest pot (HonestMisses; else its most natural miss). Low
+	--     tiers help the player along this way; from Platinum up it plays honestly (0).
 	--   Position: how many of its best pots it compares for where the cue ball stops.
 	--   Safety: with no pot, plays a real safety (else a soft hit on its nearest ball).
 	--   PlaceSamples: ball in hand spots it weighs.
@@ -14235,7 +14238,7 @@ Config.Bots = {
 			Make = 0.08,
 			Behind = 0.05,
 			Blunder = 0.36,
-			Scratch = 0.12,
+			SetUp = 0.8,
 			Position = 1,
 			Safety = false,
 			PlaceSamples = 4,
@@ -14244,7 +14247,7 @@ Config.Bots = {
 			Make = 0.3,
 			Behind = 0.06,
 			Blunder = 0.15,
-			Scratch = 0.05,
+			SetUp = 0.4,
 			Position = 1,
 			Safety = false,
 			PlaceSamples = 6,
@@ -14253,7 +14256,7 @@ Config.Bots = {
 			Make = 0.45,
 			Behind = 0.07,
 			Blunder = 0.05,
-			Scratch = 0.02,
+			SetUp = 0.15,
 			Position = 1,
 			Safety = false,
 			PlaceSamples = 8,
@@ -14262,7 +14265,7 @@ Config.Bots = {
 			Make = 0.525,
 			Behind = 0.08,
 			Blunder = 0,
-			Scratch = 0.01,
+			SetUp = 0,
 			Position = 2,
 			Safety = false,
 			PlaceSamples = 10,
@@ -14271,7 +14274,7 @@ Config.Bots = {
 			Make = 0.545,
 			Behind = 0.09,
 			Blunder = 0,
-			Scratch = 0,
+			SetUp = 0,
 			Position = 2,
 			Safety = true,
 			PlaceSamples = 12,
@@ -14280,7 +14283,7 @@ Config.Bots = {
 			Make = 0.555,
 			Behind = 0.1,
 			Blunder = 0,
-			Scratch = 0,
+			SetUp = 0,
 			Position = 3,
 			Safety = true,
 			PlaceSamples = 14,
@@ -14289,7 +14292,7 @@ Config.Bots = {
 			Make = 0.63,
 			Behind = 0.08,
 			Blunder = 0,
-			Scratch = 0,
+			SetUp = 0,
 			Position = 3,
 			Safety = true,
 			PlaceSamples = 16,
@@ -14298,7 +14301,7 @@ Config.Bots = {
 			Make = 0.71,
 			Behind = 0.06,
 			Blunder = 0,
-			Scratch = 0,
+			SetUp = 0,
 			Position = 4,
 			Safety = true,
 			PlaceSamples = 18,
@@ -14307,7 +14310,7 @@ Config.Bots = {
 			Make = 0.77,
 			Behind = 0.04,
 			Blunder = 0,
-			Scratch = 0,
+			SetUp = 0,
 			Position = 4,
 			Safety = true,
 			PlaceSamples = 20,
@@ -14316,7 +14319,7 @@ Config.Bots = {
 			Make = 0.975,
 			Behind = 0.015,
 			Blunder = 0,
-			Scratch = 0,
+			SetUp = 0,
 			Position = 5,
 			Safety = true,
 			PlaceSamples = 24,
@@ -14324,6 +14327,34 @@ Config.Bots = {
 	},
 	BehindBalls = 2,
 	MaxMake = 0.99, -- Make + Behind never passes this
+	-- Honest misses (the designer, 2026-10-12: "did the rank bots get worse?? i see them
+	-- literally aiming the cue ball straight into the pocket ... they need to actually play and
+	-- hit balls (but not good and help set up the player's balls) but not so trash"). From
+	-- 2026-10-02 a low tier rolled a planned scratch on some shots (Before's Scratch) and then
+	-- looked for any shot whose cue ball dropped, aimed at a pocket if need be; with lobby bots
+	-- at the player's own rank (2026-10-12) a Bronze player met it every game. On: no planned
+	-- scratch; a blunder or soft hit is checked in our physics (its own ball met first, the cue
+	-- ball up, no foul but the rail rule's); a low tier's misses lean to setting the opponent up
+	-- (each tier's SetUp). Off: exactly the bots of 2026-10-02 .. 10-12, with Before's numbers.
+	HonestMisses = true,
+	-- The numbers the tiers played with until 2026-10-12, used only while HonestMisses is off:
+	-- Make and Blunder as they were, and Scratch, the share of shots it set out to scratch.
+	Before = {
+		Bronze = { Make = 0.08, Blunder = 0.36, Scratch = 0.12 },
+		Silver = { Make = 0.3, Blunder = 0.15, Scratch = 0.05 },
+		Gold = { Make = 0.45, Blunder = 0.05, Scratch = 0.02 },
+		Platinum = { Make = 0.525, Blunder = 0, Scratch = 0.01 },
+	},
+	-- The honest soft hit (no pot, or no near miss that keeps to the rules): soft hits across
+	-- its nearest Balls balls (clear paths first), the aim moved across each ball by these
+	-- shares of the widest angle that still meets it (0 a full hit), at these multiples of the
+	-- soft speed (the second for a ranked table's rail rule); at most Tries simulations a shot.
+	Soft = {
+		Balls = 3,
+		Aims = { 0, 0.5, -0.5, 0.85, -0.85 },
+		Powers = { 1, 1.6 },
+		Tries = 12,
+	},
 	-- The shot finder (ported from the ability harness's model shooter): the thinnest cut,
 	-- how far off a pocket's axis a ball may arrive, the object ball's speed at the mouth.
 	Finder = {

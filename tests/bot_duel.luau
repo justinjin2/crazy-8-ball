@@ -162,12 +162,11 @@ function Duel.game(seed: number, botTier: string, playerTier: string, overrides:
 		}
 		local d
 		if shooter == 2 then
-			d = Brain.decide(
-				view :: any,
-				botTier,
-				rng,
-				{ ballInHand = hand, makeChance = overrides and overrides.make }
-			)
+			d = Brain.decide(view :: any, botTier, rng, {
+				ballInHand = hand,
+				makeChance = overrides and overrides.make,
+				tier = overrides and overrides.tier,
+			})
 			botShots += 1
 			kinds[d.kind] = (kinds[d.kind] or 0) + 1
 		else

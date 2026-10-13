@@ -6,9 +6,16 @@
 -- stops), then decides afresh whether to really make it (its tier's Make chance, more when it
 -- is behind) or to play a near miss: the aim moved off the line just enough that the ball
 -- stays up, preferably stopping by the pocket, never a foul. Both are checked in our physics.
--- Low tiers also blunder (a full-ball hit with no real angle) and scratch by accident.
--- With no pot it plays a soft hit (or, from Diamond, a real safety); with ball in hand it
--- places the cue ball where its best pot is easiest.
+-- Low tiers also blunder (a full-ball hit with no real angle). With no pot it plays a soft
+-- hit (or, from Diamond, a real safety); with ball in hand it places the cue ball where its
+-- best pot is easiest.
+--
+-- Honest misses (Config.Bots.HonestMisses, the designer, 2026-10-12): it never plays a shot
+-- meant to scratch; a blunder or soft hit is checked in our physics (its own ball met first,
+-- no scratch, no foul but the rail rule's); and a low tier's miss leans to the one of its tries
+-- that leaves the opponent the easiest pot (each tier's SetUp). Switched off, it is the brain
+-- of 2026-10-02 .. 10-12: a planned scratch on some shots (Brain.scratch, which the tutorial's
+-- script still uses) and blunders never checked for one.
 --
 -- Numbers: Config.Bots.
 
@@ -32,7 +39,17 @@ local D = 2 * Config.Balls.RadiusInches
 
 local Brain = {}
 
-export type Tier = typeof(Config.Bots.Tiers.Bronze)
+--- A tier's numbers as the brain plays them (Brain.tier; Config.Bots.Tiers explains each).
+export type Tier = {
+	Make: number,
+	Behind: number,
+	Blunder: number,
+	SetUp: number,
+	Scratch: number, -- only while HonestMisses is off (Config.Bots.Before)
+	Position: number,
+	Safety: boolean,
+	PlaceSamples: number,
+}
 
 export type Kind = "make" | "miss" | "safe" | "blunder" | "scratch" | "break" | "eight"
 
@@ -55,13 +72,34 @@ export type Options = {
 	forceMake: boolean?, -- a scripted visit
 	forceMiss: boolean?,
 	makeChance: number?, -- overrides the tier's chance (tests, scripts)
+	tier: Tier?, -- overrides the tier's numbers (tests, tools/bot_duel's --set)
 	yield: (() -> ())?, -- called between simulations so the server can spread the work
 }
 
---- The tier's numbers (an unknown tier plays Bronze).
+--- The tier's numbers (an unknown tier plays Bronze). With HonestMisses off, the numbers of
+--- 2026-10-02 .. 10-12 (Config.Bots.Before: its Make, Blunder and planned Scratch; no SetUp).
 function Brain.tier(name: string?): Tier
-	local rows: { [string]: Tier } = B.Tiers :: any
-	return rows[name or "Bronze"] or B.Tiers.Bronze
+	local rows: { [string]: any } = B.Tiers :: any
+	local key = if name ~= nil and rows[name] ~= nil then name else "Bronze"
+	local row = rows[key]
+	local tier: Tier = {
+		Make = row.Make,
+		Behind = row.Behind,
+		Blunder = row.Blunder,
+		SetUp = row.SetUp,
+		Scratch = 0,
+		Position = row.Position,
+		Safety = row.Safety,
+		PlaceSamples = row.PlaceSamples,
+	}
+	if not B.HonestMisses then
+		local old: any = (B.Before :: any)[key] or {}
+		tier.Make = old.Make or tier.Make
+		tier.Blunder = old.Blunder or tier.Blunder
+		tier.Scratch = old.Scratch or 0
+		tier.SetUp = 0
+	end
+	return tier
 end
 
 local function cueOf(view: View): Ball
@@ -188,6 +226,40 @@ local function bestScore(view: View, balls: { Ball }, x: number?, y: number?): n
 	return if list[1] then list[1].score else 0
 end
 
+--- How good a pot `trial` leaves the opponent: their best pot's score (ShotFinder's
+--- forgiveness) from where the cue ball stops. 0 when they have none, or when the shot keeps
+--- the bot at the table, fouls or ends the game.
+function Brain.leave(view: View, trial: Trial): number
+	if trial.keep or trial.foul ~= nil or trial.winner ~= nil then
+		return 0
+	end
+	local cue = Finder.findBall(trial.balls, 0)
+	if cue == nil or cue.pocketed then
+		return 0
+	end
+	local opp = table.clone(view)
+	opp.team = 3 - view.team
+	opp.groups = trial.groups
+	opp.breakShot = false
+	opp.called = nil
+	opp.phase = nil
+	return bestScore(opp, trial.balls, cue.x, cue.y)
+end
+
+--- Whether an honest bot may play `trial`: one of its own balls met first, the cue ball up,
+--- the game going on and no foul (with `railOk`, the rail-after-contact rule's alone: an
+--- honest miss on a ranked table).
+function Brain.fair(view: View, trial: Trial, railOk: boolean?): boolean
+	if trial.scratch or trial.winner ~= nil then
+		return false
+	end
+	if trial.foul ~= nil and not (railOk and trial.foul == "NoRail") then
+		return false
+	end
+	local first = trial.first
+	return first ~= nil and Judge.legalTarget(view.balls, view.groups[view.team] :: any, first)
+end
+
 --- The chance it makes the pot it goes for: its tier's Make, plus Behind while it has
 --- BehindBalls or more balls left than the opponent.
 function Brain.makeChance(view: View, tier: Tier): number
@@ -295,11 +367,21 @@ end
 --- A near miss of `plan`: the aim moved off the line by the smallest offset (NearMissDegrees,
 --- both sides, the side drawn at random) that keeps the ball up with no foul, none of its
 --- balls dropping and the 8 staying up; one that stops within NearInches of the pocket wins.
---- Nil when every offset pots or fouls.
-function Brain.nearMiss(view: View, plan: Plan, rng: Rng, yield: (() -> ())?): (number?, number?)
+--- With `setUp` it tries every offset and plays the one that leaves the opponent the easiest
+--- pot (Brain.leave), when any leaves one. Nil when every offset pots or fouls.
+function Brain.nearMiss(
+	view: View,
+	plan: Plan,
+	rng: Rng,
+	yield: (() -> ())?,
+	setUp: boolean?
+): (number?, number?)
 	local first = if Rng.chance(rng, 0.5) then 1 else -1
 	local fallback: { number }? = nil
 	local fallbackDist = math.huge
+	local near: { number }? = nil
+	local best: { number }? = nil
+	local bestLeave = 0
 	for _, deg in B.NearMissDegrees do
 		for _, sign in { first, -first } do
 			local angle = plan.angle + sign * math.rad(deg)
@@ -326,16 +408,26 @@ function Brain.nearMiss(view: View, plan: Plan, rng: Rng, yield: (() -> ())?): (
 			local dist = if ob and not ob.pocketed
 				then fromMouth(view, plan.pocket, ob.x, ob.y)
 				else math.huge
+			if setUp then
+				local leave = Brain.leave(view, trial)
+				if leave > bestLeave then
+					best, bestLeave = { angle, power }, leave
+				end
+			end
 			if dist <= B.NearInches then
-				return angle, power
+				if not setUp then
+					return angle, power
+				end
+				near = near or { angle, power }
 			end
 			if dist < fallbackDist then
 				fallback, fallbackDist = { angle, power }, dist
 			end
 		end
 	end
-	if fallback then
-		return fallback[1], fallback[2]
+	local pick = best or near or fallback
+	if pick then
+		return pick[1], pick[2]
 	end
 	return nil, nil
 end
@@ -419,6 +511,135 @@ function Brain.blunder(view: View, plan: Plan, rng: Rng): Decision
 	return decision("blunder", plan, angle, power, false, nil, nil)
 end
 
+--- An honest blunder (HonestMisses): a full-ball hit with no real angle at the ball of one of
+--- its first two pots, at a drawn BlunderPower and then the softest, kept only when it is fair
+--- (Brain.fair; the rail rule may fail). The first fair one is played, or with `setUp` the one
+--- that leaves the opponent the easiest pot. Nil when none is fair.
+function Brain.honestBlunder(
+	view: View,
+	pots: { Plan },
+	rng: Rng,
+	cueX: number?,
+	cueY: number?,
+	setUp: boolean?,
+	yield: (() -> ())?
+): Decision?
+	local drawn = Rng.range(rng, B.BlunderPower[1], B.BlunderPower[2])
+	local best: Decision? = nil
+	local bestLeave = -1
+	for i = 1, math.min(#pots, 2) do
+		local plan = pots[i]
+		local ob = Finder.findBall(view.balls, plan.ball) :: Ball
+		local angle = math.atan2(ob.y - plan.cueY, ob.x - plan.cueX)
+		for _, power in { drawn, B.BlunderPower[1] } do
+			local trial =
+				Brain.simulate(view, { angle = angle, power = power }, cueX, cueY, plan.called)
+			if yield then
+				yield()
+			end
+			if not Brain.fair(view, trial, true) then
+				continue
+			end
+			local d = decision("blunder", plan, angle, power, false, cueX, cueY)
+			if not setUp then
+				return d
+			end
+			local leave = Brain.leave(view, trial)
+			if leave > bestLeave then
+				best, bestLeave = d, leave
+			end
+		end
+	end
+	return best
+end
+
+--- An honest soft hit (HonestMisses: no pot, or no near miss): soft hits across its nearest
+--- Soft.Balls balls (clear paths first), the aim moved across each by Soft.Aims shares of the
+--- widest angle that still meets it, at Soft.Powers times the soft speed, at most Soft.Tries
+--- in all. The first fair one (Brain.fair) is played, or with `setUp` the fair one that leaves
+--- the opponent the easiest pot; failing those, one that breaks only the rail rule. Nil when
+--- none meets its own ball first.
+function Brain.softHit(
+	view: View,
+	rng: Rng,
+	cueX: number?,
+	cueY: number?,
+	setUp: boolean?,
+	yield: (() -> ())?
+): Decision?
+	local S = B.Soft
+	local cue = cueOf(view)
+	local cx, cy = cueX or cue.x, cueY or cue.y
+	local targets = {}
+	for _, id in Finder.ownIds(view) do
+		local b = Finder.findBall(view.balls, id) :: Ball
+		local clear = true
+		for _, o in view.balls do
+			if
+				not o.pocketed
+				and o.id ~= 0
+				and o.id ~= id
+				and Finder.segmentDistance(o.x, o.y, cx, cy, b.x, b.y) < D
+			then
+				clear = false
+				break
+			end
+		end
+		table.insert(targets, {
+			id = id,
+			clear = clear,
+			d = math.sqrt((b.x - cx) ^ 2 + (b.y - cy) ^ 2),
+		})
+	end
+	table.sort(targets, function(a, b)
+		if a.clear ~= b.clear then
+			return a.clear
+		end
+		if a.d ~= b.d then
+			return a.d < b.d
+		end
+		return a.id < b.id
+	end)
+	local noise = math.rad(B.MakeAimSigmaDegrees) * Rng.gauss(rng)
+	local best: Decision? = nil
+	local bestLeave = -1
+	local railOnly: Decision? = nil
+	local tries = 0
+	for _, k in S.Powers do
+		for i = 1, math.min(#targets, S.Balls) do
+			local t = targets[i]
+			local plan = Finder.hitPlan(view, t.id, cx, cy)
+			local half = math.asin(math.clamp(D * 0.9 / math.max(t.d, D), 0, 1))
+			for _, f in S.Aims do
+				if tries >= S.Tries then
+					break
+				end
+				tries += 1
+				local angle = plan.angle + half * f + noise
+				local power = plan.power * k
+				local trial =
+					Brain.simulate(view, { angle = angle, power = power }, cueX, cueY, plan.called)
+				if yield then
+					yield()
+				end
+				if Brain.fair(view, trial) then
+					local d = decision("safe", plan, angle, power, false, cueX, cueY)
+					if not setUp then
+						return d
+					end
+					local leave = Brain.leave(view, trial)
+					if leave > bestLeave then
+						best, bestLeave = d, leave
+					end
+				elseif railOnly == nil and Brain.fair(view, trial, true) then
+					railOnly = decision("safe", plan, angle, power, false, cueX, cueY)
+				end
+			end
+		end
+	end
+	return best or railOnly
+end
+
 --- The break (a bot-vs-bot game: the real player always breaks against a bot): from the
 --- head string at the rack, hard, with a little aim noise.
 function Brain.breakShot(view: View, rng: Rng): Decision
@@ -478,7 +699,8 @@ end
 function Brain.decide(view: View, tierName: string?, rng: Rng, options: Options?): Decision
 	local o: Options = options or {}
 	local yield = o.yield
-	local tier = Brain.tier(tierName)
+	local tier = o.tier or Brain.tier(tierName)
+	local honest = B.HonestMisses == true
 	if view.breakShot then
 		return Brain.breakShot(view, rng)
 	end
@@ -491,13 +713,26 @@ function Brain.decide(view: View, tierName: string?, rng: Rng, options: Options?
 	local cue = cueOf(view)
 	local fromX, fromY = cueX or cue.x, cueY or cue.y
 
-	-- An accidental scratch (Bronze, Silver, a little Gold).
-	if not o.forceMake and tier.Scratch > 0 and Rng.chance(rng, tier.Scratch) then
+	-- HonestMisses off (2026-10-02 .. 10-12): a planned scratch on some shots (Bronze, Silver,
+	-- a little Gold and Platinum), the cue ball sent down whether or not it meets a ball.
+	if not honest and not o.forceMake and tier.Scratch > 0 and Rng.chance(rng, tier.Scratch) then
 		local plan = pots[1] or Finder.safePlan(view, cueX, cueY)
 		local a, p = Brain.scratch(view, plan, rng, yield)
 		if a and p then
 			return decision("scratch", plan, a, p, easy, cueX, cueY)
 		end
+	end
+
+	-- Whether this shot's miss leans to setting the opponent up (drawn once, at the first miss).
+	local setUpDrawn: boolean? = nil
+	local function setUp(): boolean
+		if setUpDrawn == nil then
+			setUpDrawn = honest
+				and not o.forceMake
+				and tier.SetUp > 0
+				and Rng.chance(rng, tier.SetUp)
+		end
+		return setUpDrawn == true
 	end
 
 	if #pots == 0 then
@@ -507,33 +742,56 @@ function Brain.decide(view: View, tierName: string?, rng: Rng, options: Options?
 				return safe
 			end
 		end
+		if honest and not o.forceMake then
+			local soft = Brain.softHit(view, rng, cueX, cueY, setUp(), yield)
+			if soft then
+				return soft
+			end
+		end
 		local plan = Finder.safePlan(view, fromX, fromY)
 		local angle = plan.angle + math.rad(B.MakeAimSigmaDegrees) * Rng.gauss(rng)
 		return decision("safe", plan, angle, plan.power, false, cueX, cueY)
 	end
 
+	local missOnly = false
 	if not o.forceMake and tier.Blunder > 0 and Rng.chance(rng, tier.Blunder) then
-		local d = Brain.blunder(view, pots[1], rng)
-		local trial = Brain.simulate(view, d, cueX, cueY, d.called)
-		if trial.winner == nil then
-			d.cueX, d.cueY, d.easy = cueX, cueY, easy
-			return d
+		if honest then
+			local d = Brain.honestBlunder(view, pots, rng, cueX, cueY, setUp(), yield)
+			if d then
+				d.easy = easy
+				return d
+			end
+			missOnly = true -- no fair blunder: a near miss instead
+		else
+			local d = Brain.blunder(view, pots[1], rng)
+			local trial = Brain.simulate(view, d, cueX, cueY, d.called)
+			if trial.winner == nil then
+				d.cueX, d.cueY, d.easy = cueX, cueY, easy
+				return d
+			end
 		end
 	end
 
 	local plan = Brain.choose(view, pots, tier, yield)
 	local p = o.makeChance or Brain.makeChance(view, tier)
-	local wantMake = o.forceMake or (not o.forceMiss and Rng.chance(rng, p))
+	local wantMake = o.forceMake or (not o.forceMiss and not missOnly and Rng.chance(rng, p))
 	local kind: Kind = if plan.ball == 8 then "eight" else "make"
 	if wantMake then
 		local a, pw = Brain.make(view, plan, rng, yield)
 		return decision(kind, plan, a, pw, easy, cueX, cueY)
 	end
-	local a, pw = Brain.nearMiss(view, plan, rng, yield)
+	local a, pw = Brain.nearMiss(view, plan, rng, yield, honest and setUp())
 	if a and pw then
 		return decision("miss", plan, a, pw, easy, cueX, cueY)
 	end
 	-- Every near miss fouls or pots: a soft safe hit instead (never a wild shot).
+	if honest then
+		local soft = Brain.softHit(view, rng, cueX, cueY, setUp(), yield)
+		if soft then
+			soft.easy = easy
+			return soft
+		end
+	end
 	local safe = Finder.safePlan(view, fromX, fromY)
 	return decision("safe", safe, safe.angle, safe.power, easy, cueX, cueY)
 end
