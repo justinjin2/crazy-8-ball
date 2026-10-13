@@ -944,13 +944,14 @@ local function runHints(step: string)
 			key = nil
 		end
 	end
-	-- No hint showing: the soft part's pointer (a hand only, from the side, no line or dim).
+	-- No hint showing: the soft part's pointer (a hand only, no line or dim): under Rank (from
+	-- its side it covered Settings), from the side of Cues (under it, the next tile).
 	if key == nil and allowed then
 		local ok, anchor = pcall(TutorialSoft.pointer)
 		if ok and anchor then
 			overlay:dim(nil)
 			overlay:say(nil)
-			hand:point(TutorialOverlay.guiTarget(anchor), true)
+			hand:point(TutorialOverlay.guiTarget(anchor), anchor ~= "Rank")
 			key = "Pointer" .. anchor
 		end
 	end
