@@ -5,14 +5,14 @@
 -- over its glow, a gold title, what it gives and a big green button). Two wide cards side by
 -- side at the top of the page until both are claimed (FreeSocial's welcome; after that the
 -- Group section is the small Lucky 8 card at the bottom of the page): join the group (its
--- blocks and the match money while a member) and like + favorite the game (the Lucky 8 and a
--- Mystery Block and money). Each picture shows its reward's best block (the favorite card its
+-- blocks and the match money while a member) and favorite the game (the Lucky 8 and a
+-- Mystery Block and money; a blue "+ Like the game if you enjoy!" under its title). Each picture shows its reward's best block (the favorite card its
 -- Lucky 8; as many as it gives, up to three) with
 -- the group's busts or the favorite star, and the money when it gives some; the sky-blue dice
 -- on the picture opens that block's Odds & Details. Beside it the title, the reward's blocks
 -- and a line (the money, the match money while a member); under them the button: Join (Claim!
--- for a member), or Verify (FreeSocial.verify: Roblox's favorite prompt when the favorite is
--- unseen, then the like popup; one button, designer 2026-10-11), then Claimed. Both cards are as tall as the taller needs (a
+-- for a member), or Verify (FreeSocial.verify: Roblox's check of the favorite, the steps
+-- popup when it is not there yet), then Claimed. Both cards are as tall as the taller needs (a
 -- phone's 12 px words make them taller), laid out as the Shop's Starter Pack and VIP
 -- (ShopOffers). Sizes in Config.UI.FreeReward.Social.Heroes, words in Strings.FreeReward.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -58,6 +58,7 @@ type Hero = {
 	extra: ImageLabel, -- a small picture of the reward's other block (the favorite's Mystery)
 	odds: ShopCards.Badge,
 	title: TextLabel,
+	like: TextLabel?, -- the favorite card's "+ Like the game if you enjoy!", blue
 	head: TextLabel, -- "Reward:" over the list
 	reward: TextLabel, -- the list's first row: the block in front
 	rewardDot: TextLabel, -- the list's bullets, the words wrapping clear of them
@@ -81,6 +82,8 @@ type Plan = {
 	gap: number,
 	titlePx: number,
 	titleH: number,
+	likePx: number,
+	likeH: number, -- 0: no like line
 	headPx: number,
 	headH: number,
 	dotW: number, -- a bullet's room before its words
@@ -156,7 +159,15 @@ local function hero(
 	end
 	local odds = ShopCards.oddsBadge(frame, "OddsBadge", 8)
 	local title = words(frame, "Title", rgb(K.Numbers.Money))
-	title.Text = if key == "Group" then W.GroupRow else W.FavoriteRow
+	title.Text = if key == "Group" then W.GroupRow else W.FavoriteHero
+	-- The favorite card asks for a like under its title, never rewarding it (designer,
+	-- 2026-10-13).
+	local like: TextLabel? = nil
+	if key == "Favorite" then
+		local made = words(frame, "Like", rgb(H.LikeColor))
+		made.Text = W.FavoriteLike
+		like = made
+	end
 	-- "Reward:", then what it gives as a bulleted list, the line in the same words' style and
 	-- size (designer, 2026-10-09).
 	local head = words(frame, "Head", nil)
@@ -183,6 +194,7 @@ local function hero(
 		extra = extra,
 		odds = odds,
 		title = title,
+		like = like,
 		head = head,
 		reward = reward,
 		rewardDot = rewardDot,
@@ -245,6 +257,16 @@ local function plan(c: Hero, k: number, cardW: number): Plan
 			titleH = titlePx + B.TextBoxPx
 		end
 	end
+	-- The like line on one line: smaller to fit.
+	local likePx = ShopCards.textPx(H.LikeUnits, k)
+	local likeH = 0
+	if c.like then
+		local likeW = ShopCards.measure(c.like.Text, likePx)
+		if likeW > colW then
+			likePx = math.max(MIN_TEXT, math.floor(likePx * colW / likeW))
+		end
+		likeH = likePx + B.TextBoxPx
+	end
 	local headPx = ShopCards.textPx(H.HeadUnits, k)
 	local headH = headPx + B.TextBoxPx
 	local rewardPx = ShopCards.textPx(H.RewardUnits, k)
@@ -254,6 +276,9 @@ local function plan(c: Hero, k: number, cardW: number): Plan
 	local linePx = ShopCards.textPx(H.LineUnits, k)
 	local lineHs: { number } = {}
 	local textH = titleH + rowGap + headH + rowGap + rewardH
+	if likeH > 0 then
+		textH += likeH + rowGap
+	end
 	for index, row in c.lines do
 		local text = row.words.Text
 		lineHs[index] = if text ~= ""
@@ -274,6 +299,8 @@ local function plan(c: Hero, k: number, cardW: number): Plan
 		gap = gap,
 		titlePx = titlePx,
 		titleH = titleH,
+		likePx = likePx,
+		likeH = likeH,
 		headPx = headPx,
 		headH = headH,
 		dotW = dotW,
@@ -307,6 +334,13 @@ local function place(c: Hero, p: Plan, k: number, cardW: number, cardH: number)
 	c.title.Size = UDim2.fromOffset(p.colW, p.titleH)
 	HudParts.setTextSize(c.title, p.titlePx)
 	y += p.titleH + p.rowGap
+	local like = c.like
+	if like then
+		like.Position = UDim2.fromOffset(p.colX, round(y))
+		like.Size = UDim2.fromOffset(p.colW, p.likeH)
+		HudParts.setTextSize(like, p.likePx)
+		y += p.likeH + p.rowGap
+	end
 	c.head.Position = UDim2.fromOffset(p.colX, round(y))
 	c.head.Size = UDim2.fromOffset(p.colW, p.headH)
 	HudParts.setTextSize(c.head, p.headPx)
@@ -440,14 +474,12 @@ local function setButton(
 end
 
 --- Draw a RewardState's group and favorite. `busy(key)` says a claim is on its way;
---- `favoriting` that Roblox's favorite prompt is up, `verifying` that Verify is checking the
---- favorite. Returns true when the words changed or Verify came or went (the cards are laid
+--- `verifying` that Verify is checking the favorite. Returns true when the words changed or Verify came or went (the cards are laid
 --- out again).
 function FreeHeroes.refresh(
 	self: any,
 	state: any,
 	busy: (string) -> boolean,
-	favoriting: boolean,
 	verifying: boolean
 ): boolean
 	if type(state) ~= "table" then
@@ -510,7 +542,7 @@ function FreeHeroes.refresh(
 			local words = if member then W.Claim else W.Join
 			setButton(c, done, words, if member then nil else "Group", busy("Group"))
 		else
-			setButton(c, done, W.Verify, "Check", busy("Favorite") or favoriting or verifying)
+			setButton(c, done, W.Verify, "Check", busy("Favorite") or verifying)
 		end
 	end
 	return changed

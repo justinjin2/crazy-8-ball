@@ -25,9 +25,9 @@
 -- (RewardsFlyer): money into the money HUD, blocks to the hotbar, ability spins to the
 -- Abilities tile. A button is off while its request is on its way, and stays off after a
 -- claim until the next state arrives (so a quick second press never asks twice); a refusal
--- shows the server's reason as a notice; the favorite card's "Rejoin" (like the game and
--- rejoin, Config.Social.LikeRejoin) is the "ALMOST THERE!" popup (LikeRejoinPopup), whose
--- Leave & Like sends the player out with the steps. Claim All is a Robux product (StoreRequest "Buy":
+-- shows the server's reason as a notice. A favorite card's Verify with the game not favorited
+-- yet (or the server's "Rejoin", Config.Social.LikeRejoin) is the "ALMOST THERE!" popup
+-- (LikeRejoinPopup), whose Leave Game sends the player out with the steps. Claim All is a Robux product (StoreRequest "Buy":
 -- Roblox's own dialog; "Coming soon" until the product is on sale).
 --
 -- Gamepad: opening lands on the first Claim (today's, a gift's, the group's), else on the lit
@@ -146,7 +146,7 @@ function FreeRewardMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		end
 	end
 
-	-- The words on Roblox's leave screen after Leave & Like. Roblox shows a kick's words as they
+	-- The words on Roblox's leave screen after Leave Game. Roblox shows a kick's words as they
 	-- are, untranslated, so a player not playing in English gets the popup's own step lines
 	-- (on screen, so Roblox's automatic translation has them) through the game's translator;
 	-- English, or no translator, keeps RejoinKick.
@@ -161,9 +161,37 @@ function FreeRewardMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 			return translator:Translate(game, steps[2])
 				.. "\n"
 				.. translator:Translate(game, steps[3])
+				.. "\n"
+				.. translator:Translate(game, W.RejoinLike)
 		end)
 		return if ok and type(text) == "string" and text ~= "" then text else W.RejoinKick
 	end
+
+	--- The favorite card's "ALMOST THERE!" popup: leave, favorite the game on its page, rejoin
+	--- and Verify. Leave Game sends them out with the steps on Roblox's leave screen.
+	function ctx.askFavorite()
+		if not frame:isOpen() then
+			return
+		end
+		local rewards = ItemState.rewards()
+		local view = if type(rewards) == "table" then rewards.favorite else nil
+		local reward = if type(view) == "table" then RewardsParts.reward(view.reward) else nil
+		local release: (() -> ())? = nil
+		local dialog = LikeRejoinPopup.show(frame.panel, reward, function(leave: boolean)
+			if release then
+				release()
+			end
+			if leave then
+				Players.LocalPlayer:Kick(rejoinKick())
+			end
+		end)
+		release = frame:hold(dialog)
+	end
+	-- Studio only: GuiQA:Invoke("askFavorite") opens it as a Verify that found no favorite does.
+	GuiQA.add("askFavorite", function()
+		ctx.askFavorite()
+		return true
+	end)
 
 	--- Ask the server for a claim (`action` and `arg` as Net.luau's RewardRequest), with the
 	--- button that asked (the reward flies from there).
@@ -185,23 +213,8 @@ function FreeRewardMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 			elseif type(reply) == "table" and reply.reason == "NotMember" then
 				ctx.notice(W.NotMember, "Red")
 			elseif type(reply) == "table" and reply.reason == "Rejoin" and frame:isOpen() then
-				-- The favorite card's first Verify (Config.Social.LikeRejoin): the "ALMOST THERE!"
-				-- popup. Leave & Like sends them out with the steps on Roblox's leave screen.
-				local rewards = ItemState.rewards()
-				local view = if type(rewards) == "table" then rewards.favorite else nil
-				local reward = if type(view) == "table"
-					then RewardsParts.reward(view.reward)
-					else nil
-				local release: (() -> ())? = nil
-				local dialog = LikeRejoinPopup.show(frame.panel, reward, function(leave: boolean)
-					if release then
-						release()
-					end
-					if leave then
-						Players.LocalPlayer:Kick(rejoinKick())
-					end
-				end)
-				release = frame:hold(dialog)
+				-- The favorite card's first Verify with Config.Social.LikeRejoin on: the popup.
+				ctx.askFavorite()
 			else
 				ctx.notice(MenuFrame.reason(reply), "Red")
 			end

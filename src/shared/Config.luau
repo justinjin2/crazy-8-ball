@@ -3604,19 +3604,19 @@ Config.Social = {
 	-- GUI lane (designer 2026-10-03, D7): the inviter's reward is given once ever (their first
 	-- invited friend's first win); every invited friend still gets their own cue.
 	InviterOnce = true,
-	-- GUI lane (D4): favoriting the game through Roblox's favorite prompt gives this once.
-	-- Roblox gives a server no way to check a favorite, so the client reports it.
+	-- GUI lane (D4): favoriting the game gives this once. Roblox gives a server no way to check
+	-- a favorite, so the client reports Roblox's favorite prompt's answer.
 	-- v4: a Lucky 8 block (the designer's choice, 2026-10-08; was a Mystery block). Economy v5:
 	-- the Lucky 8 climbs from Uncommon. Economy v6: $5,000 + the Lucky 8 (was $10,000).
 	-- 2026-10-11 (designer): favorite + like the game gives $5,000, the Lucky 8 and a Mystery
 	-- block (the group keeps 1 Mystery and its match money).
 	FavoriteReward = { Money = 5000, Blocks = { Lucky8 = 1, Mystery = 1 } },
-	-- Favorite + like (designer, 2026-10-11): the card's Verify checks the favorite on the
-	-- client; the first Verify that passes marks the save (RewardView.LikeAskedFlag) and asks
-	-- the player to leave, like the game on its page and rejoin; a Verify in any later
-	-- session gives the reward (a like can't be checked, so the rejoin stands for it). Off:
-	-- the first Verify that passes gives the reward (the old favorite-only claim).
-	LikeRejoin = true,
+	-- Favorite + like (designer, 2026-10-11): on, the first Verify that passes marks the save
+	-- (RewardView.LikeAskedFlag) and asks the player to leave, like the game and rejoin; a
+	-- Verify in a later session gives (the rejoin stood for the like, which can't be checked).
+	-- Off since 2026-10-13 (designer: rewarding a like nobody checks was misleading): the
+	-- first Verify that passes gives; the card only asks for a like, never rewards it.
+	LikeRejoin = false,
 	-- A ClaimGroup request (it asks Roblox for the player's groups) at most this often.
 	ClaimCooldownSeconds = 5,
 }
@@ -15898,6 +15898,10 @@ Config.UI.FreeReward = {
 			-- A title too long for one line wraps onto this many at its size ("Like + Favorite the
 			-- game", 2026-10-11); one longer still shrinks onto one line.
 			TitleMaxRows = 2,
+			-- The favorite card's "+ Like the game if you enjoy!" under its title (designer, 2026-10-13):
+			-- blue, a little smaller than the title, on one line (smaller still to fit).
+			LikeUnits = 40,
+			LikeColor = { 92, 182, 255 },
 			HeadUnits = 30, -- "Reward:" over the list (designer, 2026-10-09)
 			BulletGapUnits = 8, -- between a list row's bullet and its words
 			RewardUnits = 40, -- "3 Mystery Lucky Blocks" (wraps)
@@ -15938,7 +15942,7 @@ Config.UI.FreeReward = {
 -- Like, no X). Laid out in its own units and scaled by one factor k to fit the menu's panel
 -- (at most MaxScale pixels a unit). (tune)
 Config.UI.FreeReward.LikePopup = {
-	Units = { 900, 600 }, -- the card
+	Units = { 900, 670 }, -- the card
 	MaxScale = 0.8, -- never bigger than this many pixels a unit (a big PC screen)
 	MarginPx = 12, -- from the panel's edges on a small screen
 	ZIndex = 62, -- over the page, its notices and the kit's dialogs
@@ -15958,11 +15962,17 @@ Config.UI.FreeReward.LikePopup = {
 	CaptionY = 186, -- the caption's middle under the card's top (up to three lines)
 	CaptionUnits = 27,
 	ArrowUnits = 46, -- the arrows between the cards
-	ThumbRock = { 10, 1.4 }, -- the like step's thumbs up rocks this many degrees, over seconds
-	-- The reward under the cards: a white pill of the words, the blocks and the money.
-	Reward = { Y = 458, H = 74, ImageUnits = 62, TextUnits = 30, GapUnits = 12, PadUnits = 26 },
-	-- The buttons at the foot: Later (blue) and Leave & Like (green, shining).
-	Buttons = { Y = 546, H = 76, LaterW = 210, LeaveW = 360, GapUnits = 24, TextUnits = 38 },
+	ThumbRock = { 10, 1.4 }, -- the like line's thumbs up rocks this many degrees, over seconds
+	StarRock = { 8, 2.2 }, -- the favorite step's star rocks this many degrees, over seconds
+	-- "Give the game a like if you enjoy!" under the cards (designer, 2026-10-13): a gold pill,
+	-- tilted, its thumbs up and outlined words; its centre, height, tilt (degrees), words, the
+	-- thumbs up's size, its room each side.
+	Like = { Y = 450, H = 62, Tilt = -1.5, TextUnits = 34, ImageUnits = 50, PadUnits = 24 },
+	LikeFill = { 255, 227, 154 },
+	-- The reward under them: a white pill of the words, the blocks and the money.
+	Reward = { Y = 528, H = 74, ImageUnits = 62, TextUnits = 30, GapUnits = 12, PadUnits = 26 },
+	-- The buttons at the foot: Later (blue) and Leave Game (green, shining).
+	Buttons = { Y = 616, H = 76, LaterW = 210, LeaveW = 360, GapUnits = 24, TextUnits = 38 },
 	StepStaggerSeconds = 0.06, -- the cards pop in one after another after the slam
 }
 

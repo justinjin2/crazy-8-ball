@@ -11,13 +11,12 @@
 --   * Join the group (2 Mystery Lucky Blocks + 10% more match money while a member): Join is
 --     Roblox's own join prompt (GroupService:PromptJoinAsync), then the server asks Roblox
 --     again and gives the reward (RewardRequest "ClaimGroup"); a member's button reads Claim.
---   * Like + Favorite the game ($5,000, a Lucky 8 and a Mystery Block): Verify asks Roblox
---     whether the game is favorited (GetFavorite, else Roblox's favorite prompt), then
---     claims (RewardRequest "ClaimFavorite", once: a server cannot check a favorite or a
---     like). The first claim answers "Rejoin" (like the game and rejoin: the menu's "ALMOST
---     THERE!" popup, LikeRejoinPopup); one after a rejoin gives
---     (designer, 2026-10-11; Config.Social.LikeRejoin). The hero card has only Verify too
---     (designer, 2026-10-11: one button, its favorite prompt is enough).
+--   * Favorite the game ($5,000, a Lucky 8 and a Mystery Block; the hero adds "+ Like the
+--     game if you enjoy!", never rewarded): Verify asks Roblox whether the game is
+--     favorited (Roblox's favorite prompt answers it), then claims (RewardRequest
+--     "ClaimFavorite", once: a server cannot check a favorite). No favorite there opens the
+--     menu's "ALMOST THERE!" popup (LikeRejoinPopup: leave, favorite on the game's page,
+--     rejoin and Verify; designer, 2026-10-13).
 --   A claimed row's box is ticked and its button goes.
 -- - The invite card: the invite envelope and an Uncommon Lucky Block, "Invite a friend", what an
 --   invite gives (both get the block when the friend wins their first match; the inviter's own
@@ -95,8 +94,6 @@ function FreeSocial.new(parent: Instance, ctx: any): any
 	self.ctx = ctx
 	self.k = 1
 	self.state = nil :: any
-	self.favoriting = false -- Roblox's favorite prompt is up
-	self.favoritedHere = false -- that prompt said yes in this session
 	self.verifying = false -- Verify is asking Roblox whether the game is favorited
 	self.welcome = false -- the first visit's heroes instead of the Lucky 8 card
 	local root = HudParts.frame(parent, "SocialSection")
@@ -251,14 +248,10 @@ function FreeSocial.join(self: any, button: GuiObject?)
 	end)
 end
 
--- Roblox's favorite prompt (yields until it is answered): true for a yes, which also marks the
--- game favorited in this session. Nil when it is up already.
-local function promptFavorite(self: any): boolean?
-	if self.favoriting then
-		return nil
-	end
-	self.favoriting = true
-	self.ctx.refresh()
+-- Roblox's favorite prompt (yields until it is answered): true when the player favorited the
+-- game there. Roblox answers whether a game is favorited only after its "Access Items?" box,
+-- which the designer found creepy (2026-10-13), so the prompt's own answer is the check.
+local function promptFavorite(): boolean
 	local result: any = nil
 	local connection = AvatarEditorService.PromptSetFavoriteCompleted:Connect(function(r: any)
 		result = r
@@ -271,47 +264,14 @@ local function promptFavorite(self: any): boolean?
 		waited += task.wait(0.2)
 	end
 	connection:Disconnect()
-	local yes = result == Enum.AvatarPromptResult.Success
-	if yes then
-		self.favoritedHere = true
-	end
-	self.favoriting = false
-	self.ctx.refresh()
-	return yes
+	return result == Enum.AvatarPromptResult.Success
 end
 
--- Whether the game is favorited: Roblox's answer (GetFavorite). Just after a yes in this
--- session it may still say no for a moment, so it is asked again for FavoriteCheckSeconds.
--- Roblox answers only a player who allowed inventory reading (PromptAllowInventoryReadAccess,
--- never asked here); with no answer, the favorite prompt's yes in this session counts, or a
--- Verify that passed before the rejoin (the card's `asked`).
-local function isFavorited(self: any): boolean
-	local state = self.state
-	local view = if type(state) == "table" then state.favorite else nil
-	local before = self.favoritedHere == true or (type(view) == "table" and view.asked == true)
-	local deadline = os.clock() + F.FavoriteCheckSeconds
-	while true do
-		local ok, fav = pcall(function(): boolean
-			return AvatarEditorService:GetFavorite(game.PlaceId, Enum.AvatarItemType.Asset)
-		end)
-		if not ok then
-			return before
-		elseif fav == true then
-			return true
-		elseif self.favoritedHere ~= true or os.clock() > deadline then
-			return false
-		end
-		task.wait(0.5)
-	end
-end
-
--- Verify (from `button`, the hero's green one or the row's): the favorite unseen, Roblox's
--- favorite prompt (a player who favorited on an earlier visit says yes there; designer,
--- 2026-10-11), and no yes says "Like and favorite the game first!"; else the server's claim
--- (RewardRequest "ClaimFavorite"), whose first answer is "Rejoin" (the menu's "ALMOST THERE!"
--- popup) and gives after a rejoin (Config.Social.LikeRejoin).
+-- Verify (from `button`, the hero's green one or the row's): Roblox's favorite prompt, then the
+-- server's claim (RewardRequest "ClaimFavorite"); no favorite there opens the menu's "ALMOST
+-- THERE!" popup with the steps to favorite on the game's page (designer, 2026-10-13).
 function FreeSocial.verify(self: any, button: GuiObject?)
-	if self.verifying or self.favoriting then
+	if self.verifying then
 		return
 	end
 	TutorialAnchors.notePress("Favorite")
@@ -320,17 +280,14 @@ function FreeSocial.verify(self: any, button: GuiObject?)
 	local from = button or self.rows[2].button
 	self.ctx.refresh()
 	task.spawn(function()
-		local favorited = isFavorited(self)
+		local favorited = promptFavorite()
 		self.verifying = false
 		self.ctx.refresh()
-		if not favorited then
-			favorited = promptFavorite(self) == true
+		if favorited then
+			self.ctx.claim("ClaimFavorite", nil, "Favorite", from)
+		else
+			self.ctx.askFavorite()
 		end
-		if not favorited then
-			self.ctx.notice(W.NeedFavorite, "Red")
-			return
-		end
-		self.ctx.claim("ClaimFavorite", nil, "Favorite", from)
 	end)
 end
 
@@ -539,8 +496,7 @@ function FreeSocial.refresh(self: any, state: any): boolean
 	if type(state) ~= "table" then
 		return false
 	end
-	local relay = self.heroes:refresh(state, self.ctx.busy, self.favoriting, self.verifying)
-		and self.welcome
+	local relay = self.heroes:refresh(state, self.ctx.busy, self.verifying) and self.welcome
 	local group = if type(state.group) == "table" then state.group else {}
 	local favorite = if type(state.favorite) == "table" then state.favorite else {}
 	for _, row in self.rows :: { Row } do

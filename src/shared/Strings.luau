@@ -327,7 +327,7 @@ return {
 		BanFailed = "The ban did not go through: %s",
 		Unbanned = "%s is unbanned.",
 		UnbanFailed = "The unban did not go through: %s",
-		FavoriteReset = "Like + Favorite reset: press Verify to try it again.",
+		FavoriteReset = "Favorite reward reset: press Verify to try it again.",
 		-- The economy commands (/econhelp). Usage: the alias first (%s), then what follows it;
 		-- What: one line on what it does. A bad argument answers Try with the usage.
 		EconHelp = "Economy commands (they act on you; [player]: a username in this server, to give it to them):",
@@ -738,7 +738,7 @@ return {
 			Used = "You already used that code.",
 			Expired = "That code has expired.",
 			NotMember = "Join the group first, then claim!",
-			Rejoin = "Like the game and rejoin first!",
+			Rejoin = "Favorite the game first!",
 			-- Trading (TradeRequest's reasons; NotOwned, Owned and Busy above serve trades too).
 			NotHere = "That player isn't here anymore.",
 			Self = "You can't trade with yourself.",
@@ -1326,25 +1326,30 @@ return {
 		GroupTitle = "Free Lucky Blocks",
 		GroupRow = "Join the group",
 		GroupLine = "%s, +%d%% match money", -- the reward's gains, the boost while a member
-		FavoriteRow = "Like + Favorite the game", -- favorite + like (designer, 2026-10-11)
+		-- The favorite card (designer, 2026-10-13: the reward is for the favorite, which the game
+		-- checks; a like can't be checked, so it is only asked for, never rewarded).
+		FavoriteRow = "Favorite the game", -- the Lucky 8 card's row
+		FavoriteHero = "Favorite", -- the first-visit hero's title, the like line under it
+		FavoriteLike = "+ Like the game if you enjoy!", -- under the hero's title, blue, one line
 		Join = "Join",
-		-- The favorite card's Verify (Config.Social.LikeRejoin): the game not favorited yet,
-		-- then the first Verify's dialog (Leave & Like sends them out with RejoinKick).
+		-- The favorite card's Verify: Roblox's favorite prompt; no favorite there opens the
+		-- "ALMOST THERE!" popup (Leave Game sends them out with RejoinKick).
 		Verify = "Verify",
-		NeedFavorite = "Like and favorite the game first!",
-		-- The "ALMOST THERE!" popup (LikeRejoinPopup; concept A, 2026-10-11).
+		-- The "ALMOST THERE!" popup (LikeRejoinPopup; concept A 2026-10-11, the favorite steps
+		-- 2026-10-13).
 		RejoinTitle = "ALMOST THERE!",
-		RejoinSub = "Like the game to unlock your reward",
+		RejoinSub = "Favorite the game to unlock your reward",
 		RejoinSteps = {
 			"Leave the game",
-			"Press the thumbs up on the game's page",
+			"Press Favorite on the game's page",
 			"Rejoin and press Verify",
 		},
+		RejoinLike = "Give the game a like if you enjoy!", -- the big line under the steps
 		RejoinReward = "Your reward:",
-		RejoinLeave = "Leave & Like",
+		RejoinLeave = "Leave Game",
 		RejoinLater = "Later",
-		RejoinKick = "Thanks! Press the thumbs up on the game's page, then rejoin and press Verify to get your reward!",
-		-- The first-visit heroes (FreeHeroes): their titles are GroupRow and FavoriteRow, the
+		RejoinKick = "Thanks! Press the Favorite star on the game's page (and give it a like if you enjoy!), then rejoin and press Verify to get your reward!",
+		-- The first-visit heroes (FreeHeroes): their titles are GroupRow and FavoriteHero, the
 		-- reward's blocks the big words, the rest a line under them.
 		HeroBoost = "+%d%% Permanent Extra Money", -- the group's match money (designer, 2026-10-09)
 		HeroHead = "Reward:", -- over the list of what it gives (designer, 2026-10-09)

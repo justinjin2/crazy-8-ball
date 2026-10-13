@@ -869,7 +869,18 @@ return {
 		H.expect(not RewardView.build(fresh(), nil, nil, NOW).favorite.asked, "not asked yet")
 		local later = RewardView.build(fresh(), nil, nil, NOW, false, nil, false, asked)
 		H.expect(later.favorite.asked and not later.favorite.claimed, "the card knows it asked")
-		H.expect(Config.Social.LikeRejoin == true, "on for the live game")
+	end,
+
+	["RewardView: the favorite alone gives on the first Verify, no rejoin for a like (2026-10-13)"] = function()
+		local step = RewardView.favoriteStep
+		local rejoinOn = Config.Social.LikeRejoin
+		H.expect(rejoinOn == false, "off for the live game: a like is asked for, never rewarded")
+		H.expect(step({}, false, rejoinOn) == "Give", "a new player's first Verify gives")
+		-- A player the old flow asked to like and rejoin, still in that session, gets it now.
+		local asked = { [RewardView.LikeAskedFlag] = true }
+		H.expect(step(asked, true, rejoinOn) == "Give", "an old save mid-rejoin gives")
+		local done = { [RewardView.LikeAskedFlag] = true, [RewardView.FavoriteFlag] = true }
+		H.expect(step(done, false, rejoinOn) == "Claimed", "still once only")
 	end,
 
 	["RewardView: the invite card says whether the inviter's own block was given"] = function()
