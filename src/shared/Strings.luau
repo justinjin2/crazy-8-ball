@@ -1056,6 +1056,7 @@ return {
 		-- has fallen.
 		SkyNext = "Next Sky Lucky Block in %s",
 		SkyNextShort = "Sky Block in %s", -- a phone's, beside the Settings gear when short of room
+		SkyNextTime = "%s", -- a phone's with no room for words: the Sky block's icon, then the time
 		SkyDone = "Sky Lucky Block: come back tomorrow!",
 		-- The kinds' short names (the Mystery block's odds list).
 		Short = {

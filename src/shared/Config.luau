@@ -6601,6 +6601,9 @@ Config.UI = {
 		TextPx = 18,
 		PhoneTextPx = 14,
 		PhoneMinTextPx = 11, -- a phone's words shrink to this to fit beside the Settings gear
+		-- Still no room on a phone: the icon and the time alone in the row's top right, never the
+		-- long words under the row (designer, 2026-10-13). Off: the long words under the row.
+		PhoneTimeOnly = true,
 		PadPx = 8,
 		GapPx = 6,
 		IconShare = 1.1, -- of the pill's height (the wings poke out a little)

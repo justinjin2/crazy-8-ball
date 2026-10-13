@@ -3,8 +3,9 @@
 -- 2026-10-10: "next sky lucky block in..."; SkyDropService). An Ink pill with the Sky block's
 -- icon and "Next Sky Lucky Block in 12:34", at the right end of Roblox's top bar row, left of
 -- the Players list where it shows (designer, 2026-10-12: top right, so the tutorial's quest
--- line sits higher; it was centred, or right of the Settings gear on a phone), and just under
--- the row at its right end when the row has no room at all (setAvoid). Hidden before
+-- line sits higher; it was centred, or right of the Settings gear on a phone). A phone short
+-- of room shows "Sky Block in 12:34", then the icon and "12:34" alone (2026-10-13); only with
+-- no room at all does it go just under the row at its right end (setAvoid). Hidden before
 -- today's first finished match (designer: "just have them finish a match then show the
 -- timer"), once today's has been earned, while one is falling, and whenever the lobby is not
 -- quiet (Progression: setVisible). The server sends the clock ({ sky = view }) every
@@ -108,8 +109,9 @@ function SkyBanner.new(screen: ScreenGui): any
 	return self
 end
 
---- The words now and their short form (a phone short of room), or nil when nothing shows.
-function SkyBanner.words(self: any): (string?, string?)
+--- The words now, their short form and the time alone (a phone short of room), or nil when
+--- nothing shows.
+function SkyBanner.words(self: any): (string?, string?, string?)
 	local view = self.view
 	if type(view) ~= "table" or view.pending == true or view.needsMatch == true then
 		return nil
@@ -121,13 +123,13 @@ function SkyBanner.words(self: any): (string?, string?)
 		left -= os.clock() - self.receivedAt
 	end
 	local time = clock(math.max(1, left))
-	return W.SkyNext:format(time), W.SkyNextShort:format(time)
+	return W.SkyNext:format(time), W.SkyNextShort:format(time), W.SkyNextTime:format(time)
 end
 
 function SkyBanner.refresh(self: any)
-	local words, short = nil, nil
+	local words, short, timeOnly = nil, nil, nil
 	if self.wanted then
-		words, short = self:words()
+		words, short, timeOnly = self:words()
 	end
 	self.pill.Visible = words ~= nil
 	if words == nil then
@@ -178,10 +180,21 @@ function SkyBanner.refresh(self: any)
 		size -= 1
 		w, h, iconPx, textW = sized(size)
 	end
+	-- A phone still short of room: the Sky block's icon and the time alone, in the row's top
+	-- right (designer, 2026-10-13: "on phone it still isnt on the top right corner taking up a
+	-- big chunk of the screen"; it went under the row with its long words).
+	local tiny = phone and U.PhoneTimeOnly and timeOnly ~= nil
+	if right - w < leftLimit and tiny then
+		shown = timeOnly :: string
+		size = U.PhoneTextPx
+		w, h, iconPx, textW = sized(size)
+		right = self:rightEnd(origin.X + area.X - U.ClearPx, origin.Y + rowTop(h), w, h)
+	end
 	local left, top = right - w, rowTop(h)
 	if right - w < leftLimit then
-		-- Else just under the row at its right end, under what hangs there too.
-		shown = words :: string
+		-- Else just under the row at its right end, under what hangs there too (a phone's
+		-- with the time alone).
+		shown = if tiny then timeOnly :: string else words :: string
 		size = if phone then U.PhoneTextPx else U.TextPx
 		w, h, iconPx, textW = sized(size)
 		right = origin.X + area.X - U.ClearPx
