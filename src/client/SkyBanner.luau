@@ -1,9 +1,10 @@
 --!strict
 -- SkyBanner: the Sky Lucky Block's clock at the top of the lobby (economy v6, designer
 -- 2026-10-10: "next sky lucky block in..."; SkyDropService). An Ink pill with the Sky block's
--- icon and "Next Sky Lucky Block in 12:34", in Roblox's top bar row: centred on the screen on a
--- computer or tablet, just right of the Settings gear on a phone (setAvoid; designer: no room
--- under the row there), and just under the row when the row has no room at all. Hidden before
+-- icon and "Next Sky Lucky Block in 12:34", at the right end of Roblox's top bar row, left of
+-- the Players list where it shows (designer, 2026-10-12: top right, so the tutorial's quest
+-- line sits higher; it was centred, or right of the Settings gear on a phone), and just under
+-- the row at its right end when the row has no room at all (setAvoid). Hidden before
 -- today's first finished match (designer: "just have them finish a match then show the
 -- timer"), once today's has been earned, while one is falling, and whenever the lobby is not
 -- quiet (Progression: setVisible). The server sends the clock ({ sky = view }) every
@@ -139,6 +140,7 @@ function SkyBanner.refresh(self: any)
 	local key = words
 		.. tostring(camera and camera.ViewportSize)
 		.. tostring(self:bottomOver(-1e6, 2e6))
+		.. self:avoidKey()
 	if key == self.laidFor then
 		return
 	end
@@ -154,45 +156,36 @@ function SkyBanner.refresh(self: any)
 		return U.PadPx + iconPx + U.GapPx + textW + U.PadPx, h, iconPx, textW
 	end
 	local origin, area = self.gui.AbsolutePosition, self.gui.AbsoluteSize
-	local centre = self.screen.AbsolutePosition.X + self.screen.AbsoluteSize.X / 2
-	local size = U.TextPx
+	local size = if phone then U.PhoneTextPx else U.TextPx
 	local w, h, iconPx, textW = sized(size)
-	local left = centre - w / 2
-	local top = U.RowButtonTopPx + (U.RowButtonPx - h) / 2
-	local placed = false
-	if phone then
-		-- A phone: in the row just right of the Settings gear (designer, 2026-10-10: no room
-		-- for it under the row); short of room, its short words, then a little smaller.
-		local edge = self:leftEdge()
-		if edge then
-			local room = origin.X + area.X - U.ClearPx - (edge + U.ClearPx)
-			size = U.PhoneTextPx
-			w, h, iconPx, textW = sized(size)
-			if w > room and short then
-				shown = short
-				w, h, iconPx, textW = sized(size)
-			end
-			while w > room and size > U.PhoneMinTextPx do
-				size -= 1
-				w, h, iconPx, textW = sized(size)
-			end
-			if w <= room then
-				left, top = edge + U.ClearPx, math.max(0, (area.Y - h) / 2)
-				placed = true
-			end
-		end
-	elseif not self:blocked(left - U.ClearPx, origin.Y + top, w + 2 * U.ClearPx, h) then
-		-- A bigger screen: in the row, centred on the screen and on Roblox's buttons.
-		placed = true
+	-- Its top in the row: centred in a phone's row, on Roblox's buttons on a bigger screen.
+	local function rowTop(height: number): number
+		return if phone
+			then math.max(0, (area.Y - height) / 2)
+			else U.RowButtonTopPx + (U.RowButtonPx - height) / 2
 	end
-	if not placed then
-		-- Else just under the row, centred.
+	-- The row's right end (designer, 2026-10-12: "move the sky lucky block to the top right so
+	-- then the 'now go win a match' can be higher"), left of what sits there (the Players
+	-- list), never over the rank HUD or the Settings gear; short of room, its short words, then
+	-- a little smaller.
+	local right = self:rightEnd(origin.X + area.X - U.ClearPx, origin.Y + rowTop(h), w, h)
+	local leftLimit = (self:leftEdge() or origin.X) + U.ClearPx
+	if right - w < leftLimit and short then
+		shown = short
+		w, h, iconPx, textW = sized(size)
+	end
+	while right - w < leftLimit and size > U.PhoneMinTextPx do
+		size -= 1
+		w, h, iconPx, textW = sized(size)
+	end
+	local left, top = right - w, rowTop(h)
+	if right - w < leftLimit then
+		-- Else just under the row at its right end, under what hangs there too.
 		shown = words :: string
 		size = if phone then U.PhoneTextPx else U.TextPx
 		w, h, iconPx, textW = sized(size)
-		left, top = centre - w / 2, GuiService.TopbarInset.Height + U.TopGapPx
-		-- Under what hangs below the row over it too (the rank pill's "ONE MORE WIN!" on a
-		-- phone 430 px tall or more, 2026-10-12: the pill covered it).
+		right = origin.X + area.X - U.ClearPx
+		left, top = right - w, GuiService.TopbarInset.Height + U.TopGapPx
 		local bottom = self:bottomOver(left, w)
 		if bottom then
 			top = math.max(top, bottom - origin.Y + U.TopGapPx)
@@ -245,6 +238,43 @@ function SkyBanner.blocked(self: any, x: number, y: number, w: number, h: number
 		end
 	end
 	return false
+end
+
+-- The pill's right end (absolute pixels) at most `right`, moved left of every shown avoid
+-- object it would cover at that height (`y`, `h`) when `w` wide (the Players list).
+function SkyBanner.rightEnd(self: any, right: number, y: number, w: number, h: number): number
+	for _ = 1, #(self.avoid :: { GuiObject }) do
+		local moved = false
+		for _, object in self.avoid :: { GuiObject } do
+			local p, s = object.AbsolutePosition, object.AbsoluteSize
+			if
+				shows(object)
+				and p.Y < y + h
+				and p.Y + s.Y > y
+				and p.X < right
+				and p.X + s.X > right - w
+			then
+				right = p.X - U.ClearPx
+				moved = true
+			end
+		end
+		if not moved then
+			break
+		end
+	end
+	return right
+end
+
+-- Where the shown avoid objects are, as words (the layout is redone when one moves or shows).
+function SkyBanner.avoidKey(self: any): string
+	local parts = {}
+	for _, object in self.avoid :: { GuiObject } do
+		if shows(object) then
+			local p, s = object.AbsolutePosition, object.AbsoluteSize
+			table.insert(parts, ("%d,%d,%d,%d"):format(p.X, p.Y, s.X, s.Y))
+		end
+	end
+	return table.concat(parts, ";")
 end
 
 -- The lowest bottom edge (absolute pixels) of the shown `below` objects over the span `left`
