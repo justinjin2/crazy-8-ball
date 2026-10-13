@@ -4,7 +4,7 @@ Current state only, rewritten in place. Keep it to about two screens (under 100 
 step is finished and verified, move its dated entry to the top of
 `docs/archive/STATUS_HISTORY.md` and keep only what is still true or still open here.
 
-Updated 2026-10-12 (evening, the QA batch). **The game is live** (officially released 2026-10-10). Work goes on
+Updated 2026-10-12 (night, the QA batch after the designer's notes). **The game is live** (officially released 2026-10-10). Work goes on
 in `~/Desktop/8ball`, branch `gui-v4`. The STATUS from just before launch, in full, is the top
 entry of `docs/archive/STATUS_HISTORY.md`.
 
@@ -17,24 +17,25 @@ entry of `docs/archive/STATUS_HISTORY.md`.
   and updates, and a slow cleanup of old code and features as the game takes its form. Every
   update must not bring a critical bug or error to the live game: the rules are in CLAUDE.md,
   "The game is live".
-- **Published:** the 2026-10-12 publish has everything up to `c499ecf`: the new rank ladder,
-  the owner admin panel, Sell Duplicate / Keep, Settings' "Camera after a shot", unbox
-  announcements without "(1 in N)", "Gonna let that slide?", the controller fixes, the
-  tutorial batch (zoom-in lesson, the quest's $2,500 reward), the VIP tag shut in a match,
-  Portals lasting 2 shots and the pad queuing you again 1.5 s after a match. The rank ladder
-  needs "Restart Servers for Updates" (the designer was reminded). **Not yet published:**
-  the Shop restock's "Epic or better!" tag removed (DECISIONS).
+- **Published:** everything up to `c499ecf` (2026-10-12; the list is in STATUS_HISTORY). **Not
+  yet published:** the Shop restock's "Epic or better!" tag removed (DECISIONS).
 - **Now (2026-10-12): a tester's QA batch, committed on `gui-v4`, NOT pushed.** The designer
   relayed a friend's 8 notes (DECISIONS 2026-10-12); each fix is its own commit, held until the
   designer approves the test page (Artifact "Oct 12 Fixes Checklist"): OPPONENT'S TURN held
-  (`29d9a02`), replay catch-up (`9849fb6`), tutorial game 1 shorter (break streak x1-x3
-  `c1e3f67`, the bot's accidents `9eeada5`, a three-solid break `7b5a192`), ability info
-  (`b6ce19f`), pocket arrows (`5eb2f81`), the lighter chain after game 1 (`2d8e830`), Ranked
-  width and long ability names (`4cb6f9b`, `e059e70`), lobby bots back (`3f7602c`). No save
-  change. After approval: push, the designer publishes (Restart Servers optional), then watch a
-  new account's tutorial, a lobby filling with bots and a phone match live.
-- **Lint and tests (2026-10-12 evening, `gui-v4`):** lint OK (four old LocalShadow warnings);
-  all 1243 Lune tests pass.
+  (`29d9a02`), replay catch-up (`9849fb6`), the tutorial break streak (`c1e3f67`, now x1, x2),
+  ability info (`b6ce19f`), pocket arrows (`5eb2f81`, white `4f4ec78`, cleared at a match's
+  end `e834797`), the lighter chain after game 1 (`2d8e830`), Ranked width and long ability
+  names (`4cb6f9b`, `e059e70`), lobby bots back (`3f7602c`). After the designer tried it: the
+  three-solid break and the bot's accidents reverted (`4fc2b28`, `9065730`), the aim help
+  after 3 misses (`70da432`), the Abilities screen on a big phone (`46ba282`), the lobby top
+  stacking (`a98dffe`), the tutorial line on Abilities and over the pockets (`0aa0610`,
+  `e2dd8cf`). No save change. After approval: push, the designer publishes (Restart Servers
+  optional), then watch a new account's tutorial on a phone, a lobby filling with bots and a
+  phone match live.
+- **Lint and tests (2026-10-12 night, `gui-v4`):** lint OK (four old LocalShadow warnings);
+  all 1241 Lune tests pass. A fresh-player run on the 954 x 439 phone emulator (game 1 to the
+  quest line) was clean; the designer's Studio save was put back as it was (its match and win
+  counts stay at 4).
 
 ## In the game
 
@@ -67,12 +68,9 @@ One line each; the long form is the 2026-10-12 (evening) entry at the top of
   picking up drops, a phone.
 - **The new rank ladder**: the `rank catch-up` server lines, claims, win rates against bots
   from Gold up.
-- **Onboarding** (2026-10-10), **"Just one more game?"**, **Like + Favorite**
-  (`Config.Social.LikeRejoin`), **Camera after a shot**, **Emotes**
-  (`Config.Emotes.FillEmptySlots`): a brand-new account, a phone and a controller.
-- **Solo and Practice portals**: a real teleport. **Launch leftovers:** server CPU per shot,
-  "+10% Permanent" wording, the day 7 cue flyer, the Sky ping trusting the client, products at
-  about 0.8x price, server size 24. **The funnels** (`docs/TUTORIAL_FUNNELS.md`).
+- **Onboarding**, "Just one more game?", Like + Favorite, Camera after a shot, Emotes: a new
+  account, a phone and a controller. **Solo and Practice portals**: a real teleport. **Launch
+  leftovers** and **the funnels**: the 2026-10-12 STATUS_HISTORY entry.
 
 ## Open, waiting on the designer
 

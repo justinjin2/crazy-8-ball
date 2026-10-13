@@ -5,6 +5,14 @@ when `docs/STATUS.md` became current state only. Finished work moves here from S
 on top. Read it only to answer "when or why did X change"; it is not part of the read-first list.
 An entry marked "(latest)" was the latest when written.
 
+**2026-10-12 (night): the 2026-10-12 publish** (moved here when STATUS took the QA batch's
+second round): everything up to `c499ecf` went live: the new rank ladder, the owner admin
+panel, Sell Duplicate / Keep, Settings' "Camera after a shot", unbox announcements without
+"(1 in N)", "Gonna let that slide?", the controller fixes, the tutorial batch (zoom-in lesson,
+the quest's $2,500 reward), the VIP tag shut in a match, Portals lasting 2 shots and the pad
+queuing you again 1.5 s after a match. The rank ladder needed "Restart Servers for Updates"
+(the designer was reminded).
+
 **2026-10-12 (evening): "Watch on the live game" in long form** (moved here when STATUS took
 the tester's QA batch; STATUS keeps one line each):
 

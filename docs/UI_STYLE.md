@@ -233,8 +233,8 @@ below are the summary; the skill has the numbers and code.
 - **Calling the 8** (designer, 2026-09-27): choosing, every pocket gets a 44 px ring with its
   name. Once called, while you shoot, the chosen pocket keeps a ring sized to sit inside its
   hole on screen (it grows and shrinks with the zoom), with no caption, so nothing covers
-  the pocket's jaws. **Pocket arrows** (designer, 2026-10-12): while choosing, the kit's arrow
-  (48 px) points at each ring from the table's middle and bobs 8 px toward it (0.9 s), in every
+  the pocket's jaws. **Pocket arrows** (designer, 2026-10-12): while choosing, a white arrow
+  (the kit's arrow redrawn in white so it stands out on the blue cloth, 48 px) points at each ring from the table's middle and bobs 8 px toward it (0.9 s), in every
   match; the rings' names hide while they show; with a controller only the lit pocket's arrow.
 - **Ability info** (designer, 2026-10-12): at the in-match ability bar's right end a small
   white disc holds the ability's icon with a blue "i" badge (the R1 / RB picture on an ink disc

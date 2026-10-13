@@ -1316,9 +1316,9 @@ helpers, `src/server/TutorialService.luau`, `TutorialGames`, `TutorialBot`, `Tut
   (a closed kiosk), walks over naturally (stop-and-go, look-arounds, the odd jump) and steps on
   0.5-2 s after the player. If they step off before the game, it gets up and strolls nearby.
 - **Path S, the rigged game 1** (whoever sits down alone): the break with the aim locked
-  (under half power the bar springs back; half or more plays the fixed break: 3 solids, the
-  last creeping in, each stepping the ball streak x1, x2, x3 in this game only; 2026-10-12,
-  it was 2 solids); turn 2's aim lesson (a small turn, then zoom out with the pocket
+  (under half power the bar springs back; half or more plays the fixed break: 2 solids, the
+  second creeping in, each stepping the ball streak x1, x2 in this game only, 2026-10-12; a
+  3-solid break was tried that day and dropped); turn 2's aim lesson (a small turn, then zoom out with the pocket
   glowing, then "Now ... zoom all the way in!" on every device, waiting until the view is
   closer than the default, then the shoot line; the HUD's own zoom hint stays hidden in the
   guided part);
@@ -1326,12 +1326,13 @@ helpers, `src/server/TutorialService.luau`, `TutorialGames`, `TutorialBot`, `Tut
   see-through cue strikes, the cue ball rolls into the first ball, it into the second, that one
   into the glowing pocket; NICE SHOT!); the ability lesson (a full bar,
   Fire Shot's long line); the first miss gives the bot a visit that pots one then scratches,
-  which teaches ball in hand; later bot visits first try an "accident" that knocks one of the
-  player's balls in (never the 8, the table comes back; 2026-10-12, a shorter game 1), else
-  miss and leave a makeable shot; "PICK ANY POCKET FOR THE 8!" with the arrows on every
-  pocket (no suggested pocket since 2026-10-12). They cannot lose game 1 (a losing 8 is put back as a
-  plain foul). Hidden help: Magnet's pull on the lesson shots, an invisible small pull
-  elsewhere. The clock pauses while a lesson prompt shows. Target length about 4 minutes.
+  which teaches ball in hand; later bot visits miss and leave a makeable shot (bot
+  "accidents" that knocked the player's balls in were tried 2026-10-12 and dropped: they looked
+  stupid); "PICK ANY POCKET FOR THE 8!" with the arrows on every pocket (no suggested pocket
+  since 2026-10-12; the line keeps off the rings and arrows). They cannot lose game 1 (a
+  losing 8 is put back as a plain foul). Hidden help: Magnet's pull on the lesson shots, an
+  invisible small pull elsewhere, and after 3 misses in a row (6 until 2026-10-12) a slight
+  bend of the cue ball toward the nearest pot. The clock pauses while a lesson prompt shows. Target length about 4 minutes.
 - **Path R, a fair game 1:** a real person at their table before the game starts makes it a
   normal game (no rig, no help); the pool controls come as first-time hints. Played to its
   end, won or lost (a quick win too), it goes on to the same chain as path S (without the
