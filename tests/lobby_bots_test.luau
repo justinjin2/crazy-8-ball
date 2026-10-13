@@ -11,8 +11,8 @@ local expect = H.expect
 local L = Config.Bots.Lobby
 local tests = {}
 
-tests["the server looks like 11 people, with lobby bots on by themselves"] = function()
-	expect(L.OnByDefault == true, "on in live public lobbies")
+tests["lobby bots off by default, filling a server to 11 people when on"] = function()
+	expect(L.OnByDefault == false, "off in live lobbies since 2026-10-13 (the lag)")
 	expect(L.People == 11, "filled up to 11")
 end
 

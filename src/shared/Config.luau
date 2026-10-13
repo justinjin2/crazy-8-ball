@@ -14512,7 +14512,9 @@ Config.Bots = {
 	-- bot-vs-bot players, and one playing a real player only once the server holds People real
 	-- players. Never near the tutorial's guided part (its players and reserved tables).
 	Lobby = {
-		OnByDefault = true, -- false: no lobby bots unless the designer's /lobbybots (one server)
+		-- Off again 2026-10-13: live turned laggy and abilities' looks vanished the night they went
+		-- on (V1423); each bot thinking takes a ~40 ms simulation a server frame (YieldEvery).
+		OnByDefault = false, -- false: no lobby bots unless the designer's /lobbybots (one server)
 		People = 11,
 		-- Their badges (weights, in this order): mostly Bronze, none above Gold (designer,
 		-- 2026-10-12).
