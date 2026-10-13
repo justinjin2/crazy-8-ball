@@ -233,7 +233,8 @@ below are the summary; the skill has the numbers and code.
 - **Calling the 8** (designer, 2026-09-27): choosing, every pocket gets a 44 px ring with its
   name. Once called, while you shoot, the chosen pocket keeps a ring sized to sit inside its
   hole on screen (it grows and shrinks with the zoom), with no caption, so nothing covers
-  the pocket's jaws. **Pocket arrows** (designer, 2026-10-12): while choosing, a white arrow
+  the pocket's jaws. **Pocket arrows: off since 2026-10-13** (the designer went back to the
+  rings with their names; the arrows stay in code behind `PocketArrows.On`). They were: while choosing, a white arrow
   (the kit's arrow redrawn in white, 48 px; 36 on a phone) points at each pocket, **level and
   all one size** (2026-10-13): a corner's comes in from beyond the table's end at its pocket's
   height, a side pocket's lies on its rail from the left, reaching out over the wood; none is
