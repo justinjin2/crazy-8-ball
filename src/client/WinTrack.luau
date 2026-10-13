@@ -17,7 +17,9 @@
 -- press opens the whole bar, and its fold button (a navy circle with a down arrow on the bar's
 -- top edge, between the pills: the designer, 2026-10-09, "wins needs a collapse dropdown")
 -- folds it. After a match the bar opens by itself as it comes back, for PeekSeconds, then
--- folds again (unless the player pressed it meanwhile).
+-- folds again (unless the player pressed it meanwhile). With no lucky blocks held (no hotbar
+-- under it) it stays open, so the next reward shows (designer, 2026-10-12); a fold press keeps
+-- it folded until blocks come and go again. A money step's folded pill shows its amount too.
 --
 -- It shows in the lobby with nothing over it (Progression: no menu, match, result screen,
 -- reel or teleport, not during the tutorial) and takes the matchmaking bar's place: it hides
@@ -144,6 +146,9 @@ function WinTrack.new(screen: ScreenGui): any
 	self.open = false -- the whole bar (true) or the folded pill
 	self.peekPending = false -- a match ended: open by itself as the bar comes back
 	self.peekToken = 0 -- the latest peek (a newer one, or a press, cancels the fold)
+	self.blockCount = nil :: (() -> number?)? -- the lucky blocks held (Progression: LuckyClient)
+	self.empty = nil :: boolean? -- none held, as last seen
+	self.emptyOpened = false -- opened because none are held (folds again when some come)
 
 	local root = HudParts.frame(screen, "WinTrack")
 	root.AnchorPoint = Vector2.new(0.5, 1)
@@ -309,6 +314,14 @@ function WinTrack.new(screen: ScreenGui): any
 	miniBlock.AnchorPoint = Vector2.new(0, 0.5)
 	miniBlock.ZIndex = 7
 	miniBlock.Parent = mini
+	-- A money step's amount after its cash bundle ("$750"), in the money green.
+	local miniMoney =
+		HudParts.text(mini, "Money", T.PillTextPx, "", rgb(Config.UI.Kit.Numbers.Money))
+	miniMoney.TextWrapped = false
+	miniMoney.AnchorPoint = Vector2.new(0, 0.5)
+	miniMoney.ZIndex = 7
+	miniMoney.Visible = false
+	self.miniMoney = miniMoney
 	local miniWords = HudParts.text(mini, "Words", T.PillTextPx, "")
 	miniWords.TextWrapped = false
 	miniWords.AnchorPoint = Vector2.new(0, 0.5)
@@ -382,6 +395,9 @@ function WinTrack.layout(self: any)
 	local hasNext = self.miniBlock.Image ~= ""
 	self.miniNext.Visible, self.miniNextArrow.Visible, self.miniBlock.Visible =
 		hasNext, hasNext, hasNext
+	local hasMoney = hasNext and self.miniMoney.Text ~= ""
+	self.miniMoney.Visible = hasMoney
+	local moneyW = if hasMoney then measure(self.miniMoney.Text, T.PillTextPx) else 0
 	local nextW = measure(COPY.NextFolded, T.PillTextPx)
 	local lead = if hasNext
 		then nextW
@@ -389,6 +405,7 @@ function WinTrack.layout(self: any)
 			+ T.FoldedNextArrowPx
 			+ T.FoldedNextGapPx
 			+ T.FoldedBlockPx
+			+ (if hasMoney then T.FoldedMoneyGapPx + moneyW else 0)
 			+ T.FoldedGapPx
 		else 0
 	local miniWordsW = measure(self.miniWords.Text, T.PillTextPx)
@@ -404,6 +421,9 @@ function WinTrack.layout(self: any)
 	x += T.FoldedNextArrowPx + T.FoldedNextGapPx
 	self.miniBlock.Position = UDim2.new(0, x, 0.5, 0)
 	self.miniBlock.Size = UDim2.fromOffset(T.FoldedBlockPx, T.FoldedBlockPx)
+	x += T.FoldedBlockPx + T.FoldedMoneyGapPx
+	self.miniMoney.Position = UDim2.new(0, x, 0.5, 0)
+	self.miniMoney.Size = UDim2.fromOffset(moneyW, T.FoldedHeightPx)
 	self.miniWords.Position = UDim2.new(0, T.PillPadPx + lead, 0.5, 0)
 	self.miniWords.Size = UDim2.fromOffset(miniWordsW, T.FoldedHeightPx)
 	self.miniArrow.Position = UDim2.new(1, -T.PillPadPx, 0.5, 0)
@@ -514,6 +534,9 @@ function WinTrack.refresh(self: any)
 		else string.format(COPY.Wins, given, n)
 	self.miniWords.Text = string.format(COPY.Wins, given, n)
 	self.miniBlock.Image = pictureOf(self.kinds[given + 1])
+	self.miniMoney.Text = if self.kinds[given + 1] == BlockDrop.Money
+		then tileMoney(BlockDrop.trackMoney(given + 1))
+		else ""
 	-- The tag under the next step's tile.
 	if given < n then
 		local tile = self.tiles[given + 1]
@@ -577,6 +600,7 @@ end
 --- Progression's call, every frame: whether the lobby has room for the bar now.
 function WinTrack.setVisible(self: any, want: boolean)
 	self.want = want
+	self:checkEmpty()
 	self:apply()
 	if self.shown then
 		self:place()
@@ -621,10 +645,12 @@ function WinTrack.apply(self: any)
 	end
 end
 
--- Open or fold the bar (`byPlayer`: a press, which cancels a peek's fold).
-function WinTrack.setOpen(self: any, open: boolean, byPlayer: boolean?)
+-- Open or fold the bar (`byPlayer`: a press, which cancels a peek's fold and the open for
+-- holding no blocks; `quiet`: no click sound, as the bar does it by itself).
+function WinTrack.setOpen(self: any, open: boolean, byPlayer: boolean?, quiet: boolean?)
 	if byPlayer then
 		self.peekToken += 1
+		self.emptyOpened = false
 	end
 	if self.open == open then
 		return
@@ -633,7 +659,9 @@ function WinTrack.setOpen(self: any, open: boolean, byPlayer: boolean?)
 	if not self.shown then
 		return
 	end
-	UISound.play("Click")
+	if not quiet then
+		UISound.play("Click")
+	end
 	local piece = if open then self.holder else self.mini
 	local other = if open then self.mini else self.holder
 	other.Visible = false
@@ -650,7 +678,7 @@ function WinTrack.peekNow(self: any)
 	local token = self.peekToken
 	self.open = true
 	task.delay(T.PeekSeconds, function()
-		if self.peekToken == token and self.open then
+		if self.peekToken == token and self.open and not self.emptyOpened then
 			if self.shown then
 				self:setOpen(false)
 			else
@@ -658,6 +686,38 @@ function WinTrack.peekNow(self: any)
 			end
 		end
 	end)
+end
+
+--- How many lucky blocks the player holds (Progression hands LuckyClient's count).
+function WinTrack.setBlockCount(self: any, count: () -> number?)
+	self.blockCount = count
+end
+
+-- With no lucky blocks held the bar opens (no hotbar under it, so it has the room and shows the
+-- next reward); it folds again when some come, unless the player pressed it meanwhile.
+function WinTrack.checkEmpty(self: any)
+	local count = self.blockCount
+	if count == nil then
+		return
+	end
+	local held = count()
+	if held == nil then
+		return -- not heard yet
+	end
+	local empty = held == 0
+	if empty == self.empty then
+		return
+	end
+	self.empty = empty
+	if empty then
+		if not self.open then
+			self.emptyOpened = true
+			self:setOpen(true, false, true)
+		end
+	elseif self.emptyOpened then
+		self.emptyOpened = false
+		self:setOpen(false, false, true)
+	end
 end
 
 --- A match just ended: the bar opens by itself as it comes back, then folds.

@@ -83,6 +83,7 @@ local reveal: any = nil
 -- screen).
 local aimedId: number? = nil
 local entries: { Entry } = {}
+local stateHeard = false -- the server's first BlockState came (count is nil before)
 local heldId: number? = nil
 local liveIds: { [number]: boolean } = {}
 local reveals: { any } = {}
@@ -828,6 +829,7 @@ function LuckyClient.start(screen: ScreenGui)
 			end
 		end
 		entries = list
+		stateHeard = true
 		if heldId ~= nil and find(heldId) == nil then
 			heldId = nil
 			stopHold()
@@ -1017,6 +1019,12 @@ function LuckyClient.firstReady(except: string?): (number?, string?)
 	end)
 	local entry = if slot then hotbar:slotEntry(slot) else nil
 	return slot, if entry then entry.kind else nil
+end
+
+--- How many lucky blocks the player holds (the win track stays open with none), or nil before
+--- the server's first BlockState.
+function LuckyClient.count(): number?
+	return if stateHeard then #entries else nil
 end
 
 --- The tutorial: the held block's kind, or nil.

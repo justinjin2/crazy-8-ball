@@ -283,6 +283,7 @@ function Progression.start(screen: ScreenGui, hooks: Hooks)
 		Menus.open(RANKED)
 	end)
 	winTrack = WinTrack.new(screen) -- the day's win track over the hotbar
+	winTrack:setBlockCount(LuckyClient.count) -- it stays open while none are held
 	skyBanner = SkyBanner.new(screen) -- the Sky Lucky Block's clock at the top (economy v6)
 	Portals.start() -- the Solo and Practice portals at the front, once the tutorial is over
 	plates = Nameplates.new()

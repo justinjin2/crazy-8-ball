@@ -9031,6 +9031,7 @@ Config.UI.WinTrack = {
 	FoldedBlockPx = 28,
 	FoldedArrowPx = 16,
 	FoldedGapPx = 6, -- between its pieces
+	FoldedMoneyGapPx = 3, -- between a money step's cash bundle and its amount ("$750")
 	FoldedNextArrowPx = 18, -- the arrow in "Next ->" before the block (designer, 2026-10-09)
 	FoldedNextGapPx = 4, -- round that arrow
 	-- The open bar's fold button: a navy circle on its top edge between the pills (designer,
