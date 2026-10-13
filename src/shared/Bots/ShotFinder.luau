@@ -206,8 +206,8 @@ function Finder.left(view: View): (number?, number?)
 end
 
 --- Every geometrically possible pot for the bot, best score first (not calibrated), with the
---- cue ball at (cueX, cueY) when given.
-function Finder.candidates(view: View, cueX: number?, cueY: number?): { Plan }
+--- cue ball at (cueX, cueY) when given; at the balls `ids` only when given (else its own).
+function Finder.candidates(view: View, cueX: number?, cueY: number?, ids: { number }?): { Plan }
 	local list = view.balls
 	local cue = Finder.findBall(list, 0)
 	if cue == nil then
@@ -219,8 +219,11 @@ function Finder.candidates(view: View, cueX: number?, cueY: number?): { Plan }
 	local cx, cy = cueX or cue.x, cueY or cue.y
 	local out: { Plan } = {}
 	local maxCut = math.rad(F.MaxCutDegrees)
-	for _, id in Finder.ownIds(view) do
-		local ob = Finder.findBall(list, id) :: Ball
+	for _, id in ids or Finder.ownIds(view) do
+		local ob = Finder.findBall(list, id)
+		if ob == nil or ob.pocketed then
+			continue
+		end
 		for _, pk in Finder.pockets(geometry) do
 			local ox, oy = pk.mx - ob.x, pk.my - ob.y
 			local dobj = math.sqrt(ox * ox + oy * oy)
@@ -391,6 +394,20 @@ function Finder.nearestPocket(geometry: Geometry, x: number, y: number): number
 		end
 	end
 	return called
+end
+
+--- The pocket to suggest for the 8 (a controller's call starts lit on it; designer,
+--- 2026-10-12): its easiest pot from where the cue ball lies (the candidates' score: the
+--- pocket's window, the cut, both distances; nothing in the way), else the pocket nearest the
+--- 8; nil without an 8 on the table.
+function Finder.eightPocket(geometry: Geometry, balls: { Ball }): number?
+	local eight = Finder.findBall(balls, 8)
+	if eight == nil or eight.pocketed then
+		return nil
+	end
+	local view: View = { geometry = geometry, balls = balls, groups = {}, team = 1 }
+	local best = Finder.candidates(view, nil, nil, { 8 })[1]
+	return if best then best.pocket else Finder.nearestPocket(geometry, eight.x, eight.y)
 end
 
 --- The plain soft hit straight at ball `id` from (cx, cy).

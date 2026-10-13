@@ -23,6 +23,7 @@ local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local Placement = require(Shared:WaitForChild("Placement"))
 local PadMath = require(Shared:WaitForChild("PadMath"))
+local Finder = require(Shared:WaitForChild("Bots"):WaitForChild("ShotFinder"))
 local Rules = Shared:WaitForChild("Rules")
 local CuePlacement = require(Rules:WaitForChild("CuePlacement"))
 local Engine = require(Rules:WaitForChild("MatchEngine"))
@@ -630,10 +631,20 @@ function MatchTargets.padPoints(self: any): { PadMath.Point }
 	return points
 end
 
--- The pocket lit when a controller's call starts: the top left on screen (designer,
--- 2026-10-11), the tutorial's too since 2026-10-12 (it no longer suggests a pocket).
+-- The pocket lit when a controller's call starts, in the tutorial and every match: the one
+-- the 8 goes in most easily from where the cue ball lies (designer, 2026-10-12: "recommend a
+-- pocket ... based on where the white ball is and where the 8 ball is"; ShotFinder's
+-- eightPocket), else the top left on screen (as before).
 function MatchTargets.padStart(self: any): number?
-	local rows = PadMath.pocketRows(self:padPoints())
+	local points = self:padPoints()
+	local state = self.state
+	local best = if state then Finder.eightPocket(state.geometry, state.balls) else nil
+	for _, point in points do
+		if point.id == best then
+			return best
+		end
+	end
+	local rows = PadMath.pocketRows(points)
 	return if rows[1] then rows[1][1].id else nil
 end
 
