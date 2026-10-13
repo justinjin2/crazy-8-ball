@@ -569,9 +569,29 @@ function MatchTargets.project(
 	return Vector2.new(screen.X, screen.Y) - self.root.AbsolutePosition, visible and screen.Z > 0
 end
 
+-- A Beside arrow (Config.Multiplayer.Style.PocketArrows.Beside), level and full size: a
+-- corner's comes in from beyond the table's end at its pocket's height; a side pocket's lies
+-- on its rail from the left, its inner side on the pocket's centre line so it reaches out over
+-- the wood, never onto the cloth. `o`: the way out of the pocket to the rail's outer edge on
+-- screen; `size`: the ring's. Returns the way it points and where its tip rests.
+local function besideArrow(
+	position: Vector2,
+	o: Vector2,
+	size: number,
+	px: number
+): (Vector2, Vector2)
+	if math.abs(o.X) > math.abs(o.Y) / 2 then
+		local dir = Vector2.new(-math.sign(o.X), 0)
+		return dir, position - dir * (size / 2)
+	end
+	return Vector2.new(1, 0),
+		Vector2.new(position.X - size / 2, position.Y + math.sign(o.Y) * px / 2)
+end
+
 -- Where the way out of `pocket`'s mouth leaves the table (the rail's outer edge, at the rail
 -- top) on screen: a corner pocket's at 45 degrees (the rail's outer corner), a side pocket's
--- straight across the rail. The pocket call's arrows rest their tips just past it.
+-- straight across the rail. The pocket call's arrows (Outside, not Beside) rest their tips
+-- just past it.
 function MatchTargets.railEdge(self: any, camera: Camera, pocket: any): Vector2?
 	local g = self.geometry
 	if g == nil or math.abs(pocket.y) < 1e-6 then
@@ -730,8 +750,9 @@ function MatchTargets.update(self: any, dt: number, camera: Camera)
 		self:finishGesture(open)
 	end
 	local pulse = (math.sin(self.elapsed * math.pi * 2 / S.PulsePeriod) + 1) / 2
-	-- The arrows point at each pocket from outside the table (the top-down view pulls back to
-	-- keep them on screen: Camera's overhead margin), or from the cloth with Outside off, and
+	-- The arrows point at each pocket level, all one size (Beside: a corner's from beyond the
+	-- table's end, a side pocket's along its rail), or from past the rail with the view pulled
+	-- back (Outside: Camera's overhead margin), or from the cloth, and
 	-- bob toward it (designer, 2026-10-12: "moving gentle pointing arrows on each 6 telling
 	-- them to pick any of them"); on a controller only the lit pocket has one.
 	local A = S.PocketArrows
@@ -802,9 +823,13 @@ function MatchTargets.update(self: any, dt: number, camera: Camera)
 		if arrow.Visible then
 			-- `dir`: the way the arrow points; `from`: where its tip rests, at bob's far end.
 			local dir, from = out.Unit, position - out.Unit * (size / 2)
-			local edge = if A.Outside then self:railEdge(camera, pocket) else nil
+			local edge = if A.Outside or A.Beside then self:railEdge(camera, pocket) else nil
 			if edge and (edge - position).Magnitude > 1 then
-				dir, from = (position - edge).Unit, edge
+				if A.Beside then
+					dir, from = besideArrow(position, edge - position, size, arrowPx)
+				else
+					dir, from = (position - edge).Unit, edge
+				end
 			elseif A.Outside then
 				dir, from = -dir, position + out.Unit * (size / 2)
 			end

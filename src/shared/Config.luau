@@ -8228,21 +8228,24 @@ Config.Multiplayer = {
 		-- Calling the 8 (MatchTargets; designer, 2026-10-12): the kit's arrow in white
 		-- (Kit.Icons.ArrowWhite; blue was lost on the cloth) by each pocket, bobbing BobPx toward
 		-- it every BobSeconds; on a controller only the lit pocket has one. The rings' "Pocket N"
-		-- captions hide meanwhile. On = false: the captions, no arrows. Outside: each arrow sits
-		-- off the table beyond its pocket, its tip GapPx out from the rail's outer edge, pointing
-		-- in (designer, 2026-10-12: on the cloth "it might block the view of some balls"), and
-		-- the top-down view keeps CameraMarginPx more room above and below the table so they
-		-- stay on screen (designer: "zoom out a little"; the sides have room already); false:
-		-- on the cloth by the ring, pointing out, no pull-back. Sizes are { phone, computer }
-		-- (a phone: under ShortHeight tall).
+		-- captions hide meanwhile. On = false: the captions, no arrows. Beside (designer,
+		-- 2026-10-13: "just go for the arrows on the side but make sure theyre all the same size
+		-- ... and the table is big enough and center"): every arrow level and Px, in the normal
+		-- top-down view: a corner's comes in from beyond the table's end at its pocket's height, a
+		-- side pocket's lies on its rail from the left, reaching out over the wood, never onto
+		-- the cloth. Else Outside: from past the rail's outer edge, pointing in at 45 degrees for
+		-- a corner, the view pulled back CameraMarginPx above and below the table (2026-10-12:
+		-- on the cloth "it might block the view of some balls"); neither: on the cloth by the
+		-- ring, pointing out. Sizes are { phone, computer } (a phone: under ShortHeight tall).
 		PocketArrows = {
 			On = true,
 			Px = { 36, 48 },
 			GapPx = 4,
 			BobPx = 8,
 			BobSeconds = 0.9,
-			Outside = true,
-			CameraMarginPx = { 28, 40 },
+			Beside = true,
+			Outside = true, -- Beside off only
+			CameraMarginPx = { 28, 40 }, -- Outside only
 		},
 		-- After the call, the chosen pocket's marker sits inside its hole while you shoot, so it
 		-- never covers the jaws (designer, 2026-09-27): its outer edge (ink included) spans this

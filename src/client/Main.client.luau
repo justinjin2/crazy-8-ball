@@ -1577,9 +1577,14 @@ local function renderFrame(dt: number)
 		-- lower than our top bar, and the top-left pocket sat under them (designer, 2026-10-13).
 		local rowBottom = GuiService.TopbarInset.Max.Y - GuiService:GetGuiInset().Y
 		header = math.max(header, rowBottom + M.Style.TargetSize / 2)
-		-- Calling the 8: room above and below the table for the arrows outside it.
+		-- Calling the 8: room above and below the table for the arrows outside it (not for the
+		-- Beside arrows: the normal view, they come in level from the sides).
 		local arrows = M.Style.PocketArrows
-		local arrowRoom = not picking and phase ~= "Sneak" and arrows.On and arrows.Outside
+		local arrowRoom = not picking
+			and phase ~= "Sneak"
+			and arrows.On
+			and arrows.Outside
+			and not arrows.Beside
 		local short = workspace.CurrentCamera.ViewportSize.Y < M.Style.ShortHeight
 		Camera.setMode(
 			overhead,
