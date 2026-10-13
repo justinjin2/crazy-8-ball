@@ -15027,6 +15027,11 @@ Config.Tutorial = {
 		LineWidthShare = 0.7, -- the line's widest, a share of the play area's width ...
 		LineMaxWidthPx = 760, -- ... and in pixels
 		LineMinWidthPx = 260, -- narrower than this beside Skip: the line goes under Skip instead
+		-- When every place for the line covers a screen's own words, or its ends sit on a
+		-- screen's panels (panels on both sides, like the Abilities screen on a phone), it tries
+		-- these shares of its width, wrapped (never under LineMinWidthPx), and takes the first
+		-- with a place clear of both (2026-10-12).
+		LineNarrowShares = { 0.75, 0.6 },
 		LineBandPx = 90, -- the line's band under the top bar, for keeping clear of Skip
 		LineSkipGapPx = 10, -- between the line and Skip
 		LineTopGapPx = 4, -- under Roblox's top bar (the play area's top)

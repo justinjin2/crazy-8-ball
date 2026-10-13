@@ -78,6 +78,7 @@ export type Overlay = typeof(setmetatable(
 		skipPx: number, -- Skip's text size now (0 before the first layout)
 		skipWidth: number?, -- its pill's width for its words at that size
 		linePick: number, -- which of ScreenLayout.lineTops the line is on
+		lineShare: number, -- the line's width now, a share of its usual width (LineNarrowShares)
 		lineCheckedAt: number, -- self.clock when that was last looked at
 		nextPick: number, -- which of ScreenLayout.nextSpots Next is on
 		nextCheckedAt: number,
@@ -310,6 +311,7 @@ function TutorialOverlay.new(): Overlay
 		skipPx = 0,
 		skipWidth = nil,
 		linePick = 1,
+		lineShare = 1,
 		lineCheckedAt = -math.huge,
 		nextPick = 1,
 		nextCheckedAt = -math.huge,
@@ -611,6 +613,7 @@ function TutorialOverlay.say(self: Overlay, text: string?, place: string?)
 	end
 	self.lineText = text
 	self.lineCheckedAt = -math.huge
+	self.lineShare = 1
 	self.line.Visible = false
 	self.row.Visible = false
 	if text == nil or text == "" then
@@ -833,6 +836,20 @@ local function lineHeight(self: Overlay, width: number, px: number): number
 	return h
 end
 
+-- The words' width when they wrap in `width` at `px` (measured, not the label's TextBounds, so
+-- it is the same whatever width the line has now).
+local measuredW: { [string]: number } = {}
+local function lineWidth(self: Overlay, width: number, px: number): number
+	local text = self.lineText or ""
+	local key = ("%d|%d|%s"):format(math.floor(width), px, text)
+	local w = measuredW[key]
+	if w == nil then
+		w = TextService:GetTextSize(text, px, self.line.Font, Vector2.new(width, 10000)).X
+		measuredW[key] = w
+	end
+	return w
+end
+
 function TutorialOverlay.update(self: Overlay, dt: number)
 	self.clock += dt
 	if #self.dpads > 0 then
@@ -927,28 +944,48 @@ function TutorialOverlay.update(self: Overlay, dt: number)
 		end
 	end
 	local box = ScreenLayout.line(areas, if self.skip.Visible then skipRect else nil, top)
-	local height = lineHeight(self, box.w, px)
-	box.h = height
 	-- Where it goes: by the hole for "Near" and for a line that would cover the hole (a button
 	-- at the top, like the rank HUD: under it, clear of the hand), else its usual place or a
 	-- step or two lower; the first spot whose words sit on none of a screen's own (looked at
-	-- every SkipCheckSeconds), else the least covered.
+	-- every SkipCheckSeconds), else the least covered. When every spot covers some, or the one
+	-- picked has a screen's panel under its ends (panels close in on both sides: the Abilities
+	-- screen on a phone, 2026-10-12), the words wrap narrower (LineNarrowShares of the usual
+	-- width) if that finds a spot clear of both.
 	local hole = if centre and size
 		then ScreenLayout.rect(centre.X - size.X / 2, centre.Y - size.Y / 2, size.X, size.Y)
 		else nil
-	-- The words' own box (centred in the line's; a line of button pictures fills it): what
-	-- must keep off the hole and off other words.
-	local wordsW = if self.row.Visible
-		then box.w
-		else math.min(box.w, math.max(self.line.TextBounds.X, box.w * 0.3))
-	local words = ScreenLayout.rect(box.x + (box.w - wordsW) / 2, box.y, wordsW, height)
-	local near = hole ~= nil and (self.linePlace == "Near" or ScreenLayout.overlaps(words, hole))
-	local tops = ScreenLayout.lineTops(areas, words, hole, near)
-	if self.clock - self.lineCheckedAt >= O.SkipCheckSeconds then
-		self.lineCheckedAt = self.clock
+	local lineW, baseX = box.w, box.x
+	-- The line at `share` of its usual width: its box, height, words' width and the tops to try
+	-- for it, with the words' box at its usual height.
+	local function fit(
+		share: number
+	): (ScreenLayout.Rect, number, number, ScreenLayout.Rect, { number })
+		local w = lineW * share
+		local h = lineHeight(self, w, px)
+		local b = { x = baseX + (lineW - w) / 2, y = box.y, w = w, h = h }
+		-- The words' own box (centred in the line's; a line of button pictures fills it): what
+		-- must keep off the hole and off other words.
+		local ww = if self.row.Visible
+			then w
+			else math.min(w, math.max(lineWidth(self, w, px), w * 0.3))
+		local r = ScreenLayout.rect(b.x + (w - ww) / 2, b.y, ww, h)
+		local near = hole ~= nil and (self.linePlace == "Near" or ScreenLayout.overlaps(r, hole))
+		return b, h, ww, r, ScreenLayout.lineTops(areas, r, hole, near)
+	end
+	-- What covers the words at `y`: a screen's own words, and with `panels` its panels too.
+	local function under(words: ScreenLayout.Rect, y: number, panels: boolean): number
+		local at = ScreenLayout.rect(words.x, y, words.w, words.h)
+		return wordsUnder(self, at) + (if panels then covered(self, at, full) else 0)
+	end
+	-- The first of `tops` with nothing over its words, else the least covered.
+	local function best(
+		tops: { number },
+		words: ScreenLayout.Rect,
+		panels: boolean
+	): (number, number)
 		local pick, least = 1, math.huge
 		for i, y in tops do
-			local count = wordsUnder(self, ScreenLayout.rect(words.x, y, wordsW, height))
+			local count = under(words, y, panels)
 			if count < least then
 				pick, least = i, count
 			end
@@ -956,8 +993,29 @@ function TutorialOverlay.update(self: Overlay, dt: number)
 				break
 			end
 		end
-		self.linePick = pick
+		return pick, least
 	end
+	if self.clock - self.lineCheckedAt >= O.SkipCheckSeconds then
+		self.lineCheckedAt = self.clock
+		local _, _, _, words, wide = fit(1)
+		local pick, least = best(wide, words, false)
+		local share = 1
+		if not self.row.Visible and (least > 0 or under(words, wide[pick], true) > 0) then
+			for _, narrow in O.LineNarrowShares do
+				if lineW * narrow >= O.LineMinWidthPx then
+					local _, _, _, r, t = fit(narrow)
+					local p, l = best(t, r, true)
+					if l == 0 then
+						pick, share = p, narrow
+						break
+					end
+				end
+			end
+		end
+		self.linePick, self.lineShare = pick, share
+	end
+	local placed, height, wordsW, _, tops = fit(if self.row.Visible then 1 else self.lineShare)
+	box = placed
 	box.y = tops[math.min(self.linePick, #tops)]
 	-- Points to keep clear (a glowing pocket at the far end, the combination's balls: they sit
 	-- right where the line is): the line moves just below the lowest one it would cover.
