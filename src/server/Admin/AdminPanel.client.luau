@@ -45,10 +45,10 @@ end
 -- Pieces
 ---------------------------------------------------------------------------------------------
 
--- Bottom right; on a touch screen left of Roblox's jump button, which lives in that corner (it
--- sat higher until 2026-10-12, over the match's pull bar).
+-- Bottom right on every device (designer, 2026-10-13). A touch screen's sat higher until
+-- 2026-10-12 (over the match's pull bar), then 200 px in from the right (over the ability bar).
 local lift = P.EdgePx
-local right = if UserInputService.TouchEnabled then P.TouchRightPx else P.EdgePx
+local right = P.EdgePx
 
 local toggle = Instance.new("TextButton")
 toggle.Name = "Toggle"

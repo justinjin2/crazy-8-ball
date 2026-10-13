@@ -16181,12 +16181,12 @@ Config.Admin = {
 	MaxNameLength = 40, -- a typed player or ability name longer than this is refused
 	-- The panel itself: plain on purpose (designer: "do not need to put much effort in the GUI").
 	Panel = {
-		-- The ADMIN button sits in the bottom-right corner (designer, 2026-10-11), the window
-		-- opening above it; on a touch screen it sits left of Roblox's jump button, on the
-		-- bottom edge (designer, 2026-10-12: lifted 190 px it covered the match's pull bar).
+		-- The ADMIN button sits in the bottom-right corner on every device (designer,
+		-- 2026-10-11; on a touch screen too since 2026-10-13: "put it in the corner right bottom
+		-- of my screen its blocking the ability icon"; lifted 190 px it had covered the match's
+		-- pull bar, then 200 px from the right it covered the ability bar), the window above it.
 		ToggleSizePx = { 86, 34 },
 		EdgePx = 8, -- from the screen's right and bottom edges, and between button and window
-		TouchRightPx = 200, -- a touch screen's button this far from the right edge (the jump button's room)
 		WidthPx = 340,
 		HeightShare = 0.7, -- of the screen's height at most; the rows scroll inside
 		RowPx = 34,
