@@ -71,7 +71,6 @@ local DEFAULTS = {
 	abilityUse = 0.9, -- "Press G": share who use it
 	maxSeconds = 900, -- a game still going after this is a dead end
 	maxTurns = 60,
-	gift = nil, -- the bot's "accidents" (Config.Tutorial.BotPlan.Gift.On): nil keeps Config
 }
 
 local opts: any = table.clone(DEFAULTS)
@@ -79,10 +78,6 @@ if optionsFile and optionsFile ~= "-" then
 	for k, v in serde.decode("json", fs.readFile(optionsFile)) do
 		opts[k] = v
 	end
-end
-
-if opts.gift ~= nil then
-	Config.Tutorial.BotPlan.Gift.On = opts.gift == true
 end
 
 local B = Config.Tutorial.Break
@@ -551,37 +546,9 @@ local function play(seed: number): any
 			local misses = rig.misses or 0
 			local stuck = misses > 0 and misses % Config.Tutorial.BotPlan.StuckMisses == 0
 			local combo = rig.done.Aim == true and not rig.done.Combo
-			local G = Config.Tutorial.BotPlan.Gift
-			if G.On and not stuck and botVisit >= G.FromVisit then
-				local t0 = os.clock()
-				d = BotPlan.gift(view, botRng, hand, nil, combo)
-				if process.env.GIFT_DEBUG then
-					local mine = 0
-					for _, b in view.balls do
-						if
-							not b.pocketed
-							and b.id ~= 0
-							and b.id ~= 8
-							and Judge.group(b.id) == Rig.playerGroup(m)
-						then
-							mine += 1
-						end
-					end
-					print(
-						("GIFT visit %d hand %s theirs-left %d found %s %.2fs"):format(
-							botVisit,
-							tostring(hand),
-							mine,
-							tostring(d ~= nil),
-							os.clock() - t0
-						)
-					)
-				end
-				plan = "gift"
-			end
-			if d == nil then
-				d = BotPlan.leave(view, botRng, hand, nil, stuck, combo)
-				plan = if stuck then "stuck" else "leave"
+			d = BotPlan.leave(view, botRng, hand, nil, stuck, combo)
+			if stuck then
+				plan = "stuck"
 			end
 		end
 		now += Look.shotSeconds(botRng, hand)
