@@ -843,6 +843,7 @@ function MatchTargets.clear(self: any)
 	for _, target in self.pockets do
 		target.button.Visible = false
 		target.glow.Visible = false
+		target.arrow.Visible = false -- a match that ends while the 8 is called keeps none
 	end
 	for _, dot in self.dots do
 		dot.Visible = false
