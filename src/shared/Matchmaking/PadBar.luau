@@ -169,12 +169,21 @@ function PadBar.spawnPill(
 	end
 	if not args.publicLobby or args.tutorial or args.onPad or args.dismissed then
 		return false
-	elseif args.soft then
+	elseif args.soft or B.SpawnPillAlways then
 		return true
 	elseif not args.nobodyFree then
 		return false
 	end
 	return args.since == nil or args.now - args.since < B.SpawnPillSeconds
+end
+
+--- Whether the spawn pill's X still hides it (SpawnPillAlways): until a match ends after the
+--- press (`played` counts the match results heard; `dismissedAt` was the count at the press).
+function PadBar.stillDismissed(dismissedAt: number?, played: number): boolean
+	if dismissedAt == nil then
+		return false
+	end
+	return not B.SpawnPillAlways or played == dismissedAt
 end
 
 --- "0:07": the search's time.

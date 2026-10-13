@@ -731,9 +731,11 @@ end)
 -- looked on there would stop the result cutscene before it opens the result screen (the
 -- designer's phone, 2026-10-10: no result screen, straight to NEW RANK!).
 local summaryTable: number?, summaryEpoch: number? = nil, nil
+local summariesHeard = 0 -- match results heard this visit (Play Global's X lasts until the next)
 Net.get("MatchSummary").OnClientEvent:Connect(function(summary: any)
 	if type(summary) == "table" and type(summary.epoch) == "number" then
 		summaryTable, summaryEpoch = summary.tableId, summary.epoch
+		summariesHeard += 1
 	end
 end)
 -- The row's buttons. Rematch and Leave are the table's vote; Play another, its Cancel and
@@ -1405,10 +1407,10 @@ local function renderFrame(dt: number)
 		predictedPad = nil -- the server has seated you; the real snapshot drives the menu
 	end
 	-- The matchmaking bar, every frame: a pad's, or the spawn pill of a player in a public
-	-- lobby server with nobody else free (designer, 2026-10-07: never in a private server, not
-	-- during the guided tutorial; a state it has not published yet counts as the tutorial;
-	-- 2026-10-09: also when everyone else is busy at a table), and in the tutorial's soft part
-	-- until Play Global is pressed (TutorialSoft).
+	-- lobby server (designer, 2026-10-07: never in a private server, not during the guided
+	-- tutorial; a state it has not published yet counts as the tutorial; since 2026-10-12
+	-- whoever else is free, Config.UI.MatchBar.SpawnPillAlways), and in the tutorial's soft
+	-- part until Play Global is pressed (TutorialSoft).
 	do
 		local guided = player:GetAttribute("TutorialActive")
 		local others = {}
@@ -1424,6 +1426,7 @@ local function renderFrame(dt: number)
 			tutorial = guided ~= false,
 			seated = hub.mySeat ~= nil or controlled or predictedPad ~= nil,
 			soft = TutorialSoft.wantsGlobal(),
+			played = summariesHeard,
 		})
 		matchBar:update(workspace:GetServerTimeNow())
 	end
@@ -1449,8 +1452,10 @@ local function renderFrame(dt: number)
 		afterMatch = seated ~= nil and (seated.phase == "Result" or ended),
 		shooting = controlled,
 		matchUserIds = matchIds,
-		-- The matchmaking bar or an opponent's ask has the space over the hotbar.
-		overHotbar = matchBar:isOpen() or opponentPrompt:isOpen(),
+		-- A pad's matchmaking bar or an opponent's ask has the space over the hotbar; the
+		-- lobby's Play Global pill shares it (the win track sits over it).
+		overHotbar = (matchBar:isOpen() and not matchBar:isSpawnPill()) or opponentPrompt:isOpen(),
+		overHotbarPx = matchBar:spawnLift(),
 	})
 	-- The ult bar: it fades while the cue is pulled back, the bottom lines sit above it, and the
 	-- controller guide lists "Ult" while it offers its press.

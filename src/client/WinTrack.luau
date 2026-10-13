@@ -434,9 +434,19 @@ function WinTrack.layout(self: any)
 	self:place()
 end
 
--- Over the hotbar (its lift changes as it shows and hides).
+--- How much higher it sits (Play Global's lobby pill under it; Progression, every frame).
+function WinTrack.setLift(self: any, px: number)
+	if self.lift ~= px then
+		self.lift = px
+		if self.shown then
+			self:place()
+		end
+	end
+end
+
+-- Over the hotbar (its lift changes as it shows and hides), and over Play Global's pill.
 function WinTrack.place(self: any)
-	local position = UDim2.new(0.5, 0, 1, -(T.BottomPx + BottomLift.get()))
+	local position = UDim2.new(0.5, 0, 1, -(T.BottomPx + BottomLift.get() + (self.lift or 0)))
 	if self.root.Position ~= position then
 		self.root.Position = position
 	end

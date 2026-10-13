@@ -271,24 +271,46 @@ function MatchBar.stopSearch(self: any)
 	end
 end
 
--- Play Global's X: on a pad, hidden until the next step-on; the spawn pill, gone.
+-- Play Global's X: on a pad, hidden until the next step-on; the spawn pill, until the next
+-- match ends (Config.UI.MatchBar.SpawnPillAlways; off: gone for the session).
 function MatchBar.dismissGlobal(self: any)
 	if self.kind == "pad" then
 		self.dismissed = true
 	else
 		self.spawnDismissed = true
+		self.spawnDismissedAt = if self.spawn then self.spawn.played or 0 else 0
 	end
 end
 
 --- What the spawn pill needs from Main each frame: { nobodyFree, publicLobby, tutorial,
---- seated, soft }.
+--- seated, soft, played (the match results heard) }.
 function MatchBar.setSpawn(self: any, state: any)
 	self.spawn = state
+	if
+		self.spawnDismissed and not PadBar.stillDismissed(self.spawnDismissedAt, state.played or 0)
+	then
+		self.spawnDismissed, self.spawnDismissedAt = false, nil
+	end
 end
 
 --- Whether the bar is up (the win track gives it the space over the hotbar).
 function MatchBar.isOpen(self: any): boolean
 	return self.open
+end
+
+--- Whether the bar up is the lobby's spawn pill (Play Global with no pad; the win track sits
+--- over it instead of giving way: SpawnPillAlways keeps it up).
+function MatchBar.isSpawnPill(self: any): boolean
+	return self.open and self.kind ~= nil and self.kind ~= "pad"
+end
+
+--- How far over the hotbar's lift the spawn pill reaches (its height and a gap), 0 when it is
+--- not up: the win track sits that much higher.
+function MatchBar.spawnLift(self: any): number
+	if not self:isSpawnPill() then
+		return 0
+	end
+	return self.root.AbsoluteSize.Y + B.StackGapPx
 end
 
 -- Show or hide the whole bar, popping it in or out (the house entrance for a HUD piece).

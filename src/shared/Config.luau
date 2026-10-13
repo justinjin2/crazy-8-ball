@@ -8960,6 +8960,12 @@ Config.UI.MatchBar = {
 	-- is free); it goes by itself after this long if they ignore it (a search it started keeps
 	-- it up). (tune)
 	SpawnPillSeconds = 20,
+	-- On (designer, 2026-10-12: "play global ... always appear and be there no matter what even
+	-- if they have friends in server or real people are available, will only go away if they
+	-- dismiss it"): the spawn pill shows in every public lobby whoever is free, with no time
+	-- limit, and its X hides it until the player's next match ends. Off: the rules above.
+	SpawnPillAlways = true,
+	StackGapPx = 6, -- between the spawn pill and the win track sitting over it
 	-- The workspace attribute the server sets true in a public lobby server (no private server,
 	-- no arena): a client cannot read game.PrivateServerId.
 	PublicLobbyAttribute = "PublicLobby",

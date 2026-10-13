@@ -139,13 +139,24 @@ function tests.the_spawn_pill_shows_with_nobody_free_in_a_public_lobby_only()
 	expect(with({}), "alone on spawn")
 	expect(not with({ publicLobby = false }), "a private server: never")
 	expect(not with({ tutorial = true }), "the tutorial first")
-	expect(not with({ nobodyFree = false }), "someone is free")
 	expect(not with({ onPad = true }), "on a pad the bar takes over")
 	expect(not with({ dismissed = true }), "its X")
-	local seconds = Config.UI.MatchBar.SpawnPillSeconds
+	local B = Config.UI.MatchBar
+	local seconds = B.SpawnPillSeconds
 	expect(seconds == 20, "the designer's 20 s")
 	expect(with({ since = 100 - seconds + 0.5 }), "still up")
-	expect(not with({ since = 100 - seconds }), "gone after 20 s")
+	-- Always (designer, 2026-10-12): whoever is free, with no time limit, until its X.
+	expect(B.SpawnPillAlways == true, "always, by default")
+	expect(with({ nobodyFree = false }), "always: someone free too")
+	expect(with({ since = 0 }), "always: no 20 s limit")
+	expect(not PadBar.stillDismissed(3, 4), "always: back after the next match")
+	expect(PadBar.stillDismissed(3, 3), "always: hidden until then")
+	expect(not PadBar.stillDismissed(nil, 0), "never pressed")
+	B.SpawnPillAlways = false
+	expect(not with({ nobodyFree = false }), "off: someone is free")
+	expect(not with({ since = 100 - seconds }), "off: gone after 20 s")
+	expect(PadBar.stillDismissed(3, 4), "off: its X lasts the session")
+	B.SpawnPillAlways = true
 	expect(
 		with({ since = 0, nobodyFree = false, onPad = true, searching = true }),
 		"a search it started keeps it up"

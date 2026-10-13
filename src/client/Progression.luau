@@ -77,6 +77,7 @@ export type State = {
 	shooting: boolean, -- your shot is being aimed or is rolling: no popups now
 	matchUserIds: { [number]: boolean }, -- everyone at your table, for the nameplates
 	overHotbar: boolean?, -- the matchmaking bar or an opponent's ask is over the hotbar
+	overHotbarPx: number?, -- how high Play Global's lobby pill reaches over it (the win track sits above)
 }
 
 local Progression = {}
@@ -628,6 +629,7 @@ function Progression.update(state: State)
 			and menu == nil
 			and state.overHotbar ~= true
 	)
+	winTrack:setLift(state.overHotbarPx or 0)
 	skyBanner:setVisible(
 		not state.inMatch
 			and not state.afterMatch
