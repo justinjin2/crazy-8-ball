@@ -21,7 +21,7 @@ that talks to `AnalyticsService`), the step lists in `src/shared/Tutorial/Steps.
 | --- | --- | --- |
 | Funnels | 10 | 8: Onboarding, PathS, PathR, Game2, Social, Shop, Block, AbilitySpins |
 | Steps per funnel | 100 | at most 19 (Onboarding) |
-| Custom event names | 100 | 7: Hint, TutorialSkipped, StepTime, TutorialError, Game2Result, InvitePopup, BotMatch |
+| Custom event names | 100 | 8: Hint, TutorialSkipped, StepTime, TutorialError, TutorialLeft, Game2Result, InvitePopup, BotMatch |
 | Fields per event | 3 | at most 3 |
 
 Rules we keep so the charts stay right:
@@ -128,6 +128,7 @@ spin.
 | TutorialSkipped | 1 | step skipped at, path, device | Skip pressed |
 | StepTime | seconds on the step (capped at `Config.Tutorial.Timing.StepTimeMaxSeconds`) | step, path, device | they leave a step |
 | TutorialError | 1 | step, code | a guarded failure (below) |
+| TutorialLeft | seconds on the step (capped like StepTime) | step, the last game-1 lesson reached (its path's funnel step, or None), device | they leave the game with the tutorial still running (a skip ends it first, so skippers are not in it) |
 | Game2Result | 1 won, 0 lost | match kind, device | game 2 ends |
 | InvitePopup | 1 | Shown, Invited or Closed; device | the invite popup comes up, then its answer (once) |
 | BotMatch | 1 won, 0 lost | (BotService) | a match against a bot ends |
