@@ -69,6 +69,8 @@ rooftop map with a day and sunset cycle; pull cutscenes Rare to Secret; the ball
 One line each; the long form is the 2026-10-12 (evening) entry at the top of
 `docs/archive/STATUS_HISTORY.md`.
 
+- **Lag and vanished ability looks (V1423, 2026-10-13):** lobby bots turned off again (cd9a8c2), the one live-only change in that publish. After publishing with Restart Servers: play a match, use Verity / Black Hole / Guangdong Tiger, watch the frame rate; if still broken, open F9 during an ability shot (Client and Server logs) and screenshot.
+
 - **Controller fixes** (2026-10-11): the 8's call by D-pad rows, a Mystery opened with R2; a
   real Xbox and PlayStation pad.
 - **The tutorial batch** (2026-10-12): the zoom-in part, the quest's reward (TutorialQuest
