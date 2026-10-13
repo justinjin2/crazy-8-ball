@@ -15902,6 +15902,7 @@ Config.UI.FreeReward = {
 			-- blue, on one line, as wide as the words' column allows, never bigger than this.
 			LikeUnits = 50,
 			LikeColor = { 92, 182, 255 },
+			PlusGapShare = 0.45, -- the white "+" after "Favorite": the gap, a share of the title's size
 			HeadUnits = 30, -- "Reward:" over the list (designer, 2026-10-09)
 			BulletGapUnits = 8, -- between a list row's bullet and its words
 			RewardUnits = 40, -- "3 Mystery Lucky Blocks" (wraps)

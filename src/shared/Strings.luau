@@ -1329,7 +1329,8 @@ return {
 		-- The favorite card (designer, 2026-10-13: the reward is for the favorite, which the game
 		-- checks; a like can't be checked, so it is only asked for, never rewarded).
 		FavoriteRow = "Favorite the game", -- the Lucky 8 card's row
-		FavoriteHero = "Favorite +", -- the first-visit hero's title, the like line under it
+		FavoriteHero = "Favorite", -- the first-visit hero's title, the like line under it
+		FavoriteHeroPlus = "+", -- white, after the title (designer, 2026-10-13)
 		FavoriteLike = "Like if you enjoy!", -- under the hero's title, blue, one line, as big as fits
 		Join = "Join",
 		-- The favorite card's Verify: Roblox's favorite prompt; no favorite there opens the

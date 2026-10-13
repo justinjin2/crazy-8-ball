@@ -59,6 +59,7 @@ type Hero = {
 	odds: ShopCards.Badge,
 	title: TextLabel,
 	like: TextLabel?, -- the favorite card's "Like if you enjoy!", blue
+	plus: TextLabel?, -- the favorite card's white "+" after its title
 	head: TextLabel, -- "Reward:" over the list
 	reward: TextLabel, -- the list's first row: the block in front
 	rewardDot: TextLabel, -- the list's bullets, the words wrapping clear of them
@@ -163,10 +164,15 @@ local function hero(
 	-- The favorite card asks for a like under its title, never rewarding it (designer,
 	-- 2026-10-13).
 	local like: TextLabel? = nil
+	local plus: TextLabel? = nil
 	if key == "Favorite" then
 		local made = words(frame, "Like", rgb(H.LikeColor))
 		made.Text = W.FavoriteLike
 		like = made
+		local sign = words(frame, "Plus", nil)
+		sign.Text = W.FavoriteHeroPlus
+		sign.TextWrapped = false
+		plus = sign
 	end
 	-- "Reward:", then what it gives as a bulleted list, the line in the same words' style and
 	-- size (designer, 2026-10-09).
@@ -195,6 +201,7 @@ local function hero(
 		odds = odds,
 		title = title,
 		like = like,
+		plus = plus,
 		head = head,
 		reward = reward,
 		rewardDot = rewardDot,
@@ -333,6 +340,14 @@ local function place(c: Hero, p: Plan, k: number, cardW: number, cardH: number)
 	c.title.Position = UDim2.fromOffset(p.colX, round(y))
 	c.title.Size = UDim2.fromOffset(p.colW, p.titleH)
 	HudParts.setTextSize(c.title, p.titlePx)
+	local plus = c.plus
+	if plus then
+		local x = p.colX + ShopCards.measure(c.title.Text, p.titlePx) + H.PlusGapShare * p.titlePx
+		local w = ShopCards.measure(plus.Text, p.titlePx) + B.TextBoxPx
+		plus.Position = UDim2.fromOffset(round(x), round(y))
+		plus.Size = UDim2.fromOffset(math.ceil(w), p.titlePx + B.TextBoxPx)
+		HudParts.setTextSize(plus, p.titlePx)
+	end
 	y += p.titleH + p.rowGap
 	local like = c.like
 	if like then
