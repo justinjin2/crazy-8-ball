@@ -71,12 +71,22 @@ local DEFAULTS = {
 	abilityUse = 0.9, -- "Press G": share who use it
 	maxSeconds = 900, -- a game still going after this is a dead end
 	maxTurns = 60,
+	-- Config.Tutorial.Assist overrides to try, by part: { Pull = { MaxTurn = 0.2 }, ... }
+	assist = nil,
 }
 
 local opts: any = table.clone(DEFAULTS)
 if optionsFile and optionsFile ~= "-" then
 	for k, v in serde.decode("json", fs.readFile(optionsFile)) do
 		opts[k] = v
+	end
+end
+
+if opts.assist then
+	for part, values in opts.assist do
+		for k, v in values do
+			Config.Tutorial.Assist[part][k] = v
+		end
 	end
 end
 
