@@ -2131,7 +2131,8 @@ Config.BlockOdds = {
 				FireworkCue = 35000,
 				BetaCue = 2000, -- 1 in 500
 			},
-			Caps = { FireworkCue = 1000, BetaCue = 100 },
+			-- FireworkCue was 1000 (designer, 2026-10-12: 500).
+			Caps = { FireworkCue = 500, BetaCue = 100 },
 		},
 		-- The Starter Pack's block: Rare or better, guaranteed (v4: a real Epic chance at 19 R$).
 		Starter = {

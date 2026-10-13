@@ -534,7 +534,7 @@ return {
 		H.expect(row.Odds.FireworkCue == 35000 and row.Odds.BetaCue == 2000, "3.5% and 0.2%")
 		H.expect(row.Odds.Uncommon == nil and BlockOdds.minRarity("GrandOpening") == "Rare", "")
 		local caps = BlockOdds.caps("GrandOpening")
-		H.expect(caps.FireworkCue == 1000 and caps.BetaCue == 100, "the caps")
+		H.expect(caps.FireworkCue == 500 and caps.BetaCue == 100, "the caps")
 		H.expect(next(BlockOdds.caps("Rare")) == nil, "no caps elsewhere")
 		local G = Config.LuckyBlocks.Kinds.GrandOpening.Guarantee
 		H.expect(G.Cue == "BetaCue" and G.At == 500, "the 500th block's Beta Cue")
