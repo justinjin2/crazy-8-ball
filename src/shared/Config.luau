@@ -8244,7 +8244,9 @@ Config.Multiplayer = {
 		-- on the cloth "it might block the view of some balls"); neither: on the cloth by the
 		-- ring, pointing out. Sizes are { phone, computer } (a phone: under ShortHeight tall).
 		PocketArrows = {
-			On = true,
+			-- Off since 2026-10-13: the designer, after trying them, went back to the rings with
+			-- their "Pocket 1" .. "Pocket 6" names ("more self explanatory").
+			On = false,
 			Px = { 36, 48 },
 			GapPx = 4,
 			BobPx = 8,
