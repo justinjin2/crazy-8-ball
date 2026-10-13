@@ -1561,6 +1561,13 @@ return {
 			-- picture goes (keep it when translating).
 			PressKey = "PRESS %s TO ACTIVATE",
 			Tap = "TAP TO ACTIVATE", -- on touch, where the whole bar is the button
+			-- The big popup the first time a full bar can be used (UltReadyPopup). %s is the key
+			-- or the controller button's picture (keep it when translating).
+			ReadyPopup = {
+				Title = "ABILITY IS READY!",
+				PressKey = "PRESS %s TO USE!",
+				Tap = "TAP THE ABILITY BAR TO USE!",
+			},
 			Armed = "%s: NEXT SHOT", -- your armed ability, its name in upper case: "MAGNET: NEXT SHOT"
 			OpponentArmed = "Opponent's ability: %s", -- theirs: "Opponent's ability: MAGNET"
 			NoUlts = "NO ABILITIES", -- an abilities-off queue match, on the match bar and the result screen

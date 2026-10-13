@@ -248,6 +248,30 @@ function StageMath.slamScale(p: number, M: any): number
 	return 1 + M.SlamBounce * math.sin(q * math.pi) * (1 - q)
 end
 
+--- An expand, wiggle and shrink (the ability's READY popup; P: ExpandSeconds, WiggleSeconds,
+--- Wiggles, WiggleDegrees, HoldSeconds, ShrinkSeconds) at `t` seconds: its scale (Back Out up to
+--- 1 past a little overshoot; then Back In down to 0, a small swell first), its turn in degrees
+--- (Wiggles side-to-side swings dying away) and whether it is over.
+function StageMath.expandWiggle(t: number, P: any): (number, number, boolean)
+	local wiggleAt = P.ExpandSeconds
+	local holdAt = wiggleAt + P.WiggleSeconds
+	local shrinkAt = holdAt + P.HoldSeconds
+	local endAt = shrinkAt + P.ShrinkSeconds
+	if t <= 0 then
+		return 0, 0, false
+	elseif t < wiggleAt then
+		return StageMath.ease("Back", "Out", t / wiggleAt), 0, false
+	elseif t < holdAt then
+		local u = (t - wiggleAt) / P.WiggleSeconds
+		return 1, P.WiggleDegrees * math.sin(2 * math.pi * P.Wiggles * u) * (1 - u), false
+	elseif t < shrinkAt then
+		return 1, 0, false
+	elseif t < endAt then
+		return 1 - StageMath.ease("Back", "In", (t - shrinkAt) / P.ShrinkSeconds), 0, false
+	end
+	return 0, 0, true
+end
+
 --- A drop's height above its place, as a share of the fall (1 at the start, 0 landed, with
 --- Bounce Out's little hops).
 function StageMath.dropShare(p: number): number

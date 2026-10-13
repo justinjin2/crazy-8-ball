@@ -11001,6 +11001,28 @@ Config.UI.Ults = {
 	PromptPulseSeconds = 0.7, -- ...over this long each way
 	KeycapShare = 0.78, -- the keycap or the controller glyph, of the prompt's height
 	KeycapCornerPx = 5,
+	-- The big READY popup (UltReadyPopup; designer, 2026-10-12): "ABILITY IS READY!" in gold
+	-- over "PRESS [G] TO USE!" (the controller's button, or TAP THE ABILITY BAR on touch) in
+	-- the middle of the screen, once per fill the first time its press is offered, in every
+	-- match but solo (always full) and the tutorial's guided game 1 (its lesson says it).
+	-- It expands (Back Out), wiggles Wiggles times up to WiggleDegrees, holds, then shrinks
+	-- (StageMath.expandWiggle); with Reduce Motion no wiggle. Sizes are { phone, computer };
+	-- it shrinks to MaxWidthShare of the screen. On = false: no popup.
+	ReadyPopup = {
+		On = true,
+		TitlePx = { 40, 64 },
+		LinePx = { 24, 36 },
+		GapPx = { 2, 4 }, -- between the two lines
+		KeyShare = 1.1, -- the keycap or glyph, of the line's text size
+		CentreShare = 0.42, -- its middle, down this share of the screen (just over the middle)
+		MaxWidthShare = 0.8,
+		ExpandSeconds = 0.3,
+		WiggleSeconds = 0.6,
+		Wiggles = 3,
+		WiggleDegrees = 6,
+		HoldSeconds = 0.7,
+		ShrinkSeconds = 0.25,
+	},
 	PromptDimTransparency = 0.4, -- greyed while a press waits for the server
 	KeyboardKey = "G", -- Enum.KeyCode names (Config is loaded by Lune: no Enum)
 	GamepadKey = "ButtonX", -- free in a match (Input binds A, B, Y, L1, L2, the sticks, D-pad)

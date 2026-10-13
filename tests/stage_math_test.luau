@@ -44,6 +44,41 @@ return {
 		H.near(S.ease("Linear", "In", 2), 1, 1e-9, "p is clamped")
 	end,
 
+	["the ability's READY popup expands past full size, wiggles, holds, then shrinks away"] = function()
+		local S, Config = load()
+		local P = Config.UI.Ults.ReadyPopup
+		local wiggleAt = P.ExpandSeconds
+		local holdAt = wiggleAt + P.WiggleSeconds
+		local shrinkAt = holdAt + P.HoldSeconds
+		local endAt = shrinkAt + P.ShrinkSeconds
+		H.expect(endAt <= 2.5, "brief: " .. endAt .. " s in all")
+		local scale, degrees, done = S.expandWiggle(0, P)
+		H.expect(scale == 0 and degrees == 0 and not done, "starts unseen")
+		local peak, turn, swings, last = 0, 0, 0, 0
+		for i = 1, 999 do
+			local t = endAt * i / 1000
+			scale, degrees, done = S.expandWiggle(t, P)
+			H.expect(not done, "on screen until its end")
+			if t < wiggleAt then
+				peak = math.max(peak, scale)
+			end
+			turn = math.max(turn, math.abs(degrees))
+			if degrees * last < 0 then
+				swings += 1
+			end
+			if degrees ~= 0 then
+				last = degrees
+			end
+			H.expect(t < shrinkAt or degrees == 0, "no turn while it shrinks")
+		end
+		H.expect(peak > 1.05, "the expand overshoots a little")
+		H.expect(turn > 0 and turn <= P.WiggleDegrees, "the wiggle stays within its degrees")
+		H.expect(swings >= 2 * P.Wiggles - 1, "it swings side to side " .. swings .. " times")
+		H.near((S.expandWiggle(holdAt + P.HoldSeconds / 2, P)), 1, 1e-9, "holds at full size")
+		scale, degrees, done = S.expandWiggle(endAt + 0.01, P)
+		H.expect(scale == 0 and done, "gone at the end")
+	end,
+
 	["a pop starts small, peaks past full size on time, settles at exactly 1"] = function()
 		local S, Config = load()
 		local M = Config.UI.Motion

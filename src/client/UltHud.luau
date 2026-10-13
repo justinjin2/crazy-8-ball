@@ -31,7 +31,8 @@
 -- `bar`, and a change with no gain (the Studio QA hook, a spend) settles to the snapshot's.
 --
 -- Ready: the gold bar (UltBar) and the prompt for the last input used (PRESS [G], TAP, PRESS
--- [X / Square]). G and ButtonX are bound (ContextActionService) only while it is offered, and
+-- [X / Square]); the first time a fill's press is offered, the big READY popup in the middle
+-- (UltReadyPopup, Config.UI.Ults.ReadyPopup). G and ButtonX are bound (ContextActionService) only while it is offered, and
 -- a click or tap on the bar presses it too. A press sends UltActivate once, then waits for the snapshot to change or a refusal
 -- (UltNotice) before it can be sent again.
 local ContextActionService = game:GetService("ContextActionService")
@@ -51,6 +52,8 @@ local PadMode = require(script.Parent.PadMode)
 local UIAnim = require(script.Parent.UIAnim)
 local UltBar = require(script.Parent.UltBar)
 local UltInfo = require(script.Parent.UltInfo)
+local UltReadyPopup = require(script.Parent.UltReadyPopup)
+local GuiQA = require(script.Parent.GuiQA)
 local TutorialAnchors = require(script.Parent.TutorialAnchors)
 
 local U = Config.UI.Ults
@@ -217,6 +220,14 @@ function UltHud.new(screen: ScreenGui, activate: () -> ()): any
 	self.opponent = wordPill(content, "OpponentArmed")
 	-- What the ability does: a disc at the bar's right end, a card over it (UltInfo).
 	self.info = UltInfo.new(holder, self.bar.root)
+	self.readyPopup = UltReadyPopup.new(screen, U.ZIndex + 4)
+	self.popupKey = nil :: string? -- the fill whose READY popup has shown
+	-- Studio QA: the READY popup for `mode` ("key", "pad", "tap"), held at `at` seconds if set.
+	GuiQA.add("ultReady", function(mode: string?, at: number?): boolean
+		local input = mode or inputMode()
+		self.readyPopup:show(input, if input == "pad" then padGlyph() else nil, at)
+		return true
+	end)
 	self.infoReach = 0
 
 	-- The whole bar is the button while it is offered (touch, and a click too).
@@ -520,6 +531,7 @@ function UltHud.press(self: any)
 		return
 	end
 	self.pending = { at = os.clock(), key = self:pressKey(self.snapshot) }
+	self.readyPopup:hide()
 	UIAnim.bounce(self.bar.badge)
 	self.activate()
 end
@@ -840,6 +852,23 @@ function UltHud.update(self: any, dt: number, pulling: boolean)
 	end
 	self.hit.Visible = offer and not pulling
 	self.pressable = offer
+	-- The big READY popup, once per fill, the first time its press is offered: never in solo
+	-- (always full there) nor in the tutorial's guided game 1 (its lesson says it).
+	if offer and U.ReadyPopup.On and s.solo == nil then
+		local key = self.gameKey .. ":" .. tostring(self.truth.used)
+		if self.popupKey ~= key then
+			self.popupKey = key
+			local player = Players.LocalPlayer
+			local lesson = player:GetAttribute("TutorialStep") == "Game1"
+				and player:GetAttribute("TutorialPath") == "S"
+			if not lesson then
+				local input = inputMode()
+				self.readyPopup:show(input, if input == "pad" then padGlyph() else nil)
+			end
+		end
+	elseif mode ~= "bar" and self.readyPopup:showing() then
+		self.readyPopup:hide() -- the turn or the match is over
+	end
 	self:bind(self.pressable and not pulling)
 	self.info:update(mode == "bar" and self.slideDone, pulling)
 	-- Room kept above it for MatchHUD's bottom lines.
