@@ -20,14 +20,18 @@ that talks to `AnalyticsService`), the step lists in `src/shared/Tutorial/Steps.
 | Limit | Roblox allows | We use |
 | --- | --- | --- |
 | Funnels | 10 | 8: Onboarding, PathS, PathR, Game2, Social, Shop, Block, AbilitySpins |
-| Steps per funnel | 100 | at most 16 (Onboarding) |
+| Steps per funnel | 100 | at most 19 (Onboarding) |
 | Custom event names | 100 | 7: Hint, TutorialSkipped, StepTime, TutorialError, Game2Result, InvitePopup, BotMatch |
 | Fields per event | 3 | at most 3 |
 
 Rules we keep so the charts stay right:
 
 - **Never renumber or reorder a funnel's steps after it ships.** New steps go on the end.
-  The numbers are the positions in `Steps.Funnel` and `Steps.Funnels`.
+  The numbers are the positions in `Steps.Funnel` and `Steps.Funnels`. The one exception: when
+  the tutorial itself changes so much that a list no longer matches it, rebuild the list under
+  a **new save mask** (the onboarding funnel went from `Flags.Funnel` to `Flags.Funnel2` on
+  2026-10-13), so only players new from that update enter it, and read the dashboard from
+  that day on.
 - One-time funnels log each step once per player ever (a bit in the save's `Flags`), so
   replays and rejoins never count twice.
 - Studio never sends anything to Roblox. Each event prints in the Studio output instead
@@ -51,18 +55,30 @@ funnels instead.
 | 4 | Game1Started | game 1 begins (bot or real person) | TutorialGames |
 | 5 | Game1Ended | game 1 is over | TutorialGames |
 | 6 | FirstWin | they won game 1 | TutorialGames |
-| 7 | RankClaimed | they claimed their first rank reward | RankClaimService |
+| 7 | MysteryTapped | the Mystery block's step is done (the Place step begins) | TutorialService |
 | 8 | BlockOpened | they opened the tutorial's lucky block | TutorialService |
-| 9 | CueEquipped | they equipped the cue it gave | TutorialService |
-| 10 | AbilitySpun | their first ability spin | TutorialService |
-| 11 | ChainDone | the guided part is over (the soft part begins) | TutorialService |
-| 12 | Game2Searched | they searched for game 2 | TutorialService |
-| 13 | Game2Started | game 2 began | TutorialService |
-| 14 | Game2Ended | game 2 is over | TutorialService |
-| 15 | QuestDone | they won the "Win a Match" quest | TutorialService |
-| 16 | ThirdMatch | they have played `Config.Tutorial.Funnel.ThirdMatch` matches | TutorialService |
+| 9 | CodeRedeemed | they redeemed RELEASE at the Abilities step | TutorialService |
+| 10 | ChainDone | the guided part is over (the soft part begins) | TutorialService |
+| 11 | RankOpened | they opened Rank while the soft part's pointer showed it | TutorialService (Seen PointerRank) |
+| 12 | CuesOpened | then Cues, as the pointer moved there | TutorialService (Seen PointerCues) |
+| 13 | Game2Searched | they searched for game 2 | TutorialService |
+| 14 | Game2Started | game 2 began | TutorialService |
+| 15 | Game2Ended | game 2 is over | TutorialService |
+| 16 | QuestDone | they won the "Win a Match" quest | TutorialService |
+| 17 | ThirdMatch | they have played `Config.Tutorial.Funnel.ThirdMatch` matches | TutorialService |
+| 18 | ReturnedNextDay | they joined again on the UTC day after their first | TutorialService (on load) |
+| 19 | ReturnedWeekLater | they joined again `ReturnWeekDays` (7) or more UTC days after their first | TutorialService (on load) |
 
-A skipper's later steps (CueEquipped, AbilitySpun ...) still log when they do them on their own.
+Rebuilt 2026-10-13 (the designer: "make sure its displaying accurate funnels"). The list
+before it (16 steps, live 2026-10-10 to that update) had RankClaimed (7), CueEquipped (9)
+and AbilitySpun (10): the tutorial stopped asking for those three, so they would have read as
+drops. Spins and equips still show in the AbilitySpins and Block funnels. Steps 17 to 22 on
+the dashboard before the update (ClaimedRank, PlayedThirdMatch, CameBackNextDay and three
+with no name) were three players of the first tutorial's 22-step list, from before 2026-10-09;
+they are not logged by anything now. **Set the dashboard's date range to start on the day this
+update was published**, and those old rows go.
+
+A skipper's later steps (RankOpened, ThirdMatch, the returns ...) still log when they come.
 
 ### 2. PathS: the rigged game 1 against the bot
 
