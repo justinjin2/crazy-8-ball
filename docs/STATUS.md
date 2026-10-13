@@ -4,7 +4,7 @@ Current state only, rewritten in place. Keep it to about two screens (under 100 
 step is finished and verified, move its dated entry to the top of
 `docs/archive/STATUS_HISTORY.md` and keep only what is still true or still open here.
 
-Updated 2026-10-12 (night, the QA batch after the designer's notes). **The game is live** (officially released 2026-10-10). Work goes on
+Updated 2026-10-12 (late night, the QA batch's third round). **The game is live** (officially released 2026-10-10). Work goes on
 in `~/Desktop/8ball`, branch `gui-v4`. The STATUS from just before launch, in full, is the top
 entry of `docs/archive/STATUS_HISTORY.md`.
 
@@ -19,23 +19,23 @@ entry of `docs/archive/STATUS_HISTORY.md`.
   "The game is live".
 - **Published:** everything up to `c499ecf` (2026-10-12; the list is in STATUS_HISTORY). **Not
   yet published:** the Shop restock's "Epic or better!" tag removed (DECISIONS).
-- **Now (2026-10-12): a tester's QA batch, committed on `gui-v4`, NOT pushed.** The designer
-  relayed a friend's 8 notes (DECISIONS 2026-10-12); each fix is its own commit, held until the
-  designer approves the test page (Artifact "Oct 12 Fixes Checklist"): OPPONENT'S TURN held
-  (`29d9a02`), replay catch-up (`9849fb6`), the tutorial break streak (`c1e3f67`, now x1, x2),
-  ability info (`b6ce19f`), pocket arrows (`5eb2f81`, white `4f4ec78`, cleared at a match's
-  end `e834797`), the lighter chain after game 1 (`2d8e830`), Ranked width and long ability
-  names (`4cb6f9b`, `e059e70`), lobby bots back (`3f7602c`). After the designer tried it: the
-  three-solid break and the bot's accidents reverted (`4fc2b28`, `9065730`), the aim help
-  after 3 misses (`70da432`), the Abilities screen on a big phone (`46ba282`), the lobby top
-  stacking (`a98dffe`), the tutorial line on Abilities and over the pockets (`0aa0610`,
-  `e2dd8cf`). No save change. After approval: push, the designer publishes (Restart Servers
-  optional), then watch a new account's tutorial on a phone, a lobby filling with bots and a
-  phone match live.
-- **Lint and tests (2026-10-12 night, `gui-v4`):** lint OK (four old LocalShadow warnings);
-  all 1241 Lune tests pass. A fresh-player run on the 954 x 439 phone emulator (game 1 to the
-  quest line) was clean; the designer's Studio save was put back as it was (its match and win
-  counts stay at 4).
+- **Now (2026-10-12): a tester's QA batch, committed on `gui-v4`, NOT pushed**, held until the
+  designer approves the test page (Artifact "Oct 12 Fixes Checklist"). Rounds 1 and 2 (the
+  tester's 8 notes, then the designer's first notes) are listed in STATUS_HISTORY's top entry.
+  Third round (DECISIONS): Firework Cue 500 ever (`d18f412`), the ADMIN button on a phone
+  (`7e4441e`), rising win-track money (`fb2ee13`), the quest's Mystery reward (`82d7ce9`), the
+  Sky clock top right (`e60d105`), the win track open with no blocks and its folded amount
+  (`8bc09de`), Play Global always (`15eb238`), the Rank then Cues pointer and the Cues glow
+  (`b139ad8`, `43939a8`), the arrows off the table (`00a9c00`), the ABILITY IS READY popup
+  (`2918d64`), a controller's suggested pocket (`dc94272`). No save change (three tutorial
+  moment bits appended). After approval: push, the designer publishes (Restart Servers
+  optional), then watch a new account's tutorial on a phone, a lobby with bots and a phone
+  match live.
+- **Lint and tests (2026-10-12 late night, `gui-v4`):** lint OK (four old LocalShadow
+  warnings); all 1247 Lune tests pass. The third round was checked in Studio at computer size
+  (1920 x 1080; the phone emulator was off): the pointer, the quest line, the arrows, the popup,
+  the suggested pocket, the lobby's win track over Play Global; console clean. The Studio
+  save was put back as it was (Done, $15,820, 2 matches).
 
 ## In the game
 
@@ -57,7 +57,7 @@ One line each; the long form is the 2026-10-12 (evening) entry at the top of
 
 - **Controller fixes** (2026-10-11): the 8's call by D-pad rows, a Mystery opened with R2; a
   real Xbox and PlayStation pad.
-- **The tutorial batch** (2026-10-12): the zoom-in part, the quest's $2,500 (TutorialQuest
+- **The tutorial batch** (2026-10-12): the zoom-in part, the quest's reward (TutorialQuest
   logs), a phone's spread-fingers hand.
 - **The queue pad after a match** (`Config.Multiplayer.Queue.RejoinOnPad`): Leave and Rematch
   running out while on the pad, a 2v2 pad.

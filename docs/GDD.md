@@ -115,7 +115,9 @@ Every feature is checked against these. If it serves none, it waits.
     ball in hand. X (Square) is the ability.
   - **Calling the 8's pocket** (2026-10-11): the D-pad walks the pockets as the table lies on
     screen, two rows of three: right / left along a row (stopping at its end), down / up to the
-    other row; A picks. It starts on the top left (the tutorial too, since 2026-10-12). The lit
+    other row; A picks. It starts on the pocket the 8 goes in most easily from where the cue
+    ball lies (designer, 2026-10-12; the bots' shot finder's score, else the pocket nearest the
+    8), in the tutorial and every match; the top left until 2026-10-12. The lit
     pocket fills see-through gold with a gold glow and its blue ring is bigger and breathing,
     with the pocket arrow bobbing on it (only the lit one on a controller). The left stick does
     nothing here.
@@ -276,13 +278,15 @@ Every feature is checked against these. If it serves none, it waits.
   it shows only once a whole side stands on the pad. A small red **X on Play Global's
   corner** dismisses it for someone who would rather keep waiting; it comes back on the next
   step-on (designer, 2026-10-07).
-- **The spawn pill** (designer, 2026-10-07): a player in a public server with **nobody else
-  free** (alone, or everyone else busy at a table: in a game, on its result or on a full pad;
-  designer, 2026-10-09) gets "Don't want to wait?" and Play Global the moment they spawn (or
-  the moment nobody is free), with no pad. Someone waiting on a pad with room counts as free. Never in a private server
-  (people there want to play with their friends) and not before the tutorial is done or
-  skipped. It goes when they press its X, after **20 s** *(tune)*, when they step on a pad
-  (the pad's bar takes over) or when someone is free; it may come back each time nobody is. Pressed, the search runs from where
+- **The spawn pill** (designer, 2026-10-07; always since 2026-10-12): "Don't want to wait?" and
+  Play Global show in every public lobby **whoever else is free** (designer, 2026-10-12: "always
+  appear and be there no matter what even if they have friends in server or real people are
+  available, will only go away if they dismiss it themselves"), with no pad and no time limit.
+  Its X hides it **until their next match ends**; a pad's own bar takes over while they stand
+  on one. The day's win track sits just over it. Never in a private server (people there want
+  to play with their friends) and not before the tutorial is done or skipped
+  (`Config.UI.MatchBar.SpawnPillAlways`; off: the old rules, only with nobody else free, gone
+  after 20 s or when someone is free). Pressed, the search runs from where
   they stand (1v1, ults on): "Searching... 0:03" with the red X, a bot of their level at 5 s,
   then the arena, like a pad search. Stepping onto a pad mid-search cancels it.
 - **After a match, still on the pad:** a player standing on its pad when the game ends is
@@ -986,8 +990,10 @@ approves the v5 proposal (ECONOMY.md section 11).
   timer is never thrown (2026-10-09): a throw shakes it and offers the timer skip for Robux;
   VIP has no timers, so its blocks say READY! from the moment they arrive.
 - **The daily win track** (economy v5, designer 2026-10-09): the first 10 real wins of each
-  day give, in order, **an Uncommon block, $1,000, $1,000, a Mystery block, $1,000, $1,000, a
-  Mystery block, $1,000, $1,000, an Epic block**; win 11 and later pay money and XP only (v4: a
+  day give, in order, **a Mystery block, $500, $750, $1,000, a Mystery block, $1,000,
+  $1,250, $1,500, $2,000, a Rare block** (economy v6's blocks; designer, 2026-10-12: rising
+  money steps, "$250 is too little"; each money step was $250); it stays open while the player
+  holds no blocks, and folded it shows the next money step's amount ("Next -> $750"); win 11 and later pay money and XP only (v4: a
   block on all 10). A win moves the track exactly when the anti-farm rules allow it (solo
   never; the PC and disguised-bot limits still apply); VIP gets no extra steps. The first win
   ever is always a Rare block. **Every daily thing resets at 08:00 UTC** (the track, the login
@@ -1068,7 +1074,7 @@ approves the v5 proposal (ECONOMY.md section 11).
   section 9.
 - **Rarities** (designer, 2026-09-27): **Common, Uncommon, Rare, Epic, Legendary, Mythic,
   Secret**, from lucky blocks. Three sit outside that ladder and never come from a tier
-  block: **Unique** (numbered copies: the Firework Cue, 1,000 ever, and the Beta Cue, 100
+  block: **Unique** (numbered copies: the Firework Cue, 500 ever (1,000 until 2026-10-12), and the Beta Cue, 100
   ever, from the Grand Opening block; there is no Founder's Cue, ever), **Ranked** (the ten rank cues Bronze
   Cue to Reyes Cue, each card in its tier's colours; designer, 2026-10-08; they keep the
   Exclusive group's rules: never traded or sold, one each) and **Exclusive** (the VIP Cue, the
@@ -1329,7 +1335,8 @@ helpers, `src/server/TutorialService.luau`, `TutorialGames`, `TutorialBot`, `Tut
   which teaches ball in hand; later bot visits miss and leave a makeable shot (bot
   "accidents" that knocked the player's balls in were tried 2026-10-12 and dropped: they looked
   stupid); "PICK ANY POCKET FOR THE 8!" with the arrows on every pocket (no suggested pocket
-  since 2026-10-12; the line keeps off the rings and arrows). They cannot lose game 1 (a
+  since 2026-10-12, but a controller's call starts lit on the easiest one; the line keeps off
+  the rings and arrows). They cannot lose game 1 (a
   losing 8 is put back as a plain foul). Hidden help: Magnet's pull on the lesson shots, an
   invisible small pull elsewhere, and after 3 misses in a row (6 until 2026-10-12) a slight
   bend of the cue ball toward the nearest pot. The clock pauses while a lesson prompt shows. Target length about 4 minutes.
@@ -1353,9 +1360,13 @@ helpers, `src/server/TutorialService.luau`, `TutorialGames`, `TutorialBot`, `Tut
   had Rank (CLAIM) and Cues (Equip), and the first spin landed on Magnet.
 - **The soft part:** every icon pops in, each with a "!" until clicked once (Free Reward
   stands out most, breathing slowly; its first open lands on the group to join); "Now go win
-  a match! 0/1" stays until won, then "1/1" and "Have fun!" with the achievement chime and a
-  **$2,500** reward flying into the money HUD (paid once by the server, also for a quest won in
-  an arena; `Config.Tutorial.Soft.QuestReward`); the **Daily Rewards popup** once (day 1 to claim, day 7 on show), then
+  a match! 0/1  Reward: [Mystery block]" stays until won, then "1/1" and "Have fun!" with the
+  achievement chime and **a Mystery lucky block** flying to the hotbar (designer, 2026-10-12;
+  it was $2,500; given once by the server, also for a quest won in an arena;
+  `Config.Tutorial.Soft.QuestReward`, `QuestRewardBlock`); a **hand points at Rank** (from
+  under it) until Rank is opened, then **at Cues** until Cues is opened, across matches and
+  rejoins, never forcing, and the Cues icon glows and breathes like Free Reward until opened
+  (designer, 2026-10-12; `Config.Tutorial.Soft.Pointer`); the **Daily Rewards popup** once (day 1 to claim, day 7 on show), then
   a small invite popup once (an honest line on when the reward comes); Free Reward's group,
   favorite and like frames light once; Play Global glows after the invite is answered. The
   rank HUD always shows the next goal under the bar ("ONE MORE WIN!" right after the first

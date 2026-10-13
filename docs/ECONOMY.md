@@ -38,7 +38,7 @@ Where that file and this one disagree, **this one wins**.
 | A ball, nice shots, ball streak, win bonus $500, loss bonus $150, win streak $250 | unchanged (archive 3.1) |
 | **Solo and practice against PC** | **$30 a ball** (SoloShare 0.3) until **$3,000 a day, the two together**, then $10 a ball. No nice shots, no ball streak, no match bonus, no XP, no lucky blocks, no win-track steps, no login/Sky/trade-gate credit |
 | A disguised bot past 20 wins a day | pays the practice rows (hidden) |
-| Win-track money step | $250 |
+| Win-track money steps | rising: $500, $750, $1,000, then $1,000, $1,250, $1,500, $2,000 (section 3.1; $250 each until 2026-10-12) |
 
 Practice is reachable only through the developer commands until the Solo and Practice portals
 are built (planned with the designer, 2026-10-10).
@@ -136,7 +136,7 @@ keeps tap to continue. With the switch off, the economy v6 rule returns: a Commo
 duplicate pays its sell money instead of a copy ("Duplicate · +$200").
 
 **The Grand Opening block** (Rare or better, money or Robux): Rare 85.875%, Epic 9%, Legendary 1.3%,
-Mythic 0.12%, Secret 0.005%, the numbered Firework Cue 3.5% (1,000 ever), the numbered Beta Cue
+Mythic 0.12%, Secret 0.005%, the numbered Firework Cue 3.5% (500 ever; 1,000 until 2026-10-12), the numbered Beta Cue
 0.2% (100 ever; guaranteed on a player's 500th). Runs **45 days** from StartsAt, set to the moment
 the designer publishes v6. The **launch bonus** in that window is **+30% on money packs only**.
 
@@ -146,8 +146,15 @@ Secret 0.01%).
 ### 3.1 The daily win track
 
 The first 10 counted wins of the day (the day starts 08:00 UTC): win 1 **a Mystery**, wins 2-4
-**$250** each, win 5 **a Mystery**, wins 6-9 **$250** each, win 10 **a Rare block**. There is no
+**$500, $750, $1,000**, win 5 **a Mystery**, wins 6-9 **$1,000, $1,250, $1,500, $2,000**, win 10
+**a Rare block** (`Config.BlockOdds.Drop.WinTrackMoney`, one amount per step). There is no
 first-win Rare block any more; the first win is win 1 like any day. Later wins pay money and XP.
+
+The money steps rose on 2026-10-12 (designer: "$250 is too little ... rewarding and reasonable";
+they were $250 each, $1,750 for a full day): a full 10-win day now pays **$8,000** from the
+track. A player of about an hour a day (about 4 counted wins at the real pace of 6.3 min a
+match) gets $2,250 from it instead of $750, about **+$1,500 a day, +9%** of their day's money;
+the shop's prices are unchanged.
 
 ### 3.2 The Sky Lucky Block
 
@@ -215,8 +222,10 @@ Epic block. **VIP every day**: a Mystery and a spin (unchanged).
 **Playtime gifts**: 5 min $250, 15 min $250, 30 min $500, 45 min $500, 60 min $1,000 + a spin.
 
 **Social**: the group **1 Mystery**; like + favorite **$5,000 + the Lucky 8 + a Mystery**
-(2026-10-11; given after a rejoin, see GDD); the tutorial's "Now go win a match!" won **$2,500**
-once (2026-10-12; `Config.Tutorial.Soft.QuestRewardMoney`, money log TutorialQuest); invites the
+(2026-10-11; given after a rejoin, see GDD); the tutorial's "Now go win a match!" wins **a Mystery block**
+once (designer, 2026-10-12, `Config.Tutorial.Soft.QuestRewardBlock`; it was $2,500 earlier that
+day, `QuestRewardMoney`, which comes back if the block is set to nil); with the win track's own
+win-1 Mystery that first win gives two Mysteries (designer's pick); invites the
 Candy Cane Cue (section 4). **Codes**: WELCOME $5,000, 8BALL $2,500, ROOFTOP $2,500 (to
 2026-12-31), RELEASE 3 spins. **Like codes** (switched on by the designer): 1K $10,000 + a Mystery,
 5K 2 Mysteries, 10K a Rare block + 3 spins, 25K a Rare block + $25,000, 50K 2 Rare blocks, 100K an

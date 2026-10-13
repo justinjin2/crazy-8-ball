@@ -234,8 +234,12 @@ below are the summary; the skill has the numbers and code.
   name. Once called, while you shoot, the chosen pocket keeps a ring sized to sit inside its
   hole on screen (it grows and shrinks with the zoom), with no caption, so nothing covers
   the pocket's jaws. **Pocket arrows** (designer, 2026-10-12): while choosing, a white arrow
-  (the kit's arrow redrawn in white so it stands out on the blue cloth, 48 px) points at each ring from the table's middle and bobs 8 px toward it (0.9 s), in every
-  match; the rings' names hide while they show; with a controller only the lit pocket's arrow.
+  (the kit's arrow redrawn in white, 48 px; 36 on a phone) points in at each pocket from **off
+  the table**, its tip just past the rail's outer edge (a corner's at 45 degrees from the
+  rail's corner, a side pocket's straight across), and bobs 8 px toward it (0.9 s), in every
+  match, so none covers a ball; the top-down view keeps 40 px (28 on a phone) more room above
+  and below the table for them. The rings' names hide while they show; with a controller only
+  the lit pocket's arrow, and the call starts lit on the 8's easiest pocket.
 - **Ability info** (designer, 2026-10-12): at the in-match ability bar's right end a small
   white disc holds the ability's icon with a blue "i" badge (the R1 / RB picture on an ink disc
   while a gamepad is in use), its press area 44 px. Hovering the bar, clicking or tapping the
@@ -531,7 +535,13 @@ players read.
   **Ready:** the fill turns gold ("READY! 100%"), the badge's splash turns to flame, sparkles
   and a soft pulsing glow, a shake every ~2 s, and a white pill above: PRESS [G] TO ACTIVATE
   (keyboard), TAP TO ACTIVATE (touch: the whole bar is the button) or PRESS [X/Square] TO
-  ACTIVATE (gamepad, Roblox's own glyph), following the last input type. **Armed:** the bar
+  ACTIVATE (gamepad, Roblox's own glyph), following the last input type. **The READY popup**
+  (designer, 2026-10-12): the first time a fill's press is offered, "ABILITY IS READY!" in gold
+  (64 px; 40 on a phone) over "PRESS [G] TO USE!" in white (the keycap, the controller's button
+  on an ink disc, or TAP THE ABILITY BAR TO USE!), just above the screen's middle: it expands
+  (Back out, 0.3 s), wiggles three times up to 6 degrees (0.6 s), holds 0.7 s and shrinks away
+  (0.25 s); never in solo or the tutorial's guided game 1, no wiggle with Reduce Motion
+  (`UltReadyPopup`, `Config.UI.Ults.ReadyPopup`). **Armed:** the bar
   becomes a pill in the ult's rarity colour, "MAGNET: NEXT SHOT"; the opponent sees a small
   "Opponent's ability: MAGNET" pill. The top bar shows a small ult icon beside each opponent that
   lights up when their ult is ready.
@@ -1004,8 +1014,9 @@ player's first win shows its Rare block).
   "10/10 · wins pay money and XP today"), the stopwatch and the time to the 08:00 UTC reset at
   the right.
 - **When it shows**: the lobby with nothing over it (no menu, match, result screen, reel,
-  teleport), never in the tutorial. It takes the matchmaking bar's place: it hides while that
-  bar (a pad's, or the spawn pill) or an opponent's ask is up.
+  teleport), never in the tutorial. It hides while a pad's matchmaking bar or an opponent's
+  ask is up; over the spawn pill (Play Global, always up since 2026-10-12) it sits just above
+  it instead.
 - **A new step** pops its tick where the player sees it: at once while the bar shows, else
   as the bar comes back after the result screen, one tick after another.
 - **Folded by default** (designer, 2026-10-08): a navy pill with a gold rim at the bar's foot,
@@ -1015,6 +1026,11 @@ player's first win shows its Rare block).
   (`PeekSeconds`), then folds (a press meanwhile keeps it as pressed). "Resets in" sits over
   the clock pill.
 - **On a phone** the same bar at 0.66 (words 12 px, the small tags 9 px).
+- **Money steps rise** (designer, 2026-10-12): $500, $750, $1,000 / $1,000, $1,250, $1,500,
+  $2,000; a tile reads "$1.25K" and shrinks its words to fit. Folded, a money step shows its
+  amount after the cash bundle ("Next -> $750", money green). With **no blocks held** (no
+  hotbar under it) it stays open so the next reward shows; a fold press keeps it folded until
+  blocks come and go again.
 
 
 ## 22. The Free Reward menu (designer's picks "daily A" and "free_other A", 2026-10-08)

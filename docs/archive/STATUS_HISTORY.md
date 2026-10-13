@@ -5,6 +5,17 @@ when `docs/STATUS.md` became current state only. Finished work moves here from S
 on top. Read it only to answer "when or why did X change"; it is not part of the read-first list.
 An entry marked "(latest)" was the latest when written.
 
+**2026-10-12 (late night): the QA batch's rounds 1 and 2** (moved here when STATUS took the
+third round; all on `gui-v4`, not pushed): the tester's 8 notes: OPPONENT'S TURN held
+(`29d9a02`), replay catch-up (`9849fb6`), the tutorial break streak (`c1e3f67`, x1, x2), ability
+info (`b6ce19f`), pocket arrows (`5eb2f81`, white `4f4ec78`, cleared at a match's end
+`e834797`), the lighter chain after game 1 (`2d8e830`), Ranked width and long ability names
+(`4cb6f9b`, `e059e70`), lobby bots back (`3f7602c`). After the designer tried it: the
+three-solid break and the bot's accidents reverted (`4fc2b28`, `9065730`), the aim help after 3
+misses (`70da432`), the Abilities screen on a big phone (`46ba282`), the lobby top stacking
+(`a98dffe`), the tutorial line on Abilities and over the pockets (`0aa0610`, `e2dd8cf`). 1241
+tests passed then; a fresh-player run on the 954 x 439 phone emulator was clean.
+
 **2026-10-12 (night): the 2026-10-12 publish** (moved here when STATUS took the QA batch's
 second round): everything up to `c499ecf` went live: the new rank ladder, the owner admin
 panel, Sell Duplicate / Keep, Settings' "Camera after a shot", unbox announcements without
