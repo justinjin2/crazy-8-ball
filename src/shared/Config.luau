@@ -3710,19 +3710,21 @@ Config.Shop = {
 	-- A deal with StartsAt runs StartsAt..StartsAt + Seconds only (0: off until the designer
 	-- sets it, right before the release is published; the release sale follows it).
 	Deals = {
-		-- What the server charges. Economy v6 (designer, 2026-10-10): $25,000, 5 for $100,000
-		-- (v5.1: $19,900 and $89,900); keep it the same as Config.Shop.Mystery, which the shop
-		-- card shows.
+		-- What the server charges. Temporary prices (designer, 2026-10-13: almost no player could
+		-- afford a block; live saves held about $7,500, the top 1% about $30,000): $10,000, 5 for
+		-- $40,000 (economy v6: $25,000 and $100,000); keep it the same as Config.Shop.Mystery,
+		-- which the shop card shows.
 		Mystery = {
 			Kind = "Mystery",
-			Money = { [1] = 25000, [5] = 100000 },
+			Money = { [1] = 10000, [5] = 40000 },
 			Products = { [1] = "Mystery1", [5] = "Mystery5" },
 		},
 		GrandOpening = {
 			Kind = "GrandOpening",
-			-- Economy v6: $100,000 (4 Mysteries' worth: it is Rare or better and has the
-			-- numbered cues), 3 for $270,000, 10 for $850,000 (v5: $24,900 / $69,900 / $219,000).
-			Money = { [1] = 100000, [3] = 270000, [10] = 850000 },
+			-- Temporary prices (designer, 2026-10-13): $25,000 (about one good day of play for
+			-- an active player), 3 for $70,000, 10 for $220,000 (economy v6: $100,000 / $270,000 /
+			-- $850,000; v5: $24,900 / $69,900 / $219,000).
+			Money = { [1] = 25000, [3] = 70000, [10] = 220000 },
 			Products = { [1] = "GrandOpening1", [3] = "GrandOpening3", [10] = "GrandOpening10" },
 			-- The soft launch (designer, 2026-10-09, temporary): while StartsAt is 0 the block is
 			-- on sale for money and Robux with no end date. It does not start the launch bonus
@@ -3742,7 +3744,8 @@ Config.Shop = {
 	-- The Mystery block's money price as the shop card shows it (Deals.Mystery.Money is what the
 	-- server charges; keep the two the same). Economy v6 (designer, 2026-10-10): $25,000 and
 	-- 5 for $100,000 (v5.1: $19,900 and $89,900): about 3 hours of matches for a free player.
-	Mystery = { Price = 25000, BulkCount = 5, BulkPrice = 100000 },
+	-- Temporary prices (designer, 2026-10-13): $10,000 and 5 for $40,000.
+	Mystery = { Price = 10000, BulkCount = 5, BulkPrice = 40000 },
 	-- The restock shop (plan section 12; Progression/Restock): new blocks every SlotSeconds on
 	-- the clock (UTC :00, :10 ...), the same in every server (picked from the slot number).
 	-- Slots shared slots each roll one block kind (parts of ChanceTotal): slot i by SlotOdds[i]
@@ -3760,12 +3763,15 @@ Config.Shop = {
 		SlotOdds = { { Epic = 7556, Legendary = 2111, Mythic = 333 } },
 		Odds = { Rare = 5500, Epic = 3400, Legendary = 950, Mythic = 150 },
 		VipOdds = { Rare = 4000, Epic = 4000, Legendary = 1600, Mythic = 400 },
-		-- Money prices, economy v6 (v5: $49,900 / $249,000 / $1,290,000 / $4,990,000).
+		-- Money prices, temporary (designer, 2026-10-13: a quarter of economy v6's $100,000 /
+		-- $500,000 / $2,500,000, Mythic only halved from $5,000,000: a Mythic block's cue sells
+		-- back for about $1,225,000 on average, so its price stays well above that; v5: $49,900 /
+		-- $249,000 / $1,290,000 / $4,990,000).
 		Kinds = {
-			Rare = { Price = 100000, Product = "RestockRare", Stock = 2 },
-			Epic = { Price = 500000, Product = "RestockEpic", Stock = 1 },
-			Legendary = { Price = 2500000, Product = "RestockLegendary", Stock = 1 },
-			Mythic = { Price = 5000000, Product = "RestockMythic", Stock = 1 },
+			Rare = { Price = 25000, Product = "RestockRare", Stock = 2 },
+			Epic = { Price = 125000, Product = "RestockEpic", Stock = 1 },
+			Legendary = { Price = 600000, Product = "RestockLegendary", Stock = 1 },
+			Mythic = { Price = 2500000, Product = "RestockMythic", Stock = 1 },
 		},
 		-- A restock with one of these in any slot (the two shared ones) is announced in every
 		-- server ("A MYTHIC block is in the restock for 9:41!").

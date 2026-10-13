@@ -24,20 +24,27 @@ return {
 		H.expect(R.SlotSeconds == 600 and R.Slots == 2, "every 10 minutes, two slots")
 		-- Economy v5 (plan 6.2): slot 1 always Epic or better; Rare or better everywhere.
 		H.expect(R.Kinds.Uncommon == nil and R.Odds.Uncommon == nil, "no Uncommon slot")
-		-- Economy v6 (2026-10-10) money prices.
-		H.expect(R.Kinds.Rare.Price == 100000 and R.Kinds.Rare.Product == "RestockRare", "Rare")
+		-- The temporary money prices (designer, 2026-10-13).
+		H.expect(R.Kinds.Rare.Price == 25000 and R.Kinds.Rare.Product == "RestockRare", "Rare")
 		H.expect(R.Kinds.Rare.Stock == 2, "two Rare blocks a restock")
-		H.expect(R.Kinds.Epic.Price == 500000 and R.Kinds.Epic.Product == "RestockEpic", "Epic")
+		H.expect(R.Kinds.Epic.Price == 125000 and R.Kinds.Epic.Product == "RestockEpic", "Epic")
 		H.expect(
-			R.Kinds.Legendary.Price == 2500000 and R.Kinds.Legendary.Product == "RestockLegendary",
+			R.Kinds.Legendary.Price == 600000 and R.Kinds.Legendary.Product == "RestockLegendary",
 			"Legendary"
 		)
 		H.expect(
-			R.Kinds.Mythic.Price == 5000000
+			R.Kinds.Mythic.Price == 2500000
 				and R.Kinds.Mythic.Product == "RestockMythic"
 				and R.Kinds.Mythic.Stock == 1,
 			"Mythic"
 		)
+		-- A restock block always costs at least twice its tier's sell-back, so buying blocks to
+		-- sell their cues never makes money (a Mythic block's cue sells for about $1,225,000 on
+		-- average with the Secret's chance).
+		for kind, item in R.Kinds do
+			local sell = Config.BlockOdds.SellBack[kind]
+			H.expect(item.Price >= 2 * sell, kind .. " costs at least twice its sell-back")
+		end
 		local first = Restock.oddsOf(1)
 		H.expect(first.Rare == nil and first.Epic == 7556, "slot 1: Epic 75.56%, never Rare")
 		H.expect(first.Legendary == 2111 and first.Mythic == 333, "Legendary 21.11%, Mythic 3.33%")
@@ -250,8 +257,8 @@ return {
 	["the Mystery deal's money prices; the case timer skips are gone"] = function()
 		local Shop = H.require("Progression.Shop")
 		H.expect(Shop.skipPrice == nil and Shop.skipProduct == nil, "no case timer skips")
-		-- Economy v6 (designer, 2026-10-10): $25,000, 5 for $100,000, the same as the card shows.
-		H.expect(Shop.mysteryPrice(1) == 25000 and Shop.mysteryPrice(5) == 100000, "Mystery")
+		-- Temporary prices (designer, 2026-10-13): $10,000, 5 for $40,000, the same as the card shows.
+		H.expect(Shop.mysteryPrice(1) == 10000 and Shop.mysteryPrice(5) == 40000, "Mystery")
 		local card = H.require("Config").Shop.Mystery
 		H.expect(card.Price == Shop.mysteryPrice(1), "the card's price")
 		H.expect(card.BulkPrice == Shop.mysteryPrice(card.BulkCount), "the card's bundle")

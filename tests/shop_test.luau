@@ -713,8 +713,8 @@ return {
 				"45 days, 7 vaulted"
 			)
 			H.expect(
-				row.Money[1] == 100000 and row.Money[3] == 270000 and row.Money[10] == 850000,
-				""
+				row.Money[1] == 25000 and row.Money[3] == 70000 and row.Money[10] == 220000,
+				"the temporary prices (2026-10-13)"
 			)
 			H.expect(row.Products[3] == "GrandOpening3", "the Robux products")
 			-- The soft launch (designer, 2026-10-09): on sale with no end date while StartsAt is 0,
@@ -740,7 +740,7 @@ return {
 			local mystery = Shop.deal("Mystery", JOIN)
 			H.expect(mystery.open and not mystery.timed, "the Mystery deal is always open")
 			H.expect(not Shop.deal("Nope", JOIN).open, "unknown: closed")
-			H.expect(Shop.blockPrice("GrandOpening", 3) == 270000, "3 for $270,000")
+			H.expect(Shop.blockPrice("GrandOpening", 3) == 70000, "3 for $70,000")
 			H.expect(
 				Shop.blockPrice("GrandOpening", 2) == nil and Shop.blockPrice("Nope", 1) == nil,
 				""
