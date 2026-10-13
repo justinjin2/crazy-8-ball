@@ -1060,8 +1060,8 @@ player's first win shows its Rare block).
   "+1 Lucky 8 Block", "+1 Mystery Lucky Block", "+$5,000", a small Mystery block at the
   Lucky 8's foot in the picture (`Heroes.Extra`) and a thumbs up beside the star at the
   top right, both a little smaller, wiggling with it (`Heroes.Star`, `Heroes.Thumb`), and one green
-  Verify across its foot (the check, shining; the yellow Favorite beside it went, 2026-10-11); Claimed in its place. Verify opens Roblox's favorite prompt; no favorite
-  there opens the **"ALMOST THERE!" popup** (`LikeRejoinPopup`, `Config.UI.FreeReward.LikePopup`;
+  Verify across its foot (the check, shining; the yellow Favorite beside it went, 2026-10-11); Claimed in its place. Verify opens Roblox's favorite prompt; cancelled says
+  "Favorite the game first!", a favorite opens the **"ALMOST THERE!" popup** (`LikeRejoinPopup`, `Config.UI.FreeReward.LikePopup`;
   concept A 2026-10-11, the favorite steps 2026-10-13): the house slam with no burst, "Check
   the game is favorited to unlock your reward", three step cards popping in one by one with
   arrows between (1 the door: Leave the game; 2 lit gold, a star and a thumbs up rocking side
