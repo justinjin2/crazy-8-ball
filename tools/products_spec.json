@@ -188,28 +188,28 @@
    "key": "Spin1",
    "kind": "Product",
    "name": "1 Ability Spin",
-   "robux": 9,
+   "robux": 4,
    "description": "One Ability Spin. Odds are shown in the game."
   },
   {
    "key": "Spin5",
    "kind": "Product",
    "name": "5 Ability Spins",
-   "robux": 39,
+   "robux": 17,
    "description": "Five Ability Spins. Odds are shown in the game."
   },
   {
    "key": "Spin10",
    "kind": "Product",
    "name": "10 Ability Spins",
-   "robux": 75,
+   "robux": 33,
    "description": "Ten Ability Spins. Odds are shown in the game."
   },
   {
    "key": "Spin50",
    "kind": "Product",
    "name": "50 Ability Spins",
-   "robux": 299,
+   "robux": 129,
    "description": "Fifty Ability Spins. Odds are shown in the game."
   },
   {

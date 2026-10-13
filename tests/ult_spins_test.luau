@@ -526,8 +526,15 @@ return {
 			)
 		end
 		local s5 = p.products.Spin5
-		-- Economy v4: was = the same count bought one at a time (5 x 9 R$).
-		H.expect(s5.robux == 39 and s5.was == 45 and s5.spins == 5 and s5.kind == "Product", "")
+		-- Economy v4: was = the same count bought one at a time (5 x 4 R$ since 2026-10-13).
+		H.expect(s5.robux == 17 and s5.was == 20 and s5.spins == 5 and s5.kind == "Product", "")
+		local one = Config.Products.List.Spin1.Robux
+		H.expect(one == 4, "a spin is 4 R$ (designer, 2026-10-13)")
+		for _, key in { "Spin5", "Spin10", "Spin50" } do
+			local row = Config.Products.List[key]
+			H.expect(row.Was == row.Spins * one, key .. ": crossed out at one at a time")
+			H.expect(row.Robux < row.Was, key .. ": cheaper than one at a time")
+		end
 		H.expect(p.products.Spin1.was == nil, "no crossed-out price on 1 spin")
 		H.expect(p.products.Lucky3 == nil and #p.luckyPacks == 0, "Lucky Spins are retired")
 		H.expect(p.products.UltSlot2.kind == "Pass" and p.products.UltSlot2.slot == 2, "")

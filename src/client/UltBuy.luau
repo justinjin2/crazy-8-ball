@@ -1,8 +1,8 @@
 --!strict
 -- UltBuy: the buy panel at the bottom right of the ult spin screen (docs/prompts/
 -- ULTIMATES_PROMPT.md sections 9.3 and 10; pick "abilities A", 2026-10-08): a white kit card
--- with one row of four green Robux buttons, "Buy 1" over its price (9 / 39 / 75 / 299 R$, economy
--- v4), each shining now and then (only Robux buttons shine), and under them one gold money button,
+-- with one row of four green Robux buttons, "Buy 1" over its price (4 / 17 / 33 / 129 R$, 2026-10-13;
+-- economy v4 9 / 39 / 75 / 299), each shining now and then (only Robux buttons shine), and under them one gold money button,
 -- "$12,500 - 1 spin" (Config.Ults.Earn.MoneyPerSpin). A product whose id is still 0 keeps its
 -- price and a small "Soon". The money button never greys: short of money, a press jumps to the
 -- Shop's Money tab with what is missing, as the shop's own buttons do. Where paid random items

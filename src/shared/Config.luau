@@ -4057,28 +4057,30 @@ Config.Products = {
 		-- Ability spins (ECONOMY 11.8; the spin screen's R$ buy row). Spins / Lucky: what one
 		-- purchase adds; Was: the same count bought one at a time today (a true bulk saving
 		-- against Spin1 or Lucky1, never a former price; the shop will show it "one by one").
-		Spin1 = { Kind = "Product", Id = 3716158388, Robux = 9, Spins = 1, Random = true },
+		-- Spins at 4 R$ each (designer, 2026-10-13; was 9 / 39 / 75 / 299, crossed out 45 / 90
+		-- / 450): the same bulk discounts scaled, each Was the count at 4 R$ apiece.
+		Spin1 = { Kind = "Product", Id = 3716158388, Robux = 4, Spins = 1, Random = true },
 		Spin5 = {
 			Kind = "Product",
 			Id = 3716158389,
-			Robux = 39,
-			Was = 45,
+			Robux = 17,
+			Was = 20,
 			Spins = 5,
 			Random = true,
 		},
 		Spin10 = {
 			Kind = "Product",
 			Id = 3716158392,
-			Robux = 75,
-			Was = 90,
+			Robux = 33,
+			Was = 40,
 			Spins = 10,
 			Random = true,
 		},
 		Spin50 = {
 			Kind = "Product",
 			Id = 3716158395,
-			Robux = 299,
-			Was = 450,
+			Robux = 129,
+			Was = 200,
 			Spins = 50,
 			Random = true,
 		},
