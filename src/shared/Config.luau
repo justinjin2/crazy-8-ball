@@ -13749,6 +13749,11 @@ Config.UI.UltScreen = {
 	-- match, so X means "ult" everywhere).
 	Column = { Name = "Ults", PadKey = "ButtonX" },
 	TouchPx = 44, -- the smallest touch area (UI_STYLE 5)
+	-- The phone layout (Short) on any screen shorter than this, not just under the HUD's
+	-- Multiplayer.Style.ShortHeight (430): Full never shrinks under ScaleMin (0.75 x 720 = 540
+	-- px tall), so a big phone (956 x 440, designer 2026-10-12) got Full and its slot cards ran
+	-- into Fast spin and the code box was out of sight in the odds list.
+	ShortBelowPx = 540,
 	Full = {
 		DesignPx = { 1280, 720 },
 		ScaleMin = 0.75,
@@ -13915,6 +13920,9 @@ Config.UI.UltScreen = {
 	LuckyTintTransparency = 0.15, -- the teal end's tint (the green end shows the candy)
 	-- The description on the dark stage: the kit's soft white (ink text would vanish there).
 	DescColor = { 214, 226, 245 },
+	-- The description takes as many lines as it needs, up to this many; past that its words
+	-- shrink until it fits (2026-10-12: Fire Shot's was cut after two lines on a phone).
+	DescMaxLines = 3,
 	PlaceholderTransparency = 0.25, -- a placeholder ult's name in a list ("Soon")
 	LockOffTransparency = 0.6, -- the lock toggle while the slot is unlocked
 	MoneyPack = 1, -- the gold money button buys this many spins (Config.Ults.Earn.MoneyPacks has it)

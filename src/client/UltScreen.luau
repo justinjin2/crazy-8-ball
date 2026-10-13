@@ -613,6 +613,7 @@ function UltScreen.draw(self: any, state: any)
 	self.descLabel.Text = if equipped == "" or Catalog.built(equipped)
 		then desc
 		else W.DescriptionSoon:format(desc)
+	self:fitDescription()
 	-- GUI lane (step 13): the result's tier word holds the row for a moment first.
 	self.descLabel.Visible = not self.anim:tierShowing()
 	self.stage:setRarity(Catalog.rarity(equipped), false)
@@ -872,6 +873,24 @@ function UltScreen.queueLayout(self: any)
 end
 
 --- Size and place everything for the screen (Full on a computer or tablet, Short on a phone).
+--- The description as tall as its lines (C.DescMaxLines at most; past that its words shrink,
+--- never under the kit's minimum), so a long one is never cut off.
+function UltScreen.fitDescription(self: any)
+	local box = self.descBox
+	if box == nil then
+		return
+	end
+	local label: TextLabel = self.descLabel
+	local px = box.text
+	local lines = Parts.textLines(label.Text, px, box.width)
+	while lines > C.DescMaxLines and px > K.Text.Min do
+		px -= 1
+		lines = Parts.textLines(label.Text, px, box.width)
+	end
+	HudParts.setTextSize(label, px)
+	label.Size = UDim2.fromOffset(box.width, math.min(lines, C.DescMaxLines) * (px + 4))
+end
+
 function UltScreen.layout(self: any)
 	local gui: ScreenGui = self.gui
 	local size = gui.AbsoluteSize
@@ -969,9 +988,9 @@ function UltScreen.layout(self: any)
 	y += nameH
 	local descText = g.text("DescTextPx")
 	local descW = math.min(g.px("DescWidthPx"), titleRoom)
-	HudParts.setTextSize(self.descLabel, descText)
 	self.descLabel.Position = UDim2.fromOffset(cx, y)
-	self.descLabel.Size = UDim2.fromOffset(descW, 2 * (descText + 4))
+	self.descBox = { width = descW, text = descText }
+	self:fitDescription()
 	self.anim:layout(Vector2.new(cx, y), descW, g.short)
 
 	-- The right side, OddsWidthPx wide: on a computer the odds panel over the buy panel; on a

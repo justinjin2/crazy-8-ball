@@ -46,9 +46,9 @@ local function round(n: number): number
 end
 Parts.round = round
 
---- The sizes for a screen `size` pixels big (Short under Multiplayer.Style.ShortHeight).
+--- The sizes for a screen `size` pixels big (Short under Config.UI.UltScreen.ShortBelowPx).
 function Parts.geo(size: Vector2, topRow: number, freeLeft: number, freeRight: number): Geo
-	local short = size.Y < Config.Multiplayer.Style.ShortHeight
+	local short = size.Y < C.ShortBelowPx
 	local set: { [string]: any } = if short then C.Short :: any else C.Full :: any
 	local design: { number } = set.DesignPx
 	local scale =
@@ -75,6 +75,13 @@ end
 
 function Parts.textWidth(text: string, size: number): number
 	return TextService:GetTextSize(text, size, FONT, Vector2.new(4000, 400)).X
+end
+
+--- How many lines `text` wraps into at `size` in a box `width` pixels wide.
+function Parts.textLines(text: string, size: number, width: number): number
+	local one = TextService:GetTextSize("Ag", size, FONT, Vector2.new(4000, 400)).Y
+	local all = TextService:GetTextSize(text, size, FONT, Vector2.new(math.max(1, width), 4000)).Y
+	return math.max(1, math.floor(all / math.max(1, one) + 0.5))
 end
 
 function Parts.isGamepad(): boolean
