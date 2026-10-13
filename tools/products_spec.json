@@ -118,14 +118,14 @@
    "key": "RestockEpic",
    "kind": "Product",
    "name": "Restock Epic Lucky Block",
-   "robux": 199,
+   "robux": 149,
    "description": "The Epic Lucky Block in the restock shop, while it is in stock. Odds are shown in the game."
   },
   {
    "key": "RestockLegendary",
    "kind": "Product",
    "name": "Restock Legendary Lucky Block",
-   "robux": 999,
+   "robux": 599,
    "description": "The Legendary Lucky Block in the restock shop, while it is in stock. Odds are shown in the game."
   },
   {

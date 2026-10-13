@@ -3981,14 +3981,17 @@ Config.Products = {
 		RestockEpic = {
 			Kind = "Product",
 			Id = 3716158370,
-			Robux = 199, -- economy v6 (v5: 149, v4: 99)
+			-- Back to 149 (designer, 2026-10-13): at 199 a $143,000 money pack bought it for the same
+			-- Robux once its money price fell to $125,000 (v6: 199, v5: 149, v4: 99).
+			Robux = 149,
 			Restock = "Epic",
 			Random = true,
 		},
 		RestockLegendary = {
 			Kind = "Product",
 			Id = 3716158374,
-			Robux = 999, -- economy v6 (v5: 599)
+			-- Back to 599 (designer, 2026-10-13): at 999 a 799 R$ pack bought its $600,000 (v6: 999).
+			Robux = 599,
 			Restock = "Legendary",
 			Random = true,
 		},

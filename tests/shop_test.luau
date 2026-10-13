@@ -1251,6 +1251,41 @@ return {
 		)
 	end,
 
+	["a restock block's Robux price is below buying its money price in money packs (2026-10-13)"] = function()
+		-- The fewest Robux whose packs (with the launch bonus, their best) reach `money`.
+		local P = Config.Products.List
+		local packs = {}
+		for key, row in P do
+			if string.match(key, "^Pack%d$") then
+				local money = row.Money * (100 + Config.Shop.LaunchBonus.Percent) / 100
+				table.insert(packs, { robux = row.Robux, money = money })
+			end
+		end
+		local function viaPacks(money: number): number
+			local best = math.huge
+			local function walk(index: number, robux: number, got: number)
+				if got >= money then
+					best = math.min(best, robux)
+					return
+				end
+				if index > #packs or robux >= best then
+					return
+				end
+				local pack = packs[index]
+				for count = 0, math.ceil(money / pack.money) do
+					walk(index + 1, robux + count * pack.robux, got + count * pack.money)
+				end
+			end
+			walk(1, 0, 0)
+			return best
+		end
+		for kind, row in Config.Shop.Restock.Kinds do
+			local robux = P[row.Product].Robux
+			local packs = viaPacks(row.Price)
+			H.expect(robux < packs, `{kind}: {robux} R$, packs buy its money for {packs} R$`)
+		end
+	end,
+
 	["the Dashboard list: 3 game passes and 30 developer products at the plan's prices"] = function()
 		-- Economy v4 (2026-10-08, plan 8.2); economy v5 (2026-10-09) and v6 (2026-10-10) prices.
 		local want = {
@@ -1274,8 +1309,8 @@ return {
 			Mystery1 = 9,
 			Mystery5 = 39,
 			Mystery10 = 45,
-			RestockEpic = 199,
-			RestockLegendary = 999,
+			RestockEpic = 149,
+			RestockLegendary = 599,
 			LuckyBlockSkip1 = 1,
 			LuckyBlockSkip = 4,
 			LuckyBlockSkip9 = 9,
