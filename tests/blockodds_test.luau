@@ -528,7 +528,7 @@ return {
 		H.expect(not BlockOdds.canDrop("Nope", "MidnightCue"), "unknown row")
 		H.expect(Catalog.get("MidnightCue").Group == "Block", "a droppable cue is a Block cue")
 	end,
-	["the Grand Opening: 1,000 Firework and 100 Beta Cues ever; owned or all found reads as Rare"] = function()
+	["the Grand Opening: 500 Firework and 100 Beta Cues ever; owned or all found reads as Rare"] = function()
 		local BlockOdds, _, Config = load()
 		local row = Config.BlockOdds.List.GrandOpening
 		H.expect(row.Odds.FireworkCue == 35000 and row.Odds.BetaCue == 2000, "3.5% and 0.2%")

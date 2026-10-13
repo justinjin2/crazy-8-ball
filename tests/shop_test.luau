@@ -1450,7 +1450,7 @@ return {
 				H.expect(not g.soldOut, "copies left (none found yet)")
 				local u = p.uniques.GrandOpening
 				H.expect(u ~= nil and #u == 2 and u[1].cue == "BetaCue" and u[1].cap == 100, "caps")
-				H.expect(u[2].cue == "FireworkCue" and u[2].cap == 1000 and not u[2].closed, "")
+				H.expect(u[2].cue == "FireworkCue" and u[2].cap == 500 and not u[2].closed, "")
 				H.expect(p.launchBonus ~= nil and not p.launchBonus.open, "the launch bonus: off")
 				H.expect((p :: any).fastOpen == nil, "Fast Open went with the cases")
 				H.expect(ShopView.build(ctxAt(now, { vipPass = true })).vip, "VIP")
@@ -1467,7 +1467,7 @@ return {
 				}))
 				local rows = owner.uniques.GrandOpening
 				H.expect(rows[1].closed and rows[1].left == 0, "the Beta Cue: all 100 found")
-				H.expect(rows[2].closed and rows[2].left == 588, "the Firework Cue: owned")
+				H.expect(rows[2].closed and rows[2].left == 88, "the Firework Cue: owned")
 				H.expect(owner.guarantees.GrandOpening.soldOut, "no Beta Cue left to guarantee")
 				-- A /restock forced restock shows its items on the real restock's countdown.
 				local forced = ShopView.build(ctxAt(now, { restockSlot = epicSlot }))
