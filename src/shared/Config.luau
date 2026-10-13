@@ -8996,7 +8996,8 @@ Config.UI.WinTrack = {
 	ZIndex = 25, -- under the matchmaking bar's
 	TilePx = 46, -- a step's tile, square
 	TileGapPx = 6,
-	PadPx = 8, -- the bar's room left, right and under the tiles
+	PadPx = 8, -- the bar's room left and right of the tiles
+	UnderPadPx = 24, -- its room under them: the NEXT tag hangs there (NextTagPx's height + 5)
 	TopPadPx = 22, -- its room over them: the pills sit across its top edge
 	CornerPx = 14,
 	TileCornerPx = 10,
@@ -9023,8 +9024,9 @@ Config.UI.WinTrack = {
 	CheckShare = 0.7,
 	TickDelaySeconds = 0.2, -- a new tick pops this long after the bar shows
 	TickStaggerSeconds = 0.1, -- and each further one this much later
-	-- The next step: a thick gold edge and the gold NEXT tag across its tile's bottom edge,
-	-- hopping gently (still with Reduce Motion).
+	-- The next step: a thick gold edge and the gold NEXT tag hanging just under its tile, clear
+	-- of a money step's amount (designer, 2026-10-13: "the next button literally blocks the
+	-- amount"; it sat across the tile's bottom edge), hopping gently (still with Reduce Motion).
 	NextEdge = { 255, 196, 40 },
 	NextEdgePx = 3,
 	NextColor = { 255, 196, 40 },

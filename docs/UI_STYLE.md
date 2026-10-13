@@ -1008,8 +1008,9 @@ player's first win shows its Rare block).
 - **A white bar of ten tiles** centred over the hotbar, one per counted win of the day: the
   step's block with its number on a navy dot at the tile's corner; a money step is the cash
   bundle, smaller and higher, over "$1K" in the money green. A step given today is greyed
-  under a green tick; the next one has a thick gold edge and a gold NEXT tag across its bottom
-  edge, hopping gently.
+  under a green tick; the next one has a thick gold edge and a gold NEXT tag hanging just
+  under it, hopping gently, clear of a money step's amount (2026-10-13; the bar is deeper
+  under its tiles for it).
 - **Across the top edge**, navy pills with a gold rim: "Wins 3/10" at the left (after the tenth:
   "10/10 · wins pay money and XP today"), the stopwatch and the time to the 08:00 UTC reset at
   the right.

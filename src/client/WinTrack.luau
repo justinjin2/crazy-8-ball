@@ -5,7 +5,7 @@
 -- Mystery, $1K, $1K, Mystery, $1K, $1K, Epic; a money tile is the cash bundle over "$1K"; a new
 -- player's first win shows its Rare block) with its number on a navy dot. A
 -- step given today is greyed under a green tick; the next one has a thick gold edge and a gold
--- NEXT tag that hops gently. Across the bar's top edge: "Wins 3/10" at the left and the time
+-- NEXT tag hanging under it, hopping gently. Across the bar's top edge: "Wins 3/10" at the left and the time
 -- to the 08:00 UTC reset at the right; after the tenth, "10/10 · wins pay money and XP today".
 -- A step given pops its tick where the player sees it: at once while the bar shows, else as the
 -- bar comes back (after the result screen), one tick after another. "Resets in" sits over the
@@ -224,7 +224,7 @@ function WinTrack.new(screen: ScreenGui): any
 
 	-- The NEXT tag (moved to the next step's tile).
 	local tag = HudParts.pill(bar, "Next", rgb(T.NextColor))
-	tag.AnchorPoint = Vector2.new(0.5, 0.5)
+	tag.AnchorPoint = Vector2.new(0.5, 0)
 	tag.Size = UDim2.fromOffset(T.NextTagPx[1], T.NextTagPx[2])
 	tag.ZIndex = 8
 	tag.Visible = false
@@ -355,7 +355,7 @@ end
 function WinTrack.layout(self: any)
 	local n = #self.tiles
 	local width = 2 * T.PadPx + n * T.TilePx + (n - 1) * T.TileGapPx
-	local barH = T.TopPadPx + T.TilePx + T.PadPx
+	local barH = T.TopPadPx + T.TilePx + T.UnderPadPx
 	-- The pills reach this far over the bar, and "Resets in" sits over the clock pill.
 	local over = T.PillHeightPx / 2 + T.ResetsTextPx + T.ResetsGapPx
 	self.root.Size = UDim2.fromOffset(width, barH + over)
@@ -547,7 +547,7 @@ function WinTrack.refresh(self: any)
 	self.miniMoney.Text = if self.kinds[given + 1] == BlockDrop.Money
 		then tileMoney(BlockDrop.trackMoney(given + 1))
 		else ""
-	-- The tag under the next step's tile.
+	-- The tag hanging under the next step's tile (its top on the tile's bottom edge).
 	if given < n then
 		local tile = self.tiles[given + 1]
 		self.tagBase = UDim2.fromOffset(
