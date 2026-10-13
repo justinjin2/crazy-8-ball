@@ -22,8 +22,8 @@ Where that file and this one disagree, **this one wins**.
 - Pace for a player who plays 1 hour a day: about **3.4 lucky blocks a day** after week 1 (v5:
   4.4), **Epic on day 1 about 1 in 9**, **a Legendary from luck about every 6 weeks**, about
   **$16,700 earned a day**.
-- One match pays about **$1,000** (win about $1,400, loss about $650). A Mystery costs **$25,000**
-  (about 3 hours of matches); every shop price is about **$2,500 for each Robux** of its Robux
+- One match pays about **$1,000** (win about $1,400, loss about $650). A Mystery costs **$10,000**
+  (temporary since 2026-10-13, section 5; v6: $25,000, about 3 hours of matches); every shop price is about **$2,500 for each Robux** of its Robux
   price.
 - **Fewer, rarer good cues.** Chroma and Candy Cane leave the blocks and become rewards. Duplicate
   Commons and Uncommons turn into money. Finder's money is claimed in the Index.
@@ -194,18 +194,26 @@ The block pool is now Common 7, Uncommon 9, Rare 9, Epic 9, Legendary 6, Mythic 
 
 ## 5. What money buys
 
-| | Money | Robux |
+**Temporary prices since 2026-10-13** (designer: "essentially zero people can buy grand opening
+lucky blocks or restock blocks"; a bigger economy rework is planned). Live saves that day: a player
+with a win held about $7,500 and had played 2 matches; the top 1% held about $30,000 and earned
+about $22,000 a day (about $2,100 a match with the free rewards); 1 of those 80 could afford a
+$100,000 block. Players had spent about 8% of the money they earned. The rule: a Grand Opening
+block is about one good day of play, and every block costs at least twice its tier's sell-back
+(Mythic only halved: its cue sells back for about $1,225,000 on average). Robux prices unchanged.
+
+| | Money (v6 before) | Robux |
 |---|---|---|
-| Mystery block | **$25,000** | 9 R$ |
-| 5 Mystery blocks | **$100,000** | 39 R$ |
-| Grand Opening block | **$100,000** | **39 R$** |
-| 3 Grand Opening blocks | **$270,000** | **99 R$** |
-| 10 Grand Opening blocks | **$850,000** | **299 R$** |
-| Restock Rare block | **$100,000** | 39 R$ |
-| Restock Epic block | **$500,000** | **199 R$** |
-| Restock Legendary block | **$2,500,000** | **999 R$** |
-| Restock Mythic block | **$5,000,000** | 1,699 R$ |
-| Ability spin | **$10,000** each | 9 R$ (packs as before) |
+| Mystery block | **$10,000** ($25,000) | 9 R$ |
+| 5 Mystery blocks | **$40,000** ($100,000) | 39 R$ |
+| Grand Opening block | **$25,000** ($100,000) | **39 R$** |
+| 3 Grand Opening blocks | **$70,000** ($270,000) | **99 R$** |
+| 10 Grand Opening blocks | **$220,000** ($850,000) | **299 R$** |
+| Restock Rare block | **$25,000** ($100,000) | 39 R$ |
+| Restock Epic block | **$125,000** ($500,000) | **199 R$** |
+| Restock Legendary block | **$600,000** ($2,500,000) | **999 R$** |
+| Restock Mythic block | **$2,500,000** ($5,000,000) | 1,699 R$ |
+| Ability spin | **$10,000** each (unchanged) | 9 R$ (packs as before) |
 
 Restock slots, stock and odds are unchanged (archive 9.1).
 
@@ -227,7 +235,7 @@ once (designer, 2026-10-12, `Config.Tutorial.Soft.QuestRewardBlock`; it was $2,5
 day, `QuestRewardMoney`, which comes back if the block is set to nil); with the win track's own
 win-1 Mystery that first win gives two Mysteries (designer's pick); invites the
 Candy Cane Cue (section 4). **Codes**: WELCOME $5,000, 8BALL $2,500, ROOFTOP $2,500 (to
-2026-12-31), RELEASE 3 spins. **Like codes** (switched on by the designer): 1K $10,000 + a Mystery,
+2026-12-31), RELEASE 3 spins, **100LIKES 5 spins** (2026-10-13, the game's 100-like code, always on; the Abilities code box and the tutorial name it, next code at 250 likes). **Like codes** (switched on by the designer): 1K $10,000 + a Mystery,
 5K 2 Mysteries, 10K a Rare block + 3 spins, 25K a Rare block + $25,000, 50K 2 Rare blocks, 100K an
 Epic block + 5 spins.
 

@@ -4,7 +4,7 @@ Current state only, rewritten in place. Keep it to about two screens (under 100 
 step is finished and verified, move its dated entry to the top of
 `docs/archive/STATUS_HISTORY.md` and keep only what is still true or still open here.
 
-Updated 2026-10-12 (late night, the QA batch's third round). **The game is live** (officially released 2026-10-10). Work goes on
+Updated 2026-10-13 (temporary prices, the 100LIKES code). **The game is live** (officially released 2026-10-10). Work goes on
 in `~/Desktop/8ball`, branch `gui-v4`. The STATUS from just before launch, in full, is the top
 entry of `docs/archive/STATUS_HISTORY.md`.
 
@@ -69,6 +69,7 @@ rooftop map with a day and sunset cycle; pull cutscenes Rare to Secret; the ball
 One line each; the long form is the 2026-10-12 (evening) entry at the top of
 `docs/archive/STATUS_HISTORY.md`.
 
+- **Temporary lower prices and the 100LIKES code (2026-10-13, pushed, not yet published):** the Shop shows Mystery $10,000, Grand Opening $25,000 and the restock's new prices, and charges them; the Abilities code box says USE CODE 100LIKES / NEXT CODE AT 250 LIKES and the code gives 5 spins; a new account's tutorial points at 100LIKES. Watch the Grand Opening sink and the Firework Cue's 500 copies on the dashboard.
 - **Lag and vanished ability looks (V1423, 2026-10-13):** lobby bots turned off again (cd9a8c2), the one live-only change in that publish. After publishing with Restart Servers: play a match, use Verity / Black Hole / Guangdong Tiger, watch the frame rate; if still broken, open F9 during an ability shot (Client and Server logs) and screenshot.
 
 - **Controller fixes** (2026-10-11): the 8's call by D-pad rows, a Mystery opened with R2; a
