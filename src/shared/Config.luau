@@ -14726,8 +14726,11 @@ Config.Tutorial = {
 		-- The aim help: the cue ball bends toward a ghost point before it touches anything, on
 		-- the aim lesson and the combination (their ghost points, when the shot is on their
 		-- line) and after AfterMisses misses in a row (the pot the shot is nearest).
+		-- AfterMisses was 6; 3 (designer, 2026-10-12: "very very slight" more help): in 1,008
+		-- simulated games about one more helped shot a game, median 0.6 degrees, games over
+		-- 5 minutes 267 -> 227, no visible curves added.
 		Aim = {
-			AfterMisses = 6,
+			AfterMisses = 3,
 			PerInch = 0.02, -- about 1.1 degrees per inch rolled
 			MaxTurn = 0.1, -- about 6 degrees in all
 		},
