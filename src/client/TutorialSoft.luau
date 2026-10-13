@@ -7,6 +7,9 @@
 --   tiles, the offer tile, the money "+", and the Daily Challenge once challenges are built
 --   (Config.Tutorial.Soft.ChallengeBuilt). Free Reward stands out most: it also glows and
 --   bounces. After game 2 the Shop glows too, until it is opened.
+-- - The pointer (Config.Tutorial.Soft.Pointer): a hand at Rank until it is opened, then at
+--   Cues until that is opened, across matches and rejoins (Tutorial draws it in a quiet lobby,
+--   TutorialSoft.pointer); the Cues icon glows and bounces like Free Reward until opened.
 -- - "Now go win a match! 0/1", top centre (under the top banner while one shows), until a win:
 --   then "1/1", "Have fun!" with the completion sound and its reward flying into the money HUD
 --   (Config.Tutorial.Soft.QuestReward; the server pays it once), and the daily win track takes
@@ -102,7 +105,7 @@ type Glow = {
 local glows: { [string]: Glow } = {}
 type Ring = { clip: Frame, ring: Frame, stroke: UIStroke }
 local rings: { [string]: Ring } = {}
-local freePulse: UIAnim.Handle? = nil -- Free Reward breathing (its tile's)
+local pulses: { [string]: UIAnim.Handle } = {} -- a tile breathing (Free Reward, Cues)
 local shinedAt = 0
 local likeShown = false
 
@@ -171,6 +174,18 @@ local function click(name: string)
 	clicked[name] = true
 	reportedAt[name] = os.clock()
 	report("Seen", name)
+end
+
+-- Tile `name` (an anchor) breathes while `want` and it is on screen (UIAnim.pulse).
+local function setBreathe(name: string, want: boolean)
+	local tile = if want and TutorialAnchors.showing(name) then TutorialAnchors.get(name) else nil
+	local pulse = pulses[name]
+	if tile and pulse == nil then
+		pulses[name] = UIAnim.pulse(tile :: GuiObject, S.BounceScale, S.BounceSeconds)
+	elseif tile == nil and pulse then
+		pulse.stop()
+		pulses[name] = nil
+	end
 end
 
 local function phone(): boolean
@@ -607,6 +622,30 @@ function TutorialSoft.questOn(): boolean
 		)
 end
 
+--- The anchor the soft part's pointer wants the hand on now: "Rank" until Rank is opened, then
+--- "Inventory" (Cues) until Cues is; nil when it is over or not now (a match, a menu, a popup,
+--- a block opening, the icon off screen). Tutorial draws it when no first-time hint shows.
+function TutorialSoft.pointer(): string?
+	if stopped or not started or S.Pointer ~= true or not soft() or not seen("Pointer") then
+		return nil
+	end
+	local anchor = if not seen("PointerRank")
+		then "Rank"
+		elseif not seen("PointerCues") then "Inventory"
+		else nil
+	if
+		anchor == nil
+		or popupUp
+		or not Progression.quiet()
+		or TutorialAnchors.match() ~= nil
+		or LuckyClient.isOpen()
+		or LuckyClient.busy()
+	then
+		return nil
+	end
+	return if TutorialAnchors.showing(anchor) then anchor else nil
+end
+
 --- Tutorial's update, every frame (under its fail-safe).
 function TutorialSoft.update(_dt: number)
 	if stopped or not started then
@@ -646,6 +685,19 @@ function TutorialSoft.update(_dt: number)
 	if likeShown and menu ~= "FreeReward" then
 		click("Like")
 	end
+	-- The pointer (Config.Tutorial.Soft.Pointer): it begins in the soft part; Rank and Cues
+	-- count as found once opened (Cues opened first counts too: the hand then ends at Rank).
+	local pointer = on and S.Pointer == true
+	if pointer and step() == "Soft" then
+		click("Pointer")
+	end
+	if pointer and seen("Pointer") then
+		if menu == "Ranked" then
+			click("PointerRank")
+		elseif menu == "Inventory" then
+			click("PointerCues")
+		end
+	end
 
 	-- The click-once "!".
 	for _, item in FRESH do
@@ -656,21 +708,15 @@ function TutorialSoft.update(_dt: number)
 		end
 	end
 
-	-- The glows: Free Reward (and its bounce), the Shop after game 2, Play Global, the Rare
-	-- block's slot once it is ready.
+	-- The glows: Free Reward and Cues (and their bounce), the Shop after game 2, Play Global,
+	-- the Rare block's slot once it is ready.
 	local column = TutorialAnchors.get("ColumnRays")
 	local free = on and not seen("FreeReward")
 	setGlow("FreeReward", free, column)
-	local breathe = free and TutorialAnchors.showing("FreeReward")
-	if breathe and freePulse == nil then
-		local tile = TutorialAnchors.get("FreeReward")
-		if tile then
-			freePulse = UIAnim.pulse(tile, S.BounceScale, S.BounceSeconds)
-		end
-	elseif not breathe and freePulse then
-		freePulse.stop()
-		freePulse = nil
-	end
+	setBreathe("FreeReward", free)
+	local cues = pointer and seen("Pointer") and not seen("PointerCues")
+	setGlow("Inventory", cues, column)
+	setBreathe("Inventory", cues)
 	setGlow("Shop", on and over and not seen("Shop"), column)
 	setRing("GlobalQueue", TutorialSoft.wantsGlobal(), now, "Pill")
 	local readyWanted = on and over and not seen("Ready")
@@ -736,6 +782,7 @@ function TutorialSoft.qaState(): any
 		glows = shownGlows,
 		rings = shownRings,
 		fresh = fresh,
+		pointer = TutorialSoft.pointer(),
 		stopped = stopped,
 	}
 end
@@ -748,6 +795,9 @@ function TutorialSoft.stop()
 	end
 	for name in glows do
 		setGlow(name, false)
+	end
+	for name in pulses do
+		setBreathe(name, false)
 	end
 	if started then
 		gui.Enabled = false

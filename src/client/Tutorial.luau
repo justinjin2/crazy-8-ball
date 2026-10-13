@@ -944,6 +944,16 @@ local function runHints(step: string)
 			key = nil
 		end
 	end
+	-- No hint showing: the soft part's pointer (a hand only, from the side, no line or dim).
+	if key == nil and allowed then
+		local ok, anchor = pcall(TutorialSoft.pointer)
+		if ok and anchor then
+			overlay:dim(nil)
+			overlay:say(nil)
+			hand:point(TutorialOverlay.guiTarget(anchor), true)
+			key = "Pointer" .. anchor
+		end
+	end
 	if key == nil and hintKey ~= nil and (allowed or hintsBroken) then
 		lineOnly(nil) -- the hint is gone (a guided scene draws its own instead)
 	end

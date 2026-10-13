@@ -283,6 +283,9 @@ Steps.Seen = {
 	"Played", -- a match finished (any kind): the popups' gate once the tutorial is over (server)
 	"QuestOwed", -- the quest was won with its reward on (Config.Tutorial.Soft.QuestReward)
 	"QuestPaid", -- ... and its money was paid (marked before paying, so it pays once)
+	"Pointer", -- the soft part's pointer began (Config.Tutorial.Soft.Pointer): Rank, then Cues
+	"PointerRank", -- ... Rank was opened (the hand goes on to Cues)
+	"PointerCues", -- ... Cues was opened (the hand and the Cues icon's glow go)
 }
 
 -- The moments a client may report itself (TutorialEvent "Seen"); the rest the server sees.
@@ -301,6 +304,9 @@ Steps.ClientSeen = (
 		PlayGlobal = true,
 		Ready = true,
 		Daily = true,
+		Pointer = true,
+		PointerRank = true,
+		PointerCues = true,
 	}
 ) :: { [string]: boolean }
 

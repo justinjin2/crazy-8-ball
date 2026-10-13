@@ -15244,6 +15244,13 @@ Config.Tutorial = {
 		-- jittery).
 		BounceScale = 1.1,
 		BounceSeconds = 0.9,
+		-- The pointer (designer, 2026-10-12): once Abilities closes (the soft part's start), a
+		-- hand points at Rank, from its side, until Rank is opened, then at the Cues icon until
+		-- Cues is opened; it stays across matches and rejoins (Steps.Seen Pointer, PointerRank,
+		-- PointerCues), shown in a quiet lobby only, never forcing. The Cues icon glows and
+		-- breathes like Free Reward until it is opened ("the very first time ... once they click
+		-- it the bounce effect goes away"). Off: no hand, no Cues glow.
+		Pointer = true,
 		-- The gold ring (Free Reward's frames, Play Global): this thick, its transparency
 		-- breathing between Low and High over GlowSeconds.
 		RingThicknessPx = 6,

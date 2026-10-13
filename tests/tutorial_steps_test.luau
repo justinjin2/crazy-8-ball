@@ -275,6 +275,19 @@ return {
 		H.expect(Steps.seenBit("Played") == 18 and Steps.seenBit("QuestDone") == 13, "old bits")
 		H.expect(Steps.seenBit("QuestOwed") == 19 and Steps.seenBit("QuestPaid") == 20, "new bits")
 		H.expect(not Steps.ClientSeen.QuestOwed and not Steps.ClientSeen.QuestPaid, "server only")
+		-- The soft part's pointer (2026-10-12): after the quest's bits, the client reports them.
+		H.expect(
+			Steps.seenBit("Pointer") == 21
+				and Steps.seenBit("PointerRank") == 22
+				and Steps.seenBit("PointerCues") == 23,
+			"pointer bits"
+		)
+		H.expect(
+			Steps.ClientSeen.Pointer
+				and Steps.ClientSeen.PointerRank
+				and Steps.ClientSeen.PointerCues,
+			"the client reports the pointer"
+		)
 		local mask = 0
 		H.expect(not Steps.has(mask, 3), "not yet")
 		mask = Steps.mark(mask, 3)
