@@ -45,13 +45,15 @@ end
 -- Pieces
 ---------------------------------------------------------------------------------------------
 
--- Bottom right, higher on a touch screen (Roblox's jump button lives in that corner).
-local lift = P.EdgePx + (if UserInputService.TouchEnabled then P.TouchLiftPx else 0)
+-- Bottom right; on a touch screen left of Roblox's jump button, which lives in that corner (it
+-- sat higher until 2026-10-12, over the match's pull bar).
+local lift = P.EdgePx
+local right = if UserInputService.TouchEnabled then P.TouchRightPx else P.EdgePx
 
 local toggle = Instance.new("TextButton")
 toggle.Name = "Toggle"
 toggle.AnchorPoint = Vector2.new(1, 1)
-toggle.Position = UDim2.new(1, -P.EdgePx, 1, -lift)
+toggle.Position = UDim2.new(1, -right, 1, -lift)
 toggle.Size = UDim2.fromOffset(P.ToggleSizePx[1], P.ToggleSizePx[2])
 toggle.BackgroundColor3 = Color3.new(0, 0, 0)
 toggle.TextColor3 = Color3.new(1, 1, 1)
@@ -70,7 +72,7 @@ toggle.Parent = gui
 local window = Instance.new("ScrollingFrame")
 window.Name = "Window"
 window.AnchorPoint = Vector2.new(1, 1)
-window.Position = UDim2.new(1, -P.EdgePx, 1, -(lift + P.ToggleSizePx[2] + P.EdgePx))
+window.Position = UDim2.new(1, -right, 1, -(lift + P.ToggleSizePx[2] + P.EdgePx))
 window.Size = UDim2.new(0, P.WidthPx, P.HeightShare, 0)
 window.BackgroundColor3 = tone("Ink")
 window.BackgroundTransparency = P.BackTransparency
