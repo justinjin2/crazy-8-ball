@@ -568,6 +568,32 @@ function MatchTargets.project(
 	return Vector2.new(screen.X, screen.Y) - self.root.AbsolutePosition, visible and screen.Z > 0
 end
 
+-- Where the way out of `pocket`'s mouth leaves the table (the rail's outer edge, at the rail
+-- top) on screen: a corner pocket's at 45 degrees (the rail's outer corner), a side pocket's
+-- straight across the rail. The pocket call's arrows rest their tips just past it.
+function MatchTargets.railEdge(self: any, camera: Camera, pocket: any): Vector2?
+	local g = self.geometry
+	if g == nil or math.abs(pocket.y) < 1e-6 then
+		return nil
+	end
+	local corner = math.abs(pocket.x) > g.halfLength / 2
+	local ux = if corner then math.sign(pocket.x) * math.sqrt(0.5) else 0
+	local uy = math.sign(pocket.y) * (if corner then math.sqrt(0.5) else 1)
+	local rail = Config.Table.RailWidthInches
+	local reach = math.huge
+	if math.abs(ux) > 1e-6 then
+		reach = math.min(reach, (g.halfLength + rail - math.abs(pocket.x)) / math.abs(ux))
+	end
+	if math.abs(uy) > 1e-6 then
+		reach = math.min(reach, (g.halfWidth + rail - math.abs(pocket.y)) / math.abs(uy))
+	end
+	if reach == math.huge or reach < 0 then
+		return nil
+	end
+	local top = Config.Table.RailTopInches
+	return (self:project(camera, pocket.x + ux * reach, pocket.y + uy * reach, top))
+end
+
 -- The called pocket's hole on screen, for the marker that stays up while the shooter aims:
 -- its centre at the rail top, where the black opening shows, and the shortest of its projected
 -- radii in pixels (the hole is an ellipse in perspective; the ring has to fit across its
@@ -693,13 +719,15 @@ function MatchTargets.update(self: any, dt: number, camera: Camera)
 		self:finishGesture(open)
 	end
 	local pulse = (math.sin(self.elapsed * math.pi * 2 / S.PulsePeriod) + 1) / 2
-	-- The arrows point from the table's middle out at each pocket, on the cloth (never under
-	-- the top bar), and bob toward it (designer, 2026-10-12: "moving gentle pointing arrows on
-	-- each 6 telling them to pick any of them"); on a controller only the lit pocket has one.
+	-- The arrows point at each pocket from outside the table (the top-down view pulls back to
+	-- keep them on screen: Camera's overhead margin), or from the cloth with Outside off, and
+	-- bob toward it (designer, 2026-10-12: "moving gentle pointing arrows on each 6 telling
+	-- them to pick any of them"); on a controller only the lit pocket has one.
 	local A = S.PocketArrows
 	local arrows = A.On and canCall
 	local middle = if arrows then self:project(camera, 0, 0, S.TargetHeightInches) else nil
 	local bob = A.BobPx * (1 - math.cos(self.elapsed * math.pi * 2 / A.BobSeconds)) / 2
+	local arrowPx = A.Px[if camera.ViewportSize.Y < S.ShortHeight then 1 else 2]
 	local onPad = PadMode.active()
 	for _, target in self.pockets do
 		local pocket = self.geometry.pockets[target.id]
@@ -761,11 +789,17 @@ function MatchTargets.update(self: any, dt: number, camera: Camera)
 			and (picked or not onPad)
 			and out.Magnitude > 1
 		if arrow.Visible then
-			local dir = out.Unit
-			local back = size / 2 + A.GapPx + A.Px / 2 + (A.BobPx - bob)
-			local at = position - dir * back
+			-- `dir`: the way the arrow points; `from`: where its tip rests, at bob's far end.
+			local dir, from = out.Unit, position - out.Unit * (size / 2)
+			local edge = if A.Outside then self:railEdge(camera, pocket) else nil
+			if edge and (edge - position).Magnitude > 1 then
+				dir, from = (position - edge).Unit, edge
+			elseif A.Outside then
+				dir, from = -dir, position + out.Unit * (size / 2)
+			end
+			local at = from - dir * (A.GapPx + arrowPx / 2 + (A.BobPx - bob))
 			arrow.Position = UDim2.fromOffset(at.X, at.Y)
-			arrow.Size = UDim2.fromOffset(A.Px, A.Px)
+			arrow.Size = UDim2.fromOffset(arrowPx, arrowPx)
 			-- The kit's arrow points right: turned so it points along `dir` (screen y grows down).
 			arrow.Rotation = math.deg(math.atan2(dir.Y, dir.X))
 		end

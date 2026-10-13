@@ -42,6 +42,7 @@ local connections: { RBXScriptConnection } = {}
 local topDown = false
 local hudTop = 0
 local hudBottom = Config.Multiplayer.CameraBottomFraction
+local overheadMargin = 0 -- pixels kept above and below the table in the top-down view (setMode)
 local transitionFrom: CFrame? = nil
 local transitionTime = 0
 local savedCamera: any = nil
@@ -546,7 +547,14 @@ end
 --- `headerPixels` and `bottomPixels` are how much of the screen the match HUD covers above
 --- and below; the top-down view and the whole-table end of the zoom keep the table clear of
 --- them, and a ball rolling under the header counts as off screen for the shot's pull-out.
-function Camera.setMode(overhead: boolean, headerPixels: number, bottomPixels: number?)
+--- `marginPixels`: the top-down view keeps this much more room above and below the table (the
+--- pocket call's arrows outside it: Style.PocketArrows.CameraMarginPx).
+function Camera.setMode(
+	overhead: boolean,
+	headerPixels: number,
+	bottomPixels: number?,
+	marginPixels: number?
+)
 	local vp = Workspace.CurrentCamera.ViewportSize
 	local reserved =
 		math.clamp(headerPixels / math.max(vp.Y, 1), 0, Config.Multiplayer.CameraMaxHudFraction)
@@ -559,6 +567,7 @@ function Camera.setMode(overhead: boolean, headerPixels: number, bottomPixels: n
 		end
 	end
 	topDown, hudTop = overhead, reserved
+	overheadMargin = marginPixels or 0
 	hudBottom =
 		math.max(Config.Multiplayer.CameraBottomFraction, (bottomPixels or 0) / math.max(vp.Y, 1))
 end
@@ -570,9 +579,11 @@ local function overheadView(): CFrame
 	local M = Config.Multiplayer
 	local halfX = TableBuilder.studs(Config.Table.LengthInches / 2 + Config.Table.RailWidthInches)
 	local halfY = TableBuilder.studs(Config.Table.WidthInches / 2 + Config.Table.RailWidthInches)
+	-- The margin as a share of the half screen it takes from (above and below alike).
+	local marginY = 2 * overheadMargin / math.max(vp.Y, 1)
 	local distance = math.max(
 		halfX / (tanH * (1 - 2 * M.CameraSideFraction)),
-		halfY / (tanV * math.max(0.2, 1 - hudTop - hudBottom))
+		halfY / (tanV * math.max(0.2, 1 - hudTop - hudBottom - marginY))
 	)
 	local up = TableBuilder.aimDirection(placement, math.pi / 2)
 	local target = tableCentre() + up * distance * tanV * (hudTop - hudBottom)

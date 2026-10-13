@@ -1573,10 +1573,15 @@ local function renderFrame(dt: number)
 			then ultPick:reserveTop()
 			elseif phase == "Sneak" then LookOverThereFx.reserveTop(hud:reservedHeight())
 			else hud:reservedHeight() + M.Style.TargetSize / 2
+		-- Calling the 8: room above and below the table for the arrows outside it.
+		local arrows = M.Style.PocketArrows
+		local arrowRoom = not picking and phase ~= "Sneak" and arrows.On and arrows.Outside
+		local short = workspace.CurrentCamera.ViewportSize.Y < M.Style.ShortHeight
 		Camera.setMode(
 			overhead,
 			header + GuiService:GetGuiInset().Y,
-			hud:reservedBottom() + M.Style.TargetSize / 2
+			hud:reservedBottom() + M.Style.TargetSize / 2,
+			if arrowRoom then arrows.CameraMarginPx[if short then 1 else 2] else 0
 		)
 		if busy and not lastBusy then
 			local cue = match:findCueBall()

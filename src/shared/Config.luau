@@ -8223,10 +8223,24 @@ Config.Multiplayer = {
 		PadPickGlowScale = 2.6,
 		PadPickGlowTransparency = 0.05,
 		-- Calling the 8 (MatchTargets; designer, 2026-10-12): the kit's arrow in white
-		-- (Kit.Icons.ArrowWhite; blue was lost on the cloth) by each pocket, pointing out at it and
-		-- bobbing BobPx toward it every BobSeconds; on a controller only the lit pocket has one.
-		-- The rings' "Pocket N" captions hide meanwhile. On = false: the captions, no arrows.
-		PocketArrows = { On = true, Px = 48, GapPx = 0, BobPx = 8, BobSeconds = 0.9 },
+		-- (Kit.Icons.ArrowWhite; blue was lost on the cloth) by each pocket, bobbing BobPx toward
+		-- it every BobSeconds; on a controller only the lit pocket has one. The rings' "Pocket N"
+		-- captions hide meanwhile. On = false: the captions, no arrows. Outside: each arrow sits
+		-- off the table beyond its pocket, its tip GapPx out from the rail's outer edge, pointing
+		-- in (designer, 2026-10-12: on the cloth "it might block the view of some balls"), and
+		-- the top-down view keeps CameraMarginPx more room above and below the table so they
+		-- stay on screen (designer: "zoom out a little"; the sides have room already); false:
+		-- on the cloth by the ring, pointing out, no pull-back. Sizes are { phone, computer }
+		-- (a phone: under ShortHeight tall).
+		PocketArrows = {
+			On = true,
+			Px = { 36, 48 },
+			GapPx = 4,
+			BobPx = 8,
+			BobSeconds = 0.9,
+			Outside = true,
+			CameraMarginPx = { 28, 40 },
+		},
 		-- After the call, the chosen pocket's marker sits inside its hole while you shoot, so it
 		-- never covers the jaws (designer, 2026-09-27): its outer edge (ink included) spans this
 		-- share of the hole's narrow way on screen, before the pulse (TargetPulse) adds 15%.
