@@ -29,7 +29,11 @@ entry of `docs/archive/STATUS_HISTORY.md`.
   (`b139ad8`, `43939a8`), the arrows off the table (`00a9c00`), the ABILITY IS READY popup
   (`2918d64`), a controller's suggested pocket (`dc94272`), rank bots that miss honestly, no
   planned scratch (`b33a4f2`, `382f003`, `c3f00be`, `343a20c`, `40d17f6`;
-  `Config.Bots.HonestMisses`). No save change (three tutorial moment bits appended). After approval: push, the designer publishes (Restart Servers
+  `Config.Bots.HonestMisses`). Fourth round (2026-10-13, DECISIONS): the ability card's words
+  inside (`dbcd213`), NEXT under the win track's tile (`9f5c39c`), a phone's Sky clock as icon
+  and time (`4ddd9f1`), ADMIN in the corner on touch (`81e2b8e`), the table below Roblox's
+  buttons (`fd554f5`), level same-size pocket arrows in the normal view (`69e3f7e`). No save
+  change (three tutorial moment bits appended). After approval: push, the designer publishes (Restart Servers
   optional), then watch a new account's tutorial on a phone, a lobby with bots and a phone
   match live.
 - **Lint and tests (2026-10-12 late night, `gui-v4`):** lint OK (four old LocalShadow
@@ -37,6 +41,8 @@ entry of `docs/archive/STATUS_HISTORY.md`.
   (1920 x 1080; the phone emulator was off): the pointer, the quest line, the arrows, the popup,
   the suggested pocket, the lobby's win track over Play Global, a Play against PC game with the
   Bronze bot (7 shots: blunders and near misses, none scratched or fouled); console clean.
+  The fourth round was checked on the phone emulator (750 x 381): the arrows, the table under
+  Roblox's buttons, the ability card, the NEXT tag, the Sky clock, ADMIN; console clean.
   Open from the bot duel (DECISIONS): Bronze measures 85% player wins against a 90% target
   (the model player's own 8-ball losses), Reyes 15% against 30% (drifted before this change). The Studio
   save was put back as it was (Done, $15,820, 2 matches).

@@ -234,12 +234,14 @@ below are the summary; the skill has the numbers and code.
   name. Once called, while you shoot, the chosen pocket keeps a ring sized to sit inside its
   hole on screen (it grows and shrinks with the zoom), with no caption, so nothing covers
   the pocket's jaws. **Pocket arrows** (designer, 2026-10-12): while choosing, a white arrow
-  (the kit's arrow redrawn in white, 48 px; 36 on a phone) points in at each pocket from **off
-  the table**, its tip just past the rail's outer edge (a corner's at 45 degrees from the
-  rail's corner, a side pocket's straight across), and bobs 8 px toward it (0.9 s), in every
-  match, so none covers a ball; the top-down view keeps 40 px (28 on a phone) more room above
-  and below the table for them. The rings' names hide while they show; with a controller only
-  the lit pocket's arrow, and the call starts lit on the 8's easiest pocket.
+  (the kit's arrow redrawn in white, 48 px; 36 on a phone) points at each pocket, **level and
+  all one size** (2026-10-13): a corner's comes in from beyond the table's end at its pocket's
+  height, a side pocket's lies on its rail from the left, reaching out over the wood; none is
+  on the cloth, so none covers a ball. Each bobs 8 px toward its pocket (0.9 s), in every
+  match, in the normal top-down view (the pulled-back view of 2026-10-12 was too small). The
+  rings' names hide while they show; with a controller only the lit pocket's arrow, and the
+  call starts lit on the 8's easiest pocket. The top-down view keeps the table below Roblox's
+  own buttons as well as our top bar (on a phone the menu covered the top-left pocket).
 - **Ability info** (designer, 2026-10-12): at the in-match ability bar's right end a small
   white disc holds the ability's icon with a blue "i" badge (the R1 / RB picture on an ink disc
   while a gamepad is in use), its press area 44 px. Hovering the bar, clicking or tapping the
