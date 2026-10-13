@@ -875,7 +875,12 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
 - **Ten bots, one per tier** (designer, 2026-09-26; built 2026-10-02, `docs/prompts/BOTS_PROMPT.md`):
   one skill level per tier; the player's chance of beating the bot of their own rank is
   Bronze 90%, Silver 80, Gold 65, Platinum 57, Diamond 50, Expert 50, Veteran 45, Master 40,
-  Grandmaster 35, Reyes 30. **Play against PC** is a robot named "<Tier> Bot" at the player's
+  Grandmaster 35, Reyes 30. **Bots miss honestly** (designer, 2026-10-12): never a shot meant
+  to scratch; every shot goes at one of their own balls (a kick off a cushion when they are
+  blocked), and a blunder or soft hit that would scratch or foul is never chosen; a low tier's
+  misses lean to leaving the player a pot (Bronze most, Silver some, Gold a little, Platinum
+  and up never), so a Bronze bot loses by setting the player up, not by dropping the cue ball
+  (`Config.Bots.HonestMisses`). **Play against PC** is a robot named "<Tier> Bot" at the player's
   own tier (Unranked: Bronze), whatever the table's difficulty; the real player always breaks.
   **Disguised bots** (the search's fallback after 5 s for 1v1, in the player's own server at a
   free table since 2026-10-09 (10 s until 2026-10-07), and 5 s for teams (25 s until
