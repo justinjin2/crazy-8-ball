@@ -229,8 +229,8 @@ Epic block. **VIP every day**: a Mystery and a spin (unchanged).
 
 **Playtime gifts**: 5 min $250, 15 min $250, 30 min $500, 45 min $500, 60 min $1,000 + a spin.
 
-**Social**: the group **1 Mystery**; like + favorite **$5,000 + the Lucky 8 + a Mystery**
-(2026-10-11; given after a rejoin, see GDD); the tutorial's "Now go win a match!" wins **a Mystery block**
+**Social**: the group **1 Mystery**; favorite the game **$5,000 + the Lucky 8 + a Mystery**
+(2026-10-11; for the favorite alone since 2026-10-13, see GDD); the tutorial's "Now go win a match!" wins **a Mystery block**
 once (designer, 2026-10-12, `Config.Tutorial.Soft.QuestRewardBlock`; it was $2,500 earlier that
 day, `QuestRewardMoney`, which comes back if the block is set to nil); with the win track's own
 win-1 Mystery that first win gives two Mysteries (designer's pick); invites the

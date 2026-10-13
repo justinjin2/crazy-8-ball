@@ -19,7 +19,9 @@ entry of `docs/archive/STATUS_HISTORY.md`.
   "The game is live".
 - **Published:** everything up to `c499ecf` (2026-10-12; the list is in STATUS_HISTORY). **Not
   yet published:** the Shop restock's "Epic or better!" tag removed (DECISIONS); the VIP card's perk
-  list says "Gold chat tag" instead of "Rainbow chat tag" (`2c6972f`).
+  list says "Gold chat tag" instead of "Rainbow chat tag" (`2c6972f`); the favorite card rewards
+  the favorite only (`3037341`: "Favorite" + "+ Like the game if you enjoy!", Verify is Roblox's
+  favorite prompt, no favorite opens the steps popup).
 - **Now (2026-10-12): a tester's QA batch, committed on `gui-v4`, NOT pushed**, held until the
   designer approves the test page (Artifact "Oct 12 Fixes Checklist"). Rounds 1 and 2 (the
   tester's 8 notes, then the designer's first notes) are listed in STATUS_HISTORY's top entry.
@@ -86,7 +88,7 @@ One line each; the long form is the 2026-10-12 (evening) entry at the top of
   picking up drops, a phone.
 - **The new rank ladder**: the `rank catch-up` server lines, claims, win rates against bots
   from Gold up.
-- **Onboarding**, "Just one more game?", Like + Favorite, Camera after a shot, Emotes: a new
+- **Onboarding**, "Just one more game?", the Favorite card, Camera after a shot, Emotes: a new
   account, a phone and a controller. **Solo and Practice portals**: a real teleport. **Launch
   leftovers** and **the funnels**: the 2026-10-12 STATUS_HISTORY entry.
 

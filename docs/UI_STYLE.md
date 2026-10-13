@@ -1054,18 +1054,20 @@ player's first win shows its Rare block).
   money while you're in the group", a full-width green Join with the busts, Claim! for a
   member) and "Favorite the game" (gold: the Lucky 8 Block with a star and cash, "+1 Lucky 8
   Block", "+$10,000", Favorite with the star; every reward says its count, `RewardsParts.gains`); each picture wears its block's dice; a claimed
-  one's button turns grey "Claimed". Since 2026-10-11 the gold card is "Like + Favorite the
-  game" (the title wraps onto two lines at its size, `TitleMaxRows`): one bullet a reward,
+  one's button turns grey "Claimed". Since 2026-10-13 the gold card's title is "Favorite" with
+  "+ Like the game if you enjoy!" in blue under it on one line (smaller to fit,
+  `Heroes.LikeUnits`, `LikeColor`): one bullet a reward,
   "+1 Lucky 8 Block", "+1 Mystery Lucky Block", "+$5,000", a small Mystery block at the
   Lucky 8's foot in the picture (`Heroes.Extra`) and a thumbs up beside the star at the
   top right, both a little smaller, wiggling with it (`Heroes.Star`, `Heroes.Thumb`), and one green
-  Verify across its foot (the check, shining; the yellow Favorite beside it went, 2026-10-11); Claimed in its place. The first Verify that passes opens the
-  **"ALMOST THERE!" popup** (`LikeRejoinPopup`, `Config.UI.FreeReward.LikePopup`; concept A,
-  2026-10-11): the house slam with no burst, "Like the game to unlock your reward", three step
-  cards popping in one by one with arrows between (1 the door: Leave the game; 2 lit gold, a
-  rocking thumbs up: Press the thumbs up on the game's page; 3 the check: Rejoin and press
-  Verify), the reward in a white pill (its words, each block's picture, the money), then a blue
-  Later and a green shining Leave & Like with the door. No X; the tutorial's rings wait under
+  Verify across its foot (the check, shining; the yellow Favorite beside it went, 2026-10-11); Claimed in its place. Verify opens Roblox's favorite prompt; no favorite
+  there opens the **"ALMOST THERE!" popup** (`LikeRejoinPopup`, `Config.UI.FreeReward.LikePopup`;
+  concept A 2026-10-11, the favorite steps 2026-10-13): the house slam with no burst, "Favorite
+  the game to unlock your reward", three step cards popping in one by one with arrows between
+  (1 the door: Leave the game; 2 lit gold, a rocking star: Press Favorite on the game's page;
+  3 the check: Rejoin and press Verify), "Give the game a like if you enjoy!" in a tilted gold
+  pill with a rocking thumbs up, the reward in a white pill (its words, each block's picture,
+  the money), then a blue Later and a green shining Leave Game with the door. No X; the tutorial's rings wait under
   it. The invite card under them, the panel as tall as both
   with "- DAILY -" peeking. Once both are claimed the next open is the page below, Group last.
   Decided as the menu opens, so a claim never moves the page under a finger.
