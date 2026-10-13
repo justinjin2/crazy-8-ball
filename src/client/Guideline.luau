@@ -11,7 +11,7 @@
 --     path through the air (every hop) drifting toward the target, a faint shadow line on the
 --     cloth under each hop, and the corridor starting where the ball settles
 -- How much of it a table draws is its difficulty (Config.Difficulty); the red cross is
--- always drawn. With Fire Shot armed (Aim.fullLines) everything is drawn, and the object
+-- always drawn. With Fire Shot or Eagle's Eye armed (Aim.fullLines) everything is drawn, and the object
 -- ball's and the cue ball's lines run on to the next cushion, ball or pocket.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -242,15 +242,16 @@ end
 local FULL_DRAWS = { Corridor = true, Stubs = true, Landings = true, Arc = true }
 
 --- Draw `trace` at difficulty `level` (a Config.Difficulty.Levels key; nil is the default).
---- `full` (Aim.fullLines, Fire Shot armed): the lines after the first contact run on to the
---- next cushion, ball or pocket, everything is drawn whatever the difficulty, and the lines are
---- orange (Config.Guideline.FullColor).
+--- `full` (Aim.fullLines, Fire Shot or Eagle's Eye armed): the lines after the first contact
+--- run on to the next cushion, ball or pocket, and everything is drawn whatever the difficulty;
+--- `orange` (Fire Shot) paints them Config.Guideline.FullColor.
 function Guideline.show(
 	self: Guideline,
 	trace: Trace,
 	invalid: boolean?,
 	level: string?,
-	full: FullLines?
+	full: FullLines?,
+	orange: boolean?
 )
 	if trace.contact == "none" then
 		self:hide()
@@ -270,7 +271,7 @@ function Guideline.show(
 	local draws = if full then FULL_DRAWS else D.Levels[level or D.Default] or D.Levels[D.Default]
 	local G = Config.Guideline
 	-- Fire Shot's lines are orange (designer, 2026-10-09), the same lines otherwise.
-	local tint = if full
+	local tint = if full and orange
 		then Color3.fromRGB(G.FullColor[1], G.FullColor[2], G.FullColor[3])
 		else lineColor()
 	if tint ~= self.tint then

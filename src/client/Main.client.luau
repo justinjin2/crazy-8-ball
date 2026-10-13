@@ -383,10 +383,17 @@ local function refreshAim()
 			trace.objectId
 		)
 	-- The host's difficulty decides how many lines are drawn; the wrong-target warning is
-	-- shown at every level (Config.Difficulty). Fire Shot armed: every line, and the two after
-	-- the first contact run on to the next cushion (Aim.fullLines).
+	-- shown at every level (Config.Difficulty). Fire Shot or Eagle's Eye armed: every line, and
+	-- the two after the first contact run on to the next cushion (Aim.fullLines); Fire Shot's
+	-- orange.
 	local full = if UltCatalog.fullLines(armedUlt) then Aim.fullLines(match.state, trace) else nil
-	guideline:show(trace, invalid, snapshot.settings and snapshot.settings.difficulty, full)
+	guideline:show(
+		trace,
+		invalid,
+		snapshot.settings and snapshot.settings.difficulty,
+		full,
+		UltCatalog.fullLinesOrange(armedUlt)
+	)
 	hud:setInvalidTarget(invalid)
 end
 local function sound(key: string, id: string, volume: number?)

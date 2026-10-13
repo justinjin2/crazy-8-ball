@@ -109,15 +109,28 @@ function Catalog.launchScale(id: any): number?
 	return if type(k) == "number" then k else nil
 end
 
---- Whether ult `id` draws the shooter's full lines while armed (Config.Ults[<its Effect>].FullLines:
---- Fire Shot): the guideline's object ball and cue ball lines run on to the next cushion.
-function Catalog.fullLines(id: any): boolean
+-- Ult `id`'s Config.Ults block (by its Effect), nil when it has none.
+local function effectBlock(id: any): any
 	if not Catalog.exists(id) then
-		return false
+		return nil
 	end
 	local effect = ROWS[id].Effect
 	local block = if type(effect) == "string" then (U :: any)[effect] else nil
-	return type(block) == "table" and block.FullLines == true
+	return if type(block) == "table" then block else nil
+end
+
+--- Whether ult `id` draws the shooter's full lines while armed (Config.Ults[<its Effect>].FullLines:
+--- Fire Shot, Eagle's Eye): the guideline's object ball and cue ball lines run on to the next
+--- cushion.
+function Catalog.fullLines(id: any): boolean
+	local block = effectBlock(id)
+	return block ~= nil and block.FullLines == true
+end
+
+--- Whether those full lines are orange (FullLinesOrange: Fire Shot's fire).
+function Catalog.fullLinesOrange(id: any): boolean
+	local block = effectBlock(id)
+	return block ~= nil and block.FullLinesOrange == true
 end
 
 --- What a retired ult id (taken out of the game, Config.Ults.Retired) becomes in a saved slot,

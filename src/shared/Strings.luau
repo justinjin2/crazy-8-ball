@@ -1550,7 +1550,7 @@ return {
 		},
 		Descriptions = {
 			Magnet = "The first ball your next shot hits is pulled into a pocket it nearly misses.",
-			EaglesEye = "See the full path of your shot, every bounce included.",
+			EaglesEye = "Your aim lines run all the way to the cushions, and once you pull back you see the full path of your shot, every bounce included.",
 			FireShot = "Your cue ball bursts into flames! Its aim lines run all the way to the cushions, and it flies at double power, scorching the cloth.",
 			SuperBounce = "The cue ball turns rainbow and keeps bouncing. The first ball of yours it hits bounces too, and boings off a pocket's jaw straight in.",
 			CatchABall = "Your cue ball becomes a catch ball. The first ball it hits is caught inside, then it hops to your nearest ball and catches that too. Both count as pocketed.",

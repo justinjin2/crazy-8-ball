@@ -4857,6 +4857,10 @@ Config.Ults.EaglesEye = {
 	-- Each drawn path stops at this many cushion bounces (nil: every bounce to rest). The
 	-- harness's lever if the worth comes out far over the Common row. (tune)
 	MaxRails = nil :: number?,
+	-- Fire Shot's full aim lines while armed, in the guideline's own colour (designer,
+	-- 2026-10-13: "a buff like fireshot to show the full aim line before shooting"); the gold
+	-- path still waits for the pull (EaglesEyeFx).
+	FullLines = true,
 }
 
 -- Fire Shot (the designer's third rework round, 2026-10-08: Super Bounce reworked, the starter;
@@ -4869,6 +4873,7 @@ Config.Ults.EaglesEye = {
 Config.Ults.FireShot = {
 	LaunchSpeedScale = 2, -- the designer: "increased power like 2x speed"
 	FullLines = true,
+	FullLinesOrange = true, -- its full lines are orange (designer, 2026-10-09)
 	-- The guide (designer, 2026-10-10: at double speed a ball sent at a pocket "just rattles
 	-- between the corner pocket"; the starter must be useful, "not too obvious"): the first
 	-- ball the cue ball hits, if it is the shooter's, gets the tutorial's gentle pull near a

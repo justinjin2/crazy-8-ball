@@ -208,9 +208,14 @@ function tests.the_aim_knows_the_launch_abilities()
 		"Black Flash"
 	)
 	check(Catalog.launchScale("Magnet") == nil and Catalog.launchScale(nil) == nil, "no other")
-	-- Its longer lines (the designer: "to the next edge of a table"); no other ult has them.
+	-- Its longer lines (the designer: "to the next edge of a table"), orange; Eagle's Eye has
+	-- them too in the guideline's own colour (designer, 2026-10-13); no other ult has them.
 	check(Catalog.fullLines("FireShot"), "Fire Shot draws the full lines")
+	check(Catalog.fullLinesOrange("FireShot"), "Fire Shot's are orange")
+	check(Catalog.fullLines("EaglesEye"), "Eagle's Eye draws the full lines")
+	check(not Catalog.fullLinesOrange("EaglesEye"), "Eagle's Eye's are not orange")
 	check(not Catalog.fullLines("BlackFlash") and not Catalog.fullLines(nil), "nothing else")
+	check(not Catalog.fullLinesOrange("BlackFlash") and not Catalog.fullLinesOrange(nil), "none")
 end
 
 return tests
