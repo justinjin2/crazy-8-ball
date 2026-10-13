@@ -293,7 +293,7 @@ return {
 		WinsTo = "%d WINS TO %s!",
 		WinsToGo = "%d WINS TO GO!", -- a phone's short name row
 		ChatTag = "[%s]", -- before a name in chat, the tier in capitals: "[PLATINUM]" (ChatTags)
-		VipTag = "[VIP]", -- first before a VIP player's name in chat, in the house rainbow (ChatTags)
+		VipTag = "[VIP]", -- first before a VIP player's name in chat, in VIP's gold (ChatTags)
 		OwnerTag = "[OWNER]", -- the designer's only tag in chat (ChatTags, Config.Ranks.Owner)
 	},
 	-- The developer chat commands' private replies (DevCommands; shown only to the caller).
@@ -850,7 +850,7 @@ return {
 					"+1 ability spin a day",
 					"VIP restock slot",
 					"The VIP Cue",
-					"Rainbow chat tag",
+					"Gold chat tag",
 				},
 				VipPerkWideRestricted = "$5,000 every day",
 				EndsIn = "Ends in %s",
