@@ -187,6 +187,29 @@ tests["the soft hit finds its own ball past a ball in the way"] = function()
 	end
 end
 
+tests["the soft hit kicks off a cushion when its ball is walled off"] = function()
+	-- Three stripes in a wall across every straight line from the cue ball to the 1.
+	local view = viewOf(V.customState({
+		{ 0, -30, 0 },
+		{ 1, 10, 0 },
+		{ 9, -10, 0 },
+		{ 10, -10, 2.4 },
+		{ 11, -10, -2.4 },
+		{ 8, 30, 15 },
+		{ 12, 35, -15 },
+	}, { "solids", "stripes" }))
+	assert(#Finder.pots(view, 2) == 0, "no pot from here")
+	local straight = Finder.safePlan(view)
+	local old = Brain.simulate(view, straight, nil, nil, straight.called)
+	assert(old.foul == "WrongContact", "the plain soft hit meets the wall first")
+	local d = withHonest(true, function()
+		return Brain.decide(view, "Bronze", Rng.new(3))
+	end)
+	local trial = Brain.simulate(view, d, nil, nil, d.called)
+	assert(Brain.fair(view, trial), "a fair kick: " .. tostring(trial.foul))
+	assert(trial.first == 1, "the 1 first")
+end
+
 tests["a set-up miss leaves the opponent at least the pot a plain miss does"] = function()
 	local better, compared = 0, 0
 	for _, p in positions(18) do

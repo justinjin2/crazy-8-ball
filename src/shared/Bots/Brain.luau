@@ -247,10 +247,10 @@ function Brain.leave(view: View, trial: Trial): number
 end
 
 --- Whether an honest bot may play `trial`: one of its own balls met first, the cue ball up,
---- the game going on and no foul (with `railOk`, the rail-after-contact rule's alone: an
---- honest miss on a ranked table).
+--- no foul (with `railOk`, the rail-after-contact rule's alone: an honest miss on a ranked
+--- table) and the game going on, or won (a soft touch that drops the 8 in its pocket).
 function Brain.fair(view: View, trial: Trial, railOk: boolean?): boolean
-	if trial.scratch or trial.winner ~= nil then
+	if trial.scratch or (trial.winner ~= nil and trial.winner ~= view.team) then
 		return false
 	end
 	if trial.foul ~= nil and not (railOk and trial.foul == "NoRail") then
@@ -553,12 +553,13 @@ function Brain.honestBlunder(
 	return best
 end
 
---- An honest soft hit (HonestMisses: no pot, or no near miss): soft hits across its nearest
+--- An honest soft hit (HonestMisses: no pot, or no near miss): soft hits at its nearest
 --- Soft.Balls balls (clear paths first), the aim moved across each by Soft.Aims shares of the
 --- widest angle that still meets it, at Soft.Powers times the soft speed, at most Soft.Tries
---- in all. The first fair one (Brain.fair) is played, or with `setUp` the fair one that leaves
---- the opponent the easiest pot; failing those, one that breaks only the rail rule. Nil when
---- none meets its own ball first.
+--- in all; with none fair, one-rail kicks at them (the cue ball off a cushion first, at most
+--- Soft.Kicks). The first fair one (Brain.fair) is played, or with `setUp` the fair one that
+--- leaves the opponent the easiest pot; failing those, one that breaks only the rail rule. Nil
+--- when none meets its own ball first.
 function Brain.softHit(
 	view: View,
 	rng: Rng,
@@ -604,35 +605,71 @@ function Brain.softHit(
 	local best: Decision? = nil
 	local bestLeave = -1
 	local railOnly: Decision? = nil
+	-- Plays one try; true when it is the one to play now (fair, and no set-up to weigh).
+	local function try(plan: Plan, angle: number, power: number): boolean
+		local trial =
+			Brain.simulate(view, { angle = angle, power = power }, cueX, cueY, plan.called)
+		if yield then
+			yield()
+		end
+		if Brain.fair(view, trial) then
+			local d = decision("safe", plan, angle, power, false, cueX, cueY)
+			if not setUp then
+				best = d
+				return true
+			end
+			local leave = Brain.leave(view, trial)
+			if leave > bestLeave then
+				best, bestLeave = d, leave
+			end
+		elseif railOnly == nil and Brain.fair(view, trial, true) then
+			railOnly = decision("safe", plan, angle, power, false, cueX, cueY)
+		end
+		return false
+	end
 	local tries = 0
-	for _, k in S.Powers do
-		for i = 1, math.min(#targets, S.Balls) do
-			local t = targets[i]
-			local plan = Finder.hitPlan(view, t.id, cx, cy)
-			local half = math.asin(math.clamp(D * 0.9 / math.max(t.d, D), 0, 1))
+	for i = 1, math.min(#targets, S.Balls) do
+		local t = targets[i]
+		local plan = Finder.hitPlan(view, t.id, cx, cy)
+		local half = math.asin(math.clamp(D * 0.9 / math.max(t.d, D), 0, 1))
+		for _, k in S.Powers do
 			for _, f in S.Aims do
 				if tries >= S.Tries then
 					break
 				end
 				tries += 1
-				local angle = plan.angle + half * f + noise
-				local power = plan.power * k
-				local trial =
-					Brain.simulate(view, { angle = angle, power = power }, cueX, cueY, plan.called)
-				if yield then
-					yield()
+				if try(plan, plan.angle + half * f + noise, plan.power * k) then
+					return best
 				end
-				if Brain.fair(view, trial) then
-					local d = decision("safe", plan, angle, power, false, cueX, cueY)
-					if not setUp then
-						return d
-					end
-					local leave = Brain.leave(view, trial)
-					if leave > bestLeave then
-						best, bestLeave = d, leave
-					end
-				elseif railOnly == nil and Brain.fair(view, trial, true) then
-					railOnly = decision("safe", plan, angle, power, false, cueX, cueY)
+			end
+		end
+	end
+	if best == nil then
+		-- One-rail kicks: aimed at the ball's mirror image in each cushion (the line its
+		-- centre can reach), a little harder for the longer way round.
+		local R = D / 2
+		local HL, HW = view.geometry.halfLength - R, view.geometry.halfWidth - R
+		local kicks = 0
+		for i = 1, math.min(#targets, S.Balls) do
+			local t = targets[i]
+			local b = Finder.findBall(view.balls, t.id) :: Ball
+			for _, m in
+				{
+					{ 2 * HL - b.x, b.y },
+					{ -2 * HL - b.x, b.y },
+					{ b.x, 2 * HW - b.y },
+					{ b.x, -2 * HW - b.y },
+				}
+			do
+				if kicks >= S.Kicks then
+					break
+				end
+				kicks += 1
+				local len = math.sqrt((m[1] - cx) ^ 2 + (m[2] - cy) ^ 2)
+				local speed = (B.Finder.SafeSpeed + B.Finder.SafeSpeedPerInch * len) * S.KickSpeed
+				local plan = Finder.hitPlan(view, t.id, cx, cy, speed)
+				if try(plan, math.atan2(m[2] - cy, m[1] - cx) + noise, plan.power) then
+					return best
 				end
 			end
 		end
@@ -777,8 +814,12 @@ function Brain.decide(view: View, tierName: string?, rng: Rng, options: Options?
 	local wantMake = o.forceMake or (not o.forceMiss and not missOnly and Rng.chance(rng, p))
 	local kind: Kind = if plan.ball == 8 then "eight" else "make"
 	if wantMake then
-		local a, pw = Brain.make(view, plan, rng, yield)
-		return decision(kind, plan, a, pw, easy, cueX, cueY)
+		local a, pw, ok = Brain.make(view, plan, rng, yield)
+		-- HonestMisses: a pot none of its tries makes cleanly (its own aim would foul or stay
+		-- up) is played as a near miss instead, checked like any other.
+		if ok or not honest or o.forceMake then
+			return decision(kind, plan, a, pw, easy, cueX, cueY)
+		end
 	end
 	local a, pw = Brain.nearMiss(view, plan, rng, yield, honest and setUp())
 	if a and pw then

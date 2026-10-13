@@ -14345,15 +14345,19 @@ Config.Bots = {
 		Gold = { Make = 0.45, Blunder = 0.05, Scratch = 0.02 },
 		Platinum = { Make = 0.525, Blunder = 0, Scratch = 0.01 },
 	},
-	-- The honest soft hit (no pot, or no near miss that keeps to the rules): soft hits across
-	-- its nearest Balls balls (clear paths first), the aim moved across each ball by these
-	-- shares of the widest angle that still meets it (0 a full hit), at these multiples of the
-	-- soft speed (the second for a ranked table's rail rule); at most Tries simulations a shot.
+	-- The honest soft hit (no pot, or no near miss that keeps to the rules): soft hits at its
+	-- nearest Balls balls (clear paths first), the aim moved across each ball by these shares of
+	-- the widest angle that still meets it (0 a full hit), at these multiples of the soft speed
+	-- (the second for a ranked table's rail rule); at most Tries simulations a shot. With none
+	-- fair (its balls blocked), up to Kicks one-rail kicks at them, KickSpeed times the soft
+	-- speed for the longer way round.
 	Soft = {
 		Balls = 3,
 		Aims = { 0, 0.5, -0.5, 0.85, -0.85 },
 		Powers = { 1, 1.6 },
-		Tries = 12,
+		Tries = 20,
+		Kicks = 12,
+		KickSpeed = 1.3,
 	},
 	-- The shot finder (ported from the ability harness's model shooter): the thinnest cut,
 	-- how far off a pocket's axis a ball may arrive, the object ball's speed at the mouth.
