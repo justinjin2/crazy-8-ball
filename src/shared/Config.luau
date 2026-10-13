@@ -14222,7 +14222,10 @@ Config.Bots = {
 	-- rank): Bronze 90%, Silver 80, Gold 65, Platinum 57, Diamond 50, Expert 50, Veteran 45,
 	-- Master 40, Grandmaster 35, Reyes 30. tools/bot_duel.luau measures them; its table is in
 	-- tools/bot_duel_results.json (tuned 2026-10-02 against the duel's model player of each
-	-- rank, kept rising with the rank).
+	-- rank, kept rising with the rank; measured again 2026-10-12 with HonestMisses, 600 games
+	-- a tier: Bronze 85% (the model player's own mistakes on the 8 hold it there whatever the
+	-- bot's Make, as with the old bot), Silver 81, Gold 66, Platinum 58 once its Make went
+	-- 0.525 -> 0.5 (54 before)).
 	--   Make: how often it lands a pot it goes for (else a near miss, never wild).
 	--   Behind: added to Make while it has BehindBalls or more balls left than the opponent.
 	--   Blunder: share of pot attempts played as a full-ball hit with no real angle (Bronze);
@@ -14262,7 +14265,7 @@ Config.Bots = {
 			PlaceSamples = 8,
 		},
 		Platinum = {
-			Make = 0.525,
+			Make = 0.5, -- 0.525 until 2026-10-12 (honest misses made it harder)
 			Behind = 0.08,
 			Blunder = 0,
 			SetUp = 0,
