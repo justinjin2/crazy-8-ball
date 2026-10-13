@@ -1573,6 +1573,10 @@ local function renderFrame(dt: number)
 			then ultPick:reserveTop()
 			elseif phase == "Sneak" then LookOverThereFx.reserveTop(hud:reservedHeight())
 			else hud:reservedHeight() + M.Style.TargetSize / 2
+		-- Never under Roblox's own buttons either (the menu, chat, voice): on a phone they reach
+		-- lower than our top bar, and the top-left pocket sat under them (designer, 2026-10-13).
+		local rowBottom = GuiService.TopbarInset.Max.Y - GuiService:GetGuiInset().Y
+		header = math.max(header, rowBottom + M.Style.TargetSize / 2)
 		-- Calling the 8: room above and below the table for the arrows outside it.
 		local arrows = M.Style.PocketArrows
 		local arrowRoom = not picking and phase ~= "Sneak" and arrows.On and arrows.Outside
