@@ -90,6 +90,10 @@ export type Overlay = typeof(setmetatable(
 		clock: number,
 		shakeAt: number, -- when the line's shake began (self.clock), or -inf
 		avoid: (() -> { Vector3 })?, -- points in the world the line keeps off (a glowing pocket)
+		clearOf: (() -> { Target })?, -- our own pieces the line's words keep off (pocket arrows)
+		clearY: number?, -- the lowest top they have pushed the line to (it holds still there)
+		clearView: Vector2?, -- the screen's size then
+		clearCamera: CFrame?, -- and the camera (a camera on the move starts it over)
 	},
 	TutorialOverlay
 ))
@@ -324,6 +328,10 @@ function TutorialOverlay.new(): Overlay
 		dpads = {},
 		shakeAt = -math.huge,
 		avoid = nil,
+		clearOf = nil,
+		clearY = nil,
+		clearView = nil,
+		clearCamera = nil,
 	}, TutorialOverlay)
 	self:buildSkip()
 	self:buildRow()
@@ -614,6 +622,7 @@ function TutorialOverlay.say(self: Overlay, text: string?, place: string?)
 	self.lineText = text
 	self.lineCheckedAt = -math.huge
 	self.lineShare = 1
+	self.clearY = nil
 	self.line.Visible = false
 	self.row.Visible = false
 	if text == nil or text == "" then
@@ -1041,6 +1050,48 @@ function TutorialOverlay.update(self: Overlay, dt: number)
 		if not moved then
 			break
 		end
+	end
+	-- Our own pieces to keep clear (the pocket rings and their arrows while the 8 is called: on
+	-- a phone the top ones sit right where the line is, 2026-10-12): the words move just under
+	-- the lowest one they would cover, and stay at the lowest they have been pushed to (the
+	-- arrows bob and the rings pulse; the line holds still).
+	local pieces: { ScreenLayout.Rect } = {}
+	if self.clearOf then
+		for _, target in self.clearOf() do
+			local mid, span = target()
+			if mid and span then
+				local r = ScreenLayout.rect(mid.X - span.X / 2, mid.Y - span.Y / 2, span.X, span.Y)
+				table.insert(pieces, r)
+			end
+		end
+	end
+	local pushed = false
+	for _ = 1, #pieces do
+		local moved = false
+		for _, r in pieces do
+			local words = ScreenLayout.rect(box.x + (box.w - wordsW) / 2, box.y, wordsW, height)
+			if ScreenLayout.overlaps(words, r) then
+				box.y = r.y + r.h + O.LineClearGapPx
+				moved, pushed = true, true
+			end
+		end
+		if not moved then
+			break
+		end
+	end
+	local was = self.clearCamera
+	local still = was ~= nil
+		and (camera.CFrame.Position - was.Position).Magnitude <= O.LineClearStillStuds
+		and camera.CFrame.LookVector:Dot(was.LookVector)
+			>= math.cos(math.rad(O.LineClearStillDegrees))
+	if #pieces == 0 or self.clearView ~= view or not still then
+		self.clearY, self.clearView, self.clearCamera = nil, view, camera.CFrame
+	end
+	if pushed then
+		self.clearY = math.max(self.clearY or box.y, box.y)
+	end
+	if self.clearY then
+		box.y = math.max(box.y, self.clearY)
 	end
 	local x = box.x + box.w / 2
 	-- The shake: a quick side-to-side that dies away.

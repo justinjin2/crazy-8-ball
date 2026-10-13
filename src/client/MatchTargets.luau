@@ -208,6 +208,7 @@ function MatchTargets.new(
 		}
 		table.insert(self.pockets, item)
 		TutorialAnchors.set("Pocket" .. id, button) -- the tutorial lane's hand taps one
+		TutorialAnchors.set("PocketArrow" .. id, arrow) -- the tutorial's line keeps off it
 		button.Activated:Connect(function()
 			self:call(id)
 		end)

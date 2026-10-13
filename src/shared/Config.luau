@@ -15043,6 +15043,11 @@ Config.Tutorial = {
 		LineSteps = 3,
 		LineStepGapPx = 4,
 		LineAvoidPx = 40, -- a line kept off a point (a glowing pocket): moved this far under it
+		LineClearGapPx = 6, -- a line kept off our own pieces (the pocket arrows): this far under
+		-- It holds the lowest place they pushed it to (the arrows bob) while the camera stays
+		-- within these of where it was (a camera still flying in starts it over).
+		LineClearStillStuds = 0.05,
+		LineClearStillDegrees = 0.5,
 		-- The light dim (designer, 2026-10-03: light): black at this transparency.
 		DimTransparency = 0.65,
 		DimFadeSeconds = 0.25,

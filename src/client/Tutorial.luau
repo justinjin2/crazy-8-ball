@@ -1198,6 +1198,17 @@ function Tutorial.start()
 		end
 		return spots
 	end
+	-- While the 8 is called: each pocket's ring and its arrow (MatchTargets), one piece each.
+	local pockets = {}
+	for id = 1, 6 do
+		table.insert(
+			pockets,
+			TutorialOverlay.guiTargets({ "Pocket" .. id, "PocketArrow" .. id }, 0)
+		)
+	end
+	overlay.clearOf = function(): { TutorialOverlay.Target }
+		return if player:GetAttribute("TutorialLesson") == "Eight" then pockets else {}
+	end
 	TutorialAnchors.weakRelease:Connect(function()
 		overlay:shake()
 		hand:nudge()
