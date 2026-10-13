@@ -1214,7 +1214,10 @@ function Tutorial.start()
 	for id = 1, 6 do
 		table.insert(
 			pockets,
-			TutorialOverlay.guiTargets({ "Pocket" .. id, "PocketArrow" .. id }, 0)
+			TutorialOverlay.guiTargets(
+				{ "Pocket" .. id, "PocketArrow" .. id, "PocketArrowB" .. id },
+				0
+			)
 		)
 	end
 	overlay.clearOf = function(): { TutorialOverlay.Target }

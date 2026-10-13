@@ -8231,9 +8231,10 @@ Config.Multiplayer = {
 		-- captions hide meanwhile. On = false: the captions, no arrows. Beside (designer,
 		-- 2026-10-13: "just go for the arrows on the side but make sure theyre all the same size
 		-- ... and the table is big enough and center"): every arrow level and Px, in the normal
-		-- top-down view: a corner's comes in from beyond the table's end at its pocket's height, a
-		-- side pocket's lies on its rail from the left, reaching out over the wood, never onto
-		-- the cloth. Else Outside: from past the rail's outer edge, pointing in at 45 degrees for
+		-- top-down view: a corner's comes in from beyond the table's end, a side pocket gets two,
+		-- one from each side along its rail, each row's arrows in one line through the rings'
+		-- centres (designer, 2026-10-13: "align them better and for middle pocket give two").
+		-- Else Outside: from past the rail's outer edge, pointing in at 45 degrees for
 		-- a corner, the view pulled back CameraMarginPx above and below the table (2026-10-12:
 		-- on the cloth "it might block the view of some balls"); neither: on the cloth by the
 		-- ring, pointing out. Sizes are { phone, computer } (a phone: under ShortHeight tall).

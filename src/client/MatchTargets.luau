@@ -196,6 +196,10 @@ function MatchTargets.new(
 		arrow.Visible = false
 		arrow.ZIndex = 3
 		arrow.Parent = self.root
+		-- A side pocket's second arrow (Beside: one from each side; unused at a corner).
+		local arrow2 = arrow:Clone()
+		arrow2.Name = "PocketArrowB" .. id
+		arrow2.Parent = self.root
 		local item: any = {
 			id = id,
 			button = button,
@@ -204,12 +208,14 @@ function MatchTargets.new(
 			caption = caption,
 			glow = glow,
 			arrow = arrow,
+			arrow2 = arrow2,
 			hover = false,
 			padHover = false, -- the controller's pick
 		}
 		table.insert(self.pockets, item)
 		TutorialAnchors.set("Pocket" .. id, button) -- the tutorial lane's hand taps one
 		TutorialAnchors.set("PocketArrow" .. id, arrow) -- the tutorial's line keeps off it
+		TutorialAnchors.set("PocketArrowB" .. id, arrow2)
 		button.Activated:Connect(function()
 			self:call(id)
 		end)
@@ -569,23 +575,21 @@ function MatchTargets.project(
 	return Vector2.new(screen.X, screen.Y) - self.root.AbsolutePosition, visible and screen.Z > 0
 end
 
--- A Beside arrow (Config.Multiplayer.Style.PocketArrows.Beside), level and full size: a
--- corner's comes in from beyond the table's end at its pocket's height; a side pocket's lies
--- on its rail from the left, its inner side on the pocket's centre line so it reaches out over
--- the wood, never onto the cloth. `o`: the way out of the pocket to the rail's outer edge on
--- screen; `size`: the ring's. Returns the way it points and where its tip rests.
-local function besideArrow(
-	position: Vector2,
-	o: Vector2,
-	size: number,
-	px: number
-): (Vector2, Vector2)
+-- The Beside arrows (Config.Multiplayer.Style.PocketArrows.Beside) of a pocket at `position`,
+-- level, as { way it points, where its tip rests }: a corner's one comes in from beyond the
+-- table's end, a side pocket's two from either side, all at `rowY`, the height shared by the
+-- three pockets of that row, so each row's arrows stand in one line through the rings'
+-- centres (designer, 2026-10-13). `o`: the way out of the pocket to the rail's outer edge on
+-- screen; `size`: the ring's.
+local function besideArrows(position: Vector2, o: Vector2, size: number, rowY: number): { any }
 	if math.abs(o.X) > math.abs(o.Y) / 2 then
 		local dir = Vector2.new(-math.sign(o.X), 0)
-		return dir, position - dir * (size / 2)
+		return { { dir, Vector2.new(position.X - dir.X * size / 2, rowY) } }
 	end
-	return Vector2.new(1, 0),
-		Vector2.new(position.X - size / 2, position.Y + math.sign(o.Y) * px / 2)
+	return {
+		{ Vector2.new(1, 0), Vector2.new(position.X - size / 2, rowY) },
+		{ Vector2.new(-1, 0), Vector2.new(position.X + size / 2, rowY) },
+	}
 end
 
 -- Where the way out of `pocket`'s mouth leaves the table (the rail's outer edge, at the rail
@@ -760,6 +764,21 @@ function MatchTargets.update(self: any, dt: number, camera: Camera)
 	local middle = if arrows then self:project(camera, 0, 0, S.TargetHeightInches) else nil
 	local bob = A.BobPx * (1 - math.cos(self.elapsed * math.pi * 2 / A.BobSeconds)) / 2
 	local arrowPx = A.Px[if camera.ViewportSize.Y < S.ShortHeight then 1 else 2]
+	-- Each row's height on screen (the mean of its three pockets'), for the Beside arrows.
+	local rowY: { [number]: number } = {}
+	if arrows and A.Beside then
+		local sums: { [number]: { number } } = {}
+		for _, target in self.pockets do
+			local pocket = self.geometry.pockets[target.id]
+			local p = self:project(camera, pocket.x, pocket.y, S.TargetHeightInches)
+			local row = math.sign(pocket.y)
+			local sum = sums[row] or { 0, 0 }
+			sums[row] = { sum[1] + p.Y, sum[2] + 1 }
+		end
+		for row, sum in sums do
+			rowY[row] = sum[1] / sum[2]
+		end
+	end
 	local onPad = PadMode.active()
 	for _, target in self.pockets do
 		local pocket = self.geometry.pockets[target.id]
@@ -820,24 +839,33 @@ function MatchTargets.update(self: any, dt: number, camera: Camera)
 			and target.button.Visible
 			and (picked or not onPad)
 			and out.Magnitude > 1
+		target.arrow2.Visible = false
 		if arrow.Visible then
-			-- `dir`: the way the arrow points; `from`: where its tip rests, at bob's far end.
-			local dir, from = out.Unit, position - out.Unit * (size / 2)
+			-- Each arrow's `dir`: the way it points; `from`: where its tip rests, at bob's far end.
+			local poses = { { out.Unit, position - out.Unit * (size / 2) } }
 			local edge = if A.Outside or A.Beside then self:railEdge(camera, pocket) else nil
 			if edge and (edge - position).Magnitude > 1 then
-				if A.Beside then
-					dir, from = besideArrow(position, edge - position, size, arrowPx)
-				else
-					dir, from = (position - edge).Unit, edge
-				end
+				poses = if A.Beside
+					then besideArrows(
+						position,
+						edge - position,
+						size,
+						rowY[math.sign(pocket.y)] or position.Y
+					)
+					else { { (position - edge).Unit, edge } }
 			elseif A.Outside then
-				dir, from = -dir, position + out.Unit * (size / 2)
+				poses = { { -out.Unit, position + out.Unit * (size / 2) } }
 			end
-			local at = from - dir * (A.GapPx + arrowPx / 2 + (A.BobPx - bob))
-			arrow.Position = UDim2.fromOffset(at.X, at.Y)
-			arrow.Size = UDim2.fromOffset(arrowPx, arrowPx)
-			-- The kit's arrow points right: turned so it points along `dir` (screen y grows down).
-			arrow.Rotation = math.deg(math.atan2(dir.Y, dir.X))
+			for i, pose in poses do
+				local shape = if i == 1 then arrow else target.arrow2
+				local dir, from = pose[1], pose[2]
+				local at = from - dir * (A.GapPx + arrowPx / 2 + (A.BobPx - bob))
+				shape.Visible = true
+				shape.Position = UDim2.fromOffset(at.X, at.Y)
+				shape.Size = UDim2.fromOffset(arrowPx, arrowPx)
+				-- The kit's arrow points right: turned to point along `dir` (screen y grows down).
+				shape.Rotation = math.deg(math.atan2(dir.Y, dir.X))
+			end
 		end
 	end
 	self:updatePad(canCall)
@@ -915,6 +943,7 @@ function MatchTargets.clear(self: any)
 		target.button.Visible = false
 		target.glow.Visible = false
 		target.arrow.Visible = false -- a match that ends while the 8 is called keeps none
+		target.arrow2.Visible = false
 	end
 	for _, dot in self.dots do
 		dot.Visible = false
