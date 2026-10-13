@@ -287,6 +287,7 @@ function Progression.start(screen: ScreenGui, hooks: Hooks)
 	MoneyRainFx.start() -- the owner's money rain falling on this screen
 	-- The tutorial lane's hand points at these (TutorialAnchors).
 	TutorialAnchors.set("Rank", rankHud.holder)
+	TutorialAnchors.set("RankOneMore", rankHud.oneMore) -- the quest line keeps under it
 	TutorialAnchors.set("MoneyHud", money.root)
 
 	-- The economy's screens share one table of the things they fly to and open; a field set
@@ -341,8 +342,10 @@ function Progression.start(screen: ScreenGui, hooks: Hooks)
 	local beside = { rankHud.holder, corners.gearTile.button, corners.gearTile.word }
 	skyBanner:setAvoid(
 		{ rankHud.holder, corners.gearTile.button, corners.gearTile.word, playerList.panel },
-		beside
+		beside,
+		{ rankHud.oneMore }
 	)
+	TutorialAnchors.set("SkyBanner", skyBanner.pill) -- the quest line keeps under it
 	-- No menu opens over the Gift's cutscene (it hides every screen and puts them back after).
 	Menus.setBlocker(function(): boolean
 		return lastState.inMatch or popupUp() or GiftDrop.isPlaying()

@@ -309,16 +309,23 @@ end
 ---------------------------------------------------------------------------------------------
 
 local BANNER = TutorialOverlay.guiTarget("Banner", 0)
+-- The rank pill's "ONE MORE WIN!" line and the Sky Lucky Block's clock under it hang under the
+-- top bar on a big screen (and on a phone 430 px tall or more): the quest line covered them
+-- (designer's phone, 2026-10-12).
+local ONE_MORE = TutorialOverlay.guiTargets({ "RankOneMore", "SkyBanner" }, 0)
 
 local function placeQuest()
 	local px = if phone() then S.QuestPhoneTextPx else S.QuestTextPx
 	HudParts.setTextSize(quest, px)
-	-- Centred on the play area (in from a phone's notch), under Roblox's top bar or a banner.
+	-- Centred on the play area (in from a phone's notch), under Roblox's top bar, a banner, the
+	-- rank pill's goal line and the Sky clock.
 	local play = TutorialOverlay.areas().play
 	local top = play.y + S.QuestTopGapPx
-	local centre, size = BANNER()
-	if centre and size then
-		top = math.max(top, centre.Y + size.Y / 2 + S.QuestTopGapPx)
+	for _, target in { BANNER, ONE_MORE } do
+		local centre, size = target()
+		if centre and size then
+			top = math.max(top, centre.Y + size.Y / 2 + S.QuestTopGapPx)
+		end
 	end
 	quest.Position = UDim2.fromOffset(play.x + play.w / 2, top)
 	quest.Size = UDim2.fromOffset(play.w - 2 * S.QuestTopGapPx, px + 8)

@@ -46,6 +46,7 @@ function SkyBanner.new(screen: ScreenGui): any
 	self.screen = screen
 	self.avoid = {} :: { GuiObject }
 	self.beside = {} :: { GuiObject }
+	self.below = {} :: { GuiObject }
 	-- Its own ScreenGui over the free part of Roblox's top bar row (as RankHud and PlayerList),
 	-- so its origin is the row's top-left on every device.
 	local gui = Instance.new("ScreenGui")
@@ -135,7 +136,9 @@ function SkyBanner.refresh(self: any)
 	-- Laid out again only when its words or the screen change (the words tick once a second;
 	-- this runs every frame while it shows).
 	local camera = workspace.CurrentCamera
-	local key = words .. tostring(camera and camera.ViewportSize)
+	local key = words
+		.. tostring(camera and camera.ViewportSize)
+		.. tostring(self:bottomOver(-1e6, 2e6))
 	if key == self.laidFor then
 		return
 	end
@@ -188,6 +191,12 @@ function SkyBanner.refresh(self: any)
 		size = if phone then U.PhoneTextPx else U.TextPx
 		w, h, iconPx, textW = sized(size)
 		left, top = centre - w / 2, GuiService.TopbarInset.Height + U.TopGapPx
+		-- Under what hangs below the row over it too (the rank pill's "ONE MORE WIN!" on a
+		-- phone 430 px tall or more, 2026-10-12: the pill covered it).
+		local bottom = self:bottomOver(left, w)
+		if bottom then
+			top = math.max(top, bottom - origin.Y + U.TopGapPx)
+		end
 	end
 	self.text.Text = shown
 	HudParts.setTextSize(self.text, size)
@@ -238,11 +247,31 @@ function SkyBanner.blocked(self: any, x: number, y: number, w: number, h: number
 	return false
 end
 
+-- The lowest bottom edge (absolute pixels) of the shown `below` objects over the span `left`
+-- to `left + w`, or nil when none is.
+function SkyBanner.bottomOver(self: any, left: number, w: number): number?
+	local bottom: number? = nil
+	for _, object in self.below :: { GuiObject } do
+		local p, s = object.AbsolutePosition, object.AbsoluteSize
+		if shows(object) and p.X < left + w and p.X + s.X > left then
+			bottom = math.max(bottom or -math.huge, p.Y + s.Y)
+		end
+	end
+	return bottom
+end
+
 --- What the pill keeps clear of in the top row (the rank HUD, the Settings gear, the Players
---- list), and what a phone's pill sits just right of (the rank HUD and the gear; Progression).
-function SkyBanner.setAvoid(self: any, objects: { GuiObject }, beside: { GuiObject })
+--- list), what a phone's pill sits just right of (the rank HUD and the gear), and what it sits
+--- under when it goes under the row (the rank HUD's goal line; Progression).
+function SkyBanner.setAvoid(
+	self: any,
+	objects: { GuiObject },
+	beside: { GuiObject },
+	below: { GuiObject }?
+)
 	self.avoid = objects
 	self.beside = beside
+	self.below = below or {}
 	self.laidFor = nil
 	self:refresh()
 end
