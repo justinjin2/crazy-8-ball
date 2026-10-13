@@ -1425,6 +1425,10 @@ local function renderFrame(dt: number)
 				and not isArena,
 			tutorial = guided ~= false,
 			seated = hub.mySeat ~= nil or controlled or predictedPad ~= nil,
+			-- Nor over a match's result, the pad's bar either: Play Global waits for Continue
+			-- or Leave (designer, 2026-10-13: "doesnt show on the result screen until after
+			-- they click continue or leave").
+			result = Progression.resultUp(),
 			soft = TutorialSoft.wantsGlobal(),
 			played = summariesHeard,
 		})

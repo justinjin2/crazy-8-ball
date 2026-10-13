@@ -472,6 +472,10 @@ end
 
 -- What shows now: the pad's bar, the spawn pill's offer or its search, or nothing.
 function MatchBar.pick(self: any, now: number): (string?, boolean, boolean, number)
+	if self.spawn.result then
+		-- A match's result is on screen (Main): no bar, so no Play Global, until it goes.
+		return nil, false, false, 0
+	end
 	if self.snapshot then
 		return if self.away then nil else "pad", false, false, 0
 	end

@@ -410,6 +410,12 @@ function Progression.isBusy(): boolean
 	return started and (popupUp() or Menus.isOpen())
 end
 
+--- Whether a match's result is still on screen (its cutscene or the result screen, until
+--- Continue or Leave): the spawn pill's Play Global waits for it (designer, 2026-10-13).
+function Progression.resultUp(): boolean
+	return started and (result:isOpen() or ResultCutscene.isPlaying())
+end
+
 --- Whether the lobby is quiet: no match or its result, no popup, reel, menu or teleport screen,
 --- and no cutscene, the Gift's included (the tutorial's soft part shows its quest and its
 --- popup only then).
