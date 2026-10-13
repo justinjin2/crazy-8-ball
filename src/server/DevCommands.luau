@@ -39,6 +39,7 @@ local Money = require(Shared.Progression.Money)
 local Catalog = require(Shared.Progression.Catalog)
 local Inventory = require(Shared.Progression.Inventory)
 local LuckyBlocks = require(Shared.Progression.LuckyBlocks)
+local BlockDrop = require(Shared.Progression.BlockDrop)
 local Daily = require(Shared.Progression.Daily)
 local RewardView = require(Shared.Progression.RewardView)
 local PlayerData = require(script.Parent.PlayerData)
@@ -333,7 +334,18 @@ local function previewResult(player: Player, args: { string })
 	local win = outcome == "Win"
 	local firstWin = word == "firstwin"
 	local moneyStep = word == "track"
-	local track = if moneyStep then Config.BlockOdds.Drop.WinTrackMoney else 0
+	-- The next money step's pay (from the track's start when the day is past them all).
+	local track = 0
+	if moneyStep then
+		local steps = BlockDrop.trackSteps()
+		local from = (data.Daily.Track or 0) + 1
+		for i = 0, steps - 1 do
+			track = BlockDrop.trackMoney((from - 1 + i) % steps + 1)
+			if track > 0 then
+				break
+			end
+		end
+	end
 	local opponentIndex = Ranks.indexOf(STAND_IN.tier, STAND_IN.division)
 	local xp = Ranks.applyMatch({
 		RankXp = data.RankXp,

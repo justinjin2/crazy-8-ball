@@ -65,7 +65,7 @@ export type DropContext = {
 
 local BlockDrop = {}
 
---- The win track's money step (Config.BlockOdds.Drop.WinTrack): pays WinTrackMoney.
+--- The win track's money step (Config.BlockOdds.Drop.WinTrack): pays its WinTrackMoney.
 BlockDrop.Money = "Money"
 
 local RANK: { [string]: number } = {}
@@ -712,16 +712,15 @@ function BlockDrop.validate(): { string }
 	if D.FirstWin ~= nil and kinds[D.FirstWin] == nil then
 		problem(("Drop.FirstWin %s is not a lucky block"):format(tostring(D.FirstWin)))
 	end
-	local money = false
+	local amounts: any = D.WinTrackMoney
 	for i, step in WIN_TRACK do
 		if step == BlockDrop.Money then
-			money = true
+			if type(amounts) ~= "table" or whole(amounts[i]) <= 0 then
+				problem(("Drop.WinTrackMoney[%d] must be above 0 for its money step"):format(i))
+			end
 		elseif kinds[step] == nil then
 			problem(("Drop.WinTrack[%d] %s is not a lucky block"):format(i, tostring(step)))
 		end
-	end
-	if money and whole(D.WinTrackMoney) <= 0 then
-		problem("Drop.WinTrackMoney must be above 0 for the money steps")
 	end
 	if type(UP.Clicks) ~= "number" or UP.Clicks < 2 or UP.Clicks ~= math.floor(UP.Clicks) then
 		problem("Drop.Upgrade.Clicks must be a whole number of at least 2")
@@ -759,9 +758,11 @@ function BlockDrop.trackKind(step: number): string?
 	return WIN_TRACK[step]
 end
 
---- The money a money step pays (Config.BlockOdds.Drop.WinTrackMoney).
-function BlockDrop.trackMoney(): number
-	return whole(D.WinTrackMoney)
+--- The money win track step `step` pays (Config.BlockOdds.Drop.WinTrackMoney; 0 on a block's
+--- step or past the track).
+function BlockDrop.trackMoney(step: number): number
+	local amounts: any = D.WinTrackMoney
+	return if type(amounts) == "table" then whole(amounts[step]) else 0
 end
 
 --- What a win that moves the track gives: the first win ever's FirstWin block (when one is

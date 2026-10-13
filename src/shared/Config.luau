@@ -2155,11 +2155,11 @@ Config.BlockOdds = {
 		-- a Rare block).
 		FirstWin = nil :: string?,
 		-- The daily win track (v5 plan section 4): each of the first 10 track wins of the day (the
-		-- day: Config.Daily.ResetHour) gives its step: a block kind, or "Money" for
+		-- day: Config.Daily.ResetHour) gives its step: a block kind, or "Money" for that step's
 		-- WinTrackMoney (earned, never boosted, like a reward). Later wins pay money and XP only.
 		-- A win moves the track exactly when the anti-farm rules allow it (BlockDrop.dropFor).
 		-- Economy v6 (designer, 2026-10-10): wins 1 and 5 a Mystery, win 10 a Rare block, the
-		-- rest $250.
+		-- rest money (WinTrackMoney).
 		WinTrack = {
 			"Mystery",
 			"Money",
@@ -2172,7 +2172,11 @@ Config.BlockOdds = {
 			"Money",
 			"Rare",
 		},
-		WinTrackMoney = 250,
+		-- What each money step pays, by step (0 on a block's step): rising, so each next win is
+		-- worth more (designer, 2026-10-12: "$250 is too little ... rewarding and reasonable";
+		-- it was $250 each). A 1-hour player (wins 2-4) gets $2,250 a day instead of $750; a
+		-- full 10-win day $8,000 instead of $1,750.
+		WinTrackMoney = { 0, 500, 750, 1000, 0, 1000, 1250, 1500, 2000, 0 },
 		-- The climb screen (v4 plan 3.2, like Starr Drop; designer, 2026-10-09: "just 4"): the
 		-- first of Clicks presses shows the start, the block's own tier or higher when the later
 		-- presses couldn't reach the final tier otherwise (BlockDrop.startOf); each later press
@@ -8985,6 +8989,7 @@ Config.UI.WinTrack = {
 	MoneyIconShare = 0.56,
 	MoneyIconY = 0.4,
 	MoneyTextPx = 14,
+	MoneyTextMinPx = 10, -- a longer amount ("$1.25K") shrinks to fit its tile, never under this
 	MoneyTextY = 0.8,
 	-- A step's number: a navy dot on its tile's top left corner (its centre this far in). On a
 	-- phone its words stay at 9 px or more (a small tag over art, UI_STYLE).

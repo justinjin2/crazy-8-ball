@@ -516,7 +516,17 @@ return {
 		local plan = "Mystery Money Money Money Mystery Money Money Money Money Rare"
 		H.expect(table.concat(Config.BlockOdds.Drop.WinTrack, " ") == plan, "the plan's track")
 		H.expect(BlockDrop.trackSteps() == 10, "10 steps")
-		H.expect(BlockDrop.trackMoney() == 250 and BlockDrop.Money == "Money", "$250 steps")
+		H.expect(BlockDrop.Money == "Money", "the money step's name")
+		-- Each money step its own amount, rising (designer, 2026-10-12); a block's step pays none.
+		local paid = {}
+		for step = 1, BlockDrop.trackSteps() do
+			paid[step] = BlockDrop.trackMoney(step)
+		end
+		H.expect(
+			table.concat(paid, ",") == "0,500,750,1000,0,1000,1250,1500,2000,0",
+			"rising $500 to $2,000: " .. table.concat(paid, ",")
+		)
+		H.expect(BlockDrop.trackMoney(11) == 0, "nothing past the track")
 		local got = {}
 		for given = 0, 9 do
 			local drops, kind = BlockDrop.dropFor(ctx({ trackToday = given }))

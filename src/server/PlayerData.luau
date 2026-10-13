@@ -1490,7 +1490,7 @@ function PlayerData.winBlock(player: Player, firstWin: boolean?): WinBlock?
 	if kind == nil then
 		return nil
 	elseif kind == BlockDrop.Money then
-		local money = BlockDrop.trackMoney()
+		local money = BlockDrop.trackMoney(data.Daily.Track + 1)
 		addMoneyTo(data, money, true, "WinTrack")
 		data.Daily.Track = math.min(data.Daily.Track + 1, S.StatCap)
 		commit(player, data, op)

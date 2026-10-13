@@ -27,6 +27,7 @@
 -- words in Strings.WinTrack.
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TextService = game:GetService("TextService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
@@ -65,9 +66,28 @@ type Tile = {
 	check: ImageLabel,
 }
 
--- A money step's words: "$1K" for whole thousands (a tile is small), else "$500".
+-- A money step's words: thousands as "$1K", "$1.5K", "$1.25K" (a tile is small), else "$500".
 local function tileMoney(n: number): string
-	return if n >= 1000 and n % 1000 == 0 then Format.money(n // 1000) .. "K" else Format.money(n)
+	if n >= 1000 then
+		local k = string.format("%.2f", n / 1000):gsub("0+$", ""):gsub("%.$", "")
+		return "$" .. k .. "K"
+	end
+	return Format.money(n)
+end
+
+-- A money step's words at MoneyTextPx, smaller when they would not fit the tile.
+local function fitMoney(label: TextLabel, n: number)
+	local text = tileMoney(n)
+	local px = T.MoneyTextPx
+	while
+		px > T.MoneyTextMinPx
+		and TextService:GetTextSize(text, px, label.Font, Vector2.new(1000, 100)).X
+			> T.TilePx - 6
+	do
+		px -= 1
+	end
+	label.Text = text
+	HudParts.setTextSize(label, px)
 end
 
 -- The picture for a step's kind: its block, or the cash bundle for money.
@@ -163,13 +183,8 @@ function WinTrack.new(screen: ScreenGui): any
 		icon.Size = UDim2.fromScale(T.IconShare, T.IconShare)
 		icon.ZIndex = 3
 		icon.Parent = frame
-		local money = HudParts.text(
-			frame,
-			"Money",
-			T.MoneyTextPx,
-			tileMoney(BlockDrop.trackMoney()),
-			rgb(Config.UI.Kit.Numbers.Money)
-		)
+		local money =
+			HudParts.text(frame, "Money", T.MoneyTextPx, "", rgb(Config.UI.Kit.Numbers.Money))
 		money.TextWrapped = false
 		money.AnchorPoint = Vector2.new(0.5, 0.5)
 		money.Position = UDim2.fromScale(0.5, T.MoneyTextY)
@@ -458,6 +473,9 @@ function WinTrack.paintKinds(self: any, kinds: { string })
 		local share = if money then T.MoneyIconShare else T.IconShare
 		tile.icon.Size = UDim2.fromScale(share, share)
 		tile.money.Visible = money
+		if money then
+			fitMoney(tile.money, BlockDrop.trackMoney(index))
+		end
 	end
 end
 
