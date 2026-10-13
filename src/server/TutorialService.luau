@@ -1023,6 +1023,15 @@ end
 ---------------------------------------------------------------------------------------------
 
 local function forget(player: Player)
+	-- Left mid-tutorial (not skipped: that ends it first): where, and how long into the step
+	-- (the save is still readable while PlayerRemoving runs).
+	local step = TutorialService.step(player)
+	if step and Steps.active(step) and enteredAt[player] then
+		local seconds = clock() - enteredAt[player]
+		TutorialService.guard(player, "Left", function()
+			Funnel.left(player, step, seconds)
+		end)
+	end
 	enteredAt[player] = nil
 	joinedWaiting[player] = nil
 	marks[player] = nil

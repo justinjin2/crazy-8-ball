@@ -11,7 +11,7 @@
 --   (PathS, PathR, Game2, Social), each step once per player (a bit in its own Flags key).
 -- - Repeating funnels (a session per visit): the shop, a free lucky block's life, the spins.
 -- - Custom events (LogCustomEvent, up to three fields): Hint, TutorialSkipped, StepTime,
---   TutorialError and the Game2 result.
+--   TutorialError, TutorialLeft and the Game2 result.
 --
 -- Every call is wrapped in pcall: analytics never breaks the game. Studio sends nothing to the
 -- dashboard, so each call prints there (Config.Tutorial.Funnel.Print), and every player's last
@@ -255,6 +255,36 @@ function Funnel.stepTime(player: Player, step: string, seconds: number)
 	local value =
 		math.clamp(math.floor(seconds + 0.5), 0, Config.Tutorial.Timing.StepTimeMaxSeconds)
 	Funnel.event(player, "StepTime", value, step, pathOf(player), Funnel.device(player))
+end
+
+--- The last step of one-time funnel `funnel` the player reached ("None" for none yet).
+function Funnel.lastOnce(player: Player, funnel: string): string
+	local key = F.Once[funnel]
+	local list = Steps.Funnels[funnel]
+	local m = if key then mask(player, key) else nil
+	if m == nil or list == nil then
+		return "None"
+	end
+	for i = #list, 1, -1 do
+		if Steps.has(m, i) then
+			return list[i]
+		end
+	end
+	return "None"
+end
+
+--- A player left the game with the tutorial still running at `step`, `seconds` into it
+--- (designer, 2026-10-13: where do players who quit, rather than skip, quit). Fields: the
+--- step, the last lesson of game 1 they reached (its path's funnel step: "AimPotted", "None"),
+--- the device.
+function Funnel.left(player: Player, step: string, seconds: number)
+	local value =
+		math.clamp(math.floor(seconds + 0.5), 0, Config.Tutorial.Timing.StepTimeMaxSeconds)
+	local path = pathOf(player)
+	local lesson = if path == "S" or path == "R"
+		then Funnel.lastOnce(player, "Path" .. path)
+		else "None"
+	Funnel.event(player, "TutorialLeft", value, step, lesson, Funnel.device(player))
 end
 
 --- A guarded failure in tutorial code at `step` (`code`: a short fixed word naming where).
