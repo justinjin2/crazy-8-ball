@@ -1062,11 +1062,11 @@ player's first win shows its Rare block).
   top right, both a little smaller, wiggling with it (`Heroes.Star`, `Heroes.Thumb`), and one green
   Verify across its foot (the check, shining; the yellow Favorite beside it went, 2026-10-11); Claimed in its place. Verify opens Roblox's favorite prompt; no favorite
   there opens the **"ALMOST THERE!" popup** (`LikeRejoinPopup`, `Config.UI.FreeReward.LikePopup`;
-  concept A 2026-10-11, the favorite steps 2026-10-13): the house slam with no burst, "Favorite
-  the game to unlock your reward", three step cards popping in one by one with arrows between
-  (1 the door: Leave the game; 2 lit gold, a rocking star: Press Favorite on the game's page;
-  3 the check: Rejoin and press Verify), "Give the game a like if you enjoy!" in a tilted gold
-  pill with a rocking thumbs up, the reward in a white pill (its words, each block's picture,
+  concept A 2026-10-11, the favorite steps 2026-10-13): the house slam with no burst, "Check
+  the game is favorited to unlock your reward", three step cards popping in one by one with
+  arrows between (1 the door: Leave the game; 2 lit gold, a star and a thumbs up rocking side
+  by side: Check that the game is favorited and give a like if you enjoy!, up to four lines;
+  3 the check: Rejoin and press Verify), the reward in a white pill (its words, each block's picture,
   the money), then a blue Later and a green shining Leave Game with the door. No X; the tutorial's rings wait under
   it. The invite card under them, the panel as tall as both
   with "- DAILY -" peeking. Once both are claimed the next open is the page below, Group last.

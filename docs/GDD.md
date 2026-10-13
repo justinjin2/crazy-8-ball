@@ -1132,7 +1132,8 @@ approves the v5 proposal (ECONOMY.md section 11).
   under the day tiles, never on each tile; the game's **group** (Join and Claim: 1 Mystery block once, +10% match
   money while a member); a **favorite** reward ($5,000, a Lucky 8 and a Mystery block;
   one green Verify opens Roblox's favorite prompt and a favorite there gives it at once; no
-  favorite opens the steps to favorite on the game's page and rejoin. A like is asked for
+  favorite opens the steps: leave, check the game is favorited on its page (and like it if
+  you enjoy), rejoin and Verify. A like is asked for
   ("Favorite +" over "Like if you enjoy!") but never rewarded, since a game can't check one
   (2026-10-13; the 2026-10-11 leave-like-and-rejoin step is off, `Config.Social.LikeRejoin`); six **like codes**
   the designer switches on live at like milestones; **invites** (a brand-new friend's first
