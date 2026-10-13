@@ -15499,7 +15499,22 @@ Config.Debug = {
 		-- /result lose early|pocket|foul|off: a loss by that 8-ball rule (LOSS and why)
 		Result = "/result",
 		NewRank = "/newrank", -- /newrank [tier] [division]: preview NEW RANK! with its reward chips
-		ResetData = "/resetdata", -- your own save back to a fresh one
+		-- /resetdata: your own save back to a fresh one; /resetdata <player>: that player's (in
+		-- this server), only when typed again within ConfirmSeconds (2026-10-13).
+		ResetData = "/resetdata",
+		ConfirmSeconds = 20,
+		-- Moderation (2026-10-13; /modhelp lists them). /kick <player> [reason]: out of this
+		-- server. /ban <player> [days|perm] [reason]: every server of the game, now and on
+		-- rejoin, for that many days or for good (no days: for good), alt accounts too, through
+		-- Roblox's ban list (Players:BanAsync). /unban <player|userId>. A player may be named
+		-- by username outside the server too; the accounts in UserIds can never be kicked or
+		-- banned. Only the accounts in UserIds may use them, in Studio and live.
+		Kick = "/kick",
+		Ban = "/ban",
+		Unban = "/unban",
+		ModHelp = "/modhelp",
+		MaxBanDays = 3650, -- the longest timed ban accepted (days)
+		BanAlts = true, -- a ban also covers the accounts Roblox links to theirs
 		-- The Like + Favorite card back to unclaimed and not asked (2026-10-11), to try its
 		-- Verify and "ALMOST THERE!" popup again.
 		ResetFavorite = "/resetfavorite",

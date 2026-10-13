@@ -20,6 +20,8 @@
 --   abilities) are the designer's account only (UserIds), and their last word may be a
 --   player's username (or display name) in this server, "@" optional: it acts on that player
 --   instead, and the answers come back to the designer with the name in front.
+-- - Moderation (/modhelp lists them): /kick, /ban and /unban (Roblox's ban list, every server
+--   of the game), and /resetdata <player> (typed twice); never on the accounts in UserIds.
 -- - Arguments are read defensively: a bad one answers a usage line, never an error.
 
 local Players = game:GetService("Players")
@@ -108,6 +110,9 @@ local gives: { [string]: boolean? } = {}
 -- command's answers go to the caller (tell), never to the one given it.
 local givenBy: { [Player]: Player } = {}
 
+-- The words after the alias of the command running now, as typed (dispatch fills it).
+local typed: { string } = {}
+
 local function isDesigner(userId: number): boolean
 	return table.find(D.UserIds, userId) ~= nil
 end
@@ -147,6 +152,13 @@ local function dispatch(player: Player, text: string, fromScript: boolean?)
 	for i = 2, #words do
 		if words[i] ~= "" then
 			table.insert(args, words[i])
+		end
+	end
+	-- The same words as typed (a kick or ban reason keeps its capitals).
+	table.clear(typed)
+	for i, word in string.split(text or "", " ") do
+		if i > 1 and word ~= "" then
+			table.insert(typed, word)
 		end
 	end
 	-- A giving command's last word may name its receiver: a player in this server ("@" optional).
@@ -667,6 +679,167 @@ local function uncount(snapshot: Inventory.Snapshot)
 			Counters.add(row.id, -row.count)
 		end
 	end
+end
+
+-- /resetdata [player]: a save back to a new player's. Someone else's (in this server) only
+-- when the same command comes again within ConfirmSeconds; then they are sent out to rejoin
+-- fresh. A name not found never falls back to the caller's own save.
+local resetAsked: { [Player]: { userId: number, at: number } } = {}
+local function resetData(player: Player, args: { string })
+	local target = player
+	if args[1] then
+		local name = (string.gsub(args[1], "^@", ""))
+		local found = playerNamed(name)
+		if found == nil then
+			tell(player, Dev.NoPlayer:format(name))
+			return
+		end
+		target = found
+	end
+	if target ~= player then
+		local asked = resetAsked[player]
+		local now = os.clock()
+		if asked == nil or asked.userId ~= target.UserId or now - asked.at > D.ConfirmSeconds then
+			resetAsked[player] = { userId = target.UserId, at = now }
+			tell(
+				player,
+				Dev.ResetConfirm:format(
+					target.Name,
+					D.ResetData .. " " .. target.Name,
+					D.ConfirmSeconds
+				)
+			)
+			return
+		end
+		resetAsked[player] = nil
+	end
+	-- A new player's save holds only Classic: the cues it held leave the counts.
+	local snapshot = PlayerData.snapshot(target)
+	if not snapshot or not PlayerData.reset(target) then
+		tell(player, Dev.NotLoaded)
+		return
+	end
+	uncount(snapshot)
+	if target == player then
+		tell(player, Dev.Reset)
+		return
+	end
+	tell(player, Dev.ResetOther:format(target.Name))
+	target:Kick(Dev.ResetKick)
+end
+
+-- The words typed from the `from`th after the alias, as typed (a reason), "" when none.
+local function typedFrom(from: number): string
+	return table.concat(typed, " ", from, math.max(#typed, from - 1))
+end
+
+-- A user id from a typed word: a player in this server (username or display name), a user
+-- id, or a Roblox username anywhere (yields). nil when there is none; the name as typed.
+local function userIdOf(word: string): (number?, string)
+	local name = (string.gsub(word, "^@", ""))
+	local here = playerNamed(name)
+	if here then
+		return here.UserId, here.Name
+	end
+	local id = tonumber(name)
+	if id and id > 0 and id % 1 == 0 then
+		return id, name
+	end
+	local ok, found = pcall(Players.GetUserIdFromNameAsync, Players, name)
+	if ok and type(found) == "number" then
+		return found, name
+	end
+	return nil, name
+end
+
+-- /kick <player> [reason]: out of this server.
+local function kick(player: Player, args: { string })
+	if args[1] == nil then
+		tell(player, Dev.ModUsage:format(Dev.ModUsageKick))
+		return
+	end
+	local name = (string.gsub(args[1], "^@", ""))
+	local target = playerNamed(name)
+	if target == nil then
+		tell(player, Dev.NoPlayer:format(name))
+		return
+	end
+	if isDesigner(target.UserId) then
+		tell(player, Dev.NotYou)
+		return
+	end
+	local reason = typedFrom(2)
+	target:Kick(if reason ~= "" then reason else Dev.KickReason)
+	tell(player, Dev.Kicked:format(target.Name))
+end
+
+-- /ban <player> [days|perm] [reason]: every server of the game through Roblox's ban list,
+-- for that many days or for good, alt accounts too (BanAlts); a player here is sent out now.
+local function ban(player: Player, args: { string })
+	if args[1] == nil then
+		tell(player, Dev.ModUsage:format(Dev.ModUsageBan))
+		return
+	end
+	local id, name = userIdOf(args[1])
+	if id == nil then
+		tell(player, Dev.NoUser:format(name))
+		return
+	end
+	if isDesigner(id) then
+		tell(player, Dev.NotYou)
+		return
+	end
+	local days: number? = nil
+	local from = 2
+	local word = args[2]
+	if word == "perm" or word == "forever" then
+		from = 3
+	elseif word and tonumber(word) then
+		days = wholeIn(word, 1, D.MaxBanDays)
+		if days == nil then
+			tell(player, Dev.ModUsage:format(Dev.ModUsageBan))
+			return
+		end
+		from = 3
+	end
+	local reason = string.sub(typedFrom(from), 1, 400) -- Roblox's limit for the shown reason
+	local ok, err = pcall(function()
+		Players:BanAsync({
+			UserIds = { id },
+			ApplyToUniverse = true,
+			Duration = if days then days * 86400 else -1,
+			DisplayReason = if reason ~= "" then reason else Dev.BanReason,
+			PrivateReason = ("/ban by %d"):format(player.UserId),
+			ExcludeAltAccounts = not D.BanAlts,
+		})
+	end)
+	if not ok then
+		tell(player, Dev.BanFailed:format(tostring(err)))
+		return
+	end
+	local length = if days then Dev.BanDays:format(days) else Dev.BanForever
+	tell(player, Dev.Banned:format(name, length))
+end
+
+-- /unban <player|userId>: off Roblox's ban list for the game.
+local function unban(player: Player, args: { string })
+	if args[1] == nil then
+		tell(player, Dev.ModUsage:format(Dev.ModUsageUnban))
+		return
+	end
+	local id, name = userIdOf(args[1])
+	if id == nil then
+		tell(player, Dev.NoUser:format(name))
+		return
+	end
+	local ok, err = pcall(function()
+		Players:UnbanAsync({ UserIds = { id }, ApplyToUniverse = true })
+	end)
+	if not ok then
+		tell(player, Dev.UnbanFailed:format(tostring(err)))
+		return
+	end
+	tell(player, Dev.Unbanned:format(name))
 end
 
 -- Gives `copies` of each cue in `ids` (distinct ids; one reward per Config.Save.MaxSmallEntries
@@ -1267,16 +1440,7 @@ function DevCommands.start()
 	end)
 	command("Result", D.Result, previewResult)
 	command("NewRank", D.NewRank, previewNewRank)
-	command("ResetData", D.ResetData, function(player)
-		-- A new player's save holds only Classic: the cues it held leave the counts.
-		local snapshot = PlayerData.snapshot(player)
-		if not snapshot or not PlayerData.reset(player) then
-			tell(player, Dev.NotLoaded)
-			return
-		end
-		uncount(snapshot)
-		tell(player, Dev.Reset)
-	end)
+	command("ResetData", D.ResetData, resetData)
 	command("ResetFavorite", D.ResetFavorite, function(player)
 		-- The Like + Favorite card back to unclaimed and not asked (RewardView's flags).
 		local okAsked = PlayerData.setFlag(player, RewardView.LikeAskedFlag, nil)
@@ -1290,6 +1454,14 @@ function DevCommands.start()
 	end)
 	command("RankHelp", D.RankHelp, function(player)
 		tell(player, Dev.Help)
+	end)
+
+	-- Moderation.
+	command("Kick", D.Kick, kick)
+	command("Ban", D.Ban, ban)
+	command("Unban", D.Unban, unban)
+	command("ModHelp", D.ModHelp, function(player)
+		tell(player, Dev.ModHelp)
 	end)
 
 	-- The economy.

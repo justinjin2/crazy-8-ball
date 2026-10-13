@@ -298,7 +298,7 @@ return {
 	},
 	-- The developer chat commands' private replies (DevCommands; shown only to the caller).
 	Dev = {
-		Help = "Rank and money commands: /rank <tier> [1-5] [xp], /rank unranked, /xp <amount>, /money <amount>, /addmoney <amount>, /result win|lose|draw|firstwin|track, /newrank [tier] [1-5], /resetdata, /resetfavorite. Economy commands: /econhelp. Ability commands: /abilityhelp. Put a player's username last to give it to them instead (/rank, /xp, /money, /addmoney, /givecue, /giveblock, /spins, /lucky, /ability, /abilitysetup).",
+		Help = "Rank and money commands: /rank <tier> [1-5] [xp], /rank unranked, /xp <amount>, /money <amount>, /addmoney <amount>, /result win|lose|draw|firstwin|track, /newrank [tier] [1-5], /resetdata, /resetfavorite. Economy commands: /econhelp. Kick, ban and reset players: /modhelp. Ability commands: /abilityhelp. Put a player's username last to give it to them instead (/rank, /xp, /money, /addmoney, /givecue, /giveblock, /spins, /lucky, /ability, /abilitysetup).",
 		BadRank = "Try /rank gold 3, /rank reyes or /rank unranked.",
 		BadAmount = "Give a whole number, like %s 500.",
 		XpNeverLost = "XP is never lost: give a gain, like %s 250.",
@@ -307,6 +307,26 @@ return {
 		RankSet = "Rank set to %s.",
 		MoneySet = "Money set to %s.",
 		Reset = "Your save was reset.",
+		ResetConfirm = "This wipes %s's save for good (money, cues, rank, everything). Type %s again within %d seconds to do it.",
+		ResetOther = "%s's save was reset to a new player's.",
+		ResetKick = "Your save was reset by the game's owner. Rejoin to start fresh.",
+		-- Moderation (/modhelp).
+		ModHelp = "Moderation: /kick <player> [reason] (out of this server), /ban <player> [days|perm] [reason] (every server, for that many days or for good; no days: for good), /unban <player or user id>, /resetdata <player> (wipes their save; type it twice). A player outside this server can be named by username for /ban and /unban.",
+		ModUsage = "Try %s.",
+		ModUsageKick = "/kick <player> [reason]",
+		ModUsageBan = "/ban <player> [days|perm] [reason]",
+		ModUsageUnban = "/unban <player or user id>",
+		NoUser = "No Roblox account named %s.",
+		NotYou = "You cannot do that to the owner's account.",
+		Kicked = "%s was kicked.",
+		KickReason = "You were removed from this server.",
+		Banned = "%s is banned %s.",
+		BanForever = "for good",
+		BanDays = "for %d day(s)",
+		BanReason = "You are banned from this game.",
+		BanFailed = "The ban did not go through: %s",
+		Unbanned = "%s is unbanned.",
+		UnbanFailed = "The unban did not go through: %s",
 		FavoriteReset = "Like + Favorite reset: press Verify to try it again.",
 		-- The economy commands (/econhelp). Usage: the alias first (%s), then what follows it;
 		-- What: one line on what it does. A bad argument answers Try with the usage.
