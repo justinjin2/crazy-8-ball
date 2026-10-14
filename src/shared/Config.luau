@@ -8933,6 +8933,30 @@ Config.Arena = {
 	ArrivalSpacingStuds = 2.5,
 }
 
+-- The server refresh (designer, 2026-10-14: live servers grow slow and laggy the older they
+-- get). A public lobby server past AfterHours waits for a moment with no real player mid-game
+-- (bot-only tables do not count), or LatestHours at most, then counts down and moves everyone
+-- together to one fresh lobby server through a short hop (a reserved server of this place
+-- that sends the whole group on as one party; straight to a public server could land them
+-- back in this one). A game the latest time cuts is void, as at Roblox's own shutdown.
+-- Arenas, private servers and Studio never refresh (Studio: the QA hook and /refreshserver
+-- run the countdown, the teleport only logs). Off: servers run until Roblox closes them.
+Config.ServerRestart = {
+	Enabled = true,
+	AfterHours = 5, -- from here, the first quiet moment
+	LatestHours = 6, -- here, whatever is going on
+	CheckSeconds = 5, -- how often a due server looks for its quiet moment
+	CountdownSeconds = 30, -- the banner's countdown before everyone moves
+	StudioCountdownSeconds = 5, -- the QA hook's countdown in Studio
+	-- The hop waits for everyone on its list to arrive with their save open, this long at
+	-- most, then sends whoever came on as one group; anyone later goes on alone.
+	HopWaitSeconds = 12,
+	-- Anyone whose teleport failed (still here, save given back) is tried once more after
+	-- this; whoever is still here after that stays, and the server plays on.
+	RetrySeconds = 60,
+	AttributeName = "ServerRestartAt", -- workspace: when everyone moves (server time)
+}
+
 -- The global queue's screens (designer, 2026-09-28): the small card at the top middle
 -- (QueueStatus: an arena's arrivals, a teammate's search, why a teleport did not happen) and
 -- the full screen shown while a teleport is on its way (TeleportScreen). Pixels and seconds.
