@@ -398,6 +398,14 @@ the series score.
   posted with `holdIfDown`: when MemoryStore refuses it, it still stands here (LocalSearch
   matches it) and its thread posts it each `PollSeconds`. `BotService.watchSearches` fills team
   searches after `TeamSeconds`.
+- The server refresh (`Config.ServerRestart`, 2026-10-14): `ServerRestart` (public lobby
+  servers only) asks the pure `ServerRestartMath.decide` every `CheckSeconds` (from
+  `AfterHours` at a moment no real player is mid-game, `LatestHours` at most), sets the
+  workspace's `ServerRestartAt` (the client `Banner` counts down), then `Ranking.setVoid`,
+  `GlobalQueue.setLobbyClosed` and `GlobalQueue.restartHop`: a reserved server whose list has
+  `restart = true` (Bootstrap hands it to `ArenaService.runHop`, nothing built) waits for the
+  group (`ServerRestartMath.hopReady`) and `sendHome`s it as one party to any lobby server.
+  `/refreshserver` (owner) and `ServerStorage.ServerRestartQA` start it at once.
 - Client: `MatchBar` (Play Global, the search's time and X), `PostMatch` (the row, hosted
   by `ResultScreen` in Continue's place), `QueueStatus` (the small top card), `TeleportScreen`
   (set with `SetTeleportGui`), `src/first/Arrival` (ReplicatedFirst: keeps the teleport

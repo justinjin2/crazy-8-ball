@@ -339,6 +339,12 @@ Every feature is checked against these. If it serves none, it waits.
   lobby table), or the time running out, frees the table and ends the series. Rematches are
   unlimited. Solo keeps its short hold; PC matches get an instant Play again when bots exist.
 - One **Find another server** button, hidden during a match.
+- **Server refresh** (designer, 2026-10-14: servers grow laggy as they age): a public lobby
+  server from **5 hours** old refreshes at its first moment with nobody mid-game (bot-only
+  tables don't count), at **6 hours** whatever is going on (a game cut then is void, as at
+  Roblox's own shutdown). A 30 s gold countdown in the top banner and chat, then everyone moves
+  **together** into one fresh server through a short hop. Arenas and private servers never
+  refresh. `Config.ServerRestart.Enabled` turns it off.
 - **Global queue** (designer, 2026-09-28; it had been planned for after release): the bar's
   **Play Global** (2026-10-07; it was the card's 4th choice, Join Global Queue) looks in every
   server for a side of similar rank and teleports both into an **arena**.
