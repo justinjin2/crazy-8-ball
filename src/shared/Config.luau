@@ -2116,20 +2116,21 @@ Config.BlockOdds = {
 		Legendary = { Odds = { Legendary = 1000000 } },
 		Mythic = { Odds = { Mythic = 1000000 } },
 		-- The Grand Opening block (economy v6): a Rare block plus two Unique rows that exist
-		-- nowhere else, named by cue id: the Firework Cue 3.5% and the Beta Cue 0.2%. Caps: copies
+		-- nowhere else, named by cue id: the Firework Cue 5% and the Beta Cue 1% (designer,
+		-- 2026-10-14; were 3.5% and 0.2%, the 2.3% taken from Rare). Caps: copies
 		-- of each Unique ever; once a cue's copies are all found its row's share goes to Rare
 		-- (BlockOdds.rowFor), and a player who owns one sees that row as Rare too (Roblox's
 		-- one-instance rule). The 500th block guarantees Beta:
 		-- Config.LuckyBlocks.Kinds.GrandOpening.Guarantee.
 		GrandOpening = {
 			Odds = {
-				Rare = 858750,
+				Rare = 835750, -- was 858,750 (2026-10-14: the Uniques' raise came from here)
 				Epic = 90000,
 				Legendary = 13000, -- 1 in 77
 				Mythic = 1200, -- 1 in 833
 				Secret = 50, -- 1 in 20,000
-				FireworkCue = 35000,
-				BetaCue = 2000, -- 1 in 500
+				FireworkCue = 50000, -- 1 in 20 (was 35,000)
+				BetaCue = 10000, -- 1 in 100 (was 2,000)
 			},
 			-- FireworkCue was 1000 (designer, 2026-10-12: 500).
 			Caps = { FireworkCue = 500, BetaCue = 100 },
