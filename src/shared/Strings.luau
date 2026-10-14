@@ -218,12 +218,14 @@ return {
 		Joining = "Joining the arena...",
 		ToPortal = "Off to your own table...", -- a Solo or Practice portal (TeleportScreen)
 		ToLobby = "Back to the lobby...",
+		ToFresh = "Moving everyone to a fresh server...", -- the server refresh (2026-10-14)
 		ToTable = "Heading to your table...", -- a match in this server
 		Failed = {
 			Studio = "Teleports only work in the published game.",
 			Teleport = "Couldn't join the match. Try again.",
 			Store = "The global queue isn't answering. Try again.",
 			Party = "Your party changed, so the search stopped.",
+			Refresh = "Couldn't move to a fresh server. Playing on here.", -- the server refresh
 		},
 	},
 	-- The arena's card while players arrive (ArenaStatus).
@@ -311,7 +313,9 @@ return {
 		ResetOther = "%s's save was reset to a new player's.",
 		ResetKick = "Your save was reset by the game's owner. Rejoin to start fresh.",
 		-- Moderation (/modhelp).
-		ModHelp = "Moderation: /kick <player> [reason] (out of this server), /ban <player> [days|perm] [reason] (every server, for that many days or for good; no days: for good), /unban <player or user id>, /resetdata <player> (wipes their save; type it twice). A player outside this server can be named by username for /ban and /unban.",
+		ModHelp = "Moderation: /kick <player> [reason] (out of this server), /ban <player> [days|perm] [reason] (every server, for that many days or for good; no days: for good), /unban <player or user id>, /resetdata <player> (wipes their save; type it twice), /refreshserver (everyone here moves together to a fresh server after a 30 s countdown). A player outside this server can be named by username for /ban and /unban.",
+		RefreshStarted = "Server refresh: the countdown started; everyone here moves together to a fresh server.",
+		RefreshBusy = "Server refresh: not here (an arena or a private server), or one is already under way.",
 		ModUsage = "Try %s.",
 		ModUsageKick = "/kick <player> [reason]",
 		ModUsageBan = "/ban <player> [days|perm] [reason]",
@@ -1512,6 +1516,8 @@ return {
 		-- The countdown while it runs: the multiplier ("2"), the time left, the buyer.
 		Party = "Money Party! %sx money for everyone: %s (from %s)",
 		PartyAnon = "Money Party! %sx money for everyone: %s",
+		-- The server refresh's countdown (Config.ServerRestart, 2026-10-14): the time left ("0:30").
+		Restart = "Server refresh in %s: everyone moves together to a fresh server!",
 		Reyes = "%s reached Reyes!",
 		FirstReyes = "%s is the first player ever to reach Reyes!",
 		-- A cue new to your Index (not from a block), and its finder's money: the cue's name,

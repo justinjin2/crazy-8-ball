@@ -37,6 +37,7 @@ local LightCycle = require(Shared.LightCycle)
 local Placement = require(Shared.Placement)
 local GlobalQueue = require(script.Parent.GlobalQueue)
 local PlayerData = require(script.Parent.PlayerData)
+local ServerRestartMath = require(Shared.ServerRestartMath)
 local TableService = require(script.Parent.TableService)
 local BotService = require(script.Parent.Bots.BotService)
 
@@ -117,7 +118,9 @@ function ArenaService.loadRecord(matchId: string): any?
 	end
 	local started = os.clock()
 	local record = GlobalQueue.readRecord(matchId, A.RecordWaitSeconds)
-	if record then
+	if record and record.restart then
+		log(("refresh hop list read in %.0f ms"):format((os.clock() - started) * 1000))
+	elseif record then
 		log(
 			("list read in %.0f ms: %dv%d"):format(
 				(os.clock() - started) * 1000,
@@ -245,6 +248,65 @@ function ArenaService.evict(p: Player, tries: number?)
 		else
 			q:Kick(Strings.Arena.Rejoin)
 		end
+	end)
+end
+
+--- The server refresh's hop (ServerRestart; a list with restart = true): nothing is built.
+--- Everyone on the list comes in; once they all have their save open (or
+--- Config.ServerRestart.HopWaitSeconds pass) everyone here goes on together, as one group,
+--- to a fresh lobby server. Anyone arriving after that goes on alone.
+function ArenaService.runHop(list: any)
+	local R = Config.ServerRestart
+	local listed: { number } = {}
+	if type(list.players) == "table" then
+		for _, id in list.players do
+			if type(id) == "number" then
+				table.insert(listed, id)
+			end
+		end
+	end
+	local ready: { [number]: boolean } = {}
+	local sent = false
+	local function arriveHop(p: Player)
+		if sent then
+			ArenaService.evict(p)
+			return
+		end
+		if PlayerData.waitLoaded(p, R.HopWaitSeconds) then
+			ready[p.UserId] = true
+		end
+	end
+	Players.PlayerAdded:Connect(arriveHop)
+	for _, p in Players:GetPlayers() do
+		task.spawn(arriveHop, p)
+	end
+	local started = os.clock()
+	task.spawn(function()
+		while not ServerRestartMath.hopReady(listed, ready, os.clock() - started, R) do
+			-- Nobody on the list ever came, or only strangers: whoever is here goes on.
+			if os.clock() - started > 2 * R.HopWaitSeconds then
+				break
+			end
+			task.wait(0.25)
+		end
+		sent = true
+		local group = Players:GetPlayers()
+		log(
+			("refresh hop: %d of %d arrived after %.1f s; sending them on together"):format(
+				#group,
+				#listed,
+				os.clock() - started
+			)
+		)
+		if #group == 0 then
+			return
+		end
+		GlobalQueue.notify(group, { kind = "Restart" })
+		GlobalQueue.sendHome(group, {}, function(q: Player, why: string)
+			if why ~= "Studio" and q.Parent == Players then
+				ArenaService.evict(q)
+			end
+		end)
 	end)
 end
 

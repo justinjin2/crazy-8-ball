@@ -583,6 +583,73 @@ function GlobalQueue.teleport(players: { Player }, match: Match, failed: (Player
 	teleportGroup(players, options, 1, failed)
 end
 
+export type Hop = { code: string, id: string }
+
+--- The server refresh (ServerRestart, designer 2026-10-14): send `players` together to a hop,
+--- a reserved server of this place whose list (restart = true, their user ids) has it send
+--- them all on as one group to a fresh lobby server (ArenaService.runHop). `hop` reuses one
+--- already listed (someone who joined after the group left); without it a new one is reserved
+--- and listed. Their saves are let go first. Yields. The hop, or nil when none could be made
+--- (nobody moved). `onFailed(player, why)` as for `teleport` (Studio: at once, "Studio").
+function GlobalQueue.restartHop(
+	players: { Player },
+	onFailed: (Player, string) -> (),
+	hop: Hop?
+): Hop?
+	local made = hop
+	if not made then
+		local code, id = reserve()
+		if not code or not id then
+			return nil
+		end
+		local ids = {}
+		for _, p in players do
+			table.insert(ids, p.UserId)
+		end
+		local record = { v = Ticket.Version, id = id, at = clock(), restart = true, players = ids }
+		if not QueueCore.writeRecord(store, record) and not IS_STUDIO then
+			failed("restart hop list", id)
+			return nil
+		end
+		made = { code = code, id = id }
+	end
+	local target = made :: Hop
+	GlobalQueue.notify(players, { kind = "Restart" })
+	if IS_STUDIO then
+		log(("Studio cannot teleport: %d player(s) would move to a fresh server"):format(#players))
+		task.delay(G.FoundLeadSeconds, function()
+			for _, p in players do
+				onFailed(p, "Studio")
+			end
+		end)
+		return target
+	end
+	for _, p in players do
+		PlayerData.handOff(p)
+	end
+	local options = Instance.new("TeleportOptions")
+	options.ReservedServerAccessCode = target.code
+	options:SetTeleportData({ gq = { restart = true, sentAt = clock(), from = SERVER } })
+	log(("refresh: sending %d player(s) to hop %s"):format(#players, target.id))
+	teleportGroup(players, options, 1, onFailed)
+	return target
+end
+
+local lobbyClosed = false
+
+--- The server refresh: `closed`, this lobby stops marking itself open and its mark is
+--- dropped, so no arena sends anyone back here while everyone moves out; false (the move
+--- left people here) marks it open again at the next beat.
+function GlobalQueue.setLobbyClosed(closed: boolean)
+	if lobbyClosed == closed then
+		return
+	end
+	lobbyClosed = closed
+	if closed and game.JobId ~= "" then
+		task.spawn(QueueCore.dropServer, store, SERVER)
+	end
+end
+
 --- Send players back to the lobby: to `home` (the lobby server they came from) when it is
 --- still open with room (its "still open" mark, Ticket.homeOpen), else straight to any lobby
 --- server; a failed try at `home` goes to any lobby server at once, never to `home` again (a
@@ -824,6 +891,9 @@ function GlobalQueue.start(lobby: boolean)
 	started = true
 	if lobby and game.JobId ~= "" then
 		local function mark()
+			if lobbyClosed then
+				return
+			end
 			QueueCore.markServer(store, SERVER, #Players:GetPlayers(), Players.MaxPlayers, clock())
 		end
 		task.spawn(function()

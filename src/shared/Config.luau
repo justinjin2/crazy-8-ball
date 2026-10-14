@@ -8954,6 +8954,7 @@ Config.ServerRestart = {
 	-- Anyone whose teleport failed (still here, save given back) is tried once more after
 	-- this; whoever is still here after that stays, and the server plays on.
 	RetrySeconds = 60,
+	GiveUpMinutes = 30, -- after a move that left someone behind, the next try is this far off
 	AttributeName = "ServerRestartAt", -- workspace: when everyone moves (server time)
 }
 
@@ -15559,6 +15560,9 @@ Config.Debug = {
 		Ban = "/ban",
 		Unban = "/unban",
 		ModHelp = "/modhelp",
+		-- The server refresh now (Config.ServerRestart, 2026-10-14): this server counts down and
+		-- moves everyone together to a fresh one (Studio: the countdown, then only a log line).
+		RefreshServer = "/refreshserver",
 		MaxBanDays = 3650, -- the longest timed ban accepted (days)
 		BanAlts = true, -- a ban also covers the accounts Roblox links to theirs
 		-- The Like + Favorite card back to unclaimed and not asked (2026-10-11), to try its

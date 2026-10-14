@@ -54,6 +54,8 @@ type Facts = { index: number?, realMatches: number? }
 -- Set as soon as the server starts shutting down (Ranking.start), in case Roblox removes the
 -- players before ProfileStore's own BindToClose has run.
 local closing = false
+-- The server refresh is moving everyone out (ServerRestart): matches are void, as at a shutdown.
+local voided = false
 
 -- Table id -> the epoch whose result was settled, so a result is never paid twice.
 local settledEpoch: { [number]: number } = {}
@@ -265,7 +267,7 @@ function Ranking.departed(t: any, player: Player)
 	end
 	-- A server shutting down (an update, "shut down all servers") removes everyone: that is
 	-- not a forfeit. The match is void; the money its pots paid stays saved.
-	if closing or PlayerData.isClosing() then
+	if closing or voided or PlayerData.isClosing() then
 		return
 	end
 	local key = Economy.matchKey(e)
@@ -639,6 +641,12 @@ local function settle(e: any)
 	departed[key] = nil
 end
 
+--- The server refresh moving everyone to a fresh server (ServerRestart): `on` voids matches
+--- as a shutdown does (a leaver is no forfeit); off again when the move left people here.
+function Ranking.setVoid(on: boolean)
+	voided = on
+end
+
 --- Watch for the server shutting down (Bootstrap calls this once).
 function Ranking.start()
 	game:BindToClose(function()
@@ -658,7 +666,7 @@ function Ranking.check(t: any)
 	end
 	settledEpoch[e.id] = e.epoch
 	-- A match ended by the server shutting down (everyone removed) is void.
-	if closing or PlayerData.isClosing() then
+	if closing or voided or PlayerData.isClosing() then
 		return
 	end
 	local ok, err = pcall(function(): any

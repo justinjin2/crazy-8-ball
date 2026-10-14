@@ -110,6 +110,12 @@ end
 local record = nil
 if isArena then
 	record = ArenaService.loadRecord(matchId :: string)
+	if record and record.restart then
+		-- The server refresh's hop: everyone on its list goes on together to a fresh lobby.
+		GlobalQueue.start(false)
+		ArenaService.runHop(record)
+		return
+	end
 	if not record then
 		GlobalQueue.start(false)
 		local function away(p: Player)
@@ -174,6 +180,8 @@ DevCommands.start() -- /day and /sunset, for the developer only
 require(script.Parent:WaitForChild("MoneyRain")).start(not isArena)
 require(script.Parent:WaitForChild("AdminService")).start(not isArena)
 GlobalQueue.start(not isArena) -- every server takes its turn pairing the global queue
+-- A public lobby server moves everyone to a fresh one every 5 to 6 hours (ServerRestart).
+require(script.Parent:WaitForChild("ServerRestart")).start(not isArena)
 if isArena then
 	ArenaService.start(record)
 end
