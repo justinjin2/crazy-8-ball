@@ -711,7 +711,12 @@ Net.get("QueueNotice").OnClientEvent:Connect(function(notice: any)
 	if type(notice) ~= "table" then
 		return
 	end
-	if notice.kind == "Found" or notice.kind == "Home" or notice.kind == "Portal" then
+	if
+		notice.kind == "Found"
+		or notice.kind == "Home"
+		or notice.kind == "Portal"
+		or notice.kind == "Restart"
+	then
 		teleportScreen:show(notice.kind)
 	elseif notice.kind == "Local" then
 		-- A match in this server: a moment over the move to the table (or the bot's arrival).

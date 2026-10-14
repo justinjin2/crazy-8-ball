@@ -124,6 +124,7 @@ function Banner.new(screen: ScreenGui, opts: Options?): any
 	self.shownKey = nil :: string? -- "line" or "party": what is up
 	self.fallbackPartyEnds = nil :: number? -- a Party banner's end, until the attribute says
 	self.fallbackPartyBuyer = nil :: string?
+	self.restartSaid = nil :: number? -- the server refresh time already said in chat
 	self.connections = {} :: { RBXScriptConnection }
 
 	local root = HudParts.frame(screen, "Banner")
@@ -376,12 +377,27 @@ end
 -- What shows now: a one-off line while it lasts, the next one queued, the party, or nothing.
 -- While a party runs, its countdown gets a turn between two lines.
 function Banner.tick(self: any)
+	local serverNow = workspace:GetServerTimeNow()
+	-- The server refresh's countdown (Config.ServerRestart): said once in chat (seen in a
+	-- match too), and the banner's whole time until everyone moves.
+	local restartAt = workspace:GetAttribute(Config.ServerRestart.AttributeName)
+	local restarting = type(restartAt) == "number" and restartAt > serverNow - 1
+	local restartText = if restarting
+		then COPY.Restart:format(clock((restartAt :: number) - serverNow))
+		else nil
+	if restarting and self.restartSaid ~= restartAt then
+		self.restartSaid = restartAt
+		ChatTags.system(ChatTags.paint(restartText :: string, HudParts.tone("Gold")))
+	end
 	if self.inMatch then
 		self:hide()
 		return
 	end
+	if restartText then
+		self:show(restartText, HudParts.tone("Gold"), nil, "restart")
+		return
+	end
 	local clockNow = os.clock()
-	local serverNow = workspace:GetServerTimeNow()
 	local ends, buyer = self:party(serverNow)
 	local current: Line? = self.current
 	if current and clockNow >= self.currentUntil then
