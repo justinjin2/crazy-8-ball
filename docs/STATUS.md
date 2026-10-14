@@ -25,7 +25,8 @@ entry of `docs/archive/STATUS_HISTORY.md`.
   the reward comes on Verify after a rejoin); a new tier plays the divisions' rank-up sound; Eagle's Eye draws Fire Shot's full aim lines;
   the spin packs' crossed-out prices (20 / 40 / 200 R$); the **server refresh** (`3340a74`,
   `b1383fd`: a lobby server 5 to 6 hours old moves everyone together to a fresh server;
-  `Config.ServerRestart`, owner `/refreshserver`). Already live on Roblox (synced): restock
+  `Config.ServerRestart`, owner `/refreshserver`); the Grand Opening block's Firework Cue 5% and
+  Beta Cue 1% (were 3.5% and 0.2%, from Rare). Already live on Roblox (synced): restock
   Epic 149 and Legendary 599 R$, spins 4 / 17 / 33 / 129 R$.
 - **Now (2026-10-12): a tester's QA batch, committed on `gui-v4`, NOT pushed**, held until the
   designer approves the test page (Artifact "Oct 12 Fixes Checklist"). Rounds 1 and 2 (the

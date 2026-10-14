@@ -135,9 +135,10 @@ so it never stays in the inventory. Exclusive, Unique and Classic cues never sel
 keeps tap to continue. With the switch off, the economy v6 rule returns: a Common or Uncommon
 duplicate pays its sell money instead of a copy ("Duplicate · +$200").
 
-**The Grand Opening block** (Rare or better, money or Robux): Rare 85.875%, Epic 9%, Legendary 1.3%,
-Mythic 0.12%, Secret 0.005%, the numbered Firework Cue 3.5% (500 ever; 1,000 until 2026-10-12), the numbered Beta Cue
-0.2% (100 ever; guaranteed on a player's 500th). Runs **45 days** from StartsAt, set to the moment
+**The Grand Opening block** (Rare or better, money or Robux): Rare 83.575%, Epic 9%, Legendary 1.3%,
+Mythic 0.12%, Secret 0.005%, the numbered Firework Cue 5% (500 ever; 1,000 until 2026-10-12), the numbered Beta Cue
+1% (100 ever; guaranteed on a player's 500th). Firework was 3.5% and Beta 0.2% until 2026-10-14 (designer), the raise
+taken from Rare (85.875% before). Runs **45 days** from StartsAt, set to the moment
 the designer publishes v6. The **launch bonus** in that window is **+30% on money packs only**.
 
 **The Starter block** (Starter Pack): unchanged (Rare 90%, Epic 9%, Legendary 0.9%, Mythic 0.09%,
