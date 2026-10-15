@@ -16619,6 +16619,10 @@ Config.UI.PlayerList = {
 Config.Cutscenes = {
 	From = "Rare", -- pulls of this rarity and up get a cutscene
 	RemoteFrom = "Legendary", -- and from this one up, everyone else in the server a sky tint
+	-- Cues that play a bigger rarity's scene than their own when pulled (designer, 2026-10-14:
+	-- the Grand Opening's Firework Cue, a Legendary, and Beta Cue, an Epic, get the Mythic one).
+	-- Only the puller's scene: the card, the chat line and others' sky stay the cue's rarity.
+	SceneOf = { FireworkCue = "Mythic", BetaCue = "Mythic" } :: { [string]: string },
 	DisplayOrder = 60, -- its screen over the lucky block reel (whose overlay hides while it plays)
 	-- The black letterbox bars (Letterbox; the pulls', the 1v1 result's, the Gift block's): each
 	-- its scene's BarsShare of the screen's height, but never thinner than the HUD's rows at

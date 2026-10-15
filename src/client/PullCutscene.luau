@@ -80,6 +80,12 @@ local function rank(rarity: string): number
 	return table.find(RARITIES, rarity) or 0
 end
 
+-- The scene a pull plays: its rarity's, or a bigger one for a cue named in CS.SceneOf.
+local function sceneOf(rarity: string, cueId: string): string
+	local own = CS.SceneOf[cueId]
+	return if own and rank(own) > rank(rarity) then own else rarity
+end
+
 --- Whether a rarity gets a cutscene (Rare and up).
 function PullCutscene.has(rarity: string): boolean
 	return rank(rarity) >= rank(CS.From) and rank(rarity) > 0
@@ -1074,6 +1080,7 @@ end
 --- A pull of `rarity` (with prize `cueId`) has just started its reel: load what its scene
 --- will show (the cue's look, the scene's art), so nothing pops in grey.
 function PullCutscene.prepare(rarity: string, cueId: string)
+	rarity = sceneOf(rarity, cueId)
 	if rarity == "Mythic" or rarity == "Secret" then
 		CueAssets.preload(cueId)
 	end
@@ -1135,9 +1142,10 @@ end
 
 --- Play the cutscene for a pull of `rarity` (`cueId` the server's prize), from the moment the
 --- reel stops: the fade to black first (`onBlack` runs once it is fully black), then the
---- rarity's scene; `done` runs once when it is over (played out, skipped or stopped). A rarity
---- without one calls `done` now.
+--- rarity's scene (or the bigger one CS.SceneOf names for the cue); `done` runs once when it
+--- is over (played out, skipped or stopped). A rarity without one calls `done` now.
 function PullCutscene.play(rarity: string, cueId: string, done: () -> (), onBlack: (() -> ())?)
+	rarity = sceneOf(rarity, cueId)
 	local step = STEPS[rarity]
 	if not step or not PullCutscene.has(rarity) then
 		done()
