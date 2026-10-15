@@ -789,24 +789,18 @@ return {
 		H.expect(#everything.rewardCues == 10 and everything.rewardCues[10] == "ReyesCue")
 	end,
 
-	["difficulty unlocks: Difficult from Gold I, Challenger from Diamond I"] = function()
+	["difficulty unlocks: every rank hosts every level (designer, 2026-10-14)"] = function()
 		local Ranks = load()
 		local function at(tier: string, division: number?): any
 			return Ranks.fromXp(Ranks.toXp(tier, division) :: number, tier ~= "Unranked")
 		end
-		H.expect(Ranks.canHost(at("Unranked"), "Classic"), "Classic always")
-		H.expect(not Ranks.canHost(at("Unranked"), "Difficult"))
-		H.expect(not Ranks.canHost(at("Silver", 5), "Difficult"), "Silver V: not yet")
-		H.expect(Ranks.canHost(at("Gold", 1), "Difficult"), "Gold I")
-		H.expect(not Ranks.canHost(at("Silver", 5), "Challenger"), "Challenger: Silver V not yet")
-		H.expect(Ranks.canHost(at("Gold", 1), "Challenger"), "Challenger from Gold I")
-		H.expect(Ranks.unlockName("Challenger") == "Gold 1", "shown as Gold 1")
-		H.expect(Ranks.unlockName("Classic") == nil, "Classic needs nothing")
-		H.expect(Ranks.canHost(at("Reyes"), "Challenger") and Ranks.canHost(at("Reyes"), "Classic"))
+		for _, level in { "Classic", "Difficult", "Challenger" } do
+			H.expect(Ranks.canHost(at("Unranked"), level), "Unranked hosts " .. level)
+			H.expect(Ranks.canHost(at("Reyes"), level), "Reyes hosts " .. level)
+			H.expect(Ranks.canHost(nil :: any, level), "no rank read yet: " .. level)
+			H.expect(Ranks.unlockName(level) == nil, "no lock shown on " .. level)
+		end
 		H.expect(not Ranks.canHost(at("Reyes"), "Impossible"), "unknown difficulty")
-		H.expect(
-			not Ranks.canHost(nil :: any, "Difficult") and Ranks.canHost(nil :: any, "Classic")
-		)
 	end,
 
 	["results carry the breakdown and are whole numbers; inputs are never changed"] = function()

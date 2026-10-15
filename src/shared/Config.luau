@@ -1831,10 +1831,10 @@ Config.Ranks = {
 	-- A match counts only after this much server-tracked time from the break (GDD section
 	-- 13). Under it, a forfeit or an early 8 pays nobody anything. (tune)
 	RealMatchSeconds = 60,
-	-- Difficulty unlocks by YOUR rank (ECONOMY 4.7): host Difficult and Challenger from Gold I
-	-- (designer, 2026-10-02; Challenger was Diamond I). Ranks.canHost: the host card greys a
-	-- locked level ("Requires Gold I+") and the server refuses it (TableService).
-	Unlocks = { Difficult = "Gold", Challenger = "Gold" },
+	-- Difficulty unlocks by YOUR rank (ECONOMY 4.7; Ranks.canHost, the server refuses a locked
+	-- level in TableService): a level with no row is open to every rank. Empty since the
+	-- designer opened them to all (2026-10-14; was Difficult and Challenger from Gold I).
+	Unlocks = {} :: { [string]: string },
 	-- Rank rewards, paid once, the first time you reach a division (PeakDivision passes it;
 	-- ECONOMY 4.8). Step: the money for each new division II-V of a tier. Tier: reaching a
 	-- tier's division I pays its money, its lucky blocks ({ [kind] = count }, into the hotbar)
