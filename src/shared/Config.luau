@@ -7914,8 +7914,13 @@ Config.Multiplayer = {
 	PlacementResolveBisections = 10, -- walk-back steps toward the last legal spot when push-out fails
 	PlacementResolveSlopInches = 0.001, -- pushed spots land this far clear so rounding never reads as contact
 	BreakAxisMinComponent = 0.35, -- break arrows follow screen-right unless the line runs nearly vertical on screen
-	-- One pad per table (Placement.queuePad). The first on is the host, who picks the
-	-- difficulty and presses Start once the pad is full; teams alternate in arrival order.
+	-- The host's match rules on a waiting lobby pad (designer, 2026-10-14, TEMPORARY): the
+	-- difficulty and abilities on or off, in the side panel (HostRules, Config.UI.HostRules).
+	-- Bots at the table play by them. Off: the server refuses both and every lobby table is
+	-- Classic with abilities, as before.
+	HostRules = { Enabled = true },
+	-- One pad per table (Placement.queuePad). The first real player on is the host, who picks
+	-- the match rules; teams alternate in arrival order.
 	Queue = {
 		-- One rectangular pad per table (designer, 2026-09-26: a rectangle, not the circle
 		-- tried first): stand anywhere on it to join. It holds both teams, twice the table's

@@ -1713,14 +1713,17 @@ function Service.start(parent: Instance, mode: string?)
 		local t = tables[id]
 		-- The global queue's Ults: On / Off is gone (designer, 2026-10-02): every search plays
 		-- with ults on. The matchmaking bar (designer, 2026-10-07) has one choice, Play Global:
-		-- the server sends the request itself (askForOpponent) and lobby tables play Classic,
-		-- so a client's Request, Cancel or difficulty is refused.
+		-- the server sends the request itself (askForOpponent), so a client's Request or
+		-- Cancel is refused. The host's match rules (the side panel, designer 2026-10-14) pass
+		-- while Config.Multiplayer.HostRules is on and the host's rank may host the level.
+		local rules = payload.kind == "SetDifficulty" or payload.kind == "SetAbilities"
 		if
 			payload.kind == "SetQueueUlts"
 			or payload.kind == "SearchWithUlts"
 			or payload.kind == "RequestOpponent"
 			or payload.kind == "CancelRequest"
-			or payload.kind == "SetDifficulty"
+			or (rules and not Config.Multiplayer.HostRules.Enabled)
+			or (payload.kind == "SetDifficulty" and not mayHost(p.UserId, payload.value))
 		then
 			Net.get("ShotRejected"):FireClient(p, "ActionRejected")
 			return

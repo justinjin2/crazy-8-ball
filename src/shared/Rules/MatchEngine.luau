@@ -109,14 +109,27 @@ local function choose(t: any, team: number): any
 	return first
 end
 
+-- The host is the first connected real player in (a bot's seat id is below zero), or the
+-- first connected bot when no real player is on: a player who steps onto a pad a lobby bot
+-- waits on hosts it, so the match rules are theirs to pick (designer, 2026-10-14).
 local function rehost(t: any)
 	local old = t.hostId
 	t.hostId = nil
+	local first: any = nil
 	for _, s in t.seats do
 		s.host = false
-		if s.connected and t.hostId == nil then
-			t.hostId, s.host = s.userId, true
+		if s.connected then
+			if s.userId > 0 and t.hostId == nil then
+				t.hostId = s.userId
+			end
+			first = first or s
 		end
+	end
+	if t.hostId == nil and first then
+		t.hostId = first.userId
+	end
+	for _, s in t.seats do
+		s.host = s.userId == t.hostId
 	end
 	-- A new host asks for players themselves: the old one's request does not carry over.
 	if t.hostId ~= old then
@@ -200,7 +213,9 @@ function Engine.startsAt(t: any): number?
 	if t.search and t.search.found then
 		return nil
 	end
-	local last = -math.huge
+	-- The countdown runs from the last one in, or the host's last change to the match rules
+	-- (so a full pad never starts mid-pick).
+	local last = t.settingsAt or -math.huge
 	for _, s in t.seats do
 		if s.connected and s.joinedAt > last then
 			last = s.joinedAt
@@ -401,6 +416,7 @@ function Engine.remove(t: any, userId: number, now: number): boolean
 		-- The host's choices outlive the host (the next in takes over), not the box emptying.
 		if Engine.count(t) == 0 then
 			t.settings = defaultSettings()
+			t.settingsAt = nil
 		end
 		phase(t, "Waiting", now, nil)
 		return true
@@ -1058,7 +1074,10 @@ function Engine.action(
 		-- While the pad searches worldwide it does not start or ask by other means: a found
 		-- match must find its players still waiting here.
 		local starts = kind == "Start" or kind == "StartSolo" or kind == "RequestOpponent"
-		if t.search and starts then
+		local rules = kind == "SetDifficulty" or kind == "SetAbilities"
+		-- A worldwide match plays Classic with abilities (designer, 2026-10-14), so the rules
+		-- stay as they are under a search.
+		if t.search and (starts or rules) then
 			return false
 		end
 		if kind == "Start" then
@@ -1110,11 +1129,18 @@ function Engine.action(
 				return false
 			end
 			t.settings.difficulty = request.value
+			t.settingsAt = now
 			t.revision += 1
 		else
-			-- SetAbilities: lobby tables always play with ults on (GDD section 9, 2026-09-28);
-			-- only the global queue's No-ults arena turns them off, from its server record.
-			return false
+			-- SetAbilities (designer, 2026-10-14; was always on): the host turns abilities off
+			-- for everyone at the table, bots too (Ults.Match.check). An arena's table never
+			-- gets here: it keeps its server record's choice.
+			if type(request.value) ~= "boolean" then
+				return false
+			end
+			t.settings.abilities = request.value
+			t.settingsAt = now
+			t.revision += 1
 		end
 		return true
 	end
