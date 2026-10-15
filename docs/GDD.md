@@ -1070,7 +1070,9 @@ approves the v5 proposal (ECONOMY.md section 11).
   black and silence. Both end like the Legendary: the white flash with its "Cinematic Hit"
   (`Audio.Ui.LegendaryHit`) and the card; under the card the Mythic keeps the faint angelic
   "Aurora", the Secret the dream music, each tapering after it closes. No scene shows a 2D cue
-  card. The Legendary has no sky effect (its gold aurora was dropped, 2026-10-05).
+  card. The Legendary has no sky effect (its gold aurora was dropped, 2026-10-05). The Grand
+  Opening's Firework Cue (Legendary) and Beta Cue (Epic) play the Mythic scene too (designer,
+  2026-10-14; `Config.Cutscenes.SceneOf`), for the puller only.
 - **The player stands still through every pull cutscene** (designer, 2026-10-05): no walking
   or jumping, and no turning with the camera, even with shift lock on.
 - **What money buys** (v5 prices, 2026-10-09): **Mystery blocks** ($19,900; 5 for $89,900; v5.1),
