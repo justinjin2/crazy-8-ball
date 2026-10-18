@@ -1,4 +1,5 @@
 --!strict
+--!native
 -- Ball: plain data for one ball in the simulation. Positions in inches, velocities in
 -- inches per second, angular velocity in radians per second.
 --

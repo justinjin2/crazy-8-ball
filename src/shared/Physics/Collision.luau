@@ -1,4 +1,5 @@
 --!strict
+--!native
 -- Collision: exact time-of-impact tests for circles (and spheres) moving at constant velocity.
 -- Every test returns the impact time in [0, maxT] or nil, plus the contact normal
 -- pointing from the obstacle INTO the ball (the direction to push the ball out).

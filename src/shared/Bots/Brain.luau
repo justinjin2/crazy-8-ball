@@ -1,4 +1,5 @@
 --!strict
+--!native
 -- The bot's brain: what to do with one shot. Pure and seeded (src/shared/Bots/Rng), so a
 -- bot plays the same way from the same seed, in Lune and on the server.
 --

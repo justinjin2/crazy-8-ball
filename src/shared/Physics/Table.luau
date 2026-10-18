@@ -1,4 +1,5 @@
 --!strict
+--!native
 -- Table: the collision geometry of the playing surface, built from Config numbers.
 --
 -- Coordinates: origin at the table centre, x along the length (head rail at -x, foot rail

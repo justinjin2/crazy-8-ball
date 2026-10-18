@@ -1,4 +1,5 @@
 --!strict
+--!native
 -- Cluster: simultaneous soft contact for balls that are touching each other.
 --
 -- Simulation resolves an ordinary collision as one instantaneous impulse between two balls,

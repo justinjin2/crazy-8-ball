@@ -1,4 +1,5 @@
 --!strict
+--!native
 -- The bots' shot finder: every pot the bot could play and how to strike it, worked out in our
 -- own physics. Ported from the ability harness's model shooter (tests/ult_value.luau), which
 -- stays as it is:

@@ -10,6 +10,7 @@
 
 local fs = require("@lune/fs")
 local luau = require("@lune/luau")
+local process = require("@lune/process")
 
 local Harness = {}
 
@@ -120,6 +121,10 @@ end
 local root: Node? = nil
 local cache: { [Node]: any } = {}
 local loading: { [Node]: boolean } = {}
+-- Modules marked `--!native` (on a server, Roblox compiles them to machine code) are compiled
+-- the same way here when this is on: inside Harness.isolated(true, ...), or LUNE_NATIVE=1 for a
+-- whole run (tools/test.sh with it set runs every test against the native physics).
+local native = process.env.LUNE_NATIVE == "1"
 
 -- Roblox globals that must never be visible to shared modules. Lune has none of these, and
 -- the smoke test checks they stay absent.
@@ -138,7 +143,11 @@ local function loadSource(source: string, node: Node, requireFn: (any) -> any): 
 	else
 		wrapped = "local script, require = ...\n" .. source
 	end
-	local fn = luau.load(wrapped, { debugName = node._file or node.Name })
+	local header = source:sub(1, 200)
+	local fn = luau.load(wrapped, {
+		debugName = node._file or node.Name,
+		codegenEnabled = native and ("\n" .. header):find("\n%-%-!native%s*\n") ~= nil,
+	})
 	return fn(node, requireFn)
 end
 
@@ -186,6 +195,20 @@ function Harness.require(dottedPath: string): any
 		node = child
 	end
 	return requireNode(node)
+end
+
+--- Runs `fn` with a module cache of its own (every require inside it loads afresh), the
+--- `--!native` modules compiled to machine code when `on`; the shared cache and setting are
+--- untouched afterwards, so other tests keep the modules they hold.
+function Harness.isolated<T>(on: boolean, fn: () -> T): T
+	local saved, savedLoading, savedNative = cache, loading, native
+	cache, loading, native = {}, {}, on
+	local ok, result = pcall(fn)
+	cache, loading, native = saved, savedLoading, savedNative
+	if not ok then
+		error(result, 0)
+	end
+	return result
 end
 
 --- Forget all loaded modules so the next require starts from a clean state.

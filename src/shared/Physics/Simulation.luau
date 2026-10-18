@@ -1,4 +1,5 @@
 --!strict
+--!native
 -- Simulation: the pool physics. Pure Luau, fixed timestep, deterministic.
 --
 -- Each fixed step is processed event by event: find the earliest time of impact among all

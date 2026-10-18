@@ -1,4 +1,5 @@
 --!strict
+--!native
 -- Flight: a ball off the cloth. Jump shots, a hard break's hop and a ball knocked into the air.
 --
 -- A ball is AIRBORNE while its centre is above its resting height (z > 0) or it is moving up.
