@@ -314,7 +314,7 @@ return {
 	["codes grant spins once"] = function()
 		local codes = {}
 		local row = Config.Daily.Codes[U.CodeBanner.ActiveCode]
-		H.expect(row ~= nil and row.Spins == 5, "the banner's code gives 5 spins")
+		H.expect(row ~= nil and row.Spins == 10, "the banner's code gives 10 spins")
 		local ok, reward = Daily.redeem(codes, "  release ", DAY * 86400)
 		H.expect(ok and (reward :: any).spins == 3 and (reward :: any).lucky == 0, "3 spins")
 		local again, why = Daily.redeem(codes, "RELEASE", DAY * 86400)
@@ -323,6 +323,12 @@ return {
 		local okLikes, likes = Daily.redeem(codes, "100likes", DAY * 86400)
 		H.expect(okLikes and (likes :: any).spins == 5, "100LIKES gives 5 spins")
 		H.expect(not Daily.isLive("100LIKES"), "on without /code on")
+		-- It expires 2026-10-24 00:00 UTC (the game passed 250 likes); 250LIKES gives 10 spins.
+		local late, lateWhy = Daily.redeem({}, "100LIKES", 1792800000)
+		H.expect(not late and lateWhy == "Expired", "100LIKES expired from 2026-10-24")
+		local ok250, got250 = Daily.redeem(codes, "250likes", 1792800000)
+		H.expect(ok250 and (got250 :: any).spins == 10, "250LIKES gives 10 spins")
+		H.expect(not Daily.isLive("250LIKES"), "250LIKES on without /code on")
 		local out = RewardView.reward(reward :: any)
 		H.expect(out.spins == 3 and out.lucky == 0 and out.money == 0, "the reply's chip")
 		-- Lucky Spins are retired: a code row with LuckySpins pays plain spins.
@@ -516,7 +522,7 @@ return {
 		end
 		H.expect(p.live and not p.restricted and not p.vip and not p.devAll, "flags")
 		H.expect(p.moneyPerSpin == 10000 and #p.moneyPacks == 4, "money")
-		H.expect(p.code.active == "100LIKES" and p.code.nextGoalLikes == 250, "the code box")
+		H.expect(p.code.active == "250LIKES" and p.code.nextGoalLikes == 1000, "the code box")
 		H.expect((p :: any).auto == nil and (p :: any).autoStopChoices == nil, "no Auto Spin")
 		for _, key in SpinView.productKeys() do
 			local product = p.products[key]

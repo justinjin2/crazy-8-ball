@@ -3439,8 +3439,11 @@ Config.Daily = {
 		-- spins. The tutorial points at it (designer, 2026-10-03: RELEASE replaces ABILITIES).
 		RELEASE = { Spins = 3 },
 		-- The game's 100-like code (designer, 2026-10-13, in the game's description): 5 ability
-		-- spins, always on. The spin screen's code box and the tutorial name it since that day.
-		["100LIKES"] = { Spins = 5 },
+		-- spins. Expired since 2026-10-24 00:00 UTC (designer: the game passed 250 likes).
+		["100LIKES"] = { Spins = 5, Expires = 1792800000 },
+		-- The game's 250-like code (designer, 2026-10-24): 10 ability spins, always on. The spin
+		-- screen's code box and the tutorial name it since that day.
+		["250LIKES"] = { Spins = 10 },
 		-- Like milestones: 100 (the code box's first goal, CodeBanner.NextGoalLikes), 1k, 5k,
 		-- 10k, 25k, 50k, 100k likes.
 		LIKES100 = { Money = 5000, Spins = 2, Live = true },
@@ -4460,9 +4463,10 @@ Config.Ults = {
 	},
 	-- The code box on the spin screen (section 9.3): the designer edits these two in one place.
 	-- The code itself is a row in Config.Daily.Codes (Spins = 3).
-	-- 2026-10-13 (designer, the game passed 100 likes): 100LIKES, the next code at 250 likes
-	-- (was RELEASE, next at 100). The tutorial's code step types this code too.
-	CodeBanner = { ActiveCode = "100LIKES", NextGoalLikes = 250 },
+	-- 2026-10-24 (designer, the game passed 250 likes): 250LIKES, the next code at 1,000 likes
+	-- (was 100LIKES, next at 250; before that RELEASE, next at 100). The tutorial's code step
+	-- types this code too.
+	CodeBanner = { ActiveCode = "250LIKES", NextGoalLikes = 1000 },
 	-- The PC opponent (section 4): it activates when its bar is full and it is behind, or when
 	-- its shot finder sees no easy shot.
 	Pc = { WhenBehind = true, WhenNoEasyShot = true },

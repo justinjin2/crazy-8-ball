@@ -437,7 +437,7 @@ function UltOdds.draw(self: any, state: any)
 		else Config.Ults.CodeBanner.NextGoalLikes
 	local gold = ('<font color="%s">%%s</font>'):format(GOLD_HEX)
 	self.codeLine.Text = W.CodeLine:format(gold:format(active))
-	self.nextLine.Text = W.NextCode:format(gold:format(tostring(likes)))
+	self.nextLine.Text = W.NextCode:format(gold:format(Format.commas(likes)))
 end
 
 -- The height `text` wraps to at `size` in `width` (one line at least, `maxLines` at most).
