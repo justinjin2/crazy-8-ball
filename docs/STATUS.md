@@ -27,7 +27,7 @@ entry of `docs/archive/STATUS_HISTORY.md`.
   `b1383fd`: a lobby server 5 to 6 hours old moves everyone together to a fresh server;
   `Config.ServerRestart`, owner `/refreshserver`); the Grand Opening block's Firework Cue 5% and
   Beta Cue 1% (were 3.5% and 0.2%, from Rare); pulling a Firework or Beta Cue plays the
-  Mythic cutscene (`0b30d95`, `Config.Cutscenes.SceneOf`). Already live on Roblox (synced): restock
+  Mythic cutscene (`0b30d95`, `Config.Cutscenes.SceneOf`); the **250LIKES code** (`4b8d7ab`, 2026-10-24: 10 spins, the Abilities code box says USE CODE 250LIKES / NEXT CODE AT 1,000 LIKES, the tutorial points at it, 100LIKES answers "That code has expired."). Already live on Roblox (synced): restock
   Epic 149 and Legendary 599 R$, spins 4 / 17 / 33 / 129 R$.
 - **Now (2026-10-12): a tester's QA batch, committed on `gui-v4`, NOT pushed**, held until the
   designer approves the test page (Artifact "Oct 12 Fixes Checklist"). Rounds 1 and 2 (the
@@ -79,7 +79,7 @@ rooftop map with a day and sunset cycle; pull cutscenes Rare to Secret; the ball
 One line each; the long form is the 2026-10-12 (evening) entry at the top of
 `docs/archive/STATUS_HISTORY.md`.
 
-- **Temporary lower prices and the 100LIKES code (2026-10-13, pushed, not yet published):** the Shop shows Mystery $10,000, Grand Opening $25,000 and the restock's new prices, and charges them; the Abilities code box says USE CODE 100LIKES / NEXT CODE AT 250 LIKES and the code gives 5 spins; a new account's tutorial points at 100LIKES. Watch the Grand Opening sink and the Firework Cue's 500 copies on the dashboard.
+- **Temporary lower prices and the 100LIKES code (2026-10-13, pushed, not yet published):** the Shop shows Mystery $10,000, Grand Opening $25,000 and the restock's new prices, and charges them; 100LIKES gave 5 spins and is expired since 2026-10-24 (250LIKES replaced it in the code box and the tutorial). Watch the Grand Opening sink and the Firework Cue's 500 copies on the dashboard.
 - **Server refresh (2026-10-14, pushed, not yet published):** with a friend in a live server, type `/refreshserver`: a 30 s gold countdown, "Moving everyone to a fresh server...", and both land in the same new server (F9 server log: "[8ball] refresh" and "GQ refresh hop" lines). Then watch whether servers stay smooth; the first real refreshes come 5 hours after publishing.
 - **Lag and vanished ability looks (V1423, 2026-10-13):** lobby bots turned off (cd9a8c2), then back ON the same day as a live test (designer); not proven to be the cause. After publishing with Restart Servers: play a match, use Verity / Black Hole / Guangdong Tiger, watch the frame rate; if still broken, open F9 during an ability shot (Client and Server logs) and screenshot.
 
