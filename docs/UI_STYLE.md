@@ -1211,10 +1211,10 @@ screen's width (`WidthShare`), the frame's 66% on a phone.
 - **Freecam row** (2026-10-25): a sixth row, the movie-camera icon, "Freecam" and "Fly the camera
   around the lobby to film your friends.", its switch showing whether the freecam is on (not a
   saved setting); a refusal ("Leave the table first", ...) shows on its grey line in red for
-  3 s. While the freecam is on, its own row sits in Roblox's top bar (`Freecam`,
-  `Config.Freecam`): a white gear candy, a red EXIT candy with the camera icon, a white eye
-  candy, 44 px; the eye swaps them for a shut eye at 85% see-through, still a full touch
-  target. Pad glyphs B, X, Y on them while a controller is in use.
+  3 s. While the freecam is on, the only thing on screen is a red EXIT candy with the camera
+  icon, 44 px, in the top right of Roblox's top bar (`Freecam`, `Config.Freecam`; designer,
+  2026-10-25: just EXIT, the gear and the eye that hid it were dropped), with the pad's B glyph
+  while a controller is in use.
 
 ## 27. Purchases, the VIP tag and VIP's x2 (designer, 2026-10-08)
 

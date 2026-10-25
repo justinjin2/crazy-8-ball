@@ -4420,3 +4420,6 @@ timer of a new block stay the designer's call.
   `Enabled`): Settings row plus an EXIT button, an eye that hides the rest (designer's picks),
   the whole rooftop under the walls' tops, lobby only, and the server refuses any match while
   it is on. Measured by the custom event Freecam (Start, End with seconds, Refused).
+- 2026-10-25: **The freecam shows only EXIT, top right** (designer: "just put the exit button and
+  get rid of the settings and visible eye button"): the gear and the eye that hid it are gone, the
+  eye icons with them; no menu opens while filming (`Menus.hold`), and B still ends it.
