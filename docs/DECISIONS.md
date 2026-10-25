@@ -4475,3 +4475,7 @@ timer of a new block stay the designer's call.
   countries); the flags live in a small separate store (`Board_PlayerFlags_v1`) that lobby servers
   update when a top player there shows or hides theirs, so a flag appears once that player visits
   a lobby after the update. The existing win and country stores are untouched.
+- 2026-10-25: **The Top players You strip shows a place only for players on the board**
+  (designer): off the top 100 it says just "You" with the wins. "100+" said nothing, and an exact
+  deeper place would need reading thousands of rows and would keep sliding as new players join
+  (a read-only scan: 7 wins is places 693 to 901 of 6,000+).
