@@ -15743,7 +15743,13 @@ Config.UI.FontTest = {
 	-- ShopMenu, InventoryMenu, UltScreen (the Abilities page), FreeRewardMenu, RewardsMenu,
 	-- SettingsMenu, TradeMenu, TradeInvite, RankClaimBlock, TutorialGui, TableSign,
 	-- Nameplate_<user id>.
-	Screens = {} :: { [string]: { Family: string, Weight: string } },
+	Screens = {
+		-- A look only (designer, 2026-10-14): the left column's buttons in Cartoon (Comic Neue Angular) Bold.
+		["PoolHud/MenuColumn"] = {
+			Family = "rbxasset://fonts/families/ComicNeueAngular.json",
+			Weight = "Bold",
+		},
+	} :: { [string]: { Family: string, Weight: string } },
 }
 
 -- The Free Reward menu (FreeRewardMenu and its sections FreeDaily, FreePlaytime, FreeTrack and
