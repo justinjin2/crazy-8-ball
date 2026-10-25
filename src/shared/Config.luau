@@ -7121,7 +7121,9 @@ Config.UI = {
 			-- its number (STUDIO_NOTES), so the studs carry the size.
 			SizePx = 8,
 			NameShare = 0.55, -- the name's box, as a share of the badge's height (the badge art has margins)
-			NameSlack = 0.08, -- extra room after the name for its outline
+			-- The name box's spare width over its measured words (was 0.08; the flag now starts
+			-- after the box, so a big share left a wide gap after a long name; 2026-10-25)
+			NameSlack = 0.02,
 			GapShare = 0.12, -- between the badge and the name, as a share of the badge
 			OffsetStuds = 3.2, -- the plate's middle, above the head's centre (clear of tall hats)
 			FadeStartStuds = 45, -- from the camera: plates fade out from here...
@@ -7137,7 +7139,7 @@ Config.UI = {
 			-- The country flag after the name (designer, 2026-10-25; the CountryFlag attribute,
 			-- Settings; bots never have one). Shares of the badge's height:
 			FlagShare = 0.5, -- the flag's box
-			FlagGapShare = 0.08, -- from the name's last letter to the flag (clears the outline)
+			FlagGapShare = 0.08, -- from the name's box to the flag (clears the outline)
 			-- A VIP's rainbow name (designer, 2026-09-28: calm, the colours moving a little):
 			-- one whole loop of the house rainbow drifts along the name. (tune)
 			VipRainbowCycleSeconds = 8, -- a colour takes this long to travel the whole name

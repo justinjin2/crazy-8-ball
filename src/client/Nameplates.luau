@@ -41,6 +41,7 @@ local RankBadge = require(script.Parent.RankBadge)
 local UIAnim = require(script.Parent.UIAnim)
 local People = require(script.Parent.People)
 local PlayerListView = require(Shared:WaitForChild("Progression"):WaitForChild("PlayerListView"))
+local NameplateMath = require(Shared:WaitForChild("NameplateMath"))
 
 local P = Config.UI.Progress.Nameplate
 local K = Config.UI.Kit
@@ -132,21 +133,16 @@ end
 local function layout(plate: Plate)
 	local measured =
 		TextService:GetTextSize(plate.words, MEASURE_PX, FONT, Vector2.new(100000, 1000))
-	local aspect = measured.X / math.max(1, measured.Y) * (1 + P.NameSlack)
-	local nameWidth = aspect * P.NameShare
-	local flagWidth = 0
+	local flagAspect = 0
 	if plate.flag.Text ~= "" then
 		local flagSize =
 			TextService:GetTextSize(plate.flag.Text, MEASURE_PX, FONT, Vector2.new(1000, 1000))
-		flagWidth = flagSize.X / math.max(1, flagSize.Y) * P.FlagShare
+		flagAspect = flagSize.X / math.max(1, flagSize.Y)
 	end
-	-- The flag follows the letters, not the name's box: the box has NameSlack spare room at its
-	-- end for the outline, which left a wide gap before the flag (designer, 2026-10-25).
-	local textEnd = 1 + P.GapShare + nameWidth / (1 + P.NameSlack)
-	local flagAt = textEnd + P.FlagGapShare
-	local units = if flagWidth > 0
-		then math.max(1 + P.GapShare + nameWidth, flagAt + flagWidth)
-		else 1 + P.GapShare + nameWidth
+	-- The flag starts after the name's box, which its scaled letters never pass, so the two
+	-- never overlap for any name (NameplateMath).
+	local r = NameplateMath.row(measured.X / math.max(1, measured.Y), flagAspect, P)
+	local units = r.units
 	-- The streak's line sits over the plate: the gui is that much taller, and lifted by half
 	-- of it (SizeOffset is a share of the size), so the badge and name keep their place.
 	local tall = 1 + P.StreakShare
@@ -154,11 +150,11 @@ local function layout(plate: Plate)
 		UDim2.new(units * P.SizeStuds, units * P.SizePx, tall * P.SizeStuds, tall * P.SizePx)
 	plate.gui.SizeOffset = Vector2.new(0, P.StreakShare / (2 * tall))
 	plate.badge.root.Size = UDim2.fromScale(1 / units, 1)
-	plate.name.Position = UDim2.fromScale((1 + P.GapShare) / units, 0.5)
-	plate.name.Size = UDim2.fromScale(nameWidth / units, P.NameShare)
-	plate.flag.Visible = flagWidth > 0
-	plate.flag.Position = UDim2.fromScale(flagAt / units, 0.5)
-	plate.flag.Size = UDim2.fromScale(flagWidth / units, P.FlagShare)
+	plate.name.Position = UDim2.fromScale(r.nameX / units, 0.5)
+	plate.name.Size = UDim2.fromScale(r.nameW / units, P.NameShare)
+	plate.flag.Visible = r.flagW > 0
+	plate.flag.Position = UDim2.fromScale(r.flagX / units, 0.5)
+	plate.flag.Size = UDim2.fromScale(r.flagW / units, P.FlagShare)
 end
 
 -- Show the player's country flag (their CountryFlag attribute; never a bot's). A bot is
