@@ -86,22 +86,19 @@ end
 
 -- A fixed-size number (not scaled to its box), so its width is known and the trophy can sit
 -- just left of it (designer, 2026-10-25).
-local function fixNumber(value: TextLabel)
+local function fixNumber(value: TextLabel, px: number)
 	value.TextScaled = false
-	value.TextSize = C.RowTextPx
+	value.TextSize = px
 end
 
 -- Show `text` in `value` (right-aligned `rightPx` in from its parent's right end) with the trophy
 -- `cup` just left of the number.
 local function setValue(value: TextLabel, cup: ImageLabel, text: string, rightPx: number)
+	local px = value.TextSize
 	value.Text = text
 	cup.Visible = text ~= ""
-	local width = TextService:GetTextSize(
-		text,
-		C.RowTextPx,
-		HudParts.measureFont(value),
-		Vector2.new(1000, 1000)
-	).X
+	local width =
+		TextService:GetTextSize(text, px, HudParts.measureFont(value), Vector2.new(1000, 1000)).X
 	cup.Position = UDim2.new(1, -(rightPx + width + C.TrophyGapPx), 0.5, 0)
 end
 
@@ -183,7 +180,7 @@ local function newRow(board: Board, index: number): Row
 	value.AnchorPoint = Vector2.new(1, 0)
 	value.Position = UDim2.new(1, -6, 0, 0)
 	value.Size = UDim2.new(0, C.ValueWidthPx - 8, 1, 0)
-	fixNumber(value)
+	fixNumber(value, C.RowTextPx)
 	-- The rows' words keep a plain outline: HoleFill's ink-in-the-holes and lip would add four
 	-- copies of each (the title and the You strip keep them).
 	for _, label in { placeText, name, value } do
@@ -430,7 +427,6 @@ local function build(model: Model, key: string, playerGui: Instance)
 	-- The numbers' column title, over them (as the player list's "Wins").
 	local column = HudParts.note(card, "WinsColumn", C.ColumnsTextPx, W.WinsColumn)
 	column.TextXAlignment = Enum.TextXAlignment.Right
-	column.TextColor3 = HudParts.color(K.Numbers.Count)
 	column.Position = UDim2.fromOffset(C.ListPadPx, C.HeaderPx + C.ListTopGapPx)
 	column.Size = UDim2.fromOffset(cardW - 2 * C.ListPadPx - 14, C.ColumnsPx)
 	column.ZIndex = 5
@@ -469,32 +465,32 @@ local function build(model: Model, key: string, playerGui: Instance)
 	youFlag.AutoLocalize = false
 	youFlag.TextScaled = true
 	youFlag.Text = ""
-	youFlag.Size = UDim2.fromOffset(C.PlacePx + 8, C.PlacePx)
+	youFlag.Size = UDim2.fromOffset(C.YouTextPx + 12, C.YouTextPx + 4)
 	youFlag.AnchorPoint = Vector2.new(0, 0.5)
 	youFlag.Position = UDim2.new(0, 12, 0.5, 0)
 	youFlag.ZIndex = 6
 	youFlag.Parent = youBar
-	local youLeft = if key == "Countries" then 12 + C.PlacePx + 16 else 14
-	local you = HudParts.text(youBar, "Words", C.RowTextPx, W.Loading)
+	local youLeft = if key == "Countries" then 12 + C.YouTextPx + 24 else 14
+	local you = HudParts.text(youBar, "Words", C.YouTextPx, W.Loading)
 	you.TextXAlignment = Enum.TextXAlignment.Left
 	you.Position = UDim2.fromOffset(youLeft, 4)
-	you.Size = UDim2.new(1, -youLeft - C.ValueWidthPx - C.TrophyPx - 12, 1, -8)
+	you.Size = UDim2.new(1, -youLeft - C.ValueWidthPx - C.YouTrophyPx - 12, 1, -8)
 	you.ZIndex = 6
 	local cup = HudParts.icon(youBar, "Trophy", "Cup")
-	cup.Size = UDim2.fromOffset(C.TrophyPx, C.TrophyPx)
+	cup.Size = UDim2.fromOffset(C.YouTrophyPx, C.YouTrophyPx)
 	cup.AnchorPoint = Vector2.new(1, 0.5)
 	cup.Position = UDim2.new(1, -C.ValueWidthPx - 4, 0.5, 0)
 	cup.ZIndex = 6
 	cup.Visible = false
 	local youValue =
-		HudParts.text(youBar, "Value", C.RowTextPx, "", HudParts.color(K.Numbers.Money))
+		HudParts.text(youBar, "Value", C.YouTextPx, "", HudParts.color(K.Numbers.Money))
 	youValue.AutoLocalize = false
 	youValue.TextXAlignment = Enum.TextXAlignment.Right
 	youValue.AnchorPoint = Vector2.new(1, 0)
 	youValue.Position = UDim2.new(1, -12, 0, 4)
 	youValue.Size = UDim2.new(0, C.ValueWidthPx - 8, 1, -8)
 	youValue.ZIndex = 6
-	fixNumber(youValue)
+	fixNumber(youValue, C.YouTextPx)
 	local board: Board = {
 		key = key,
 		face = face,
