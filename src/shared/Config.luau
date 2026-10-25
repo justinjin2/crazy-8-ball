@@ -16539,15 +16539,15 @@ Config.UI.Settings = {
 	-- switch's Kit colour on each side (its words in Strings.Settings.Choices). Off is the
 	-- default side, the knob at the left.
 	Choices = {} :: { [string]: { Off: string, On: string } },
-	-- A row that cycles through three views on each press (designer, 2026-10-25): the views in
-	-- order (ShotView), each view's Kit colour, and where the knob stands for it, as a share
-	-- of its travel (0 left, 1 right; VERTICAL a little in from the left, its word beside it).
-	-- The switch is wider than the others so VERTICAL fits beside the knob.
-	Cycles = {
+	-- A row that picks one of three views with three buttons side by side (designer,
+	-- 2026-10-25: HORIZONTAL, VERTICAL, PLAYER, like a segmented toggle; it was a switch that
+	-- cycled): the views in order (ShotView), the picked button's Kit colour, and the control's
+	-- size (wider than the switches, so HORIZONTAL fits). The lit pill slides between buttons.
+	Segments = {
 		ShotCam = {
 			Tones = { Top = "Blue", Vertical = "Purple", Player = "Gold" },
-			KnobAt = { Top = 0, Vertical = 0.3, Player = 1 },
-			SwitchUnits = { 250, 74 },
+			SwitchUnits = { 430, 74 },
+			TextShare = 0.36, -- a button's word, of the control's height (it shrinks to fit)
 		},
 	},
 	-- Each row's Kit.Icons key.

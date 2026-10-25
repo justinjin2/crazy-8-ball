@@ -5,9 +5,11 @@
 -- 8-ball flair) holds one white row per switch, in Config.Settings.Order: Sound effects, Lower
 -- effects, Show my country flag (on by default since 2026-10-25). A row is one big button: its
 -- icon, its name, a grey line and a big ON / OFF switch; a press flips the switch (SettingsState
--- shows it at once and saves it). "Camera after a shot" cycles three views instead (TOP,
--- VERTICAL, PLAYER; ShotView, Config.UI.Settings.Cycles): the knob left, a little in, right,
--- the switch in each view's colour and the grey line naming the view (designer, 2026-10-25). Under the rows the pale-blue Codes strip: the code icon, "Codes" with
+-- shows it at once and saves it). "Camera after a shot" has three buttons side by side instead
+-- (HORIZONTAL, VERTICAL, PLAYER; ShotView, Config.UI.Settings.Segments; designer, 2026-10-25):
+-- a press on one picks it, the lit pill in the view's colour slides under it and the grey line
+-- names the view; a press elsewhere on the row (a gamepad's A) moves to the next view. Under the
+-- rows the pale-blue Codes strip: the code icon, "Codes" with
 -- the server's answer beside it, the box and a green Redeem (RewardsCodes). The page is drawn
 -- in units (Config.UI.Settings) with one scale, so a phone shows the same page whole. Gamepad:
 -- opening lands on the first row, down from the last row reaches the box; B closes (Menus).
@@ -55,11 +57,12 @@ type Row = {
 	choice: { Off: string, On: string }?, -- a two-view row's colours (Config.UI.Settings.Choices)
 	words: { Off: string, On: string }?, -- and its words (Strings.Settings.Choices)
 	onX: number, -- the words' centre across the switch with the knob right, as a share
-	cycle: any?, -- a three-view row's Config.UI.Settings.Cycles entry (ShotCam only)
-	cycleX: { [string]: number }, -- each view's words' centre across the switch, as a share
+	segments: any?, -- a three-button row's Config.UI.Settings.Segments entry (ShotCam only)
+	pill: Frame?, -- its lit pill, under the picked button
+	labels: { [string]: TextLabel }, -- its buttons' words, by view
 }
 
--- A cycling row's view now (only ShotCam cycles).
+-- A three-button row's view now (only ShotCam has three).
 local function viewOf(_key: string): ShotView.View
 	return ShotView.of(SettingsState.get("ShotCam"), SettingsState.get("ShotCamTall"))
 end
@@ -102,24 +105,31 @@ function SettingsMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 	-- and OFF at its right. A two-view row names both sides in their own colours instead.
 	local function paint(row: Row, animate: boolean)
 		local inset = U.KnobInsetPx
-		local cycle = row.cycle
-		if cycle then
+		local segments, pill = row.segments, row.pill
+		if segments and pill then
 			local view = viewOf(row.key)
-			local at: number = cycle.KnobAt[view] or 0
+			local at = (table.find(ShotView.Order, view) or 1) - 1
+			local share = 1 / #ShotView.Order
 			local goal = {
-				Position = UDim2.new(at, (1 - 2 * at) * inset, 0.5, 0),
-				AnchorPoint = Vector2.new(at, 0.5),
+				Position = UDim2.new(at * share, inset, 0, inset),
+				BackgroundColor3 = HudParts.tone(segments.Tones[view]),
 			}
 			if animate and row.track.AbsoluteSize.Y > 0 and not UIAnim.reduced() then
-				TweenService:Create(row.knob, TweenInfo.new(K.Motion.PopSeconds), goal):Play()
+				TweenService:Create(pill, TweenInfo.new(K.Motion.PopSeconds), goal):Play()
 			else
-				row.knob.Position = goal.Position
-				row.knob.AnchorPoint = goal.AnchorPoint
+				pill.Position = goal.Position
+				pill.BackgroundColor3 = goal.BackgroundColor3
 			end
-			row.track.BackgroundColor3 = HudParts.tone(cycle.Tones[view])
-			row.state.Text = (W.Cycles :: any)[row.key][view]
-			row.line.Text = (W.CycleLines :: any)[row.key][view]
-			row.state.Position = UDim2.fromScale(row.cycleX[view] or 0.5, 0.5)
+			-- The picked word in white with the ink outline, the others in plain ink.
+			for each, label in row.labels do
+				local picked = each == view
+				label.TextColor3 = HudParts.tone(if picked then "White" else "Ink")
+				local outline = label:FindFirstChild("Outline")
+				if outline and outline:IsA("UIStroke") then
+					outline.Enabled = picked
+				end
+			end
+			row.line.Text = (W.SegmentLines :: any)[row.key][view]
 			return
 		end
 		local on = SettingsState.get(row.key)
@@ -216,19 +226,64 @@ function SettingsMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 			choice = (U.Choices :: any)[key],
 			words = (W.Choices :: any)[key],
 			onX = 0.32,
-			cycle = (U.Cycles :: any)[key],
-			cycleX = {},
+			segments = (U.Segments :: any)[key],
+			pill = nil,
+			labels = {},
 		}
 		table.insert(rows, row)
+		local function pick(view: string)
+			for _, step in ShotView.switches(view) do
+				SettingsState.set(step.key, step.value)
+			end
+		end
+		if row.segments then
+			-- Three buttons on a white track: the lit pill under the picked one, then a clear
+			-- button per view, each with its word (no knob, no ON / OFF).
+			knob.Visible = false
+			state.Visible = false
+			track.BackgroundColor3 = HudParts.tone("White")
+			local share = 1 / #ShotView.Order
+			local pill = HudParts.frame(track, "Pill")
+			pill.BackgroundTransparency = 0
+			pill.Size = UDim2.new(share, -2 * U.KnobInsetPx, 1, -2 * U.KnobInsetPx)
+			pill.ZIndex = 5
+			HudParts.corner(pill, 999)
+			row.pill = pill
+			for i, view in ShotView.Order do
+				local segment = Instance.new("TextButton")
+				segment.Name = view
+				segment.Text = ""
+				segment.AutoButtonColor = false
+				segment.BackgroundTransparency = 1
+				segment.Selectable = false -- a gamepad presses the row instead
+				segment.Position = UDim2.fromScale((i - 1) * share, 0)
+				segment.Size = UDim2.fromScale(share, 1)
+				segment.ZIndex = 6
+				segment.Parent = track
+				local label = HudParts.text(segment, "Word", 14, (W.Segments :: any)[key][view])
+				label.AutoLocalize = true
+				label.AnchorPoint = Vector2.new(0.5, 0.5)
+				label.Position = UDim2.fromScale(0.5, 0.5)
+				label.Size = UDim2.fromScale(0.9, 0.8)
+				label.TextWrapped = false
+				label.ZIndex = 7
+				row.labels[view] = label
+				segment.Activated:Connect(function()
+					UISound.play("Click")
+					if not UIAnim.reduced() then
+						UIAnim.bounce(track)
+					end
+					pick(view)
+				end)
+			end
+		end
 		presses[key] = function()
 			UISound.play("Click")
 			if not UIAnim.reduced() then
 				UIAnim.bounce(track)
 			end
-			if row.cycle then
-				for _, step in ShotView.switches(ShotView.next(viewOf(key))) do
-					SettingsState.set(step.key, step.value)
-				end
+			if row.segments then
+				pick(ShotView.next(viewOf(key)))
 				return
 			end
 			SettingsState.set(key, not SettingsState.get(key))
@@ -321,7 +376,7 @@ function SettingsMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 			row.icon.Size = UDim2.fromOffset(iconPx, iconPx)
 			row.icon.Position = UDim2.new(0, pad, 0.5, 0)
 			local top = round((rowH - block) / 2)
-			local rowSwitchW = if row.cycle then px(row.cycle.SwitchUnits[1]) else switchW
+			local rowSwitchW = if row.segments then px(row.segments.SwitchUnits[1]) else switchW
 			local textW = math.max(1, w - textX - pad - rowSwitchW - pad)
 			HudParts.setTextSize(row.title, titlePx)
 			row.title.Position = UDim2.fromOffset(textX, top)
@@ -333,28 +388,20 @@ function SettingsMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 			row.track.Position = UDim2.new(1, -pad, 0.5, 0)
 			local statePx = math.max(U.MinTextPx, round(switchH * U.SwitchTextShare))
 			local words = row.words
-			local cycle = row.cycle
-			if cycle then
-				-- Each view's word sits in the wider room beside its knob; all at one size.
-				local travel = math.max(1, rowSwitchW - switchH)
-				local widestRoom = math.huge
-				local fit = statePx
-				for view, word in (W.Cycles :: any)[row.key] do
-					local at: number = cycle.KnobAt[view] or 0
-					local left, right = at * travel, (1 - at) * travel
-					local room = math.max(1, math.max(left, right) - 4 * U.KnobInsetPx)
-					local centre = if right >= left
-						then at * travel + switchH + right / 2
-						else left / 2
-					row.cycleX[view] = centre / math.max(rowSwitchW, 1)
-					local wide = textWidth(word, statePx)
+			local segments = row.segments
+			if segments then
+				-- Every button's word at one size, the widest fitting its button.
+				local wordPx = math.max(U.MinTextPx, round(switchH * segments.TextShare))
+				local room = math.max(1, rowSwitchW / #ShotView.Order - 4 * U.KnobInsetPx)
+				for _, label in row.labels do
+					local wide = textWidth(label.Text, wordPx)
 					if wide > room then
-						fit = math.min(fit, math.floor(statePx * room / wide))
+						wordPx = math.max(U.MinTextPx, math.floor(wordPx * room / wide))
 					end
-					widestRoom = math.min(widestRoom, room)
 				end
-				statePx = math.max(U.MinTextPx, fit)
-				row.state.Size = UDim2.new(0, widestRoom, 0.8, 0)
+				for _, label in row.labels do
+					HudParts.setTextSize(label, wordPx)
+				end
 			elseif words then
 				-- Both sides' words fit the room beside the knob, at one size.
 				local room = math.max(1, switchW - switchH - 4 * U.KnobInsetPx)

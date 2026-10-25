@@ -316,17 +316,23 @@ return {
 				H.expect(Config.UI.Kit.Colors[tone] ~= nil, "a Kit colour: " .. tostring(tone))
 			end
 		end
-		for key, cycle in Config.UI.Settings.Cycles do
-			H.expect(table.find(C.Order, key) ~= nil, "a cycling row is a row: " .. key)
-			for view, tone in cycle.Tones do
+		for key, segments in Config.UI.Settings.Segments do
+			H.expect(table.find(C.Order, key) ~= nil, "a three-button row is a row: " .. key)
+			for view, tone in segments.Tones do
 				H.expect(Config.UI.Kit.Colors[tone] ~= nil, "a Kit colour: " .. tostring(tone))
-				H.expect(type(W.Cycles[key][view]) == "string", "a view has its word: " .. view)
-				H.expect(type(W.CycleLines[key][view]) == "string", "a view has its line: " .. view)
-				local at = cycle.KnobAt[view]
-				H.expect(type(at) == "number" and at >= 0 and at <= 1, "the knob stays inside")
+				H.expect(type(W.Segments[key][view]) == "string", "a view has its word: " .. view)
+				H.expect(
+					type(W.SegmentLines[key][view]) == "string",
+					"a view has its line: " .. view
+				)
 			end
 		end
-		H.expect(Config.UI.Settings.Cycles.ShotCam ~= nil, "the shot camera cycles its views")
+		H.expect(Config.UI.Settings.Segments.ShotCam ~= nil, "the shot camera has three buttons")
+		H.expect(W.Segments.ShotCam.Top == "HORIZONTAL", "the default view reads HORIZONTAL")
+		H.expect(
+			string.find(W.SegmentLines.ShotCam.Top, "default", 1, true) ~= nil,
+			"its line says it is the default"
+		)
 		H.expect(table.find(C.Order, "ShotCam") ~= nil, "the shot camera has a row")
 		H.expect(C.Defaults.ShotCam == false, "everyone starts in the top-down side view")
 		H.expect(C.Defaults.ShotCamTall == false, "...not the vertical one")
