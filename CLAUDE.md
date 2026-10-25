@@ -43,6 +43,19 @@ Real players are in the game. The work now is QA, quality of life, bug fixes, ne
 updates, and a slow cleanup of old code and features as the game takes its form (designer,
 2026-10-10). **No update may bring a critical bug or error to the live game.**
 
+- **Every decision is data-driven** (designer, 2026-10-25: the game is on Roblox's Home page,
+  so each small change has a big effect). Before proposing or building a change, pull the
+  numbers it touches: Creator Hub analytics through Claude in Chrome (universe 10767330648;
+  retention, funnels, monetization, acquisition, economy) and the saves and boards read-only
+  from Studio. State the current number, what the change should move, and how it will be
+  measured after publishing (add a funnel step or custom event when nothing measures it yet).
+  Never present a guess as data; say when a number is missing. Prefer small, reversible
+  changes over reworks.
+- **Performance on every device.** New code and content must run smoothly on a low-end phone,
+  not only a PC: keep memory, draw calls, instance counts, textures and network traffic small;
+  no per-frame work where an event or a throttled pass will do; reuse instances and disconnect
+  what you connect; size textures to how big they show. Say what a change costs and check
+  Creator Hub's client memory, frame rate and server memory after publishing.
 - **Small, separate commits.** One fix or feature per commit, so a bad one can be undone alone.
   Cleanup never shares a commit with a fix or a feature.
 - **Bug fixes:** find the cause before changing code; add a Lune test that fails without the
@@ -64,7 +77,8 @@ updates, and a slow cleanup of old code and features as the game takes its form 
   feature the designer retires; one area at a time; keep the save fields old saves still have.
 - **Publishing is the designer's.** After pushing, tell them what is waiting to publish, what
   could break and what to check by hand on the live game, then to use "Restart Servers for
-  Updates". STATUS lists what is pushed but not yet published.
+  Updates". STATUS lists what is pushed but not yet published. Rojo serves the working
+  folder, so a publish also ships anything uncommitted in it: publish from a clean tree.
 
 ## Non-negotiable rules
 
