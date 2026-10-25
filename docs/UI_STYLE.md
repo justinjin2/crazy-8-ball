@@ -1310,8 +1310,9 @@ tables' wood), and on it the lively card: the header band's 8-balls scrolling, t
 wins) or globe (Top countries) and the title in Fredoka with the ink outline and HoleFill's lip,
 the white sheet with a scrolling list. A row: a gold, silver or bronze disc with an ink ring for
 1 to 3 (a plain number after), the avatar's head in an ink ring or the country's flag, the name,
-then the trophy just left of the wins in money gold, under a sky-blue "Wins" column title (the
-player list's style). Every other row has a pale stripe. A pale-blue You strip is
+then the trophy just left of the wins in money gold, under an ink "Wins" column title (sky blue
+until the designer asked for black and bigger, the same day). The You strip is taller than a row
+with bigger words (`YouPx`, `YouTextPx`). Every other row has a pale stripe. A pale-blue You strip is
 pinned under the list ("You #37", "1,000+", or "Win a match vs a player to get on the board!";
 "Your country #3" with its flag). The rows' words keep a plain outline (no HoleFill copies: 12
 reused rows draw up to 1000). A gamepad's right-stick glyph shows on an ink disc at the header's
