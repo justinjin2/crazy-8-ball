@@ -35,6 +35,7 @@ local Ranks = require(Shared.Progression.Ranks)
 local LeaderboardMath = require(Shared.LeaderboardMath)
 local Funnel = require(script.Parent.Funnel)
 local PlayerData = require(script.Parent.PlayerData)
+local Settings = require(script.Parent.Settings)
 
 local L = Config.Leaderboards
 local LB = L.Lobby
@@ -374,7 +375,7 @@ end
 -- The lobby boards: the lists (lobby servers)
 ---------------------------------------------------------------------------------------------
 
-type WinsRow = { u: number, n: string, v: number } -- a user id, their name, their wins
+type WinsRow = { u: number, n: string, v: number, f: string? } -- a user id, their name, their wins, their flag
 type CountryRow = { c: string, v: number } -- a country code, its wins
 
 local winsTop: { WinsRow } = {} -- the first page, fresh every TopReadSeconds
@@ -382,6 +383,9 @@ local winsDeep: { WinsRow } = {} -- the later pages, fresh every DeepReadSeconds
 local winsAll: { WinsRow } = {} -- the two together, no one twice
 local countries: { CountryRow } = {}
 local listsAt = 0
+local flags: LeaderboardMath.Flags = {} -- the Top players flags (FlagStore), read with the lists
+local flagStore: DataStore? = nil
+local flagStoreTried = false
 local seen: { [Player]: { [string]: boolean } } = {}
 local deepest: { [Player]: { [string]: number } } = {}
 local requestBuckets: { [Player]: { tokens: number, at: number } } = {}
@@ -433,8 +437,73 @@ local function joinWins()
 	end
 	for _, row in all do
 		row.n = names[row.u] or ("#" .. tostring(row.u))
+		row.f = flags[tostring(row.u)]
 	end
 	winsAll = all
+end
+
+local function openFlagStore(): DataStore?
+	if not flagStoreTried then
+		flagStoreTried = true
+		local name = L.FlagStore .. (if IS_STUDIO then L.StudioSuffix else "")
+		local ok, result = pcall(function(): DataStore
+			return DataStoreService:GetDataStore(name)
+		end)
+		if ok then
+			flagStore = result
+		else
+			complain("opening " .. name, result)
+		end
+	end
+	return flagStore
+end
+
+-- Read the Top players flags, and write this server's top players' own when one changed (shown,
+-- changed or hidden). Yields.
+local function syncFlags()
+	local store = openFlagStore()
+	if not store then
+		return
+	end
+	local ok, stored = pcall(function(): any
+		return store:GetAsync(L.FlagKey)
+	end)
+	if not ok then
+		complain("reading flags", stored)
+		return
+	end
+	local map: LeaderboardMath.Flags = if type(stored) == "table" then stored else {}
+	local topIds: { number } = {}
+	local mine: { [number]: string } = {}
+	for _, row in winsTop do
+		table.insert(topIds, row.u)
+		local here = Players:GetPlayerByUserId(row.u)
+		local settings = if here then Settings.of(here) else nil
+		if here and settings then
+			-- Shown: their CountryFlag (once Roblox has answered); hidden: "" removes it.
+			local code = here:GetAttribute("CountryFlag")
+			if settings.ShowFlag ~= true then
+				mine[row.u] = ""
+			elseif type(code) == "string" then
+				mine[row.u] = code
+			end
+		end
+	end
+	local _, changed = LeaderboardMath.flagsUpdate(map, topIds, mine, L.FlagKeep)
+	if changed then
+		local wrote, result = pcall(function(): any
+			return store:UpdateAsync(L.FlagKey, function(old: any): any
+				local now = if type(old) == "table" then old else {}
+				return (LeaderboardMath.flagsUpdate(now, topIds, mine, L.FlagKeep))
+			end)
+		end)
+		if wrote and type(result) == "table" then
+			map = result
+		elseif not wrote then
+			complain("writing flags", result)
+		end
+	end
+	flags = map
 end
 
 -- Read `pages` pages of a store, best first, calling `each(key, value)` per row. Yields.
@@ -714,6 +783,8 @@ local function startLobbyBoards(isLobby: boolean)
 		while true do
 			local ok, err = pcall(function()
 				readWins(true)
+				syncFlags()
+				joinWins()
 				readCountries()
 				listsAt = os.time()
 			end)

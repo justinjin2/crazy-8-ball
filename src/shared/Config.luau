@@ -16691,6 +16691,13 @@ Config.Leaderboards = {
 	-- country's wins vs people since the boards went in, added to by every server
 	-- (IncrementAsync) from its players' new wins (LeaderboardMath.newWins), a hidden flag too.
 	CountryStore = "Board_CountryWins_v1",
+	-- The Top players flags (designer, 2026-10-25: each player's flag after their name): a normal
+	-- DataStore with one key, FlagKey, mapping a top player's user id to their country code. A
+	-- lobby server writes it (UpdateAsync) only when one of its players in the top list shows a
+	-- new flag or hides theirs (the Show my country flag setting), and reads it with the lists.
+	FlagStore = "Board_PlayerFlags_v1",
+	FlagKey = "Top",
+	FlagKeep = 150, -- the most flags kept, best first (the top 100 and some slack)
 	-- The lobby boards (designer, 2026-10-25; concept approved): Most wins and Top countries,
 	-- two stands at the far end of the centre aisle under the pergola, facing the spawn. Off:
 	-- no stands and no country tally, the boards as they were (the 60 s read sent to nobody).
