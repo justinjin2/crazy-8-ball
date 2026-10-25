@@ -3464,9 +3464,12 @@ Config.Daily = {
 		-- The game's 100-like code (designer, 2026-10-13, in the game's description): 5 ability
 		-- spins. Expired since 2026-10-24 00:00 UTC (designer: the game passed 250 likes).
 		["100LIKES"] = { Spins = 5, Expires = 1792800000 },
-		-- The game's 250-like code (designer, 2026-10-24): 10 ability spins, always on. The spin
-		-- screen's code box and the tutorial name it since that day.
-		["250LIKES"] = { Spins = 10 },
+		-- The game's 250-like code (designer, 2026-10-24): 10 ability spins. Expires 2026-10-31
+		-- 00:00 UTC (designer, 2026-10-25: the game passed 1,000 likes; 6 more days to use it).
+		["250LIKES"] = { Spins = 10, Expires = 1793404800 },
+		-- The game's 1,000-like code (designer, 2026-10-25): 15 ability spins and $10,000, always
+		-- on. The spin screen's code box and the tutorial name it since that day.
+		["1KLIKES"] = { Spins = 15, Money = 10000 },
 		-- Like milestones: 100 (the code box's first goal, CodeBanner.NextGoalLikes), 1k, 5k,
 		-- 10k, 25k, 50k, 100k likes.
 		LIKES100 = { Money = 5000, Spins = 2, Live = true },
@@ -4495,10 +4498,10 @@ Config.Ults = {
 	},
 	-- The code box on the spin screen (section 9.3): the designer edits these two in one place.
 	-- The code itself is a row in Config.Daily.Codes (Spins = 3).
-	-- 2026-10-24 (designer, the game passed 250 likes): 250LIKES, the next code at 1,000 likes
-	-- (was 100LIKES, next at 250; before that RELEASE, next at 100). The tutorial's code step
-	-- types this code too.
-	CodeBanner = { ActiveCode = "250LIKES", NextGoalLikes = 1000 },
+	-- 2026-10-25 (designer, the game passed 1,000 likes): 1KLIKES, the next code at 2,000 likes
+	-- (was 250LIKES, next at 1,000; before that 100LIKES, next at 250, and RELEASE, next at
+	-- 100). The tutorial's code step types this code too.
+	CodeBanner = { ActiveCode = "1KLIKES", NextGoalLikes = 2000 },
 	-- The PC opponent (section 4): it activates when its bar is full and it is behind, or when
 	-- its shot finder sees no easy shot.
 	Pc = { WhenBehind = true, WhenNoEasyShot = true },

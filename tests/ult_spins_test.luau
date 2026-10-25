@@ -314,7 +314,10 @@ return {
 	["codes grant spins once"] = function()
 		local codes = {}
 		local row = Config.Daily.Codes[U.CodeBanner.ActiveCode]
-		H.expect(row ~= nil and row.Spins == 10, "the banner's code gives 10 spins")
+		H.expect(
+			row ~= nil and row.Spins == 15 and row.Money == 10000,
+			"the banner's code gives 15 spins and $10,000"
+		)
 		local ok, reward = Daily.redeem(codes, "  release ", DAY * 86400)
 		H.expect(ok and (reward :: any).spins == 3 and (reward :: any).lucky == 0, "3 spins")
 		local again, why = Daily.redeem(codes, "RELEASE", DAY * 86400)
@@ -329,6 +332,16 @@ return {
 		local ok250, got250 = Daily.redeem(codes, "250likes", 1792800000)
 		H.expect(ok250 and (got250 :: any).spins == 10, "250LIKES gives 10 spins")
 		H.expect(not Daily.isLive("250LIKES"), "250LIKES on without /code on")
+		-- It works 6 more days after 1KLIKES (2026-10-25) and expires 2026-10-31 00:00 UTC;
+		-- 1KLIKES gives 15 spins and $10,000.
+		local still250 = Daily.redeem({}, "250LIKES", 1793404800 - 1)
+		H.expect(still250, "250LIKES still works on 2026-10-30")
+		local late250, late250Why = Daily.redeem({}, "250LIKES", 1793404800)
+		H.expect(not late250 and late250Why == "Expired", "250LIKES expired from 2026-10-31")
+		local ok1k, got1k = Daily.redeem(codes, "1klikes", 1792886400)
+		H.expect(ok1k and (got1k :: any).spins == 15, "1KLIKES gives 15 spins")
+		H.expect((got1k :: any).money == 10000, "and $10,000")
+		H.expect(not Daily.isLive("1KLIKES"), "1KLIKES on without /code on")
 		local out = RewardView.reward(reward :: any)
 		H.expect(out.spins == 3 and out.lucky == 0 and out.money == 0, "the reply's chip")
 		-- Lucky Spins are retired: a code row with LuckySpins pays plain spins.
@@ -522,7 +535,7 @@ return {
 		end
 		H.expect(p.live and not p.restricted and not p.vip and not p.devAll, "flags")
 		H.expect(p.moneyPerSpin == 10000 and #p.moneyPacks == 4, "money")
-		H.expect(p.code.active == "250LIKES" and p.code.nextGoalLikes == 1000, "the code box")
+		H.expect(p.code.active == "1KLIKES" and p.code.nextGoalLikes == 2000, "the code box")
 		H.expect((p :: any).auto == nil and (p :: any).autoStopChoices == nil, "no Auto Spin")
 		for _, key in SpinView.productKeys() do
 			local product = p.products[key]
