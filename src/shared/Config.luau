@@ -7114,7 +7114,7 @@ Config.UI = {
 			-- The country flag after the name (designer, 2026-10-25; the CountryFlag attribute,
 			-- Settings; bots never have one). Shares of the badge's height:
 			FlagShare = 0.5, -- the flag's box
-			FlagGapShare = 0.1, -- between the name and the flag
+			FlagGapShare = 0.08, -- from the name's last letter to the flag (clears the outline)
 			-- A VIP's rainbow name (designer, 2026-09-28: calm, the colours moving a little):
 			-- one whole loop of the house rainbow drifts along the name. (tune)
 			VipRainbowCycleSeconds = 8, -- a colour takes this long to travel the whole name

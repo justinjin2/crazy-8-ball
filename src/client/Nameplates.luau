@@ -140,8 +140,13 @@ local function layout(plate: Plate)
 			TextService:GetTextSize(plate.flag.Text, MEASURE_PX, FONT, Vector2.new(1000, 1000))
 		flagWidth = flagSize.X / math.max(1, flagSize.Y) * P.FlagShare
 	end
-	local flagRoom = if flagWidth > 0 then P.FlagGapShare + flagWidth else 0
-	local units = 1 + P.GapShare + nameWidth + flagRoom
+	-- The flag follows the letters, not the name's box: the box has NameSlack spare room at its
+	-- end for the outline, which left a wide gap before the flag (designer, 2026-10-25).
+	local textEnd = 1 + P.GapShare + nameWidth / (1 + P.NameSlack)
+	local flagAt = textEnd + P.FlagGapShare
+	local units = if flagWidth > 0
+		then math.max(1 + P.GapShare + nameWidth, flagAt + flagWidth)
+		else 1 + P.GapShare + nameWidth
 	-- The streak's line sits over the plate: the gui is that much taller, and lifted by half
 	-- of it (SizeOffset is a share of the size), so the badge and name keep their place.
 	local tall = 1 + P.StreakShare
@@ -152,8 +157,7 @@ local function layout(plate: Plate)
 	plate.name.Position = UDim2.fromScale((1 + P.GapShare) / units, 0.5)
 	plate.name.Size = UDim2.fromScale(nameWidth / units, P.NameShare)
 	plate.flag.Visible = flagWidth > 0
-	plate.flag.Position =
-		UDim2.fromScale((1 + P.GapShare + nameWidth + P.FlagGapShare) / units, 0.5)
+	plate.flag.Position = UDim2.fromScale(flagAt / units, 0.5)
 	plate.flag.Size = UDim2.fromScale(flagWidth / units, P.FlagShare)
 end
 
