@@ -1303,13 +1303,15 @@ The approved mockup: https://claude.ai/artifact/7sj2aFqL94Zv5C1n7Us44T. `StreakH
 
 ## 30. The lobby boards (designer, 2026-10-25)
 
-Two world boards (`LobbyBoards`, stands built by `Leaderboards`), Most wins and Top countries,
+Two world boards (`LobbyBoards`, stands built by `Leaderboards`), Top players (was Most wins
+until the designer's note the same day) and Top countries,
 side by side under the pergola facing the spawn: a navy board (Kit Ink) on two wooden legs (the
 tables' wood), and on it the lively card: the header band's 8-balls scrolling, the trophy (Most
 wins) or globe (Top countries) and the title in Fredoka with the ink outline and HoleFill's lip,
 the white sheet with a scrolling list. A row: a gold, silver or bronze disc with an ink ring for
 1 to 3 (a plain number after), the avatar's head in an ink ring or the country's flag, the name,
-a trophy and the wins in money gold. Every other row has a pale stripe. A pale-blue You strip is
+then the trophy just left of the wins in money gold, under a sky-blue "Wins" column title (the
+player list's style). Every other row has a pale stripe. A pale-blue You strip is
 pinned under the list ("You #37", "1,000+", or "Win a match vs a player to get on the board!";
 "Your country #3" with its flag). The rows' words keep a plain outline (no HoleFill copies: 12
 reused rows draw up to 1000). A gamepad's right-stick glyph shows on an ink disc at the header's

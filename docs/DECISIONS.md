@@ -4453,3 +4453,5 @@ timer of a new block stay the designer's call.
   country, both scrollable (wheel, finger, a pad's right stick at the board); a pinned You /
   Your country row. Behind `Config.Leaderboards.Lobby.Enabled`; measured by the `Leaderboard`
   custom event (Viewed, Scrolled). Supersedes 2026-10-03's "No nation board".
+- 2026-10-25: **The player board is TOP PLAYERS** (designer: "change most wins to TOP PLAYERS");
+  both boards get a "Wins" title over the numbers, and the trophy sits right beside each number.
