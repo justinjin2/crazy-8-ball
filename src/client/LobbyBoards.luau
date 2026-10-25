@@ -44,6 +44,8 @@ type Row = {
 	picture: ImageLabel,
 	flag: TextLabel,
 	name: TextLabel,
+	nameX: number, -- the name box's left edge
+	nameFlag: TextLabel, -- a top player's flag, just after their name
 	value: TextLabel,
 	cup: ImageLabel,
 	shown: number, -- the list row it shows (0: none)
@@ -60,6 +62,8 @@ type Board = {
 	youValue: TextLabel,
 	youCup: ImageLabel,
 	youFlag: TextLabel,
+	youLeft: number, -- the You words' left edge with no flag
+	rowW: number, -- a row's width
 	padHint: Frame,
 	data: { any }, -- the rows known, by place (the wins' later pages fill in as fetched)
 	total: number, -- the list's length
@@ -172,6 +176,16 @@ local function newRow(board: Board, index: number): Row
 	name.TextXAlignment = Enum.TextXAlignment.Left
 	name.Position = UDim2.fromOffset(x, 0)
 	name.Size = UDim2.new(1, -x - C.ValueWidthPx - C.TrophyPx - 8, 1, 0)
+	local nameFlag = Instance.new("TextLabel")
+	nameFlag.Name = "NameFlag"
+	nameFlag.BackgroundTransparency = 1
+	nameFlag.AutoLocalize = false
+	nameFlag.TextScaled = true
+	nameFlag.Text = ""
+	nameFlag.Size = UDim2.fromOffset(C.NameFlagPx, C.NameFlagPx)
+	nameFlag.AnchorPoint = Vector2.new(0, 0.5)
+	nameFlag.Visible = false
+	nameFlag.Parent = frame
 	local trophy = HudParts.icon(frame, "Trophy", "Cup")
 	trophy.Size = UDim2.fromOffset(C.TrophyPx, C.TrophyPx)
 	trophy.AnchorPoint = Vector2.new(1, 0.5)
@@ -191,10 +205,35 @@ local function newRow(board: Board, index: number): Row
 		picture = picture,
 		flag = flag,
 		name = name,
+		nameX = x,
+		nameFlag = nameFlag,
 		value = value,
 		cup = trophy,
 		shown = 0,
 	}
+end
+
+-- Fit the row's name box to its words and put `code`'s flag just after it (designer,
+-- 2026-10-25: a top player's flag next to their name). Usernames are never translated, so their
+-- English width is the width shown; a name too long for the room shrinks before the flag.
+local function placeName(board: Board, row: Row, text: string, code: string?)
+	local room = board.rowW - row.nameX - C.ValueWidthPx - C.TrophyPx - 8
+	local flag = if code then PlayerListView.flag(code) else ""
+	row.nameFlag.Text = flag
+	row.nameFlag.Visible = flag ~= ""
+	if flag == "" then
+		row.name.Size = UDim2.new(0, room, 1, 0)
+		return
+	end
+	local width = TextService:GetTextSize(
+		text,
+		C.RowTextPx,
+		HudParts.measureFont(row.name),
+		Vector2.new(10000, 1000)
+	).X * (1 + C.NameFlagSlack)
+	local box = math.min(width, room - C.NameFlagPx - C.NameFlagGapPx)
+	row.name.Size = UDim2.new(0, box, 1, 0)
+	row.nameFlag.Position = UDim2.new(0, row.nameX + box + C.NameFlagGapPx, 0.5, 0)
 end
 
 -- Put list row `index`'s entry on `row` (or leave it blank while its page is on its way).
@@ -224,16 +263,19 @@ local function paintRow(board: Board, row: Row, index: number)
 				C.HeadshotPx
 			)
 			row.name.Text = entry.n
+			placeName(board, row, entry.n, entry.f)
 			setValue(row.value, row.cup, Format.commas(entry.v), 6)
 		else
 			row.picture.Image = ""
 			row.name.Text = W.Loading
+			placeName(board, row, W.Loading, nil)
 			setValue(row.value, row.cup, "", 6)
 		end
 	else
 		row.picture.Visible = false
 		row.flag.Visible = true
 		row.name.AutoLocalize = true -- country names go through Roblox's translation
+		placeName(board, row, "", nil)
 		if entry then
 			row.flag.Text = PlayerListView.flag(entry.c)
 			row.name.Text = NAMES[entry.c] or entry.c
@@ -324,7 +366,14 @@ local function paintYou(board: Board)
 	if board.key == "Wins" then
 		local mine = tonumber(answer.wins_mine) or 0
 		local place = answer.you
-		board.youFlag.Visible = false
+		-- Your own flag, as the board shows it (only while Show my country flag is on).
+		local mineFlag = player:GetAttribute("CountryFlag")
+		local flag = if type(mineFlag) == "string" then PlayerListView.flag(mineFlag) else ""
+		board.youFlag.Text = flag
+		board.youFlag.Visible = flag ~= ""
+		local left = if flag ~= "" then 12 + C.YouTextPx + 24 else board.youLeft
+		board.you.Position = UDim2.fromOffset(left, 4)
+		board.you.Size = UDim2.new(1, -left - C.ValueWidthPx - C.YouTrophyPx - 12, 1, -8)
 		if place then
 			board.you.Text = W.You .. "   " .. W.Place:format(Format.commas(place))
 		elseif mine > 0 and board.total >= LB.WinsRows then
@@ -507,6 +556,8 @@ local function build(model: Model, key: string, playerGui: Instance)
 		youValue = youValue,
 		youCup = cup,
 		youFlag = youFlag,
+		youLeft = youLeft,
+		rowW = cardW - 2 * C.ListPadPx - 12,
 		padHint = padHint,
 		data = {},
 		total = 0,
@@ -748,7 +799,12 @@ GuiQA.add("boardsFake", function(n: number?): any
 	local wins, countries = {}, {}
 	local codes = { "US", "BR", "PH", "GB", "MX", "CA", "ID", "DE", "AU", "FR", "XX" }
 	for i = 1, count do
-		wins[i] = { u = player.UserId, n = ("Player_%d"):format(i), v = 2000 - i }
+		-- Short and long names, most with a flag, every fourth without (hidden or not known yet).
+		local name = if i % 3 == 0
+			then ("AVeryLongUsername_%d_xx"):format(i)
+			else ("Player_%d"):format(i)
+		local flag = if i % 4 == 0 then nil else codes[(i % (#codes - 1)) + 1]
+		wins[i] = { u = player.UserId, n = name, v = 2000 - i, f = flag }
 	end
 	for i, code in codes do
 		countries[i] = { c = code, v = 5000 - i * 300 }
