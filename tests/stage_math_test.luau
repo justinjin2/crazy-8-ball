@@ -305,7 +305,10 @@ return {
 		for _, key in C.Order do
 			H.expect(C.Defaults[key] ~= nil, "a row is a saved switch: " .. key)
 			H.expect(type(W.Rows[key]) == "string", "a row has its name: " .. key)
-			H.expect(type(W.Lines[key]) == "string", "a row has its line: " .. key)
+			H.expect(
+				W.Lines[key] == nil or type(W.Lines[key]) == "string",
+				"a line is words: " .. key
+			)
 			H.expect(Config.UI.Settings.Icons[key] ~= nil, "a row has its icon: " .. key)
 		end
 		for key, tones in Config.UI.Settings.Choices do

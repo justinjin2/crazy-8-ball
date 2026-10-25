@@ -1389,11 +1389,9 @@ return {
 			ShotCam = "Camera after a shot",
 			Freecam = "Freecam",
 		},
+		-- A row's grey line under its name; a row without one is just its name (designer,
+		-- 2026-10-25: Music, Sound effects, Lower effects and the flag explain themselves).
 		Lines = {
-			Music = "The background music.",
-			Sfx = "Clicks, shots and ability sounds.",
-			LowFx = "Fewer particles. Smoother on slower devices.",
-			ShowFlag = "Other players see it in the player list and after your name.",
 			ShotCam = "Horizontal (default): recommended for most players.",
 			Freecam = "Fly the camera around the lobby to film your friends.",
 		},

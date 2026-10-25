@@ -49,8 +49,15 @@ if Config.Freecam.Enabled then
 		table.insert(KEYS, key)
 	end
 end
+-- A row's height in units: shorter with no grey line under its name.
+local function rowUnits(key: string): number
+	return if W.Lines[key] then U.RowUnits else U.PlainRowUnits
+end
 -- The page's height in units: the rows with a gap under each, then the Codes strip.
-local PAGE_UNITS = #KEYS * (U.RowUnits + U.GapUnits) + U.CodesUnits
+local PAGE_UNITS = U.CodesUnits
+for _, key in KEYS do
+	PAGE_UNITS += rowUnits(key) + U.GapUnits
+end
 
 local SettingsMenu = {}
 
@@ -60,7 +67,7 @@ type Row = {
 	corner: UICorner,
 	icon: ImageLabel,
 	title: TextLabel,
-	line: TextLabel,
+	line: TextLabel?, -- its grey line (nil: just its name)
 	track: Frame,
 	knob: Frame,
 	state: TextLabel,
@@ -139,7 +146,9 @@ function SettingsMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 					outline.Enabled = picked
 				end
 			end
-			row.line.Text = (W.SegmentLines :: any)[row.key][view]
+			if row.line then
+				row.line.Text = (W.SegmentLines :: any)[row.key][view]
+			end
 			return
 		end
 		local on = if row.key == "Freecam" then Freecam.active() else SettingsState.get(row.key)
@@ -182,16 +191,20 @@ function SettingsMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 				Menus.close(NAME)
 				return
 			end
-			lineColor = lineColor or row.line.TextColor3
-			row.line.Text = why or W.Lines[row.key]
-			row.line.TextColor3 = HudParts.tone("Red")
+			local line = row.line
+			if line == nil then
+				return
+			end
+			lineColor = lineColor or line.TextColor3
+			line.Text = why or W.Lines[row.key]
+			line.TextColor3 = HudParts.tone("Red")
 			local token = os.clock() + U.RefusedSeconds
 			refusedUntil = token
 			task.delay(U.RefusedSeconds, function()
 				if refusedUntil == token then
 					refusedUntil = 0
-					row.line.Text = W.Lines[row.key]
-					row.line.TextColor3 = lineColor or row.line.TextColor3
+					line.Text = W.Lines[row.key]
+					line.TextColor3 = lineColor or line.TextColor3
 				end
 			end)
 		end)
@@ -223,10 +236,15 @@ function SettingsMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		title.TextXAlignment = Enum.TextXAlignment.Left
 		title.TextWrapped = false
 		title.ZIndex = 4
-		local line = HudParts.note(button, "Line", U.LineUnits, W.Lines[key])
-		line.TextXAlignment = Enum.TextXAlignment.Left
-		line.TextWrapped = false
-		line.ZIndex = 4
+		local lineWords = W.Lines[key]
+		local line = if lineWords
+			then HudParts.note(button, "Line", U.LineUnits, lineWords)
+			else nil
+		if line then
+			line.TextXAlignment = Enum.TextXAlignment.Left
+			line.TextWrapped = false
+			line.ZIndex = 4
+		end
 		local track = HudParts.frame(button, "Switch")
 		track.BackgroundTransparency = 0
 		track.AnchorPoint = Vector2.new(1, 0.5)
@@ -305,7 +323,7 @@ function SettingsMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 				label.AutoLocalize = true
 				label.AnchorPoint = Vector2.new(0.5, 0.5)
 				label.Position = UDim2.fromScale(0.5, 0.5)
-				label.Size = UDim2.fromScale(0.9, 0.8)
+				label.Size = UDim2.fromScale(row.segments.WordShare, 0.8)
 				label.TextWrapped = false
 				label.ZIndex = 7
 				row.labels[view] = label
@@ -406,15 +424,17 @@ function SettingsMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		end
 		holder.Position = UDim2.fromOffset(0, 0)
 		holder.Size = UDim2.fromOffset(w, px(PAGE_UNITS))
-		local rowH, gap, pad = px(U.RowUnits), px(U.GapUnits), px(U.PadUnits)
+		local gap, pad = px(U.GapUnits), px(U.PadUnits)
 		local corner = px(U.CornerUnits)
 		local iconPx = px(U.IconUnits)
 		local switchW, switchH = px(U.SwitchUnits[1]), px(U.SwitchUnits[2])
 		local titlePx, linePx = textPx(U.TitleUnits), textPx(U.LineUnits)
 		local textX = pad + iconPx + pad
-		local block = titlePx + 4 + linePx + 2
 		local y = 0
 		for _, row in rows do
+			local line = row.line
+			local rowH = px(rowUnits(row.key))
+			local block = if line then titlePx + 4 + linePx + 2 else titlePx + 4
 			row.button.Position = UDim2.fromOffset(0, y)
 			row.button.Size = UDim2.fromOffset(w, rowH)
 			row.corner.CornerRadius = UDim.new(0, corner)
@@ -422,13 +442,28 @@ function SettingsMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 			row.icon.Position = UDim2.new(0, pad, 0.5, 0)
 			local top = round((rowH - block) / 2)
 			local rowSwitchW = if row.segments then px(row.segments.SwitchUnits[1]) else switchW
+			if row.segments then
+				-- On a phone the page's scale is small and the words cannot shrink past MinTextPx:
+				-- the control grows into the row's spare width until every word fits (2026-10-25:
+				-- HORIZONTAL, VERTICAL and PLAYER ran into each other), at most MaxRowShare of it.
+				local widest = 0
+				for _, label in row.labels do
+					widest = math.max(widest, textWidth(label.Text, U.MinTextPx))
+				end
+				local need = #ShotView.Order
+					* math.ceil(widest / row.segments.WordShare + 4 * U.KnobInsetPx + 2)
+				rowSwitchW =
+					math.max(rowSwitchW, math.min(need, math.floor(w * row.segments.MaxRowShare)))
+			end
 			local textW = math.max(1, w - textX - pad - rowSwitchW - pad)
 			HudParts.setTextSize(row.title, titlePx)
 			row.title.Position = UDim2.fromOffset(textX, top)
 			row.title.Size = UDim2.fromOffset(textW, titlePx + 4)
-			HudParts.setTextSize(row.line, linePx, U.MinTextPx)
-			row.line.Position = UDim2.fromOffset(textX, top + titlePx + 4)
-			row.line.Size = UDim2.fromOffset(textW, linePx + 2)
+			if line then
+				HudParts.setTextSize(line, linePx, U.MinTextPx)
+				line.Position = UDim2.fromOffset(textX, top + titlePx + 4)
+				line.Size = UDim2.fromOffset(textW, linePx + 2)
+			end
 			row.track.Size = UDim2.fromOffset(rowSwitchW, switchH)
 			row.track.Position = UDim2.new(1, -pad, 0.5, 0)
 			local statePx = math.max(U.MinTextPx, round(switchH * U.SwitchTextShare))

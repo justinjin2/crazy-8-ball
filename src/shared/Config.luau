@@ -16574,6 +16574,7 @@ Config.UI.Settings = {
 	WidthShare = 0.48, -- the panel, of a computer screen's width (a phone: the frame's own)
 	Units = 880, -- the page's width in units
 	RowUnits = 124, -- a row's height
+	PlainRowUnits = 96, -- a row with no grey line (designer, 2026-10-25: shorter, so a phone's page is bigger)
 	GapUnits = 14, -- between two rows, and over the Codes strip
 	CornerUnits = 18, -- a row's and the strip's rounded corners
 	StrokePx = 2, -- a row's ink outline
@@ -16597,6 +16598,10 @@ Config.UI.Settings = {
 			Tones = { Top = "Blue", Vertical = "Purple", Player = "Gold" },
 			SwitchUnits = { 430, 74 },
 			TextShare = 0.36, -- a button's word, of the control's height (it shrinks to fit)
+			WordShare = 0.9, -- a word's room, of its button's width
+			-- On a phone the control widens until its words fit at MinTextPx, up to this share of
+			-- the row (2026-10-25: they ran into each other there).
+			MaxRowShare = 0.55,
 		},
 	},
 	-- Each row's Kit.Icons key.
