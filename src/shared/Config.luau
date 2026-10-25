@@ -8211,10 +8211,11 @@ Config.Multiplayer = {
 		ShortBallSize = 20, -- balls on short screens (a phone on its side)
 		-- The ball-in-hand hint: one thin line at the bottom, only as wide as its words
 		-- (designer, 2026-09-26: as small as possible; it was 36 and 30 high and always 460 wide).
-		ShortSetupHeight = 24, -- one-line placement instruction on short screens
-		SetupHeight = 28, -- one-line placement instruction
-		SetupTextSize = 16, -- its words (the kit's body size)
-		ShortSetupTextSize = 14, -- the same on a phone (the kit's smallest)
+		-- A little bigger again, words and hand icon (designer, 2026-10-25; was 28/16, 24/14).
+		ShortSetupHeight = 28, -- one-line placement instruction on short screens
+		SetupHeight = 34, -- one-line placement instruction (the hand icon is 0.8 of it)
+		SetupTextSize = 20, -- its words
+		ShortSetupTextSize = 17, -- the same on a phone
 		SetupMaxWidth = 460, -- the ball-in-hand hint pill at its widest
 		MobileBreakpoint = 760, -- stack central status below teams
 		PortraitSize = 29, -- square avatar beside the ball row, inside the bar (no name under it)
