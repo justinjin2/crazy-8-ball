@@ -64,6 +64,9 @@ type Board = {
 	data: { any }, -- the rows known, by place (the wins' later pages fill in as fetched)
 	total: number, -- the list's length
 	popped: boolean, -- the first rows have popped in
+	lod: UIScale, -- the board drawn smaller when far (LodSteps)
+	pps: number, -- its PixelsPerStud now
+	want: number, -- the PixelsPerStud the last pass asked for (twice in a row to switch)
 }
 
 local LobbyBoards = {}
@@ -268,9 +271,9 @@ end
 function LobbyBoards.repaint(board: Board)
 	local list = board.list
 	local first, count = LeaderboardMath.window(
-		list.CanvasPosition.Y,
+		list.CanvasPosition.Y / board.lod.Scale, -- the list's positions are drawn-size pixels
 		rowPx(),
-		list.AbsoluteWindowSize.Y,
+		list.AbsoluteWindowSize.Y / board.lod.Scale,
 		board.total,
 		#board.rows
 	)
@@ -377,6 +380,13 @@ local function build(model: Model, key: string, playerGui: Instance)
 	gui.Face = Enum.NormalId.Front
 	gui.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
 	gui.PixelsPerStud = C.PixelsPerStud
+	-- Far away the board is drawn at fewer pixels a stud, its contents scaled to match, so its
+	-- letters are drawn near their size on screen (a board drawn big and shrunk far away looks
+	-- jagged; designer, 2026-10-25). The layout stays in full-size pixels.
+	local lod = Instance.new("UIScale")
+	lod.Name = "LodScale"
+	lod.Scale = 1
+	lod.Parent = gui
 	gui.LightInfluence = 0
 	gui.Brightness = 1.2
 	gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
@@ -501,6 +511,9 @@ local function build(model: Model, key: string, playerGui: Instance)
 		data = {},
 		total = 0,
 		popped = false,
+		lod = lod,
+		pps = C.PixelsPerStud,
+		want = C.PixelsPerStud,
 	}
 	for i = 1, C.Pool do
 		local row = newRow(board, i)
@@ -586,7 +599,7 @@ local function setPadBoard(board: Board?)
 					local list = b.list
 					local maxY = math.max(0, list.AbsoluteCanvasSize.Y - list.AbsoluteWindowSize.Y)
 					local y = list.CanvasPosition.Y
-						- padY * LB.PadScrollRowsPerSecond * rowPx() * dt
+						- padY * LB.PadScrollRowsPerSecond * rowPx() * b.lod.Scale * dt
 					list.CanvasPosition = Vector2.new(0, math.clamp(y, 0, maxY))
 				end
 			end)
@@ -603,6 +616,36 @@ end
 ---------------------------------------------------------------------------------------------
 -- The pass: near enough to fetch, close and facing to count as seen (and for the pad)
 ---------------------------------------------------------------------------------------------
+
+-- Draw `board` at the fewest pixels a stud (LodSteps) that still give its letters about
+-- LodOversample canvas pixels for each pixel on screen; a level changes after two passes agree.
+local function sharpen(board: Board, camera: Camera)
+	local distance = (camera.CFrame.Position - board.face.Position).Magnitude
+	local onScreen = camera.ViewportSize.Y
+		/ (2 * math.max(1, distance) * math.tan(math.rad(camera.FieldOfView) / 2))
+	local ideal = onScreen * C.LodOversample
+	local pick = C.PixelsPerStud
+	for _, step in C.LodSteps do
+		if step >= ideal and step < pick then
+			pick = step
+		end
+	end
+	if pick == board.pps then
+		board.want = pick
+		return
+	end
+	if pick ~= board.want then
+		board.want = pick
+		return
+	end
+	local list = board.list
+	local was = board.lod.Scale
+	local scale = pick / C.PixelsPerStud
+	board.gui.PixelsPerStud = pick
+	board.lod.Scale = scale
+	board.pps = pick
+	list.CanvasPosition = Vector2.new(0, list.CanvasPosition.Y * scale / was)
+end
 
 local function pass()
 	local character = player.Character
@@ -642,6 +685,9 @@ local function pass()
 		task.spawn(fetch)
 	end
 	setPadBoard(if PadMode.active() then nearest else nil)
+	for _, board in boards do
+		sharpen(board, camera)
+	end
 end
 
 --- Draw the lobby boards on the stands the server built (a lobby server only).

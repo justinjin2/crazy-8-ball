@@ -16729,7 +16729,13 @@ Config.Leaderboards = {
 		WoodColor = { 122, 58, 38 }, -- the legs and feet (the tables' wood)
 		-- The card on the board (SurfaceGui pixels; PixelsPerStud of them a stud).
 		Card = {
-			PixelsPerStud = 48,
+			PixelsPerStud = 48, -- up close; the layout below is in these pixels
+			-- Drawn at fewer pixels a stud from further away (the board's contents scaled to
+			-- match), so its letters are drawn near their size on screen, not big and shrunk
+			-- jagged (designer, 2026-10-25). The fewest of these that still gives each screen
+			-- pixel LodOversample board pixels; checked every CheckSeconds.
+			LodSteps = { 12, 16, 24, 32, 48 },
+			LodOversample = 1.4,
 			MarginPx = 14, -- the card in from the board's edge (the ink rim shows round it)
 			CornerPx = 34,
 			HeaderPx = 92, -- the title band
