@@ -15769,13 +15769,9 @@ Config.UI.FontTest = {
 	-- ShopMenu, InventoryMenu, UltScreen (the Abilities page), FreeRewardMenu, RewardsMenu,
 	-- SettingsMenu, TradeMenu, TradeInvite, RankClaimBlock, TutorialGui, TableSign,
 	-- Nameplate_<user id>.
-	Screens = {
-		-- A look only (designer, 2026-10-14): the left column's buttons in Cartoon (Comic Neue Angular) Bold.
-		["PoolHud/MenuColumn"] = {
-			Family = "rbxasset://fonts/families/ComicNeueAngular.json",
-			Weight = "Bold",
-		},
-	} :: { [string]: { Family: string, Weight: string } },
+	-- Empty: every screen in the kit's Fredoka One (designer, 2026-10-25: the left column's Comic
+	-- Neue Angular test and a Montserrat test both went back to Fredoka).
+	Screens = {} :: { [string]: { Family: string, Weight: string } },
 }
 
 -- The Free Reward menu (FreeRewardMenu and its sections FreeDaily, FreePlaytime, FreeTrack and
