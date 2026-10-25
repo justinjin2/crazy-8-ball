@@ -81,7 +81,7 @@ return {
 		local state = { x = 0, y = 6, z = 0, yaw = 0, pitch = 0 }
 		local forward = { lookX = 0, lookY = 0, moveX = 0, moveZ = -1, rise = 0, fast = false }
 		local moved = M.step(state, forward, 1, F, F)
-		H.near(moved.z, -F.SpeedStuds, 1e-6, "yaw 0 looks down -Z")
+		H.near(moved.z, -F.SpeedStuds, 1e-2, "yaw 0 looks down -Z (at full speed after a second)")
 		local tipped = M.step(
 			state,
 			{ lookX = 0, lookY = 10, moveX = 0, moveZ = 0, rise = 0, fast = false },
@@ -95,5 +95,40 @@ return {
 		local still2 = M.step(state, still, 1, F, F)
 		H.near(still2.x, 0, 1e-9)
 		H.near(still2.z, 0, 1e-9)
+	end,
+
+	["let go, it glides a little, then rests"] = function()
+		local M, Config = load()
+		local F = Config.Freecam
+		local forward = { lookX = 0, lookY = 0, moveX = 0, moveZ = -1, rise = 0, fast = false }
+		local state = { x = 0, y = 6, z = 0, yaw = 0, pitch = 0 }
+		for _ = 1, 60 do
+			state = M.step(state, forward, 1 / 60, F, F)
+		end
+		H.near(state.vz or 0, -F.SpeedStuds, 0.05 * F.SpeedStuds, "up to speed within a second")
+		local at = state.z
+		local after = M.step(state, still, 1 / 60, F, F)
+		H.expect(after.z < at - 0.1, "still moving the frame after letting go")
+		for _ = 1, 120 do
+			after = M.step(after, still, 1 / 60, F, F)
+		end
+		local glide = at - after.z
+		H.expect(
+			glide > 0.5 * F.SpeedStuds * F.GlideSeconds
+				and glide < 1.5 * F.SpeedStuds * F.GlideSeconds,
+			("glided about Speed x GlideSeconds (%.2f studs)"):format(glide)
+		)
+		H.expect(math.abs(after.vz or 0) < 0.01, "at rest after two seconds")
+	end,
+
+	["a wall stops the velocity going into it"] = function()
+		local M, Config = load()
+		local F = Config.Freecam
+		local edge = 93 - F.WallInsetStuds
+		local state = { x = edge, y = 6, z = 0, yaw = 0, pitch = 0, vx = 20, vy = 0, vz = -5 }
+		local after = M.step(state, still, 1 / 60, F, F)
+		H.near(after.x, edge, 1e-9, "held at the wall")
+		H.near(after.vx or 0, 0, 1e-9, "no speed left into it")
+		H.expect((after.vz or 0) < 0, "still sliding along it")
 	end,
 }

@@ -503,7 +503,7 @@ end)
 GuiQA.add("freecamPos", function(x: number?, y: number?, z: number?): any
 	if active and x and y and z then
 		local cx, cy, cz = FreecamMath.clamp(x, y, z, F)
-		state = { x = cx, y = cy, z = cz, yaw = state.yaw, pitch = state.pitch }
+		state = { x = cx, y = cy, z = cz, yaw = state.yaw, pitch = state.pitch } -- at rest
 		lastSet = nil
 	end
 	return { active = active, x = state.x, y = state.y, z = state.z }

@@ -16530,9 +16530,14 @@ Config.Freecam = {
 	Enabled = true, -- false: no Settings row, and the server refuses every start (a test build)
 	-- The player attribute the server sets while it is on; every way into a match checks it.
 	Attribute = "Freecam",
-	SpeedStuds = 16, -- flying speed, studs a second
-	FastSpeedStuds = 40, -- with Shift held (a computer)
-	VerticalSpeedStuds = 10, -- straight up or down (E / Q, a gamepad's R2 / L2)
+	SpeedStuds = 24, -- flying speed, studs a second (designer, 2026-10-25: a bit faster; was 16)
+	FastSpeedStuds = 56, -- with Shift held (a computer; was 40)
+	VerticalSpeedStuds = 14, -- straight up or down (E / Q, a gamepad's R2 / L2; was 10)
+	-- A little ice (designer, 2026-10-25, like Roblox's own freecam): the speed eases in over
+	-- about AccelSeconds and, let go, coasts down over about GlideSeconds (time constants: at full
+	-- speed it glides about SpeedStuds x GlideSeconds studs, 6 here, before it rests).
+	AccelSeconds = 0.12,
+	GlideSeconds = 0.25,
 	PitchLimitDegrees = 80, -- the camera never tips past straight up or down
 	LookMouseRadians = 0.004, -- turn per mouse pixel while the right button is held
 	LookTouchRadians = 0.006, -- turn per pixel of a finger's drag

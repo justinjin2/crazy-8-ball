@@ -6,6 +6,9 @@
 -- inside the rooftop: the union of Config.Freecam.Boxes, each pulled WallInsetStuds in from its
 -- walls, below the safety walls' tops, so it can never pass a wall or rise to see the city.
 -- Angles follow CFrame.fromOrientation(pitch, yaw, 0): yaw 0 looks down -Z, pitch up is +.
+-- It has a little momentum, like Roblox's own freecam (designer, 2026-10-25: "glides still like
+-- ice, just a bit"): its velocity eases toward the input's in AccelSeconds and, let go, coasts
+-- down over GlideSeconds; a wall it meets stops the part of the velocity going into it.
 
 export type Box = {
 	MinX: number,
@@ -18,7 +21,16 @@ export type Box = {
 
 export type Bounds = { Boxes: { Box }, WallInsetStuds: number }
 
-export type State = { x: number, y: number, z: number, yaw: number, pitch: number }
+export type State = {
+	x: number,
+	y: number,
+	z: number,
+	yaw: number,
+	pitch: number,
+	vx: number?, -- its velocity (studs a second; nil is still)
+	vy: number?,
+	vz: number?,
+}
 
 export type Input = {
 	lookX: number, -- radians to turn right this step
@@ -34,6 +46,8 @@ export type Tuning = {
 	FastSpeedStuds: number,
 	VerticalSpeedStuds: number,
 	PitchLimitDegrees: number,
+	AccelSeconds: number,
+	GlideSeconds: number,
 }
 
 local FreecamMath = {}
@@ -96,11 +110,31 @@ function FreecamMath.step(
 	local rx, rz = math.cos(yaw), -math.sin(yaw)
 	local forward = -mz
 	local rise = math.clamp(input.rise, -1, 1)
-	local x = state.x + (rx * mx + fx * forward) * speed * dt
-	local y = state.y + fy * forward * speed * dt + rise * tuning.VerticalSpeedStuds * dt
-	local z = state.z + (rz * mx + fz * forward) * speed * dt
-	x, y, z = FreecamMath.clamp(x, y, z, bounds)
-	return { x = x, y = y, z = z, yaw = yaw, pitch = pitch }
+	-- The velocity the input asks for, and the velocity eased toward it: quickly while pushing,
+	-- slowly (the glide) once let go.
+	local tx = (rx * mx + fx * forward) * speed
+	local ty = fy * forward * speed + rise * tuning.VerticalSpeedStuds
+	local tz = (rz * mx + fz * forward) * speed
+	local pushing = tx ~= 0 or ty ~= 0 or tz ~= 0
+	local seconds = if pushing then tuning.AccelSeconds else tuning.GlideSeconds
+	local k = if seconds > 0 then 1 - math.exp(-dt / seconds) else 1
+	local vx, vy, vz = state.vx or 0, state.vy or 0, state.vz or 0
+	vx += (tx - vx) * k
+	vy += (ty - vy) * k
+	vz += (tz - vz) * k
+	local wantX, wantY, wantZ = state.x + vx * dt, state.y + vy * dt, state.z + vz * dt
+	local x, y, z = FreecamMath.clamp(wantX, wantY, wantZ, bounds)
+	-- Held back by a wall on an axis: no velocity left along it (it slides along the wall).
+	if math.abs(x - wantX) > 1e-9 then
+		vx = 0
+	end
+	if math.abs(y - wantY) > 1e-9 then
+		vy = 0
+	end
+	if math.abs(z - wantZ) > 1e-9 then
+		vz = 0
+	end
+	return { x = x, y = y, z = z, yaw = yaw, pitch = pitch, vx = vx, vy = vy, vz = vz }
 end
 
 return FreecamMath
