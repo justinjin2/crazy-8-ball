@@ -16,6 +16,7 @@ local ContextActionService = game:GetService("ContextActionService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
+local TextService = game:GetService("TextService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
@@ -44,6 +45,7 @@ type Row = {
 	flag: TextLabel,
 	name: TextLabel,
 	value: TextLabel,
+	cup: ImageLabel,
 	shown: number, -- the list row it shows (0: none)
 }
 
@@ -56,6 +58,7 @@ type Board = {
 	rows: { Row },
 	you: TextLabel,
 	youValue: TextLabel,
+	youCup: ImageLabel,
 	youFlag: TextLabel,
 	padHint: Frame,
 	data: { any }, -- the rows known, by place (the wins' later pages fill in as fetched)
@@ -79,6 +82,27 @@ local padStep: RBXScriptConnection? = nil
 
 local function rowPx(): number
 	return C.RowPx
+end
+
+-- A fixed-size number (not scaled to its box), so its width is known and the trophy can sit
+-- just left of it (designer, 2026-10-25).
+local function fixNumber(value: TextLabel)
+	value.TextScaled = false
+	value.TextSize = C.RowTextPx
+end
+
+-- Show `text` in `value` (right-aligned `rightPx` in from its parent's right end) with the trophy
+-- `cup` just left of the number.
+local function setValue(value: TextLabel, cup: ImageLabel, text: string, rightPx: number)
+	value.Text = text
+	cup.Visible = text ~= ""
+	local width = TextService:GetTextSize(
+		text,
+		C.RowTextPx,
+		HudParts.measureFont(value),
+		Vector2.new(1000, 1000)
+	).X
+	cup.Position = UDim2.new(1, -(rightPx + width + C.TrophyGapPx), 0.5, 0)
 end
 
 local function invoke(...: any): any
@@ -152,12 +176,14 @@ local function newRow(board: Board, index: number): Row
 	trophy.Size = UDim2.fromOffset(C.TrophyPx, C.TrophyPx)
 	trophy.AnchorPoint = Vector2.new(1, 0.5)
 	trophy.Position = UDim2.new(1, -C.ValueWidthPx - 4, 0.5, 0)
+	trophy.Visible = false
 	local value = HudParts.text(frame, "Value", C.RowTextPx, "", HudParts.color(K.Numbers.Money))
 	value.AutoLocalize = false
 	value.TextXAlignment = Enum.TextXAlignment.Right
 	value.AnchorPoint = Vector2.new(1, 0)
 	value.Position = UDim2.new(1, -6, 0, 0)
 	value.Size = UDim2.new(0, C.ValueWidthPx - 8, 1, 0)
+	fixNumber(value)
 	-- The rows' words keep a plain outline: HoleFill's ink-in-the-holes and lip would add four
 	-- copies of each (the title and the You strip keep them).
 	for _, label in { placeText, name, value } do
@@ -171,6 +197,7 @@ local function newRow(board: Board, index: number): Row
 		flag = flag,
 		name = name,
 		value = value,
+		cup = trophy,
 		shown = 0,
 	}
 end
@@ -202,11 +229,11 @@ local function paintRow(board: Board, row: Row, index: number)
 				C.HeadshotPx
 			)
 			row.name.Text = entry.n
-			row.value.Text = Format.commas(entry.v)
+			setValue(row.value, row.cup, Format.commas(entry.v), 6)
 		else
 			row.picture.Image = ""
 			row.name.Text = W.Loading
-			row.value.Text = ""
+			setValue(row.value, row.cup, "", 6)
 		end
 	else
 		row.picture.Visible = false
@@ -215,11 +242,11 @@ local function paintRow(board: Board, row: Row, index: number)
 		if entry then
 			row.flag.Text = PlayerListView.flag(entry.c)
 			row.name.Text = NAMES[entry.c] or entry.c
-			row.value.Text = Format.commas(entry.v)
+			setValue(row.value, row.cup, Format.commas(entry.v), 6)
 		else
 			row.flag.Text = ""
 			row.name.Text = ""
-			row.value.Text = ""
+			setValue(row.value, row.cup, "", 6)
 		end
 	end
 end
@@ -312,7 +339,7 @@ local function paintYou(board: Board)
 		else
 			board.you.Text = W.NotRanked
 		end
-		board.youValue.Text = if mine > 0 then Format.commas(mine) else ""
+		setValue(board.youValue, board.youCup, if mine > 0 then Format.commas(mine) else "", 12)
 	else
 		local code = answer.country
 		local place = answer.countryPlace
@@ -321,10 +348,10 @@ local function paintYou(board: Board)
 		if place then
 			local entry = board.data[place]
 			board.you.Text = W.YourCountry .. "   " .. W.Place:format(Format.commas(place))
-			board.youValue.Text = if entry then Format.commas(entry.v) else ""
+			setValue(board.youValue, board.youCup, if entry then Format.commas(entry.v) else "", 12)
 		else
 			board.you.Text = W.NoCountry
-			board.youValue.Text = ""
+			setValue(board.youValue, board.youCup, "", 12)
 		end
 	end
 end
@@ -399,7 +426,14 @@ local function build(model: Model, key: string, playerGui: Instance)
 	glyph.Size = UDim2.fromScale(0.8, 0.8)
 	glyph.ZIndex = 7
 	glyph.Parent = padHint
-	local listTop = C.HeaderPx + C.ListTopGapPx
+	local listTop = C.HeaderPx + C.ListTopGapPx + C.ColumnsPx
+	-- The numbers' column title, over them (as the player list's "Wins").
+	local column = HudParts.note(card, "WinsColumn", C.ColumnsTextPx, W.WinsColumn)
+	column.TextXAlignment = Enum.TextXAlignment.Right
+	column.TextColor3 = HudParts.color(K.Numbers.Count)
+	column.Position = UDim2.fromOffset(C.ListPadPx, C.HeaderPx + C.ListTopGapPx)
+	column.Size = UDim2.fromOffset(cardW - 2 * C.ListPadPx - 14, C.ColumnsPx)
+	column.ZIndex = 5
 	local listH = cardH - listTop - C.YouGapPx - C.YouPx - C.ListPadPx / 2
 	local list = Instance.new("ScrollingFrame")
 	list.Name = "List"
@@ -451,6 +485,7 @@ local function build(model: Model, key: string, playerGui: Instance)
 	cup.AnchorPoint = Vector2.new(1, 0.5)
 	cup.Position = UDim2.new(1, -C.ValueWidthPx - 4, 0.5, 0)
 	cup.ZIndex = 6
+	cup.Visible = false
 	local youValue =
 		HudParts.text(youBar, "Value", C.RowTextPx, "", HudParts.color(K.Numbers.Money))
 	youValue.AutoLocalize = false
@@ -459,6 +494,7 @@ local function build(model: Model, key: string, playerGui: Instance)
 	youValue.Position = UDim2.new(1, -12, 0, 4)
 	youValue.Size = UDim2.new(0, C.ValueWidthPx - 8, 1, -8)
 	youValue.ZIndex = 6
+	fixNumber(youValue)
 	local board: Board = {
 		key = key,
 		face = face,
@@ -468,6 +504,7 @@ local function build(model: Model, key: string, playerGui: Instance)
 		rows = {},
 		you = you,
 		youValue = youValue,
+		youCup = cup,
 		youFlag = youFlag,
 		padHint = padHint,
 		data = {},

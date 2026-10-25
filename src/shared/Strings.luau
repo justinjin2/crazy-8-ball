@@ -1446,7 +1446,8 @@ return {
 	},
 	-- The lobby boards (LobbyBoards; designer, 2026-10-25): Most wins and Top countries.
 	LobbyBoards = {
-		Wins = "MOST WINS",
+		Wins = "TOP PLAYERS", -- was MOST WINS (designer, 2026-10-25)
+		WinsColumn = "Wins", -- the numbers' column title on both boards
 		Countries = "TOP COUNTRIES",
 		You = "You", -- the pinned row under the Most wins list
 		YourCountry = "Your country", -- the pinned row under the Top countries list
