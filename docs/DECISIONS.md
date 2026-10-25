@@ -4437,3 +4437,10 @@ timer of a new block stay the designer's call.
   one shorter"): on a phone the row names are 1.4x bigger and the grey lines at least 13 px, the
   panel keeps 12 px clear above and below, "Codes" sits off its box, and the camera lines are
   "Horizontal: Default", "Vertical: Best for clips", "Player: Your own camera".
+- 2026-10-25: **Fredoka One stays the game's font** (designer: "its really ugly change it all back
+  to fredoka"): Montserrat everywhere (to match the Spider-Man: Brand New Day credits) was tried in
+  Studio and dropped; the left column's Comic Neue Angular test (2026-10-14) ends too. Wide letter
+  spacing was ruled out first: Roblox text has no letter spacing, and spaces between letters break
+  auto-translate and overflow phones.
+- 2026-10-25: **A nameplate's flag sits after the name's box**, never inside it, so no username's
+  length or letters can run into it (NameplateMath).
