@@ -17,6 +17,12 @@ entry of `docs/archive/STATUS_HISTORY.md`.
   and updates, and a slow cleanup of old code and features as the game takes its form. Every
   update must not bring a critical bug or error to the live game: the rules are in CLAUDE.md,
   "The game is live".
+- **Published by the designer 2026-10-25 (evening): everything pushed up to `e49ef20e`**, the
+  lobby boards included (top 100, every country, No data yet), so the country store is counting
+  real wins since then; the older not-yet-published notes below are live with it. **Pushed, not
+  yet live:** a top player's flag after their name on Top players and yours on its You strip
+  (`Board_PlayerFlags_v1`; check live: top players' flags appear as they visit a lobby, and one
+  who switches Show my country flag off loses it within about two minutes).
 - **Published:** everything up to `c499ecf` (2026-10-12; the list is in STATUS_HISTORY). **Not
   yet published:** the Shop restock's "Epic or better!" tag removed (DECISIONS); the VIP card's perk
   list says "Gold chat tag" instead of "Rainbow chat tag" (`2c6972f`); the favorite card rewards

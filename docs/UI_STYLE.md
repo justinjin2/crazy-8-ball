@@ -1309,7 +1309,8 @@ side by side under the pergola facing the spawn: a navy board (Kit Ink) on two w
 tables' wood), and on it the lively card: the header band's 8-balls scrolling, the trophy (Most
 wins) or globe (Top countries) and the title in Fredoka with the ink outline and HoleFill's lip,
 the white sheet with a scrolling list. A row: a gold, silver or bronze disc with an ink ring for
-1 to 3 (a plain number after), the avatar's head in an ink ring or the country's flag, the name,
+1 to 3 (a plain number after), the avatar's head in an ink ring or the country's flag, the name (a top player's own flag just
+after it while their Show my country flag is on; designer, 2026-10-25),
 then the trophy just left of the wins in money gold, under an ink "Wins" column title (sky blue
 until the designer asked for black and bigger, the same day). The You strip is taller than a row
 with bigger words (`YouPx`, `YouTextPx`). Every other row (1, 3, 5...) has a solid pale-blue stripe a shade deeper than the You strip (designer, 2026-10-25: a clear line between rows; the first stripe was too faint). About 8 rows and a peek of the 9th show at once. A pale-blue You strip is

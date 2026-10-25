@@ -4470,3 +4470,8 @@ timer of a new block stay the designer's call.
 - 2026-10-25: **Top players shows the top 100, not 1000** (designer: "just make it top 100 now";
   rows past 100 showed `#userId` where the name lookup failed); Top countries still lists every
   country. An empty board says "No data yet" (was "Be the first!").
+- 2026-10-25: **A top player's flag after their name on Top players** (designer). Their flag is
+  shown only while their own Show my country flag setting is on (a hidden flag still counts on Top
+  countries); the flags live in a small separate store (`Board_PlayerFlags_v1`) that lobby servers
+  update when a top player there shows or hides theirs, so a flag appears once that player visits
+  a lobby after the update. The existing win and country stores are untouched.
