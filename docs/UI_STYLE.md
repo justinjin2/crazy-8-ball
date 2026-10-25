@@ -1212,6 +1212,11 @@ screen's width (`WidthShare`), the frame's 66% on a phone.
   my country flag are just their names, in shorter rows (`PlainRowUnits`); only Camera after a
   shot and Freecam keep a grey line. On a phone the camera row's three buttons widen into the
   row's spare room until their words fit at 12 px (`Segments.ShotCam.MaxRowShare`).
+- **On a phone** (designer, 2026-10-25): the row names are 1.4x bigger (`PhoneTitleBoost`, each
+  clamped to its row) and the grey lines at least 13 px; the panel keeps 12 px clear above and
+  below (`PhoneMarginPx`, `MenuFrame`'s `phoneMarginPx`); "Codes" keeps 6 px off its box. The
+  camera lines are short: "Horizontal: Default", "Vertical: Best for clips", "Player: Your own
+  camera".
 - **Freecam row** (2026-10-25): a sixth row, the movie-camera icon, "Freecam" and "Fly the camera
   around the lobby to film your friends.", its switch showing whether the freecam is on (not a
   saved setting); a refusal ("Leave the table first", ...) shows on its grey line in red for

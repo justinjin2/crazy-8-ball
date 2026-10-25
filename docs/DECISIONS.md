@@ -4432,3 +4432,8 @@ timer of a new block stay the designer's call.
   explanatory they dont need captions", after HORIZONTAL / VERTICAL / PLAYER overlapped on a
   phone): Music, Sound effects, Lower effects and the flag are shorter rows with just their names,
   and the camera row's buttons widen to fit their words on a phone.
+- 2026-10-25: **Settings on a phone: bigger words, a margin, short camera lines** (designer: "theres
+  still space to make the fonts bigger ... dont make it touching the end of the phone ... make each
+  one shorter"): on a phone the row names are 1.4x bigger and the grey lines at least 13 px, the
+  panel keeps 12 px clear above and below, "Codes" sits off its box, and the camera lines are
+  "Horizontal: Default", "Vertical: Best for clips", "Player: Your own camera".
