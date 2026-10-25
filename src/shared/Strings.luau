@@ -1387,6 +1387,7 @@ return {
 			LowFx = "Lower effects",
 			ShowFlag = "Show my country flag",
 			ShotCam = "Camera after a shot",
+			Freecam = "Freecam",
 		},
 		Lines = {
 			Music = "The background music.",
@@ -1394,6 +1395,7 @@ return {
 			LowFx = "Fewer particles. Smoother on slower devices.",
 			ShowFlag = "Other players see it in the player list and after your name.",
 			ShotCam = "Horizontal (default): recommended for most players.",
+			Freecam = "Fly the camera around the lobby to film your friends.",
 		},
 		-- A three-button row's line for each view, in place of its Lines entry
 		-- (Config.UI.Settings.Segments).
@@ -1414,6 +1416,19 @@ return {
 			ShotCam = { Top = "HORIZONTAL", Vertical = "VERTICAL", Player = "PLAYER" },
 		},
 		Codes = "Codes", -- the strip under the rows (the box and Redeem)
+	},
+	-- The lobby freecam (Freecam, FreecamService; designer, 2026-10-25, for clips).
+	Freecam = {
+		Exit = "EXIT", -- the button that ends it
+		-- Why a start was refused (the server's reason), shown as a notice.
+		Refused = {
+			Seated = "Leave the table first",
+			Searching = "Stop searching for a match first",
+			Tutorial = "Finish the tutorial first",
+			Lobby = "Freecam works in the lobby only",
+			Off = "Freecam is not available right now",
+			Busy = "Try again in a moment",
+		},
 	},
 	-- The player list and the global boards (PlayerList, Leaderboards; GUI lane, C7).
 	PlayerList = {

@@ -5735,6 +5735,12 @@
     "imageId": "131376205317815",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball/assets/ui/icons/camera.png": {
+    "assetId": "92041957079499",
+    "assetType": "Decal",
+    "imageId": "81573326296048",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball/assets/ui/icons/cues.png": {
     "assetId": "94026566964067",
     "assetType": "Decal",
@@ -5769,6 +5775,18 @@
     "assetId": "112041491875560",
     "assetType": "Decal",
     "imageId": "91636481608261",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/ui/icons/eye.png": {
+    "assetId": "82296637568222",
+    "assetType": "Decal",
+    "imageId": "132342669490855",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/ui/icons/eye_closed.png": {
+    "assetId": "131609938625126",
+    "assetType": "Decal",
+    "imageId": "140022145145437",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/ui/icons/globe.png": {

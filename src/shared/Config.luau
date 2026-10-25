@@ -7598,6 +7598,11 @@ Config.UI = {
 			CashStack = "rbxassetid://140297726302884", -- the money HUD's total
 			CashSingle = "rbxassetid://120556642167836", -- one bundle: the flying "+$10" chip
 			ChatTag = "rbxassetid://108097317615793", -- a speech bubble (the chat-tag reward tile)
+			-- The lobby freecam (2026-10-25): its Settings row and EXIT, and the eye that hides
+			-- the rest of its buttons (open) or shows them again (shut).
+			Camera = "rbxassetid://81573326296048",
+			Eye = "rbxassetid://132342669490855",
+			EyeClosed = "rbxassetid://140022145145437",
 			-- The economy (2026-09-28; tools/gen_ui_art.py, assets/ui/icons/README.md). An empty id
 			-- draws nothing until the image is uploaded.
 			Shop = "rbxassetid://130453738066274", -- the red basket (GUI lane, ref 02; was 107658760787268)
@@ -16512,6 +16517,46 @@ Config.Settings = {
 	SeenKinds = { "Rare", "Epic", "Legendary", "Mythic", "Secret", "Result" },
 	RequestBurst = 6, -- SettingsRequest: a burst, then this many a second (not design numbers)
 	RequestPerSecond = 3,
+	-- Rows that act rather than save (no save field, not in Defaults): Freecam starts and stops
+	-- the lobby freecam (Config.Freecam; shown only while it is enabled).
+	Actions = { "Freecam" },
+}
+
+-- The lobby freecam (designer, 2026-10-25: a free camera to film friends for clips; Roblox's own
+-- Shift+P freecam is for the owner and editors only, and never on a phone). Started from its
+-- Settings row; lobby only, never while seated, searching or in the tutorial, and the server
+-- refuses any match, pad or teleport while it is on (FreecamService). The camera flies inside
+-- the rooftop's safety walls (Map.Collision.Arch, measured 2026-10-25) and under their tops, so
+-- it never sees past them. Everything of ours is hidden but the gear, EXIT and the eye.
+-- Measured with the custom event Freecam (Start, End with the seconds, Refused with why).
+Config.Freecam = {
+	Enabled = true, -- false: no Settings row, and the server refuses every start (a test build)
+	SpeedStuds = 16, -- flying speed, studs a second
+	FastSpeedStuds = 40, -- with Shift held (a computer)
+	VerticalSpeedStuds = 10, -- straight up or down (E / Q, a gamepad's R2 / L2)
+	PitchLimitDegrees = 80, -- the camera never tips past straight up or down
+	LookMouseRadians = 0.004, -- turn per mouse pixel while the right button is held
+	LookTouchRadians = 0.006, -- turn per pixel of a finger's drag
+	LookPadRadians = 2.6, -- turn a second with the right stick pushed fully
+	PadDeadzone = 0.15, -- a stick this far off centre still counts as centred
+	-- The camera's room: the union of these boxes (world studs), each pulled WallInsetStuds in from
+	-- its sides. The roof: inside the four safety walls' inner faces (x +-93, z -101.75 to 82.25),
+	-- over the back lounge's platform (top at y 2), under the walls' tops (y 40) with room to
+	-- spare. The stairs to the lower landing: between its side walls (x +-13), down to the
+	-- landing's glass (z 106.25), above the top step (y -0.5).
+	Boxes = {
+		{ MinX = -93, MaxX = 93, MinZ = -101.75, MaxZ = 82.25, MinY = 2.5, MaxY = 30 },
+		{ MinX = -13, MaxX = 13, MinZ = 70, MaxZ = 106.25, MinY = 0, MaxY = 30 },
+	},
+	WallInsetStuds = 1.5, -- how far the camera stays off every wall
+	ButtonPx = 44, -- the gear, EXIT's height and the eye on a computer
+	ShortButtonPx = 44, -- the same on a phone (a full touch target)
+	GapPx = 10, -- between them
+	ExitTextPx = 18, -- EXIT's word
+	EyeHiddenTransparency = 0.85, -- the eye alone once it hides the rest: barely in the clip
+	EndMaxSeconds = 1800, -- the End event's value is capped here (the dashboard's scale)
+	RequestBurst = 4, -- FreecamRequest: a burst, then this many a second (not design numbers)
+	RequestPerSecond = 1,
 }
 
 -- The Settings screen (SettingsMenu) and its gear beside the rank HUD (GUI lane, C10). In the
@@ -16558,6 +16603,7 @@ Config.UI.Settings = {
 		LowFx = "Effects",
 		ShowFlag = "Globe",
 		ShotCam = "Cue",
+		Freecam = "Camera",
 	},
 	-- The Codes strip: the code icon at its left, "Codes" with the server's answer beside it,
 	-- the box and the green Redeem under them.
@@ -16578,13 +16624,13 @@ Config.UI.Settings = {
 			{ Ids = { "Header" }, Kind = "Fade", At = 0.12, Length = 0.15 },
 			{ Ids = { "Basket", "Title", "Money", "Close" }, Kind = "Pop", At = 0.18 },
 			{
-				Ids = { "Row1", "Row2", "Row3", "Row4", "Row5" },
+				Ids = { "Row1", "Row2", "Row3", "Row4", "Row5", "Row6" },
 				Kind = "Pop",
 				At = 0.22,
 				Stagger = 1.5,
 			},
 			{
-				Ids = { "Switch1", "Switch2", "Switch3", "Switch4", "Switch5" },
+				Ids = { "Switch1", "Switch2", "Switch3", "Switch4", "Switch5", "Switch6" },
 				Kind = "Pop",
 				At = 0.3,
 				Stagger = 1.5,

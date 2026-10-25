@@ -601,6 +601,56 @@ def icon_globe():
     )
 
 
+def icon_camera():
+    # The freecam (designer, 2026-10-25, for clips): a movie camera, two reels on top, a red
+    # record light and its lens to the right.
+    return "".join(
+        [
+            '<circle cx="78" cy="74" r="32" fill="url(#white)"/>',
+            '<circle cx="146" cy="74" r="32" fill="url(#white)"/>',
+            f'<circle cx="78" cy="74" r="9" fill="{INK}"/>',
+            f'<circle cx="146" cy="74" r="9" fill="{INK}"/>',
+            '<rect x="30" y="104" width="148" height="100" rx="24" fill="url(#blue)"/>',
+            '<path d="M178 132 L226 106 L226 202 L178 176 Z" fill="url(#steel)" stroke-linejoin="round"/>',
+            '<circle cx="64" cy="134" r="13" fill="url(#red)"/>',
+            gloss(84, 122, 40, 12, angle=0, opacity=0.6),
+            gloss(66, 64, 14, 7),
+            gloss(134, 64, 14, 7),
+        ]
+    )
+
+
+def icon_eye():
+    # The freecam's eye, open: the rest of its buttons show.
+    return "".join(
+        [
+            '<path d="M20 128 C64 60 192 60 236 128 C192 196 64 196 20 128 Z" fill="url(#white)"/>',
+            '<circle cx="128" cy="128" r="46" fill="url(#blue)"/>',
+            f'<circle cx="128" cy="128" r="22" fill="{INK}"/>',
+            '<circle cx="112" cy="110" r="10" fill="#FFFFFF"/>',
+            gloss(150, 146, 10, 5, opacity=0.5),
+        ]
+    )
+
+
+def icon_eye_closed():
+    # The freecam's eye, shut: only it shows (a lid's curve and its lashes).
+    lid = "M28 118 C72 176 184 176 228 118"
+    lashes = [
+        [(60, 150), (44, 180)],
+        [(98, 166), (90, 200)],
+        [(158, 166), (166, 200)],
+        [(196, 150), (212, 180)],
+    ]
+    return "".join(
+        [
+            f'<path d="{lid}" fill="none" stroke="url(#grey)" stroke-width="30" stroke-linecap="round"/>',
+            *[line(points, "url(#grey)", 18) for points in lashes],
+            f'<path d="{lid}" fill="none" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round" opacity="0.45" transform="translate(0 -6)"/>',
+        ]
+    )
+
+
 def icon_check():
     pts = [(50, 132), (104, 186), (206, 72)]
     return line(pts, "url(#green)", 44) + line(
@@ -2393,6 +2443,9 @@ ICONS = {
     "rolling": icon_rolling,
     "lightning": icon_lightning,
     "globe": icon_globe,
+    "camera": icon_camera,
+    "eye": icon_eye,
+    "eye_closed": icon_eye_closed,
     "check": icon_check,
     "x": icon_x,
     "arrow": icon_arrow,
