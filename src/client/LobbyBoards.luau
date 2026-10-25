@@ -376,9 +376,9 @@ local function paintYou(board: Board)
 		board.you.Size = UDim2.new(1, -left - C.ValueWidthPx - C.YouTrophyPx - 12, 1, -8)
 		if place then
 			board.you.Text = W.You .. "   " .. W.Place:format(Format.commas(place))
-		elseif mine > 0 and board.total >= LB.WinsRows then
-			board.you.Text = W.You .. "   " .. W.PastList:format(Format.commas(LB.WinsRows))
 		elseif mine > 0 then
+			-- Off the board: no place (designer, 2026-10-25: "100+" said nothing, and a deeper
+			-- place would keep sliding as new players join), just You and the wins.
 			board.you.Text = W.You
 		else
 			board.you.Text = W.NotRanked
