@@ -1393,13 +1393,13 @@ return {
 			Sfx = "Clicks, shots and ability sounds.",
 			LowFx = "Fewer particles. Smoother on slower devices.",
 			ShowFlag = "Other players see it in the player list and after your name.",
-			ShotCam = "Horizontal (default): the whole table, side on.",
+			ShotCam = "Horizontal (default): recommended for most players.",
 		},
 		-- A three-button row's line for each view, in place of its Lines entry
 		-- (Config.UI.Settings.Segments).
 		SegmentLines = {
 			ShotCam = {
-				Top = "Horizontal (default): the whole table, side on.",
+				Top = "Horizontal (default): recommended for most players.",
 				Vertical = "Vertical: best for clips (TikTok, Reels, Shorts).",
 				Player = "Player: your own camera.",
 			},
