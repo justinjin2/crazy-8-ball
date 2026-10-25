@@ -13,12 +13,10 @@
 --   down and flies). Faster: Shift.
 -- - The body stands still where it was (root anchored, no walking, turning or jumping, which also
 --   hides a phone's jump button), so it cannot walk onto a pad or into a portal.
--- - Every screen of ours is switched off but the menus (the gear opens Settings) and the
---   freecam's own row in Roblox's top bar: the gear, EXIT and the eye. The eye hides the gear and
---   EXIT and stays as a faint shut eye (Config.Freecam.EyeHiddenTransparency); pressed again, they
---   come back. Gamepad: B ends it, Y is the eye, X the gear.
--- - Only Settings may open (Menus.setOnly): a popup's menu, the daily one say, waits for the end.
--- It ends on EXIT, the Settings row, B, a new body, the server dropping it, or another camera
+-- - Every screen of ours is switched off but one red EXIT button in the top right of Roblox's
+--   top bar (designer, 2026-10-25: just EXIT, no gear or eye). Gamepad: B ends it.
+-- - No menu opens (Menus.hold): a popup's menu, the daily one say, waits for the end.
+-- It ends on EXIT, B, a seat, a new body, the server dropping it, or another camera
 -- (a gift's fall, a cutscene) taking over, which then keeps the camera.
 local ContextActionService = game:GetService("ContextActionService")
 local Players = game:GetService("Players")
@@ -35,8 +33,6 @@ local Strings = require(Shared:WaitForChild("Strings"))
 local GuiQA = require(script.Parent.GuiQA)
 local HudParts = require(script.Parent.HudParts)
 local Menus = require(script.Parent.Menus)
-local UIAnim = require(script.Parent.UIAnim)
-local UISound = require(script.Parent.UISound)
 
 local F = Config.Freecam
 local W = Strings.Freecam
@@ -63,7 +59,6 @@ Freecam.Changed = changed.Event
 local player = Players.LocalPlayer
 local active = false
 local starting = false
-local eyeOpen = true
 local state: FreecamMath.State = { x = 0, y = 0, z = 0, yaw = 0, pitch = 0 }
 local lastSet: CFrame? = nil
 local saved: { kind: Enum.CameraType, subject: Instance?, fov: number }? = nil
@@ -294,7 +289,7 @@ local function onInputEnded(input: InputObject)
 end
 
 ---------------------------------------------------------------------------------------------
--- The row in Roblox's top bar: the gear, EXIT, the eye
+-- EXIT, in the top right of Roblox's top bar
 ---------------------------------------------------------------------------------------------
 
 local function buildHud(): any
@@ -312,38 +307,11 @@ local function buildHud(): any
 	row.Size = UDim2.fromScale(1, 1)
 	row.Visible = false
 	local h: any = { screen = screen, row = row }
-	h.gear = HudParts.candy(row, "", function()
-		UISound.play("Click")
-		Menus.open("Settings")
-	end, "White", "Gear")
-	h.gear.Name = "Gear"
 	h.exit = HudParts.candy(row, W.Exit, function()
 		Freecam.stop("Exit")
 	end, "Red", "Camera")
 	h.exit.Name = "Exit"
-	h.eye = HudParts.candy(row, "", function()
-		Freecam.setEye(false)
-	end, "White", "Eye")
-	h.eye.Name = "Eye"
-	-- The eye once it has hidden the rest: no candy, just a faint shut eye, a full touch target.
-	local ghost = Instance.new("TextButton")
-	ghost.Name = "EyeHidden"
-	ghost.Text = ""
-	ghost.BackgroundTransparency = 1
-	ghost.AutoButtonColor = false
-	ghost.AnchorPoint = Vector2.new(0, 0.5)
-	ghost.Visible = false
-	ghost.Parent = row
-	local shut = HudParts.icon(ghost, "EyeClosed", "Art")
-	shut.Size = UDim2.fromScale(1, 1)
-	shut.ImageTransparency = F.EyeHiddenTransparency
-	ghost.Activated:Connect(function()
-		Freecam.setEye(true)
-	end)
-	h.ghost = ghost
 	HudParts.padKey(h.exit, Enum.KeyCode.ButtonB)
-	HudParts.padKey(h.eye, Enum.KeyCode.ButtonY)
-	HudParts.padKey(h.gear, Enum.KeyCode.ButtonX)
 	return h
 end
 
@@ -360,41 +328,10 @@ local function layoutHud()
 	if room > 0 then
 		size = math.min(size, math.floor(room))
 	end
-	local x = 0
-	for _, button: TextButton in { h.gear, h.exit, h.eye } do
-		button.AnchorPoint = Vector2.new(0, 0.5)
-		button.Position = UDim2.new(0, x, 0.5, 0)
-		local width = if button == h.exit
-			then HudParts.candyWidth(button, size, F.ExitTextPx)
-			else size
-		button.Size = UDim2.fromOffset(width, size)
-		x += width + F.GapPx
-	end
+	h.exit.AnchorPoint = Vector2.new(1, 0.5)
+	h.exit.Position = UDim2.new(1, -F.EdgePx, 0.5, 0)
+	h.exit.Size = UDim2.fromOffset(HudParts.candyWidth(h.exit, size, F.ExitTextPx), size)
 	HudParts.setButtonTextSize(h.exit, F.ExitTextPx)
-	-- The shut eye takes the open eye's place.
-	h.ghost.Position = h.eye.Position
-	h.ghost.Size = UDim2.fromOffset(size, size)
-end
-
-local function paintHud(animate: boolean)
-	local h = hud
-	if h == nil then
-		return
-	end
-	local function show(object: GuiObject, on: boolean)
-		if object.Visible == on then
-			return
-		end
-		if on and animate and not UIAnim.reduced() then
-			UIAnim.popIn(object)
-		else
-			object.Visible = on
-		end
-	end
-	show(h.gear, eyeOpen)
-	show(h.exit, eyeOpen)
-	show(h.eye, eyeOpen)
-	show(h.ghost, not eyeOpen)
 end
 
 local function bindPad(on: boolean)
@@ -402,35 +339,18 @@ local function bindPad(on: boolean)
 		ContextActionService:UnbindAction(ACTION)
 		return
 	end
-	-- Over the lobby's own buttons (HubPad's B is High + 15): while a menu is open its own
-	-- bindings win, so B there closes Settings, not the freecam.
+	-- B ends it, over the lobby's own B (HubPad's is High + 15).
 	ContextActionService:BindActionAtPriority(
 		ACTION,
-		function(
-			_name: string,
-			inputState: Enum.UserInputState,
-			input: InputObject
-		): Enum.ContextActionResult
-			if Menus.current() ~= nil then
-				return Enum.ContextActionResult.Pass
-			end
+		function(_name: string, inputState: Enum.UserInputState): Enum.ContextActionResult
 			if inputState == Enum.UserInputState.Begin then
-				if input.KeyCode == Enum.KeyCode.ButtonB then
-					Freecam.stop("Pad")
-				elseif input.KeyCode == Enum.KeyCode.ButtonY then
-					Freecam.setEye(not eyeOpen)
-				elseif input.KeyCode == Enum.KeyCode.ButtonX then
-					UISound.play("Click")
-					Menus.open("Settings")
-				end
+				Freecam.stop("Pad")
 			end
 			return Enum.ContextActionResult.Sink
 		end,
 		false,
 		Enum.ContextActionPriority.High.Value + 16,
-		Enum.KeyCode.ButtonB,
-		Enum.KeyCode.ButtonY,
-		Enum.KeyCode.ButtonX
+		Enum.KeyCode.ButtonB
 	)
 end
 
@@ -443,28 +363,12 @@ function Freecam.active(): boolean
 	return active
 end
 
---- Whether the eye shows the gear and EXIT (true) or only itself, faint.
-function Freecam.eyeOpen(): boolean
-	return eyeOpen
-end
-
---- Show the gear and EXIT (true) or hide them behind the faint eye (false).
-function Freecam.setEye(open: boolean)
-	if not active or eyeOpen == open then
-		return
-	end
-	UISound.play("Click")
-	eyeOpen = open
-	paintHud(true)
-end
-
 local function begin()
 	local cam = Workspace.CurrentCamera
 	if cam == nil then
 		return
 	end
 	active = true
-	eyeOpen = true
 	saved = { kind = cam.CameraType, subject = cam.CameraSubject, fov = cam.FieldOfView }
 	-- Start where the camera is now, looking where it looks.
 	local cf = cam.CFrame
@@ -506,17 +410,14 @@ local function begin()
 	)
 	RunService:BindToRenderStep(ACTION, Enum.RenderPriority.Camera.Value + 1, frame)
 	bindPad(true)
-	-- No other menu over a clip: a popup's menu (the daily one, say) waits until it ends.
-	if Menus.current() ~= nil and Menus.current() ~= "Settings" then
-		Menus.close()
-	end
-	Menus.setOnly("Settings")
+	-- No menu over a clip: a popup's menu (the daily one, say) waits until it ends.
+	Menus.close()
+	Menus.hold(true)
 	if hud == nil then
 		hud = buildHud()
 	end
 	hud.row.Visible = true
 	layoutHud()
-	paintHud(false)
 	changed:Fire(true)
 end
 
@@ -554,7 +455,7 @@ function Freecam.stop(how: string, keepCamera: boolean?)
 	active = false
 	RunService:UnbindFromRenderStep(ACTION)
 	bindPad(false)
-	Menus.setOnly(nil)
+	Menus.hold(false)
 	for _, connection in connections do
 		connection:Disconnect()
 	end
@@ -589,7 +490,7 @@ function Freecam.stop(how: string, keepCamera: boolean?)
 	changed:Fire(false)
 end
 
--- Studio only (GuiQA): start and stop as the row does, the eye, and the camera's place (given
+-- Studio only (GuiQA): start and stop as the row does, and the camera's place (given
 -- x, y, z it is moved there first, then held inside the walls as flying would).
 GuiQA.add("freecamStart", function(): any
 	local ok, why = Freecam.start("Settings")
@@ -598,10 +499,6 @@ end)
 GuiQA.add("freecamStop", function(): boolean
 	Freecam.stop("Exit")
 	return not active
-end)
-GuiQA.add("freecamEye", function(open: boolean?): boolean
-	Freecam.setEye(if open == nil then not eyeOpen else open)
-	return eyeOpen
 end)
 GuiQA.add("freecamPos", function(x: number?, y: number?, z: number?): any
 	if active and x and y and z then

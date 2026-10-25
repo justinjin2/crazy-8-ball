@@ -7598,11 +7598,7 @@ Config.UI = {
 			CashStack = "rbxassetid://140297726302884", -- the money HUD's total
 			CashSingle = "rbxassetid://120556642167836", -- one bundle: the flying "+$10" chip
 			ChatTag = "rbxassetid://108097317615793", -- a speech bubble (the chat-tag reward tile)
-			-- The lobby freecam (2026-10-25): its Settings row and EXIT, and the eye that hides
-			-- the rest of its buttons (open) or shows them again (shut).
-			Camera = "rbxassetid://81573326296048",
-			Eye = "rbxassetid://132342669490855",
-			EyeClosed = "rbxassetid://140022145145437",
+			Camera = "rbxassetid://81573326296048", -- the lobby freecam: its Settings row and EXIT (2026-10-25)
 			-- The economy (2026-09-28; tools/gen_ui_art.py, assets/ui/icons/README.md). An empty id
 			-- draws nothing until the image is uploaded.
 			Shop = "rbxassetid://130453738066274", -- the red basket (GUI lane, ref 02; was 107658760787268)
@@ -16527,7 +16523,8 @@ Config.Settings = {
 -- Settings row; lobby only, never while seated, searching or in the tutorial, and the server
 -- refuses any match, pad or teleport while it is on (FreecamService). The camera flies inside
 -- the rooftop's safety walls (Map.Collision.Arch, measured 2026-10-25) and under their tops, so
--- it never sees past them. Everything of ours is hidden but the gear, EXIT and the eye.
+-- it never sees past them. Everything of ours is hidden but one EXIT button, top right
+-- (designer, 2026-10-25: just EXIT; it first had a Settings gear and an eye that hid them).
 -- Measured with the custom event Freecam (Start, End with the seconds, Refused with why).
 Config.Freecam = {
 	Enabled = true, -- false: no Settings row, and the server refuses every start (a test build)
@@ -16551,11 +16548,10 @@ Config.Freecam = {
 		{ MinX = -13, MaxX = 13, MinZ = 70, MaxZ = 106.25, MinY = 0, MaxY = 30 },
 	},
 	WallInsetStuds = 1.5, -- how far the camera stays off every wall
-	ButtonPx = 44, -- the gear, EXIT's height and the eye on a computer
+	ButtonPx = 44, -- EXIT's height on a computer
 	ShortButtonPx = 44, -- the same on a phone (a full touch target)
-	GapPx = 10, -- between them
+	EdgePx = 10, -- EXIT's gap from the top bar's right end
 	ExitTextPx = 18, -- EXIT's word
-	EyeHiddenTransparency = 0.85, -- the eye alone once it hides the rest: barely in the clip
 	EndMaxSeconds = 1800, -- the End event's value is capped here (the dashboard's scale)
 	RequestBurst = 4, -- FreecamRequest: a burst, then this many a second (not design numbers)
 	RequestPerSecond = 1,

@@ -57,8 +57,6 @@ in the table below.
 | `cash_single.png` | CashSingle | one bundle: the flying "+$10" chip | 120556642167836 |
 | `chat_tag.png` | ChatTag | a speech bubble: the chat-tag reward tile | 108097317615793 |
 | `camera.png` | Camera | a movie camera: the freecam's Settings row and EXIT (2026-10-25) | 81573326296048 |
-| `eye.png` | Eye | an open eye: the freecam's buttons show | 132342669490855 |
-| `eye_closed.png` | EyeClosed | a shut eye: the freecam's buttons hidden | 140022145145437 |
 | `scroll_zoom.png` | ScrollZoom | the zoom guide on a computer: a mouse wheel | 76220420219490 |
 | `pinch_zoom.png` | PinchZoom | the zoom guide on touch: a pinching hand | 115866473257495 |
 
