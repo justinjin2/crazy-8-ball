@@ -4479,3 +4479,10 @@ timer of a new block stay the designer's call.
   (designer): off the top 100 it says just "You" with the wins. "100+" said nothing, and an exact
   deeper place would need reading thousands of rows and would keep sliding as new players join
   (a read-only scan: 7 wins is places 693 to 901 of 6,000+).
+- 2026-10-25: **The Solo and Practice portals ask first** (designer: people stepped on a pad by
+  accident and were sent off). After 0.4 s on a pad, the kit's Yes / No dialog asks "Do you want
+  to go to Solo Mode?" (or Practice Mode); Yes sends, No or walking off does not, and it asks
+  again only after leaving the pad. Presses around the dialog reach the game, so a phone's
+  thumbstick walks off. Measured by the new `PortalAsk` custom event (portal, Yes / No /
+  WalkedOff, device); nothing measured portal use before. `Config.Portals.Ask` off: the old
+  instant send.

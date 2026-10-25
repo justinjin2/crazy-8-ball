@@ -22,7 +22,10 @@ entry of `docs/archive/STATUS_HISTORY.md`.
   real wins since then; the older not-yet-published notes below are live with it. **Pushed, not
   yet live:** a top player's flag after their name on Top players and yours on its You strip, and no "100+" there off the board
   (`Board_PlayerFlags_v1`; check live: top players' flags appear as they visit a lobby, and one
-  who switches Show my country flag off loses it within about two minutes).
+  who switches Show my country flag off loses it within about two minutes); the **portals ask
+  first** (`e498885c`, `Config.Portals.Ask`; check live on a phone, a PC and a pad: stand on the
+  Solo pad, the question, No keeps you there, walking off closes it, Yes teleports; read the
+  `PortalAsk` custom event after a few days: how many answers are No or WalkedOff).
 - **Published:** everything up to `c499ecf` (2026-10-12; the list is in STATUS_HISTORY). **Not
   yet published:** the Shop restock's "Epic or better!" tag removed (DECISIONS); the VIP card's perk
   list says "Gold chat tag" instead of "Rainbow chat tag" (`2c6972f`); the favorite card rewards
