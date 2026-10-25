@@ -4458,3 +4458,6 @@ timer of a new block stay the designer's call.
   Then: the Wins title in black and bigger, the You / Your country strip bigger than the rows,
   and the rows' words 2 px bigger. And the rows' letter holes filled like every other text
   (designer: "make it the same as the other fonts"; HoleFill was left off them to save copies).
+- 2026-10-25: **The lobby boards stay sharp from far away** (designer: "super pixeley ... until you
+  come very close"): a SurfaceGui's text is drawn at the board's size and shrunk unsmoothed, so a
+  board now drops to fewer pixels a stud with distance (its contents scaled to match).

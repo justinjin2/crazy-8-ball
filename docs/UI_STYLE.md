@@ -1316,7 +1316,9 @@ with bigger words (`YouPx`, `YouTextPx`). Every other row has a pale stripe. A p
 pinned under the list ("You #37", "1,000+", or "Win a match vs a player to get on the board!";
 "Your country #3" with its flag). Every word has the house text, letter holes filled and the lip
 (HoleFill; designer, 2026-10-25: the same as every other text), on 12 reused rows for up to 1000. A gamepad's right-stick glyph shows on an ink disc at the header's
-right while a pad player stands at the board. An empty board says "Be the first!".
+right while a pad player stands at the board. An empty board says "Be the first!". From further
+away a board is drawn at fewer pixels a stud (48 close, 24 at about 40 studs, 12 from the spawn),
+its contents scaled to match, so it stays sharp instead of jagged (`Card.LodSteps`).
 
 ## 29. Economy v5's small pieces (the GUI run, 2026-10-09)
 
