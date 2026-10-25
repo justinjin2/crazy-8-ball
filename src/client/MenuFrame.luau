@@ -147,6 +147,9 @@ export type ConfirmOptions = {
 	-- A small square piece made on the card for the title row's right end (the skip's dice);
 	-- the title keeps clear of it.
 	corner: ((card: Frame) -> GuiObject)?,
+	-- Presses around the card reach what is under it (the portals' question: a phone's thumbstick
+	-- still walks the player off the pad). Off: a clear layer stops them.
+	passThrough: boolean?,
 }
 
 export type Dialog = {
@@ -1505,7 +1508,10 @@ function MenuFrame.ask(parent: GuiObject, opts: ConfirmOptions, callback: (boole
 	local action = "8ballMenuConfirm" .. dialogCount
 	local open = true
 	local previous = GuiService.SelectedObject
-	local layer = catcher(parent, "Confirm")
+	local layer: GuiObject = if opts.passThrough
+		then HudParts.frame(parent, "Confirm")
+		else catcher(parent, "Confirm")
+	layer.Size = UDim2.fromScale(1, 1)
 	layer.ZIndex = CONFIRM.ZIndex
 	local card = HudParts.card(layer, "Dialog")
 	card.AnchorPoint = Vector2.new(0.5, 0.5)
