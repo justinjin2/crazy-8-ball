@@ -4467,3 +4467,6 @@ timer of a new block stay the designer's call.
 - 2026-10-25: **The lobby boards' text keeps one size at every distance** (designer: "why is it
   doing that just keep it one consistent font size"): the far detail levels let scaled text outgrow
   its size limit; the limits now scale with the level, so only the sharpness changes.
+- 2026-10-25: **Top players shows the top 100, not 1000** (designer: "just make it top 100 now";
+  rows past 100 showed `#userId` where the name lookup failed); Top countries still lists every
+  country. An empty board says "No data yet" (was "Be the first!").

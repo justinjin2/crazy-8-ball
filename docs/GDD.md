@@ -1445,7 +1445,7 @@ helpers, `src/server/TutorialService.luau`, `TutorialGames`, `TutorialBot`, `Tut
 **Decided**
 - Leaderboards: top rating, most wins against people (global, all-time, refreshed every few
   minutes), and a nation board by total wins. Built 2026-10-25 as the lobby boards: Most wins
-  (top 1000) and Top countries (wins vs people since that update, every country, Roblox's
+  (top 100; was 1000 until the designer cut it, 2026-10-25) and Top countries (wins vs people since that update, every country, Roblox's
   country whether or not the flag is shown), two stands under the pergola, read once a minute. Country flag auto-detected from Roblox's region,
   changeable in settings.
 - Per-player match history: totals plus the last 20 matches.
