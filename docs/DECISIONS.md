@@ -4444,3 +4444,12 @@ timer of a new block stay the designer's call.
   auto-translate and overflow phones.
 - 2026-10-25: **A nameplate's flag sits after the name's box**, never inside it, so no username's
   length or letters can run into it (NameplateMath).
+- 2026-10-25: **Lobby boards: Most wins and Top countries** (designer: "add two leaderboards ...
+  Player Leaderboard with Most Wins ... Countries with Most wins"; concept approved). Two stands
+  side by side at the far end of the centre aisle under the pergola, facing the spawn (a 6-stud
+  walk left between them to the lounge steps), each the lively card. Answers: only wins vs real
+  players count (the Most wins store kept since 10-03); the country board counts from this
+  update on, a hidden flag still counts; Most wins holds the top 1000 and the country board every
+  country, both scrollable (wheel, finger, a pad's right stick at the board); a pinned You /
+  Your country row. Behind `Config.Leaderboards.Lobby.Enabled`; measured by the `Leaderboard`
+  custom event (Viewed, Scrolled). Supersedes 2026-10-03's "No nation board".

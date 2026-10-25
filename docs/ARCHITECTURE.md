@@ -153,7 +153,10 @@ Server (`src/server`): `Bootstrap` (builds the tables, publishes assets), `Table
 `FallGuard` (anyone more than `Config.FallGuard.BelowFloorStuds` below the lowest floor is put
 back on the spawn mat at once, the last resort against falling out of the map),
 `FreecamService` (the lobby freecam's yes or no, the player's Freecam attribute every way into
-a match checks, and its custom events), `AdminService` (the owner's admin panel, Painicane only: its LocalScript `Admin/AdminPanel` stays in
+a match checks, and its custom events), `Leaderboards` (the global boards' OrderedDataStores:
+each player's wins and rank XP written, the per-country win tally added to from every server,
+and on lobby servers the two lobby board stands and the `LeaderboardRead` answers; the client's
+`LobbyBoards` draws them with a reused-row list, pure parts in `src/shared/LeaderboardMath`), `AdminService` (the owner's admin panel, Painicane only: its LocalScript `Admin/AdminPanel` stays in
 ServerScriptService and is cloned into the owner's PlayerGui alone, with its RemoteFunction; every
 request is checked again on the server; pure rules in `src/shared/Admin`), `MoneyRain` (the
 owner's money rain, lobby only, here or in every lobby server through `Announce`; `MoneyRainFx`

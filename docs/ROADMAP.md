@@ -351,6 +351,10 @@ play-solo on PC; the phone, gamepad and two-player checks are open.*
   Progress 2026-09-28: the win streak above the head is built ("🔥 3", Stats.WinStreak).
   Progress 2026-10-03 (the GUI lane): Most wins vs players and Highest rank, as lobby signs
   and a player-list tab. No nation board. Still to do: a live check (Studio has no DataStores).
+  Progress 2026-10-25: the **lobby boards** (designer): Most wins (top 1000) and Top countries
+  (every country, counted from that update) on two stands under the pergola, scrollable, with a
+  You row (`LobbyBoards`, `Config.Leaderboards.Lobby`). Pushed, not published. Still to do: the
+  rating board, match history.
 - [ ] **6.5 Real-match check.** Server-tracked match time, the one-minute mark, forfeit
   accounting (forfeiter always loses rating; repeat forfeits against the same opponent give
   the winner nothing), forfeit confirmation warning.
