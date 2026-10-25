@@ -1015,7 +1015,14 @@ function Camera.update(
 		target = overheadView()
 		swing = nil -- calling a pocket for the 8 eases to the overhead view on its own
 	elseif sideAcross then
-		target = sideView(sideAcross, sideClip)
+		if sideClip and S.VerticalView == "Aim" then
+			-- The aiming camera's whole-table framing (its tilt, fully zoomed out), looking
+			-- down the length from the shooter's end.
+			local _, whole = viewFor(tableCentre(), sideAcross, nil, nil, nil)
+			target = whole
+		else
+			target = sideView(sideAcross, sideClip)
+		end
 	else
 		local view, whole =
 			viewFor(anchor :: Vector3, anchorDir :: Vector3, gaze, nil, zoomOverride)

@@ -1084,6 +1084,12 @@ Config.Camera = {
 		-- short end, the whole table kept inside the screen's middle strip of this width to
 		-- height (9:16), so a vertical crop of the recording holds all of it.
 		VerticalClipAspect = 9 / 16,
+		-- How VERTICAL frames the table (designer, 2026-10-25, "just try this angle", a try):
+		-- "Aim" is the aiming camera's own whole-table view (its tilt, fully zoomed out) looking
+		-- down the table's length from the shooter's end, as when you line up a shot; the shooter's
+		-- avatar stays visible and a 9:16 crop is not kept. "Fit" is the steeper view below
+		-- (VerticalPitchDegrees), the whole table inside the 9:16 strip.
+		VerticalView = "Aim",
 		-- VERTICAL looks this many degrees down (designer, 2026-10-25: "more like birds eye ...
 		-- to show as much of it as possible", then "still give it a slight angle similar to
 		-- horizontal"): steeper than TOP's fitted tilt (about 50 to 65), the cloth as big as the
