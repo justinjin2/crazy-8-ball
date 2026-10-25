@@ -184,7 +184,8 @@ Every feature is checked against these. If it serves none, it waits.
     still, and every screen of ours hides but one red EXIT button in the top right of Roblox's
     top bar (designer, 2026-10-25: just EXIT, no gear or eye). No menu opens meanwhile.
     Controls: WASD / thumbstick / left stick, look with the right mouse button, a finger's drag
-    or the right stick, E Q or R2 L2 up and down, Shift faster; pad B ends. Measured by the custom event Freecam (Start, End with seconds, Refused).
+    or the right stick, E Q or R2 L2 up and down, Shift faster; pad B ends. It has a little
+    momentum: it eases up to speed and, let go, glides a few studs before it rests. Measured by the custom event Freecam (Start, End with seconds, Refused).
     The first look at the table problem (2026-10-25): the table is drawn about 1.8x real size,
     so standing beside it the far cushion is only about 10 degrees below the eye; lowering the
     table could not fix that without making it stubby, so the table stays and the freecam

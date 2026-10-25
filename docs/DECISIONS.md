@@ -4423,3 +4423,8 @@ timer of a new block stay the designer's call.
 - 2026-10-25: **The freecam shows only EXIT, top right** (designer: "just put the exit button and
   get rid of the settings and visible eye button"): the gear and the eye that hid it are gone, the
   eye icons with them; no menu opens while filming (`Menus.hold`), and B still ends it.
+- 2026-10-25: **The freecam is faster and glides a little** (designer: "a bit faster ... after
+  stopping movement it kind of glides still like ice, just a bit"): 24 studs a second (was 16),
+  Shift 56, up and down 14; the speed eases in over 0.12 s and, let go, coasts down over 0.25 s
+  (about 6 studs from full speed), like Roblox's own freecam (`Config.Freecam.AccelSeconds`,
+  `GlideSeconds`).
