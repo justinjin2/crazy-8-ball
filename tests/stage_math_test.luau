@@ -333,7 +333,7 @@ return {
 		H.expect(Config.UI.Settings.Segments.ShotCam ~= nil, "the shot camera has three buttons")
 		H.expect(W.Segments.ShotCam.Top == "HORIZONTAL", "the default view reads HORIZONTAL")
 		H.expect(
-			string.find(W.SegmentLines.ShotCam.Top, "default", 1, true) ~= nil,
+			string.find(string.lower(W.SegmentLines.ShotCam.Top), "default", 1, true) ~= nil,
 			"its line says it is the default"
 		)
 		H.expect(table.find(C.Order, "ShotCam") ~= nil, "the shot camera has a row")

@@ -84,6 +84,9 @@ export type Options = {
 	phoneWidthShare: number?,
 	-- ...and on a computer this share (Settings: a compact panel).
 	widthShare: number?,
+	-- A lively frame on a phone keeps at least this gap above and below it (Settings, 2026-10-25:
+	-- it touched the phone's bottom edge); by default only Frame.MarginPx.
+	phoneMarginPx: number?,
 	-- A lively frame on a narrow computer or tablet never gets narrower than this (up to its
 	-- phone share): the Ranked screen's cards cut their words at 66% of an 800 px window.
 	minWidthPx: number?,
@@ -93,6 +96,7 @@ export type Options = {
 export type Geo = {
 	t: number, -- 0 on a phone-sized panel, 1 on a full-size one
 	short: boolean, -- a phone: the panel takes the whole screen
+	phone: boolean?, -- a phone-sized screen, lively frame or not (Settings boosts its words)
 	pad: number,
 	gap: number,
 	title: number, -- text sizes, never under the kit's minimum
@@ -280,6 +284,7 @@ function MenuFrame.new(screen: ScreenGui, opts: Options): any
 	self.showMoney = opts.money == true
 	self.phoneWidthShare = opts.phoneWidthShare
 	self.widthShare = opts.widthShare
+	self.phoneMarginPx = opts.phoneMarginPx
 	self.minWidthPx = opts.minWidthPx
 	self.opened = false
 	self.alive = true
@@ -659,6 +664,9 @@ function MenuFrame.layout(self: any): boolean
 		w = math.min(w, math.max(math.floor(size.X * share), least))
 	end
 	local h = math.floor(math.min(roomHeight - 2 * margin, FR.MaxSizePx[2]))
+	if lively and phone and self.phoneMarginPx then
+		h = math.min(h, math.floor(roomHeight - 2 * self.phoneMarginPx))
+	end
 	local left = math.floor((size.X - w) / 2)
 	local top = if short
 		then math.floor(roomTop + (roomHeight - h) / 2)
@@ -815,6 +823,7 @@ function MenuFrame.layout(self: any): boolean
 	local geo: Geo = {
 		t = t,
 		short = short,
+		phone = phone,
 		pad = pad,
 		gap = gap,
 		title = titleSize,

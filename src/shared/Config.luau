@@ -16573,8 +16573,8 @@ Config.UI.Settings = {
 	GearGapPx = 12, -- right of the rank HUD at its biggest (it grows on hover and press)
 	WidthShare = 0.48, -- the panel, of a computer screen's width (a phone: the frame's own)
 	Units = 880, -- the page's width in units
-	RowUnits = 124, -- a row's height
-	PlainRowUnits = 96, -- a row with no grey line (designer, 2026-10-25: shorter, so a phone's page is bigger)
+	RowUnits = 136, -- a row's height (was 124: room for a phone's bigger name over its line)
+	PlainRowUnits = 84, -- a row with no grey line (designer, 2026-10-25: shorter, so a phone's page is bigger)
 	GapUnits = 14, -- between two rows, and over the Codes strip
 	CornerUnits = 18, -- a row's and the strip's rounded corners
 	StrokePx = 2, -- a row's ink outline
@@ -16623,6 +16623,12 @@ Config.UI.Settings = {
 	CodeTextUnits = 26, -- what is typed, and the hint
 	AnswerUnits = 22, -- the server's answer
 	MinTextPx = 12, -- no word smaller (a phone's smallest, UI_STYLE)
+	-- A phone (designer, 2026-10-25): the page there is scaled to the screen's height, so its
+	-- words are boosted, a gap is kept above and below the panel, and "Codes" keeps off its box.
+	PhoneTitleBoost = 1.4, -- a row's name, this much bigger (it still fits its row)
+	PhoneLineMinPx = 13, -- a grey line never smaller
+	PhoneMarginPx = 12, -- clear above and below the panel
+	CodeGapMinPx = 6, -- between "Codes" and the box under it
 	RefusedSeconds = 3, -- the Freecam row's refusal stays on its line in red this long
 	-- The open, on the frame's ids (Panel, Header, Basket, Title, Money, Close, Flair) and the
 	-- page's: the rows top to bottom, their switches, the strip, its pieces. The Shop's timings.

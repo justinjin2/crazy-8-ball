@@ -109,6 +109,7 @@ function SettingsMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 			Menus.open("Shop", "Money")
 		end,
 		widthShare = U.WidthShare,
+		phoneMarginPx = U.PhoneMarginPx,
 	})
 	local page = frame:page()
 	local holder = HudParts.frame(page, "Rows") -- the whole page, centred on the sheet
@@ -429,12 +430,23 @@ function SettingsMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		local iconPx = px(U.IconUnits)
 		local switchW, switchH = px(U.SwitchUnits[1]), px(U.SwitchUnits[2])
 		local titlePx, linePx = textPx(U.TitleUnits), textPx(U.LineUnits)
+		-- A phone's page is scaled down to the screen's height, its rows short and their words
+		-- tiny though the rows are wide: the names and lines grow there (designer, 2026-10-25),
+		-- each row keeping them inside it (below).
+		if g.phone then
+			titlePx = round(titlePx * U.PhoneTitleBoost)
+			linePx = math.max(U.PhoneLineMinPx, linePx)
+		end
 		local textX = pad + iconPx + pad
 		local y = 0
 		for _, row in rows do
 			local line = row.line
 			local rowH = px(rowUnits(row.key))
-			local block = if line then titlePx + 4 + linePx + 2 else titlePx + 4
+			-- The name (and line) always fit the row, whatever the phone boost asked.
+			local rowTitlePx = if line
+				then math.max(U.MinTextPx, math.min(titlePx, rowH - linePx - 10))
+				else math.max(U.MinTextPx, math.min(titlePx, rowH - 8))
+			local block = if line then rowTitlePx + 4 + linePx + 2 else rowTitlePx + 4
 			row.button.Position = UDim2.fromOffset(0, y)
 			row.button.Size = UDim2.fromOffset(w, rowH)
 			row.corner.CornerRadius = UDim.new(0, corner)
@@ -456,12 +468,12 @@ function SettingsMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 					math.max(rowSwitchW, math.min(need, math.floor(w * row.segments.MaxRowShare)))
 			end
 			local textW = math.max(1, w - textX - pad - rowSwitchW - pad)
-			HudParts.setTextSize(row.title, titlePx)
+			HudParts.setTextSize(row.title, rowTitlePx)
 			row.title.Position = UDim2.fromOffset(textX, top)
-			row.title.Size = UDim2.fromOffset(textW, titlePx + 4)
+			row.title.Size = UDim2.fromOffset(textW, rowTitlePx + 4)
 			if line then
 				HudParts.setTextSize(line, linePx, U.MinTextPx)
-				line.Position = UDim2.fromOffset(textX, top + titlePx + 4)
+				line.Position = UDim2.fromOffset(textX, top + rowTitlePx + 4)
 				line.Size = UDim2.fromOffset(textW, linePx + 2)
 			end
 			row.track.Size = UDim2.fromOffset(rowSwitchW, switchH)
@@ -508,7 +520,7 @@ function SettingsMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		local innerW = math.max(1, w - x - pad)
 		local codeTitlePx = textPx(U.CodeTitleUnits)
 		local boxH = px(U.CodeBoxUnits)
-		local inner = round(gap / 2)
+		local inner = math.max(U.CodeGapMinPx, round(gap / 2)) -- "Codes" never sits on the box
 		local top = round((codesH - (codeTitlePx + 4 + inner + boxH)) / 2)
 		local titleW = math.ceil(textWidth(W.Codes, codeTitlePx)) + 6
 		HudParts.setTextSize(codeTitle, codeTitlePx)

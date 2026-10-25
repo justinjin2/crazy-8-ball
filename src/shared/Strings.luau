@@ -1392,16 +1392,16 @@ return {
 		-- A row's grey line under its name; a row without one is just its name (designer,
 		-- 2026-10-25: Music, Sound effects, Lower effects and the flag explain themselves).
 		Lines = {
-			ShotCam = "Horizontal (default): recommended for most players.",
+			ShotCam = "Horizontal: Default",
 			Freecam = "Fly the camera around the lobby to film your friends.",
 		},
 		-- A three-button row's line for each view, in place of its Lines entry
 		-- (Config.UI.Settings.Segments).
 		SegmentLines = {
 			ShotCam = {
-				Top = "Horizontal (default): recommended for most players.",
-				Vertical = "Vertical: best for clips (TikTok, Reels, Shorts).",
-				Player = "Player: your own camera.",
+				Top = "Horizontal: Default",
+				Vertical = "Vertical: Best for clips",
+				Player = "Player: Your own camera",
 			},
 		},
 		On = "ON",
