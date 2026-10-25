@@ -166,8 +166,10 @@ Every feature is checked against these. If it serves none, it waits.
     (about 35% power and under) stay in the aiming view unless a ball reaches the screen
     edge. (A test, 2026-09-26; `Config.Camera.Shot.PullOutView = "Aim"` restores the older
     whole-table view along the aim.)
-  - **Camera after a shot** (Settings, a two-sided switch: blue TOP, the default, or gold
-    PLAYER; designer, 2026-10-11, mainly for clips): with PLAYER, once the stroke has played
+  - **Camera after a shot** (Settings; a press cycles blue TOP, the default, purple VERTICAL
+    and gold PLAYER; designer, 2026-10-11, VERTICAL 2026-10-25, mainly for clips): VERTICAL is
+    TOP's swing to the shooter's short end instead of a long side, the table upright inside
+    the screen's middle 9:16 strip so a TikTok / Reels / Shorts crop holds all of it. With PLAYER, once the stroke has played
     the camera eases back into the player's own Roblox camera (their zoom, free look, shift
     lock) and their body is theirs to walk, until their next turn takes the table view again.
     Top-down stays everyone's default, and the guided tutorial always uses it whatever the
