@@ -27,7 +27,7 @@ entry of `docs/archive/STATUS_HISTORY.md`.
   `b1383fd`: a lobby server 5 to 6 hours old moves everyone together to a fresh server;
   `Config.ServerRestart`, owner `/refreshserver`); the Grand Opening block's Firework Cue 5% and
   Beta Cue 1% (were 3.5% and 0.2%, from Rare); pulling a Firework or Beta Cue plays the
-  Mythic cutscene (`0b30d95`, `Config.Cutscenes.SceneOf`); the **250LIKES code** (`4b8d7ab`, 2026-10-24: 10 spins, the Abilities code box says USE CODE 250LIKES / NEXT CODE AT 1,000 LIKES, the tutorial points at it, 100LIKES answers "That code has expired."). Already live on Roblox (synced): restock
+  Mythic cutscene (`0b30d95`, `Config.Cutscenes.SceneOf`); the **250LIKES code** (`f1240c5`, 2026-10-24: 10 spins, the Abilities code box says USE CODE 250LIKES / NEXT CODE AT 1,000 LIKES, the tutorial points at it, 100LIKES answers "That code has expired."). **Since the 2026-10-24 publish:** country flags on by default and after the name over every head (`f36e3ac`; watch the `FlagSwitched` custom event). Already live on Roblox (synced): restock
   Epic 149 and Legendary 599 R$, spins 4 / 17 / 33 / 129 R$.
 - **Now (2026-10-12): a tester's QA batch, committed on `gui-v4`, NOT pushed**, held until the
   designer approves the test page (Artifact "Oct 12 Fixes Checklist"). Rounds 1 and 2 (the
