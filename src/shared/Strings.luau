@@ -1452,10 +1452,10 @@ return {
 		You = "You", -- the pinned row under the Most wins list
 		YourCountry = "Your country", -- the pinned row under the Top countries list
 		Place = "#%s", -- a place on a board: "#37"
-		PastList = "%s+", -- a place past the board's last row: "1,000+"
+		PastList = "%s+", -- a place past the board's last row: "100+"
 		NotRanked = "Win a match vs a player to get on the board!",
 		NoCountry = "Your country isn't on the board yet",
-		Empty = "Be the first!",
+		Empty = "No data yet", -- a board with no rows (designer, 2026-10-25; was "Be the first!")
 		Loading = "Loading...",
 	},
 	-- Country names by ISO 3166 two-letter code, for the Top countries board (English;
