@@ -383,6 +383,12 @@ local REMOTES: { [string]: string } = {
 	-- load, then everyone after each read: { at, boards = { Wins = { { userId, name, value } },
 	-- Rank = { ... } } } (best first, up to Config.Leaderboards.Size; Rank's value is RankXp).
 	Leaderboards = "RemoteEvent",
+	-- The lobby boards (src/server/Leaderboards.luau, src/client/LobbyBoards.luau; 2026-10-25).
+	-- client -> server, rate limited, answered { ok = false, reason } or: ("top") -> { at, total,
+	-- wins = rows 1..100 of { u, n, v }, countries = every { c, v }, you = place?, wins_mine,
+	-- country = code?, countryPlace = place? }; ("wins", page 2..10) -> { at, page, rows };
+	-- ("seen", "Wins" | "Countries", deepest row) logs the Leaderboard event.
+	LeaderboardRead = "RemoteFunction",
 	-- Tutorial v2 (TutorialService, src/client/Tutorial.luau). client -> server: something the
 	-- player did that only the client sees (kind, data?), each checked against the step and
 	-- rate limited: "Skip", "Next", "Error" (a scene failed), "Device" (PC, Phone, Tablet,

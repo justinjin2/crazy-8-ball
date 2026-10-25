@@ -49,7 +49,7 @@ end
 --- A player's new wins since `baseline` (the count last seen; nil before the first reading):
 --- the wins to add, and the new baseline. A first reading or a drop adds nothing, so a rejoin
 --- or a save fix never counts old wins again.
-function LeaderboardMath.newWins(baseline: number?, now: number?): (number, number?)
+function LeaderboardMath.newWins(baseline: number?, now: any): (number, number?)
 	if type(now) ~= "number" or now ~= now or now < 0 then
 		return 0, baseline
 	end
