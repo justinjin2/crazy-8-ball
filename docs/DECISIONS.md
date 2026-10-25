@@ -4464,3 +4464,6 @@ timer of a new block stay the designer's call.
 - 2026-10-25: **The lobby boards' rows are striped in light blue** (designer: "every other row is
   a slightly different color ... like the same light blue color"): the odd rows are solid
   `{196, 224, 252}` (was `{226, 238, 252}` at half see-through, which vanished on the pale sheet).
+- 2026-10-25: **The lobby boards' text keeps one size at every distance** (designer: "why is it
+  doing that just keep it one consistent font size"): the far detail levels let scaled text outgrow
+  its size limit; the limits now scale with the level, so only the sharpness changes.
