@@ -352,7 +352,12 @@ local function placeQuest()
 	local kind = rewardBlock()
 	local iconPx = math.floor(px * S.QuestRewardIconScale)
 	local withIcon = kind ~= nil and string.sub(quest.Text, -#Copy.QuestReward) == Copy.QuestReward
-	local wordsW = TextService:GetTextSize(quest.Text, px, quest.Font, Vector2.new(10000, 1000)).X
+	local wordsW = TextService:GetTextSize(
+		quest.Text,
+		px,
+		HudParts.measureFont(quest),
+		Vector2.new(10000, 1000)
+	).X
 	rewardIcon.Visible = withIcon
 	if withIcon then
 		rewardIcon.Image = (Config.LuckyBlocks.Kinds :: any)[kind].Icon

@@ -412,9 +412,19 @@ function PlayerList.placeName(self: any, v: RowView)
 	end
 	local px = geo.textPx
 	local flagW = if v.flag.Text ~= ""
-		then TextService:GetTextSize(v.flag.Text, px, v.flag.Font, Vector2.new(200, 100)).X + 4
+		then TextService:GetTextSize(
+			v.flag.Text,
+			px,
+			HudParts.measureFont(v.flag),
+			Vector2.new(200, 100)
+		).X + 4
 		else 0
-	local wide = TextService:GetTextSize(v.name.Text, px, v.name.Font, Vector2.new(1000, 100)).X
+	local wide = TextService:GetTextSize(
+		v.name.Text,
+		px,
+		HudParts.measureFont(v.name),
+		Vector2.new(1000, 100)
+	).X
 	local nameW = math.max(0, math.min(math.ceil(wide) + 2, geo.room - flagW))
 	-- A fixed size (not scaled down to fit), so a long name ends in "..." at the row's size.
 	v.name.TextScaled = false

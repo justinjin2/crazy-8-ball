@@ -83,7 +83,12 @@ local function fitMoney(label: TextLabel, n: number)
 	local px = T.MoneyTextPx
 	while
 		px > T.MoneyTextMinPx
-		and TextService:GetTextSize(text, px, label.Font, Vector2.new(1000, 100)).X
+		and TextService:GetTextSize(
+				text,
+				px,
+				HudParts.measureFont(label),
+				Vector2.new(1000, 100)
+			).X
 			> T.TilePx - 6
 	do
 		px -= 1

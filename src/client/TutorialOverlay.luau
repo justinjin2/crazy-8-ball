@@ -547,7 +547,12 @@ local function fillRow(self: Overlay, text: string, px: number)
 		label.TextScaled = false
 		label.TextWrapped = false
 		label.LayoutOrder = order
-		local width = TextService:GetTextSize(chunk, px, label.Font, Vector2.new(4000, px * 2)).X
+		local width = TextService:GetTextSize(
+			chunk,
+			px,
+			HudParts.measureFont(label),
+			Vector2.new(4000, px * 2)
+		).X
 		label.Size = UDim2.fromOffset(math.ceil(width) + 4, px * 1.3)
 	end
 	local at = 1
@@ -837,8 +842,18 @@ local function lineHeight(self: Overlay, width: number, px: number): number
 	local key = ("%d|%d|%s"):format(math.floor(width), px, text)
 	local h = measured[key]
 	if h == nil then
-		local one = TextService:GetTextSize("Ag", px, self.line.Font, Vector2.new(10000, 10000)).Y
-		local all = TextService:GetTextSize(text, px, self.line.Font, Vector2.new(width, 10000)).Y
+		local one = TextService:GetTextSize(
+			"Ag",
+			px,
+			HudParts.measureFont(self.line),
+			Vector2.new(10000, 10000)
+		).Y
+		local all = TextService:GetTextSize(
+			text,
+			px,
+			HudParts.measureFont(self.line),
+			Vector2.new(width, 10000)
+		).Y
 		h = math.ceil(math.min(all, one * O.LineLines) + 4)
 		measured[key] = h
 	end
@@ -853,7 +868,12 @@ local function lineWidth(self: Overlay, width: number, px: number): number
 	local key = ("%d|%d|%s"):format(math.floor(width), px, text)
 	local w = measuredW[key]
 	if w == nil then
-		w = TextService:GetTextSize(text, px, self.line.Font, Vector2.new(width, 10000)).X
+		w = TextService:GetTextSize(
+			text,
+			px,
+			HudParts.measureFont(self.line),
+			Vector2.new(width, 10000)
+		).X
 		measuredW[key] = w
 	end
 	return w
