@@ -80,4 +80,44 @@ function LeaderboardMath.take(tally: Tally): Tally
 	return out
 end
 
+export type Flags = { [string]: string } -- a top player's user id (as a string) to their flag
+
+--- The Top players flags after this server's players in the top list show theirs: `mine` maps
+--- each such player's user id to their country code, or to "" when they hide their flag. Returns
+--- the new map, and whether a write is needed (only when one of `mine` differs from `map`; ids
+--- no longer in `topIds` are dropped along with it, and at most `keep` are kept, best first).
+function LeaderboardMath.flagsUpdate(
+	map: Flags?,
+	topIds: { number },
+	mine: { [number]: string },
+	keep: number
+): (Flags, boolean)
+	local before: Flags = map or {}
+	local changed = false
+	for id, code in mine do
+		local want = if type(code) == "string" and string.match(code, "^%u%u$") then code else nil
+		if before[tostring(id)] ~= want then
+			changed = true
+		end
+	end
+	local out: Flags = {}
+	local count = 0
+	for _, id in topIds do
+		if count >= keep then
+			break
+		end
+		local key = tostring(id)
+		local code = before[key]
+		local own = mine[id]
+		if own ~= nil then
+			code = own
+		end
+		if type(code) == "string" and string.match(code, "^%u%u$") and out[key] == nil then
+			out[key] = code
+			count += 1
+		end
+	end
+	return out, changed
+end
+
 return LeaderboardMath

@@ -69,4 +69,29 @@ return {
 		M.add(tally, "US", sent.US)
 		H.expect(tally.US == 4, "put back without loss")
 	end,
+	a_flag_is_added_changed_and_hidden = function()
+		local M = load()
+		local top = { 5, 9, 2 }
+		local map, write = M.flagsUpdate(nil, top, { [9] = "BR" }, 150)
+		H.expect(write and map["9"] == "BR", "a new flag is written")
+		map, write = M.flagsUpdate(map, top, { [9] = "BR" }, 150)
+		H.expect(not write and map["9"] == "BR", "the same flag writes nothing")
+		map, write = M.flagsUpdate(map, top, { [9] = "PT" }, 150)
+		H.expect(write and map["9"] == "PT", "a changed flag is written")
+		map, write = M.flagsUpdate(map, top, { [9] = "" }, 150)
+		H.expect(write and map["9"] == nil, "a hidden flag is removed")
+		map, write = M.flagsUpdate(map, top, { [9] = "" }, 150)
+		H.expect(not write, "still hidden writes nothing")
+	end,
+	flags_off_the_list_are_dropped_and_capped = function()
+		local M = load()
+		local map = { ["5"] = "US", ["7"] = "FR", ["2"] = "MX" }
+		local out, write = M.flagsUpdate(map, { 5, 2 }, {}, 150)
+		H.expect(not write, "nothing of mine changed: no write")
+		H.expect(out["5"] == "US" and out["2"] == "MX" and out["7"] == nil, "7 left the list")
+		out = M.flagsUpdate(map, { 5, 2, 9 }, { [9] = "BR" }, 2)
+		H.expect(out["5"] == "US" and out["2"] == "MX" and out["9"] == nil, "best two kept")
+		out, write = M.flagsUpdate({ ["5"] = "US" }, { 5 }, { [5] = "usa" }, 150)
+		H.expect(write and out["5"] == nil, "a bad code counts as hidden")
+	end,
 }
