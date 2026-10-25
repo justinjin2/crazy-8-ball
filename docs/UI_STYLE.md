@@ -1208,6 +1208,10 @@ screen's width (`WidthShare`), the frame's 66% on a phone.
 - **The open**: the Shop's timings: the rows top to bottom, their switches, the strip
   growing, its icon with a gold burst, then the box and Redeem.
 
+- **Rows without a line** (designer, 2026-10-25): Music, Sound effects, Lower effects and Show
+  my country flag are just their names, in shorter rows (`PlainRowUnits`); only Camera after a
+  shot and Freecam keep a grey line. On a phone the camera row's three buttons widen into the
+  row's spare room until their words fit at 12 px (`Segments.ShotCam.MaxRowShare`).
 - **Freecam row** (2026-10-25): a sixth row, the movie-camera icon, "Freecam" and "Fly the camera
   around the lobby to film your friends.", its switch showing whether the freecam is on (not a
   saved setting); a refusal ("Leave the table first", ...) shows on its grey line in red for

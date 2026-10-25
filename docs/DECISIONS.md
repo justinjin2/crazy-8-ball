@@ -4428,3 +4428,7 @@ timer of a new block stay the designer's call.
   Shift 56, up and down 14; the speed eases in over 0.12 s and, let go, coasts down over 0.25 s
   (about 6 studs from full speed), like Roblox's own freecam (`Config.Freecam.AccelSeconds`,
   `GlideSeconds`).
+- 2026-10-25: **Settings' self-explanatory rows lose their grey lines** (designer: "those are self
+  explanatory they dont need captions", after HORIZONTAL / VERTICAL / PLAYER overlapped on a
+  phone): Music, Sound effects, Lower effects and the flag are shorter rows with just their names,
+  and the camera row's buttons widen to fit their words on a phone.
