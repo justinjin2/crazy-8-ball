@@ -1395,11 +1395,22 @@ return {
 			ShowFlag = "Other players see it in the player list and after your name.",
 			ShotCam = "Top: the whole table. Player: your own camera.",
 		},
+		-- A cycling row's line for each view, in place of its Lines entry (Config.UI.Settings
+		-- .Cycles).
+		CycleLines = {
+			ShotCam = {
+				Top = "Top: the whole table, side on.",
+				Vertical = "Vertical: best for clips (TikTok, Reels, Shorts).",
+				Player = "Player: your own camera.",
+			},
+		},
 		On = "ON",
 		Off = "OFF",
 		-- A two-view row's sides instead of ON / OFF (Config.UI.Settings.Choices).
-		Choices = {
-			ShotCam = { Off = "TOP", On = "PLAYER" },
+		Choices = {} :: { [string]: { Off: string, On: string } },
+		-- A cycling row's words for each view (Config.UI.Settings.Cycles).
+		Cycles = {
+			ShotCam = { Top = "TOP", Vertical = "VERTICAL", Player = "PLAYER" },
 		},
 		Codes = "Codes", -- the strip under the rows (the box and Redeem)
 	},

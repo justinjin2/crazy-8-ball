@@ -316,9 +316,21 @@ return {
 				H.expect(Config.UI.Kit.Colors[tone] ~= nil, "a Kit colour: " .. tostring(tone))
 			end
 		end
-		H.expect(Config.UI.Settings.Choices.ShotCam ~= nil, "the shot camera picks TOP or PLAYER")
+		for key, cycle in Config.UI.Settings.Cycles do
+			H.expect(table.find(C.Order, key) ~= nil, "a cycling row is a row: " .. key)
+			for view, tone in cycle.Tones do
+				H.expect(Config.UI.Kit.Colors[tone] ~= nil, "a Kit colour: " .. tostring(tone))
+				H.expect(type(W.Cycles[key][view]) == "string", "a view has its word: " .. view)
+				H.expect(type(W.CycleLines[key][view]) == "string", "a view has its line: " .. view)
+				local at = cycle.KnobAt[view]
+				H.expect(type(at) == "number" and at >= 0 and at <= 1, "the knob stays inside")
+			end
+		end
+		H.expect(Config.UI.Settings.Cycles.ShotCam ~= nil, "the shot camera cycles its views")
 		H.expect(table.find(C.Order, "ShotCam") ~= nil, "the shot camera has a row")
 		H.expect(C.Defaults.ShotCam == false, "everyone starts in the top-down side view")
+		H.expect(C.Defaults.ShotCamTall == false, "...not the vertical one")
+		H.expect(table.find(C.Hidden, "ShotCamTall") ~= nil, "VERTICAL is saved with no row")
 		H.expect(Config.Camera.Shot.PullOutView == "Side", "the side view stays the default")
 	end,
 

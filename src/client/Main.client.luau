@@ -1550,6 +1550,13 @@ local function renderFrame(dt: number)
 		and not avatar:stroking()
 		and SettingsState.get("ShotCam")
 		and player:GetAttribute("TutorialActive") == false
+	-- Settings' VERTICAL (designer, 2026-10-25, for clips): the shot camera's pull-out goes to
+	-- the shooter's short end, the table upright. Never in the guided tutorial (always TOP).
+	Camera.setVertical(
+		SettingsState.get("ShotCamTall")
+			and not SettingsState.get("ShotCam")
+			and player:GetAttribute("TutorialActive") == false
+	)
 	-- Only the shooter's camera is taken. The coin flip is a HUD overlay watched with the
 	-- ordinary camera; the breaker is handed the home view at Intro. A solo player keeps it
 	-- through a foul, since the ball in hand that follows is their own.

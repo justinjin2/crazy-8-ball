@@ -7,6 +7,8 @@
 -- - SettingsState goes to the player on load and after each change.
 -- - SettingsRequest ("Set", key, boolean) / ("Seen", kind): rate-limited; a bad request is
 --   refused, never an error.
+-- - "Camera after a shot" is two switches read as one view (ShotView); a change of view is
+--   logged (ShotCamSwitched, Funnel).
 -- - The country flag: while ShowFlag is on, the player's CountryFlag attribute holds their
 --   country code (LocalizationService), for the player list and the nameplates; off, it is
 --   cleared. On by default since 2026-10-25 (designer); each switch is logged (FlagSwitched,
@@ -19,6 +21,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared.Config)
 local Net = require(Shared.Net)
 local Funnel = require(script.Parent.Funnel)
+local ShotView = require(Shared.ShotView)
 local PlayerData = require(script.Parent.PlayerData)
 
 local C = Config.Settings
@@ -126,6 +129,18 @@ local function onRequest(player: Player, action: any, a: any, b: any): any
 				if b then "On" else "Off",
 				Funnel.device(player)
 			)
+		end
+		-- The shot camera's view (ShotView: two switches), logged when the view itself changes,
+		-- so the dashboard shows how many pick TOP, VERTICAL and PLAYER (designer, 2026-10-25).
+		if ok and (a == "ShotCam" or a == "ShotCamTall") and before ~= nil then
+			local after = Settings.of(player)
+			local was = ShotView.of(before.ShotCam == true, before.ShotCamTall == true)
+			local now = if after
+				then ShotView.of(after.ShotCam == true, after.ShotCamTall == true)
+				else was
+			if now ~= was then
+				Funnel.event(player, "ShotCamSwitched", 1, now, Funnel.device(player))
+			end
 		end
 		return { ok = ok }
 	elseif action == "Seen" then

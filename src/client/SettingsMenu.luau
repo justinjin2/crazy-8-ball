@@ -3,9 +3,11 @@
 -- "settings A", 2026-10-08), opened by the gear beside the rank HUD (HubCorners) through Menus.
 -- The lively frame (the gear and "Settings", the money pill with its "+", the red X, the
 -- 8-ball flair) holds one white row per switch, in Config.Settings.Order: Sound effects, Lower
--- effects, Show my country flag (off until turned on). A row is one big button: its icon, its
--- name, a grey line and a big ON / OFF switch; a press flips the switch (SettingsState shows it
--- at once and saves it). Under the rows the pale-blue Codes strip: the code icon, "Codes" with
+-- effects, Show my country flag (on by default since 2026-10-25). A row is one big button: its
+-- icon, its name, a grey line and a big ON / OFF switch; a press flips the switch (SettingsState
+-- shows it at once and saves it). "Camera after a shot" cycles three views instead (TOP,
+-- VERTICAL, PLAYER; ShotView, Config.UI.Settings.Cycles): the knob left, a little in, right,
+-- the switch in each view's colour and the grey line naming the view (designer, 2026-10-25). Under the rows the pale-blue Codes strip: the code icon, "Codes" with
 -- the server's answer beside it, the box and a green Redeem (RewardsCodes). The page is drawn
 -- in units (Config.UI.Settings) with one scale, so a phone shows the same page whole. Gamepad:
 -- opening lands on the first row, down from the last row reaches the box; B closes (Menus).
@@ -26,6 +28,8 @@ local RewardsCodes = require(script.Parent.RewardsCodes)
 local SettingsState = require(script.Parent.SettingsState)
 local UIAnim = require(script.Parent.UIAnim)
 local UISound = require(script.Parent.UISound)
+local GuiQA = require(script.Parent.GuiQA)
+local ShotView = require(Shared:WaitForChild("ShotView"))
 
 local NAME = "Settings"
 local U = Config.UI.Settings
@@ -51,7 +55,14 @@ type Row = {
 	choice: { Off: string, On: string }?, -- a two-view row's colours (Config.UI.Settings.Choices)
 	words: { Off: string, On: string }?, -- and its words (Strings.Settings.Choices)
 	onX: number, -- the words' centre across the switch with the knob right, as a share
+	cycle: any?, -- a three-view row's Config.UI.Settings.Cycles entry (ShotCam only)
+	cycleX: { [string]: number }, -- each view's words' centre across the switch, as a share
 }
+
+-- A cycling row's view now (only ShotCam cycles).
+local function viewOf(_key: string): ShotView.View
+	return ShotView.of(SettingsState.get("ShotCam"), SettingsState.get("ShotCamTall"))
+end
 
 local function round(n: number): number
 	return math.floor(n + 0.5)
@@ -83,13 +94,35 @@ function SettingsMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 	local holder = HudParts.frame(page, "Rows") -- the whole page, centred on the sheet
 	holder.ZIndex = 2
 	local rows: { Row } = {}
+	-- Each row's press (its button, and the Studio check's "settingsPress").
+	local presses: { [string]: () -> () } = {}
 	local geo: MenuFrame.Geo? = nil
 
 	-- The switch: green with ON at its left and the knob right, or grey with the knob left
 	-- and OFF at its right. A two-view row names both sides in their own colours instead.
 	local function paint(row: Row, animate: boolean)
-		local on = SettingsState.get(row.key)
 		local inset = U.KnobInsetPx
+		local cycle = row.cycle
+		if cycle then
+			local view = viewOf(row.key)
+			local at: number = cycle.KnobAt[view] or 0
+			local goal = {
+				Position = UDim2.new(at, (1 - 2 * at) * inset, 0.5, 0),
+				AnchorPoint = Vector2.new(at, 0.5),
+			}
+			if animate and row.track.AbsoluteSize.Y > 0 and not UIAnim.reduced() then
+				TweenService:Create(row.knob, TweenInfo.new(K.Motion.PopSeconds), goal):Play()
+			else
+				row.knob.Position = goal.Position
+				row.knob.AnchorPoint = goal.AnchorPoint
+			end
+			row.track.BackgroundColor3 = HudParts.tone(cycle.Tones[view])
+			row.state.Text = (W.Cycles :: any)[row.key][view]
+			row.line.Text = (W.CycleLines :: any)[row.key][view]
+			row.state.Position = UDim2.fromScale(row.cycleX[view] or 0.5, 0.5)
+			return
+		end
+		local on = SettingsState.get(row.key)
 		local goal = {
 			Position = if on then UDim2.new(1, -inset, 0.5, 0) else UDim2.new(0, inset, 0.5, 0),
 			AnchorPoint = if on then Vector2.new(1, 0.5) else Vector2.new(0, 0.5),
@@ -183,15 +216,24 @@ function SettingsMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 			choice = (U.Choices :: any)[key],
 			words = (W.Choices :: any)[key],
 			onX = 0.32,
+			cycle = (U.Cycles :: any)[key],
+			cycleX = {},
 		}
 		table.insert(rows, row)
-		button.Activated:Connect(function()
+		presses[key] = function()
 			UISound.play("Click")
 			if not UIAnim.reduced() then
 				UIAnim.bounce(track)
 			end
+			if row.cycle then
+				for _, step in ShotView.switches(ShotView.next(viewOf(key))) do
+					SettingsState.set(step.key, step.value)
+				end
+				return
+			end
 			SettingsState.set(key, not SettingsState.get(key))
-		end)
+		end
+		button.Activated:Connect(presses[key])
 		paint(row, false)
 	end
 
@@ -270,7 +312,6 @@ function SettingsMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		local switchW, switchH = px(U.SwitchUnits[1]), px(U.SwitchUnits[2])
 		local titlePx, linePx = textPx(U.TitleUnits), textPx(U.LineUnits)
 		local textX = pad + iconPx + pad
-		local textW = math.max(1, w - textX - pad - switchW - pad)
 		local block = titlePx + 4 + linePx + 2
 		local y = 0
 		for _, row in rows do
@@ -280,17 +321,41 @@ function SettingsMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 			row.icon.Size = UDim2.fromOffset(iconPx, iconPx)
 			row.icon.Position = UDim2.new(0, pad, 0.5, 0)
 			local top = round((rowH - block) / 2)
+			local rowSwitchW = if row.cycle then px(row.cycle.SwitchUnits[1]) else switchW
+			local textW = math.max(1, w - textX - pad - rowSwitchW - pad)
 			HudParts.setTextSize(row.title, titlePx)
 			row.title.Position = UDim2.fromOffset(textX, top)
 			row.title.Size = UDim2.fromOffset(textW, titlePx + 4)
 			HudParts.setTextSize(row.line, linePx, U.MinTextPx)
 			row.line.Position = UDim2.fromOffset(textX, top + titlePx + 4)
 			row.line.Size = UDim2.fromOffset(textW, linePx + 2)
-			row.track.Size = UDim2.fromOffset(switchW, switchH)
+			row.track.Size = UDim2.fromOffset(rowSwitchW, switchH)
 			row.track.Position = UDim2.new(1, -pad, 0.5, 0)
 			local statePx = math.max(U.MinTextPx, round(switchH * U.SwitchTextShare))
 			local words = row.words
-			if words then
+			local cycle = row.cycle
+			if cycle then
+				-- Each view's word sits in the wider room beside its knob; all at one size.
+				local travel = math.max(1, rowSwitchW - switchH)
+				local widestRoom = math.huge
+				local fit = statePx
+				for view, word in (W.Cycles :: any)[row.key] do
+					local at: number = cycle.KnobAt[view] or 0
+					local left, right = at * travel, (1 - at) * travel
+					local room = math.max(1, math.max(left, right) - 4 * U.KnobInsetPx)
+					local centre = if right >= left
+						then at * travel + switchH + right / 2
+						else left / 2
+					row.cycleX[view] = centre / math.max(rowSwitchW, 1)
+					local wide = textWidth(word, statePx)
+					if wide > room then
+						fit = math.min(fit, math.floor(statePx * room / wide))
+					end
+					widestRoom = math.min(widestRoom, room)
+				end
+				statePx = math.max(U.MinTextPx, fit)
+				row.state.Size = UDim2.new(0, widestRoom, 0.8, 0)
+			elseif words then
 				-- Both sides' words fit the room beside the knob, at one size.
 				local room = math.max(1, switchW - switchH - 4 * U.KnobInsetPx)
 				local widest = math.max(textWidth(words.Off, statePx), textWidth(words.On, statePx))
@@ -366,6 +431,15 @@ function SettingsMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		stage:add("CodeBox", codeBox.box)
 		stage:add("Redeem", codeBox.redeemButton)
 	end
+
+	-- Studio only (GuiQA): press a row as a click does ("settingsPress", key).
+	GuiQA.add("settingsPress", function(key: string): boolean
+		local press = presses[key]
+		if press then
+			press()
+		end
+		return press ~= nil
+	end)
 
 	SettingsState.Changed:Connect(function()
 		for _, row in rows do

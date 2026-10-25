@@ -6,7 +6,9 @@
 -- framing the screen allows. Zooming in closes on the cue ball. While a shot plays it holds
 -- the framing the shot was taken from for a beat, then pulls out so the whole table shows: by
 -- default it swings round to a fixed semi-top-down view from the nearer long side
--- (Config.Camera.Shot.PullOutView), and swings back when the balls stop.
+-- (Config.Camera.Shot.PullOutView), and swings back when the balls stop. Settings' VERTICAL
+-- (setVertical; designer, 2026-10-25, for clips) swings the same way to the shooter's short
+-- end instead, the table upright and kept inside the screen's middle 9:16 strip.
 --
 -- Every turn starts in the HOME VIEW (Config.Camera.View.ZoomDefault, the pre-multiplayer
 -- framing, untouched by the match HUD), and the camera always comes back to it: after every
@@ -75,6 +77,10 @@ local pullOutWanted = true
 -- The "Side" pull-out (Shot.PullOutView): the flat world direction the side view looks across
 -- the table, chosen once when this shot pulls out; nil while it has not.
 local sideAcross: Vector3? = nil
+-- Settings' VERTICAL (setVertical): this player's pull-out goes to the shooter's short end.
+local vertical = false
+-- This shot's side view is the vertical one (chosen with sideAcross at the pull-out).
+local sideClip = false
 -- A pose as an orbit round the point on the cloth it looks through (see orbitOf).
 type Orbit = { pivot: Vector3, yaw: number, pitch: number, distance: number }
 -- A swing in flight: from the pose the camera was showing, round the table to a target pose,
@@ -643,13 +649,18 @@ end
 -- hudFit keeps clear, but found exactly here: hudFit retreats in CameraFitGrowth steps, which
 -- left the table up to 12% small) and centred in that space. No shift toward the cue ball,
 -- so it is the same view every shot.
-local function sideView(across: Vector3): CFrame
+local function sideView(across: Vector3, clip: boolean?): CFrame
 	local vp = Workspace.CurrentCamera.ViewportSize
 	local centre = tableCentre()
 	local pitch = solveFraming(centre, across, 0, vp)
 	local tanH, tanV = tangents(vp)
 	local top, bottom = 1 - 2 * hudTop, -1 + 2 * hudBottom
 	local side = 1 - 2 * Config.Multiplayer.CameraSideFraction
+	if clip then
+		-- The vertical view: the whole table inside the middle strip a 9:16 crop keeps.
+		local strip = Config.Camera.Shot.VerticalClipAspect * vp.Y / math.max(vp.X, 1)
+		side = math.min(side, strip)
+	end
 	-- The pose at `distance`, slid up or down (never tilted) until the table's outline is
 	-- centred between the bands, and whether it then fits.
 	local function at(distance: number): (CFrame, boolean)
@@ -701,6 +712,25 @@ local function nearerSide(cf: CFrame): Vector3
 		lean = -(cf.Position - tableCentre()):Dot(across)
 	end
 	return if lean >= 0 then across else -across
+end
+
+-- Which way the vertical view looks down the table's length: from the short end the shooter
+-- is at (the end the camera stood nearer as the shot was taken), so the shot runs up the
+-- screen. Shot across the table the camera stands at neither end, and the aim `aim` decides.
+local function shooterEnd(cf: CFrame, aim: Vector3?): Vector3
+	local along = TableBuilder.aimDirection(placement, 0)
+	local lean = -(cf.Position - tableCentre()):Dot(along)
+	local halfLength = TableBuilder.studs(Config.Table.LengthInches / 2)
+	if math.abs(lean) < halfLength * Config.Camera.Shot.VerticalTieShare and aim then
+		lean = aim:Dot(along)
+	end
+	return if lean >= 0 then along else -along
+end
+
+--- Settings' VERTICAL: from the next pull-out on, the shot camera swings to the shooter's
+--- short end instead of a long side. Cheap to call every frame.
+function Camera.setVertical(on: boolean)
+	vertical = on
 end
 
 -- A pose as an orbit round the point on the cloth it looks through: that point, the compass
@@ -924,7 +954,8 @@ function Camera.update(
 				pullOutStart = shotTime
 				if side then
 					local from = smoothed or cam.CFrame
-					sideAcross = nearerSide(from)
+					sideClip = vertical
+					sideAcross = if vertical then shooterEnd(from, anchorDir) else nearerSide(from)
 					startSwing(from, S.SidePullOutSeconds)
 				end
 			end
@@ -941,7 +972,7 @@ function Camera.update(
 		target = overheadView()
 		swing = nil -- calling a pocket for the 8 eases to the overhead view on its own
 	elseif sideAcross then
-		target = sideView(sideAcross)
+		target = sideView(sideAcross, sideClip)
 	else
 		local view, whole =
 			viewFor(anchor :: Vector3, anchorDir :: Vector3, gaze, nil, zoomOverride)

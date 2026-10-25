@@ -1080,6 +1080,13 @@ Config.Camera = {
 		-- ...and the swing back to the aiming view once the balls stop, if it is still your
 		-- turn. (tune)
 		SideReturnSeconds = 0.9,
+		-- Settings' VERTICAL (designer, 2026-10-25, for clips): the same swing to the shooter's
+		-- short end, the whole table kept inside the screen's middle strip of this width to
+		-- height (9:16), so a vertical crop of the recording holds all of it.
+		VerticalClipAspect = 9 / 16,
+		-- The camera within this share of half the table's length from the middle stands at
+		-- neither end (a shot across the table): the aim picks the end instead. (tune)
+		VerticalTieShare = 0.15,
 		-- A shot aimed within this many degrees of straight down the table's length needs about
 		-- a quarter turn to either side; the camera then takes the side it already stands on,
 		-- so it also travels less. (tune)
@@ -7426,6 +7433,7 @@ Config.UI = {
 			Blue = { 59, 155, 255 }, -- the house accent: selected things, called pockets
 			Gold = { 255, 201, 40 }, -- special: the coin, SOON, gamepad selection
 			Grey = { 156, 163, 175 }, -- pocketed balls and anything switched off
+			Purple = { 168, 85, 247 }, -- the gift squares' purple; Settings' VERTICAL camera
 		},
 		PanelFade = { 226, 238, 255 }, -- panels fade from white at the top to this pale blue
 		PanelStrokePx = 3, -- the ink outline round every panel
@@ -16473,12 +16481,16 @@ Config.Settings = {
 		-- back (free look, shift lock, walking) until their next turn. TOP for everyone until
 		-- they pick PLAYER; the guided tutorial always uses TOP (designer, 2026-10-11: for clips).
 		ShotCam = false,
+		-- VERTICAL (designer, 2026-10-25, for TikTok / Reels clips): with ShotCam off, the shot
+		-- camera swings to the shooter's short end instead, the table upright. Saved apart so
+		-- no save changes shape; the row reads both through ShotView. Off for everyone.
+		ShotCamTall = false,
 		ListOpen = false, -- the player list left open (designer 2026-10-07: folded until opened)
 	} :: { [string]: boolean },
 	-- The rows, top to bottom (music back 2026-10-10, the shot camera 2026-10-11).
 	Order = { "Music", "Sfx", "LowFx", "ShowFlag", "ShotCam" },
 	-- Saved switches with no row on the Settings screen (the HUD remembers them).
-	Hidden = { "ListOpen" },
+	Hidden = { "ListOpen", "ShotCamTall" },
 	-- The kinds Seen may mark (anything else is refused).
 	SeenKinds = { "Rare", "Epic", "Legendary", "Mythic", "Secret", "Result" },
 	RequestBurst = 6, -- SettingsRequest: a burst, then this many a second (not design numbers)
@@ -16510,8 +16522,17 @@ Config.UI.Settings = {
 	-- A row that picks one of two views instead of ON / OFF (designer, 2026-10-11): the
 	-- switch's Kit colour on each side (its words in Strings.Settings.Choices). Off is the
 	-- default side, the knob at the left.
-	Choices = {
-		ShotCam = { Off = "Blue", On = "Gold" }, -- TOP (the side view) or PLAYER (your own camera)
+	Choices = {} :: { [string]: { Off: string, On: string } },
+	-- A row that cycles through three views on each press (designer, 2026-10-25): the views in
+	-- order (ShotView), each view's Kit colour, and where the knob stands for it, as a share
+	-- of its travel (0 left, 1 right; VERTICAL a little in from the left, its word beside it).
+	-- The switch is wider than the others so VERTICAL fits beside the knob.
+	Cycles = {
+		ShotCam = {
+			Tones = { Top = "Blue", Vertical = "Purple", Player = "Gold" },
+			KnobAt = { Top = 0, Vertical = 0.3, Player = 1 },
+			SwitchUnits = { 250, 74 },
+		},
 	},
 	-- Each row's Kit.Icons key.
 	Icons = {
