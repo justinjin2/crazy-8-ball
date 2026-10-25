@@ -1386,7 +1386,7 @@ return {
 			Music = "The background music.",
 			Sfx = "Clicks, shots and ability sounds.",
 			LowFx = "Fewer particles. Smoother on slower devices.",
-			ShowFlag = "Other players see it in the player list.",
+			ShowFlag = "Other players see it in the player list and after your name.",
 			ShotCam = "Top: the whole table. Player: your own camera.",
 		},
 		On = "ON",

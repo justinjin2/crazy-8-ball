@@ -37,6 +37,18 @@ return {
 		H.expect(count > (range[2] - range[1] + 1) / 2, "different bots differ: " .. count)
 	end,
 
+	["the country flag is on by default and listed as a setting"] = function()
+		local _, Config = load()
+		-- Designer, 2026-10-25: everyone's flag shows unless they switch it off.
+		H.expect(Config.Settings.Defaults.ShowFlag == true, "on by default")
+		H.expect(table.find(Config.Settings.Order, "ShowFlag") ~= nil, "still a row to turn it off")
+		local plate = Config.UI.Progress.Nameplate
+		H.expect(
+			plate.FlagShare > 0 and plate.FlagShare <= 1,
+			"the nameplate's flag fits the plate"
+		)
+	end,
+
 	["a country code becomes its flag"] = function()
 		local View = load()
 		H.expect(View.flag("US") == "\u{1F1FA}\u{1F1F8}", "US")

@@ -7111,6 +7111,10 @@ Config.UI = {
 			-- plate stays where it was and the line sits above it. (tune)
 			StreakShare = 0.7,
 			StreakFrom = 1, -- shown once the streak is at least this
+			-- The country flag after the name (designer, 2026-10-25; the CountryFlag attribute,
+			-- Settings; bots never have one). Shares of the badge's height:
+			FlagShare = 0.5, -- the flag's box
+			FlagGapShare = 0.1, -- between the name and the flag
 			-- A VIP's rainbow name (designer, 2026-09-28: calm, the colours moving a little):
 			-- one whole loop of the house rainbow drifts along the name. (tune)
 			VipRainbowCycleSeconds = 8, -- a colour takes this long to travel the whole name
@@ -16419,7 +16423,10 @@ Config.Settings = {
 		Sfx = true, -- sound effects on
 		Music = true, -- the lobby music on (Config.Music; designer, 2026-10-10: music is back)
 		LowFx = false, -- Lower effects (Quality: fewer particles, calmer UI loops)
-		ShowFlag = false, -- show my country flag in the player list (off until turned on)
+		-- Show my country flag in the player list and after my name over my head. On for
+		-- everyone by default (designer, 2026-10-25: a sense of nationality; was off until
+		-- turned on); a player who switched it off keeps it off (their saved false).
+		ShowFlag = true,
 		-- "Camera after a shot": false is TOP (the shot camera's top-down side view), true is
 		-- PLAYER: once the stroke has played the player has their own Roblox camera and body
 		-- back (free look, shift lock, walking) until their next turn. TOP for everyone until

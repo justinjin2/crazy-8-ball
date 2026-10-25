@@ -24,6 +24,10 @@
 -- on the white name; rainbow until 2026-10-03), with the badge kept in front of it. The
 -- colours drift slowly along the name, one loop every VipRainbowCycleSeconds: calm, never a
 -- flash. Only here: in chat a VIP gets the [VIP] tag instead (ChatTags).
+--
+-- The country flag (designer, 2026-10-25): the player's flag emoji just after their name, from
+-- the CountryFlag attribute (Settings; on by default, gone when they switch it off). The plate
+-- is resized round it when it comes or goes. Bots never have one, as in the player list.
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -36,6 +40,7 @@ local HudParts = require(script.Parent.HudParts)
 local RankBadge = require(script.Parent.RankBadge)
 local UIAnim = require(script.Parent.UIAnim)
 local People = require(script.Parent.People)
+local PlayerListView = require(Shared:WaitForChild("Progression"):WaitForChild("PlayerListView"))
 
 local P = Config.UI.Progress.Nameplate
 local K = Config.UI.Kit
@@ -52,6 +57,8 @@ type Plate = {
 	gui: BillboardGui,
 	badge: RankBadge.Badge,
 	name: TextLabel,
+	words: string, -- the name on it
+	flag: TextLabel, -- the country flag after the name ("" when none)
 	streak: TextLabel, -- "🔥 3" over the name
 	streakShown: number, -- the streak on it (0: none)
 	rainbow: UIGradient, -- the VIP's rainbow over the name (enabled for a VIP)
@@ -118,6 +125,49 @@ local function rainbowAt(phase: number): ColorSequence
 	end
 	table.insert(keys, ColorSequenceKeypoint.new(1, loopColor(phase)))
 	return ColorSequence.new(keys)
+end
+
+-- Size the plate to its badge, name and flag, in units of the badge's height, so the row is
+-- centred over the head whatever the name's length.
+local function layout(plate: Plate)
+	local measured =
+		TextService:GetTextSize(plate.words, MEASURE_PX, FONT, Vector2.new(100000, 1000))
+	local aspect = measured.X / math.max(1, measured.Y) * (1 + P.NameSlack)
+	local nameWidth = aspect * P.NameShare
+	local flagWidth = 0
+	if plate.flag.Text ~= "" then
+		local flagSize =
+			TextService:GetTextSize(plate.flag.Text, MEASURE_PX, FONT, Vector2.new(1000, 1000))
+		flagWidth = flagSize.X / math.max(1, flagSize.Y) * P.FlagShare
+	end
+	local flagRoom = if flagWidth > 0 then P.FlagGapShare + flagWidth else 0
+	local units = 1 + P.GapShare + nameWidth + flagRoom
+	-- The streak's line sits over the plate: the gui is that much taller, and lifted by half
+	-- of it (SizeOffset is a share of the size), so the badge and name keep their place.
+	local tall = 1 + P.StreakShare
+	plate.gui.Size =
+		UDim2.new(units * P.SizeStuds, units * P.SizePx, tall * P.SizeStuds, tall * P.SizePx)
+	plate.gui.SizeOffset = Vector2.new(0, P.StreakShare / (2 * tall))
+	plate.badge.root.Size = UDim2.fromScale(1 / units, 1)
+	plate.name.Position = UDim2.fromScale((1 + P.GapShare) / units, 0.5)
+	plate.name.Size = UDim2.fromScale(nameWidth / units, P.NameShare)
+	plate.flag.Visible = flagWidth > 0
+	plate.flag.Position =
+		UDim2.fromScale((1 + P.GapShare + nameWidth + P.FlagGapShare) / units, 0.5)
+	plate.flag.Size = UDim2.fromScale(flagWidth / units, P.FlagShare)
+end
+
+-- Show the player's country flag (their CountryFlag attribute; never a bot's). A bot is
+-- People's stand-in table, so only a table is asked IsBot (a Player has no such member).
+local function showFlag(plate: Plate)
+	local player: any = plate.player
+	local bot = type(player) == "table" and player.IsBot == true
+	local text = if bot then "" else PlayerListView.flag(player:GetAttribute("CountryFlag"))
+	if text == plate.flag.Text then
+		return
+	end
+	plate.flag.Text = text
+	layout(plate)
 end
 
 -- Show whether the player is a VIP (their Vip attribute, which only the server sets).
@@ -289,17 +339,8 @@ function Nameplates.add(self: any, player: Player)
 	gui.MaxDistance = P.FadeEndStuds
 	gui.StudsOffsetWorldSpace = Vector3.new(0, P.OffsetStuds, 0)
 	gui.Enabled = not self.hidden[player.UserId]
-	-- Sized to the badge and this name, in units of the badge's height, so the pair is
-	-- centred over the head whatever the name's length.
-	local measured = TextService:GetTextSize(words, MEASURE_PX, FONT, Vector2.new(100000, 1000))
-	local aspect = measured.X / math.max(1, measured.Y) * (1 + P.NameSlack)
-	local nameWidth = aspect * P.NameShare
-	local units = 1 + P.GapShare + nameWidth
-	-- The streak's line sits over the plate: the gui is that much taller, and lifted by half
-	-- of it (SizeOffset is a share of the size), so the badge and name keep their place.
+	-- Sized by layout (the badge, the name and the flag), once the pieces are made.
 	local tall = 1 + P.StreakShare
-	gui.Size = UDim2.new(units * P.SizeStuds, units * P.SizePx, tall * P.SizeStuds, tall * P.SizePx)
-	gui.SizeOffset = Vector2.new(0, P.StreakShare / (2 * tall))
 	local row = HudParts.frame(gui, "Plate")
 	row.AnchorPoint = Vector2.new(0, 1)
 	row.Position = UDim2.fromScale(0, 1)
@@ -313,7 +354,6 @@ function Nameplates.add(self: any, player: Player)
 	streak.Visible = false
 	-- No rays behind a Reyes badge here: they would cover the name.
 	local badge = RankBadge.new(row, { size = 1, name = "Badge", rays = false })
-	badge.root.Size = UDim2.fromScale(1 / units, 1)
 	local name = HudParts.text(row, "Name", MEASURE_PX, words)
 	HudParts.setTextSize(name, MEASURE_PX, 1) -- scaled to its box at any distance
 	local stroke = name:FindFirstChild("Outline")
@@ -325,8 +365,19 @@ function Nameplates.add(self: any, player: Player)
 	-- the name must scale with its box. One word never wraps anyway.
 	name.TextXAlignment = Enum.TextXAlignment.Left
 	name.AnchorPoint = Vector2.new(0, 0.5)
-	name.Position = UDim2.fromScale((1 + P.GapShare) / units, 0.5)
-	name.Size = UDim2.fromScale(nameWidth / units, P.NameShare)
+	-- The flag: an emoji, so no outline (it would ring the picture) and no gradient.
+	local flag = Instance.new("TextLabel")
+	flag.Name = "Flag"
+	flag.BackgroundTransparency = 1
+	flag.AutoLocalize = false
+	flag.Font = FONT
+	flag.Text = ""
+	flag.TextScaled = true
+	flag.TextColor3 = Color3.new(1, 1, 1)
+	flag.TextXAlignment = Enum.TextXAlignment.Left
+	flag.AnchorPoint = Vector2.new(0, 0.5)
+	flag.Visible = false
+	flag.Parent = row
 	local rainbow = Instance.new("UIGradient")
 	rainbow.Name = "VipRainbow"
 	rainbow.Color = rainbowAt(0)
@@ -338,6 +389,8 @@ function Nameplates.add(self: any, player: Player)
 		gui = gui,
 		badge = badge,
 		name = name,
+		words = words,
+		flag = flag,
 		streak = streak,
 		streakShown = 0,
 		rainbow = rainbow,
@@ -350,6 +403,8 @@ function Nameplates.add(self: any, player: Player)
 		bodyConnections = {},
 	}
 	self.plates[player] = plate
+	layout(plate)
+	showFlag(plate)
 	showRank(plate, false)
 	showStreak(plate, false)
 	showVip(plate)
@@ -363,6 +418,12 @@ function Nameplates.add(self: any, player: Player)
 		plate.connections,
 		player:GetAttributeChangedSignal("Vip"):Connect(function()
 			showVip(plate)
+		end)
+	)
+	table.insert(
+		plate.connections,
+		player:GetAttributeChangedSignal("CountryFlag"):Connect(function()
+			showFlag(plate)
 		end)
 	)
 	-- RankTier and RankDivision change together: one refresh for both.
@@ -451,6 +512,7 @@ function Nameplates.update(self: any)
 		if fade ~= plate.fade then
 			plate.fade = fade
 			HudParts.setTextTransparency(plate.name, fade)
+			HudParts.setTextTransparency(plate.flag, fade)
 			HudParts.setTextTransparency(plate.streak, fade)
 			plate.badge:setTransparency(fade)
 		end

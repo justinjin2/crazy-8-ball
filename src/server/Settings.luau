@@ -8,8 +8,9 @@
 -- - SettingsRequest ("Set", key, boolean) / ("Seen", kind): rate-limited; a bad request is
 --   refused, never an error.
 -- - The country flag: while ShowFlag is on, the player's CountryFlag attribute holds their
---   country code (LocalizationService), for the player list; off, it is cleared. Never on by
---   default.
+--   country code (LocalizationService), for the player list and the nameplates; off, it is
+--   cleared. On by default since 2026-10-25 (designer); each switch is logged (FlagSwitched,
+--   Funnel) so the share turning it off can be read on the dashboard.
 local LocalizationService = game:GetService("LocalizationService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -17,6 +18,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared.Config)
 local Net = require(Shared.Net)
+local Funnel = require(script.Parent.Funnel)
 local PlayerData = require(script.Parent.PlayerData)
 
 local C = Config.Settings
@@ -114,7 +116,18 @@ local function onRequest(player: Player, action: any, a: any, b: any): any
 		if type(a) ~= "string" or C.Defaults[a] == nil or type(b) ~= "boolean" then
 			return { ok = false, reason = "BadRequest" }
 		end
-		return { ok = PlayerData.setSetting(player, a, b) }
+		local before = Settings.of(player)
+		local ok = PlayerData.setSetting(player, a, b)
+		if ok and a == "ShowFlag" and before ~= nil and before.ShowFlag ~= b then
+			Funnel.event(
+				player,
+				"FlagSwitched",
+				1,
+				if b then "On" else "Off",
+				Funnel.device(player)
+			)
+		end
+		return { ok = ok }
 	elseif action == "Seen" then
 		if type(a) ~= "string" or not table.find(C.SeenKinds, a) then
 			return { ok = false, reason = "BadRequest" }
