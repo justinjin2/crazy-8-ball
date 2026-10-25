@@ -169,6 +169,8 @@ if not isArena then
 end
 -- The tutorial lane: rank rewards claimed in Rank, then the first-time tutorial itself.
 require(script.Parent:WaitForChild("RankClaimService")).start()
+-- The lobby freecam (refuses every start in an arena).
+require(script.Parent:WaitForChild("FreecamService")).start(not isArena)
 require(script.Parent:WaitForChild("TutorialService")).start()
 -- The Gift block's first-leave drop: leaves noted everywhere, the fall only in a lobby.
 require(script.Parent:WaitForChild("GiftDropService")).start(not isArena)

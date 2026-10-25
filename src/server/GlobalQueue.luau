@@ -563,6 +563,20 @@ end
 --- Send `players` to a match's arena. Their saves are let go first. `failed(player, why)`
 --- runs for anyone still here once every try failed (Studio: at once, "Studio").
 function GlobalQueue.teleport(players: { Player }, match: Match, failed: (Player, string) -> ())
+	-- The last guard: nobody in the lobby freecam is sent (FreecamService; every way in already
+	-- refuses them).
+	local going = {}
+	for _, p in players do
+		if p:GetAttribute(Config.Freecam.Attribute) == true then
+			failed(p, "Freecam")
+		else
+			table.insert(going, p)
+		end
+	end
+	if #going == 0 then
+		return
+	end
+	players = going
 	local data = { gq = { match = match.id, sentAt = clock(), from = SERVER } }
 	if IS_STUDIO then
 		log(("Studio cannot teleport: %d player(s) would join arena %s"):format(#players, match.id))

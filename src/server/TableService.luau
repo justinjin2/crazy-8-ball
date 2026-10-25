@@ -887,6 +887,7 @@ local function poll(t: any, time: number)
 			and not t.blocked[p.UserId]
 			and PadBar.rejoinReady(t.freedAt[p.UserId], time)
 			and p:GetAttribute("DataLoaded") == true -- no seat before the save is open
+			and p:GetAttribute(Config.Freecam.Attribute) ~= true -- filming, not playing (FreecamService)
 		then
 			t.dwell[p.UserId] = t.dwell[p.UserId] or time
 			if time - t.dwell[p.UserId] >= Queue.DwellSeconds then
@@ -939,6 +940,7 @@ local function sendRequest(t: any, host: Player)
 		if
 			p ~= host
 			and not seatOf[p.UserId]
+			and p:GetAttribute(Config.Freecam.Attribute) ~= true -- filming: no ask (FreecamService)
 			and (requestFilter == nil or requestFilter(host, p))
 		then
 			Net.get("OpponentRequest"):FireClient(p, ask)
@@ -984,6 +986,7 @@ local function answerRequest(p: Player, id: any, epoch: any)
 		or not root
 		or seatOf[p.UserId]
 		or p:GetAttribute("DataLoaded") ~= true -- a match's results need the save open
+		or p:GetAttribute(Config.Freecam.Attribute) == true -- filming, not playing (FreecamService)
 		or not wantsOpponent(t, epoch, now())
 	then
 		return
@@ -1070,7 +1073,10 @@ local function startSearch(t: any, host: Player): boolean
 		return false
 	end
 	for _, p in players do
-		if p:GetAttribute("DataLoaded") ~= true then
+		if
+			p:GetAttribute("DataLoaded") ~= true
+			or p:GetAttribute(Config.Freecam.Attribute) == true -- filming (FreecamService)
+		then
 			return false
 		end
 	end
@@ -1492,6 +1498,7 @@ function Service.placeOnPad(t: any, p: Player): boolean
 		or rootOf(p) == nil
 		or e.phase ~= "Waiting"
 		or p:GetAttribute("DataLoaded") ~= true
+		or p:GetAttribute(Config.Freecam.Attribute) == true -- filming, not playing (FreecamService)
 	then
 		return false
 	end

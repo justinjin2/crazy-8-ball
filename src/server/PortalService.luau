@@ -52,6 +52,9 @@ local function allowed(player: Player, row: any): boolean
 	if TutorialService.guided(player) then
 		return false
 	end
+	if player:GetAttribute(Config.Freecam.Attribute) == true then
+		return false -- filming, not playing (FreecamService)
+	end
 	local progress = PlayerData.progress(player)
 	if progress == nil or (progress.Wins or 0) < 1 then
 		return false

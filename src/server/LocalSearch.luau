@@ -81,6 +81,7 @@ local function eligible(player: Player): boolean
 	return player.Parent == Players
 		and player:GetAttribute("DataLoaded") == true
 		and player:GetAttribute("TutorialActive") == false
+		and player:GetAttribute(Config.Freecam.Attribute) ~= true -- filming (FreecamService)
 		and not busy[player]
 end
 

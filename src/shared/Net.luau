@@ -375,6 +375,10 @@ local REMOTES: { [string]: string } = {
 	-- client -> server, answered { ok = true } or { ok = false, reason ("BadRequest",
 	-- "TooFast", "NotLoaded") }: ("Set", key, boolean), ("Seen", kind in Config.Settings.SeenKinds).
 	SettingsRequest = "RemoteFunction",
+	-- The lobby freecam (src/server/FreecamService.luau, 2026-10-25). client -> server, answered
+	-- { ok = true } or { ok = false, reason ("Off", "Lobby", "Busy", "Tutorial", "Seated",
+	-- "Searching") }: ("Start") or ("Stop", how: "Exit" | "Settings" | "Pad" | "Auto").
+	FreecamRequest = "RemoteFunction",
 	-- The global boards (src/server/Leaderboards.luau; GUI lane, D9). server -> one player on
 	-- load, then everyone after each read: { at, boards = { Wins = { { userId, name, value } },
 	-- Rank = { ... } } } (best first, up to Config.Leaderboards.Size; Rank's value is RankXp).

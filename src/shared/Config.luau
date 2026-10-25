@@ -16531,6 +16531,8 @@ Config.Settings = {
 -- Measured with the custom event Freecam (Start, End with the seconds, Refused with why).
 Config.Freecam = {
 	Enabled = true, -- false: no Settings row, and the server refuses every start (a test build)
+	-- The player attribute the server sets while it is on; every way into a match checks it.
+	Attribute = "Freecam",
 	SpeedStuds = 16, -- flying speed, studs a second
 	FastSpeedStuds = 40, -- with Shift held (a computer)
 	VerticalSpeedStuds = 10, -- straight up or down (E / Q, a gamepad's R2 / L2)

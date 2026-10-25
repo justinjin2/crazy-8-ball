@@ -76,6 +76,7 @@ function SoloSearch.begin(player: Player): boolean
 		or player:GetAttribute("DataLoaded") ~= true
 		or PlayerData.isHandedOff(player)
 		or player:GetAttribute("TutorialActive") ~= false -- the guided tutorial (nil: not known yet)
+		or player:GetAttribute(Config.Freecam.Attribute) == true -- filming, not playing (FreecamService)
 	then
 		return false
 	end
