@@ -176,6 +176,20 @@ Every feature is checked against these. If it serves none, it waits.
     lock) and their body is theirs to walk, until their next turn takes the table view again.
     Top-down stays everyone's default, and the guided tutorial always uses it whatever the
     switch says.
+  - **Freecam** (Settings' last row; designer, 2026-10-25, to film friends for clips; a test
+    behind `Config.Freecam.Enabled`): lobby only, never while seated, searching or in the guided
+    tutorial, and the server refuses every pad, Join, search, portal and teleport while it is
+    on, so it is for filming, never playing. The camera flies where it looks inside the
+    rooftop's safety walls and under their tops (`Config.Freecam.Boxes`), the body stands
+    still, and every screen of ours hides but a row in Roblox's top bar: the gear (Settings),
+    EXIT and an eye that hides the gear and EXIT behind a faint shut eye. Only Settings may open
+    meanwhile. Controls: WASD / thumbstick / left stick, look with the right mouse button, a
+    finger's drag or the right stick, E Q or R2 L2 up and down, Shift faster; pad B ends, Y the
+    eye, X the gear. Measured by the custom event Freecam (Start, End with seconds, Refused).
+    The first look at the table problem (2026-10-25): the table is drawn about 1.8x real size,
+    so standing beside it the far cushion is only about 10 degrees below the eye; lowering the
+    table could not fix that without making it stubby, so the table stays and the freecam
+    gives the view instead.
   - Cue-ball placement (break and ball in hand) happens in this 3D view; the camera holds still
     while the ball is dragged.
   - The one exception: the shooter's view goes top-down to call the 8-ball pocket, and returns

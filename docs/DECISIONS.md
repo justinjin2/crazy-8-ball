@@ -4411,3 +4411,12 @@ timer of a new block stay the designer's call.
   time' ... make the font and icon a little bit bigger ... mobile resolution too"): "Drag the cue
   ball anywhere" (gamepad: "Hold LT + left stick to move the cue ball"); the pill 34 high with
   20 px words on a computer, 28 and 17 px on a phone (were 28/16 and 24/14, `Config.Multiplayer.Style`).
+- 2026-10-25: **The table stays at its height; a lobby freecam gives the view for clips**
+  (designer: friends filming friends see a flat table in first person). Measured: the eye is 1.6
+  studs over the cloth and the table 16 studs long (drawn about 1.8x real size), so the far
+  cushion is about 10 degrees below the eye (about 34 in real life); even a stubby cloth at 2.0
+  only reaches 15.5. Roblox's own Shift+P freecam is for the owner and editors only and never on
+  a phone, so the game has its own (`Freecam`, `FreecamService`, `Config.Freecam`, a test behind
+  `Enabled`): Settings row plus an EXIT button, an eye that hides the rest (designer's picks),
+  the whole rooftop under the walls' tops, lobby only, and the server refuses any match while
+  it is on. Measured by the custom event Freecam (Start, End with seconds, Refused).

@@ -152,7 +152,8 @@ Server (`src/server`): `Bootstrap` (builds the tables, publishes assets), `Table
 `BotService`, `PlayerData` (session-locked saves), `Economy`, `Ranking`, `Analytics`,
 `FallGuard` (anyone more than `Config.FallGuard.BelowFloorStuds` below the lowest floor is put
 back on the spawn mat at once, the last resort against falling out of the map),
-`AdminService` (the owner's admin panel, Painicane only: its LocalScript `Admin/AdminPanel` stays in
+`FreecamService` (the lobby freecam's yes or no, the player's Freecam attribute every way into
+a match checks, and its custom events), `AdminService` (the owner's admin panel, Painicane only: its LocalScript `Admin/AdminPanel` stays in
 ServerScriptService and is cloned into the owner's PlayerGui alone, with its RemoteFunction; every
 request is checked again on the server; pure rules in `src/shared/Admin`), `MoneyRain` (the
 owner's money rain, lobby only, here or in every lobby server through `Announce`; `MoneyRainFx`
@@ -163,6 +164,8 @@ Client (`src/client`): `Main` (wiring), `Match` (replays shots), `BallRenderer`,
 `PadMode` (whether a controller is the input now, the button pictures, Studio's forced
 mode), `HubPad` (the lobby's controller keys: Y Rank, L2 Play Global / Join, D-pad left the
 right side, B leave; and it keeps the left stick walking by dropping stray selections),
+`Freecam` (the lobby freecam: the flying camera, the hidden screens, its top-bar row; the
+pure maths and the rooftop's bounds are the shared `FreecamMath`, tested in Lune),
 `MatchTargets` (the 8's pocket rings; on a pad the stick points and A calls, bound at High + 1),
 `PadGuide` (the controller guide strip), `SpinSelector`, `Guideline`, `Camera`, `Avatar` (the local
 shooter), `ShooterPoser` (one character's aim/stroke/idle states), `WatchedShooters` (other
