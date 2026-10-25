@@ -332,6 +332,13 @@ return {
 		H.expect(C.Defaults.ShotCamTall == false, "...not the vertical one")
 		H.expect(table.find(C.Hidden, "ShotCamTall") ~= nil, "VERTICAL is saved with no row")
 		H.expect(Config.Camera.Shot.PullOutView == "Side", "the side view stays the default")
+		-- VERTICAL (designer, 2026-10-25): steeper than TOP's fitted tilt, short of 90 so the
+		-- swing round the table keeps a heading.
+		local pitch = Config.Camera.Shot.VerticalPitchDegrees
+		H.expect(
+			pitch == nil or (pitch > Config.Camera.View.PitchMax and pitch < 90),
+			"VERTICAL looks down more steeply than TOP"
+		)
 	end,
 
 	["the ability spin screen's open names every piece it stages and lands SPIN last"] = function()

@@ -1084,6 +1084,16 @@ Config.Camera = {
 		-- short end, the whole table kept inside the screen's middle strip of this width to
 		-- height (9:16), so a vertical crop of the recording holds all of it.
 		VerticalClipAspect = 9 / 16,
+		-- VERTICAL looks this many degrees down (designer, 2026-10-25: "more like birds eye ...
+		-- to show as much of it as possible", then "still give it a slight angle similar to
+		-- horizontal"): steeper than TOP's fitted tilt (about 50 to 65), the cloth as big as the
+		-- space between the HUD's bands allows, the rails free to run under the HUD. TOP keeps
+		-- its own fitted view, untouched. Under 90: the swing needs a heading. nil gives VERTICAL
+		-- TOP's tilt and framing. (tune)
+		VerticalPitchDegrees = 75 :: number?,
+		-- VERTICAL's side margin, a share of the screen's width on each side (TOP keeps
+		-- Multiplayer.CameraSideFraction, 0.1). (tune)
+		VerticalSideFraction = 0.02,
 		-- The camera within this share of half the table's length from the middle stands at
 		-- neither end (a shot across the table): the aim picks the end instead. (tune)
 		VerticalTieShare = 0.15,

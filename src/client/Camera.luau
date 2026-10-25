@@ -38,6 +38,7 @@ local placement: Placement.Placement =
 -- because the framing solver asks for them many times a frame; setTable clears it, which
 -- is what stops a stale cache once the table being framed changes.
 local tableCorners: { Vector3 }? = nil
+local clothCache: { Vector3 }? = nil -- the cloth's corners (clothCorners), cleared with it
 
 local locked = false
 local connections: { RBXScriptConnection } = {}
@@ -97,6 +98,7 @@ end
 function Camera.setTable(p: Placement.Placement)
 	placement = p
 	tableCorners = nil
+	clothCache = nil
 end
 
 --- The placement the camera is currently framing.
@@ -644,30 +646,62 @@ local function hudWeight(z: number): number
 	return math.clamp((z - V.ZoomDefault) / math.max(V.ZoomMax - V.ZoomDefault, 1e-3), 0, 1)
 end
 
--- The side view: the whole table from one long side, looking `across` it at the fitted pitch,
--- as large as it fits in the space the match HUD leaves (the same bands and side margins
--- hudFit keeps clear, but found exactly here: hudFit retreats in CameraFitGrowth steps, which
--- left the table up to 12% small) and centred in that space. No shift toward the cue ball,
--- so it is the same view every shot.
+-- The cloth's corners (inside the rails) at cloth height, in world space; cached like corners.
+local function clothCorners(): { Vector3 }
+	if clothCache then
+		return clothCache
+	end
+	local T = Config.Table
+	local hx, hy = T.LengthInches / 2, T.WidthInches / 2
+	local list = {
+		TableBuilder.toWorld(placement, -hx, -hy, 0),
+		TableBuilder.toWorld(placement, hx, -hy, 0),
+		TableBuilder.toWorld(placement, hx, hy, 0),
+		TableBuilder.toWorld(placement, -hx, hy, 0),
+	}
+	clothCache = list
+	return list
+end
+
+-- The side view: the whole table from one long side, looking `across` it, as large as it fits
+-- in the space the match HUD leaves and centred in that space (found exactly here: hudFit
+-- retreats in CameraFitGrowth steps, which left the table up to 12% small). No shift toward
+-- the cue ball, so it is the same view every shot: the fitted tilt and the whole table, rails
+-- included, between the bands and the side margins. `clip` (VERTICAL) keeps all of it inside
+-- the screen's middle 9:16 strip, and with Shot.VerticalPitchDegrees (designer, 2026-10-25:
+-- "more like birds eye", "a slight angle") looks down more steeply, the cloth as big as the
+-- space between the bands allows and the rails free to run under the HUD, only kept inside
+-- the strip.
 local function sideView(across: Vector3, clip: boolean?): CFrame
 	local vp = Workspace.CurrentCamera.ViewportSize
 	local centre = tableCentre()
-	local pitch = solveFraming(centre, across, 0, vp)
+	local S = Config.Camera.Shot
+	local birdsEye = clip == true and S.VerticalPitchDegrees ~= nil
+	local pitch = if birdsEye
+		then math.rad(S.VerticalPitchDegrees :: number)
+		else solveFraming(centre, across, 0, vp)
 	local tanH, tanV = tangents(vp)
 	local top, bottom = 1 - 2 * hudTop, -1 + 2 * hudBottom
-	local side = 1 - 2 * Config.Multiplayer.CameraSideFraction
+	local margin = if birdsEye
+		then S.VerticalSideFraction
+		else Config.Multiplayer.CameraSideFraction
+	local side = 1 - 2 * margin
+	local edge = 1 -- how far across the rails may reach (the screen's edge)
 	if clip then
 		-- The vertical view: the whole table inside the middle strip a 9:16 crop keeps.
-		local strip = Config.Camera.Shot.VerticalClipAspect * vp.Y / math.max(vp.X, 1)
+		local strip = S.VerticalClipAspect * vp.Y / math.max(vp.X, 1)
 		side = math.min(side, strip)
+		edge = math.min(edge, strip)
 	end
-	-- The pose at `distance`, slid up or down (never tilted) until the table's outline is
+	-- What sits between the bands: the cloth (bird's eye) or the whole table.
+	local inner: { Vector3 } = if birdsEye then clothCorners() else corners()
+	-- The pose at `distance`, slid up or down (never tilted) until `inner`'s outline is
 	-- centred between the bands, and whether it then fits.
 	local function at(distance: number): (CFrame, boolean)
 		local cf = poseFor(centre, across, pitch, distance, 0, vp)
 		for pass = 1, 4 do
 			local minY, maxY, maxX = math.huge, -math.huge, 0
-			for _, corner in corners() do
+			for _, corner in inner do
 				local q = project(cf, corner, tanH, tanV)
 				if q == nil then
 					return cf, false
@@ -676,7 +710,16 @@ local function sideView(across: Vector3, clip: boolean?): CFrame
 				maxX = math.max(maxX, math.abs(q.X))
 			end
 			if pass == 4 then
-				return cf, minY >= bottom and maxY <= top and maxX <= side
+				local fits = minY >= bottom and maxY <= top and maxX <= side
+				if fits and birdsEye then
+					for _, corner in corners() do
+						local q = project(cf, corner, tanH, tanV)
+						if q == nil or math.abs(q.Y) > 1 or math.abs(q.X) > edge then
+							return cf, false
+						end
+					end
+				end
+				return cf, fits
 			end
 			local above = (minY + maxY) / 2 - (top + bottom) / 2
 			cf += cf.UpVector * (above * tanV * distance)
