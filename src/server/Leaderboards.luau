@@ -724,6 +724,9 @@ local function startLobbyBoards(isLobby: boolean)
 		end
 	end)
 	task.spawn(function()
+		if math.ceil(LB.WinsRows / LB.PageRows) <= 1 then
+			return -- the board is one page: no later pages to read
+		end
 		task.wait(5) -- after the first page
 		while true do
 			local ok, err = pcall(function()

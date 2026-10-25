@@ -16697,11 +16697,11 @@ Config.Leaderboards = {
 	-- Each player's screen asks for the lists while near and draws only the rows on screen.
 	Lobby = {
 		Enabled = true,
-		WinsRows = 1000, -- the Most wins board's rows (10 reads of 100)
+		WinsRows = 100, -- the Top players board's rows, one read (was 1000; designer, 2026-10-25: top 100)
 		CountryRows = 300, -- the Top countries board's rows: every country there is
 		PageRows = 100, -- one read, and one page sent to a screen
 		TopReadSeconds = 60, -- the wins' first page and every country, read this often
-		DeepReadSeconds = 300, -- the wins' later pages (101 to 1000), read this often...
+		DeepReadSeconds = 300, -- the wins' later pages (past PageRows; none at 100 rows), read this often...
 		DeepPageGapSeconds = 2, -- ...a page every this many seconds, not all at once
 		NamesPerCall = 200, -- usernames asked of Roblox at a time (GetUserInfosByUserIdsAsync)
 		TallySeconds = 60, -- each server adds its countries' new wins to the store this often

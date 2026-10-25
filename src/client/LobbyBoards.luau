@@ -4,7 +4,7 @@
 -- src/server/Leaderboards.luau); each screen draws a lively card on each stand's board: the
 -- scrolling 8-ball header with its icon and title, the white sheet with a scrolling list, and
 -- a pinned You row under it (your place, or your country's).
--- - Cheap on a phone: a list of up to 1000 rows is drawn with Card.Pool row frames, reused as it
+-- - Cheap on a phone: a list of hundreds of rows (the countries) is drawn with Card.Pool row frames, reused as it
 --   scrolls (LeaderboardMath.window); avatar pictures load only for the rows on screen.
 -- - The lists are asked of the server (LeaderboardRead) only while the stands are within
 --   FetchStuds, at most every FetchSeconds; the wins' later pages only when scrolled to.
