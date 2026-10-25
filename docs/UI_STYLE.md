@@ -1312,7 +1312,7 @@ the white sheet with a scrolling list. A row: a gold, silver or bronze disc with
 1 to 3 (a plain number after), the avatar's head in an ink ring or the country's flag, the name,
 then the trophy just left of the wins in money gold, under an ink "Wins" column title (sky blue
 until the designer asked for black and bigger, the same day). The You strip is taller than a row
-with bigger words (`YouPx`, `YouTextPx`). Every other row has a pale stripe. A pale-blue You strip is
+with bigger words (`YouPx`, `YouTextPx`). Every other row (1, 3, 5...) has a solid pale-blue stripe a shade deeper than the You strip (designer, 2026-10-25: a clear line between rows; the first stripe was too faint). About 8 rows and a peek of the 9th show at once. A pale-blue You strip is
 pinned under the list ("You #37", "1,000+", or "Win a match vs a player to get on the board!";
 "Your country #3" with its flag). Every word has the house text, letter holes filled and the lip
 (HoleFill; designer, 2026-10-25: the same as every other text), on 12 reused rows for up to 1000. A gamepad's right-stick glyph shows on an ink disc at the header's

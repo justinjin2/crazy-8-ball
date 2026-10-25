@@ -4461,3 +4461,6 @@ timer of a new block stay the designer's call.
 - 2026-10-25: **The lobby boards stay sharp from far away** (designer: "super pixeley ... until you
   come very close"): a SurfaceGui's text is drawn at the board's size and shrunk unsmoothed, so a
   board now drops to fewer pixels a stud with distance (its contents scaled to match).
+- 2026-10-25: **The lobby boards' rows are striped in light blue** (designer: "every other row is
+  a slightly different color ... like the same light blue color"): the odd rows are solid
+  `{196, 224, 252}` (was `{226, 238, 252}` at half see-through, which vanished on the pale sheet).
