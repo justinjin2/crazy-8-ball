@@ -4456,4 +4456,5 @@ timer of a new block stay the designer's call.
 - 2026-10-25: **The player board is TOP PLAYERS** (designer: "change most wins to TOP PLAYERS");
   both boards get a "Wins" title over the numbers, and the trophy sits right beside each number.
   Then: the Wins title in black and bigger, the You / Your country strip bigger than the rows,
-  and the rows' words 2 px bigger.
+  and the rows' words 2 px bigger. And the rows' letter holes filled like every other text
+  (designer: "make it the same as the other fonts"; HoleFill was left off them to save copies).

@@ -181,11 +181,6 @@ local function newRow(board: Board, index: number): Row
 	value.Position = UDim2.new(1, -6, 0, 0)
 	value.Size = UDim2.new(0, C.ValueWidthPx - 8, 1, 0)
 	fixNumber(value, C.RowTextPx)
-	-- The rows' words keep a plain outline: HoleFill's ink-in-the-holes and lip would add four
-	-- copies of each (the title and the You strip keep them).
-	for _, label in { placeText, name, value } do
-		label:SetAttribute("NoHoleFill", true)
-	end
 	return {
 		frame = frame,
 		place = place,
@@ -517,7 +512,7 @@ local function build(model: Model, key: string, playerGui: Instance)
 		end
 		table.insert(board.rows, row)
 	end
-	gui.Parent = playerGui -- after the rows, so HoleFill sees their opt-out
+	gui.Parent = playerGui
 	list:GetPropertyChangedSignal("CanvasPosition"):Connect(function()
 		LobbyBoards.repaint(board)
 	end)
