@@ -560,7 +560,14 @@ local function onRead(player: Player, kind: any, a: any, b: any): any
 	end
 	if kind == "top" then
 		local you = LeaderboardMath.place(winsAll, "u", player.UserId)
-		local code = countryOf[player]
+		-- Asked once and cached; a board read right after joining waits for it (it said "isn't on
+		-- the board yet" for a minute).
+		local code = countryFor(player)
+		-- Before the save loads, the wins come from the player's own row.
+		local mine = player:GetAttribute("WinsVsPlayers")
+		if mine == nil and you then
+			mine = winsAll[you].v
+		end
 		return {
 			ok = true,
 			at = listsAt,
@@ -568,7 +575,7 @@ local function onRead(player: Player, kind: any, a: any, b: any): any
 			wins = table.move(winsAll, 1, math.min(#winsAll, LB.PageRows), 1, {}),
 			countries = countries,
 			you = you,
-			wins_mine = player:GetAttribute("WinsVsPlayers"),
+			wins_mine = mine,
 			country = code,
 			countryPlace = LeaderboardMath.place(countries, "c", code),
 		}
