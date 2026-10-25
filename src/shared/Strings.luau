@@ -242,6 +242,11 @@ return {
 		PcSub = "vs a bot",
 		Money = "Earn money still!",
 		Going = "Teleporting...",
+		-- Standing on a pad asks first (designer, 2026-10-25).
+		AskSolo = "Do you want to go to Solo Mode?",
+		AskPc = "Do you want to go to Practice Mode?",
+		Yes = "Yes",
+		No = "No",
 	},
 	Arena = {
 		WaitingFor = "Waiting for players %d/%d",

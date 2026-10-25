@@ -3532,6 +3532,15 @@ Config.Portals = {
 	TextHeightStuds = 16, -- the floating words' height above the floor
 	TextAheadStuds = 1, -- and this far in front of the arch (designer, 2026-10-10: closer)
 	CooldownSeconds = 6, -- after a try, the pad waits this long before it sends again
+	-- Ask first (designer, 2026-10-25: people stepped on a pad by accident and were sent off):
+	-- standing on a pad brings up "Do you want to go to Solo Mode?" Yes / No; Yes sends them, No
+	-- or walking off does not, and the pad asks again only after they have left it. Off: the
+	-- pad sends at once, as before. Each answer is logged (the PortalAsk custom event).
+	Ask = true,
+	AskAfterSeconds = 0.4, -- stood on the pad this long first, so running across it asks nothing
+	LeaveSlackStuds = 1.5, -- the pad counts as left this far past TriggerRadius (no flicker)
+	AskDisplayOrder = 30, -- the question's screen, over the HUD
+	AnswerLogSeconds = 2, -- a player's PortalAsk answers are logged at most this often
 	Colors = { Solo = { 70, 200, 255 }, Pc = { 255, 120, 220 } }, -- each portal's glow
 	FrameColor = { 245, 238, 225 }, -- the arch, like the rooftop's cream stone
 	-- The planter beds the portals stand in place of (Map.Props and Map.Collision.Props).

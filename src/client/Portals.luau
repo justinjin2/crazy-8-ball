@@ -5,8 +5,10 @@
 -- (hidden here as the portals come; the tutorial keeps the plain front row). Each is a cream
 -- stone arch with a glowing face in its colour, sparkles drifting up, a light, a round glowing
 -- pad in front (like the tables' pads, round) and floating words over it: "SOLO MODE" or
--- "PRACTICE MODE" / "vs a bot", and "Earn money still!". Standing on the pad asks the server
--- (the Portal remote); the arch is only the look.
+-- "PRACTICE MODE" / "vs a bot", and "Earn money still!". Standing on the pad asks "Do you want
+-- to go to Solo Mode?" (the kit's Yes / No dialog; designer, 2026-10-25: no more accidental
+-- trips); Yes asks the server (the Portal remote), No or walking off does not, and the pad asks
+-- again only once the player has left it. The arch is only the look.
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -17,6 +19,7 @@ local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local Net = require(Shared:WaitForChild("Net"))
 local HudParts = require(script.Parent.HudParts)
+local MenuFrame = require(script.Parent.MenuFrame)
 
 local P = Config.Portals
 local W = Strings.Portals
@@ -30,6 +33,13 @@ local folder: Folder? = nil
 local hidden: { [Instance]: Instance } = {} -- a planter bed -> its parent while hidden
 local pads: { { mode: string, x: number, z: number, y: number, sub: TextLabel } } = {}
 local lastSent = -math.huge
+-- The pad the player stands on (nil: none), since when, and its question.
+local onPad: { mode: string, x: number, z: number, y: number, sub: TextLabel }? = nil
+local onSince = 0
+local asked = false -- asked on this visit: not again until they leave the pad
+local dialog: MenuFrame.Dialog? = nil
+local leaving = false -- the question is closing because they walked off
+local askGui: ScreenGui? = nil
 
 local function rgb(c: { number }): Color3
 	return Color3.fromRGB(c[1], c[2], c[3])
@@ -253,11 +263,71 @@ local function refresh()
 		folder:Destroy()
 		folder = nil
 		table.clear(pads)
+		onPad = nil
+		local open = dialog
+		if open then
+			leaving = true
+			open.cancel()
+		end
 		hidePlanters(false)
 	end
 end
 
--- Standing on a pad asks the server (at most every CooldownSeconds).
+-- Ask the server to send the player through `pad`'s portal (at most every CooldownSeconds).
+local function go(pad: { mode: string, sub: TextLabel }, answer: string?)
+	local now = os.clock()
+	if now - lastSent < P.CooldownSeconds then
+		return
+	end
+	lastSent = now
+	pad.sub.Text = W.Going
+	Net.get("Portal"):FireServer(pad.mode, answer)
+	task.delay(P.CooldownSeconds, function()
+		pad.sub.Text = W.Money
+	end)
+end
+
+-- The question's screen: made once, over the HUD.
+local function askLayer(): Frame
+	local gui = askGui
+	if gui == nil then
+		local made = Instance.new("ScreenGui")
+		made.Name = "PortalAsk"
+		made.ResetOnSpawn = false
+		made.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+		made.DisplayOrder = P.AskDisplayOrder
+		made.Parent = player:WaitForChild("PlayerGui")
+		local room = HudParts.frame(made, "Room")
+		room.Size = UDim2.fromScale(1, 1)
+		askGui = made
+		gui = made
+	end
+	return (gui :: ScreenGui):FindFirstChild("Room") :: Frame
+end
+
+local function ask(pad: { mode: string, x: number, z: number, y: number, sub: TextLabel })
+	asked = true
+	leaving = false
+	dialog = MenuFrame.ask(askLayer(), {
+		title = W[pad.mode] or pad.mode,
+		text = if pad.mode == "Pc" then W.AskPc else W.AskSolo,
+		yes = W.Yes,
+		yesTone = "Green",
+		no = W.No,
+		noTone = "Red",
+		passThrough = true,
+	}, function(yes: boolean)
+		dialog = nil
+		if yes then
+			go(pad, "Yes")
+		else
+			Net.get("Portal"):FireServer(pad.mode, if leaving then "WalkedOff" else "No")
+		end
+	end)
+end
+
+-- Each frame: on a pad asks (once it has been stood on AskAfterSeconds), off it closes the
+-- question. Off (Config.Portals.Ask): standing on a pad sends at once, as before.
 local function step()
 	if folder == nil then
 		return
@@ -267,20 +337,33 @@ local function step()
 	if not (root and root:IsA("BasePart")) then
 		return
 	end
-	local now = os.clock()
+	local here = nil
 	for _, pad in pads do
 		local d = Vector2.new(root.Position.X - pad.x, root.Position.Z - pad.z).Magnitude
-		if d <= P.TriggerRadius and math.abs(root.Position.Y - pad.y) < 8 then
-			if now - lastSent >= P.CooldownSeconds then
-				lastSent = now
-				pad.sub.Text = W.Going
-				Net.get("Portal"):FireServer(pad.mode)
-				task.delay(P.CooldownSeconds, function()
-					pad.sub.Text = W.Money
-				end)
-			end
-			return
+		-- Entering takes TriggerRadius; staying, a little more (walking the edge doesn't flicker).
+		local reach = if pad == onPad then P.TriggerRadius + P.LeaveSlackStuds else P.TriggerRadius
+		if d <= reach and math.abs(root.Position.Y - pad.y) < 8 then
+			here = pad
+			break
 		end
+	end
+	if here ~= onPad then
+		onPad = here
+		onSince = os.clock()
+		asked = false
+		local open = dialog
+		if open then
+			leaving = true
+			open.cancel()
+		end
+	end
+	if here == nil then
+		return
+	end
+	if not P.Ask then
+		go(here, nil)
+	elseif not asked and os.clock() - onSince >= P.AskAfterSeconds then
+		ask(here)
 	end
 end
 

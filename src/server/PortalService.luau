@@ -6,12 +6,16 @@
 -- one-table arena of their own (GlobalQueue.botMatch with `practice` on its list) and sends
 -- them there (GlobalQueue.teleport). The arena starts their game the moment they arrive
 -- (ArenaService). In Studio the teleport cannot happen: the screen says so.
+-- The pad asks first on the client (Config.Portals.Ask; designer, 2026-10-25): the remote
+-- carries the answer, "Yes" (send) or "No" / "WalkedOff" (only logged), each logged as the
+-- PortalAsk custom event so the dashboard shows how many steps on a pad were not meant.
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared.Config)
 local Net = require(Shared.Net)
+local Funnel = require(script.Parent.Funnel)
 local GlobalQueue = require(script.Parent.GlobalQueue)
 local PlayerData = require(script.Parent.PlayerData)
 local Tables = require(script.Parent.TableService)
@@ -22,6 +26,7 @@ local P = Config.Portals
 local PortalService = {}
 
 local lastTry: { [Player]: number } = {}
+local lastAnswer: { [Player]: number } = {} -- the last PortalAsk logged (a few at most)
 local going: { [Player]: boolean } = {}
 local started = false
 
@@ -111,13 +116,28 @@ function PortalService.start()
 		return
 	end
 	started = true
-	Net.get("Portal").OnServerEvent:Connect(function(player: Player, mode: any)
-		if type(mode) == "string" then
-			send(player, mode)
+	Net.get("Portal").OnServerEvent:Connect(function(player: Player, mode: any, answer: any)
+		if type(mode) ~= "string" or portalOf(mode) == nil then
+			return
 		end
+		-- No answer: a client from before the question (or Ask off) sends at once, as before.
+		if answer == "Yes" or answer == "No" or answer == "WalkedOff" then
+			local now = os.clock()
+			if now - (lastAnswer[player] or -math.huge) >= P.AnswerLogSeconds then
+				lastAnswer[player] = now
+				Funnel.event(player, "PortalAsk", 1, mode, answer, Funnel.device(player))
+			end
+			if answer ~= "Yes" then
+				return
+			end
+		elseif answer ~= nil then
+			return
+		end
+		send(player, mode)
 	end)
 	Players.PlayerRemoving:Connect(function(player: Player)
 		lastTry[player] = nil
+		lastAnswer[player] = nil
 		going[player] = nil
 	end)
 end
