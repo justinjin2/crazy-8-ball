@@ -16687,6 +16687,75 @@ Config.Leaderboards = {
 	SignRowTextPx = 22, -- each row
 	SignTopPx = 70, -- the rows start this far down
 	SignPadPx = 30, -- the rows' side margins
+	-- The country board's store (designer, 2026-10-25): a two-letter country code -> that
+	-- country's wins vs people since the boards went in, added to by every server
+	-- (IncrementAsync) from its players' new wins (LeaderboardMath.newWins), a hidden flag too.
+	CountryStore = "Board_CountryWins_v1",
+	-- The lobby boards (designer, 2026-10-25; concept approved): Most wins and Top countries,
+	-- two stands at the far end of the centre aisle under the pergola, facing the spawn. Off:
+	-- no stands and no country tally, the boards as they were (the 60 s read sent to nobody).
+	-- Each player's screen asks for the lists while near and draws only the rows on screen.
+	Lobby = {
+		Enabled = true,
+		WinsRows = 1000, -- the Most wins board's rows (10 reads of 100)
+		CountryRows = 300, -- the Top countries board's rows: every country there is
+		PageRows = 100, -- one read, and one page sent to a screen
+		TopReadSeconds = 60, -- the wins' first page and every country, read this often
+		DeepReadSeconds = 300, -- the wins' later pages (101 to 1000), read this often...
+		DeepPageGapSeconds = 2, -- ...a page every this many seconds, not all at once
+		NamesPerCall = 200, -- usernames asked of Roblox at a time (GetUserInfosByUserIdsAsync)
+		TallySeconds = 60, -- each server adds its countries' new wins to the store this often
+		FetchStuds = 150, -- a screen asks for the lists while this close to a stand...
+		FetchSeconds = 60, -- ...at most this often (the server's lists change once a minute)
+		ViewStuds = 25, -- this close and facing a stand: it counts as seen, and a pad scrolls it
+		FacingDot = 0.4, -- facing: the camera's look and the way to the stand at most ~66 deg apart
+		CheckSeconds = 0.5, -- the distance and facing check runs this often (not every frame)
+		PadScrollRowsPerSecond = 9, -- the right stick pushed fully scrolls this many rows a second
+		PadDeadzone = 0.2, -- the right stick's travel ignored
+		RequestBurst = 8, -- LeaderboardRead calls a player may make in a burst...
+		RequestPerSecond = 0.5, -- ...refilled this fast
+		-- The stands (studs; a part's front is its -Z, so yaw 180 faces +Z, the spawn). A
+		-- 6-stud walk is left between them to the lounge steps (x ±14 from z -63.8).
+		Stands = {
+			{ Board = "Wins", X = -10.5, Z = -59.5, YawDegrees = 180 },
+			{ Board = "Countries", X = 10.5, Z = -59.5, YawDegrees = 180 },
+		},
+		FaceSize = { 15, 12, 0.6 }, -- the board: width, height, depth
+		LiftStuds = 3.5, -- the board's bottom edge above the floor
+		LegSize = { 0.9, 0.9 }, -- the two legs' width and depth (their height reaches the board)
+		LegInsetStuds = 1.6, -- each leg in from the board's side
+		FootSize = { 1.6, 0.5, 3 }, -- a leg's foot: width, height, depth
+		FaceColor = { 27, 32, 51 }, -- the board's back and rim (Kit Ink)
+		WoodColor = { 122, 58, 38 }, -- the legs and feet (the tables' wood)
+		-- The card on the board (SurfaceGui pixels; PixelsPerStud of them a stud).
+		Card = {
+			PixelsPerStud = 48,
+			MarginPx = 14, -- the card in from the board's edge (the ink rim shows round it)
+			CornerPx = 34,
+			HeaderPx = 92, -- the title band
+			IconPx = 70,
+			TitlePx = 58,
+			ListPadPx = 22, -- the rows in from the card's sides
+			ListTopGapPx = 12, -- under the header
+			RowPx = 40, -- a row's height
+			RowGapPx = 4, -- of it, left clear under each row
+			RowTextPx = 26,
+			PlacePx = 32, -- the place disc (a medal for 1 to 3)
+			PictureGapPx = 8,
+			ValueWidthPx = 110, -- the wins at the row's right end
+			TrophyPx = 28,
+			StripeTransparency = 0.5, -- every other row's pale stripe
+			StripeColor = { 226, 238, 252 },
+			YouPx = 46, -- the You strip pinned under the list
+			YouGapPx = 10,
+			YouColor = { 208, 234, 253 }, -- Kit.HeaderBottom: the pale blue band
+			Medals = { { 255, 201, 40 }, { 200, 212, 228 }, { 214, 140, 76 } }, -- gold, silver, bronze
+			HeadshotPx = 48, -- the avatar picture asked of Roblox (shown at PlacePx)
+			Pool = 14, -- row frames, reused as the list scrolls
+			PopStaggerSeconds = 0.03, -- the first rows pop in this far apart when the board fills
+			PadHintPx = 34, -- the right stick's glyph on the card while a pad is near
+		},
+	},
 }
 
 -- The player list, flush in the top-right corner of Roblox's top bar row like Roblox's own list
