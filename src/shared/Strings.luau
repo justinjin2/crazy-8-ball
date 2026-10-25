@@ -62,6 +62,12 @@ return {
 			PlayGlobal = "Play Global",
 			Searching = "Searching... %s", -- the search's time, "0:07"
 			MatchFound = "Match found!",
+			-- The host's match rules on the right side (HostRules; designer, 2026-10-14).
+			RulesTitle = "MATCH RULES",
+			HostPicks = "HOST PICKS", -- the title for everyone else on the pad
+			LevelXp = "x%s XP", -- on a level paying more rank XP: "x1.5 XP"
+			AbilitiesOn = "Abilities ON",
+			AbilitiesOff = "Abilities OFF",
 		},
 		OpenTable = "OPEN TABLE",
 		Solids = "SOLIDS",

@@ -5,7 +5,8 @@
 --                            on the left column's tiles)
 --   D-pad left               the right side: Daily Challenge first, then the offer, Settings,
 --                            Invite, Plus, and up onto the player list (Progression.padSide); the
---                            stick or D-pad moves, A presses, B goes back to walking
+--                            stick or D-pad moves, A presses, B goes back to walking. On a pad
+--                            they host, the match rules' card instead (HostRules, 2026-10-14)
 --   Y                        Rank, open or close (its picture on the Rank badge)
 --   L2                       Play Global on a waiting pad, or stop its search; Join an
 --                            opponent's ask (their pictures on those buttons)
@@ -24,6 +25,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
 
 local Config = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Config"))
+local GuiQA = require(script.Parent.GuiQA)
 local Menus = require(script.Parent.Menus)
 local PadMode = require(script.Parent.PadMode)
 local Progression = require(script.Parent.Progression)
@@ -46,6 +48,7 @@ export type Deps = {
 	leave: () -> (),
 	matchBar: any,
 	opponentPrompt: any,
+	hostRules: any, -- the host's match rules on a waiting pad (HostRules)
 }
 
 local HubPad = {}
@@ -66,6 +69,7 @@ local function bindSideBack(on: boolean)
 			function(_name: string, state: Enum.UserInputState): Enum.ContextActionResult
 				if state == Enum.UserInputState.Begin then
 					Progression.padSideBlur()
+					deps.hostRules:padBlur()
 				end
 				return Enum.ContextActionResult.Sink
 			end,
@@ -88,6 +92,14 @@ function HubPad.press(key: Enum.KeyCode): boolean
 	if key == SIDE then
 		if Progression.padSideOn() then
 			Progression.padSideBlur()
+			return true
+		end
+		if deps.hostRules.padFocused then
+			deps.hostRules:padBlur()
+			return true
+		end
+		-- On a pad they host, the match rules' card first (designer, 2026-10-14).
+		if deps.hostRules:padFocus() then
 			return true
 		end
 		return Progression.padSide()
@@ -125,6 +137,16 @@ local function dropStray()
 	end
 	if selected == nil then
 		Progression.padSideBlur() -- Roblox's own B, or a menu from the side closed
+		deps.hostRules:padBlur()
+		return
+	end
+	if deps.hostRules.padFocused then
+		if not deps.hostRules:holds(selected) then
+			deps.hostRules:padBlur() -- wandered off the card: back to walking
+			if GuiService.SelectedObject == selected then
+				GuiService.SelectedObject = nil
+			end
+		end
 		return
 	end
 	if Progression.padSideOn() then
@@ -182,12 +204,13 @@ function HubPad.update()
 	end
 	if deps.playing() then
 		Progression.padSideBlur()
+		deps.hostRules:padBlur()
 		bindSideBack(false)
 		return
 	end
 	dropStray()
 	freeTheStick()
-	bindSideBack(Progression.padSideOn())
+	bindSideBack(Progression.padSideOn() or deps.hostRules.padFocused)
 end
 
 function HubPad.start(given: Deps)
@@ -196,6 +219,10 @@ function HubPad.start(given: Deps)
 	end
 	started = true
 	deps = given
+	-- Studio's checks: GuiQA "pad", key name ("DPadLeft"): a controller press.
+	GuiQA.add("pad", function(key: string): boolean
+		return HubPad.press((Enum.KeyCode :: any)[key])
+	end)
 	UserInputService.InputBegan:Connect(function(input: InputObject, processed: boolean)
 		if processed or not string.find(input.UserInputType.Name, "^Gamepad") then
 			return

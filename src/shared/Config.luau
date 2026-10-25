@@ -9058,6 +9058,41 @@ Config.UI.MatchBar = {
 	PublicLobbyAttribute = "PublicLobby",
 }
 
+-- The host's match rules on a waiting lobby pad (HostRules; designer, 2026-10-14, TEMPORARY,
+-- Config.Multiplayer.HostRules): a small card on the right side, between Settings and the
+-- jump button, phone first. "MATCH RULES", the three levels stacked (the picked one lit) and
+-- the abilities switch. Everyone on the pad sees it; only the host presses it.
+Config.UI.HostRules = {
+	RightPx = 10, -- from the screen's right edge (clear of Play Global's X on a phone)
+	-- Its centre, as a share of the screen's height: a little above the middle, so it keeps
+	-- clear of a phone's jump button below and Settings above.
+	CenterShare = 0.47,
+	MaxHeightShare = 0.56, -- never taller than this share of the screen (it scales down)
+	PhoneScale = 0.8, -- on a phone (narrower than LuckyBlocks.UI.PhoneWidthPx), like the MatchBar
+	ZIndex = 26, -- the MatchBar's layer
+	Width = 168,
+	PadPx = 8, -- inside the card, round its rows
+	TitleTextPx = 17, -- "MATCH RULES" / "HOST PICKS"
+	TitleHeight = 22,
+	ButtonHeight = 36,
+	ButtonTextPx = 18,
+	ButtonGapPx = 6,
+	SwitchGapPx = 10, -- the abilities switch sits a little apart from the levels
+	PickedTone = "Yellow", -- the picked level (Config.UI.Kit.Buttons)
+	OtherTone = "White",
+	OnTone = "Green", -- abilities on
+	OffTone = "Red", -- abilities off
+	-- "x1.5 XP" at the right end of a level that pays more (Config.Ranks.ModeXp); the level's
+	-- name centres in what is left.
+	XpTextPx = 14,
+	XpHeight = 18,
+	XpWidth = 44,
+	XpInsetPx = 6, -- from the button's right edge
+	XpColor = { 255, 236, 120 }, -- a bonus gold, as the old host card's (outlined text)
+	-- Pressed: the choice shows at once; the server's word takes over after this long.
+	PressHoldSeconds = 1.5,
+}
+
 -- The day's win track over the lucky block hotbar (WinTrack; the designer's pick A on the mock
 -- page, 2026-10-08; economy v4 plan section 5): ten tiles in a white bar, one per counted win
 -- of the day, "Wins 3/10" and the time to the reset across its top edge. It takes the

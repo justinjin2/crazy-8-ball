@@ -66,6 +66,7 @@ local StreakHud = require(script.Parent.StreakHud)
 local MatchTargets = require(script.Parent.MatchTargets)
 local PadEffects = require(script.Parent.PadEffects)
 local MatchBar = require(script.Parent.MatchBar)
+local HostRules = require(script.Parent.HostRules)
 local TableSign = require(script.Parent.TableSign)
 local OpponentPrompt = require(script.Parent.OpponentPrompt)
 local Progression = require(script.Parent.Progression)
@@ -165,6 +166,7 @@ local placement: any = nil
 local guideline: any = nil
 local hud: any = nil
 local matchBar: any = nil
+local hostRules: any = nil
 local targets: any = nil
 local awaitingAt: number? = nil
 -- Time Stop: how many strikes the server had taken when this player sent one in stopped time
@@ -639,6 +641,8 @@ hud = MatchHUD.new(screen, action)
 local streakHud = StreakHud.new(screen, hub, hud)
 padGuide:attachLeave(hud.leave) -- the Circle beside Leave
 matchBar = MatchBar.new(screen, action)
+-- The host's match rules on the right side while the pad's bar is up (designer, 2026-10-14).
+hostRules = HostRules.new(screen, action)
 -- Ranks and money: the HUDs, nameplates, flying cash, result screen, NEW RANK! and roadmap.
 Progression.start(screen, {
 	-- Where a table's pocket is on screen, in this ScreenGui's pixels (it keeps clear of
@@ -1155,6 +1159,7 @@ HubPad.start({
 	leave = leave,
 	matchBar = matchBar,
 	opponentPrompt = opponentPrompt,
+	hostRules = hostRules,
 })
 -- The Gift's fall waits while a menu, a popup (the result screen, NEW RANK!) or a reel is up.
 GiftDrop.setBusy(function(): boolean
@@ -1408,7 +1413,8 @@ local function renderFrame(dt: number)
 				displayName = player.DisplayName,
 				connected = true,
 			})
-			predicted.hostId = s.hostId or player.UserId
+			-- A pad a lobby bot waits on is ours to host (MatchEngine: a real player first).
+			predicted.hostId = if s.hostId and s.hostId > 0 then s.hostId else player.UserId
 			matchBar:setSnapshot(predicted, player.UserId)
 			predictedPad = on
 		elseif predictedPad then
@@ -1445,6 +1451,15 @@ local function renderFrame(dt: number)
 			played = summariesHeard,
 		})
 		matchBar:update(workspace:GetServerTimeNow())
+		-- The match rules ride with the pad's bar (never the spawn pill's), after the tutorial.
+		if not hostRules:faking() then
+			local pad = matchBar.snapshot
+			hostRules:update(workspace:GetServerTimeNow(), {
+				snapshot = pad,
+				show = matchBar:isOpen() and not matchBar:isSpawnPill() and guided == false,
+				seated = pad ~= nil and hub.mySeat == pad.id,
+			})
+		end
 	end
 	-- Ranks and money: the rank HUD hides while you play, your match's nameplates too, and a
 	-- rank-up popup waits until your shot is over.
