@@ -40,6 +40,7 @@ local Camera = require(script.Parent.Camera)
 local DayCycle = require(script.Parent.DayCycle)
 local FirePit = require(script.Parent.FirePit)
 local FontTest = require(script.Parent.FontTest)
+local LobbyBoards = require(script.Parent.LobbyBoards)
 local HoleFill = require(script.Parent.HoleFill)
 local Guideline = require(script.Parent.Guideline)
 local Input = require(script.Parent.Input)
@@ -1176,6 +1177,9 @@ local mapAmbience = MapAmbience.new() -- the map's drifting sailboats
 local dayCycle = DayCycle.new() -- the map's day and sunset light (an arena starts at day)
 local firePit = FirePit.new() -- the fire pit's fire, lit at sunset
 local tableSign = TableSign.new(player:WaitForChild("PlayerGui"))
+if not isArena then
+	LobbyBoards.start(player:WaitForChild("PlayerGui")) -- the lobby's Most wins and Top countries
+end
 FontTest.watch(player:WaitForChild("PlayerGui")) -- Config.UI.FontTest's fonts, if any
 if Config.UI.Kit.HoleFill.Everywhere then
 	-- Solid ink in every outlined letter's holes, and the thick ink lip under them.

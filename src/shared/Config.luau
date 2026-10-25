@@ -16751,9 +16751,9 @@ Config.Leaderboards = {
 			YouColor = { 208, 234, 253 }, -- Kit.HeaderBottom: the pale blue band
 			Medals = { { 255, 201, 40 }, { 200, 212, 228 }, { 214, 140, 76 } }, -- gold, silver, bronze
 			HeadshotPx = 48, -- the avatar picture asked of Roblox (shown at PlacePx)
-			Pool = 14, -- row frames, reused as the list scrolls
+			Pool = 12, -- row frames, reused as the list scrolls (11 show at once)
 			PopStaggerSeconds = 0.03, -- the first rows pop in this far apart when the board fills
-			PadHintPx = 34, -- the right stick's glyph on the card while a pad is near
+			PadHintPx = 52, -- the right stick's glyph (on an ink disc) on the card while a pad is near
 		},
 	},
 }
