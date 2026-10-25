@@ -4486,3 +4486,7 @@ timer of a new block stay the designer's call.
   thumbstick walks off. Measured by the new `PortalAsk` custom event (portal, Yes / No /
   WalkedOff, device); nothing measured portal use before. `Config.Portals.Ask` off: the old
   instant send.
+- 2026-10-25: **1KLIKES code** (designer: the game hit its 1,000-like goal): 15 ability spins and
+  $10,000, always on; the Abilities code box and the tutorial name it (new players get both in
+  the tutorial), the next code at 2,000 likes. 250LIKES keeps working 6 more days and expires
+  2026-10-31 00:00 UTC (the designer's call, unlike 100LIKES, which expired on the day).

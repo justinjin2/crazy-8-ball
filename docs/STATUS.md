@@ -25,7 +25,10 @@ entry of `docs/archive/STATUS_HISTORY.md`.
   who switches Show my country flag off loses it within about two minutes); the **portals ask
   first** (`e498885c`, `Config.Portals.Ask`; check live on a phone, a PC and a pad: stand on the
   Solo pad, the question, No keeps you there, walking off closes it, Yes teleports; read the
-  `PortalAsk` custom event after a few days: how many answers are No or WalkedOff).
+  `PortalAsk` custom event after a few days: how many answers are No or WalkedOff); the **1KLIKES
+  code** (`0c253c15`: 15 spins + $10,000, the Abilities code box says USE CODE 1KLIKES / NEXT
+  CODE AT 2,000 LIKES, the tutorial gives it; 250LIKES works until 2026-10-31 00:00 UTC; check
+  live: redeem 1KLIKES once, then again for "already used").
 - **Published:** everything up to `c499ecf` (2026-10-12; the list is in STATUS_HISTORY). **Not
   yet published:** the Shop restock's "Epic or better!" tag removed (DECISIONS); the VIP card's perk
   list says "Gold chat tag" instead of "Rainbow chat tag" (`2c6972f`); the favorite card rewards
