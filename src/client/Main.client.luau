@@ -48,6 +48,7 @@ local Hub = require(script.Parent.Hub)
 local PowerCue = require(script.Parent.PowerCue)
 local SpinSelector = require(script.Parent.SpinSelector)
 local SettingsState = require(script.Parent.SettingsState)
+local Freecam = require(script.Parent.Freecam)
 local ZoomHint = require(script.Parent.ZoomHint)
 local PadGuide = require(script.Parent.PadGuide)
 local PadMode = require(script.Parent.PadMode)
@@ -973,6 +974,9 @@ end
 local seatedAt: number? = nil
 local leftPad: number? = nil
 hub:onSeatChanged(function(id)
+	if id ~= nil then
+		Freecam.stop("Auto") -- never filming at a table (the server refuses a seat meanwhile)
+	end
 	if id == nil and seatedAt then
 		leftPad = seatedAt
 	end
@@ -1154,7 +1158,8 @@ HubPad.start({
 		return snapshot
 	end,
 	playing = function(): boolean
-		return input.enabled
+		-- The lobby freecam has the pad too (its B, X, Y; the sticks fly the camera).
+		return input.enabled or Freecam.active()
 	end,
 	leave = leave,
 	matchBar = matchBar,

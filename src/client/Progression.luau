@@ -59,6 +59,7 @@ local TeleportScreen = require(script.Parent.TeleportScreen)
 local TradeMenu = require(script.Parent.TradeMenu)
 local UISound = require(script.Parent.UISound)
 local LuckyClient = require(script.Parent.LuckyClient)
+local Freecam = require(script.Parent.Freecam)
 local Purchased = require(script.Parent.Purchased)
 local RewardsFlyer = require(script.Parent.RewardsFlyer)
 local VipTag = require(script.Parent.VipTag)
@@ -615,10 +616,12 @@ function Progression.update(state: State)
 	playerList:setVisible(
 		not state.inMatch and not busy and not reelUp and not teleportUp() and not Menus.isOpen()
 	)
-	-- The lucky block hotbar: the lobby with nothing over it (its own bag aside).
+	-- The lucky block hotbar: the lobby with nothing over it (its own bag aside), and never in
+	-- the freecam (a held block is put away, so a click there throws nothing).
 	local menu = Menus.current()
 	LuckyClient.setVisible(
 		not state.inMatch
+			and not Freecam.active()
 			and (not busy or catching)
 			and not reelUp
 			and not teleportUp()

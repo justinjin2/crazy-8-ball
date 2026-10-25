@@ -8,8 +8,10 @@
 -- shows it at once and saves it). "Camera after a shot" has three buttons side by side instead
 -- (HORIZONTAL, VERTICAL, PLAYER; ShotView, Config.UI.Settings.Segments; designer, 2026-10-25):
 -- a press on one picks it, the lit pill in the view's colour slides under it and the grey line
--- names the view; a press elsewhere on the row (a gamepad's A) moves to the next view. Under the
--- rows the pale-blue Codes strip: the code icon, "Codes" with
+-- names the view; a press elsewhere on the row (a gamepad's A) moves to the next view. While
+-- Config.Freecam is enabled a last row, Freecam (Config.Settings.Actions: not saved), starts the
+-- lobby freecam and closes Settings, or stops it; a refusal shows in red on its grey line. Under
+-- the rows the pale-blue Codes strip: the code icon, "Codes" with
 -- the server's answer beside it, the box and a green Redeem (RewardsCodes). The page is drawn
 -- in units (Config.UI.Settings) with one scale, so a phone shows the same page whole. Gamepad:
 -- opening lands on the first row, down from the last row reaches the box; B closes (Menus).
@@ -26,6 +28,7 @@ local HudParts = require(script.Parent.HudParts)
 local ItemState = require(script.Parent.ItemState)
 local MenuFrame = require(script.Parent.MenuFrame)
 local Menus = require(script.Parent.Menus)
+local Freecam = require(script.Parent.Freecam)
 local RewardsCodes = require(script.Parent.RewardsCodes)
 local SettingsState = require(script.Parent.SettingsState)
 local UIAnim = require(script.Parent.UIAnim)
@@ -39,8 +42,15 @@ local K = Config.UI.Kit
 local W = Strings.Settings
 local FONT: Enum.Font = (Enum.Font :: any)[K.Font]
 local ICONS: { [string]: string } = U.Icons :: any
+-- The rows, top to bottom: the saved switches, then the action rows while their feature is on.
+local KEYS: { string } = table.clone(Config.Settings.Order)
+if Config.Freecam.Enabled then
+	for _, key in Config.Settings.Actions do
+		table.insert(KEYS, key)
+	end
+end
 -- The page's height in units: the rows with a gap under each, then the Codes strip.
-local PAGE_UNITS = #Config.Settings.Order * (U.RowUnits + U.GapUnits) + U.CodesUnits
+local PAGE_UNITS = #KEYS * (U.RowUnits + U.GapUnits) + U.CodesUnits
 
 local SettingsMenu = {}
 
@@ -132,7 +142,7 @@ function SettingsMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 			row.line.Text = (W.SegmentLines :: any)[row.key][view]
 			return
 		end
-		local on = SettingsState.get(row.key)
+		local on = if row.key == "Freecam" then Freecam.active() else SettingsState.get(row.key)
 		local goal = {
 			Position = if on then UDim2.new(1, -inset, 0.5, 0) else UDim2.new(0, inset, 0.5, 0),
 			AnchorPoint = if on then Vector2.new(1, 0.5) else Vector2.new(0, 0.5),
@@ -156,7 +166,38 @@ function SettingsMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		row.state.Position = UDim2.fromScale(if on then row.onX else 1 - row.onX, 0.5)
 	end
 
-	for _, key in Config.Settings.Order do
+	-- The Freecam row: on, Settings closes and the camera is free; off, it ends. A refusal (the
+	-- server's reason) shows on the row's grey line in red for a moment.
+	local refusedUntil = 0
+	local lineColor: Color3? = nil -- the grey line's own colour, put back after the red
+	local function pressFreecam(row: Row)
+		if Freecam.active() then
+			Menus.close(NAME)
+			Freecam.stop("Settings")
+			return
+		end
+		task.spawn(function()
+			local ok, why = Freecam.start("Settings")
+			if ok then
+				Menus.close(NAME)
+				return
+			end
+			lineColor = lineColor or row.line.TextColor3
+			row.line.Text = why or W.Lines[row.key]
+			row.line.TextColor3 = HudParts.tone("Red")
+			local token = os.clock() + U.RefusedSeconds
+			refusedUntil = token
+			task.delay(U.RefusedSeconds, function()
+				if refusedUntil == token then
+					refusedUntil = 0
+					row.line.Text = W.Lines[row.key]
+					row.line.TextColor3 = lineColor or row.line.TextColor3
+				end
+			end)
+		end)
+	end
+
+	for _, key in KEYS do
 		local button = Instance.new("TextButton")
 		button.Name = key
 		button.Text = ""
@@ -284,6 +325,10 @@ function SettingsMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 			end
 			if row.segments then
 				pick(ShotView.next(viewOf(key)))
+				return
+			end
+			if key == "Freecam" then
+				pressFreecam(row)
 				return
 			end
 			SettingsState.set(key, not SettingsState.get(key))
@@ -489,6 +534,11 @@ function SettingsMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 	end)
 
 	SettingsState.Changed:Connect(function()
+		for _, row in rows do
+			paint(row, true)
+		end
+	end)
+	Freecam.Changed:Connect(function()
 		for _, row in rows do
 			paint(row, true)
 		end

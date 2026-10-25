@@ -51,6 +51,7 @@ local saved: GuiObject? = nil -- the selection from before the first menu opened
 local bound = false
 local watcher: RBXScriptConnection? = nil
 local blocker: (() -> boolean)? = nil
+local only: string? = nil -- Menus.setOnly: the one menu that may open (nil: any)
 local escapeHooked = false
 
 local function isOpenHandle(handle: Handle): boolean
@@ -92,6 +93,12 @@ end
 --- screen, NEW RANK! or the case opening). Closing always works.
 function Menus.setBlocker(fn: (() -> boolean)?)
 	blocker = fn
+end
+
+--- Only menu `name` may open until this is called again with nil (the lobby freecam: Settings
+--- alone, so no popup's menu, the daily one say, opens over a clip; their callers try again).
+function Menus.setOnly(name: string?)
+	only = name
 end
 
 local function blocked(): boolean
@@ -234,7 +241,7 @@ end
 --- just switches the tab.
 function Menus.open(name: string, tab: string?): boolean
 	local handle = handles[name]
-	if not handle or blocked() then
+	if not handle or blocked() or (only ~= nil and name ~= only) then
 		return false
 	end
 	local current = Menus.current()

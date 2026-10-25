@@ -16617,6 +16617,7 @@ Config.UI.Settings = {
 	CodeTextUnits = 26, -- what is typed, and the hint
 	AnswerUnits = 22, -- the server's answer
 	MinTextPx = 12, -- no word smaller (a phone's smallest, UI_STYLE)
+	RefusedSeconds = 3, -- the Freecam row's refusal stays on its line in red this long
 	-- The open, on the frame's ids (Panel, Header, Basket, Title, Money, Close, Flair) and the
 	-- page's: the rows top to bottom, their switches, the strip, its pieces. The Shop's timings.
 	Open = {
