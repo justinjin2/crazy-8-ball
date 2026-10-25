@@ -619,6 +619,28 @@ end
 
 -- Draw `board` at the fewest pixels a stud (LodSteps) that still give its letters about
 -- LodOversample canvas pixels for each pixel on screen; a level changes after two passes agree.
+-- Each text's size limits at full detail: a UIScale shrinks a text's box but not its
+-- UITextSizeConstraint, so a scaled text would fill its box and grow on the board from far away
+-- (designer, 2026-10-25: "just keep it one consistent font size"). The limits scale with it.
+local textBase: { [UITextSizeConstraint]: { max: number, min: number } } = setmetatable(
+	{},
+	{ __mode = "k" }
+) :: any
+
+local function scaleTexts(board: Board, was: number, scale: number)
+	for _, limit in board.gui:GetDescendants() do
+		if limit:IsA("UITextSizeConstraint") then
+			local base = textBase[limit]
+			if not base then
+				base = { max = limit.MaxTextSize / was, min = limit.MinTextSize / was }
+				textBase[limit] = base
+			end
+			limit.MaxTextSize = math.max(1, math.floor(base.max * scale + 0.5))
+			limit.MinTextSize = math.max(1, math.floor(base.min * scale + 0.5))
+		end
+	end
+end
+
 local function sharpen(board: Board, camera: Camera)
 	local distance = (camera.CFrame.Position - board.face.Position).Magnitude
 	local onScreen = camera.ViewportSize.Y
@@ -643,6 +665,7 @@ local function sharpen(board: Board, camera: Camera)
 	local scale = pick / C.PixelsPerStud
 	board.gui.PixelsPerStud = pick
 	board.lod.Scale = scale
+	scaleTexts(board, was, scale)
 	board.pps = pick
 	list.CanvasPosition = Vector2.new(0, list.CanvasPosition.Y * scale / was)
 end
