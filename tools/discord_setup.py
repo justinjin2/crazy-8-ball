@@ -103,7 +103,7 @@ TYPE_TEXT, TYPE_CATEGORY, TYPE_NEWS, TYPE_FORUM = 0, 4, 5, 15
 
 RULES_TEXT = """**Welcome to Crazy 8 Ball!** Read these before you chat.
 
-**1.** Respect people. Criticize the game all you want, but don't attack players or devs.
+**1.** Be respectful. No personal attacks on players or devs.
 **2.** No slurs, hate, harassment or NSFW.
 **3.** No scams, account selling, trading for real money, or begging for Robux.
 **4.** No advertising other servers or games. Your own clips go in #clips.
@@ -118,7 +118,7 @@ See something bad? Right-click the message (long-press on a phone) and pick **Re
 
 # Rules screening: new members tick "I agree" to these before they can chat or DM anyone here.
 SCREENING_RULES = [
-    "Respect people. Criticize the game, not players or devs.",
+    "Be respectful. No personal attacks on players or devs.",
     "No slurs, hate, harassment or NSFW.",
     "No scams, account selling, real-money trading or begging for Robux.",
     "No advertising other servers or games.",
