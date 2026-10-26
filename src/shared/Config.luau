@@ -539,12 +539,13 @@ Config.Cue = {
 	-- on their screen, so it never hides the ball and the arc (designer, 2026-10-02).
 	-- Everyone else sees it whole. (tune)
 	RaisedCueFade = 0.95,
-	-- Any cue drawn more than this many degrees above CueElevationDegrees (lifted over a rail or
-	-- a ball by CueClearance), or raised by the player at all, has every effect off, for
-	-- everyone, until it comes back down or the shot is done (designer, 2026-10-06; the
-	-- stick's AuraOff, CueSkinLook). The rail lift is small far out (+0.75 at 25 in from a
-	-- rail, none past ~30 in) and steep close in (+3 at 15 in, +6 at 10 in, +19 at 5 in), so
-	-- 2 means "visibly lifted": within about 17 in of a rail. (tune)
+	-- The shooter's own cue, drawn more than this many degrees above CueElevationDegrees (lifted
+	-- over a rail or a ball by CueClearance), or raised by them at all, has every effect off on
+	-- their screen only, until it comes back down or the shot is done (designer, 2026-10-06;
+	-- everyone else sees it whole since 2026-10-26; the stick's AuraOff, CueSkinLook). The
+	-- rail lift is small far out (+0.75 at 25 in from a rail, none past ~30 in) and steep close
+	-- in (+3 at 15 in, +6 at 10 in, +19 at 5 in), so 2 means "visibly lifted": within about
+	-- 17 in of a rail. (tune)
 	RaisedFxOffDegrees = 2,
 
 	-- What a cue LOOKS like is catalog data (2026-09-28): each Progression/Catalog row has a

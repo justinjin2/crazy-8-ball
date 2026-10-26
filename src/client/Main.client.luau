@@ -1699,7 +1699,8 @@ local function renderFrame(dt: number)
 			-- Raised for a jump shot: on this screen only, nearly see-through, so it never
 			-- hides the ball or the arc (Config.Cue.RaisedCueFade).
 			local raised = ctx.elevation > Config.Cue.CueElevationDegrees
-			-- Raised by the player, or lifted visibly over a rail: every effect off.
+			-- Raised by the player, or lifted visibly over a rail: every effect off, on this
+			-- screen only (watchers see it whole, WatchedShooters).
 			local fxOff = raised
 				or out.pitch > Config.Cue.CueElevationDegrees + Config.Cue.RaisedFxOffDegrees
 			if cueStick:GetAttribute("AuraOff") ~= fxOff then

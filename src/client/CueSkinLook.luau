@@ -20,8 +20,9 @@
 --   * the aura stays on the cue as it moves: emitters are LockedToPart but for tiny specks,
 --     and an orbiter's ribbon shortens while the stick moves (Config.CueSkins.Drift);
 --   * the stick's AuraOff attribute turns every effect off at once while the cue is drawn
---     raised (designer, 2026-10-06: chosen or lifted over a rail, every cue): the aura, the
---     moving material, the outlines and the piece; only the stick itself stays;
+--     raised (designer, 2026-10-06: chosen or lifted over a rail; only the shooter's own cue
+--     on their own screen since 2026-10-26, Main): the aura, the moving material, the
+--     outlines and the piece; only the stick itself stays;
 --   * the stick's AuraQuiet attribute (AuraQuiet: in a match, the shooter's cue and, on your
 --     turn, every cue at your table) eases the aura down to its tier's Config.CueSkins.Quiet
 --     share: emitter rates, aura beams and lights;

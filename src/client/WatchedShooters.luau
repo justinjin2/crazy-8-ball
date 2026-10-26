@@ -419,12 +419,10 @@ local function step(
 	-- measured stands as the default one.
 	local body = AvatarPose.measureBody(character) or Config.Stance.DefaultBody
 	local pitch = slot.pitch or Config.Cue.CueElevationDegrees
-	-- Raised by its owner, or lifted visibly over a rail: every effect off on their cue
-	-- (CueSkinLook; Config.Cue.RaisedFxOffDegrees).
-	local fxOff = slot.elevation > Config.Cue.CueElevationDegrees
-		or pitch > Config.Cue.CueElevationDegrees + Config.Cue.RaisedFxOffDegrees
-	if slot.cue:GetAttribute("AuraOff") ~= fxOff then
-		slot.cue:SetAttribute("AuraOff", fxOff)
+	-- A raised cue drops its effects only on its shooter's own screen (Main): watchers always
+	-- see it whole (designer, 2026-10-26). A pooled stick never keeps an AuraOff it once had.
+	if slot.cue:GetAttribute("AuraOff") == true then
+		slot.cue:SetAttribute("AuraOff", false)
 	end
 	local still = slot.composed
 		and gap == nil
