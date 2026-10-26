@@ -19,8 +19,10 @@ local Cue = require(Shared.Physics.Cue)
 local Simulation = require(Shared.Physics.Simulation)
 local Engine = require(Shared.Rules.MatchEngine)
 local Ranking = require(script.Parent.Ranking)
+local Funnel = require(script.Parent.Funnel)
 local GlobalQueue = require(script.Parent.GlobalQueue)
 local PadBar = require(Shared.Matchmaking.PadBar)
+local PadExits = require(Shared.Matchmaking.PadExits)
 local Ranks = require(Shared.Progression.Ranks)
 local M = Config.Multiplayer
 local Q = M.QueueVisual
@@ -321,6 +323,26 @@ local function setText(object: TextLabel, text: string)
 	end
 end
 
+-- A 2v2 or 3v3 pad's waits that ended since the last refresh go to the TeamPad event
+-- (PadExits; Config.Multiplayer.Queue.Analytics).
+local function logPadExits(t: any)
+	t.padSince = t.padSince or {}
+	local e = t.engine
+	for _, exit in PadExits.step(t.padSince, e, now()) do
+		local p = Players:GetPlayerByUserId(exit.userId)
+		if p then
+			Funnel.event(
+				p,
+				M.Queue.Analytics.PadEvent,
+				math.round(exit.seconds),
+				Strings.Match.Mode:format(e.teamSize, e.teamSize),
+				exit.outcome,
+				Funnel.device(p)
+			)
+		end
+	end
+end
+
 -- The pad from the engine: how many are on it, whether it is full or its game is on, and the
 -- words under the mode. Attributes and words only change when they differ. The sign over it
 -- is the client's (TableSign), drawn from the snapshot every client already has.
@@ -345,6 +367,7 @@ local function refresh(t: any)
 		pad:SetAttribute("Count" .. side, n)
 		pad:SetAttribute("Full" .. side, sides and (not waiting or n >= e.teamSize))
 	end
+	logPadExits(t)
 	setText(
 		t.countText,
 		if not waiting

@@ -8053,6 +8053,16 @@ Config.Multiplayer = {
 			-- on it never flickers between the two. (tune)
 			DeadZoneStuds = 1,
 		},
+		-- The team queue's custom analytics events (designer, 2026-10-26: measure it before and
+		-- after its update). PadEvent: one per real player whose wait on a 2v2 or 3v3 pad ends,
+		-- value the seconds waited, fields the mode ("2v2"), how it ended (Started, Global,
+		-- PcFill or Left; PadExits) and the device. PingEvent: one per "needs players!" ask a
+		-- team pad sends (value how many got it; fields the mode and why: Step, Join or
+		-- Reminder) and one per Join pressed on one (field Joined).
+		Analytics = {
+			PadEvent = "TeamPad",
+			PingEvent = "TeamPing",
+		},
 	},
 	Barrier = { -- invisible wall around each table: nobody can touch or jump onto it
 		-- Beyond the rails. 5.5 in rails + 0.6 and 7 in rails + 0.36 put the wall in the same
