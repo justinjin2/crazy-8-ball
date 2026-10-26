@@ -4516,3 +4516,10 @@ timer of a new block stay the designer's call.
   idle, jump and Rthro run on `SelfAvatar` (Roblox's Self View copy of your avatar) and on
   player characters; restarting Animate 90 times in Studio did not reproduce it, so no change
   until the cause is found.
+- 2026-10-26: **Weekly community codes** (designer): a Discord server for the game (built by
+  `tools/discord_setup.py`), with an exclusive code each week, 5 ability spins, expiring after its
+  week. Six Live codes (off until `/code on`), each ending Monday 00:00 UTC: BREAKSHOT, BANKSHOT,
+  CUEBALL, TRICKSHOT, CORNERPOCKET, MASSESHOT. The Roblox description should point at Social Links
+  instead of naming Discord (Community Standards: off-platform links only through Social Links,
+  which are for age-checked users 16 and older). A `CodeRedeemed` custom event now names each code
+  used, because spin-only codes never reach the money log.

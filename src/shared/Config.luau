@@ -3498,6 +3498,15 @@ Config.Daily = {
 		LIKES25K = { Money = 25000, Blocks = { Rare = 1 }, Live = true },
 		LIKES50K = { Blocks = { Rare = 2 }, Live = true },
 		LIKES100K = { Blocks = { Epic = 1 }, Spins = 5, Live = true },
+		-- The weekly community codes (designer, 2026-10-26): 5 ability spins, posted in the
+		-- Discord's #codes. Each is off until `/code on <CODE>` and stops at the end of its
+		-- week (Monday 00:00 UTC to the next Monday), so switch it on on its Monday.
+		BREAKSHOT = { Spins = 5, Expires = 1793577600, Live = true }, -- Oct 26 to Nov 1
+		BANKSHOT = { Spins = 5, Expires = 1794182400, Live = true }, -- Nov 2 to Nov 8
+		CUEBALL = { Spins = 5, Expires = 1794787200, Live = true }, -- Nov 9 to Nov 15
+		TRICKSHOT = { Spins = 5, Expires = 1795392000, Live = true }, -- Nov 16 to Nov 22
+		CORNERPOCKET = { Spins = 5, Expires = 1795996800, Live = true }, -- Nov 23 to Nov 29
+		MASSESHOT = { Spins = 5, Expires = 1796601600, Live = true }, -- Nov 30 to Dec 6
 	} :: {
 		[string]: {
 			Money: number?,

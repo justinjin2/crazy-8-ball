@@ -20,7 +20,10 @@ entry of `docs/archive/STATUS_HISTORY.md`.
 - **Published by the designer 2026-10-25 (evening): everything pushed up to `e49ef20e`**, the
   lobby boards included (top 100, every country, No data yet), so the country store is counting
   real wins since then; the older not-yet-published notes below are live with it. **Pushed, not
-  yet live:** a top player's flag after their name on Top players and yours on its You strip, and no "100+" there off the board
+  yet live:** the **weekly community codes** (2026-10-26: BREAKSHOT, BANKSHOT, CUEBALL, TRICKSHOT,
+  CORNERPOCKET, MASSESHOT, 5 spins each, Live and off; each stops at the end of its Monday-to-Monday
+  UTC week; after publishing type `/code on BREAKSHOT`, redeem it once, and post it in the Discord's
+  #codes; watch the new `CodeRedeemed` custom event, field = the code); a top player's flag after their name on Top players and yours on its You strip, and no "100+" there off the board
   (`Board_PlayerFlags_v1`; check live: top players' flags appear as they visit a lobby, and one
   who switches Show my country flag off loses it within about two minutes); the **portals ask
   first** (`e498885c`, `Config.Portals.Ask`; check live on a phone, a PC and a pad: stand on the

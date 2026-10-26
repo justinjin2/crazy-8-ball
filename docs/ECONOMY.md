@@ -241,7 +241,9 @@ win-1 Mystery that first win gives two Mysteries (designer's pick); invites the
 Candy Cane Cue (section 4). **Codes**: WELCOME $5,000, 8BALL $2,500, ROOFTOP $2,500 (to
 2026-12-31), RELEASE 3 spins, 100LIKES 5 spins (2026-10-13, expired 2026-10-24), 250LIKES 10 spins (2026-10-24, expires 2026-10-31 00:00 UTC), **1KLIKES 15 spins + $10,000** (2026-10-25, the game's 1,000-like code, always on; the Abilities code box and the tutorial name it, so every new player gets it in the tutorial; next code at 2,000 likes). **Like codes** (switched on by the designer): 1K $10,000 + a Mystery,
 5K 2 Mysteries, 10K a Rare block + 3 spins, 25K a Rare block + $25,000, 50K 2 Rare blocks, 100K an
-Epic block + 5 spins.
+Epic block + 5 spins. **Weekly community codes** (2026-10-26, posted in the Discord's #codes, switched on by the
+designer each Monday): 5 spins each, one per week Monday 00:00 UTC to the next Monday: BREAKSHOT (to Nov 2),
+BANKSHOT (Nov 9), CUEBALL (Nov 16), TRICKSHOT (Nov 23), CORNERPOCKET (Nov 30), MASSESHOT (Dec 7).
 
 **Planned, not built** (Config.Planned): the Daily Challenge (its button is off for the release),
 Lucky Shot free (miss $250, grey $500, blue $1,000, red $2,500, gold a Mystery) and Golden Shot
