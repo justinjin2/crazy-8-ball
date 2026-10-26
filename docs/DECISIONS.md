@@ -4523,3 +4523,12 @@ timer of a new block stay the designer's call.
   instead of naming Discord (Community Standards: off-platform links only through Social Links,
   which are for age-checked users 16 and older). A `CodeRedeemed` custom event now names each code
   used, because spin-only codes never reach the money log.
+- 2026-10-26: **Small quality-of-life changes** (designer). On a phone the left column is smaller
+  (tiles 44 px, words 12 px, 4 px from the edge) so the thumb has more room to walk, and the
+  phone sizes now apply with the phone held upright too (the place's orientation is Sensor; an
+  upright phone got the computer's 78 px tiles). The host's MATCH RULES card shows each level's
+  old aim-line picture again (many lines, one, none), sits a little higher (0.44 of the screen)
+  and is a touch smaller on a phone (scale 0.7). The match bar shows each player's country
+  flag, very small, on their portrait's top-right corner, only while they show their flag;
+  never a bot's. No metric measures these directly; a phone's lobby-to-match funnel and session
+  length are the numbers to watch after publishing.

@@ -4,7 +4,7 @@ Current state only, rewritten in place. Keep it to about two screens (under 100 
 step is finished and verified, move its dated entry to the top of
 `docs/archive/STATUS_HISTORY.md` and keep only what is still true or still open here.
 
-Updated 2026-10-25 (the lobby boards). **The game is live** (officially released 2026-10-10). Work goes on
+Updated 2026-10-26 (phone QoL). **The game is live** (officially released 2026-10-10). Work goes on
 in `~/Desktop/8ball`, branch `gui-v4`. The STATUS from just before launch, in full, is the top
 entry of `docs/archive/STATUS_HISTORY.md`.
 
@@ -20,7 +20,11 @@ entry of `docs/archive/STATUS_HISTORY.md`.
 - **Published by the designer 2026-10-25 (evening): everything pushed up to `e49ef20e`**, the
   lobby boards included (top 100, every country, No data yet), so the country store is counting
   real wins since then; the older not-yet-published notes below are live with it. **Pushed, not
-  yet live:** the **weekly community codes** (2026-10-26: BREAKSHOT, BANKSHOT, CUEBALL, TRICKSHOT,
+  yet live:** **phone QoL** (2026-10-26, `4ca493c`, `4edd93e`, `6a7e40b`: the left column smaller and
+  nearer the edge on a phone, upright too; MATCH RULES with the old level pictures, higher and
+  smaller; a small country flag on each match-bar portrait; check live on a phone both ways up,
+  a pad's host card, and your flag on your portrait in a match, gone after switching it off);
+  the **weekly community codes** (2026-10-26: BREAKSHOT, BANKSHOT, CUEBALL, TRICKSHOT,
   CORNERPOCKET, MASSESHOT, 5 spins each, Live and off; each stops at the end of its Monday-to-Monday
   UTC week; after publishing type `/code on BREAKSHOT`, redeem it once, and post it in the Discord's
   #codes; watch the new `CodeRedeemed` custom event, field = the code); a top player's flag after their name on Top players and yours on its You strip, and no "100+" there off the board

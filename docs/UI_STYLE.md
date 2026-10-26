@@ -258,7 +258,9 @@ below are the summary; the skill has the numbers and code.
   computer, 30 on a phone). It is laid out once at those sizes and scaled down to fit the room
   beside Roblox's buttons (a UIScale), which is how it fits every resolution. Solo: the one
   team with its 15 balls, then Leave. The clock is big and centred between the teams, and only
-  shows while a clock runs. No names under the portraits (a rank badge goes there later).
+  shows while a clock runs. No names under the portraits (a rank badge goes there later). A
+  player's country flag, very small, on their portrait's top-right corner while they show it
+  (designer, 2026-10-26).
 - **No status card** (designer, 2026-09-26): whose turn it is shows as a small popup under the
   bar for 2 s when a turn starts ("YOUR TURN" in green with the cue, "OPPONENT'S TURN",
   "ALLY'S TURN"), like the foul popup but smaller; since 2026-10-12 OPPONENT'S TURN (and
@@ -398,8 +400,9 @@ then; the reel's rules hold for the blocks.
   Trade, each just its big glossy icon with no box behind it (designer, 2026-09-28: the blue
   candy tile went so the icons could be bigger) and the word in white with an ink outline
   across the icon's lower edge. Hover grows it, a press squishes it. 78 px slots on a
-  computer, 52 px on a phone (under the rank HUD there; centred on the left edge on a big
-  screen), always above the money HUD. Each tile draws over the one below, so a word is never
+  computer, 44 px on a phone either way up, words 12 px, 4 px from the edge (designer,
+  2026-10-26: more room to walk; was 52 px) (under the rank HUD there; centred on the left
+  edge on a big screen), always above the money HUD. Each tile draws over the one below, so a word is never
   under the next tile's red dot.
   **CUES** (concept 2b, approved 2026-10-08): the Classic Cue where every icon sits, a soft
   gold glow breathing behind it and three twinkles in the box's empty corners. A hover (or a
