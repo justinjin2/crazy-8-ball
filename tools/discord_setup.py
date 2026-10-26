@@ -5,7 +5,8 @@ The bot token is read from the macOS Keychain (service DISCORD_BOT_TOKEN) and ne
 The bot must be in exactly one server, with Administrator (needed to turn on Community).
 
     python3 tools/discord_setup.py              # inspect only: prints the server as it is
-    python3 tools/discord_setup.py --apply      # build it (safe to run again: skips what exists)
+    python3 tools/discord_setup.py --apply      # build it (safe to run again: skips what exists,
+                                                # but resets roles and channel permissions to these)
     python3 tools/discord_setup.py --apply --remove-template   # also delete Discord's starter channels
 
 Stdlib only (no requests), so it runs on a fresh Mac.
@@ -108,12 +109,22 @@ RULES_TEXT = """**Welcome to Crazy 8 Ball!** Read these before you chat.
 **4.** No advertising other servers or games. Your own clips go in #clips.
 **5.** Keep personal info private. Don't DM people asking for stuff.
 **6.** Feedback goes in #suggestions or #bug-reports, not spammed in #general.
-**7.** Mods have the final say. Follow Discord's Terms (13+ only).
+**7.** Staff have the final say. Follow Discord's Terms (13+ only).
 
 **What happens if you break them:** warning, then a 1 hour timeout, then a 24 hour timeout, then a ban.
 Scams, NSFW, slurs, raids and anything that puts a kid at risk are an instant ban.
 
-Need a mod? Right-click the message, then **Apps** or **Report Message**, or ping @Moderator."""
+See something bad? Right-click the message (long-press on a phone) and pick **Report Message**. AutoMod removes most of it by itself."""
+
+# Rules screening: new members tick "I agree" to these before they can chat or DM anyone here.
+SCREENING_RULES = [
+    "Respect people. Criticize the game, not players or devs.",
+    "No slurs, hate, harassment or NSFW.",
+    "No scams, account selling, real-money trading or begging for Robux.",
+    "No advertising other servers or games.",
+    "Keep personal info private. Don't DM people asking for stuff.",
+    "Feedback goes in #suggestions or #bug-reports.",
+]
 
 SUGGESTION_GUIDE = (
     "One idea per post. Say what you want and why it would make the game more fun. "
@@ -418,12 +429,28 @@ def main():
     }, reason)
     print("welcome screen + onboarding")
 
-    # The rules post (only once).
+    # The rules post: posted once, edited in place when RULES_TEXT changes.
+    rules_embed = {"embeds": [{"description": RULES_TEXT, "color": 0xF5B800}]}
     msgs = call("GET", f"/channels/{rules['id']}/messages?limit=5")
-    if not any(m["author"]["id"] == me["id"] for m in msgs):
-        call("POST", f"/channels/{rules['id']}/messages",
-             {"embeds": [{"description": RULES_TEXT, "color": 0xF5B800}]})
+    mine = [m for m in msgs if m["author"]["id"] == me["id"]]
+    if not mine:
+        call("POST", f"/channels/{rules['id']}/messages", rules_embed)
         print("rules posted")
+    elif (mine[0].get("embeds") or [{}])[0].get("description") != RULES_TEXT:
+        call("PATCH", f"/channels/{rules['id']}/messages/{mine[0]['id']}", rules_embed)
+        print("rules updated")
+
+    # Rules screening (the client's own endpoint; not in the public docs, so a refusal only warns).
+    try:
+        call("PATCH", f"/guilds/{gid}/member-verification", {
+            "enabled": True,
+            "description": "Crazy 8 Ball's server. Agree to the rules to start chatting.",
+            "form_fields": [{"field_type": "TERMS", "label": "Read and agree to the server rules",
+                             "values": SCREENING_RULES, "required": True}],
+        }, reason)
+        print("rules screening on")
+    except RuntimeError as err:
+        print(f"rules screening not set (turn it on in Server Settings): {err}")
 
     print("\nDone.")
     inspect(call("GET", f"/guilds/{gid}"), call("GET", f"/guilds/{gid}/roles"),
