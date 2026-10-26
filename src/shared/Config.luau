@@ -8038,9 +8038,9 @@ Config.Multiplayer = {
 		-- it (the Cancel button, designer 2026-09-27), so Request and Cancel cannot flood
 		-- everyone with popups. (tune)
 		RerequestSeconds = 3,
-		-- The matchmaking bar (designer, 2026-10-07): a host who steps onto a pad with no Roblox
-		-- friend in the server sends "<name> needs an opponent!" to everyone by themselves,
-		-- once per step-on; stepping off and on again sends it no sooner than this after the
+		-- The matchmaking bar (designer, 2026-10-07): a host who steps onto a pad sends
+		-- "<name> needs an opponent!" to everyone by themselves, friends in the server or not
+		-- (2026-10-09), once per step-on; stepping off and on again sends it no sooner than this after the
 		-- last one, so nobody is flooded with popups. (tune)
 		AutoRequestCooldownSeconds = 15,
 		-- Team pads split in two (designer, 2026-10-26): a 2v2 or 3v3 pad's halves are TEAM 1

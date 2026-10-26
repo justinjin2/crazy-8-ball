@@ -1,9 +1,7 @@
 --!strict
 -- Friends: whether a player has a Roblox friend in this server (designer, 2026-10-07, the
--- matchmaking bar). With none, stepping onto a pad sends "<name> needs an opponent!" to
--- everyone by itself (TableService) and Play Global shows after 3 s; with one, no popup goes
--- out (friends are assumed to come over) and Play Global waits 5 s. A friend in a match
--- counts too.
+-- matchmaking bar; a friend in a match counts too). Since 2026-10-09 the pad's popup and Play
+-- Global no longer depend on it: both go out at once, friends here or not (PadBar).
 --
 -- Roblox is asked once per pair (Player:IsFriendsWithAsync, which yields), on arrival; the
 -- answer is kept until either of them leaves. The result is the FriendHere attribute on each
