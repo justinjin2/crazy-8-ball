@@ -27,6 +27,7 @@ local Config = require(Shared.Config)
 local Strings = require(Shared.Strings)
 local Net = require(Shared.Net)
 local Engine = require(Shared.Rules.MatchEngine)
+local PadBar = require(Shared.Matchmaking.PadBar)
 local Ranks = require(Shared.Progression.Ranks)
 local Look = require(Shared.Bots.Look)
 local Rng = require(Shared.Bots.Rng)
@@ -187,14 +188,15 @@ local function seatInfo(bot: Bot): any
 end
 
 --- Sits `bot` at table `t`: on its pad (or `options.at`), seated in the engine. Options:
---- { team? (an arena's side), at? (CFrame), breakFor? (the real player who always breaks) }.
+--- { team? (an arena's side), side? (a split lobby pad's half), at? (CFrame), breakFor? (the
+--- real player who always breaks) }.
 --- True when seated.
 function BotService.seat(bot: Bot, t: any, options: any?): boolean
 	local o = options or {}
 	if bot.gone or bot.t then
 		return false
 	end
-	if not Tables.seatBot(t, bot.id, bot.name, o.team) then
+	if not Tables.seatBot(t, bot.id, bot.name, o.team, o.side) then
 		return false
 	end
 	local seat = Engine.seat(t.engine, bot.id)
@@ -896,58 +898,65 @@ function BotService.seatArenaBots(t: any, record: any): boolean
 end
 
 ---------------------------------------------------------------------------------------------
--- Fill with PC (2v2 and 3v3 lobby tables): once the host's side is on the pad, the other
--- side fills with PC robots at that side's average tier; the real side breaks.
+-- Fill with PC (designer, 2026-10-26; Config.Bots.Fallback.TeamFill): a short split 2v2 or
+-- 3v3 pad's host, after a wait with nobody new (PadBar.canFill, the rule their bar showed),
+-- fills every empty seat with a disguised bot near the real players' average tier, on
+-- whichever side is short; the real players keep their sides and break. The game pays and
+-- rates like any other (a disguised bot past 20 bot wins a day pays practice, as ever).
 ---------------------------------------------------------------------------------------------
 
 local function fillPc(t: any, p: Player, _payload: any): boolean
 	local e = t.engine
-	if e.phase ~= "Waiting" or e.hostId ~= p.UserId or e.teamSize < 2 or e.search then
+	if e.hostId ~= p.UserId or not PadBar.canFill(e, now()) then
 		return false
 	end
 	local people = {}
+	local lowest = math.huge
 	for _, s in e.seats do
 		if s.connected and not s.bot then
 			table.insert(people, s)
+			local q = Players:GetPlayerByUserId(s.userId)
+			lowest = math.min(lowest, Ranks.tierIndex(if q then playerTier(q) else "Bronze") or 1)
 		end
 	end
-	if #people ~= e.teamSize or Engine.count(e) ~= e.teamSize then
-		return false
-	end
-	local tier = averageTier(people)
-	local lowest = tier
-	for _, s in people do
-		local q = Players:GetPlayerByUserId(s.userId)
-		local own = if q then playerTier(q) else "Bronze"
-		if (Ranks.tierIndex(own) or 1) < (Ranks.tierIndex(lowest) or 1) then
-			lowest = own
-		end
-	end
+	local tiers = Config.Ranks.Tiers
+	local centre = Ranks.tierIndex(averageTier(people)) or 1
+	-- Each filler a different tier near the average, as the team fallback's.
+	local spread = { 0, 1, -1, 2, -2 }
 	local made: { Bot } = {}
-	for i = 1, e.teamSize do
-		local bot = BotService.spawn({ kind = "Pc", tier = tier, playerTier = lowest })
-		local at = Tables.padSpot(t, (i - (e.teamSize + 1) / 2) * 3)
-		if not bot or not BotService.seat(bot, t, { at = at, breakFor = p.UserId }) then
-			if bot then
-				BotService.remove(bot)
-			end
-			for _, other in made do
-				BotService.remove(other)
-			end
-			return false
-		end
-		table.insert(made, bot)
-	end
-	for _, s in e.seats do
-		s.presetTeam = if s.bot then 2 else 1
-	end
-	Tables.advance(t, now())
-	local started =
-		Engine.action(e, p.UserId, { kind = "Start", epoch = e.epoch, turnId = e.turnId }, now(), 1)
-	if not started then
+	local function undo()
 		for _, bot in made do
 			BotService.remove(bot)
 		end
+		e.pcFill = nil
+	end
+	for side = 1, 2 do
+		for slot = Engine.sideCount(e, side) + 1, e.teamSize do
+			local index = math.clamp(centre + (spread[#made + 1] or 0), 1, #tiers)
+			local bot = BotService.spawn({
+				kind = "Disguised",
+				tier = tiers[index],
+				playerTier = tiers[math.clamp(lowest, 1, #tiers)],
+				rematch = "Never",
+			})
+			-- On its half, 3 studs apart from the middle out.
+			local along = (if side == 1 then -1 else 1) * (slot - 0.5) * 3
+			local seat = { at = Tables.padSpot(t, along), side = side, breakFor = p.UserId }
+			if not bot or not BotService.seat(bot, t, seat) then
+				if bot then
+					BotService.remove(bot)
+				end
+				undo()
+				return false
+			end
+			table.insert(made, bot)
+		end
+	end
+	e.pcFill = true -- the TeamPad event's PcFill (PadExits)
+	Tables.advance(t, now())
+	local start = { kind = "Start", epoch = e.epoch, turnId = e.turnId }
+	if not Engine.action(e, p.UserId, start, now(), 1) then
+		undo()
 		return false
 	end
 	return true

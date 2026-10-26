@@ -2062,7 +2062,7 @@ return {
 		PcName = "%s Bot", -- the tier's name: "Gold Bot"
 		Angry = "AUGHHHH!", -- the tutorial bot's last word (bubble and chat)
 		ChatLine = "%s: %s", -- the chat line a bot "says": name, words
-		FillPc = "Fill with PC", -- 2v2/3v3 host card, once the host's side is full
+		FillPc = "Fill with PC", -- a short 2v2/3v3 pad's host, after a wait (MatchBar)
 		NameParts = {
 			Adjectives = {
 				"Pixel",

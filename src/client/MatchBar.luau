@@ -179,6 +179,21 @@ function MatchBar.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 	)
 	self.ask.Size = UDim2.fromOffset(B.GlobalWidth + 40, B.AskTextPx + 4)
 	self.ask.Visible = false
+	-- Fill with PC (designer, 2026-10-26): a short split team pad's host, after a wait, in
+	-- Play Global's place (PadBar.canFill); the server fills the empty seats and starts.
+	self.fill = HudParts.candy(bar, Strings.Bots.FillPc, function()
+		self.onAction("FillPc")
+	end, "Green", "Robot")
+	self.fill.Name = "FillPc"
+	self.fill.AnchorPoint = Vector2.new(0, 0.5)
+	self.fill.Position = self.global.Position
+	self.fill.Size = UDim2.fromOffset(B.GlobalWidth, B.GlobalHeight)
+	self.fill.ZIndex = 3
+	self.fill.Visible = false
+	HudParts.setButtonTextSize(self.fill, B.GlobalTextPx)
+	HudParts.setMinHit(self.fill, Config.Multiplayer.Style.TouchTargetPx)
+	self.fill.Selectable = false
+	HudParts.padKey(self.fill, padKey, Config.UI.Kit.PadKey.Button)
 	-- The red X while the search runs.
 	self.cancel = HudParts.candy(bar, "", function()
 		self:stopSearch()
@@ -380,7 +395,7 @@ function MatchBar.padPress(self: any): boolean
 	if not self.open or not self.root.Visible then
 		return false
 	end
-	for _, object in { self.global, self.cancel } do
+	for _, object in { self.global, self.fill, self.cancel } do
 		if object.Visible then
 			UIAnim.bounce(object)
 			return HudParts.pressCandy(object)
@@ -442,6 +457,7 @@ function MatchBar.arrange(self: any, kind: string, split: boolean?)
 	)
 	local buttonLeft = if offer then 0 else pillWidth - B.GlobalOverlapPx
 	self.global.Position = UDim2.fromOffset(buttonLeft, PILL_MID)
+	self.fill.Position = UDim2.fromOffset(buttonLeft, PILL_MID)
 	self.cancel.Position = UDim2.fromOffset(buttonLeft, PILL_MID)
 	self.ask.Position =
 		UDim2.fromOffset(buttonLeft + B.GlobalWidth / 2, HEIGHT - B.GlobalHeight - B.AskGapPx)
@@ -540,7 +556,7 @@ function MatchBar.update(self: any, now: number)
 	if not kind then
 		return
 	end
-	local global, cancel = false, false
+	local global, cancel, fill = false, false, false
 	if kind == "pad" then
 		local view = PadBar.view(self.snapshot, self.localUserId, now, self.press, self.dismissed)
 		local side = view.side
@@ -568,6 +584,7 @@ function MatchBar.update(self: any, now: number)
 		end
 		global = view.showGlobal and not TutorialAnchors.hidden("HostGlobal")
 		cancel = view.showCancel
+		fill = view.showFill
 	elseif kind == "solo" then
 		local waited = math.max(0, math.floor(now - soloAt))
 		local text = if soloFound
@@ -581,11 +598,20 @@ function MatchBar.update(self: any, now: number)
 		global = true
 	end
 	self:showGlobal(global)
+	if fill ~= self.fill.Visible then
+		if fill then
+			UIAnim.popIn(self.fill)
+		else
+			self.fill.Visible = false
+		end
+	end
+	-- "Don't want to wait?" over whichever offer shows.
+	self.ask.Visible = global or fill
 	self.cancel.Visible = cancel
 	self:reach(
 		if kind == "offer"
 			then B.GlobalWidth
-			elseif global then B.GlobalWidth - B.GlobalOverlapPx
+			elseif global or fill then B.GlobalWidth - B.GlobalOverlapPx
 			elseif cancel then B.CancelPx - B.GlobalOverlapPx
 			else 0
 	)

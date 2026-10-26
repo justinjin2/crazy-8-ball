@@ -37,7 +37,42 @@ export type View = {
 	sideCount: number,
 	sideFull: boolean,
 	switchable: boolean,
+	showFill: boolean, -- the host's Fill with PC (PadBar.canFill), in Play Global's place
 }
+
+--- Whether a split 2v2 or 3v3 pad's empty seats may be filled with PC players
+--- (Config.Bots.Fallback.TeamFill; designer, 2026-10-26): waiting with room and somebody on,
+--- no search, every seat on a side, nobody new for WaitSeconds, and not a lone whole side
+--- (that one has Play Global). Pure over a snapshot or the engine's own table (the server
+--- checks the same rule before it fills).
+function PadBar.canFill(snapshot: any, now: number): boolean
+	local F = Config.Bots.Fallback.TeamFill
+	local teamSize = snapshot.teamSize or 1
+	if
+		not F.Enabled
+		or teamSize < 2
+		or snapshot.phase ~= "Waiting"
+		or snapshot.search ~= nil
+		or snapshot.fixed
+	then
+		return false
+	end
+	local count, last = 0, -math.huge
+	local sides = { 0, 0 }
+	for _, seat in snapshot.seats or {} do
+		if seat.connected ~= false then
+			if seat.side ~= 1 and seat.side ~= 2 then
+				return false
+			end
+			count += 1
+			sides[seat.side] += 1
+			last = math.max(last, seat.joinedAt or now)
+		end
+	end
+	local loneSide = (sides[1] >= teamSize and sides[2] == 0)
+		or (sides[2] >= teamSize and sides[1] == 0)
+	return count > 0 and count < teamSize * 2 and not loneSide and now - last >= F.WaitSeconds
+end
 
 --- `userId`'s side on a split team pad's snapshot (their waiting seat's `side`), or nil.
 function PadBar.sideOf(snapshot: any, userId: number): number?
@@ -114,6 +149,7 @@ function PadBar.view(
 		sideCount = 0,
 		sideFull = false,
 		switchable = false,
+		showFill = false,
 	}
 	local side = view.side
 	if side then
@@ -140,9 +176,13 @@ function PadBar.view(
 	if not isHost or not room then
 		return view
 	end
-	-- A team table searches as a whole side (MatchEngine.canSearch).
-	view.needsSide = count < teamSize
-	view.showGlobal = not view.needsSide and not dismissed
+	-- A team table searches as a whole side (MatchEngine.canSearch). A short split pad that
+	-- has waited offers Fill with PC instead (its friends stay together).
+	view.needsSide = if view.side
+		then sideCount(snapshot, 1) < teamSize and sideCount(snapshot, 2) < teamSize
+		else count < teamSize
+	view.showFill = PadBar.canFill(snapshot, now)
+	view.showGlobal = not view.needsSide and not dismissed and not view.showFill
 	return view
 end
 

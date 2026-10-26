@@ -14735,6 +14735,17 @@ Config.Bots = {
 		TeamSeconds = 5,
 		WalkInStuds = 18, -- the arena bot walks this far in to its spot
 		WalkInSeconds = 4, -- at most this long, then it is put there
+		-- A short 2v2 or 3v3 pad (designer, 2026-10-26: "3 friends looking for one more"): after
+		-- WaitSeconds with nobody new stepping on and no search, its host's bar offers Fill
+		-- with PC (never automatic). Disguised bots of the real players' average tier take the
+		-- empty seats on whichever side; the real players keep theirs; the game pays and rates
+		-- like any other (a disguised bot past 20 bot wins a day pays the practice rows, as
+		-- ever). Not for a lone whole side (Play Global looks for real players first). Off:
+		-- no offer. (tune)
+		TeamFill = {
+			Enabled = true,
+			WaitSeconds = 30,
+		},
 	},
 	-- Lobby bots (the designer, 2026-10-02; public lobby servers only, never a private server
 	-- or an arena): the server looks like People people, so there are People minus the real

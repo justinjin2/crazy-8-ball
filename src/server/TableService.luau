@@ -400,6 +400,10 @@ end
 local function logPadExits(t: any)
 	t.padSince = t.padSince or {}
 	local e = t.engine
+	-- A Fill with PC is told only once (its game started); a new wait starts unfilled.
+	if e.phase == "Waiting" and e.pcFill and next(t.padSince) == nil then
+		e.pcFill = nil
+	end
 	for _, exit in PadExits.step(t.padSince, e, now()) do
 		local p = Players:GetPlayerByUserId(exit.userId)
 		if p then
@@ -1587,8 +1591,14 @@ end
 Service.ParticipantsGroup = PARTICIPANTS
 
 --- Seats a bot at table `t` (on `team` at an arena's table). True when seated.
-function Service.seatBot(t: any, userId: number, name: string, team: number?): boolean
-	local ok = Engine.join(t.engine, userId, name, name, now(), if arena then team else nil)
+function Service.seatBot(
+	t: any,
+	userId: number,
+	name: string,
+	team: number?,
+	side: number?
+): boolean
+	local ok = Engine.join(t.engine, userId, name, name, now(), if arena then team else nil, side)
 	if ok then
 		Service.broadcast(t)
 	end

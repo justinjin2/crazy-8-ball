@@ -255,4 +255,42 @@ function tests.a_team_pad_asks_again_on_a_join_and_reminds_a_few_times()
 	T.Enabled = was
 end
 
+-- Fill with PC (designer, 2026-10-26): a short split pad's host, after WaitSeconds with nobody
+-- new, in Play Global's place; never for a lone whole side, which searches worldwide.
+function tests.a_short_split_pad_offers_fill_with_pc_after_a_wait()
+	local F = Config.Bots.Fallback.TeamFill
+	local function split(sides: { number }, at: number): any
+		local users = {}
+		for i in sides do
+			table.insert(users, i)
+		end
+		local snap = pad(2, users)
+		for i, side in sides do
+			snap.seats[i].side = side
+			snap.seats[i].joinedAt = at
+		end
+		return snap
+	end
+	local friends = split({ 1, 1, 2 }, 100)
+	expect(not PadBar.canFill(friends, 100 + F.WaitSeconds - 1), "not yet")
+	expect(PadBar.canFill(friends, 100 + F.WaitSeconds), "3 friends waited")
+	local v = PadBar.view(friends, 1, 100 + F.WaitSeconds, NONE)
+	expect(v.showFill and not v.showGlobal, "Fill in Play Global's place")
+	expect(not PadBar.view(friends, 3, 100 + F.WaitSeconds, NONE).showFill, "the host's alone")
+	local lone = split({ 2, 2 }, 100)
+	expect(not PadBar.canFill(lone, 500), "a lone whole side searches instead")
+	local early = PadBar.view(lone, 1, 101, NONE)
+	expect(early.showGlobal and not early.needsSide)
+	expect(PadBar.canFill(split({ 1 }, 100), 500), "alone on a 2v2 pad")
+	local apart = PadBar.view(split({ 1, 2 }, 100), 1, 101, NONE)
+	expect(apart.needsSide and not apart.showGlobal, "one on each side: no whole side to send")
+	local searching = split({ 1, 1, 2 }, 100)
+	searching.search = { at = 101, users = { 1, 2 }, found = false }
+	expect(not PadBar.canFill(searching, 500))
+	local was = F.Enabled
+	F.Enabled = false
+	expect(not PadBar.canFill(friends, 500), "switched off")
+	F.Enabled = was
+end
+
 return tests
