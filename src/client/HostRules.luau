@@ -5,7 +5,8 @@
 -- Settings and the jump button (phone first):
 --
 --   MATCH RULES
---   [Classic]  [Difficult x1.5 XP]  [Challenger x2 XP]   stacked, the picked one lit yellow
+--   [Classic]  [Difficult x1.5 XP]  [Challenger x2 XP]   stacked, the picked one lit yellow,
+--                                                        each with its old aim-line picture
 --   [Abilities ON]                                       green, or red when off
 --
 -- Everyone on the pad sees it (the others under "HOST PICKS", greyed); only the host presses
@@ -78,15 +79,18 @@ function HostRules.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 	self.levels = {} :: { [string]: TextButton }
 	local y = R.PadPx + R.TitleHeight + R.ButtonGapPx
 	for i, level in ORDER do
+		-- The level's old picture at its left (designer, 2026-10-26): aim lines on a little
+		-- table, many, one or none, so each level says what it draws.
 		local b = HudParts.candy(card, Copy.Levels[level] or level, function()
 			self:pick("SetDifficulty", level)
-		end, R.OtherTone)
+		end, R.OtherTone, level)
 		b.Name = level
 		b.LayoutOrder = i
 		b.Position = UDim2.fromOffset(R.PadPx, y)
 		b.Size = UDim2.fromOffset(inner, R.ButtonHeight)
 		b.ZIndex = 3
 		HudParts.setButtonTextSize(b, R.ButtonTextPx)
+		HudParts.setIconShare(b, R.LevelIconShare)
 		HudParts.setMinHit(b, Config.Multiplayer.Style.TouchTargetPx)
 		self.levels[level] = b
 		-- "x1.5 XP" at the right end of a level that pays more rank XP; its words centre in

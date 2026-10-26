@@ -9132,20 +9132,26 @@ Config.UI.MatchBar = {
 -- the abilities switch. Everyone on the pad sees it; only the host presses it.
 Config.UI.HostRules = {
 	RightPx = 10, -- from the screen's right edge (clear of Play Global's X on a phone)
-	-- Its centre, as a share of the screen's height: a little above the middle, so it keeps
-	-- clear of a phone's jump button below and Settings above.
-	CenterShare = 0.47,
+	-- Its centre, as a share of the screen's height: above the middle, so it keeps clear of a
+	-- phone's jump button below and Settings above (designer, 2026-10-26: a little higher;
+	-- was 0.47).
+	CenterShare = 0.44,
 	MaxHeightShare = 0.56, -- never taller than this share of the screen (it scales down)
-	PhoneScale = 0.8, -- on a phone (narrower than LuckyBlocks.UI.PhoneWidthPx), like the MatchBar
+	-- On a phone (narrower than LuckyBlocks.UI.PhoneWidthPx); a touch smaller than the MatchBar's
+	-- 0.8 (designer, 2026-10-26), so the wider card with its pictures still takes less room.
+	PhoneScale = 0.7,
 	ZIndex = 26, -- the MatchBar's layer
-	Width = 168,
+	Width = 204, -- room for each level's picture and its XP tag (was 168 before the pictures)
 	PadPx = 8, -- inside the card, round its rows
 	TitleTextPx = 17, -- "MATCH RULES" / "HOST PICKS"
 	TitleHeight = 22,
 	ButtonHeight = 36,
-	ButtonTextPx = 18,
+	ButtonTextPx = 17, -- was 18, before the pictures took room
 	ButtonGapPx = 6,
 	SwitchGapPx = 10, -- the abilities switch sits a little apart from the levels
+	-- Each level's aim-line picture (Kit.Icons Classic, Difficult, Challenger), of the
+	-- button's height, at its left (designer, 2026-10-26: the old pictures back).
+	LevelIconShare = 0.95,
 	PickedTone = "Yellow", -- the picked level (Config.UI.Kit.Buttons)
 	OtherTone = "White",
 	OnTone = "Green", -- abilities on
