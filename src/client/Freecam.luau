@@ -39,8 +39,11 @@ local W = Strings.Freecam
 local HUD_NAME = "FreecamHud"
 local ACTION = "FreecamPad"
 -- Screens that stay on: invisible probes other screens measure with, the server refresh's
--- teleport screen, and Roblox's own freecam (the owner's Shift+P). Menus ("...Menu") stay too.
+-- teleport screen, Roblox's own freecam (the owner's Shift+P) and Roblox's touch controls (the
+-- phone's thumbstick, which flies the camera; designer, 2026-10-26: switched off with the rest,
+-- a phone could not move). Menus ("...Menu") stay too.
 local KEEP = {
+	TouchGui = true,
 	MenuTopbar = true,
 	TopbarRoom = true,
 	PowerSafeProbe = true,
