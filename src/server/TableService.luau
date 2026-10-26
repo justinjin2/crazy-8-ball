@@ -337,6 +337,14 @@ local function refresh(t: any)
 	pad:SetAttribute("Occupied", count > 0)
 	pad:SetAttribute("Count", count)
 	pad:SetAttribute("Full", not waiting or count >= capacity)
+	-- A split team pad (Engine.sidesOn): each half's count, and whether it is full or playing.
+	local sides = Engine.sidesOn(e)
+	pad:SetAttribute("Sides", sides)
+	for side = 1, 2 do
+		local n = if sides and waiting then Engine.sideCount(e, side) else 0
+		pad:SetAttribute("Count" .. side, n)
+		pad:SetAttribute("Full" .. side, sides and (not waiting or n >= e.teamSize))
+	end
 	setText(
 		t.countText,
 		if not waiting
@@ -827,6 +835,19 @@ local function outsideArea(t: any, root: BasePart, extra: number): boolean
 	return math.abs(x - fcx) > fx + extra or math.abs(y - fcy) > fy + extra
 end
 
+-- Which half of a split team pad (Engine.sidesOn) a root stands over: 1 on the pad's -x half
+-- in table studs, where the arena stands team 1, 2 on the other; nil within
+-- Sides.DeadZoneStuds of the line, where a player keeps the side they have.
+local function padHalf(t: any, root: BasePart): number?
+	local cx = Placement.queuePad(t.engine.teamSize)
+	local x = Placement.toTable(t.placement, root.Position.X, root.Position.Z)
+	local along = x * Config.Table.StudsPerInch - cx
+	if math.abs(along) <= M.Queue.Sides.DeadZoneStuds then
+		return nil
+	end
+	return if along < 0 then 1 else 2
+end
+
 -- Set below sendRequest: a host who just stepped on asks everyone free for an opponent.
 local askForOpponent: (t: any, host: Player, time: number) -> ()
 
@@ -855,6 +876,15 @@ local function poll(t: any, time: number)
 				end
 				if inQueueArea then
 					t.outside[p.UserId] = nil
+					-- Walked onto the other half of a split pad: their side, while it has room.
+					local half = if inside
+							and root
+							and Engine.sidesOn(e)
+						then padHalf(t, root)
+						else nil
+					if half and half ~= s.side then
+						Engine.setSide(e, p.UserId, half)
+					end
 				else
 					t.outside[p.UserId] = t.outside[p.UserId] or time
 					if time - t.outside[p.UserId] >= Queue.ExitGraceSeconds then
@@ -891,7 +921,8 @@ local function poll(t: any, time: number)
 		then
 			t.dwell[p.UserId] = t.dwell[p.UserId] or time
 			if time - t.dwell[p.UserId] >= Queue.DwellSeconds then
-				if Engine.join(e, p.UserId, p.Name, p.DisplayName, time) then
+				local half = if root and Engine.sidesOn(e) then padHalf(t, root) else nil
+				if Engine.join(e, p.UserId, p.Name, p.DisplayName, time, nil, half) then
 					seatOf[p.UserId] = e.id
 					t.freedAt[p.UserId] = nil
 					askForOpponent(t, p, time)

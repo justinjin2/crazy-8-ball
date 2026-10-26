@@ -149,7 +149,10 @@ function tests.a_ball_off_the_table_is_seen_landing_and_rolling_before_the_foul(
 	expire(m)
 	expect(m.phase == "Foul" and m.foul.reason == "OffTable")
 end
+-- Teams by arrival is the rule with the split pad off (Config.Multiplayer.Queue.Sides).
 function tests.the_next_in_hosts_when_the_host_leaves()
+	local was = M.Queue.Sides.Enabled
+	M.Queue.Sides.Enabled = false
 	local m = queue(2)
 	expect(m.hostId == 11 and m.phase == "Waiting" and m.deadline == nil)
 	expect(action(m, 11, "SetDifficulty", { value = "Challenger" }))
@@ -164,6 +167,7 @@ function tests.the_next_in_hosts_when_the_host_leaves()
 	expect(E.seat(m, 21).team == 1 and E.seat(m, 12).team == 2 and E.seat(m, 22).team == 1)
 	expect(E.seat(m, 14).team == 2 and E.seat(m, 14).slot == 2, "slots follow who came first")
 	expect(m.coin.headsTeam == 1 and m.coin.winnerTeam == 2 and m.coin.breaker == 12)
+	M.Queue.Sides.Enabled = was
 end
 function tests.rejects_duplicate_seats_a_full_pad_and_joins_in_a_match()
 	local m = queue(3)
@@ -1273,6 +1277,68 @@ function tests.soft_tap_is_legal_on_casual_tables_and_a_foul_on_ranked()
 		expect(wire ~= nil, "shot accepted")
 		expect(m.pending.judgement.foul == (if ranked then "NoRail" else nil), "rail rule by table")
 	end
+end
+
+-- The split team pad (designer, 2026-10-26; Config.Multiplayer.Queue.Sides): the half you stand
+-- on is your side, a full half sends you to the other, and the sides are the game's teams.
+function tests.a_split_pad_seats_each_on_the_half_they_stand_on()
+	expect(M.Queue.Sides.Enabled, "on by default")
+	local m = E.new(1, 2)
+	expect(E.sidesOn(m) and not E.sidesOn(E.new(2, 1)), "team pads only")
+	expect(E.join(m, 5, "5", "5", 0, nil, 2) and E.seat(m, 5).side == 2)
+	expect(E.join(m, 6, "6", "6", 1, nil, 2) and E.seat(m, 6).side == 2)
+	expect(E.join(m, 7, "7", "7", 2, nil, 2) and E.seat(m, 7).side == 1, "a full half: the other")
+	expect(E.join(m, 8, "8", "8", 3) and E.seat(m, 8).side == 1, "no half given: the one with room")
+	expect(E.seat(m, 5).team == nil, "no team until the game starts")
+	expect(start(m))
+	expect(E.seat(m, 5).team == 2 and E.seat(m, 6).team == 2, "friends together")
+	expect(E.seat(m, 7).team == 1 and E.seat(m, 8).team == 1)
+	expect(E.seat(m, 5).slot == 1 and E.seat(m, 6).slot == 2, "slots by arrival")
+	expect(m.coin.headsTeam == 2, "the host's side calls heads")
+end
+function tests.walking_across_a_split_pad_switches_only_into_room()
+	local m = E.new(1, 2)
+	E.join(m, 5, "5", "5", 0, nil, 1)
+	E.join(m, 6, "6", "6", 1, nil, 1)
+	E.join(m, 7, "7", "7", 2, nil, 2)
+	local rev = m.revision
+	expect(E.setSide(m, 5, 2) and E.seat(m, 5).side == 2 and m.revision > rev)
+	expect(not E.setSide(m, 6, 2), "that side is full now")
+	expect(not E.setSide(m, 5, 2), "already there")
+	expect(not E.setSide(m, 5, 3), "two sides only")
+	expect(not E.setSide(m, 99, 1), "not on the pad")
+	local pair = E.new(2, 1)
+	E.join(pair, 5, "5", "5", 0, nil, 2)
+	expect(pair.seats[1].side == nil and not E.setSide(pair, 5, 2), "a 1v1 pad has no sides")
+	E.join(m, 8, "8", "8", 3, nil, 1)
+	expect(start(m))
+	expect(not E.setSide(m, 6, 2), "not once the game starts")
+end
+function tests.a_split_pads_search_takes_a_full_side_and_a_switch_ends_it()
+	local m = E.new(1, 2)
+	E.join(m, 5, "5", "5", 0, nil, 1)
+	E.join(m, 6, "6", "6", 1, nil, 2)
+	expect(not E.canSearch(m, 5), "one on each side: no whole side")
+	E.join(m, 7, "7", "7", 2, nil, 2)
+	expect(E.fullSide(m) == 2 and E.canSearch(m, 5), "three friends, a whole side on 2")
+	local users = E.setSearch(m, 3)
+	expect(#users == 2 and users[1] == 6 and users[2] == 7, "the full side, not the first two")
+	expect(not E.setSide(m, 5, 2), "no room there")
+	expect(E.setSide(m, 6, 1) and m.search == nil, "a side member walking across ends the search")
+	expect(E.fullSide(m) == 1 and E.canSearch(m, 5), "now the host's side is whole")
+	expect(E.searchParty(m)[1] == 5 and E.searchParty(m)[2] == 6)
+	local found = E.new(2, 2)
+	E.join(found, 5, "5", "5", 0, nil, 1)
+	E.join(found, 6, "6", "6", 1, nil, 1)
+	E.setSearch(found, 2)
+	E.searchFound(found, { 5, 6 }, 3)
+	expect(not E.setSide(found, 5, 2), "a found match keeps its sides")
+end
+function tests.arena_tables_keep_the_queues_teams_with_sides_on()
+	local m = E.new(1, 2)
+	m.fixed = true
+	expect(not E.sidesOn(m))
+	expect(E.join(m, 5, "5", "5", 0, 2) and E.seat(m, 5).side == nil and E.seat(m, 5).team == 2)
 end
 
 return tests

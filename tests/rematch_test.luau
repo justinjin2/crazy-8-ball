@@ -175,7 +175,11 @@ function tests.an_arena_table_keeps_the_queues_teams()
 	expect(m.phase == "Waiting" and m.fixed, "still an arena table after it frees")
 end
 
+-- With the split pad off (Config.Multiplayer.Queue.Sides): the first whole side by arrival.
 function tests.a_global_search_takes_a_whole_side_from_the_pad()
+	local sides = H.require("Config").Multiplayer.Queue.Sides
+	local was = sides.Enabled
+	sides.Enabled = false
 	local one = E.new(1, 1)
 	E.join(one, 5, "a", "a", 0)
 	expect(E.canSearch(one, 5), "1v1 alone")
@@ -195,6 +199,7 @@ function tests.a_global_search_takes_a_whole_side_from_the_pad()
 	expect(two.search ~= nil, "the one left over may go")
 	E.remove(two, 6, 5)
 	expect(two.search == nil, "a party member off the pad ends it")
+	sides.Enabled = was
 end
 
 function tests.a_searching_pad_neither_plays_solo_nor_requests()

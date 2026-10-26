@@ -143,16 +143,65 @@ function Engine.capacity(t: any): number
 	return t.teamSize * 2
 end
 
+--- Whether the players waiting on this table's pad pick their side by the half they stand on
+--- (designer, 2026-10-26; Config.Multiplayer.Queue.Sides): a lobby 2v2 or 3v3 table. A
+--- waiting seat then has a `side` (1 or 2), which becomes its team when the game starts.
+function Engine.sidesOn(t: any): boolean
+	return M.Queue.Sides.Enabled == true and t.teamSize >= 2 and not t.fixed
+end
+
+--- How many connected players wait on side `side` of the pad.
+function Engine.sideCount(t: any, side: number): number
+	local n = 0
+	for _, s in t.seats do
+		if s.connected and s.side == side then
+			n += 1
+		end
+	end
+	return n
+end
+
+-- The side a player stepping on takes: the one they stand on while it has room, else the one
+-- with room (the emptier, team 1 on a tie). Nil when both are full.
+local function sideFor(t: any, wanted: number?): number?
+	local one, two = Engine.sideCount(t, 1), Engine.sideCount(t, 2)
+	if wanted == 1 and one < t.teamSize then
+		return 1
+	elseif wanted == 2 and two < t.teamSize then
+		return 2
+	elseif one < t.teamSize and (one <= two or two >= t.teamSize) then
+		return 1
+	elseif two < t.teamSize then
+		return 2
+	end
+	return nil
+end
+
+--- A side whose every place is taken (the host's first, then 1, then 2), or nil.
+function Engine.fullSide(t: any): number?
+	local host = t.hostId and Engine.seat(t, t.hostId)
+	local first = if host and (host.side == 1 or host.side == 2) then host.side else 1
+	for _, side in { first, 3 - first } do
+		if Engine.sideCount(t, side) >= t.teamSize then
+			return side
+		end
+	end
+	return nil
+end
+
 --- Step onto the table's pad. Only while the table waits, and only while it has room. The
 --- seat has no team or slot until the game starts. An arena's table (`t.fixed`) seats each
---- player on the `team` the global queue matched them in (designer, 2026-09-28).
+--- player on the `team` the global queue matched them in (designer, 2026-09-28). On a split
+--- team pad (Engine.sidesOn) the seat takes `side`, the half they stepped on, or the other
+--- one when that is full.
 function Engine.join(
 	t: any,
 	userId: number,
 	name: string,
 	displayName: string,
 	now: number,
-	team: number?
+	team: number?,
+	side: number?
 ): boolean
 	if t.phase ~= "Waiting" then
 		return false
@@ -176,8 +225,33 @@ function Engine.join(
 		connected = true,
 		host = false,
 		team = team,
+		side = if Engine.sidesOn(t) then sideFor(t, side) else nil,
 	})
 	rehost(t)
+	t.revision += 1
+	return true
+end
+
+--- A waiting player walked onto the other half of a split pad: they change side while it has
+--- room. A switch by one of a running search's side ends the search, as stepping off does
+--- (the server cancels it); once a match is found the sides stand.
+function Engine.setSide(t: any, userId: number, side: number): boolean
+	local s = Engine.seat(t, userId)
+	if
+		t.phase ~= "Waiting"
+		or not Engine.sidesOn(t)
+		or not s
+		or (side ~= 1 and side ~= 2)
+		or s.side == side
+		or Engine.sideCount(t, side) >= t.teamSize
+		or (t.search and t.search.found)
+	then
+		return false
+	end
+	s.side = side
+	if t.search and table.find(t.search.users, userId) then
+		t.search = nil
+	end
 	t.revision += 1
 	return true
 end
@@ -828,8 +902,8 @@ function Engine.moveCue(t: any, userId: number, request: any, now: number): bool
 end
 
 -- The host's Start: teams from the box, then the coin at once (no countdown, designer
--- 2026-09-25). Two players split by who came first, the host being team A; four or six by
--- the half each stands in, slots in the order they came. The host's team calls heads.
+-- 2026-09-25). By who came first, the host being team A, or on a split team pad by the side
+-- each picked (Engine.sidesOn); slots in the order they came. The host's team calls heads.
 function start(t: any, host: any, now: number, coinWinner: number?)
 	local seats = {}
 	for _, s in t.seats do
@@ -849,6 +923,7 @@ function start(t: any, host: any, now: number, coinWinner: number?)
 		local team = if t.fixed and s.team
 			then s.team
 			elseif s.presetTeam == 1 or s.presetTeam == 2 then s.presetTeam
+			elseif s.side == 1 or s.side == 2 then s.side
 			else (i - 1) % 2 + 1
 		s.presetTeam = nil
 		slots[team] += 1
@@ -958,11 +1033,13 @@ function Engine.startFixed(t: any, now: number, coinWinner: number?): boolean
 end
 
 --- The players a global search takes from a pad: the first `teamSize` on it by arrival (the
---- host first). Anyone else stays and hosts the pad (designer, 2026-09-28).
+--- host first), or on a split team pad a whole side (Engine.fullSide). Anyone else stays and
+--- hosts the pad (designer, 2026-09-28).
 function Engine.searchParty(t: any): { number }
+	local side = if Engine.sidesOn(t) then Engine.fullSide(t) else nil
 	local seats = {}
 	for _, s in t.seats do
-		if s.connected then
+		if s.connected and (side == nil or s.side == side) then
 			table.insert(seats, s)
 		end
 	end
@@ -977,7 +1054,8 @@ function Engine.searchParty(t: any): { number }
 end
 
 --- Whether the host may start a global search now: waiting, a whole side on the pad (1v1
---- alone; 2 for 2v2, 3 for 3v3) and room left for the local game, no search yet.
+--- alone; 2 for 2v2, 3 for 3v3; on a split pad one half full) and room left for the local
+--- game, no search yet.
 function Engine.canSearch(t: any, userId: number): boolean
 	local n = Engine.count(t)
 	return t.phase == "Waiting"
@@ -986,6 +1064,7 @@ function Engine.canSearch(t: any, userId: number): boolean
 		and t.hostId == userId
 		and n >= t.teamSize
 		and n < Engine.capacity(t)
+		and (not Engine.sidesOn(t) or Engine.fullSide(t) ~= nil)
 end
 
 --- The search began (the server has put it in the queue). Returns its players.

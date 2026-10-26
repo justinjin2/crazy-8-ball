@@ -8043,6 +8043,16 @@ Config.Multiplayer = {
 		-- once per step-on; stepping off and on again sends it no sooner than this after the
 		-- last one, so nobody is flooded with popups. (tune)
 		AutoRequestCooldownSeconds = 15,
+		-- Team pads split in two (designer, 2026-10-26): a 2v2 or 3v3 pad's halves are TEAM 1
+		-- and TEAM 2, and the half you stand on is your side (team 1 on the pad's -X half, as
+		-- the arena stands its sides). Stepping onto a full half seats you on the other one;
+		-- walking across switches while that side has room. Off: teams by arrival, A B A B.
+		Sides = {
+			Enabled = true,
+			-- Within this many studs of the line a player keeps the side they have, so standing
+			-- on it never flickers between the two. (tune)
+			DeadZoneStuds = 1,
+		},
 	},
 	Barrier = { -- invisible wall around each table: nobody can touch or jump onto it
 		-- Beyond the rails. 5.5 in rails + 0.6 and 7 in rails + 0.36 put the wall in the same
