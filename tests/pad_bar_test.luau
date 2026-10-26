@@ -217,4 +217,42 @@ function tests.a_split_pad_shows_your_side_and_the_switch_hint()
 	expect(PadBar.sideOf(snap, 99) == nil)
 end
 
+-- "<name>'s 2v2 needs 1 more!" (designer, 2026-10-26): again on each join while short, then a
+-- reminder every ReminderSeconds, at most MaxReminders a wait.
+function tests.a_team_pad_asks_again_on_a_join_and_reminds_a_few_times()
+	local T = Config.Multiplayer.Queue.TeamPings
+	local function ask(over: any): string?
+		local args = {
+			teamSize = 2,
+			count = 2,
+			capacity = 4,
+			searching = false,
+			joined = false,
+			lastAt = 100,
+			since = 90,
+			reminders = 0,
+			now = 101,
+		}
+		for k, v in over do
+			args[k] = v
+		end
+		if over.neverAsked then
+			args.lastAt = nil
+		end
+		return PadBar.teamAsk(args)
+	end
+	expect(ask({ joined = true }) == "Join")
+	expect(ask({}) == nil, "too soon for a reminder")
+	expect(ask({ now = 100 + T.ReminderSeconds }) == "Reminder")
+	expect(ask({ now = 100 + T.ReminderSeconds, reminders = T.MaxReminders }) == nil, "enough")
+	expect(ask({ neverAsked = true, now = 90 + T.ReminderSeconds }) == "Reminder", "never asked")
+	expect(ask({ joined = true, count = 4 }) == nil, "full")
+	expect(ask({ joined = true, searching = true }) == nil, "searching worldwide")
+	expect(ask({ joined = true, teamSize = 1, capacity = 2, count = 1 }) == nil, "1v1 as before")
+	local was = T.Enabled
+	T.Enabled = false
+	expect(ask({ joined = true }) == nil, "switched off")
+	T.Enabled = was
+end
+
 return tests

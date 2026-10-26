@@ -958,6 +958,8 @@ end
 
 -- Set below sendRequest: a host who just stepped on asks everyone free for an opponent.
 local askForOpponent: (t: any, host: Player, time: number) -> ()
+-- Set below askForOpponent: a team pad asks again on a join, and reminds while short.
+local askAgain: (t: any, time: number, joined: boolean) -> ()
 
 local function poll(t: any, time: number)
 	local e = t.engine
@@ -1033,7 +1035,11 @@ local function poll(t: any, time: number)
 				if Engine.join(e, p.UserId, p.Name, p.DisplayName, time, nil, half) then
 					seatOf[p.UserId] = e.id
 					t.freedAt[p.UserId] = nil
-					askForOpponent(t, p, time)
+					if e.hostId == p.UserId then
+						askForOpponent(t, p, time)
+					else
+						askAgain(t, time, true)
+					end
 				end
 			end
 		else
@@ -1063,10 +1069,17 @@ function Service.setRequestFilter(fn: ((host: Player, player: Player) -> boolean
 	requestFilter = fn
 end
 
+-- Who last got a popup and from which table (userId -> { at, tableId }): a team pad's ask
+-- skips anyone another table asked within TeamPings.PerPlayerSeconds (designer, 2026-10-26).
+local lastPopup: { [number]: { at: number, tableId: number } } = {}
+
 -- Ask everyone free in the server (not seated at any table) whether they want to play at
--- the host of table `t`'s table (designer, 2026-09-27).
-local function sendRequest(t: any, host: Player)
+-- the host of table `t`'s table (designer, 2026-09-27). The ask carries how many more the
+-- pad needs ("<name>'s 2v2 needs 1 more!"). Returns how many got it.
+local function sendRequest(t: any, host: Player): number
 	local e = t.engine
+	local time = now()
+	local team = e.teamSize >= 2 and M.Queue.TeamPings.Enabled
 	local ask = {
 		tableId = e.id,
 		epoch = e.epoch,
@@ -1074,16 +1087,42 @@ local function sendRequest(t: any, host: Player)
 		userId = host.UserId,
 		name = host.DisplayName,
 		at = e.requestedAt,
+		missing = Engine.capacity(e) - Engine.count(e),
 	}
+	local sent = 0
 	for _, p in Players:GetPlayers() do
+		local last = lastPopup[p.UserId]
+		local busy = team
+			and last ~= nil
+			and last.tableId ~= e.id
+			and time - last.at < M.Queue.TeamPings.PerPlayerSeconds
 		if
 			p ~= host
 			and not seatOf[p.UserId]
+			and not busy
 			and p:GetAttribute(Config.Freecam.Attribute) ~= true -- filming: no ask (FreecamService)
 			and (requestFilter == nil or requestFilter(host, p))
 		then
 			Net.get("OpponentRequest"):FireClient(p, ask)
+			lastPopup[p.UserId] = { at = time, tableId = e.id }
+			sent += 1
 		end
+	end
+	return sent
+end
+
+-- A 2v2 or 3v3 pad's ask went out: the TeamPing event on its host (`kind` Step, Join or
+-- Reminder; the value how many got it).
+local function logTeamPing(t: any, host: Player, kind: string, sent: number)
+	local e = t.engine
+	if e.teamSize >= 2 then
+		Funnel.event(
+			host,
+			M.Queue.Analytics.PingEvent,
+			sent,
+			Strings.Match.Mode:format(e.teamSize, e.teamSize),
+			kind
+		)
 	end
 end
 
@@ -1111,8 +1150,44 @@ askForOpponent = function(t: any, host: Player, time: number)
 	local payload = { kind = "RequestOpponent", epoch = e.epoch, turnId = e.turnId }
 	if Engine.action(e, host.UserId, payload, time) then
 		autoAskedAt[host.UserId] = time
-		sendRequest(t, host)
+		logTeamPing(t, host, "Step", sendRequest(t, host))
 	end
+end
+
+-- A 2v2 or 3v3 pad asks again (PadBar.teamAsk; designer, 2026-10-26): when someone other than
+-- the host joins and seats are still open (`joined`), or as a reminder while it stays short.
+-- `t.askWait` keeps this wait's start and reminders; it starts over once the pad empties or
+-- its game starts.
+askAgain = function(t: any, time: number, joined: boolean)
+	local e = t.engine
+	if e.teamSize < 2 or e.fixed or e.phase ~= "Waiting" or Engine.count(e) == 0 then
+		t.askWait = nil
+		return
+	end
+	local wait = t.askWait
+	if wait == nil then
+		wait = { since = time, reminders = 0 }
+		t.askWait = wait
+	end
+	local kind = PadBar.teamAsk({
+		teamSize = e.teamSize,
+		count = Engine.count(e),
+		capacity = Engine.capacity(e),
+		searching = e.search ~= nil,
+		joined = joined,
+		lastAt = e.lastRequestAt,
+		since = wait.since,
+		reminders = wait.reminders,
+		now = time,
+	})
+	local host = kind and e.hostId and Players:GetPlayerByUserId(e.hostId)
+	if not (kind and host and Engine.reask(e, time)) then
+		return
+	end
+	if kind == "Reminder" then
+		wait.reminders += 1
+	end
+	logTeamPing(t, host :: Player, kind :: string, sendRequest(t, host :: Player))
 end
 
 -- A player answered an ask with Join: if it still stands and they are free, stand them on
@@ -1131,13 +1206,34 @@ local function answerRequest(p: Player, id: any, epoch: any)
 		return
 	end
 	local e = t.engine
-	local spot = t.pad.Position + Vector3.new(0, Q.RespawnHeight, 0)
-	local centre = Vector3.new(t.placement.x, spot.Y, t.placement.z)
 	local character = p.Character :: Model
-	character:PivotTo(CFrame.lookAt(spot, centre))
+	-- A split team pad: onto the half that needs players (the emptier one, team 1 on a tie),
+	-- a quarter of the pad's length from its middle, well clear of the line.
+	local side = nil
+	if Engine.sidesOn(e) then
+		local one, two = Engine.sideCount(e, 1), Engine.sideCount(e, 2)
+		side = if one < e.teamSize and (one <= two or two >= e.teamSize) then 1 else 2
+		local along = M.Queue.PadLengthStuds / 4
+		character:PivotTo(Service.padSpot(t, if side == 1 then -along else along))
+	else
+		local spot = t.pad.Position + Vector3.new(0, Q.RespawnHeight, 0)
+		local centre = Vector3.new(t.placement.x, spot.Y, t.placement.z)
+		character:PivotTo(CFrame.lookAt(spot, centre))
+	end
 	t.blocked[p.UserId] = nil
-	if Engine.join(e, p.UserId, p.Name, p.DisplayName, now()) then
+	local time = now()
+	if Engine.join(e, p.UserId, p.Name, p.DisplayName, time, nil, side) then
 		seatOf[p.UserId] = e.id
+		if e.teamSize >= 2 then
+			Funnel.event(
+				p,
+				M.Queue.Analytics.PingEvent,
+				1,
+				Strings.Match.Mode:format(e.teamSize, e.teamSize),
+				"Joined"
+			)
+			askAgain(t, time, true)
+		end
 		Service.broadcast(t)
 	end
 end
@@ -2125,6 +2221,9 @@ function Service.start(parent: Instance, mode: string?)
 			local ok, err = pcall(function()
 				local time = now()
 				poll(t, time)
+				if not arena then
+					askAgain(t, time, false) -- a short team pad's reminders
+				end
 				Service.advance(t, time)
 				keepDifficulty(t)
 				releaseMissing(t)

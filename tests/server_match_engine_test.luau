@@ -1341,4 +1341,20 @@ function tests.arena_tables_keep_the_queues_teams_with_sides_on()
 	expect(E.join(m, 5, "5", "5", 0, 2) and E.seat(m, 5).side == nil and E.seat(m, 5).team == 2)
 end
 
+function tests.a_team_pad_reasks_only_while_short_and_not_too_often()
+	local m = E.new(1, 2)
+	expect(not E.reask(m, 0), "nobody on")
+	E.join(m, 5, "5", "5", 0, nil, 1)
+	expect(E.reask(m, 10) and m.requestedAt == 10)
+	expect(not E.reask(m, 10 + M.Queue.RerequestSeconds / 2), "not twice in a moment")
+	expect(E.reask(m, 20) and m.requestedAt == 20)
+	E.setSearch(m, 21)
+	expect(not E.reask(m, 40), "not under a search")
+	local duel = E.new(2, 1)
+	E.join(duel, 5, "5", "5", 0)
+	expect(not E.reask(duel, 10), "1v1 keeps its one ask")
+	local full = queue(2, 3)
+	expect(not E.reask(full, 10), "a full pad")
+end
+
 return tests

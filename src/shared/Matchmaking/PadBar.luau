@@ -250,6 +250,42 @@ function PadBar.autoRequest(args: {
 	return args.lastAt == nil or args.now - args.lastAt >= M.Queue.AutoRequestCooldownSeconds
 end
 
+--- Whether a 2v2 or 3v3 pad asks everyone free again (Config.Multiplayer.Queue.TeamPings;
+--- designer, 2026-10-26), and why: "Join" when someone just joined and seats are still open,
+--- "Reminder" ReminderSeconds after its last ask (or since its wait began, if it never
+--- asked) while still short, at most MaxReminders a wait. Nil: no ask.
+function PadBar.teamAsk(
+	args: {
+		teamSize: number,
+		count: number,
+		capacity: number,
+		searching: boolean,
+		joined: boolean, -- a player other than the host just stepped on
+		lastAt: number?, -- the pad's last ask
+		since: number, -- when this wait began
+		reminders: number, -- reminders sent this wait
+		now: number,
+	}
+): string?
+	local T = M.Queue.TeamPings
+	if
+		not T.Enabled
+		or args.teamSize < 2
+		or args.count == 0
+		or args.count >= args.capacity
+		or args.searching
+	then
+		return nil
+	end
+	local last = args.lastAt or args.since
+	if args.joined then
+		return "Join"
+	elseif args.reminders < T.MaxReminders and args.now - last >= T.ReminderSeconds then
+		return "Reminder"
+	end
+	return nil
+end
+
 --- Whether a player freed from a table's seat may be seated from its pad again (designer,
 --- 2026-10-12: after a match "give them a slight buffer for them to get off but otherwise
 --- after like a second or two it should start queuing them again"): `freedAt` is when their

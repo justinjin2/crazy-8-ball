@@ -46,6 +46,9 @@ return {
 		Request = {
 			NeedsOpponent = "%s needs an opponent!", -- a 1v1 table
 			NeedsPlayers = "%s needs players!", -- a 2v2 or 3v3 table
+			-- A 2v2 or 3v3 table that says how many it still needs (designer, 2026-10-26):
+			-- the host's name, the mode, how many more.
+			NeedsMore = "%s's %s needs %d more!",
 			Join = "Join",
 			Dismiss = "Dismiss",
 		},

@@ -100,8 +100,16 @@ function OpponentPrompt.show(self: any, ask: any)
 		return
 	end
 	self.ask = ask
-	local phrase = if ask.teamSize == 1 then Copy.NeedsOpponent else Copy.NeedsPlayers
-	self.title.Text = phrase:format(tostring(ask.name))
+	local name = tostring(ask.name)
+	local size = tonumber(ask.teamSize) or 1
+	self.title.Text = if size == 1
+		then Copy.NeedsOpponent:format(name)
+		elseif type(ask.missing) == "number" and ask.missing > 0 then Copy.NeedsMore:format(
+			name,
+			Strings.Match.Mode:format(size, size),
+			ask.missing
+		)
+		else Copy.NeedsPlayers:format(name)
 	self.face.Image = S.PromptHeadshot:format(ask.userId)
 	if self.open then
 		UIAnim.bounce(self.card)

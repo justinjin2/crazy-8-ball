@@ -8053,6 +8053,17 @@ Config.Multiplayer = {
 			-- on it never flickers between the two. (tune)
 			DeadZoneStuds = 1,
 		},
+		-- "<name>'s 2v2 needs 1 more!" (designer, 2026-10-26): a team pad asks everyone free
+		-- again whenever someone joins and seats are still open, and reminds them every
+		-- ReminderSeconds while it is still short, at most MaxReminders times a wait (the wait
+		-- starts over when the pad empties or its game starts). Nobody gets a team pad's popup
+		-- within PerPlayerSeconds of another table's. Off: only the host's step-on asks. (tune)
+		TeamPings = {
+			Enabled = true,
+			ReminderSeconds = 30,
+			MaxReminders = 3,
+			PerPlayerSeconds = 15,
+		},
 		-- The team queue's custom analytics events (designer, 2026-10-26: measure it before and
 		-- after its update). PadEvent: one per real player whose wait on a 2v2 or 3v3 pad ends,
 		-- value the seconds waited, fields the mode ("2v2"), how it ended (Started, Global,

@@ -1067,6 +1067,28 @@ function Engine.canSearch(t: any, userId: number): boolean
 		and (not Engine.sidesOn(t) or Engine.fullSide(t) ~= nil)
 end
 
+--- A team pad asks everyone free again (Config.Multiplayer.Queue.TeamPings): someone joined
+--- and seats are still open, or a reminder while it stays short. The standing request starts
+--- over, so the popups follow the new one. Not under a search, on a full pad, or within
+--- Queue.RerequestSeconds of the last ask.
+function Engine.reask(t: any, now: number): boolean
+	if
+		t.phase ~= "Waiting"
+		or t.teamSize < 2
+		or t.fixed
+		or t.search
+		or Engine.count(t) == 0
+		or Engine.count(t) >= Engine.capacity(t)
+		or (t.lastRequestAt and now - t.lastRequestAt < M.Queue.RerequestSeconds)
+	then
+		return false
+	end
+	t.requestedAt = now
+	t.lastRequestAt = now
+	t.revision += 1
+	return true
+end
+
 --- The search began (the server has put it in the queue). Returns its players.
 function Engine.setSearch(t: any, now: number): { number }
 	local users = Engine.searchParty(t)
