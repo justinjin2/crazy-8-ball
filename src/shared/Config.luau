@@ -16609,6 +16609,9 @@ Config.Freecam = {
 	PitchLimitDegrees = 80, -- the camera never tips past straight up or down
 	LookMouseRadians = 0.004, -- turn per mouse pixel while the right button is held
 	LookTouchRadians = 0.006, -- turn per pixel of a finger's drag
+	-- A finger steers the look only from this share of the screen's width rightward; the left
+	-- side is the thumbstick's, so moving never turns the camera (designer, 2026-10-26).
+	TouchLookFromShare = 0.5,
 	LookPadRadians = 2.6, -- turn a second with the right stick pushed fully
 	PadDeadzone = 0.15, -- a stick this far off centre still counts as centred
 	-- The camera's room: the union of these boxes (world studs), each pulled WallInsetStuds in from

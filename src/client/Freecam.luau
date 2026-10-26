@@ -9,7 +9,7 @@
 -- - The camera flies where it looks (FreecamMath), inside the rooftop's safety walls and under
 --   their tops (Config.Freecam.Boxes). Move: WASD, a phone's thumbstick, the left stick (the
 --   character's own controls, read back from its MoveDirection). Look: the right mouse button held, a
---   finger dragged anywhere else, the right stick. Up / down: E / Q, R2 / L2 (a phone looks up or
+--   finger dragged on the screen's right side (the left is the thumbstick's), the right stick. Up / down: E / Q, R2 / L2 (a phone looks up or
 --   down and flies). Faster: Shift.
 -- - The body stands still where it was (root anchored, no walking, turning or jumping, which also
 --   hides a phone's jump button), so it cannot walk onto a pad or into a portal.
@@ -272,8 +272,12 @@ local function onInputBegan(input: InputObject, processed: boolean)
 		rightHeld = true
 		setMouse()
 	elseif input.UserInputType == Enum.UserInputType.Touch and not processed then
-		-- A finger on open screen steers the look (the thumbstick's own touches are processed).
-		touches[input] = true
+		-- A finger on the right side's open screen steers the look; the left side is the
+		-- thumbstick's (its touches are not always marked processed), so moving never turns it.
+		local cam = Workspace.CurrentCamera
+		if cam and input.Position.X >= cam.ViewportSize.X * F.TouchLookFromShare then
+			touches[input] = true
+		end
 	end
 end
 
