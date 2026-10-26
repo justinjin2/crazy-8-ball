@@ -22,6 +22,7 @@ local BotScript = require(Shared.Bots.Script)
 local BotPlan = require(Shared.Tutorial.BotPlan)
 local Look = require(Shared.Bots.Look)
 local Rng = require(Shared.Bots.Rng)
+local ThinkQueue = require(Shared.Bots.ThinkQueue)
 local Tables = require(script.Parent.Parent.TableService)
 local ShotService = require(script.Parent.Parent.ShotService)
 local UltService = require(script.Parent.Parent.UltService)
@@ -32,6 +33,23 @@ local Driver = {}
 
 local function now(): number
 	return workspace:GetServerTimeNow()
+end
+
+-- Every bot's thinking waits in this one line between tries (Config.Bots.Think), stepped
+-- once a server frame; made on the first bot's first try.
+local queue: ThinkQueue.Queue? = nil
+local function thinkQueue(): ThinkQueue.Queue
+	if queue then
+		return queue
+	end
+	local q = ThinkQueue.new(B.Think.FrameBudgetMs / 1000, os.clock, function(thread)
+		task.spawn(thread)
+	end)
+	queue = q
+	RunService.Heartbeat:Connect(function()
+		q:step()
+	end)
+	return q
 end
 
 -- The table as the brain sees it: the balls exactly as the server holds them (a frozen
@@ -262,7 +280,11 @@ function Driver.turn(bot: any, seed: number)
 	local function yield()
 		count += 1
 		if count % B.YieldEvery == 0 then
-			task.wait()
+			if B.Think.Enabled then
+				thinkQueue():wait()
+			else
+				task.wait()
+			end
 		end
 	end
 	local ok, d = pcall(decide, bot, view, rng, hand, yield)

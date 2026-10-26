@@ -14727,6 +14727,15 @@ Config.Bots = {
 	-- 1 for launch (2026-10-10: was 4): a full-rack simulation is ~40 ms, so 4 in a row was a
 	-- lag spike for the whole 24-player server.
 	YieldEvery = 1,
+	-- Every bot's thinking shares one budget a server frame (2026-10-25, the Home surge: the
+	-- worst tenth of live servers fell to 8 FPS, then under 2, at 600+ players; each bot waited
+	-- a frame after a try, so all thinking bots tried in the same next frame). Bots wait in line
+	-- between tries (src/shared/Bots/ThinkQueue); a frame lets them go on in order while bot
+	-- time stays under FrameBudgetMs, always at least one. Off: each bot waits a frame (before).
+	Think = {
+		Enabled = true,
+		FrameBudgetMs = 8,
+	},
 	-- Ball in hand: the cue ball is dragged to its spot over this long.
 	DragSeconds = 1.4,
 	-- Look Over There!: a bot starts moving the cue ball this long into the drag window (a
