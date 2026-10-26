@@ -1696,7 +1696,11 @@ function Service.start(parent: Instance, mode: string?)
 		buildFence(t, folder)
 		Service.broadcast(t)
 	end
+	-- A client asks for the snapshots once its Hub listens (Hub.new), so from then on it can
+	-- take the aim stream (Config.Aim.ReadyOnly).
+	local listening: { [Player]: boolean } = {}
 	Net.get("SnapshotRequest").OnServerEvent:Connect(function(p)
+		listening[p] = true
 		if not Service.allow(p, "snapshot") then
 			return
 		end
@@ -1880,6 +1884,7 @@ function Service.start(parent: Instance, mode: string?)
 		added(p)
 	end
 	Players.PlayerRemoving:Connect(function(p)
+		listening[p] = nil
 		autoAskedAt[p.UserId] = nil
 		local id = seatOf[p.UserId]
 		if id then
@@ -1916,6 +1921,7 @@ function Service.start(parent: Instance, mode: string?)
 	)
 	-- Every table's aim, wind-up and cue spot, on its own clock (Config.Aim.BroadcastsPerSecond)
 	-- so a watched ball in hand is not held to the box-poll rate.
+	local idleAims = 0
 	local function broadcastAims()
 		local batch = {}
 		for id = 1, Placement.tableCount() do
@@ -1943,7 +1949,21 @@ function Service.start(parent: Instance, mode: string?)
 				)
 			end
 		end
-		Net.get("AimBroadcast"):FireAllClients(batch)
+		local A = Config.Aim
+		-- An empty batch clears every watcher's cues; it is repeated for a while (the stream may
+		-- drop one), then nothing more until someone aims.
+		idleAims = if #batch == 0 then idleAims + 1 else 0
+		if A.SkipIdleBroadcasts and idleAims > A.IdleRepeats then
+			return
+		end
+		local remote = Net.get("AimBroadcast")
+		if A.ReadyOnly then
+			for p in listening do
+				remote:FireClient(p, batch)
+			end
+		else
+			remote:FireAllClients(batch)
+		end
 	end
 	local elapsed, snapshots, aims = 0, 0, 0
 	RunService.Heartbeat:Connect(function(dt)

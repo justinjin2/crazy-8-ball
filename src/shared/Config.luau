@@ -1141,6 +1141,16 @@ Config.Aim = {
 	-- How often the server passes every table's aim (and cue-ball spot) on: its own clock,
 	-- a little faster than the aim so a watched ball in hand keeps up with the drag.
 	BroadcastsPerSecond = 15,
+	-- The broadcast goes only to players whose game has loaded far enough to listen (their Hub
+	-- asked for the snapshots). Before (off): every player, so a phone still loading had them
+	-- queue up and Roblox dropped them with "did you forget to implement OnClientEvent?"
+	-- (2026-10-25: 46K errors a day, ReplicatedStorage.Net.AimBroadcast).
+	ReadyOnly = true,
+	-- With nobody aiming anywhere, the empty batch (it clears every watcher's cues) is sent
+	-- IdleRepeats times, a second's worth in case the stream drops one, and then nothing until
+	-- someone aims again. Off: an empty batch 15 times a second to everyone.
+	SkipIdleBroadcasts = true,
+	IdleRepeats = 15,
 	-- While the shooter drags the cue ball in hand, its spot rides the same stream at this
 	-- rate (only while it is actually moving), and watchers ease their copy of the ball
 	-- toward each spot they hear over this many seconds.
