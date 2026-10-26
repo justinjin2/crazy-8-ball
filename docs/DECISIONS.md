@@ -4531,4 +4531,6 @@ timer of a new block stay the designer's call.
   and is a touch smaller on a phone (scale 0.7). The match bar shows each player's country
   flag, very small, on their portrait's top-right corner, only while they show their flag;
   never a bot's. No metric measures these directly; a phone's lobby-to-match funnel and session
-  length are the numbers to watch after publishing.
+  length are the numbers to watch after publishing. The Settings gear moved closer to the rank
+  HUD on every device (16 px at rest on a phone, was 45): it leaves room for the card's hover
+  size only, no longer for the press's brief bounce on top.
