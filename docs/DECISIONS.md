@@ -4500,3 +4500,19 @@ timer of a new block stay the designer's call.
   at once): worst frame 215 ms before, 13 ms with both. Measured live by Creator Hub's server
   frame rate P10 at the next peak (target: above 30). `Config.Bots.Think.Enabled` off: the old
   frame-each wait.
+- 2026-10-25: The live error report (296K a day) traced to its causes. **Camera:** 75K
+  "BaseCamera:682 invalid argument #3 to 'clamp'" come from a camera looking a hair past
+  straight down (LookVector.Y -1.0000002; the overhead view for calling the 8's pocket leaves
+  about a third of its eased frames there, measured in Studio). Handed to Roblox's camera in that
+  pose, math.asin gives NaN, the clamp throws every frame and the view freezes for good: one
+  stuck player is about 100K errors in half an hour (the 11 AM spike). `CameraGuard` tilts such a
+  pose to 89 degrees just before Roblox's camera runs, only when it is not Scriptable, and warns
+  once a session (`Config.Camera.Guard`). **AimBroadcast:** 46K "Remote event invocation
+  discarded" errors were the 15-a-second aim stream reaching phones still loading; it now goes
+  only to players whose Hub asked for snapshots, and stops one second after nobody aims
+  (`Config.Aim.ReadyOnly`, `SkipIdleBroadcasts`). Neither error touches the server's frame
+  rate (both are client errors; the server shows almost none); the server lag fix above is the
+  server's. **Not fixed:** 151K "AnimationTrack limit of 64" warnings name Roblox's default
+  idle, jump and Rthro run on `SelfAvatar` (Roblox's Self View copy of your avatar) and on
+  player characters; restarting Animate 90 times in Studio did not reproduce it, so no change
+  until the cause is found.

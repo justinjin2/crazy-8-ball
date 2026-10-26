@@ -34,7 +34,7 @@ entry of `docs/archive/STATUS_HISTORY.md`.
   under 2 FPS at 600-800 players. Studio: 8 bot matches at once, bots play normally, console
   clean. Check live: Creator Hub > Performance > server frame rate P10 at the next evening
   peak, target above 30 (was 1.6-13 on 2026-10-25), and that bots still take their shots;
-  F9 must show no "replay drifted" warnings).
+  F9 must show no "replay drifted" warnings); the **error report fixes** (2026-10-25, DECISIONS: `CameraGuard` ends the frozen-camera loop behind 75K "BaseCamera:682 clamp" errors a day, `Config.Camera.Guard`; the aim stream goes only to loaded players and rests when nobody aims, behind 46K "did you forget to implement OnClientEvent" errors, `Config.Aim.ReadyOnly`, `SkipIdleBroadcasts`; check live: Creator Hub > Error report a day later, both rows near zero and a few "[8ball] CameraGuard" warnings instead; a watched opponent's cue still turns as they aim; the 64-track animation warning is not fixed yet).
 - **Published:** everything up to `c499ecf` (2026-10-12; the list is in STATUS_HISTORY). **Not
   yet published:** the Shop restock's "Epic or better!" tag removed (DECISIONS); the VIP card's perk
   list says "Gold chat tag" instead of "Rainbow chat tag" (`2c6972f`); the favorite card rewards
