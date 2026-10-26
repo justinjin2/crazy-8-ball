@@ -382,8 +382,12 @@ local function onRewardRequest(player: Player, action: any, a: any): Reply
 			return refused("Unknown")
 		end
 		local ok, result = PlayerData.redeemCode(player, a, LiveCodes.on())
-		if ok and redeemed then
-			task.spawn(redeemed, player, a) -- the tutorial lane (Rewards.onRedeemed)
+		if ok then
+			-- Which codes get used (spin-only codes never reach the money log).
+			Funnel.event(player, "CodeRedeemed", 1, Daily.normalizeCode(a))
+			if redeemed then
+				task.spawn(redeemed, player, a) -- the tutorial lane (Rewards.onRedeemed)
+			end
 		end
 		return answer(ok, result, "Unknown")
 	end

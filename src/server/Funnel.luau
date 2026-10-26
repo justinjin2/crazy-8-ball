@@ -11,7 +11,7 @@
 --   (PathS, PathR, Game2, Social), each step once per player (a bit in its own Flags key).
 -- - Repeating funnels (a session per visit): the shop, a free lucky block's life, the spins.
 -- - Custom events (LogCustomEvent, up to three fields): Hint, TutorialSkipped, StepTime,
---   TutorialError, TutorialLeft and the Game2 result.
+--   TutorialError, TutorialLeft, the Game2 result and CodeRedeemed (Rewards).
 --
 -- Every call is wrapped in pcall: analytics never breaks the game. Studio sends nothing to the
 -- dashboard, so each call prints there (Config.Tutorial.Funnel.Print), and every player's last
