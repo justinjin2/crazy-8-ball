@@ -489,12 +489,13 @@ function RankHud.layout(self: any)
 	)
 end
 
---- The HUD's right edge (absolute pixels) at its biggest: it grows about the badge's centre on
---- hover and press (HoverScale, then the press's bounce), so whatever sits right of it keeps
---- clear of that (the Settings gear; designer, 2026-10-09: they overlapped).
+--- The HUD's right edge (absolute pixels) while hovered: it grows about the badge's centre
+--- (HoverScale), so whatever sits right of it keeps clear of that (the Settings gear; designer,
+--- 2026-10-09: they overlapped). Not the press's bounce on top: it passes in a moment, and
+--- leaving room for it kept the gear too far away (designer, 2026-10-26).
 function RankHud.grownRight(self: any): number
 	local holder: GuiObject = self.holder
-	local grow = H.HoverScale * math.max(table.unpack(Config.UI.Ranks.PressScales))
+	local grow = H.HoverScale
 	local left = holder.AbsolutePosition.X
 	local right = left + holder.AbsoluteSize.X
 	local centre = left + H.BadgePx / 2 * self.fit.Scale

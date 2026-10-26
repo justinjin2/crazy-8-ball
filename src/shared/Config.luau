@@ -16632,7 +16632,9 @@ Config.Freecam = {
 Config.UI.Settings = {
 	GearPx = 44, -- the gear (a computer); a phone's is ShortGearPx
 	ShortGearPx = 44, -- as big as Roblox's top-bar buttons, in line with them (designer 2026-10-07)
-	GearGapPx = 12, -- right of the rank HUD at its biggest (it grows on hover and press)
+	-- Right of the rank HUD as it is under the mouse (it grows on hover): a little gap
+	-- (designer, 2026-10-26: closer; was 12 past its hover-and-press size, 45 px at rest on a phone).
+	GearGapPx = 4,
 	WidthShare = 0.48, -- the panel, of a computer screen's width (a phone: the frame's own)
 	Units = 880, -- the page's width in units
 	RowUnits = 136, -- a row's height (was 124: room for a phone's bigger name over its line)
