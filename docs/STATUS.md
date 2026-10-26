@@ -4,7 +4,7 @@ Current state only, rewritten in place. Keep it to about two screens (under 100 
 step is finished and verified, move its dated entry to the top of
 `docs/archive/STATUS_HISTORY.md` and keep only what is still true or still open here.
 
-Updated 2026-10-26 (phone QoL). **The game is live** (officially released 2026-10-10). Work goes on
+Updated 2026-10-26 (phone QoL, published; card and freecam fixes pushed). **The game is live** (officially released 2026-10-10). Work goes on
 in `~/Desktop/8ball`, branch `gui-v4`. The STATUS from just before launch, in full, is the top
 entry of `docs/archive/STATUS_HISTORY.md`.
 
@@ -17,15 +17,17 @@ entry of `docs/archive/STATUS_HISTORY.md`.
   and updates, and a slow cleanup of old code and features as the game takes its form. Every
   update must not bring a critical bug or error to the live game: the rules are in CLAUDE.md,
   "The game is live".
-- **Published by the designer 2026-10-25 (evening): everything pushed up to `e49ef20e`**, the
-  lobby boards included (top 100, every country, No data yet), so the country store is counting
-  real wins since then; the older not-yet-published notes below are live with it. **Pushed, not
-  yet live:** **phone QoL** (2026-10-26, `4ca493c`, `4edd93e`, `6a7e40b`: the left column smaller and
-  nearer the edge on a phone, upright too; MATCH RULES with the old level pictures, higher and
-  smaller; a small country flag on each match-bar portrait; the Settings gear closer to the rank HUD
-  on every device; the freecam keeps a phone's thumbstick (it was switched off with the HUD, so a
-  phone could not fly); check live on a phone both ways up,
-  a pad's host card, and your flag on your portrait in a match, gone after switching it off);
+- **Published by the designer 2026-10-26: everything pushed up to `97727b89`** (the 2026-10-25
+  evening publish was up to `e49ef20e`, the lobby boards included, so the country store is
+  counting real wins since then); every not-yet-published note below is live with it. **Pushed,
+  not yet live:** the MATCH RULES card a little into a phone's side safe strip, clear of Play
+  Global (`Config.UI.HostRules.IntoSafeStripPx`; check on an iPhone that it sits beside the
+  island, not under it, and on your phone that it no longer overlaps Play Global); the freecam on
+  a phone looks only with a finger on the right half, the left half is the thumbstick's
+  (`Config.Freecam.TouchLookFromShare`). **Live since 2026-10-26, checks still to do:** **phone
+  QoL** (`4ca493c`, `4edd93e`, `6a7e40b`: the left column smaller and nearer the edge on a phone,
+  upright too; MATCH RULES with the old level pictures; a small country flag on each match-bar
+  portrait; the Settings gear closer to the rank HUD; the freecam keeps a phone's thumbstick);
   the **weekly community codes** (2026-10-26: BREAKSHOT, BANKSHOT, CUEBALL, TRICKSHOT,
   CORNERPOCKET, MASSESHOT, 5 spins each, Live and off; each stops at the end of its Monday-to-Monday
   UTC week; after publishing type `/code on BREAKSHOT`, redeem it once, and post it in the Discord's
