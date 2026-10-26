@@ -4,7 +4,7 @@ Current state only, rewritten in place. Keep it to about two screens (under 100 
 step is finished and verified, move its dated entry to the top of
 `docs/archive/STATUS_HISTORY.md` and keep only what is still true or still open here.
 
-Updated 2026-10-26 (phone QoL, published; card and freecam fixes pushed). **The game is live** (officially released 2026-10-10). Work goes on
+Updated 2026-10-26 (phone QoL, all published). **The game is live** (officially released 2026-10-10). Work goes on
 in `~/Desktop/8ball`, branch `gui-v4`. The STATUS from just before launch, in full, is the top
 entry of `docs/archive/STATUS_HISTORY.md`.
 
@@ -17,14 +17,12 @@ entry of `docs/archive/STATUS_HISTORY.md`.
   and updates, and a slow cleanup of old code and features as the game takes its form. Every
   update must not bring a critical bug or error to the live game: the rules are in CLAUDE.md,
   "The game is live".
-- **Published by the designer 2026-10-26: everything pushed up to `97727b89`** (the 2026-10-25
-  evening publish was up to `e49ef20e`, the lobby boards included, so the country store is
-  counting real wins since then); every not-yet-published note below is live with it. **Pushed,
-  not yet live:** the MATCH RULES card narrower (XP tags 12 px, 188 wide) and 4 px from the safe
-  edge, clear of Play Global (reaching into the side strip was cut off: a ScreenGui clips at the
-  safe area; check on your phone that it is whole and no longer overlaps Play Global); the freecam on
-  a phone looks only with a finger on the right half, the left half is the thumbstick's
-  (`Config.Freecam.TouchLookFromShare`). **Live since 2026-10-26, checks still to do:** **phone
+- **Published by the designer 2026-10-26: everything pushed up to `da311fd6`**, checked working
+  on the designer's phone (the MATCH RULES card whole and clear of Play Global; the freecam's
+  thumbstick on the left half, the look on the right). The 2026-10-25 evening publish was up to
+  `e49ef20e`, the lobby boards included, so the country store is counting real wins since then;
+  every not-yet-published note below is live with it. Nothing is pushed and unpublished.
+  **Live since 2026-10-26, checks still to do:** **phone
   QoL** (`4ca493c`, `4edd93e`, `6a7e40b`: the left column smaller and nearer the edge on a phone,
   upright too; MATCH RULES with the old level pictures; a small country flag on each match-bar
   portrait; the Settings gear closer to the rank HUD; the freecam keeps a phone's thumbstick);
