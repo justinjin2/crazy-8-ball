@@ -51,7 +51,6 @@ local KEEP = {
 	LeaveNudgeProbe = true,
 	TeleportScreen = true,
 	Freecam = true,
-	HostRulesProbe = true,
 }
 
 local Freecam = {}

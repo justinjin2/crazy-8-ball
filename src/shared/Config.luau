@@ -9136,12 +9136,6 @@ Config.UI.MatchBar = {
 -- the abilities switch. Everyone on the pad sees it; only the host presses it.
 Config.UI.HostRules = {
 	RightPx = 10, -- from the screen's right edge (clear of Play Global's X on a phone)
-	-- A phone with a side safe strip (Roblox keeps it clear of the notch or island, 59 px on a
-	-- Dynamic Island iPhone): the card reaches this far into it, so it hugs the island (which
-	-- ends about 48 px from the edge) and clears Play Global (designer, 2026-10-26: "still too
-	-- close to the center"). Never closer to the screen's edge than RightPx. The power bar
-	-- stays out of the strip: a real iPhone's notch cut it off at 35% in (2026-10-06).
-	IntoSafeStripPx = 8,
 	-- Its centre, as a share of the screen's height: above the middle, so it keeps clear of a
 	-- phone's jump button below and Settings above (designer, 2026-10-26: a little higher;
 	-- was 0.47).

@@ -57,16 +57,6 @@ function HostRules.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 	self.sent = {} :: { [string]: { value: any, at: number } }
 	self.now = 0
 
-	-- The whole screen, no safe area: its right edge past the HUD's is the side safe strip
-	-- (place), as PowerCue's probe.
-	local probe = Instance.new("ScreenGui")
-	probe.Name = "HostRulesProbe"
-	probe.ScreenInsets = Enum.ScreenInsets.None
-	probe.IgnoreGuiInset = true
-	probe.ResetOnSpawn = false
-	probe.Parent = screen.Parent
-	self.probe = probe
-
 	local root = HudParts.frame(screen, "HostRules")
 	root.AnchorPoint = Vector2.new(1, 0.5)
 	root.Size = UDim2.fromOffset(R.Width, HEIGHT)
@@ -246,8 +236,8 @@ function HostRules.update(self: any, now: number, view: any)
 	self:place()
 end
 
--- The right side, between Settings and the jump button, a little into a phone's side safe
--- strip; scaled down on a phone and on a short screen.
+-- The right side, between Settings and the jump button; scaled down on a phone and on a short
+-- screen.
 function HostRules.place(self: any)
 	local screen: any = self.root.Parent
 	if not screen then
@@ -259,14 +249,7 @@ function HostRules.place(self: any)
 	if math.abs(self.scale.Scale - scale) > 0.001 then
 		self.scale.Scale = scale
 	end
-	local probe: ScreenGui = self.probe
-	local strip = math.max(
-		0,
-		probe.AbsolutePosition.X + probe.AbsoluteSize.X - (screen.AbsolutePosition.X + size.X)
-	)
-	-- From the screen's very edge: into the strip a little, never nearer than RightPx.
-	local fromEdge = math.max(R.RightPx, strip - R.IntoSafeStripPx)
-	local position = UDim2.new(1, math.floor(strip - fromEdge), R.CenterShare, 0)
+	local position = UDim2.new(1, -R.RightPx, R.CenterShare, 0)
 	if self.root.Position ~= position then
 		self.root.Position = position
 	end
