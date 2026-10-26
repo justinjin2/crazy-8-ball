@@ -9135,7 +9135,9 @@ Config.UI.MatchBar = {
 -- jump button, phone first. "MATCH RULES", the three levels stacked (the picked one lit) and
 -- the abilities switch. Everyone on the pad sees it; only the host presses it.
 Config.UI.HostRules = {
-	RightPx = 10, -- from the screen's right edge (clear of Play Global's X on a phone)
+	-- From the HUD's right edge, the safe area's on a phone (designer, 2026-10-26: further right,
+	-- clear of Play Global; was 10). A ScreenGui clips at the safe area, so never past it.
+	RightPx = 4,
 	-- Its centre, as a share of the screen's height: above the middle, so it keeps clear of a
 	-- phone's jump button below and Settings above (designer, 2026-10-26: a little higher;
 	-- was 0.47).
@@ -9145,12 +9147,14 @@ Config.UI.HostRules = {
 	-- 0.8 (designer, 2026-10-26), so the wider card with its pictures still takes less room.
 	PhoneScale = 0.7,
 	ZIndex = 26, -- the MatchBar's layer
-	Width = 204, -- room for each level's picture and its XP tag (was 168 before the pictures)
+	-- Room for each level's picture and its XP tag (was 168 before the pictures, then 204;
+	-- designer, 2026-10-26: smaller XP tags so the card is narrower and fits beside Play Global).
+	Width = 188,
 	PadPx = 8, -- inside the card, round its rows
 	TitleTextPx = 17, -- "MATCH RULES" / "HOST PICKS"
 	TitleHeight = 22,
 	ButtonHeight = 36,
-	ButtonTextPx = 17, -- was 18, before the pictures took room
+	ButtonTextPx = 16, -- was 18 before the pictures took room, then 17
 	ButtonGapPx = 6,
 	SwitchGapPx = 10, -- the abilities switch sits a little apart from the levels
 	-- Each level's aim-line picture (Kit.Icons Classic, Difficult, Challenger), of the
@@ -9162,10 +9166,10 @@ Config.UI.HostRules = {
 	OffTone = "Red", -- abilities off
 	-- "x1.5 XP" at the right end of a level that pays more (Config.Ranks.ModeXp); the level's
 	-- name centres in what is left.
-	XpTextPx = 14,
+	XpTextPx = 12, -- the kit's smallest (designer, 2026-10-26: smaller; was 14)
 	XpHeight = 18,
-	XpWidth = 44,
-	XpInsetPx = 6, -- from the button's right edge
+	XpWidth = 36, -- "x1.5 XP" is 35 wide at 12 px (was 44)
+	XpInsetPx = 5, -- from the button's right edge
 	XpColor = { 255, 236, 120 }, -- a bonus gold, as the old host card's (outlined text)
 	-- Pressed: the choice shows at once; the server's word takes over after this long.
 	PressHoldSeconds = 1.5,
