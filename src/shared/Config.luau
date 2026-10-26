@@ -1119,6 +1119,15 @@ Config.Camera = {
 		ReturnSmoothing = 0.6, -- seconds to ease back to the aim framing after the balls stop
 		ReturnSeconds = 1.5, -- how long the slower easing applies after the shot ends
 	},
+	-- A camera looking a hair past straight down freezes Roblox's camera script for good (it
+	-- throws at BaseCamera:682 every frame; 2026-10-25: 75K errors a day; CameraSanity).
+	-- CameraGuard checks the pose just before Roblox's camera runs and tilts one past vertical
+	-- back to MaxLookHeight (the sine of its pitch: 0.9998 is 89 degrees; Roblox's own camera
+	-- then eases it to its 80 degree limit). Off: nothing is checked.
+	Guard = {
+		Enabled = true,
+		MaxLookHeight = 0.9998,
+	},
 }
 
 ---------------------------------------------------------------------------------------------

@@ -37,6 +37,7 @@ local CueAssets = require(script.Parent.CueAssets)
 local CueSkinLook = require(script.Parent.CueSkinLook)
 local Effects = require(script.Parent.Effects)
 local Camera = require(script.Parent.Camera)
+local CameraGuard = require(script.Parent.CameraGuard)
 local DayCycle = require(script.Parent.DayCycle)
 local FirePit = require(script.Parent.FirePit)
 local FontTest = require(script.Parent.FontTest)
@@ -91,6 +92,7 @@ visuals.Name = "ClientVisuals"
 visuals.Parent = workspace
 local hub = Hub.new(visuals)
 BotChat.start() -- a bot's chat bubble and line (the Bots lane)
+CameraGuard.start() -- a NaN camera is put back before Roblox's camera reads it
 -- The developer's /slowmo (Studio only, DevCommands): each table's replay rate rides on a
 -- workspace attribute (Config.Debug.Commands.SlowmoAttribute .. the table id); none is 1.
 for id = 1, Placement.tableCount() do
