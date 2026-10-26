@@ -4548,3 +4548,12 @@ timer of a new block stay the designer's call.
   for in 60 s was dropped, and a fresh one waits 2 s for a texture from the device's cache), so
   everyone seated at your table and the drawn tables now has their look held loaded
   (`CueAssets.holdLooks`, at most `Config.CueSkins.Warm.MaxHeldLooks` = 6).
+- 2026-10-26 (designer): **the 2v2/3v3 queue update.** Team pads are split in two, TEAM 1 and
+  TEAM 2, and the half you stand on is your team (was by arrival); each half is tinted by its
+  own side (blue empty, green somebody on, gold full), the mode on a pill over the line, from
+  an approved Studio concept. A team pad asks everyone free again on each join and every 30 s
+  while short (3 reminders), saying how many it needs; Join lands on the half that needs you.
+  A short team that waited 30 s may **Fill with PC**: disguised bots, normal pay and rank (the
+  designer chose this over practice pay). A global "fill" queue for partial groups comes
+  later, after reading the new `TeamPad` and `TeamPing` custom events (no team-queue numbers
+  existed before). Each part has its own Config switch.

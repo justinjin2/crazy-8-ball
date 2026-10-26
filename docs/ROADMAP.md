@@ -538,6 +538,22 @@ first weeks.
 
 ## After release
 
+### The 2v2/3v3 queue update (designer, 2026-10-26)
+
+Plan: the designer's answers of 2026-10-26 (DECISIONS). Each step has its own Config switch.
+
+- [x] **Measure.** `TeamPad` (each wait on a team pad: seconds, how it ended) and `TeamPing`
+  (each ask and each Join) custom events. Pushed 2026-10-26.
+- [x] **Split pad.** TEAM 1 / TEAM 2 halves, the half you stand on is your team, each half
+  tinted by its own side, the bar's team chip and switch hint (`Queue.Sides`). Pushed
+  2026-10-26; phone, PC and pad checks on the live game.
+- [x] **Smarter pings.** On each join and every 30 s while short, "needs 1 more!", Join onto
+  the half that needs you (`Queue.TeamPings`). Pushed 2026-10-26.
+- [x] **Fill with PC** for a short team after 30 s, disguised bots, normal pay
+  (`Bots.Fallback.TeamFill`). Pushed 2026-10-26.
+- [ ] **Global fill queue.** Partial groups from any server packed into one arena match
+  (`Config.GlobalQueue.Fill`): plan it after reading a few days of `TeamPad`/`TeamPing`.
+
 ### About one to two weeks after release
 
 - [ ] **6.3 Pro lobby.** Separate place with a teleport door, Diamond I and above, Difficult

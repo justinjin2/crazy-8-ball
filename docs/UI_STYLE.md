@@ -363,6 +363,15 @@ below are the summary; the skill has the numbers and code.
   place. The whole bar pops in and out (the house entrance for a HUD piece). A small round
   red X candy (`DismissPx` 24) sits on Play Global's top-right corner and dismisses it
   (designer, 2026-10-07); a gamepad reaches it right of Play Global.
+  On a split 2v2/3v3 pad (designer, 2026-10-26) the chip reads "TEAM 1 · 1/2" and is wider
+  (`TeamChipWidth`), tinted your half's colour (neon green, gold once your side is full), and
+  the line says "Walk across to switch sides" while the other side has room. A short team's
+  host gets **Fill with PC** (green candy, robot icon) in Play Global's slot after 30 s.
+- **The split team pad** (designer, 2026-10-26, from a Studio concept; `QueueVisual.Split`):
+  two rounded glass halves, each with its own 14 px rim, TEAM n (64 px) over its count (56 px)
+  in white with the ink outline; each half tinted by its own side like the whole pad (blue
+  empty, green somebody on, gold full or playing); the mode ("2v2", 50 px) on a round ink
+  pill over the line. TEAM 1 is the left half seen from the entrance.
 - **The spawn pill** (designer, 2026-10-07): the same "Don't want to wait?" and Play Global
   with its X, alone in the bar's spot with no waiting pill, for a player alone in a public
   server. Searching from it shows the pill with the Classic icon and "Searching... 0:03" (no

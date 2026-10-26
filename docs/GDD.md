@@ -269,7 +269,10 @@ Every feature is checked against these. If it serves none, it waits.
   off its rail, the same for every mode (designer, 2026-10-08), holding both teams (2, 4 or 6).
   It is see-through glass tinted like its rim (blue with room, green with someone on, gold when
   full or playing; designer, 2026-09-27 and 2026-10-08). Its mode is written big on it with
-  JOIN or the count. While it has room it is a **queue portal** (2026-10-08): glowing outlines
+  JOIN or the count. **A 2v2 or 3v3 pad is split in two** (designer, 2026-10-26): TEAM 1 on
+  the left half seen from the entrance, TEAM 2 on the right, each half with its own rim, glass
+  and count, tinted by its own side (blue empty, green somebody on, gold full or playing), the
+  mode on a dark pill over the line. A team table lent to a 1v1 shows the whole plate. While it has room it is a **queue portal** (2026-10-08): glowing outlines
   rise from its rim one after another and fade as they climb, sparkles drift up, and a big
   arrow with JOIN under it bobs over it when you are near. Joining is instant: the host's card pops up the moment you step on. Stepping on plays a
   sound and a VFX and the rim turns green so everyone can see someone is queueing. There is no
@@ -317,8 +320,12 @@ Every feature is checked against these. If it serves none, it waits.
   BREAKS" or, in a team match, "<NAME>'S TEAM BREAKS" for over a second (designer, 2026-09-27).
   Each side of the coin is a player's token, their headshot on a white disc in the gold rim,
   not heads and tails: the side that breaks shows its breaker, the other its first player; it
-  starts on your side's and lands on the breaker's (designer, 2026-10-09). **Teams go by arrival**: the
-  first on (the host) is team A, the next team B, and so on alternately.
+  starts on your side's and lands on the breaker's (designer, 2026-10-09). **Teams by the half you
+  stand on** (designer, 2026-10-26; was by arrival, A B A B): stepping onto a full half seats
+  you on the other one, walking across switches while that side has room (a 1-stud dead zone
+  at the line keeps you put), and the sides are the game's teams. The bar's chip says "TEAM 1
+  · 1/2" in your half's colour and the line "Walk across to switch sides" while the other side
+  has room. `Config.Multiplayer.Queue.Sides` off: teams by arrival again.
 - **Play solo, Play against PC and Fill with PC are off the pad** (designer, 2026-10-07):
   they move somewhere else later (their server handlers stay). There is no automatic start
   against PC in the lobby.
@@ -329,13 +336,21 @@ Every feature is checked against these. If it serves none, it waits.
   a small popup at the bottom of the screen, the host's face and "<name> needs an opponent!"
   (or "needs players!") with **Join** (stands them on the host's pad) and **Dismiss**, small
   and low so it never covers the player's legs. It goes by itself after 15 s *(tune)* or as
-  soon as the pad fills or the host leaves. Lobby bots do not answer the popup, but since
+  soon as the pad fills or the host leaves. **A 2v2 or 3v3 pad asks again** (designer,
+  2026-10-26): whenever someone joins and seats are still open, and every **30 s** *(tune)*
+  while it stays short, at most 3 reminders a wait, each saying "<name>'s 2v2 needs 1 more!";
+  nobody gets a team pad's popup within 15 s of another table's, and Join stands them on the
+  half that needs players (`Config.Multiplayer.Queue.TeamPings`). Lobby bots do not answer the popup, but since
   2026-10-12 one walks over to a lonely player's pad by itself (section 13's bots).
 - Every match is played on the one standard table model, in one of its looks (section 16).
   Collectible table skins are parked until after release (section 18).
 - **Modes at release: Solo, 1v1, 2v2, 3v3.** Lobby 2v2/3v3 tables: bots never join by
-  themselves; the host presses **Fill with PC** once their own side is full (designer,
-  2026-10-02).
+  themselves. **Fill with PC** (designer, 2026-10-26; was "once the host's side is full",
+  2026-10-02, never reachable): a short split pad (alone, 3 friends on a 2v2, one each side...)
+  with nobody new for **30 s** *(tune)* offers its host Fill with PC in Play Global's place;
+  disguised bots near the real players' average tier take the empty seats on whichever side,
+  the real players keep their sides and break, and the game pays and rates like any other. Not
+  for a lone whole side, which has Play Global (`Config.Bots.Fallback.TeamFill`).
   Solo: normal rules with no opponent; the first legally pocketed group is cleared first, then
   the other group, then the called 8. A foul gives yourself ball in hand; the 8 early, on a foul
   or in the wrong pocket loses (changed 2026-09-23; it no longer re-racks). No shot clock, money
@@ -366,8 +381,10 @@ Every feature is checked against these. If it serves none, it waits.
 - **Global queue** (designer, 2026-09-28; it had been planned for after release): the bar's
   **Play Global** (2026-10-07; it was the card's 4th choice, Join Global Queue) looks in every
   server for a side of similar rank and teleports both into an **arena**.
-  - 1v1 alone; **2v2 needs 2 on the pad and 3v3 needs 3** (a whole side). The first whole
-    side by arrival goes; anyone extra stays and hosts the pad. Play Global shows only then.
+  - 1v1 alone; **2v2 needs 2 on the pad and 3v3 needs 3** (a whole side; on a split pad one
+    half full, the host's side first). That side goes; anyone extra stays and hosts the pad.
+    Play Global shows only then. Partial groups have no global search yet: a "fill" queue that
+    joins them across servers is planned after the 2026-10-26 update's numbers are read.
   - **This server first** (designer, 2026-10-09: "this new search is also for the rest of the
     game"): every 1v1 search (a pad's or the spawn pill's) also looks in its own server, all the
     while, for someone near its rank who is searching or waiting alone on a 1v1 pad (2
