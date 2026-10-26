@@ -23,7 +23,8 @@ entry of `docs/archive/STATUS_HISTORY.md`.
   yet live:** **phone QoL** (2026-10-26, `4ca493c`, `4edd93e`, `6a7e40b`: the left column smaller and
   nearer the edge on a phone, upright too; MATCH RULES with the old level pictures, higher and
   smaller; a small country flag on each match-bar portrait; the Settings gear closer to the rank HUD
-  on every device; check live on a phone both ways up,
+  on every device; the freecam keeps a phone's thumbstick (it was switched off with the HUD, so a
+  phone could not fly); check live on a phone both ways up,
   a pad's host card, and your flag on your portrait in a match, gone after switching it off);
   the **weekly community codes** (2026-10-26: BREAKSHOT, BANKSHOT, CUEBALL, TRICKSHOT,
   CORNERPOCKET, MASSESHOT, 5 spins each, Live and off; each stops at the end of its Monday-to-Monday
