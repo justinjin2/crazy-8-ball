@@ -20,9 +20,9 @@ entry of `docs/archive/STATUS_HISTORY.md`.
 - **Published by the designer 2026-10-26: everything pushed up to `97727b89`** (the 2026-10-25
   evening publish was up to `e49ef20e`, the lobby boards included, so the country store is
   counting real wins since then); every not-yet-published note below is live with it. **Pushed,
-  not yet live:** the MATCH RULES card a little into a phone's side safe strip, clear of Play
-  Global (`Config.UI.HostRules.IntoSafeStripPx`; check on an iPhone that it sits beside the
-  island, not under it, and on your phone that it no longer overlaps Play Global); the freecam on
+  not yet live:** the MATCH RULES card narrower (XP tags 12 px, 188 wide) and 4 px from the safe
+  edge, clear of Play Global (reaching into the side strip was cut off: a ScreenGui clips at the
+  safe area; check on your phone that it is whole and no longer overlaps Play Global); the freecam on
   a phone looks only with a finger on the right half, the left half is the thumbstick's
   (`Config.Freecam.TouchLookFromShare`). **Live since 2026-10-26, checks still to do:** **phone
   QoL** (`4ca493c`, `4edd93e`, `6a7e40b`: the left column smaller and nearer the edge on a phone,

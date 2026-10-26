@@ -4534,9 +4534,9 @@ timer of a new block stay the designer's call.
   length are the numbers to watch after publishing. The Settings gear moved closer to the rank
   HUD on every device (16 px at rest on a phone, was 45): it leaves room for the card's hover
   size only, no longer for the press's brief bounce on top.
-- 2026-10-26: **The MATCH RULES card reaches a little into a phone's side safe strip** (designer:
-  it overlapped Play Global, "still too close to the center"; hug the iPhone's island). 8 px in
-  (`Config.UI.HostRules.IntoSafeStripPx`): 51 px from the edge on a Dynamic Island iPhone, whose
-  island ends about 48 px in. The power bar's rule (inside the strip, 2026-10-06) stands; this
-  card goes only as far as clears the island. **The freecam on a phone looks only with the right
+- 2026-10-26: **The MATCH RULES card is narrower and nearer the safe edge** (designer: it
+  overlapped Play Global). Reaching 8 px into the phone's side safe strip was tried and cut off
+  on the designer's phone (a ScreenGui clips at the device safe area), so instead the XP tags
+  are 12 px (were 14), the words 16, the card 188 wide (was 204) and 4 px from the HUD's right
+  edge (was 10). **The freecam on a phone looks only with the right
   half** (designer: moving also turned the camera): the left half is the thumbstick's.
