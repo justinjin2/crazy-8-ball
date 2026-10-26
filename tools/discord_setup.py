@@ -114,7 +114,7 @@ RULES_TEXT = """**Welcome to Crazy 8 Ball!** Read these before you chat.
 **What happens if you break them:** warning, then a 1 hour timeout, then a 24 hour timeout, then a ban.
 Scams, NSFW, slurs, raids and anything that puts a kid at risk are an instant ban.
 
-See something bad? Right-click the message (long-press on a phone) and pick **Report Message**. AutoMod removes most of it by itself."""
+See something bad? Right-click the message (long-press on a phone) and pick **Report Message**. Reports are reviewed and the right action is taken."""
 
 # Rules screening: new members tick "I agree" to these before they can chat or DM anyone here.
 SCREENING_RULES = [
