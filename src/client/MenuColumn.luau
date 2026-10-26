@@ -587,13 +587,15 @@ function MenuColumn.layout(self: any)
 		return
 	end
 	local short = size.Y < S.ShortHeight
-	local tile = if short then C.ShortTilePx else C.TilePx
-	local gap = if short then C.ShortGapPx else C.GapPx
-	local margin = if short then C.ShortMarginPx else C.MarginPx
-	local textPx = if short then C.ShortLabelTextPx else C.LabelTextPx
-	local dotPx = if short then C.ShortDotPx else C.DotPx
-	local timerPx = if short then C.ShortTimerPx else C.TimerPx
-	local glyphPx = if short then C.ShortGlyphPx else C.GlyphPx
+	-- A phone either way up (the game turns with the phone): its shorter side is short.
+	local phone = math.min(size.X, size.Y) < S.ShortHeight
+	local tile = if phone then C.ShortTilePx else C.TilePx
+	local gap = if phone then C.ShortGapPx else C.GapPx
+	local margin = if phone then C.ShortMarginPx else C.MarginPx
+	local textPx = if phone then C.ShortLabelTextPx else C.LabelTextPx
+	local dotPx = if phone then C.ShortDotPx else C.DotPx
+	local timerPx = if phone then C.ShortTimerPx else C.TimerPx
+	local glyphPx = if phone then C.ShortGlyphPx else C.GlyphPx
 	local tiles = self:shownOrder()
 	local count = #tiles
 	local height = count * tile + (count - 1) * gap
@@ -607,7 +609,8 @@ function MenuColumn.layout(self: any)
 			TextService:GetTextSize(words, textPx, WORD_MEASURE, Vector2.new(2000, 200)).X
 		)
 	end
-	local labelW = math.clamp(math.ceil(widest) + 8, tile, round(tile * C.LabelMaxShare))
+	local maxShare = if phone then C.ShortLabelMaxShare else C.LabelMaxShare
+	local labelW = math.clamp(math.ceil(widest) + 8, tile, round(tile * maxShare))
 	local over = math.max(0, round((labelW - tile) / 2))
 	local width = tile + 2 * over
 
@@ -617,7 +620,7 @@ function MenuColumn.layout(self: any)
 	local maxBottom = self:moneyTop(origin, size, short) - C.AboveMoneyPx
 	local scale = math.clamp((maxBottom - minTop) / height, C.MinScale, 1)
 	local shown = height * scale
-	local top = if short then minTop else round((size.Y - shown) / 2)
+	local top = if phone then minTop else round((size.Y - shown) / 2)
 	top = math.clamp(top, minTop, math.max(minTop, maxBottom - shown))
 	self.fit.Scale = scale
 	self.root.Position = UDim2.fromOffset(margin, round(top))

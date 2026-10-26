@@ -9674,13 +9674,16 @@ Config.UI.Menu = {
 		-- and playtime rewards pop up; trading starts from the player list).
 		Order = { "Shop", "Inventory", "Ults", "FreeReward" },
 		TilePx = 78, -- a tile's square slot, its touch area (a computer or tablet)
-		ShortTilePx = 52, -- on a phone (at least a 44 px touch target)
+		-- On a phone, either way up (its shorter side under Multiplayer.Style.ShortHeight): the
+		-- 44 px touch target, smaller to leave the thumb more room to walk (designer,
+		-- 2026-10-26; was 52).
+		ShortTilePx = 44,
 		-- Between two slots: room for each tile's word over the next tile's icon (designer,
 		-- 2026-10-09: ABILITIES touched the Free Reward gift at 4).
 		GapPx = 12,
 		ShortGapPx = 8, -- a phone's words overhang the small slots: room for the next red dot
 		MarginPx = 12, -- from the screen's left edge (the money HUD's margins)
-		ShortMarginPx = 8,
+		ShortMarginPx = 4, -- a phone: a little nearer the edge (designer, 2026-10-26; was 8)
 		-- A phone: the column starts this far under the rank HUD's badge (it hangs below
 		-- Roblox's 58 px top row); a big screen centres it on the left edge.
 		BelowRankPx = 6,
@@ -9703,11 +9706,13 @@ Config.UI.Menu = {
 			Weight = "Regular", -- Fredoka One has one weight
 			Measure = "FredokaOne",
 		},
-		ShortLabelTextPx = 14, -- never under the kit's minimum
+		-- A phone's words: the kit's minimum (designer, 2026-10-26: smaller; was 14).
+		ShortLabelTextPx = 12,
 		LabelCentreShare = 0.86, -- the word's middle sits this far down the tile
 		-- The word's box may be this many tiles wide, overhanging both sides ("Inventory" is
 		-- wider than a phone's tile at 14 px); the column moves right by the overhang.
 		LabelMaxShare = 1.7,
+		ShortLabelMaxShare = 1.9, -- a phone's smaller tile: "FREE REWARD" at 12 px is 74 wide
 		DotPx = 22, -- the red dot's height (it widens for "9+"), top right of the tile
 		ShortDotPx = 20,
 		DotTextPx = 14,
