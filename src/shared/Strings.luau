@@ -37,6 +37,7 @@ return {
 		PadArrow = "JOIN", -- under the arrow bobbing over a pad with room
 		PadCount = "%d/%d", -- on a pad with players on it: how many, of how many it holds
 		PadFull = "FULL",
+		PadTeam = "TEAM %d", -- each half of a split 2v2 or 3v3 pad
 		PadPlaying = "PLAYING", -- on the pad and the sign while the table's game is on
 		Waiting = "WAITING",
 		Starting = "STARTING %d", -- the sign's pill while a full pad counts down to its game
@@ -56,6 +57,10 @@ return {
 			-- The bar adds three dots that light up one by one (MatchBar.dots).
 			WaitingForOpponent = "Waiting for opponent", -- a 1v1 pad with room
 			WaitingForPlayers = "Waiting for players", -- a 2v2 or 3v3 pad with room
+			-- A split 2v2 or 3v3 pad (designer, 2026-10-26): the chip names your side and its
+			-- count; the line says you may walk to the other half while it has room.
+			TeamCount = "TEAM %d · %d/%d",
+			SwitchSides = "Walk across to switch sides",
 			StartingIn = "Starting in %d", -- the pad is full: the game starts by itself
 			-- The host's one choice, a few seconds after stepping on.
 			NoWait = "Don't want to wait?",

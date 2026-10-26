@@ -55,6 +55,14 @@ local HEIGHT = B.AskTextPx + B.AskGapPx + B.GlobalHeight
 local PILL_MID = HEIGHT - B.GlobalHeight / 2
 -- The pill while a spawn-pill search runs: no count chip.
 local SOLO_WIDTH = 2 * B.PillPadPx + B.IconPx + B.GapPx + B.LineWidthPx
+-- The pill on a split 2v2 or 3v3 pad: the wider team chip and line.
+local TEAM_WIDTH = 2 * B.PillPadPx
+	+ B.IconPx
+	+ B.GapPx
+	+ B.TeamChipWidth
+	+ B.GapPx
+	+ B.TeamLineWidthPx
+local Visual = Config.Multiplayer.QueueVisual
 
 local function phoneSized(screen: any): boolean
 	return screen ~= nil and screen.AbsoluteSize.X < Config.LuckyBlocks.UI.PhoneWidthPx
@@ -406,23 +414,32 @@ function MatchBar.showGlobal(self: any, show: boolean)
 	end)
 end
 
--- Place the pieces for what shows: the pad's pill with its count chip, the spawn pill's
--- search (no chip), or the spawn pill's offer (Play Global alone, no pill).
-function MatchBar.arrange(self: any, kind: string)
-	if kind == self.arranged then
+-- Place the pieces for what shows: the pad's pill with its count chip (wider on a split team
+-- pad, `split`), the spawn pill's search (no chip), or the spawn pill's offer (Play Global
+-- alone, no pill).
+function MatchBar.arrange(self: any, kind: string, split: boolean?)
+	split = split == true and kind == "pad"
+	local key = kind .. (if split then ":split" else "")
+	if key == self.arranged then
 		return
 	end
-	self.arranged = kind
+	self.arranged = key
 	local offer = kind == "offer"
-	local pillWidth = if kind == "solo" then SOLO_WIDTH else PILL_WIDTH
+	local pillWidth = if kind == "solo" then SOLO_WIDTH elseif split then TEAM_WIDTH else PILL_WIDTH
+	local chipWidth = if split then B.TeamChipWidth else B.ChipWidth
 	self.pill.Visible = not offer
 	self.pill.Size = UDim2.fromOffset(pillWidth, B.PillHeight)
 	self.chip.Visible = kind == "pad"
+	self.chip.Size = UDim2.fromOffset(chipWidth, B.ChipHeight)
 	local lineLeft = B.PillPadPx + B.IconPx + B.GapPx
 	if kind == "pad" then
-		lineLeft += B.ChipWidth + B.GapPx
+		lineLeft += chipWidth + B.GapPx
 	end
 	self.line.Position = UDim2.new(0, lineLeft, 0.5, 0)
+	self.line.Size = UDim2.fromOffset(
+		if split then B.TeamLineWidthPx else B.LineWidthPx,
+		B.PillHeight - 2 * B.PillPadPx
+	)
 	local buttonLeft = if offer then 0 else pillWidth - B.GlobalOverlapPx
 	self.global.Position = UDim2.fromOffset(buttonLeft, PILL_MID)
 	self.cancel.Position = UDim2.fromOffset(buttonLeft, PILL_MID)
@@ -510,10 +527,13 @@ end
 function MatchBar.update(self: any, now: number)
 	self.now = now
 	local kind, _, soloFound, soloAt = self:pick(now)
-	if kind ~= self.kind then
-		self.kind = kind
+	local split = kind == "pad"
+		and self.snapshot ~= nil
+		and PadBar.sideOf(self.snapshot, self.localUserId) ~= nil
+	if kind ~= self.kind or split ~= self.split then
+		self.kind, self.split = kind, split
 		if kind then
-			self:arrange(kind)
+			self:arrange(kind, split)
 		end
 	end
 	self:setOpen(kind ~= nil)
@@ -523,13 +543,24 @@ function MatchBar.update(self: any, now: number)
 	local global, cancel = false, false
 	if kind == "pad" then
 		local view = PadBar.view(self.snapshot, self.localUserId, now, self.press, self.dismissed)
-		self.count.Text = Copy.PlayerCount:format(view.count, view.capacity)
+		local side = view.side
+		self.count.Text = if side
+			then Copy.TeamCount:format(side, view.sideCount, view.capacity // 2)
+			else Copy.PlayerCount:format(view.count, view.capacity)
+		-- Your half's colour on a split pad: green, gold once your side is full.
+		local chipColor = if side
+			then HudParts.color(if view.sideFull then Visual.RimFull else Visual.RimOccupied)
+			else HudParts.color(Config.UI.Kit.HeaderTop)
+		if self.chip.BackgroundColor3 ~= chipColor then
+			self.chip.BackgroundColor3 = chipColor
+		end
 		local text = if view.line == "Starting"
 			then Copy.StartingIn:format(view.startsIn or 1)
 			elseif view.line == "Found" then Copy.MatchFound
 			elseif view.line == "Searching" then Copy.Searching:format(
 				PadBar.clock(view.waited or 0)
 			)
+			elseif view.line == "SwitchSides" then Copy.SwitchSides
 			elseif view.line == "WaitingPlayers" then Copy.WaitingForPlayers .. dots(now)
 			else Copy.WaitingForOpponent .. dots(now)
 		if self.line.Text ~= text then

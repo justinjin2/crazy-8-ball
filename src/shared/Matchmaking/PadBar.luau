@@ -22,7 +22,7 @@ export type Press = {
 }
 
 export type View = {
-	line: string, -- "Waiting", "WaitingPlayers", "Starting", "Searching" or "Found"
+	line: string, -- "Waiting", "WaitingPlayers", "SwitchSides", "Starting", "Searching" or "Found"
 	count: number, -- on the pad
 	capacity: number, -- both teams
 	isHost: boolean,
@@ -31,7 +31,34 @@ export type View = {
 	showGlobal: boolean, -- "Don't want to wait?" and Play Global
 	needsSide: boolean, -- a team table's host before a whole side is on: no Play Global yet
 	showCancel: boolean, -- the red X: the host's own search runs
+	-- A split 2v2 or 3v3 pad (designer, 2026-10-26): the side you stand on, how many are on
+	-- it, and whether you may walk across (the other side has room). Nil side: no split.
+	side: number?,
+	sideCount: number,
+	sideFull: boolean,
+	switchable: boolean,
 }
+
+--- `userId`'s side on a split team pad's snapshot (their waiting seat's `side`), or nil.
+function PadBar.sideOf(snapshot: any, userId: number): number?
+	for _, seat in snapshot.seats or {} do
+		if seat.userId == userId and seat.connected ~= false then
+			return if seat.side == 1 or seat.side == 2 then seat.side else nil
+		end
+	end
+	return nil
+end
+
+-- How many wait on side `side` of a split pad's snapshot.
+local function sideCount(snapshot: any, side: number): number
+	local n = 0
+	for _, seat in snapshot.seats or {} do
+		if seat.connected ~= false and seat.side == side then
+			n += 1
+		end
+	end
+	return n
+end
 
 --- How many are on the pad (a seat that dropped its connection does not count).
 function PadBar.count(snapshot: any): number
@@ -83,7 +110,21 @@ function PadBar.view(
 		showGlobal = false,
 		needsSide = false,
 		showCancel = false,
+		side = PadBar.sideOf(snapshot, userId),
+		sideCount = 0,
+		sideFull = false,
+		switchable = false,
 	}
+	local side = view.side
+	if side then
+		view.sideCount = sideCount(snapshot, side)
+		view.sideFull = view.sideCount >= teamSize
+		view.switchable = sideCount(snapshot, 3 - side) < teamSize
+		-- "Walk across to switch sides" while the other side has room.
+		if view.switchable then
+			view.line = "SwitchSides"
+		end
+	end
 	if snapshot.startsAt then
 		view.line = "Starting"
 		view.startsIn = math.max(1, math.ceil(snapshot.startsAt - now))

@@ -13,7 +13,9 @@
 -- It glows blue while empty, green once somebody is on it, and the plate turns gold when it
 -- is full or its game is on, the portal gone. While occupied, light motes drift
 -- up from it and its glow flares whenever someone steps on, with a one-shot power-up sound.
--- Emptying fades it out.
+-- Emptying fades it out. A split 2v2 or 3v3 pad (its Sides attribute; designer, 2026-10-26)
+-- tints each half, TEAM 1 and TEAM 2, by its own side the same way (Count1/Full1, Count2/
+-- Full2); the portal keeps the whole pad's colour.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -36,10 +38,17 @@ type Ring = {
 	stroke: UIStroke,
 }
 
+-- One half of a split team pad (TableService's Split): its glass and its rim.
+type Half = {
+	glass: Frame,
+	rim: UIStroke,
+}
+
 type Pad = {
 	part: BasePart,
 	rim: UIStroke?,
 	plate: Frame?, -- the see-through plate the rim goes round, tinted with it
+	halves: { Half }?, -- a split team pad's two halves, once replicated
 	host: Part, -- local, level over the pad: holds the motes, glow, sound and arrow
 	top: CFrame, -- the pad's top face, level: the rings rise from it
 	count: number,
@@ -90,6 +99,25 @@ local function rimOf(part: BasePart): UIStroke?
 	local plate = plateOf(part)
 	local rim = plate and plate:FindFirstChild("Rim")
 	return if rim and rim:IsA("UIStroke") then rim else nil
+end
+
+-- A split team pad's halves (TableService's Split frame), once they have replicated.
+local function halvesOf(part: BasePart): { Half }?
+	local label = part:FindFirstChild("PadLabel")
+	local split = label and label:FindFirstChild("Split")
+	if not split then
+		return nil
+	end
+	local halves: { Half } = {}
+	for side = 1, 2 do
+		local glass = split:FindFirstChild("Half" .. side)
+		local rim = glass and glass:FindFirstChild("Rim")
+		if not (glass and glass:IsA("Frame") and rim and rim:IsA("UIStroke")) then
+			return nil
+		end
+		halves[side] = { glass = glass, rim = rim }
+	end
+	return halves
 end
 
 -- A local, invisible, untouchable part in the effects folder.
@@ -380,6 +408,22 @@ function PadEffects.update(
 		pad.plate = pad.plate or plateOf(part)
 		if pad.plate then
 			pad.plate.BackgroundColor3 = pad.plate.BackgroundColor3:Lerp(tint, blend)
+		end
+		-- A split pad: each half by its own side (gold full or playing, green somebody on).
+		if part:GetAttribute("Sides") == true then
+			pad.halves = pad.halves or halvesOf(part)
+			local halves: { Half } = pad.halves or {}
+			for side, half in halves do
+				local n = part:GetAttribute("Count" .. side)
+				local tone = rgb(
+					if not open or part:GetAttribute("Full" .. side) == true
+						then Q.RimFull
+						elseif type(n) == "number" and n > 0 then Q.RimOccupied
+						else Q.RimFree
+				)
+				half.rim.Color = half.rim.Color:Lerp(tone, blend)
+				half.glass.BackgroundColor3 = half.glass.BackgroundColor3:Lerp(tone, blend)
+			end
 		end
 
 		-- The portal while the pad has room: its rings rise one after another, fading in off

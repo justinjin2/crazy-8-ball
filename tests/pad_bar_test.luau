@@ -199,4 +199,22 @@ function tests.after_a_match_you_are_queued_again_after_a_short_grace()
 	expect(PadBar.rejoinReady(100, 100 + grace), "then queued again")
 end
 
+-- A split 2v2 pad (designer, 2026-10-26): the chip says your side and its count, and the line
+-- says you may walk across while the other side has room.
+function tests.a_split_pad_shows_your_side_and_the_switch_hint()
+	local snap = pad(2, { 1, 2, 3 })
+	snap.seats[1].side, snap.seats[2].side, snap.seats[3].side = 1, 1, 2
+	local v = PadBar.view(snap, 3, 100, NONE)
+	expect(v.side == 2 and v.sideCount == 1 and not v.sideFull and v.switchable == false)
+	expect(v.line == "WaitingPlayers", "the other side is full: no hint")
+	local mine = PadBar.view(snap, 1, 100, NONE)
+	expect(mine.side == 1 and mine.sideCount == 2 and mine.sideFull and mine.switchable)
+	expect(mine.line == "SwitchSides")
+	snap.startsAt = 103
+	expect(PadBar.view(snap, 1, 100, NONE).line == "Starting", "the countdown wins")
+	local plain = PadBar.view(pad(2, { 1 }), 1, 100, NONE)
+	expect(plain.side == nil and plain.line == "WaitingPlayers", "no sides: as before")
+	expect(PadBar.sideOf(snap, 99) == nil)
+end
+
 return tests

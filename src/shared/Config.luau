@@ -8148,6 +8148,20 @@ Config.Multiplayer = {
 		PixelsPerStud = 40, -- sharp words on the pad without large canvases
 		ModeTextSize = 110, -- "1v1" on the pad, pixels (about 2.75 studs tall)
 		CountTextSize = 50, -- STEP IN or 1/2 under it
+		-- A split team pad (Config.Multiplayer.Queue.Sides; designer, 2026-10-26, from the
+		-- Studio concept): two rounded halves, each with its own rim and glass tinted by its own
+		-- side (blue empty, green somebody on, gold full or playing), TEAM 1 / TEAM 2 and the
+		-- side's count, and the mode on a dark pill over the line. (tune)
+		Split = {
+			GapPx = 6, -- between the two halves' rims, each side of the line, pixels
+			GlassTransparency = 0.78, -- each half's glass: a touch stronger than the whole plate's
+			TeamTextSize = 64, -- TEAM 1, pixels
+			CountTextSize = 56, -- 1/2 under it
+			TeamAt = 0.36, -- the words' heights down each half, shares of its height
+			CountAt = 0.68,
+			PillPx = { 150, 74 }, -- the mode pill over the line, pixels
+			PillTextSize = 50,
+		},
 		-- Turns the pad about its table's up axis, a quarter turn at a time, so its words lie
 		-- along the table and read upright from the entrance (tables at yaw 0). (tune)
 		LabelRotation = 270,
@@ -9119,6 +9133,11 @@ Config.UI.MatchBar = {
 	LineTextPx = 21, -- "Waiting for opponent..."
 	-- The line's fixed width (its longest words), so the bar never jumps as the dots light.
 	LineWidthPx = 250,
+	-- On a split 2v2 or 3v3 pad (designer, 2026-10-26) the chip says "TEAM 1 · 1/2" in your
+	-- half's colour (green, gold once your side is full) and the line has room for "Walk
+	-- across to switch sides": both a little wider.
+	TeamChipWidth = 132,
+	TeamLineWidthPx = 280,
 	DotSeconds = 0.4, -- the waiting line's dots light one by one, this long each
 	-- Play Global: joined to the pill's right end, slightly taller so it reads as the hero.
 	GlobalHeight = 52,

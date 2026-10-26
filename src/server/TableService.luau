@@ -236,6 +236,77 @@ end
 -- server keeps its attributes and words current (refresh); PadEffects on each client tints
 -- the rim, raises the glowing queue portal over it and bobs an arrow over it from those
 -- attributes.
+-- A split team pad's halves (Config.Multiplayer.Queue.Sides; QueueVisual.Split): beside the
+-- whole plate on the same canvas, shown instead of it while the pad has sides (refresh). Each
+-- half is a glass plate with its own Rim, TEAM n and its Count; the mode sits on a dark pill
+-- over the line. Half1 is team 1, the canvas's left: the pad's -x half seen from the entrance.
+local function buildSplit(gui: SurfaceGui, teamSize: number): any
+	local S = Q.Split
+	local root = Instance.new("Frame")
+	root.Name = "Split"
+	root.Size = UDim2.fromScale(1, 1)
+	root.BackgroundTransparency = 1
+	root.Visible = false
+	root.Parent = gui
+	local counts = {}
+	for side = 1, 2 do
+		local half = Instance.new("Frame")
+		half.Name = "Half" .. side
+		half.AnchorPoint = Vector2.new(0, 0.5)
+		half.Position = if side == 1
+			then UDim2.new(0, Q.RimPx, 0.5, 0)
+			else UDim2.new(0.5, Q.RimPx / 2 + S.GapPx, 0.5, 0)
+		half.Size = UDim2.new(0.5, -Q.RimPx * 1.5 - S.GapPx, 1, -2 * Q.RimPx)
+		half.BackgroundColor3 = rgb(Q.PadColor)
+		half.BackgroundTransparency = S.GlassTransparency
+		half.Parent = root
+		local corner = Instance.new("UICorner")
+		corner.CornerRadius = UDim.new(0, Q.PadCornerPx)
+		corner.Parent = half
+		local rim = Instance.new("UIStroke")
+		rim.Name = "Rim"
+		rim.Color = rgb(Q.RimFree)
+		rim.Thickness = Q.RimPx
+		rim.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+		rim.Parent = half
+		local team = label(
+			half,
+			Strings.Match.PadTeam:format(side),
+			UDim2.new(1, 0, 0, S.TeamTextSize),
+			UDim2.fromScale(0.5, S.TeamAt),
+			S.TeamTextSize
+		)
+		team.Name = "Team"
+		team.AnchorPoint = Vector2.new(0.5, 0.5)
+		local count = label(
+			half,
+			Strings.Match.PadCount:format(0, teamSize),
+			UDim2.new(1, 0, 0, S.CountTextSize),
+			UDim2.fromScale(0.5, S.CountAt),
+			S.CountTextSize
+		)
+		count.Name = "Count"
+		count.AnchorPoint = Vector2.new(0.5, 0.5)
+		counts[side] = count
+	end
+	local pill = label(
+		root,
+		Strings.Match.Mode:format(teamSize, teamSize),
+		UDim2.fromOffset(S.PillPx[1], S.PillPx[2]),
+		UDim2.fromScale(0.5, 0.5),
+		S.PillTextSize
+	)
+	pill.Name = "ModePill"
+	pill.AnchorPoint = Vector2.new(0.5, 0.5)
+	pill.BackgroundTransparency = 0
+	pill.BackgroundColor3 = rgb(Kit.Colors.Ink)
+	pill.ZIndex = 3
+	local round = Instance.new("UICorner")
+	round.CornerRadius = UDim.new(0.5, 0)
+	round.Parent = pill
+	return { root = root, counts = counts, pill = pill }
+end
+
 local function buildPad(t: any, folder: Instance)
 	local id = t.engine.id
 	local teamSize = t.engine.teamSize
@@ -307,6 +378,7 @@ local function buildPad(t: any, folder: Instance)
 		label(plate, "", UDim2.new(1, 0, 0, Q.CountTextSize), UDim2.new(), Q.CountTextSize)
 	count.Name = "Count"
 	count.LayoutOrder = 2
+	t.split = buildSplit(gui, teamSize)
 	local light = Instance.new("SurfaceLight")
 	light.Face = Enum.NormalId.Top
 	light.Brightness = Q.LightBrightness
@@ -314,7 +386,7 @@ local function buildPad(t: any, folder: Instance)
 	light.Color = rgb(Kit.Colors.White)
 	light.Shadows = false
 	light.Parent = pad
-	t.pad, t.countText, t.modeText = pad, count, mode
+	t.pad, t.countText, t.modeText, t.plate = pad, count, mode, plate
 end
 
 local function setText(object: TextLabel, text: string)
@@ -366,6 +438,19 @@ local function refresh(t: any)
 		local n = if sides and waiting then Engine.sideCount(e, side) else 0
 		pad:SetAttribute("Count" .. side, n)
 		pad:SetAttribute("Full" .. side, sides and (not waiting or n >= e.teamSize))
+		if t.split then
+			setText(t.split.counts[side], C.PadCount:format(n, e.teamSize))
+		end
+	end
+	-- The halves while the pad has sides (a team table lent to a 1v1 shows the whole plate).
+	if t.split then
+		if t.plate.Visible == sides then
+			t.plate.Visible = not sides
+		end
+		if t.split.root.Visible ~= sides then
+			t.split.root.Visible = sides
+		end
+		setText(t.split.pill, C.Mode:format(e.teamSize, e.teamSize))
 	end
 	logPadExits(t)
 	setText(
