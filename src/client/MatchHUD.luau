@@ -22,6 +22,7 @@ local RankBadge = require(script.Parent.RankBadge)
 local Engine = require(Shared:WaitForChild("Rules"):WaitForChild("MatchEngine"))
 local UltCatalog = require(Shared:WaitForChild("Ults"):WaitForChild("Catalog"))
 local People = require(script.Parent.People)
+local PlayerListView = require(Shared:WaitForChild("Progression"):WaitForChild("PlayerListView"))
 local Copy = Strings.Match
 local M = Config.Multiplayer
 local S = M.Style
@@ -147,6 +148,24 @@ local function makePortrait(parent: Instance): any
 	local badge = RankBadge.new(root, { size = S.PortraitSize, name = "RankBadge", zIndex = 6 })
 	badge.root.AnchorPoint = Vector2.new(0.5, 0.5)
 	badge.root.Visible = false
+	-- Their country flag, small, on the portrait's top-right corner (designer, 2026-10-26):
+	-- the CountryFlag attribute, so only while they show it (Settings); never a bot's
+	-- (watchFlag). An emoji, so no outline. The opponent's ult sits on the inner top corner,
+	-- the top left on the right-hand side, so the two never meet.
+	local flag = Instance.new("TextLabel")
+	flag.Name = "Flag"
+	flag.BackgroundTransparency = 1
+	flag.AutoLocalize = false
+	flag.Font = Enum.Font.FredokaOne
+	flag.Text = ""
+	flag.TextScaled = true
+	flag.TextColor3 = Color3.new(1, 1, 1)
+	flag.AnchorPoint = Vector2.new(0.5, 0.5)
+	flag.Position = UDim2.fromScale(S.PortraitFlagAt[1], S.PortraitFlagAt[2])
+	flag.Size = UDim2.fromScale(S.PortraitFlagShare, S.PortraitFlagShare)
+	flag.ZIndex = 8
+	flag.Visible = false
+	flag.Parent = root
 	local gone = HudParts.icon(imageFrame, "X", "Left")
 	gone.AnchorPoint = Vector2.new(0.5, 0.5)
 	gone.Position = UDim2.fromScale(0.5, 0.5)
@@ -234,6 +253,8 @@ local function makePortrait(parent: Instance): any
 		ultIcon = nil, -- the icon shown (the opponent's equipped ult's), "" for the badge
 		rankConnections = {},
 		rankPending = false,
+		flag = flag,
+		flagConnection = nil :: RBXScriptConnection?,
 		userId = nil,
 		occupied = false,
 	}
@@ -1265,6 +1286,7 @@ function MatchHUD.setSnapshot(self: any, snapshot: any?, userId: number)
 				if portrait.userId ~= seat.userId then
 					portrait.userId = seat.userId
 					self:watchRank(portrait, seat.userId, seat.bot)
+					self:watchFlag(portrait, seat.userId, seat.bot)
 					portrait.image.Image = ""
 					portrait.fallback.Visible = true
 					self:avatar(seat, function(content: string)
@@ -1375,6 +1397,33 @@ function MatchHUD.watchRank(self: any, portrait: any, userId: number, bot: any?)
 			player:GetAttributeChangedSignal(attribute):Connect(changed)
 		)
 	end
+	refresh()
+end
+
+-- The small country flag on a portrait: the seated player's CountryFlag attribute (set while
+-- their Show my country flag is on), kept up to date. None for a bot or a made-up player.
+function MatchHUD.watchFlag(self: any, portrait: any, userId: number, bot: any?)
+	local old = portrait.flagConnection
+	if old then
+		old:Disconnect()
+		portrait.flagConnection = nil
+	end
+	local flag: TextLabel = portrait.flag
+	local player: any = if bot then nil else People.owner(userId)
+	if typeof(player) ~= "Instance" then -- a bot's stand-in is a table
+		flag.Visible = false
+		return
+	end
+	local function refresh()
+		local emoji = PlayerListView.flag(player:GetAttribute("CountryFlag"))
+		flag.Text = emoji
+		flag.Visible = emoji ~= ""
+	end
+	portrait.flagConnection = player:GetAttributeChangedSignal("CountryFlag"):Connect(function()
+		if self.alive and portrait.userId == userId then
+			refresh()
+		end
+	end)
 	refresh()
 end
 
@@ -1823,6 +1872,9 @@ function MatchHUD.destroy(self: any)
 		for _, portrait in team.portraits do
 			for _, connection in portrait.rankConnections do
 				connection:Disconnect()
+			end
+			if portrait.flagConnection then
+				portrait.flagConnection:Disconnect()
 			end
 		end
 	end

@@ -8265,6 +8265,10 @@ Config.Multiplayer = {
 		PortraitCornerPx = 10, -- the portrait's rounded corners
 		PortraitGap = 6, -- teammate portrait spacing
 		ActiveDotPx = 9, -- the green dot on the shooter's portrait
+		-- The player's country flag on their portrait (designer, 2026-10-26: very small, top
+		-- right), while they show it: its size and centre in shares of the portrait. (tune)
+		PortraitFlagShare = 0.5,
+		PortraitFlagAt = { 0.9, 0.1 },
 		ActiveEdgePx = 3, -- the shooter's green outline and the clock running round it
 		BallSize = 27, -- numbered HUD ball diameter
 		BallGap = 4, -- stable ball-slot spacing
