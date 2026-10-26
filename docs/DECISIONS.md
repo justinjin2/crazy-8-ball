@@ -4540,3 +4540,11 @@ timer of a new block stay the designer's call.
   are 12 px (were 14), the words 16, the card 188 wide (was 204) and 4 px from the HUD's right
   edge (was 10). **The freecam on a phone looks only with the right
   half** (designer: moving also turned the camera): the left half is the thumbstick's.
+- 2026-10-26 (designer): **a raised cue drops its effects only on its shooter's own screen.**
+  The opponent, teammates and anyone watching always see the skin whole (aura, moving
+  material, outlines, piece), whatever the cue's angle. Replaces the 2026-10-06 "every cue, for
+  everyone". **A turn's cue swaps at once in a 2v2 or 3v3:** the watched stick kept the last
+  shooter's cue for 0.5-2.4 s while the next one's look loaded (`CueAssets`: a copy not asked
+  for in 60 s was dropped, and a fresh one waits 2 s for a texture from the device's cache), so
+  everyone seated at your table and the drawn tables now has their look held loaded
+  (`CueAssets.holdLooks`, at most `Config.CueSkins.Warm.MaxHeldLooks` = 6).

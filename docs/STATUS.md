@@ -21,7 +21,7 @@ entry of `docs/archive/STATUS_HISTORY.md`.
   on the designer's phone (the MATCH RULES card whole and clear of Play Global; the freecam's
   thumbstick on the left half, the look on the right). The 2026-10-25 evening publish was up to
   `e49ef20e`, the lobby boards included, so the country store is counting real wins since then;
-  every not-yet-published note below is live with it. Nothing is pushed and unpublished.
+  every not-yet-published note below is live with it. **Pushed 2026-10-26, not yet published:** a raised cue drops its effects only on its shooter's own screen, everyone else sees the skin whole (`887bbd4b`); a 2v2/3v3 turn's cue swaps at once instead of showing the last shooter's cue for 1-2 s (`7c8fe244`, `CueAssets.holdLooks`). Check live in a 2v2 with a friend: raise your cue over a rail, they still see its aura; pass turns, their screen shows each shooter's own cue at once; Creator Hub client memory on phones the day after.
   **Live since 2026-10-26, checks still to do:** **phone
   QoL** (`4ca493c`, `4edd93e`, `6a7e40b`: the left column smaller and nearer the edge on a phone,
   upright too; MATCH RULES with the old level pictures; a small country flag on each match-bar
