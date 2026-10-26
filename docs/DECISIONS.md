@@ -4490,3 +4490,13 @@ timer of a new block stay the designer's call.
   $10,000, always on; the Abilities code box and the tutorial name it (new players get both in
   the tutorial), the next code at 2,000 likes. 250LIKES keeps working 6 more days and expires
   2026-10-31 00:00 UTC (the designer's call, unlike 100LIKES, which expired on the day).
+- 2026-10-25: **Bots think inside one shared budget a server frame, and the physics and bot
+  brain run as native code** (the Home surge: at 600-800 players the worst tenth of live
+  servers fell to 8 FPS, then under 2, while the median stayed at 60; each bot waited one frame
+  after each ~40 ms try, so every thinking bot tried in the same next frame). Bots now wait in
+  one line between tries (`Bots/ThinkQueue`) and a frame lets them go on in order while bot time
+  stays under 8 ms, always at least one; `--!native` (Step 1's M1 commit, never merged until
+  now) on the 8 hot physics and bot modules. Benchmark (`tools/bench_bot_frames.luau`, 12 bots
+  at once): worst frame 215 ms before, 13 ms with both. Measured live by Creator Hub's server
+  frame rate P10 at the next peak (target: above 30). `Config.Bots.Think.Enabled` off: the old
+  frame-each wait.

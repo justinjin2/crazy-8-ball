@@ -28,7 +28,13 @@ entry of `docs/archive/STATUS_HISTORY.md`.
   `PortalAsk` custom event after a few days: how many answers are No or WalkedOff); the **1KLIKES
   code** (`0c253c15`: 15 spins + $10,000, the Abilities code box says USE CODE 1KLIKES / NEXT
   CODE AT 2,000 LIKES, the tutorial gives it; 250LIKES works until 2026-10-31 00:00 UTC; check
-  live: redeem 1KLIKES once, then again for "already used").
+  live: redeem 1KLIKES once, then again for "already used"); the **server lag fix** (2026-10-25,
+  branch `server-lag`: bots think inside one 8 ms budget a server frame, `Config.Bots.Think`,
+  and `--!native` on the physics and bot brain; the worst tenth of live servers fell to 8 then
+  under 2 FPS at 600-800 players. Studio: 8 bot matches at once, bots play normally, console
+  clean. Check live: Creator Hub > Performance > server frame rate P10 at the next evening
+  peak, target above 30 (was 1.6-13 on 2026-10-25), and that bots still take their shots;
+  F9 must show no "replay drifted" warnings).
 - **Published:** everything up to `c499ecf` (2026-10-12; the list is in STATUS_HISTORY). **Not
   yet published:** the Shop restock's "Epic or better!" tag removed (DECISIONS); the VIP card's perk
   list says "Gold chat tag" instead of "Rainbow chat tag" (`2c6972f`); the favorite card rewards
