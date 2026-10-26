@@ -1249,8 +1249,10 @@ local function dropStrayMatchSelection()
 end
 -- Cue looks: the shot effects (pocket finisher creatures, trail and pocket sprites) of your
 -- cue and of everyone at the drawn tables load before they play (CueAssets.holdShots), yours
--- and your table's first.
+-- and your table's first; so do the looks of everyone else there (CueAssets.holdLooks), so a
+-- watched stick switches to the next shooter's cue in the frame the turn passes.
 local shotsClock = math.huge
+local lookIds: { string } = {}
 local function holdShots(dt: number)
 	shotsClock += dt
 	if shotsClock < Config.CueSkins.Warm.ShotRefreshSeconds then
@@ -1267,15 +1269,21 @@ local function holdShots(dt: number)
 			table.insert(tables, id)
 		end
 	end
+	table.clear(lookIds)
 	for _, id in tables do
 		for _, seat in hub:seatsAt(id) do
 			local seated = People.owner(seat.userId) -- a player or a bot (the Bots lane)
 			if seated then
-				table.insert(ids, CueStickBuilder.equippedCue(seated))
+				local cueId = CueStickBuilder.equippedCue(seated)
+				table.insert(ids, cueId)
+				if seated ~= player then
+					table.insert(lookIds, cueId)
+				end
 			end
 		end
 	end
 	CueAssets.holdShots(ids)
+	CueAssets.holdLooks(lookIds)
 end
 -- Quieter auras in a match (AuraQuiet): the shooter's cue and, on your turn, every cue at
 -- your table.

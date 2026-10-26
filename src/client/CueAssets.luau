@@ -31,6 +31,10 @@
 -- when a ball drops, so the cues about to be played with (Main: yours and those of everyone at
 -- the drawn tables) also get a hidden copy of the creature and their trail and pocket sprites,
 -- held loaded while they play; Effects skips a creature not loaded yet rather than show it grey.
+-- Their looks are held the same way (holdLooks), so when the turn passes in a 2v2 or 3v3 the
+-- next shooter's cue is already loaded: without it the watched stick kept the last shooter's
+-- cue for the 0.5-2 s a fresh copy takes (UnrequestedSeconds for a texture from the device's
+-- cache), and a copy not asked for in KeepSeconds had been dropped by the next turn.
 --
 -- CueStickBuilder paints a stick's new cue only when ready (setLoader, from Main), BackCue
 -- swaps a back's stick only when ready.
@@ -550,30 +554,45 @@ function CueAssets.shotReady(id: string): boolean
 	return w ~= nil and w.ready
 end
 
---- Keep exactly these cues' shot effects loaded (the cues about to be played with: Main passes
---- your own and everyone's at the drawn tables), at most MaxHeldShots, the first ones first.
---- Others let go stay loaded KeepSeconds more. Cheap to call often.
-function CueAssets.holdShots(ids: { string })
+-- Keep exactly the `kind` copies of these cues drawn (at most `max`, the first ones first),
+-- held however long ago they were last asked for; the ones let go stay KeepSeconds more.
+local function hold(kind: "look" | "shot", ids: { string }, max: number)
 	local now = os.clock()
 	local wanted: { [string]: boolean } = {}
 	local count = 0
 	for _, id in ids do
-		local key = SHOT .. id
-		if not wanted[key] and count < W.MaxHeldShots and hasShot(id) then
+		local key = if kind == "shot" then SHOT .. id else id
+		local wants = if kind == "shot" then hasShot(id) else template(id) ~= nil
+		if not wanted[key] and count < max and wants then
 			wanted[key] = true
 			count += 1
-			local w = warms[key] or warm(key, id, "shot", template(id) :: Instance)
+			local w = warms[key] or warm(key, id, kind, template(id) :: Instance)
 			w.held = true
 			w.touched = now
 		end
 	end
 	for key, w in warms do
-		if w.held and not wanted[key] then
+		if w.kind == kind and w.held and not wanted[key] then
 			w.held = false
 			w.touched = now
 		end
 	end
 	trim()
+end
+
+--- Keep exactly these cues' shot effects loaded (the cues about to be played with: Main passes
+--- your own and everyone's at the drawn tables), at most MaxHeldShots, the first ones first.
+--- Others let go stay loaded KeepSeconds more. Cheap to call often.
+function CueAssets.holdShots(ids: { string })
+	hold("shot", ids, W.MaxHeldShots)
+end
+
+--- Keep exactly these cues' looks loaded (the cues about to be drawn in a shooter's hands: Main
+--- passes everyone's at your table and the drawn tables), at most MaxHeldLooks, the first ones
+--- first, so a stick switched to the next shooter's cue swaps in the same frame instead of
+--- keeping the last shooter's cue while it loads. Others let go stay loaded KeepSeconds more.
+function CueAssets.holdLooks(ids: { string })
+	hold("look", ids, W.MaxHeldLooks)
 end
 
 return CueAssets

@@ -6190,6 +6190,10 @@ Config.CueSkins = {
 		-- about to be played with: yours and everyone's at the drawn tables, looked up every
 		-- ShotRefreshSeconds, at most MaxHeldShots kept loaded (yours and your table's first).
 		MaxHeldShots = 8,
+		-- The looks of the cues about to be drawn in a shooter's hands (everyone's at your
+		-- table, then at the drawn tables), refreshed with the shot effects, at most this many
+		-- kept loaded: a 3v3 table's six. Held looks are not counted in MaxCopies. (tune)
+		MaxHeldLooks = 6,
 		ShotRefreshSeconds = 1,
 		SpriteEmitSeconds = 0.25, -- how often each effect sprite's hidden particle is emitted
 	},
