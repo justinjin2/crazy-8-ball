@@ -739,6 +739,12 @@
     "imageId": "137525961488251",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball/.claude/worktrees/emotes-f304f0/assets/ui/icons/emote.png": {
+    "assetId": "132544200168263",
+    "assetType": "Decal",
+    "imageId": "101229121269358",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball/.claude/worktrees/nervous-brattain-cea4ae/assets/emotes/bullseye/anims/BullseyeShot.rbxm": {
     "assetId": "90958833606867",
     "assetType": "Animation",
@@ -767,8 +773,8 @@
   "/Users/justinjin/Desktop/8ball/.claude/worktrees/nervous-brattain-cea4ae/assets/emotes/popcorn/popcorn_sprite.png": {
     "assetId": "129179409765641",
     "assetType": "Decal",
-    "status": "ok",
-    "imageId": "138195617882872"
+    "imageId": "138195617882872",
+    "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/abilities/BlackFlash/BlackFlash.glb": {
     "assetId": "75008622077798",

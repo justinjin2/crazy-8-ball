@@ -18192,7 +18192,9 @@ Config.EmoteMenu = {
 	-- screen's centre and its right edge (their red circle), clear of the hotbar, the power
 	-- bar and Roblox's jump button.
 	Button = {
-		Icon = "rbxassetid://119438309817788", -- assets/ui/icons/emote.png (Lucky 8, decal 123964177411822)
+		-- assets/ui/icons/emote.png (Lucky 8, decal 132544200168263): two of its four motion
+		-- marks gone, bottom left and top right (designer, 2026-10-27: too much motion).
+		Icon = "rbxassetid://101229121269358",
 		SizePx = 78, -- the icon's box on a big screen (the column's tiles: 78)
 		PhoneSizePx = 52, -- on a phone (smaller side under Config.Multiplayer.Style.ShortHeight)
 		WordPx = 18, -- EMOTE under it
