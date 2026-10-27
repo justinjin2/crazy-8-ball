@@ -60,7 +60,10 @@ local function holder(): Folder
 end
 
 local function volumeOf(g: Group): number
-	return (g.music.Volume or E.MusicVolume) * SoundGroups.get("EmoteMusic").Volume * g.gain
+	return (g.music.Volume or E.MusicVolume)
+		* E.Loudness
+		* SoundGroups.get("EmoteMusic").Volume
+		* g.gain
 end
 
 -- Where its song is now (the track's own seconds), or nil once a play-once song is over.
@@ -181,7 +184,9 @@ function EmoteMusic.join(userId: number, id: string, at: number)
 	player.Name = id
 	local untyped: any = player -- (AssetId is missing from the type definitions)
 	untyped.AssetId = music.Id
-	player.Volume = (music.Volume or E.MusicVolume) * SoundGroups.get("EmoteMusic").Volume
+	player.Volume = (music.Volume or E.MusicVolume)
+		* E.Loudness
+		* SoundGroups.get("EmoteMusic").Volume
 	player.PlaybackSpeed = music.Speed or 1
 	player.Looping = not once
 	player.PlaybackRegion = NumberRange.new(music.Start, music.Start + music.Loop)

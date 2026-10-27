@@ -18201,6 +18201,10 @@ Config.EmoteMenu = {
 	-- The music from a dancer: heard by players nearby, fading to nothing (designer: "players
 	-- nearby"), in the Music group so Settings' Music switch mutes it.
 	MusicVolume = 0.5, -- a track's volume when its row gives none
+	-- Every emote's sound (the songs and Popcorn's and Bullseye's) at this share of the volumes
+	-- here (designer, 2026-10-27, live: one dancer was too loud; 45% quieter). Dancers in step
+	-- still get louder together (MusicTwoTogether).
+	Loudness = 0.55,
 	MusicHearStuds = 12, -- full volume up to here
 	MusicMaxStuds = 70, -- silent from here
 	MusicLoadSeconds = 5, -- a track not loaded by then is skipped (the dance goes on silent)

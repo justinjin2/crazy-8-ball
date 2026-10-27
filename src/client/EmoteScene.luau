@@ -168,7 +168,7 @@ local function play(scene: Scene, key: string, parent: Instance?)
 		local made = Instance.new("Sound")
 		made.Name = "Emote" .. key
 		made.SoundId = spec.Id
-		made.Volume = spec.Volume
+		made.Volume = spec.Volume * Config.EmoteMenu.Loudness
 		made.RollOffMode = Enum.RollOffMode.InverseTapered
 		made.RollOffMinDistance = C.HearStuds
 		made.RollOffMaxDistance = C.MaxStuds
