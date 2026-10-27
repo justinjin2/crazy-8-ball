@@ -17804,8 +17804,11 @@ Config.EmoteMenu = {
 	-- key (Strings.Emotes.Names[Id] is its short name); Catalog: the Marketplace item (the
 	-- Avatar Shop link); Animation: the animation inside it, played by id; Creator: who made it
 	-- (data, never translated); Length: its loop in seconds (read in Studio, 2026-10-26).
-	-- Music (optional): a licensed track { Id, Start (s), Loop (s), Volume }: it plays from
-	-- Start and loops the Loop seconds after it; nil = silent. Prop (optional): a key of Props,
+	-- Music (optional): a track { Id, Start (s), Loop (s), Volume }: it plays from Start and
+	-- loops the Loop seconds after it; nil = silent. Licensed where Roblox has the song, else a
+	-- public fan clip of the original (designer, 2026-10-27): unlicensed, so it can vanish, and
+	-- then the dance just goes silent. Volume evens each clip out with Rat Dance (measured in
+	-- Studio, 2026-10-27). Prop (optional): a key of Props,
 	-- held while it plays. Speed (optional): the dance's playback speed (1).
 	List = {
 		{
@@ -17830,6 +17833,8 @@ Config.EmoteMenu = {
 			Animation = 111823656989061,
 			Creator = "OliFlam",
 			Length = 4.0,
+			-- "Cancun Carti" (fan clip, the designer's pick), the whole clip.
+			Music = { Id = "rbxassetid://8003103632", Start = 0, Loop = 2.947 },
 		},
 		{
 			Id = "Gangnam",
@@ -17837,6 +17842,14 @@ Config.EmoteMenu = {
 			Animation = 129764254213842,
 			Creator = "Our new group!",
 			Length = 9.983,
+			-- "Gangnam style" (fan clip): the 1:08 drop, matched against the designer's file;
+			-- 3 beats at 132 BPM from the drop.
+			Music = {
+				Id = "rbxassetid://108709108822851",
+				Start = 0.86,
+				Loop = 1.364,
+				Volume = 0.95,
+			},
 		},
 		{
 			Id = "ComeBack",
@@ -17851,6 +17864,8 @@ Config.EmoteMenu = {
 			Animation = 81747251604858,
 			Creator = "vkioxd",
 			Length = 8.133,
+			-- "scenario" (fan clip, 9.5 s, by name only: not matched to the designer's file).
+			Music = { Id = "rbxassetid://84578156777313", Start = 0, Loop = 9.45, Volume = 1.15 },
 		},
 		{
 			Id = "Scuba",
@@ -17858,6 +17873,8 @@ Config.EmoteMenu = {
 			Animation = 123761889433592,
 			Creator = "hexa's archives",
 			Length = 1.333,
+			-- "Scuba" (fan clip, by name only; a quiet upload, hence the volume).
+			Music = { Id = "rbxassetid://133678222550740", Start = 0.05, Loop = 5.2, Volume = 4.4 },
 		},
 		{
 			Id = "Rakai",
@@ -17865,6 +17882,8 @@ Config.EmoteMenu = {
 			Animation = 115858722399476,
 			Creator = "MocapAnimations",
 			Length = 5.167,
+			-- "RAKAI" (fan clip, by name only), its sound part (silent after 3.25 s).
+			Music = { Id = "rbxassetid://72224724697479", Start = 0.02, Loop = 3.23, Volume = 1.05 },
 		},
 		{
 			Id = "Jackpot",
@@ -17872,6 +17891,13 @@ Config.EmoteMenu = {
 			Animation = 104762425338768,
 			Creator = "RobroAnimations UGC",
 			Length = 7.562,
+			-- "HOL UP, WAIT! I JUST HIT THE JACKPOT!!!" (fan clip of the hook), the whole clip.
+			Music = {
+				Id = "rbxassetid://125879594748603",
+				Start = 0.06,
+				Loop = 3.88,
+				Volume = 0.38,
+			},
 		},
 		{
 			Id = "WantYouBack",
