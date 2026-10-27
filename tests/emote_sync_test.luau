@@ -312,6 +312,31 @@ return {
 		H.expect(ult == nil or ult ~= Sy.MatchPadKey, "never the ability's button")
 	end,
 
+	["dancing together is louder, but never double"] = function()
+		local S, Config = load()
+		local two = Config.EmoteMenu.MusicTwoTogether
+		H.expect(two == 1.5, "two together are 1.5 times one (designer)")
+		H.expect(near(S.groupGain(1, two), 1), "alone: as now")
+		H.expect(near(S.groupGain(0.4, two), 1), "far off: never turned up")
+		H.expect(near(S.groupGain(2, two), 0.75), "two side by side: each 0.75")
+		H.expect(near(2 * S.groupGain(2, two), 1.5), "together 1.5")
+		local four = 4 * S.groupGain(4, two)
+		H.expect(four > 2.2 and four < 2.3, "four together about 2.25, got " .. four)
+		-- A group that walked apart: you by one of them, the rest far off.
+		local curve = S.musicCurve(12, 70)
+		local heard = S.curveAt(curve, 3) + S.curveAt(curve, 65) + S.curveAt(curve, 69)
+		H.expect(S.groupGain(heard, two) > 0.95, "one of a split group sounds like one alone")
+	end,
+
+	["a curve's value between its points"] = function()
+		local S = load()
+		local curve = S.musicCurve(12, 70)
+		H.expect(near(S.curveAt(curve, 5), 1), "full near")
+		H.expect(near(S.curveAt(curve, 21), (curve[18] + curve[24]) / 2), "a straight line between")
+		H.expect(S.curveAt(curve, 70) == 0 and S.curveAt(curve, 200) == 0, "silent far")
+		H.expect(S.curveAt({}, 5) == 0, "no curve")
+	end,
+
 	["an asset id's number"] = function()
 		local S = load()
 		H.expect(S.assetNumber("rbxassetid://123") == "123", "the number")

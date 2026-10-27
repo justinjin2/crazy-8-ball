@@ -193,6 +193,41 @@ function EmoteSync.musicCurve(hear: number, max: number): { [number]: number }
 	return curve
 end
 
+--- A curve's value at distance `d` (musicCurve's points, straight lines between them; 0 past
+--- the last).
+function EmoteSync.curveAt(curve: { [number]: number }, d: number): number
+	local keys = {}
+	for k in curve do
+		table.insert(keys, k)
+	end
+	table.sort(keys)
+	if #keys == 0 then
+		return 0
+	end
+	if d <= keys[1] then
+		return curve[keys[1]]
+	end
+	for i = 2, #keys do
+		local a, b = keys[i - 1], keys[i]
+		if d <= b then
+			local t = (d - a) / (b - a)
+			return curve[a] + (curve[b] - curve[a]) * t
+		end
+	end
+	return 0
+end
+
+--- The gain for a song heard from `heard` dancers' worth of voices (each counted by how loud
+--- it reaches you, 0..1): one alone plays at 1; two side by side together sound `two` times
+--- one (each at two/2), and more add less and less (n voices: n ^ log2(two) together).
+function EmoteSync.groupGain(heard: number, two: number): number
+	if heard <= 1 then
+		return 1
+	end
+	local together = heard ^ (math.log(two) / math.log(2))
+	return together / heard
+end
+
 --- The number in an asset id ("rbxassetid://123" gives "123"), or nil.
 function EmoteSync.assetNumber(id: string?): string?
 	return if id then string.match(id, "%d+") else nil

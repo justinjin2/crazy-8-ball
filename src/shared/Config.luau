@@ -18171,6 +18171,10 @@ Config.EmoteMenu = {
 	-- picked again every MusicVoiceSeconds; a song more than MusicToleranceSeconds off its
 	-- dance's clock is put back (a seek is heard, so this is looser than the dance's).
 	MusicVoices = 4,
+	-- Dancing together is louder, but not double (designer, 2026-10-27): two side by side
+	-- sound this many times one (each 0.75), four about 2.25. It counts the voices as loud as
+	-- they reach you, so one of a group that walked apart sounds like a dancer alone.
+	MusicTwoTogether = 1.5,
 	MusicVoiceSeconds = 1,
 	MusicToleranceSeconds = 0.1,
 	-- Every screen shows every dancer where the server clock says (2026-10-27: Sync was out

@@ -4,7 +4,9 @@
 -- the same `at`) share one AudioPlayer, wired to an AudioEmitter on each dancer's root: one
 -- playback heard from several bodies, so the copies are never out of time. Two side by side are
 -- louder; walk apart and each is heard from where they are. Up to MusicVoices nearest dancers
--- of a group emit (a big circle never gets louder than that). It plays where the server clock
+-- of a group emit, and the song is turned down as more of them reach you (EmoteSync.groupGain,
+-- MusicTwoTogether: two side by side are 1.5 times one, not double; one of them alone is as
+-- loud as a dancer alone). It plays where the server clock
 -- says (EmoteSync.musicPosition), so a song joined late is in step with its dance, and is
 -- re-sought when it drifted past MusicToleranceSeconds. Roblox's listener on the camera
 -- (SoundService.DefaultListenerLocation) hears the emitters. Settings' Music switch (the Music
@@ -26,6 +28,7 @@ local EmoteMusic = {}
 type Music = { Id: string, Start: number, Loop: number, Volume: number?, Speed: number? }
 type Group = {
 	music: Music,
+	gain: number, -- turned down for the voices you hear at once
 	once: boolean,
 	at: number,
 	player: AudioPlayer,
@@ -56,8 +59,8 @@ local function holder(): Folder
 	return folder :: Folder
 end
 
-local function volumeOf(music: Music): number
-	return (music.Volume or E.MusicVolume) * SoundGroups.get("Music").Volume
+local function volumeOf(g: Group): number
+	return (g.music.Volume or E.MusicVolume) * SoundGroups.get("Music").Volume * g.gain
 end
 
 -- Where its song is now (the track's own seconds), or nil once a play-once song is over.
@@ -107,6 +110,24 @@ local function pickVoices(g: Group)
 		if not g.voices[userId] and root then
 			addVoice(g, userId, root)
 		end
+	end
+	-- How many voices reach you, each as loud as it arrives, sets the group's gain.
+	local heard = 0
+	if camera then
+		for _, emitter in g.voices do
+			local root = emitter.Parent
+			if root and root:IsA("BasePart") then
+				heard += EmoteSync.curveAt(
+					curve,
+					(root.Position - camera.CFrame.Position).Magnitude
+				)
+			end
+		end
+	end
+	local gain = EmoteSync.groupGain(heard, E.MusicTwoTogether)
+	if math.abs(gain - g.gain) > 0.02 then
+		g.gain = gain
+		g.player.Volume = volumeOf(g)
 	end
 end
 
@@ -160,7 +181,7 @@ function EmoteMusic.join(userId: number, id: string, at: number)
 	player.Name = id
 	local untyped: any = player -- (AssetId is missing from the type definitions)
 	untyped.AssetId = music.Id
-	player.Volume = volumeOf(music)
+	player.Volume = (music.Volume or E.MusicVolume) * SoundGroups.get("Music").Volume
 	player.PlaybackSpeed = music.Speed or 1
 	player.Looping = not once
 	player.PlaybackRegion = NumberRange.new(music.Start, music.Start + music.Loop)
@@ -168,6 +189,7 @@ function EmoteMusic.join(userId: number, id: string, at: number)
 	player.Parent = holder()
 	local g: Group = {
 		music = music,
+		gain = 1,
 		once = once,
 		at = at,
 		player = player,
@@ -229,7 +251,7 @@ function EmoteMusic.start()
 	local group = SoundGroups.get("Music")
 	group:GetPropertyChangedSignal("Volume"):Connect(function()
 		for _, g in groups do
-			g.player.Volume = volumeOf(g.music)
+			g.player.Volume = volumeOf(g)
 		end
 	end)
 end

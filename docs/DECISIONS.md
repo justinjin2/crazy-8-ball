@@ -4643,3 +4643,7 @@ timer of a new block stay the designer's call.
 - 2026-10-27: In a match the EMOTE button shows once your stroke has played and hides on your
   turn; Sync works in matches too, on a controller's Y there since X is the ability's
   (designer).
+- 2026-10-27: A song from several dancers is turned down as more of them reach you (designer):
+  two side by side sound 1.5 times one (each 0.75), four about 2.25, counted by how loud each
+  voice reaches you, so one of a group that walked apart sounds like a dancer alone
+  (`MusicTwoTogether`).
