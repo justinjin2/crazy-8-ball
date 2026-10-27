@@ -18145,14 +18145,16 @@ Config.EmoteMenu = {
 			Popcorn = "rbxassetid://138195617882872",
 		},
 		-- The sounds (Roblox's free sound library), heard by everyone nearby: full volume to
-		-- HearStuds, silent from MaxStuds. First picks; the designer chooses by ear.
+		-- HearStuds, silent from MaxStuds. First picks; the designer chooses by ear. Seconds
+		-- (optional): only the sound's first this many seconds play.
 		HearStuds = 10,
 		MaxStuds = 60,
 		Sounds = {
-			-- Popcorn makes only the munch (designer, 2026-10-27: the rest was annoying), and
-			-- quietly (designer, 2026-10-27: the chewing was too loud; it was 0.6).
+			-- Popcorn makes only the munch (designer, 2026-10-27: the rest was annoying): the
+			-- designer's crunch, only its first crunch (0.1 to 0.38 s, then quiet), very quiet
+			-- (designer, 2026-10-27; was "Crunch" 9113138343 at 0.6, then 0.2).
 			Puff = { Id = "rbxassetid://9116406899", Volume = 0.5 }, -- Bullseye's props pop in and out
-			Munch = { Id = "rbxassetid://9113138343", Volume = 0.2 }, -- "Crunch"
+			Munch = { Id = "rbxassetid://120048375176233", Volume = 0.08, Seconds = 0.5 },
 			Draw = { Id = "rbxassetid://9125405388", Volume = 0.5 }, -- the string pulled
 			Release = { Id = "rbxassetid://9113166206", Volume = 0.6 }, -- the arrow looses
 			Thunk = { Id = "rbxassetid://9113161146", Volume = 0.8 }, -- it sticks
