@@ -325,9 +325,11 @@ function EmoteMenu.toggleFavorite(self: any, id: string)
 	end
 end
 
--- The credit strip shows the card in focus (hovered, selected, or the first).
+-- The credit strip shows the card in focus: hovered or selected, else the dance you are doing
+-- (a touch screen has no hover: its Avatar Shop link is for the dance you just tried), else
+-- the first card.
 function EmoteMenu.setFocus(self: any, id: string?)
-	local row = if id then EmoteSync.find(E.List, id) else nil
+	local row = EmoteSync.find(E.List, id or EmotePlayer.current())
 	if row == nil then
 		local first = EmoteSync.order(E.List, EmotePlayer.favorites())[1]
 		row = EmoteSync.find(E.List, first)
