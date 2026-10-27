@@ -4659,3 +4659,11 @@ timer of a new block stay the designer's call.
 - 2026-10-27: Bullseye's puffs are 70% smaller and half as many, and no emote puff or smoke
   shows on your screen while you shoot (designer: a friend hid the table from the shooter with
   the target's puff; `Custom.Bullseye.PuffSizeShare`, `PuffCountShare`).
+- 2026-10-27 (designer): **2KLIKES = 15 spins + $20,000**, the banner's and the tutorial's code;
+  the next code at 5,000 likes; 1KLIKES works through Oct 31 (expires 2026-11-01 00:00 UTC). The
+  data (Creator Hub, last 28 days): codes were already the biggest money source ($241.9M of
+  $1.12B, 24,208 redemptions), but players spend only about 23% of what they earn ($256M of
+  sinks), so twice the money barely moves prices; spins stay at 15 so a new player gets what
+  they got before and it never reads as less than 1KLIKES (spin packs are about 10% of Robux,
+  11,583 R$). 2,791 likes, about 900 a day, 975 playing: 5,000 is about 2 to 3 days away.
+  Measure: `CodeRedeemed` for 2KLIKES, the spin packs' sales and the money sinks a week on.

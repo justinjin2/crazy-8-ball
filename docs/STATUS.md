@@ -170,6 +170,13 @@ One line each; the long form is the 2026-10-12 (evening) entry at the top of
   the test place): Sync, both screens in step, the song from both bodies; a match: the button
   after your stroke; a phone and a controller (Y in a match); the fan clip on Sega Walk and the
   uploaded songs are the designer's risk (they can be taken down: the dance then goes silent).
+- **The 2KLIKES code, pushed 2026-10-27 (`d9c6175e`), not published:** 15 spins + $20,000, the
+  Abilities code box and the tutorial name it (USE CODE 2KLIKES / NEXT CODE AT 5,000 LIKES);
+  1KLIKES works until 2026-11-01 00:00 UTC, 250LIKES until 2026-10-31 00:00 UTC. **The game
+  description changes only once this is live** (top lines: THANK YOU FOR 2000 LIKES! / USE
+  CODE "2KLIKES" FOR 15 FREE ABILITY SPINS + $20K CASH! / NEXT CODE AT 5000 LIKES! / Still
+  working codes: 1KLIKES, 250LIKES). Check live: redeem 2KLIKES once, then again for "already
+  used"; watch `CodeRedeemed` (field 2KLIKES). At 2,791 likes and ~900 a day on 2026-10-27.
 - **The abilities:** the one-by-one review goes on (unreviewed ones are provisional); phone,
   controller, sounds by ear, the sneak with two players, the designer's voice lines.
 - **Tutorial v2 leftovers** (`docs/prompts/TUTORIAL_V2_REPORT.md`, last section): the first
