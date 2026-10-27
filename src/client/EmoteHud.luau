@@ -10,6 +10,8 @@
 --   popup, the Gift's cutscene, the freecam and the guided tutorial, and for an R6 body.
 -- - A press (or R3 on a controller, its glyph on the button) opens or closes the tray
 --   (EmoteMenu). It sways only while hovered (the candy's own hover), never idle.
+-- - A red "!" dot (the left column's click-once badge) sits on it until a player's first press,
+--   once ever (Settings' seen "EmoteButton"; shown only once the saved state is in).
 -- Main calls update(inMatch, shooting) every frame (shooting: aiming or stroking); it only
 -- changes what changed.
 local ContextActionService = game:GetService("ContextActionService")
@@ -28,6 +30,8 @@ local HudParts = require(script.Parent.HudParts)
 local LuckyClient = require(script.Parent.LuckyClient)
 local Menus = require(script.Parent.Menus)
 local Progression = require(script.Parent.Progression)
+local Seen = require(script.Parent.Seen)
+local SettingsState = require(script.Parent.SettingsState)
 local UIAnim = require(script.Parent.UIAnim)
 local UISound = require(script.Parent.UISound)
 
@@ -45,6 +49,8 @@ EmoteHud.ScreenName = SCREEN_NAME
 local started = false
 local screen: ScreenGui
 local button: TextButton
+local dot: Frame
+local dotShown = false
 local menu: any
 local shown = false
 local bound = false
@@ -61,6 +67,9 @@ local function toggle()
 	end
 	UISound.play("Click")
 	UIAnim.bounce(button)
+	if not Seen.get("EmoteButton") then
+		Seen.mark("EmoteButton") -- its "new" dot goes for good
+	end
 	if menu:isOpen() then
 		menu:close()
 	else
@@ -97,6 +106,8 @@ local function layout()
 	button.AnchorPoint = Vector2.new(0.5, 1)
 	button.Position = UDim2.new(share, 0, 1, -bottom)
 	button.Size = UDim2.fromOffset(px, px)
+	local dotPx = if phone then B.PhoneDotPx else B.DotPx
+	dot.Size = UDim2.fromOffset(dotPx, dotPx)
 	local word = button:FindFirstChild("Word", true)
 	if word and word:IsA("TextLabel") then
 		HudParts.setTextSize(word, if phone then B.PhoneWordPx else B.WordPx)
@@ -134,6 +145,16 @@ function EmoteHud.update(inMatch: boolean, shooting: boolean, picking: boolean)
 	-- Sync in a match too (Sync.InMatch; a controller's Y there, X being the ult's), never
 	-- under the ability pick.
 	EmotePlayer.allowSync(visible and not picking and (not inMatch or E.Sync.InMatch), inMatch)
+	-- The "new" dot: until the first press, once the saved state says whether it was.
+	local wantDot = visible and SettingsState.loaded() and not Seen.get("EmoteButton")
+	if wantDot ~= dotShown then
+		dotShown = wantDot
+		if wantDot then
+			UIAnim.popIn(dot)
+		else
+			dot.Visible = false
+		end
+	end
 	if visible == shown then
 		return
 	end
@@ -185,6 +206,15 @@ function EmoteHud.start(playerGui: PlayerGui)
 	word.Size = UDim2.fromScale(1.4, 0.32)
 	word.ZIndex = 4
 	HudParts.padKey(button, (Enum.KeyCode :: any)[B.PadKey], Config.UI.Kit.PadKey.Corner)
+	dot = HudParts.pill(parts.body, "NewDot", HudParts.tone("Red"))
+	dot.AnchorPoint = Vector2.new(0.5, 0.5)
+	dot.Position = UDim2.fromScale(B.DotAt[1], B.DotAt[2])
+	dot.ZIndex = 6
+	dot.Visible = false
+	local mark = HudParts.text(dot, "Mark", B.DotTextPx, Strings.Tutorial.New)
+	mark.TextWrapped = false
+	mark.Size = UDim2.fromScale(1, 1)
+	mark.ZIndex = 7
 	menu = EmoteMenu.new(screen, B.Icon)
 	EmotePlayer.start()
 	screen:GetPropertyChangedSignal("AbsoluteSize"):Connect(layout)

@@ -16642,7 +16642,18 @@ Config.Settings = {
 	-- Saved switches with no row on the Settings screen (the HUD remembers them).
 	Hidden = { "ListOpen", "ShotCamTall" },
 	-- The kinds Seen may mark (anything else is refused).
-	SeenKinds = { "Rare", "Epic", "Legendary", "Mythic", "Secret", "Result" },
+	-- EmoteButton: the EMOTE button's first press (its "new" dot goes); EmoteJump: a dance's
+	-- first jump (the "Jump to cancel" line goes). Designer, 2026-10-27: once, for everyone.
+	SeenKinds = {
+		"Rare",
+		"Epic",
+		"Legendary",
+		"Mythic",
+		"Secret",
+		"Result",
+		"EmoteButton",
+		"EmoteJump",
+	},
 	RequestBurst = 6, -- SettingsRequest: a burst, then this many a second (not design numbers)
 	RequestPerSecond = 3,
 	-- Rows that act rather than save (no save field, not in Defaults): Freecam starts and stops
@@ -18251,6 +18262,13 @@ Config.EmoteMenu = {
 		ArtY = 0.42,
 		ArtScale = 1.1,
 		PadKey = "ButtonR3", -- the controller button that opens and closes the tray
+		-- Its "new" dot until a player's first press, once ever (designer, 2026-10-27; saved as
+		-- Settings' seen "EmoteButton"): the left column's red "!" (Config.UI.Menu's DotPx),
+		-- its centre at this share of the button from its top-left.
+		DotPx = 22,
+		PhoneDotPx = 20,
+		DotTextPx = 14,
+		DotAt = { 0.92, 0.06 },
 	},
 	-- The tray (designer's pick 2A, 2026-10-26): three across (was four: less wide and busy,
 	-- designer, the same night), two rows and a peek, the credit strip at the bottom, and a
