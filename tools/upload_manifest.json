@@ -739,6 +739,37 @@
     "imageId": "137525961488251",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball/.claude/worktrees/nervous-brattain-cea4ae/assets/emotes/bullseye/anims/BullseyeShot.rbxm": {
+    "assetId": "90958833606867",
+    "assetType": "Animation",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/.claude/worktrees/nervous-brattain-cea4ae/assets/emotes/bullseye/bullseye.glb": {
+    "assetId": "80309530019247",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/.claude/worktrees/nervous-brattain-cea4ae/assets/emotes/popcorn/anims/PopcornIntro.rbxm": {
+    "assetId": "101661105635659",
+    "assetType": "Animation",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/.claude/worktrees/nervous-brattain-cea4ae/assets/emotes/popcorn/anims/PopcornLoop.rbxm": {
+    "assetId": "92414707292170",
+    "assetType": "Animation",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/.claude/worktrees/nervous-brattain-cea4ae/assets/emotes/popcorn/popcorn.glb": {
+    "assetId": "121716712153613",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/.claude/worktrees/nervous-brattain-cea4ae/assets/emotes/popcorn/popcorn_sprite.png": {
+    "assetId": "129179409765641",
+    "assetType": "Decal",
+    "status": "ok",
+    "imageId": "138195617882872"
+  },
   "/Users/justinjin/Desktop/8ball/assets/abilities/BlackFlash/BlackFlash.glb": {
     "assetId": "75008622077798",
     "assetType": "Model",
