@@ -18152,9 +18152,9 @@ Config.EmoteMenu = {
 		Sounds = {
 			-- Popcorn makes only the munch (designer, 2026-10-27: the rest was annoying): the
 			-- designer's crunch, only its first crunch (0.1 to 0.38 s, then quiet), very quiet
-			-- (designer, 2026-10-27; was "Crunch" 9113138343 at 0.6, then 0.2).
+			-- (designer, 2026-10-27: 0.08 still sounded loud; was "Crunch" 9113138343 at 0.6, 0.2).
 			Puff = { Id = "rbxassetid://9116406899", Volume = 0.5 }, -- Bullseye's props pop in and out
-			Munch = { Id = "rbxassetid://120048375176233", Volume = 0.08, Seconds = 0.5 },
+			Munch = { Id = "rbxassetid://120048375176233", Volume = 0.025, Seconds = 0.5 },
 			Draw = { Id = "rbxassetid://9125405388", Volume = 0.5 }, -- the string pulled
 			Release = { Id = "rbxassetid://9113166206", Volume = 0.6 }, -- the arrow looses
 			Thunk = { Id = "rbxassetid://9113161146", Volume = 0.8 }, -- it sticks
