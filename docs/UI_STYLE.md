@@ -1392,6 +1392,13 @@ Built in their screens' style on the designer's "use your judgment"; screenshots
 - **Controller:** R3 opens and closes it; the first card is selected; A dances, Y stars, X the
   Avatar Shop, B closes. A pick closes the tray.
 - **Phone:** 240 px wide (364 on a big screen), at most 62% of the screen's height.
+- **Our own emotes** (Popcorn, Bullseye; `Config.EmoteMenu.Custom`): first in the tray,
+  credited "by Lucky 8" with no Avatar Shop pill (not for sale: the name takes the whole strip
+  and X does nothing). Their silhouettes carry their props: Popcorn lounging on the lounger
+  under the umbrella with the bucket, Bullseye drawing the bow. In the world their props are
+  plain and realistic, no 8-ball theming (designer, 2026-10-26): a blue-and-white striped
+  lounger, a light-blue scalloped umbrella, a red-and-white bucket, a classic archery target on
+  a wooden easel.
 - **The results screen with the emotes** (`Config.EmoteMenu.Results`): no blur, so both
   players see each other dance; no DEFEAT: the losing side's headshots and names go grey
   instead, and why it was lost sits on WINNER's line over that side. The winner's screen is

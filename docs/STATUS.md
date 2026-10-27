@@ -142,6 +142,10 @@ One line each; the long form is the 2026-10-12 (evening) entry at the top of
   waiting for a free lobby, the 1v1 result cutscene, cue outlines and the "pop" aura, new cue
   card pictures, ball callouts, no fat-fingered shots (`Config.Input.TouchPull`), the player
   list size, the matchmaking bar and spawn pill (parked), lighting day 10 min / sunset 5.
+- **Our own emotes, Popcorn and Bullseye** (`Config.EmoteMenu.Custom`, branch
+  `claude/nervous-brattain-cea4ae`, on top of the emote menu branch; not in `gui-v4` yet):
+  built and checked in Studio; waiting for the designer's look in a test place, the nine
+  sounds by ear (`Custom.Sounds`, first picks in) and a second player seeing them live.
 - **The abilities:** the one-by-one review goes on (unreviewed ones are provisional); phone,
   controller, sounds by ear, the sneak with two players, the designer's voice lines.
 - **Tutorial v2 leftovers** (`docs/prompts/TUTORIAL_V2_REPORT.md`, last section): the first

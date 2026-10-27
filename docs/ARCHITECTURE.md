@@ -977,3 +977,18 @@ time `at` is now, the music's place, `joinAt` (the nearest same-dance dancer wit
   `freeTheStick`). `EmoteMenu` is the tray; `EmotePreview` one card's ViewportFrame silhouette.
 - **Results:** `ResultScreen` reads `Config.EmoteMenu.Results` (no blur, no DEFEAT, greyed loser)
   only while the menu is on; off, the screen is as before.
+- **Our own emotes** (`Config.EmoteMenu.Custom`, switch `Enabled`; off, the menu is as before):
+  Popcorn and Bullseye, made by Lucky 8. Their rows go first in `List` (at the bottom of
+  Config) with no `Catalog`, a `Scene`, and `Intro` (played once before the loop) or `Once`
+  (one shot; the server ends it after `Length`, `EmoteSync.endsAfter`); they never join a
+  dancer in step (`EmoteSync.startAt`). The hand props (bucket, bow) are ordinary `Props`,
+  welded by `EmotePropBuilder` (shared with the previews). `EmoteService` loads the two prop
+  models once into `ReplicatedStorage.EmoteAssets`. On every client `EmotePlayer` starts an
+  `EmoteScene` for each such dancer within `SceneStuds`: the lounger and umbrella, or the target,
+  string, arrow and hit effects, built locally and driven by the dancer's own track as that
+  client sees it (its KeyframeMarkers: Toss, Crunch; Release, Blow, Poof). `EmoteSceneMath`
+  (pure, Lune-tested) places the target (closer and smaller with no room, never over a table's
+  box), checks the umbrella's canopy against the tables, rolls each handful (about half
+  misses, seeded so every client throws the same) and the kernels' arcs. While you shoot,
+  `EmoteHud` hides every tall prop on your screen (`EmoteScene.setShooting`). The animations
+  are authored in Lune (`tools/emotes/`), the models in Blender (`tools/blender/emotes/`).

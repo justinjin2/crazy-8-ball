@@ -4579,3 +4579,18 @@ timer of a new block stay the designer's call.
   busy) and **drops up out of the button** through a small arrow with a gap above it, growing
   from the arrow's tip instead of slamming in (the slam flashed every row below the button for
   a frame); **Gojo Walk's Bloxy Cola is in the left hand**, at his mouth, as in the anime.
+- 2026-10-26 (designer, interview and concept round): **our own emotes, Popcorn and Bullseye**,
+  made by Lucky 8 with their own models, animations, effects and sounds. Popcorn: lounging
+  under a beach umbrella throwing popcorn at your mouth, very messy (about half bounces off
+  the face, a few kernels pile up), looping, a lazy "too easy" taunt. Bullseye: one shot; a bow
+  and a target pop up, a natural draw dead into the gold, a big hit (gold burst, shock ring,
+  splinters, wobble; no text), a blow on the bow like a smoking gun, then a poof. Realistic
+  props, no 8-ball theming (concept v2). Usable wherever the menu is; sounds heard nearby; with
+  no room the target comes closer and the emote always plays; at a table the props never
+  cover the balls.
+- 2026-10-27: **how our own emotes behave** (built that way; the designer can change any):
+  first in the tray; never in step with a nearby dancer (a one-shot joined midway would start
+  mid-shot); "by Lucky 8" with no Avatar Shop link; a target or umbrella is never put over a
+  table, and every tall prop hides on your own screen while you shoot, so none covers the
+  balls; the sounds are first picks from Roblox's free library until the designer picks by
+  ear.

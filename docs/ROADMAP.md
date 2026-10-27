@@ -566,7 +566,10 @@ Built on branch `claude/emotes-f304f0` for the 2026-10-26 update (`Config.EmoteM
 - [x] **Music, first two.** Rat Dance and Low Cortisol (licensed DistrokidOfficial tracks).
 - [ ] **Music for the other dances.** Licensed or public Roblox tracks only, each approved by
   ear by the designer (Scenario has a candidate: 119090123327521).
-- [ ] **Custom emotes.** Popcorn and Bullseye: own models, animation, VFX and SFX.
+- [ ] **Custom emotes.** Popcorn and Bullseye: own models, animation, VFX and SFX
+  (`Config.EmoteMenu.Custom`, branch `claude/nervous-brattain-cea4ae`).
+- [ ] **Custom emote sounds by ear.** The designer picks each of the nine sounds
+  (`Custom.Sounds`; first picks from Roblox's free library are in).
 - [ ] **Read the numbers.** `Emote` and `EmoteMenu` custom events after a few days: share of
   players who open the tray, dances per session, the favourite dances.
 
