@@ -4600,3 +4600,9 @@ timer of a new block stay the designer's call.
   keeps its facing** until the player moves: shift lock and the camera can't spin it around the
   chair (`Custom.HoldFacing`). The designer wants the original songs for the silent dances
   first; uploading them is the last resort (see the Music item in the roadmap).
+- 2026-10-27 (designer): **emote music may be a public fan clip of the original song**
+  (replaces "licensed only" of 2026-10-26 for songs Roblox has no licensed copy of): the
+  original matters most, the designer accepts that a clip can vanish (its dance then goes
+  silent). Sega Walk, Gangnam, Scenario, Scuba, Rakai and Jackpot have one; Come Back, Want
+  You Back, Money and Passinho have no public copy, so the designer uploads those if the
+  clips are not good. Gojo Walk stays silent (designer's brief).

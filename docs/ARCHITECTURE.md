@@ -956,7 +956,7 @@ A skipped block carries Paid through save repair into the cue's paid-origin coun
 
 `Config.EmoteMenu` (switch `Enabled`) lists the dances: the Marketplace item (`Catalog`, for
 the Avatar Shop link), the animation inside it (`Animation`, played by id), the creator, the
-loop's length, an optional licensed track (`Music = {Id, Start, Loop}`) and an optional held
+loop's length, an optional track (`Music = {Id, Start, Loop, Volume}`: licensed, or a public fan clip) and an optional held
 `Prop`. `EmoteSync` (pure, Lune-tested) holds the maths: where a loop that started at server
 time `at` is now, the music's place, `joinAt` (the nearest same-dance dancer within
 `SyncStuds`), favourites-first order.

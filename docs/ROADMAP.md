@@ -564,8 +564,10 @@ Built on branch `claude/emotes-f304f0` for the 2026-10-26 update (`Config.EmoteM
   step with nearby dancers of the same dance, Gojo Walk's Bloxy Cola.
 - [x] **Results screen.** No blur, no DEFEAT, the losing side greyed (`EmoteMenu.Results`).
 - [x] **Music, first two.** Rat Dance and Low Cortisol (licensed DistrokidOfficial tracks).
-- [ ] **Music for the other dances.** Licensed or public Roblox tracks only, each approved by
-  ear by the designer (Scenario has a candidate: 119090123327521).
+- [ ] **Music for the other dances.** Public fan clips of the originals are in for Sega Walk,
+  Gangnam, Scenario, Scuba, Rakai and Jackpot (2026-10-27, branch
+  `claude/nervous-brattain-cea4ae`), each to be approved by ear; Come Back, Want You Back,
+  Money and Passinho have no public copy (the designer uploads them if needed).
 - [ ] **Custom emotes.** Popcorn and Bullseye: own models, animation, VFX and SFX
   (`Config.EmoteMenu.Custom`, branch `claude/nervous-brattain-cea4ae`).
 - [ ] **Custom emote sounds by ear.** The designer picks each of the nine sounds
