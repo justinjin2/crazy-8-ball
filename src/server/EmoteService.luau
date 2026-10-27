@@ -3,16 +3,19 @@
 -- client plays the dance on its own character (an Animator's tracks reach everyone by
 -- themselves); the server decides when it starts, so players nearby move in step, and tells
 -- everyone, so each client plays its music from the dancer.
--- - EmoteRequest, rate limited: ("Play", id) -> { ok, at }: refused while the feature is off,
---   for an unknown id, or while the character cannot dance (none, dead, not R15, or held by a
---   turn: its root anchored). `at` is the server time the loop started: that of the nearest
---   player within SyncStuds already doing the same dance, else now (EmoteSync.joinAt).
---   ("Sync", userId) -> { ok, id, at }: you dance what that player dances, in step with them
---   (their `at`); they must be dancing within Sync.Studs (plus SlackStuds). A Duo dance (Gojo
---   and Geto) gives you its partner dance, and only while they have no partner yet.
+-- - EmoteRequest, rate limited: ("Play", id, at) -> { ok, at }: refused while the feature is
+--   off, for an unknown id, or while the character cannot dance (none, dead, not R15, or held
+--   by a turn: its root anchored). `at` is the server time the loop started: that of the
+--   nearest player within SyncStuds already doing the same dance (EmoteSync.joinAt), else the
+--   time the client started it (it plays at once there), if within Align.MaxSkewSeconds of
+--   now, else now.
+--   ("Sync", userId, at) -> { ok, id, at }: you dance what that player dances, in step with
+--   them (their `at`; our own emotes from the client's `at`); they must be dancing within
+--   Sync.Studs (plus SlackStuds). A Duo dance (Gojo and Geto) gives you its partner dance, and
+--   only while they have no partner yet.
 --   ("Stop", how), ("Favorite", id, on) (the save's EmoteFavorites) and ("Open") (analytics).
 -- - EmoteState to everyone: { userId, id, at, partner? } when a dance starts (partner: the
---   duo dancer synced with), { userId, stop = true } when it ends; one player gets
+--   duo dancer synced with), { userId, stop = true, at } when it ends; one player gets
 --   { favorites } on load and after each change. ("Who") answers a starting client with
 --   { dancers, favorites }.
 -- - A dance ends on Stop, when it plays once and is done, or when its character goes (no time
@@ -120,7 +123,7 @@ local function stop(player: Player, tell: boolean)
 		theirs.partner = nil -- their duo is free for someone else
 	end
 	if tell then
-		state():FireAllClients({ userId = player.UserId, stop = true })
+		state():FireAllClients({ userId = player.UserId, stop = true, at = dance.at })
 	end
 end
 
@@ -158,7 +161,7 @@ local function begin(player: Player, row: EmoteSync.Row, at: number, partner: Pl
 	return { ok = true, id = row.Id, at = at }
 end
 
-local function play(player: Player, id: any): any
+local function play(player: Player, id: any, asked: any): any
 	local row = EmoteSync.find(E.List, id)
 	if row == nil then
 		return { ok = false, reason = "BadRequest" }
@@ -180,11 +183,15 @@ local function play(player: Player, id: any): any
 			})
 		end
 	end
-	return begin(player, row, EmoteSync.startAt(now, row, nearby, E.SyncStuds), nil)
+	local at = EmoteSync.startAt(now, row, nearby, E.SyncStuds)
+	if at == now and E.Align.Enabled then
+		at = EmoteSync.clampAt(asked, now, E.Align.MaxSkewSeconds)
+	end
+	return begin(player, row, at, nil)
 end
 
 -- Sync with `userId`'s dance: theirs (or its duo partner), in step with them.
-local function sync(player: Player, userId: any): any
+local function sync(player: Player, userId: any, asked: any): any
 	if not E.Sync.Enabled then
 		return { ok = false, reason = "Off" }
 	end
@@ -208,7 +215,13 @@ local function sync(player: Player, userId: any): any
 		return { ok = false, reason = reason }
 	end
 	Funnel.event(player, "EmoteSync", 1, theirs.id, Funnel.device(player), where(player))
-	return begin(player, row, theirs.at, if row.Id ~= theirs.id then target else nil)
+	-- Our own emotes start on their own (a one-shot joined midway would start mid-shot).
+	local at = theirs.at
+	if row.Scene ~= nil then
+		local now = workspace:GetServerTimeNow()
+		at = if E.Align.Enabled then EmoteSync.clampAt(asked, now, E.Align.MaxSkewSeconds) else now
+	end
+	return begin(player, row, at, if row.Id ~= theirs.id then target else nil)
 end
 
 local function sendFavorites(player: Player)
@@ -230,9 +243,9 @@ local function answer(player: Player, kind: any, a: any, b: any): any
 		return { ok = false, reason = "TooFast" }
 	end
 	if kind == "Play" then
-		return play(player, a)
+		return play(player, a, b)
 	elseif kind == "Sync" then
-		return sync(player, a)
+		return sync(player, a, b)
 	elseif kind == "Stop" then
 		stop(player, true)
 		return { ok = true, how = if STOPS[a] then a else "Other" }

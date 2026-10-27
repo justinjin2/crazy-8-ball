@@ -18,6 +18,7 @@ export type Row = {
 	Prop: string?,
 	Music: { Id: string, Start: number, Loop: number, Volume: number?, Speed: number? }?,
 	Intro: number?, -- an animation played once before the loop
+	IntroLength: number?, -- its length in seconds
 	Once: boolean?, -- plays one time, then the dance ends
 	Scene: string?, -- our own emote's props and effects (EmoteScene)
 	WalkSpeed: number?, -- your walking speed while you dance it
@@ -101,10 +102,85 @@ function EmoteSync.syncRow(list: { any }, theirs: any, partnered: boolean): (Row
 	return pair, nil
 end
 
---- Whether a dance whose loop started at `at` is still new enough at `now` (less than `within`
---- seconds) to begin from the beginning rather than catch up.
-function EmoteSync.fromStart(now: number, at: number, within: number): boolean
-	return now - at < within
+--- Where a dance that started at `at` is at `now`: which of its tracks plays ("Intro", our own
+--- emotes' first part, or "Loop") and where in it (seconds of the animation), or nil once a
+--- dance that plays once is over. Its dancer's client blends the loop in `fade` seconds before
+--- the intro's end, so the loop's first frame is there.
+function EmoteSync.phase(
+	now: number,
+	at: number,
+	speed: number?,
+	length: number,
+	once: boolean?,
+	introLength: number?,
+	fade: number?
+): (string?, number)
+	local rate = speed or 1
+	local played = math.max(0, now - at) * rate
+	if introLength and introLength > 0 then
+		local split = math.max(0, introLength - (fade or 0) * rate)
+		if played < split then
+			return "Intro", played
+		end
+		played -= split
+	end
+	if once == true then
+		if played >= length then
+			return nil, length
+		end
+		return "Loop", played
+	end
+	if length <= 0 then
+		return "Loop", 0
+	end
+	return "Loop", played % length
+end
+
+--- How far a track at `have` is from `want` (seconds, signed: ahead is positive). A looping
+--- track counts the short way round its `length` (3.9 and 0.1 in a 4 s loop are 0.2 apart).
+function EmoteSync.drift(have: number, want: number, length: number, looped: boolean): number
+	local d = have - want
+	if looped and length > 0 then
+		d = (d + length / 2) % length - length / 2
+	end
+	return d
+end
+
+--- The start time a client asked for, if it is a number within `skew` seconds of the server's
+--- `now`; else `now`. (It only moves when a dance starts, never what it gives.)
+function EmoteSync.clampAt(asked: any, now: number, skew: number): number
+	if type(asked) ~= "number" or asked ~= asked or math.abs(asked - now) > skew then
+		return now
+	end
+	return asked
+end
+
+--- The `n` nearest of `list` ({ key, distance }), as a set of keys; ties keep the list's order.
+function EmoteSync.nearest(
+	list: { { key: number, distance: number } },
+	n: number
+): { [number]: boolean }
+	local sorted = table.clone(list)
+	local order = {}
+	for i, item in sorted do
+		order[item] = i
+	end
+	table.sort(sorted, function(a, b)
+		if a.distance ~= b.distance then
+			return a.distance < b.distance
+		end
+		return order[a] < order[b]
+	end)
+	local out: { [number]: boolean } = {}
+	for i = 1, math.min(n, #sorted) do
+		out[sorted[i].key] = true
+	end
+	return out
+end
+
+--- The number in an asset id ("rbxassetid://123" gives "123"), or nil.
+function EmoteSync.assetNumber(id: string?): string?
+	return if id then string.match(id, "%d+") else nil
 end
 
 --- The `at` a dance `id` starting now should use: the nearest dancer within `radius` already

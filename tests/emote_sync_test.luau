@@ -29,10 +29,8 @@ return {
 		H.expect(near(S.musicPosition(125, 100, 31, 20), 36), "looped once")
 		H.expect(near(S.musicPosition(125, 100, 31, 0), 31), "no loop stays at the start")
 		H.expect(near(S.musicPosition(110, 100, 0, 3, 0.17), 1.7), "at its speed")
-		H.expect(S.fromStart(101.5, 100, 3) == true, "just started: from the beginning")
 		H.expect(near(S.musicOncePosition(105, 100, 2, 10) :: number, 7), "once: no loop yet")
 		H.expect(S.musicOncePosition(111, 100, 2, 10) == nil, "once: over, not again")
-		H.expect(S.fromStart(104, 100, 3) == false, "older: in step")
 		H.expect(near(S.musicPosition(120, 100, 0, 3, 0.17), 0.4), "looped once at its speed")
 	end,
 
@@ -194,6 +192,89 @@ return {
 			H.expect(sound.Id:match("^rbxassetid://%d+$") ~= nil, "sound id " .. name)
 			H.expect(sound.Volume > 0 and sound.Volume <= 1, "volume " .. name)
 		end
+	end,
+
+	["a dance joined just after it started is in step, not from its start (Sync bug)"] = function()
+		local S, Config = load()
+		-- Syncing 1.5 s after the leader started played from frame 0 (the old 3 s "fresh"
+		-- rule): 1.5 s behind them. In step, the joiner is 1.5 s in like the leader.
+		local which, at = S.phase(101.5, 100, 1, 4.438)
+		H.expect(which == "Loop" and near(at, 1.5), "1.5 s in")
+		H.expect((Config.EmoteMenu :: any).FreshSeconds == nil, "no fresh rule")
+		H.expect((S :: any).fromStart == nil, "no fromStart")
+	end,
+
+	["a dance's phase: the intro, then its loop, a one-shot ends"] = function()
+		local S = load()
+		-- Popcorn: a 0.8 s intro, the 2.4 s loop blended in 0.2 s before the intro ends.
+		local w1, p1 = S.phase(100.3, 100, 1, 2.4, false, 0.8, 0.2)
+		H.expect(w1 == "Intro" and near(p1, 0.3), "in the intro")
+		local w2, p2 = S.phase(100.7, 100, 1, 2.4, false, 0.8, 0.2)
+		H.expect(w2 == "Loop" and near(p2, 0.1), "the loop took over at 0.6 s")
+		local w3, p3 = S.phase(103.4, 100, 1, 2.4, false, 0.8, 0.2)
+		H.expect(w3 == "Loop" and near(p3, 0.4), "looped once")
+		local w4, p4 = S.phase(100.5, 100, 2, 2.4, false, 0.8, 0.2)
+		H.expect(w4 == "Loop" and near(p4, 0.6), "at its speed: split at 0.4 of the intro")
+		-- Bullseye plays once.
+		local w5, p5 = S.phase(102, 100, 1, 3.6, true)
+		H.expect(w5 == "Loop" and near(p5, 2), "a one-shot midway")
+		local w6 = S.phase(104, 100, 1, 3.6, true)
+		H.expect(w6 == nil, "a one-shot over")
+		local w7, p7 = S.phase(99, 100, 1, 4)
+		H.expect(w7 == "Loop" and near(p7, 0), "a start in the future is 0")
+		local _, p8 = S.phase(105, 100, 1, 0)
+		H.expect(near(p8, 0), "no length is 0")
+	end,
+
+	["drift counts the short way round a loop"] = function()
+		local S = load()
+		H.expect(near(S.drift(1.2, 1.0, 4, true), 0.2), "ahead")
+		H.expect(near(S.drift(0.8, 1.0, 4, true), -0.2), "behind")
+		H.expect(near(S.drift(3.9, 0.1, 4, true), -0.2), "across the wrap, behind")
+		H.expect(near(S.drift(0.1, 3.9, 4, true), 0.2), "across the wrap, ahead")
+		H.expect(near(S.drift(3.9, 0.1, 4, false), 3.8), "a one-shot does not wrap")
+	end,
+
+	["a client's start time is taken only near the server's clock"] = function()
+		local S = load()
+		H.expect(S.clampAt(99.6, 100, 1) == 99.6, "a little behind: taken")
+		H.expect(S.clampAt(100.4, 100, 1) == 100.4, "a little ahead: taken")
+		H.expect(S.clampAt(95, 100, 1) == 100, "far behind: now")
+		H.expect(S.clampAt(130, 100, 1) == 100, "far ahead: now")
+		H.expect(S.clampAt("x", 100, 1) == 100, "junk: now")
+		H.expect(S.clampAt(0 / 0, 100, 1) == 100, "NaN: now")
+		H.expect(S.clampAt(nil, 100, 1) == 100, "none: now")
+	end,
+
+	["the nearest few, ties in the list's order"] = function()
+		local S = load()
+		local list = {
+			{ key = 1, distance = 30 },
+			{ key = 2, distance = 5 },
+			{ key = 3, distance = 12 },
+			{ key = 4, distance = 5 },
+			{ key = 5, distance = 50 },
+		}
+		local four = S.nearest(list, 4)
+		H.expect(four[2] and four[4] and four[3] and four[1] and not four[5], "four nearest")
+		local one = S.nearest(list, 1)
+		H.expect(one[2] == true and one[4] == nil, "a tie: the first listed")
+		H.expect(next(S.nearest({}, 4)) == nil, "nobody")
+		H.expect(list[1].key == 1, "the list is untouched")
+	end,
+
+	["an asset id's number"] = function()
+		local S = load()
+		H.expect(S.assetNumber("rbxassetid://123") == "123", "the number")
+		H.expect(S.assetNumber(nil) == nil, "none")
+	end,
+
+	["Popcorn's intro length is known for the clock"] = function()
+		local S, Config = load()
+		local row = S.find(Config.EmoteMenu.Custom.List, "Popcorn")
+		H.expect(row ~= nil and row.Intro ~= nil and row.IntroLength == 0.8, "0.8 s")
+		local A = Config.EmoteMenu.Align
+		H.expect(A.Seconds >= 0.25 and A.ToleranceSeconds > 0 and A.MaxSkewSeconds <= 2, "align")
 	end,
 
 	["a group key tells two starts of the same dance apart"] = function()

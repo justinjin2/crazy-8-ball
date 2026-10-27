@@ -503,6 +503,7 @@ function EmoteMenu.show(self: any)
 		return
 	end
 	self.open = true
+	EmotePlayer.preloadMusic()
 	-- Out of the arrow, like a dropdown: never past the button (a slam from big reached over it).
 	self.root.Visible = true
 	UIAnim.expandIn(self.root, 0, T.OpenFromScale)

@@ -1,12 +1,15 @@
 --!strict
 -- EmotePlayer: the emote menu's dancing (Config.EmoteMenu; server src/server/EmoteService.luau).
--- - Your own dance: the server says when its loop started (`at`; someone's nearby when joining
---   them in step), then it plays on your character's Animator, which shows it to everyone, at
---   the place in its loop the server clock says (EmoteSync.offset). It loops until you jump,
---   pick another, reset, or your turn takes the body (EmoteHud); walking does not stop it, you
---   walk at its speed meanwhile (Config.EmoteMenu.WalkSpeed, or the row's own).
--- - Sync: the prompt on a dancer near you (EmoteSyncPrompt) asks the server for their dance in
---   step with them (a Duo: Gojo gets you Geto, and the other way round).
+-- - Your own dance starts at once as you press: your client picks its loop's start (`at`, the
+--   server clock now) and plays it on your character's Animator, which shows it to everyone;
+--   the server checks it and may answer another `at` (someone's nearby doing the same dance:
+--   you join them in step). It loops until you jump, pick another, reset, or your turn takes
+--   the body (EmoteHud); walking does not stop it, you walk at its speed meanwhile
+--   (Config.EmoteMenu.WalkSpeed, or the row's own). A refusal stops it again.
+-- - Sync: the prompt on a dancer near you (EmoteSyncPrompt) starts their dance on you at once
+--   from their `at` (a Duo: Gojo gets you Geto, and the other way round), and asks the server.
+-- - Every dancer's track, yours included, is kept on the server clock on this screen
+--   (EmoteAlign), so dancers in step look in step whatever their pings.
 -- - Everyone's music: each dance with a licensed track plays it from the dancer's body for
 --   players nearby (MusicHearStuds to MusicMaxStuds), in the Music group (Settings' Music
 --   switch mutes it), at the place the server clock says. Dancers moving in step share one
@@ -14,6 +17,7 @@
 -- - The favourites: the server's list, for the menu (Changed fires when it changes).
 -- - Our own emotes (Config.EmoteMenu.Custom): Popcorn plays its intro once, then its loop;
 --   Bullseye plays once and ends. Their props and effects round every dancer: EmoteScene.
+local ContentProvider = game:GetService("ContentProvider")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -21,6 +25,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local EmoteSync = require(Shared:WaitForChild("EmoteSync"))
 local Net = require(Shared:WaitForChild("Net"))
+local EmoteAlign = require(script.Parent.EmoteAlign)
 local EmoteScene = require(script.Parent.EmoteScene)
 local EmoteSyncPrompt = require(script.Parent.EmoteSyncPrompt)
 local SoundGroups = require(script.Parent.SoundGroups)
@@ -172,15 +177,8 @@ local function joinMusic(userId: number, id: string, at: number)
 			return -- stopped meanwhile, or the track is gone: the dance goes on silent
 		end
 		local now = workspace:GetServerTimeNow()
-		local position: number? = if EmoteSync.fromStart(now, at, E.FreshSeconds)
-			then music.Start
-			elseif once then EmoteSync.musicOncePosition(
-				now,
-				at,
-				music.Start,
-				music.Loop,
-				music.Speed
-			)
+		local position: number? = if once
+			then EmoteSync.musicOncePosition(now, at, music.Start, music.Loop, music.Speed)
 			else EmoteSync.musicPosition(now, at, music.Start, music.Loop, music.Speed)
 		if position == nil then
 			return -- a play-once dance's music is over: not again
@@ -207,6 +205,19 @@ end
 
 local function onDance(userId: number, id: string?, at: number?, partner: number?)
 	local old = dances[userId]
+	if old and id == old.id and at == old.at then
+		-- The server's word on a dance this client already started (yours): only its partner.
+		if partner ~= nil and old.partner ~= partner then
+			old.partner = partner
+			local theirs = dances[partner]
+			if theirs then
+				theirs.partner = userId
+				EmoteSyncPrompt.set(partner, theirs)
+			end
+		end
+		return
+	end
+	EmoteAlign.set(userId, id, at)
 	if old then
 		dances[userId] = nil
 		leaveMusic(userId, old.id, old.at)
@@ -317,6 +328,7 @@ function EmotePlayer.stop(how: string)
 		return
 	end
 	endMine(true)
+	onDance(Players.LocalPlayer.UserId, nil, nil)
 	task.spawn(request, "Stop", how)
 end
 
@@ -325,20 +337,26 @@ function EmotePlayer.current(): string?
 	return if mine then mine.id else nil
 end
 
--- Dance `row` from the server's answer (its `at`).
-local function begin(row: EmoteSync.Row, answer: any): (boolean, string?)
+-- Whether your body can dance now (the server checks again): a turn or a cutscene anchors it.
+local function free(): boolean
+	local character = Players.LocalPlayer.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart")
+	return root ~= nil and root:IsA("BasePart") and not root.Anchored
+end
+
+-- Dance `row` with its loop from server time `at`, at once (the server is asked after).
+-- `partner`: the duo dancer you joined. Answers your dance, or nil and why.
+local function begin(row: EmoteSync.Row, at: number, partner: number?): (Mine?, string?)
 	local character = Players.LocalPlayer.Character
 	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
 	local track = trackFor(row)
 	local intro = if row.Intro then trackFor(row, true) else nil
 	if humanoid == nil or track == nil or (row.Intro ~= nil and intro == nil) then
-		task.spawn(request, "Stop", "Other")
-		return false, "Busy"
+		return nil, "Busy"
 	end
 	endMine(false)
 	local speed = row.Speed or 1
 	local links = {}
-	local at = if type(answer.at) == "number" then answer.at else workspace:GetServerTimeNow()
 	local current: Mine = {
 		id = row.Id,
 		at = at,
@@ -351,8 +369,8 @@ local function begin(row: EmoteSync.Row, answer: any): (boolean, string?)
 	}
 	mine = current
 	if intro then
-		-- Our own emotes start on their own: the intro, then the loop from its start, blended
-		-- in as the intro ends (its last pose is the loop's first).
+		-- Our own emotes: the intro, then the loop from its start, blended in as the intro ends
+		-- (its last pose is the loop's first).
 		intro:Play(E.FadeSeconds, 1, speed)
 		local chained = false
 		table.insert(
@@ -382,25 +400,6 @@ local function begin(row: EmoteSync.Row, answer: any): (boolean, string?)
 	else
 		track:Play(E.FadeSeconds, 1, speed)
 	end
-	-- In step with the loop the server started (yours, or the dancer you joined). Our own
-	-- emotes start on their own: from their start; so does a dance just started (FreshSeconds),
-	-- like its music, rather than skipping what loading took.
-	task.spawn(function()
-		if row.Scene then
-			return
-		end
-		local deadline = os.clock() + E.LoadSeconds
-		while track.Length <= 0 and os.clock() < deadline do
-			task.wait()
-		end
-		if EmoteSync.fromStart(workspace:GetServerTimeNow(), at, E.FreshSeconds) then
-			return
-		end
-		if track.IsPlaying and track.Length > 0 then
-			track.TimePosition =
-				EmoteSync.offset(workspace:GetServerTimeNow(), at, track.Length, speed)
-		end
-	end)
 	-- A jump stops it (walking does not: it plays over the walk animation).
 	table.insert(
 		links,
@@ -420,39 +419,111 @@ local function begin(row: EmoteSync.Row, answer: any): (boolean, string?)
 			end
 		end)
 	)
+	-- Your music and your place on the clock now, not after the server's echo.
+	onDance(Players.LocalPlayer.UserId, row.Id, at, partner)
 	EmoteSyncPrompt.mine(row.Id, at, dances)
 	changed:Fire()
+	return current, nil
+end
+
+-- The server's answer to a dance already started (`current`): a refusal stops it, another
+-- `at` (joining a dancer nearby in step) moves it there.
+local function settle(current: Mine, answer: any): (boolean, string?)
+	if mine ~= current then
+		return answer.ok == true, answer.reason -- another pick or a stop came meanwhile
+	end
+	if not answer.ok then
+		endMine(true)
+		onDance(Players.LocalPlayer.UserId, nil, nil)
+		return false, answer.reason
+	end
+	if type(answer.at) == "number" and answer.at ~= current.at then
+		current.at = answer.at
+		local theirs = dances[Players.LocalPlayer.UserId]
+		onDance(Players.LocalPlayer.UserId, current.id, answer.at, theirs and theirs.partner)
+		EmoteSyncPrompt.mine(current.id, answer.at, dances)
+	end
 	return true, nil
 end
 
---- Start a dance (a card pressed). Answers false with the server's reason when refused.
+--- Start a dance (a card pressed): at once, then the server's word. Answers false with the
+--- server's reason when refused.
 function EmotePlayer.play(id: string): (boolean, string?)
 	local row = EmoteSync.find(E.List, id)
-	if row == nil or busy then
+	if row == nil or busy or not free() then
 		return false, "Busy"
 	end
-	busy = true
-	local answer = request("Play", id)
-	busy = false
-	if not answer.ok then
-		return false, answer.reason
+	local current, why = begin(row, workspace:GetServerTimeNow(), nil)
+	if current == nil then
+		return false, why
 	end
-	return begin(row, answer)
+	busy = true
+	local answer = request("Play", id, current.at)
+	busy = false
+	return settle(current, answer)
 end
 
---- Dance with `userId` (their Sync prompt held): their dance, or its duo partner, in step.
+--- Dance with `userId` (their Sync prompt held): their dance, or its duo partner, at once in
+--- step with them (our own emotes from their start), then the server's word.
 function EmotePlayer.sync(userId: number): (boolean, string?)
-	if busy then
+	local me = Players.LocalPlayer.UserId
+	local theirs = dances[userId]
+	if busy or not free() then
 		return false, "Busy"
 	end
-	busy = true
-	local answer = request("Sync", userId)
-	busy = false
-	local row = answer.ok and EmoteSync.find(E.List, answer.id)
-	if not row then
-		return false, answer.reason
+	if theirs == nil or userId == me then
+		return false, "Gone"
 	end
-	return begin(row, answer)
+	local partnered = theirs.partner ~= nil and theirs.partner ~= me
+	local row, why = EmoteSync.syncRow(E.List, theirs.id, partnered)
+	if row == nil then
+		return false, why
+	end
+	local at = if row.Scene then workspace:GetServerTimeNow() else theirs.at
+	local current, why2 = begin(row, at, if row.Id ~= theirs.id then userId else nil)
+	if current == nil then
+		return false, why2
+	end
+	busy = true
+	local answer = request("Sync", userId, at)
+	busy = false
+	return settle(current, answer)
+end
+
+-- Fetch these assets now (in the background), so a dance or a song starts without a wait:
+-- `class` instances (Animation or Sound, never parented) carry each id with its asset type.
+local function preload(class: string, property: string, ids: { string })
+	task.spawn(function()
+		local items = {}
+		for _, id in ids do
+			local item = Instance.new(class :: any)
+			item[property] = id
+			table.insert(items, item)
+		end
+		pcall(function()
+			ContentProvider:PreloadAsync(items)
+		end)
+		for _, item in items do
+			item:Destroy()
+		end
+	end)
+end
+
+local musicLoaded = false
+
+--- The tray opened: the dances' songs load now (once), so a pick's music starts at once.
+function EmotePlayer.preloadMusic()
+	if musicLoaded then
+		return
+	end
+	musicLoaded = true
+	local ids = {}
+	for _, row in E.List do
+		if row.Music then
+			table.insert(ids, row.Music.Id)
+		end
+	end
+	preload("Sound", "SoundId", ids)
 end
 
 --- Whether you may dance now (EmoteHud's button is up): the Sync prompts show only then.
@@ -495,6 +566,17 @@ function EmotePlayer.start()
 		return
 	end
 	started = true
+	-- The dances' animations (small) a little after joining, so everyone's dance shows at once.
+	task.delay(E.Align.PreloadSeconds, function()
+		local ids = {}
+		for _, row in E.List do
+			table.insert(ids, "rbxassetid://" .. row.Animation)
+			if row.Intro then
+				table.insert(ids, "rbxassetid://" .. row.Intro)
+			end
+		end
+		preload("Animation", "AnimationId", ids)
+	end)
 	EmoteSyncPrompt.start(function(userId: number)
 		task.spawn(EmotePlayer.sync, userId)
 	end)
@@ -507,7 +589,12 @@ function EmotePlayer.start()
 			changed:Fire()
 		elseif type(message.userId) == "number" then
 			if message.stop == true then
-				onDance(message.userId, nil, nil)
+				-- A stop names the dance's `at`: one for a dance since replaced (your own new
+				-- pick, started here before the server heard of it) is old news.
+				local now = dances[message.userId]
+				if now == nil or type(message.at) ~= "number" or message.at == now.at then
+					onDance(message.userId, nil, nil)
+				end
 			elseif type(message.id) == "string" and type(message.at) == "number" then
 				local partner = if type(message.partner) == "number" then message.partner else nil
 				onDance(message.userId, message.id, message.at, partner)

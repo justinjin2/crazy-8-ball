@@ -17990,7 +17990,8 @@ Config.EmoteMenu = {
 			{
 				Id = "Popcorn",
 				Animation = 92414707292170, -- PopcornLoop (tools/emotes/popcorn_anim.luau)
-				Intro = 101661105635659, -- PopcornIntro: sits back into the lounger (0.8 s)
+				Intro = 101661105635659, -- PopcornIntro: sits back into the lounger
+				IntroLength = 0.8, -- seconds (read in Studio, 2026-10-27)
 				Creator = "Lucky 8",
 				Length = 2.4,
 				Scene = "Popcorn",
@@ -18010,6 +18011,7 @@ Config.EmoteMenu = {
 				Id: string,
 				Animation: number,
 				Intro: number?,
+				IntroLength: number?,
 				Creator: string,
 				Length: number,
 				Once: boolean?,
@@ -18153,11 +18155,22 @@ Config.EmoteMenu = {
 	MusicHearStuds = 12, -- full volume up to here
 	MusicMaxStuds = 70, -- silent from here
 	MusicLoadSeconds = 5, -- a track not loaded by then is skipped (the dance goes on silent)
-	-- A dance started this recently (seconds since its loop's start) begins from the beginning:
-	-- its music from Start and your own animation from its first frame, instead of skipping
-	-- what loading and the server's answer took (designer, 2026-10-27: Rat Dance's song must
-	-- start at the beginning). Older (joining someone in step): in step, as before.
-	FreshSeconds = 3,
+	-- Every screen shows every dancer where the server clock says (2026-10-27: Sync was out
+	-- of step). A dance is a loop started at a server time; your client picks that time as you
+	-- press (so it starts at once, from its first frame, music too) and the server takes it if
+	-- within MaxSkewSeconds of its own clock. Roblox copies a dancer's animation to everyone
+	-- late by their ping, so each client seeks every dancer's track within Studs of its camera
+	-- to the clock: as the copy arrives, then every Seconds when it drifted more than
+	-- ToleranceSeconds. The seek stays on that screen (TimePosition does not replicate).
+	-- Off: only your own dance is put in step on your screen, as before.
+	Align = {
+		Enabled = true,
+		MaxSkewSeconds = 1,
+		Studs = 150,
+		Seconds = 0.5,
+		ToleranceSeconds = 0.05, -- about 3 frames at 60 FPS: under what an eye sees
+		PreloadSeconds = 5, -- the dances' animations load this long after joining
+	},
 	-- Dancing together (designer: auto-sync): a player who starts a dance that someone within
 	-- this many studs is already doing joins it in step, and their music plays once.
 	SyncStuds = 24,
