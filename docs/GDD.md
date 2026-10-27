@@ -509,7 +509,13 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   The big NEW RANK! popup comes only after the results close, once the player is free in a
   lobby server (never in an arena, a rematch or over the results): one popup per division
   gained since the last one seen, in order (designer, 2026-10-07). No finisher effect.
-- Emotes during the opponent's turn for players and spectators.
+- **The emote menu** (designer, 2026-10-26): an EMOTE button at the bottom right (lobby,
+  waiting your turn, the results; never while shooting) opens a tray of trending Marketplace
+  emotes, free to use here, each crediting its creator with a small Avatar Shop link.
+  Favourites first. A dance loops until you move (2 min cap); nearby players doing the same
+  dance move in step; a licensed track plays from the dancer for players nearby. R15 only (an
+  R6 body has no button). The results screen has no blur and no DEFEAT, the losing side
+  greyed, so both players can see each other dance.
 
 ## 9. Abilities (ults in code)
 

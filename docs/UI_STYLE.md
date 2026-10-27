@@ -1364,3 +1364,31 @@ Built in their screens' style on the designer's "use your judgment"; screenshots
   claimed cue flies to the CUES button. In Cues and the Index it shows "Day 7" and "Day 7 of
   your first week" where a block cue shows its chance.
 
+## 31. The emote button and tray (designer's pick 2A, 2026-10-26)
+
+- **The button** (`EmoteHud`, `Config.EmoteMenu.Button`): the designer's hand-drawn noob
+  (#4 of three sketches, `assets/ui/icons/emote.png`) rocking gently, EMOTE under it in Fredoka,
+  white with the ink outline; no candy face behind it. Bottom right, between the screen's
+  centre and its right edge (the designer's red circle): right of the lucky-block hotbar in the
+  lobby, under the power bar's column in a match, left of the jump button on a phone. Shown in
+  the lobby, while waiting your turn and on the results; never while you shoot. R3's glyph on
+  its corner for a controller.
+- **The tray** (`EmoteMenu`): a lively menu card popping up over the button (slam with a
+  nudge, the cards expanding in one by one). Header: the noob, EMOTES, the red X. Four cards
+  across, two rows and a peek of the third, scrolling. A card: white with the ink border, a
+  pale-blue well with the dance looping as a black silhouette (a plain R15 body lit by nothing,
+  `EmotePreview`; only the cards on screen move; Lower effects and Reduce Motion hold one
+  pose), the 1-2 word name under it, a star on the top-right corner. A favourite's card and
+  well turn pale yellow, its star full gold, and it moves to the front; an unstarred star is
+  the gold star dimmed grey (`Tray.StarOff`).
+- **The credit strip** at the bottom: the card in focus's name, "by <creator>" in grey and a
+  small white "Avatar Shop" pill (the item's page, to get it for keeps). No price, no buy icon
+  per card: every dance is free to use here (designer: "borrowing" without saying so).
+- **Controller:** R3 opens and closes it; the first card is selected; A dances, Y stars, X the
+  Avatar Shop, B closes. A pick closes the tray.
+- **Phone:** 300 px wide (476 on a big screen), at most 62% of the screen's height.
+- **The results screen with the emotes** (`Config.EmoteMenu.Results`): no blur, so both
+  players see each other dance; no DEFEAT: the losing side's headshots and names go grey
+  instead, and why it was lost sits on WINNER's line over that side. The winner's screen is
+  unchanged.
+
