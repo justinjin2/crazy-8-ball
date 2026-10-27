@@ -17817,8 +17817,9 @@ Config.EmoteMenu = {
 			Animation = 113375965758912,
 			Creator = "Voxelates",
 			Length = 4.438,
-			-- "rat dance nicos nextbos" (DistrokidOfficial): 32 beats at 107.7 BPM.
-			Music = { Id = "rbxassetid://108236999118620", Start = 2.705, Loop = 17.833 },
+			-- "rat dance nicos nextbos" (DistrokidOfficial): from the song's first beat (designer,
+			-- 2026-10-27: it starts at the beginning), 32 beats at 107.7 BPM.
+			Music = { Id = "rbxassetid://108236999118620", Start = 0.131, Loop = 17.833 },
 		},
 		{
 			Id = "Passinho",
