@@ -143,6 +143,7 @@ local function joinMusic(userId: number, id: string, at: number)
 	sound.Name = "EmoteMusic"
 	sound.SoundId = music.Id
 	sound.Volume = music.Volume or E.MusicVolume
+	sound.PlaybackSpeed = music.Speed or 1
 	sound.Looped = true
 	sound.PlaybackRegionsEnabled = true
 	sound.PlaybackRegion = NumberRange.new(music.Start, music.Start + music.Loop)
@@ -162,8 +163,13 @@ local function joinMusic(userId: number, id: string, at: number)
 		if groups[key] ~= group or not sound.IsLoaded then
 			return -- stopped meanwhile, or the track is gone: the dance goes on silent
 		end
-		sound.TimePosition =
-			EmoteSync.musicPosition(workspace:GetServerTimeNow(), at, music.Start, music.Loop)
+		sound.TimePosition = EmoteSync.musicPosition(
+			workspace:GetServerTimeNow(),
+			at,
+			music.Start,
+			music.Loop,
+			music.Speed
+		)
 		sound:Play()
 	end)
 end

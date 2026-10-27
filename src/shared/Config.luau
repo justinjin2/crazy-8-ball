@@ -17804,8 +17804,9 @@ Config.EmoteMenu = {
 	-- key (Strings.Emotes.Names[Id] is its short name); Catalog: the Marketplace item (the
 	-- Avatar Shop link); Animation: the animation inside it, played by id; Creator: who made it
 	-- (data, never translated); Length: its loop in seconds (read in Studio, 2026-10-26).
-	-- Music (optional): a track { Id, Start (s), Loop (s), Volume }: it plays from Start and
-	-- loops the Loop seconds after it; nil = silent. Licensed where Roblox has the song, else a
+	-- Music (optional): a track { Id, Start (s), Loop (s), Volume, Speed }: it plays from Start
+	-- and loops the Loop seconds after it (the track's own seconds), at Speed (its
+	-- PlaybackSpeed, pitch and tempo together; 1 when nil); nil = silent. Licensed where Roblox has the song, else a
 	-- public fan clip of the original (designer, 2026-10-27): unlicensed, so it can vanish, and
 	-- then the dance just goes silent. Volume evens each clip out with Rat Dance (measured in
 	-- Studio, 2026-10-27). Prop (optional): a key of Props,
@@ -17942,7 +17943,7 @@ Config.EmoteMenu = {
 			Length: number,
 			Speed: number?,
 			Prop: string?,
-			Music: { Id: string, Start: number, Loop: number, Volume: number? }?,
+			Music: { Id: string, Start: number, Loop: number, Volume: number?, Speed: number? }?,
 			Intro: number?,
 			Once: boolean?,
 			Scene: string?,

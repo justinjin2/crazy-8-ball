@@ -16,7 +16,7 @@ export type Row = {
 	Length: number,
 	Speed: number?,
 	Prop: string?,
-	Music: { Id: string, Start: number, Loop: number, Volume: number? }?,
+	Music: { Id: string, Start: number, Loop: number, Volume: number?, Speed: number? }?,
 	Intro: number?, -- an animation played once before the loop
 	Once: boolean?, -- plays one time, then the dance ends
 	Scene: string?, -- our own emote's props and effects (EmoteScene)
@@ -49,12 +49,19 @@ function EmoteSync.offset(now: number, at: number, length: number, speed: number
 	return played % length
 end
 
---- Where a dance's music (Start, Loop) is at `now` for a dance that started at `at`.
-function EmoteSync.musicPosition(now: number, at: number, start: number, loop: number): number
+--- Where a dance's music (Start, Loop, in the track's own seconds) is at `now` for a dance that
+--- started at `at`, played at `speed`.
+function EmoteSync.musicPosition(
+	now: number,
+	at: number,
+	start: number,
+	loop: number,
+	speed: number?
+): number
 	if loop <= 0 then
 		return start
 	end
-	return start + (math.max(0, now - at) % loop)
+	return start + ((math.max(0, now - at) * (speed or 1)) % loop)
 end
 
 --- The `at` a dance `id` starting now should use: the nearest dancer within `radius` already
