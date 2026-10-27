@@ -17963,8 +17963,12 @@ Config.EmoteMenu = {
 		BottomPx = 14, -- its bottom above the screen's bottom
 		PhoneXShare = 0.71, -- on a phone: left of the jump button
 		PhoneBottomPx = 6,
-		RockDegrees = 5, -- the idle rock
-		RockSeconds = 1.6,
+		-- The noob's picture in the button: its centre's height (a share of the button, 0 the
+		-- top) and its size (a share of the button). It reaches a little above the button.
+		-- No idle rock and no sun rays: only the candy's own sway while hovered (designer,
+		-- 2026-10-26: "only when hovering over it").
+		ArtY = 0.42,
+		ArtScale = 1.1,
 		PadKey = "ButtonR3", -- the controller button that opens and closes the tray
 	},
 	-- The tray (designer's pick 2A, 2026-10-26): four across, two rows and a peek, the credit

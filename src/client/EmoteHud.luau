@@ -8,7 +8,7 @@
 --   your dance stops as your turn takes the body), under a full menu, the lucky block reel, a
 --   popup, the Gift's cutscene, the freecam and the guided tutorial, and for an R6 body.
 -- - A press (or R3 on a controller, its glyph on the button) opens or closes the tray
---   (EmoteMenu). The icon rocks gently while idle.
+--   (EmoteMenu). It sways only while hovered (the candy's own hover), never idle.
 -- Main calls update(inMatch, shooting) every frame; it only changes what changed.
 local ContextActionService = game:GetService("ContextActionService")
 local Players = game:GetService("Players")
@@ -165,8 +165,8 @@ function EmoteHud.start(playerGui: PlayerGui)
 	icon.ScaleType = Enum.ScaleType.Fit
 	icon.Image = B.Icon
 	icon.AnchorPoint = Vector2.new(0.5, 0.5)
-	icon.Position = UDim2.fromScale(0.5, 0.42)
-	icon.Size = UDim2.fromScale(1.1, 1.1)
+	icon.Position = UDim2.fromScale(0.5, B.ArtY)
+	icon.Size = UDim2.fromScale(B.ArtScale, B.ArtScale)
 	icon.ZIndex = 3
 	icon.Parent = parts.body
 	local word = HudParts.text(parts.body, "Word", B.WordPx, Strings.Emotes.Button)
@@ -176,10 +176,6 @@ function EmoteHud.start(playerGui: PlayerGui)
 	word.Size = UDim2.fromScale(1.4, 0.32)
 	word.ZIndex = 4
 	HudParts.padKey(button, (Enum.KeyCode :: any)[B.PadKey], Config.UI.Kit.PadKey.Corner)
-	HudParts.onLit(button, function(lit: boolean)
-		UIAnim.sunRays(icon, lit)
-	end)
-	UIAnim.turn(icon, 0, B.RockDegrees, B.RockSeconds)
 	menu = EmoteMenu.new(screen, B.Icon)
 	EmotePlayer.start()
 	screen:GetPropertyChangedSignal("AbsoluteSize"):Connect(layout)
