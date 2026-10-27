@@ -7678,6 +7678,7 @@ Config.UI = {
 			Star = "rbxassetid://125192913454809", -- the favorite star
 			Challenge = "rbxassetid://127346327357150", -- the Daily Challenge
 			Gear = "rbxassetid://125677637012120", -- Settings
+			Emote = "rbxassetid://101229121269358", -- the EMOTE button's noob (its Settings row)
 			Heart = "rbxassetid://93822415051422", -- the thank-you burst
 			FreeReward = "rbxassetid://120885254928899", -- the column's Free Reward tile (Gift) -- the shake hint's finger
 			Calendar = "rbxassetid://81931904688937", -- the daily streak
@@ -16621,6 +16622,9 @@ Config.Settings = {
 	Defaults = {
 		Sfx = true, -- sound effects on
 		Music = true, -- the lobby music on (Config.Music; designer, 2026-10-10: music is back)
+		-- The emotes' songs (EmoteMusic) on for you; off silences every dancer's song on your
+		-- screen only (designer, 2026-10-27). Apart from the lobby music.
+		EmoteMusic = true,
 		LowFx = false, -- Lower effects (Quality: fewer particles, calmer UI loops)
 		-- Show my country flag in the player list and after my name over my head. On for
 		-- everyone by default (designer, 2026-10-25: a sense of nationality; was off until
@@ -16638,7 +16642,7 @@ Config.Settings = {
 		ListOpen = false, -- the player list left open (designer 2026-10-07: folded until opened)
 	} :: { [string]: boolean },
 	-- The rows, top to bottom (music back 2026-10-10, the shot camera 2026-10-11).
-	Order = { "Music", "Sfx", "LowFx", "ShowFlag", "ShotCam" },
+	Order = { "Music", "EmoteMusic", "Sfx", "LowFx", "ShowFlag", "ShotCam" },
 	-- Saved switches with no row on the Settings screen (the HUD remembers them).
 	Hidden = { "ListOpen", "ShotCamTall" },
 	-- The kinds Seen may mark (anything else is refused).
@@ -16755,6 +16759,7 @@ Config.UI.Settings = {
 	-- Each row's Kit.Icons key.
 	Icons = {
 		Music = "Sound",
+		EmoteMusic = "Emote",
 		Sfx = "Sound",
 		LowFx = "Effects",
 		ShowFlag = "Globe",
@@ -16787,16 +16792,24 @@ Config.UI.Settings = {
 			{ Ids = { "Header" }, Kind = "Fade", At = 0.12, Length = 0.15 },
 			{ Ids = { "Basket", "Title", "Money", "Close" }, Kind = "Pop", At = 0.18 },
 			{
-				Ids = { "Row1", "Row2", "Row3", "Row4", "Row5", "Row6" },
+				Ids = { "Row1", "Row2", "Row3", "Row4", "Row5", "Row6", "Row7" },
 				Kind = "Pop",
 				At = 0.22,
-				Stagger = 1.5,
+				Stagger = 1.2, -- seven rows within the time six took at 1.5 (Emote music, 2026-10-27)
 			},
 			{
-				Ids = { "Switch1", "Switch2", "Switch3", "Switch4", "Switch5", "Switch6" },
+				Ids = {
+					"Switch1",
+					"Switch2",
+					"Switch3",
+					"Switch4",
+					"Switch5",
+					"Switch6",
+					"Switch7",
+				},
 				Kind = "Pop",
 				At = 0.3,
-				Stagger = 1.5,
+				Stagger = 1.2, -- seven rows within the time six took at 1.5 (Emote music, 2026-10-27)
 			},
 			{ Ids = { "Codes" }, Kind = "Grow", At = 0.34 },
 			{ Ids = { "CodeIcon" }, Kind = "Pop", At = 0.4, Burst = "Gold" },

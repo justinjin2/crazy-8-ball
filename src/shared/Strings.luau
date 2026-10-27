@@ -1396,6 +1396,7 @@ return {
 		Title = "Settings",
 		Rows = {
 			Music = "Music",
+			EmoteMusic = "Emote music",
 			Sfx = "Sound effects",
 			LowFx = "Lower effects",
 			ShowFlag = "Show my country flag",

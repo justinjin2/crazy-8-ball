@@ -352,6 +352,19 @@ return {
 		H.expect(B.PhoneBottomPx >= 20, "a phone's button clear of the edge")
 	end,
 
+	["Emote music is its own switch, on by default, under Music"] = function()
+		local _, Config = load()
+		local Strings = H.require("Strings")
+		local C = Config.Settings
+		H.expect(C.Defaults.EmoteMusic == true, "on by default")
+		local music, emote = table.find(C.Order, "Music"), table.find(C.Order, "EmoteMusic")
+		H.expect(music ~= nil and emote == music + 1, "right under Music")
+		H.expect(Strings.Settings.Rows.EmoteMusic == "Emote music", "named")
+		H.expect(Strings.Settings.Lines.EmoteMusic == nil, "a plain row (short on a phone)")
+		local icon = Config.UI.Settings.Icons.EmoteMusic
+		H.expect(icon ~= nil and Config.UI.Kit.Icons[icon] ~= nil, "an icon")
+	end,
+
 	["an asset id's number"] = function()
 		local S = load()
 		H.expect(S.assetNumber("rbxassetid://123") == "123", "the number")

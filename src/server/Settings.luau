@@ -130,6 +130,16 @@ local function onRequest(player: Player, action: any, a: any, b: any): any
 				Funnel.device(player)
 			)
 		end
+		-- The emotes' songs switched (designer, 2026-10-27): how many turn them off.
+		if ok and a == "EmoteMusic" and before ~= nil and before.EmoteMusic ~= b then
+			Funnel.event(
+				player,
+				"EmoteMusicSwitched",
+				1,
+				if b then "On" else "Off",
+				Funnel.device(player)
+			)
+		end
 		-- The shot camera's view (ShotView: two switches), logged when the view itself changes,
 		-- so the dashboard shows how many pick TOP, VERTICAL and PLAYER (designer, 2026-10-25).
 		if ok and (a == "ShotCam" or a == "ShotCamTall") and before ~= nil then

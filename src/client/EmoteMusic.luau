@@ -9,8 +9,8 @@
 -- loud as a dancer alone). It plays where the server clock
 -- says (EmoteSync.musicPosition), so a song joined late is in step with its dance, and is
 -- re-sought when it drifted past MusicToleranceSeconds. Roblox's listener on the camera
--- (SoundService.DefaultListenerLocation) hears the emitters. Settings' Music switch (the Music
--- sound group) mutes it. A pass every MusicVoiceSeconds re-picks the voices; nothing runs every
+-- (SoundService.DefaultListenerLocation) hears the emitters. Settings' Emote music switch (the
+-- EmoteMusic sound group, apart from the lobby's Music) mutes it on this screen. A pass every MusicVoiceSeconds re-picks the voices; nothing runs every
 -- frame, and the pass stops when no song plays.
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -60,7 +60,7 @@ local function holder(): Folder
 end
 
 local function volumeOf(g: Group): number
-	return (g.music.Volume or E.MusicVolume) * SoundGroups.get("Music").Volume * g.gain
+	return (g.music.Volume or E.MusicVolume) * SoundGroups.get("EmoteMusic").Volume * g.gain
 end
 
 -- Where its song is now (the track's own seconds), or nil once a play-once song is over.
@@ -181,7 +181,7 @@ function EmoteMusic.join(userId: number, id: string, at: number)
 	player.Name = id
 	local untyped: any = player -- (AssetId is missing from the type definitions)
 	untyped.AssetId = music.Id
-	player.Volume = (music.Volume or E.MusicVolume) * SoundGroups.get("Music").Volume
+	player.Volume = (music.Volume or E.MusicVolume) * SoundGroups.get("EmoteMusic").Volume
 	player.PlaybackSpeed = music.Speed or 1
 	player.Looping = not once
 	player.PlaybackRegion = NumberRange.new(music.Start, music.Start + music.Loop)
@@ -242,13 +242,13 @@ function EmoteMusic.leave(userId: number, id: string, at: number)
 	end
 end
 
---- Follow Settings' Music switch (client, once).
+--- Follow Settings' Emote music switch (client, once).
 function EmoteMusic.start()
 	if started then
 		return
 	end
 	started = true
-	local group = SoundGroups.get("Music")
+	local group = SoundGroups.get("EmoteMusic")
 	group:GetPropertyChangedSignal("Volume"):Connect(function()
 		for _, g in groups do
 			g.player.Volume = volumeOf(g)
