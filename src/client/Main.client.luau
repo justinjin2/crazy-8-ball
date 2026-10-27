@@ -73,6 +73,7 @@ local HostRules = require(script.Parent.HostRules)
 local TableSign = require(script.Parent.TableSign)
 local OpponentPrompt = require(script.Parent.OpponentPrompt)
 local Progression = require(script.Parent.Progression)
+local EmoteHud = require(script.Parent.EmoteHud) -- the emote menu (2026-10-26)
 local QueueStatus = require(script.Parent.QueueStatus)
 local TeleportScreen = require(script.Parent.TeleportScreen)
 local Strings = require(Shared.Strings)
@@ -672,6 +673,7 @@ Progression.start(screen, {
 		return nil
 	end,
 })
+EmoteHud.start(player:WaitForChild("PlayerGui")) -- the EMOTE button and tray, over the HUD
 -- The table this player sits at, for the first-time hints' moments in a match.
 TutorialAnchors.setMatch(function(): any?
 	return if hub.mySeat then hub.snapshots[hub.mySeat] else nil
@@ -1242,6 +1244,7 @@ local function dropStrayMatchSelection()
 		selected:IsDescendantOf(hud.modal)
 		or selected:IsDescendantOf(targets.root)
 		or Progression.isBusy()
+		or EmoteHud.isOpen() -- the emote tray, while waiting your turn
 	then
 		return
 	end
@@ -1507,6 +1510,7 @@ local function renderFrame(dt: number)
 		overHotbar = (matchBar:isOpen() and not matchBar:isSpawnPill()) or opponentPrompt:isOpen(),
 		overHotbarPx = matchBar:spawnLift(),
 	})
+	EmoteHud.update(inMatch, controlled) -- the EMOTE button: never while shooting
 	-- The ult bar: it fades while the cue is pulled back, the bottom lines sit above it, and the
 	-- controller guide lists "Ult" while it offers its press.
 	-- A controller's power left resting is not a pull: the ability can still be pressed.

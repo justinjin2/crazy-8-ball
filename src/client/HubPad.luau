@@ -37,6 +37,7 @@ local SIDE = PadMode.key(HUB.Side)
 
 -- The tutorial's ScreenGui (TutorialOverlay): its question (Skip's) keeps the selection.
 local TUTORIAL_GUI = "TutorialGui"
+local EMOTE_GUI = "EmoteHud" -- the emote tray: its edge cards keep the selection (EmoteHud)
 -- B while the right side has the controller: back to walking (above Roblox's own B).
 local SIDE_BACK = "8ballHubSideBack"
 
@@ -171,7 +172,8 @@ local function freeTheStick()
 	local selected = GuiService.SelectedObject
 	local gui = if selected then selected:FindFirstAncestorOfClass("ScreenGui") else nil
 	local push = 0
-	if selected ~= nil and not Progression.isBusy() and not (gui and gui.Name == TUTORIAL_GUI) then
+	local held = gui and (gui.Name == TUTORIAL_GUI or gui.Name == EMOTE_GUI)
+	if selected ~= nil and not Progression.isBusy() and not held then
 		for _, state in UserInputService:GetGamepadState(Enum.UserInputType.Gamepad1) do
 			if state.KeyCode == Enum.KeyCode.Thumbstick1 then
 				push = Vector2.new(state.Position.X, state.Position.Y).Magnitude
