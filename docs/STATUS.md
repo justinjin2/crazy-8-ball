@@ -149,7 +149,7 @@ One line each; the long form is the 2026-10-12 (evening) entry at the top of
   designer's own song uploads; dances go on while walking (at 16; Gojo/Geto 1.6) until a jump,
   another pick or a reset; Sync prompts on dancers in the lobby (Gojo/Geto pair one to one);
   the results screen without blur or DEFEAT, the losing side greyed. Last checked on the Crazy
-  8 Test Place (version 23). **Fixed 2026-10-27, pushed on `gui-v4`, not published; on the Crazy 8 Test Place as version 25**; two together 1.5x, not double (`MusicTwoTogether`)
+  8 Test Place (version 23). **Fixed 2026-10-27, pushed on `gui-v4`, not published; on the Crazy 8 Test Place as version 26**; two together 1.5x, not double (`MusicTwoTogether`)
   (`03896675`..`3bd0aa42`, DECISIONS): Sync in step on every screen (one server clock,
   `EmoteAlign`, `Config.EmoteMenu.Align`); the song from every dancer's body, louder together,
   up to 4 voices (`EmoteMusic`, Audio API); Popcorn and Bullseye stand still, Popcorn's lounger
