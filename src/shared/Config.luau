@@ -16758,14 +16758,15 @@ Config.UI.Settings = {
 		},
 	},
 	-- A row with two ON / OFF switches side by side (designer, 2026-10-27: the emotes' sounds
-	-- in the Sound effects row, not a row of their own): its own switch first, then Second's,
-	-- each with its word before it (Strings.Settings.Pairs), CaptionGapUnits between a word and
-	-- its switch and PairGapUnits between the two. A press on the row (a gamepad's A) flips the
-	-- first; the second is its own button (the D-pad's right).
+	-- in the Sound effects row, not a row of their own): Second's smaller switch first, then the
+	-- row's own at the right end, as big as every row's and in their column (designer: "All"
+	-- lines up with the other switches), each with its word before it (Strings.Settings.Pairs),
+	-- CaptionGapUnits between a word and its switch and PairGapUnits between the two. A press on
+	-- the row (a gamepad's A) flips the row's own; Second's is its own button (the D-pad's left).
 	Pairs = {
 		Sfx = { Second = "EmoteSounds" },
 	} :: { [string]: { Second: string } },
-	PairSwitchUnits = 150, -- each of the two switches' width (the height is SwitchUnits')
+	PairSwitchUnits = 150, -- Second's switch's width (the height is SwitchUnits')
 	CaptionUnits = 26, -- the word before each
 	CaptionGapUnits = 10,
 	PairGapUnits = 26,

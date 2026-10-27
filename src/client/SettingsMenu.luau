@@ -7,8 +7,9 @@
 -- icon, its name, a grey line and a big ON / OFF switch; a press flips the switch (SettingsState
 -- shows it at once and saves it). "Camera after a shot" has three buttons side by side instead
 -- (HORIZONTAL, VERTICAL, PLAYER; ShotView, Config.UI.Settings.Segments; designer, 2026-10-25):
--- ... and Sound effects has two switches, "All" and "Emotes" (Config.UI.Settings.Pairs; the
--- second, the emotes' sounds, is its own button; designer, 2026-10-27),
+-- ... and Sound effects has two switches, "Emotes" and "All" (Config.UI.Settings.Pairs; All is
+-- the row's own, in the column of every other switch, and Emotes, the emotes' sounds, a smaller
+-- one left of it with its own button; designer, 2026-10-27),
 -- a press on one picks it, the lit pill in the view's colour slides under it and the grey line
 -- names the view; a press elsewhere on the row (a gamepad's A) moves to the next view. While
 -- Config.Freecam is enabled a last row, Freecam (Config.Settings.Actions: not saved), starts the
@@ -92,6 +93,7 @@ type Pair = {
 	box: Frame,
 	firstWord: TextLabel,
 	secondWord: TextLabel,
+	onX: number, -- as Row.onX, for this narrower switch
 }
 
 -- A three-button row's view now (only ShotCam has three).
@@ -189,7 +191,7 @@ function SettingsMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 			slide(pair.track, pair.knob, second)
 			pair.track.BackgroundColor3 = HudParts.tone(if second then "Green" else "Grey")
 			pair.state.Text = if second then W.On else W.Off
-			pair.state.Position = UDim2.fromScale(if second then row.onX else 1 - row.onX, 0.5)
+			pair.state.Position = UDim2.fromScale(if second then pair.onX else 1 - pair.onX, 0.5)
 		end
 		local choice, words = row.choice, row.words
 		if choice and words then
@@ -346,6 +348,7 @@ function SettingsMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 				box = box,
 				firstWord = firstWord,
 				secondWord = secondWord,
+				onX = 0.32,
 			}
 		end
 		local row: Row = {
@@ -543,25 +546,24 @@ function SettingsMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 			local rowSwitchW = if row.segments then px(row.segments.SwitchUnits[1]) else switchW
 			local pair = row.pair
 			local captionPx = math.max(U.MinTextPx, linePx)
-			local firstRight = 0 -- a pair's first switch: its right end inside the box
 			if pair then
-				-- [All] [switch]  [Emotes] [switch]: both words at one size, the box's width.
+				-- [Emotes] [switch]  [All] [SWITCH]: the row's own switch at the right end, as
+				-- big as every other row's; both words at one size, the box's width.
 				local pairW = px(U.PairSwitchUnits)
 				local captionGap, pairGap = px(U.CaptionGapUnits), px(U.PairGapUnits)
 				local firstW = math.ceil(textWidth(pair.firstWord.Text, captionPx)) + 4
 				local secondW = math.ceil(textWidth(pair.secondWord.Text, captionPx)) + 4
-				rowSwitchW = firstW + captionGap + pairW + pairGap + secondW + captionGap + pairW
+				rowSwitchW = secondW + captionGap + pairW + pairGap + firstW + captionGap + switchW
 				pair.box.Size = UDim2.fromOffset(rowSwitchW, switchH)
 				pair.box.Position = UDim2.new(1, -pad, 0.5, 0)
-				pair.track.Size = UDim2.fromOffset(pairW, switchH)
-				pair.track.Position = UDim2.fromScale(1, 0.5)
 				HudParts.setTextSize(pair.secondWord, captionPx)
 				pair.secondWord.Size = UDim2.fromOffset(secondW, captionPx + 4)
-				pair.secondWord.Position = UDim2.new(1, -(pairW + captionGap), 0.5, 0)
+				pair.secondWord.Position = UDim2.new(0, secondW, 0.5, 0)
+				pair.track.Size = UDim2.fromOffset(pairW, switchH)
+				pair.track.Position = UDim2.new(0, secondW + captionGap + pairW, 0.5, 0)
 				HudParts.setTextSize(pair.firstWord, captionPx)
 				pair.firstWord.Size = UDim2.fromOffset(firstW, captionPx + 4)
-				pair.firstWord.Position = UDim2.new(0, firstW, 0.5, 0)
-				firstRight = firstW + captionGap + pairW
+				pair.firstWord.Position = UDim2.new(1, -(switchW + captionGap), 0.5, 0)
 			end
 			if row.segments then
 				-- On a phone the page's scale is small and the words cannot shrink past MinTextPx:
@@ -586,8 +588,8 @@ function SettingsMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 				line.Size = UDim2.fromOffset(textW, linePx + 2)
 			end
 			if pair then
-				row.track.Size = UDim2.fromOffset(px(U.PairSwitchUnits), switchH)
-				row.track.Position = UDim2.new(0, firstRight, 0.5, 0)
+				row.track.Size = UDim2.fromOffset(switchW, switchH)
+				row.track.Position = UDim2.fromScale(1, 0.5)
 			else
 				row.track.Size = UDim2.fromOffset(rowSwitchW, switchH)
 				row.track.Position = UDim2.new(1, -pad, 0.5, 0)
@@ -620,15 +622,15 @@ function SettingsMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 			end
 			HudParts.setTextSize(row.state, statePx)
 			if pair then
-				-- The pair's narrower switches: ON / OFF fit beside the knob, one size for both.
-				local room = math.max(1, px(U.PairSwitchUnits) - switchH - 4 * U.KnobInsetPx)
+				-- The narrower Emotes switch: its ON / OFF fit beside the knob.
+				local pairW = px(U.PairSwitchUnits)
+				local room = math.max(1, pairW - switchH - 4 * U.KnobInsetPx)
 				local widest = math.max(textWidth(W.On, statePx), textWidth(W.Off, statePx))
 				local pairStatePx = if widest > room
 					then math.max(U.MinTextPx, math.floor(statePx * room / widest))
 					else statePx
-				HudParts.setTextSize(row.state, pairStatePx)
 				HudParts.setTextSize(pair.state, pairStatePx)
-				row.onX = (px(U.PairSwitchUnits) - switchH) / 2 / math.max(px(U.PairSwitchUnits), 1)
+				pair.onX = (pairW - switchH) / 2 / math.max(pairW, 1)
 			end
 			paint(row, false)
 			y += rowH + gap
@@ -678,9 +680,9 @@ function SettingsMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 			row.button.NextSelectionDown = (if below then below.button else input) :: any
 			local pair = row.pair
 			if pair then
-				-- The D-pad's right reaches the second switch, its left goes back to the row.
-				row.button.NextSelectionRight = pair.button
-				pair.button.NextSelectionLeft = row.button
+				-- The D-pad's left reaches the Emotes switch, its right goes back to the row.
+				row.button.NextSelectionLeft = pair.button
+				pair.button.NextSelectionRight = row.button
 				pair.button.NextSelectionUp = row.button.NextSelectionUp
 				pair.button.NextSelectionDown = row.button.NextSelectionDown
 			end
