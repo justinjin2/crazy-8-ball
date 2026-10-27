@@ -128,11 +128,12 @@ function EmoteHud.update(inMatch: boolean, shooting: boolean)
 		and not LuckyClient.isOpen()
 		and not GiftDrop.isPlaying()
 		and not blocked
+	-- Sync only in the lobby: in a match the controller's X is the ult's and the pick's.
+	EmotePlayer.allowSync(visible and not inMatch)
 	if visible == shown then
 		return
 	end
 	shown = visible
-	EmotePlayer.allowSync(visible)
 	bind(visible)
 	if visible then
 		UIAnim.popIn(button)
@@ -142,7 +143,6 @@ function EmoteHud.update(inMatch: boolean, shooting: boolean)
 		end
 		button.Visible = false
 	end
-	local _ = inMatch
 end
 
 --- Build the button and the tray (client, once, after Progression has started).

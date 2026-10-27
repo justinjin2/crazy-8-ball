@@ -3,8 +3,9 @@
 -- Config.EmoteMenu.Sync). Roblox's own ProximityPrompt, made on this client only (nobody else
 -- sees yours): E on a keyboard, the controller's X, a tap on a phone, held HoldSeconds. Holding
 -- it asks EmotePlayer to sync: you dance their dance in step with them (a Duo: its partner).
--- A prompt shows while you may dance (EmoteHud's button is up), and hides on a dancer you
--- already move in step with, and on a duo dancer who has a partner already.
+-- A prompt shows while you may dance in the lobby (EmoteHud's button is up, no match: there
+-- the controller's X is the ult's), and hides on a dancer you already move in step with, and on
+-- a duo dancer who has a partner already.
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
