@@ -62,9 +62,10 @@ return {
 		local B = Config.EmoteMenu.Custom.Bullseye
 		local d, s = M.targetSpot(spec(Config, math.huge, {}))
 		H.expect(d == B.Far and s == 1, "far, full size")
-		-- A wall 8 studs ahead: the face stands with the easel's back clear of it.
-		d, s = M.targetSpot(spec(Config, 8, {}))
-		H.expect(d ~= nil and near(d, 8 - B.Back) and s == 1, "against the wall")
+		-- A wall a stud short of room: the face stands with the easel's back clear of it.
+		local wall = B.Far + B.Back - 1
+		d, s = M.targetSpot(spec(Config, wall, {}))
+		H.expect(d ~= nil and near(d, wall - B.Back) and s == 1, "against the wall")
 	end,
 
 	["with no room it comes closer and smaller, and always plays by a wall"] = function()

@@ -18063,8 +18063,8 @@ Config.EmoteMenu = {
 			-- comes closer, the emote always plays). It never stands over a table (nor within
 			-- TableMargin of one): then there is no target and the arrow flies off. Back and
 			-- Half: how far it reaches behind its face and to each side (studs at scale 1).
-			Near = 4,
-			Far = 7,
+			Near = 6,
+			Far = 10, -- further off (designer, 2026-10-27: was 4 to 7)
 			Tight = 3.4,
 			MinScale = 0.5,
 			Steps = 5,
