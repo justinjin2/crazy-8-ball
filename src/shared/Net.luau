@@ -431,6 +431,17 @@ local REMOTES: { [string]: string } = {
 	-- clock: `left` seconds of active play to the next one); client -> server: (no arguments)
 	-- "picked it up", or { active = true } (an input lately: the clock runs).
 	SkyDrop = "RemoteEvent",
+	-- The emote menu (src/server/EmoteService.luau; client EmotePlayer, EmoteMenu; 2026-10-26).
+	-- client -> server, rate limited, answered { ok = true, ... } or { ok = false, reason
+	-- ("Off", "BadRequest", "TooFast", "Busy", "NotLoaded") }: ("Play", id) -> { ok, at } (the
+	-- server time the dance's loop started: someone nearby's when joining them in step),
+	-- ("Stop", how: "Move" | "Turn" | "Menu" | "Other"), ("Favorite", id, boolean),
+	-- ("Open") (the tray was opened: analytics), ("Who") -> { ok, dancers = { { userId, id, at }
+	-- }, favorites = { [id] = true } } (a client starting up).
+	EmoteRequest = "RemoteFunction",
+	-- server -> everyone: { userId, id, at } (someone started a dance) or { userId, stop = true };
+	-- server -> one player: { favorites = { [id] = true } } on load and after each change.
+	EmoteState = "RemoteEvent",
 }
 
 -- Values per table in an AimBroadcast batch.

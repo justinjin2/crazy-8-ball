@@ -17786,4 +17786,229 @@ do
 	A.Clips.CueStrike[3].FromSpeed = hard
 end
 
+---------------------------------------------------------------------------------------------
+-- The emote menu (designer, 2026-10-26: "more expression of players in-game and sociability").
+-- An EMOTE button at the bottom right (lobby, waiting your turn, the results; never while
+-- shooting) opens a tray of hand-picked Roblox Marketplace emotes, free to use in this game:
+-- each card loops its dance as a dark silhouette, a star makes it a favourite (first, in
+-- yellow), and the strip at the bottom names its maker with one small Avatar Shop link. A dance
+-- loops until the player moves, picks another or their turn starts; players nearby who start
+-- the same dance join it in step, and its music (licensed only) plays from the dancer for
+-- players nearby. Server: src/server/EmoteService.luau; client: EmoteHud, EmoteMenu,
+-- EmotePreview, EmotePlayer; pure maths: src/shared/EmoteSync.luau. Roblox's own emote wheel
+-- (Config.Emotes) stays for the player's own emotes. Off: no button, no menu, results as before.
+---------------------------------------------------------------------------------------------
+Config.EmoteMenu = {
+	Enabled = true,
+	-- The dances, in the menu's order (favourites come first). Id: the save's and the remotes'
+	-- key (Strings.Emotes.Names[Id] is its short name); Catalog: the Marketplace item (the
+	-- Avatar Shop link); Animation: the animation inside it, played by id; Creator: who made it
+	-- (data, never translated); Length: its loop in seconds (read in Studio, 2026-10-26).
+	-- Music (optional): a licensed track { Id, Start (s), Loop (s), Volume }: it plays from
+	-- Start and loops the Loop seconds after it; nil = silent. Prop (optional): a key of Props,
+	-- held while it plays. Speed (optional): the dance's playback speed (1).
+	List = {
+		{
+			Id = "RatDance",
+			Catalog = 98603994713783,
+			Animation = 113375965758912,
+			Creator = "Voxelates",
+			Length = 4.438,
+			-- "rat dance nicos nextbos" (DistrokidOfficial): 32 beats at 107.7 BPM.
+			Music = { Id = "rbxassetid://108236999118620", Start = 2.705, Loop = 17.833 },
+		},
+		{
+			Id = "Passinho",
+			Catalog = 104131847054135,
+			Animation = 83796130837213,
+			Creator = "Setalcix Emote Creations",
+			Length = 5.35,
+		},
+		{
+			Id = "SegaWalk",
+			Catalog = 137950035611079,
+			Animation = 111823656989061,
+			Creator = "OliFlam",
+			Length = 4.0,
+		},
+		{
+			Id = "Gangnam",
+			Catalog = 104142334418357,
+			Animation = 129764254213842,
+			Creator = "Our new group!",
+			Length = 9.983,
+		},
+		{
+			Id = "ComeBack",
+			Catalog = 113273786867095,
+			Animation = 79280618149696,
+			Creator = "tireds",
+			Length = 8.035,
+		},
+		{
+			Id = "Scenario",
+			Catalog = 128771561752851,
+			Animation = 81747251604858,
+			Creator = "vkioxd",
+			Length = 8.133,
+		},
+		{
+			Id = "Scuba",
+			Catalog = 70919402339484,
+			Animation = 123761889433592,
+			Creator = "hexa's archives",
+			Length = 1.333,
+		},
+		{
+			Id = "Rakai",
+			Catalog = 135686271244127,
+			Animation = 115858722399476,
+			Creator = "MocapAnimations",
+			Length = 5.167,
+		},
+		{
+			Id = "Jackpot",
+			Catalog = 123007489009174,
+			Animation = 104762425338768,
+			Creator = "RobroAnimations UGC",
+			Length = 7.562,
+		},
+		{
+			Id = "WantYouBack",
+			Catalog = 88086466491938,
+			Animation = 82218443616796,
+			Creator = "Lost n' Found",
+			Length = 10.0,
+		},
+		{
+			Id = "Money",
+			Catalog = 89114994401113,
+			Animation = 104248876465825,
+			Creator = "Animations World",
+			Length = 9.967,
+		},
+		{
+			Id = "GojoWalk",
+			Catalog = 86211239618105,
+			Animation = 77984099336391,
+			Creator = "Emote Plaza",
+			Length = 2.0,
+			Prop = "BloxyCola", -- designer: Gojo holds a Bloxy Cola
+		},
+		{
+			Id = "LowCortisol",
+			Catalog = 138149876527113,
+			Animation = 79636012137057,
+			Creator = "Animations",
+			Length = 9.333,
+			-- "Low Cortisol" (DistrokidOfficial), from 31 s (designer): 64 beats at 129.2 BPM.
+			Music = { Id = "rbxassetid://110919391228823", Start = 31.184, Loop = 29.722 },
+		},
+	} :: {
+		{
+			Id: string,
+			Catalog: number,
+			Animation: number,
+			Creator: string,
+			Length: number,
+			Speed: number?,
+			Prop: string?,
+			Music: { Id: string, Start: number, Loop: number, Volume: number? }?,
+		}
+	},
+	-- Things a dance holds, made by the server on the hand and gone when it stops (seen by
+	-- everyone). BloxyCola: Roblox's own can (gear 10472779's mesh and texture).
+	Props = {
+		BloxyCola = {
+			MeshId = "rbxassetid://10470609",
+			TextureId = "rbxassetid://10470600",
+			Size = { 0.58, 1.03, 0.58 }, -- studs: the mesh's own size
+			Hand = "RightHand",
+			-- Where it sits from the hand's centre, studs and degrees: upright, gripped near
+			-- its top (checked in Studio, 2026-10-26).
+			Offset = { 0, -0.3, 0 },
+			Turn = { 0, 0, 0 },
+		},
+	},
+	-- The music from a dancer: heard by players nearby, fading to nothing (designer: "players
+	-- nearby"), in the Music group so Settings' Music switch mutes it.
+	MusicVolume = 0.5, -- a track's volume when its row gives none
+	MusicHearStuds = 12, -- full volume up to here
+	MusicMaxStuds = 70, -- silent from here
+	MusicLoadSeconds = 5, -- a track not loaded by then is skipped (the dance goes on silent)
+	-- Dancing together (designer: auto-sync): a player who starts a dance that someone within
+	-- this many studs is already doing joins it in step, and their music plays once.
+	SyncStuds = 24,
+	-- A dance stops by itself after this long (designer: loops until you move, capped so an
+	-- AFK player does not loop music all session).
+	MaxSeconds = 120,
+	FadeSeconds = 0.2, -- a dance blends in and out
+	MoveStopSpeed = 0.1, -- walking input above this stops a dance (Humanoid.MoveDirection)
+	-- A dance whose animation has not loaded after this long is hidden from the menu (a
+	-- creator may delete or change their item).
+	LoadSeconds = 3,
+	-- Requests per player: a burst, then this many a second (EmoteRequest).
+	RequestBurst = 6,
+	RequestPerSecond = 2,
+	-- The button: the designer's hand-drawn noob (#4, 2026-10-26), bottom right between the
+	-- screen's centre and its right edge (their red circle), clear of the hotbar, the power
+	-- bar and Roblox's jump button.
+	Button = {
+		Icon = "rbxassetid://119438309817788", -- assets/ui/icons/emote.png (Lucky 8, decal 123964177411822)
+		SizePx = 78, -- the icon's box on a big screen (the column's tiles: 78)
+		PhoneSizePx = 52, -- on a phone (smaller side under Config.Multiplayer.Style.ShortHeight)
+		WordPx = 18, -- EMOTE under it
+		PhoneWordPx = 12,
+		XShare = 0.79, -- its centre across the screen (0.5 centre, 1 the right edge)
+		BottomPx = 14, -- its bottom above the screen's bottom
+		PhoneXShare = 0.71, -- on a phone: left of the jump button
+		PhoneBottomPx = 6,
+		RockDegrees = 5, -- the idle rock
+		RockSeconds = 1.6,
+		PadKey = "ButtonR3", -- the controller button that opens and closes the tray
+	},
+	-- The tray (designer's pick 2A, 2026-10-26): four across, two rows and a peek, the credit
+	-- strip at the bottom. Units scale with the screen (k = width / Units.W).
+	Tray = {
+		Columns = 4,
+		WidthPx = 476, -- on a big screen
+		PhoneWidthPx = 300,
+		MaxHeightShare = 0.62, -- of the screen's height, at most
+		HeaderPx = 54,
+		PhoneHeaderPx = 40,
+		CreditPx = 40,
+		PhoneCreditPx = 30,
+		PadPx = 12, -- the sheet's inner margin
+		GapPx = 10, -- between cards
+		PhoneGapPx = 7,
+		NamePx = 15, -- a card's name
+		PhoneNamePx = 12,
+		PeekShare = 0.18, -- how much of the third row shows (scroll hint)
+		AboveButtonPx = 8, -- the tray's bottom sits this far over the button's top
+		FavoriteFill = { 255, 240, 186 }, -- a favourite card's tint
+		Well = { 214, 232, 252 }, -- a card's preview stage
+		FavoriteWell = { 255, 233, 163 },
+		-- A star that is not a favourite: the gold star dimmed by this grey and see-through.
+		StarOff = { 120, 128, 150 },
+		StarOffFade = 0.45,
+		Silhouette = { 27, 32, 51 }, -- the dancer in a preview (ink)
+		-- The preview's camera: its field of view, how far in front of the body it stands
+		-- (studs) and the height it looks at (studs from the body's root; feet at about -3).
+		PreviewFov = 40,
+		PreviewDistance = 9.5,
+		PreviewLookY = -0.45,
+	},
+	-- The results screen (designer, 2026-10-26, with the emotes): no blur, so both players see
+	-- each other dance; the loser sees no DEFEAT and their own card greys ("kids dont really
+	-- like to lose"). The winner's screen is unchanged.
+	Results = {
+		Blur = false,
+		LoserTitle = false,
+		GreyLoser = true,
+		GreyTint = { 150, 150, 150 }, -- the losing side's headshots, multiplied by this grey
+		GreyFade = 0.3, -- and this see-through, washed out on the white card
+		GreyName = { 190, 194, 204 }, -- their names
+	},
+}
+
 return Config
