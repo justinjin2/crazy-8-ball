@@ -20,6 +20,7 @@ export type Row = {
 	Intro: number?, -- an animation played once before the loop
 	Once: boolean?, -- plays one time, then the dance ends
 	Scene: string?, -- our own emote's props and effects (EmoteScene)
+	Walk: boolean?, -- walking does not stop it, only a jump does
 }
 
 -- A dancer seen from the one starting: what they dance, since when, and how far away (studs).

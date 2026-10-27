@@ -3,7 +3,8 @@
 -- - Your own dance: the server says when its loop started (`at`; someone's nearby when joining
 --   them in step), then it plays on your character's Animator, which shows it to everyone, at
 --   the place in its loop the server clock says (EmoteSync.offset). It loops until you walk or
---   jump, pick another, your turn takes the body (EmoteHud), or MaxSeconds.
+--   jump (a Walk dance: until you jump), pick another, your turn takes the body (EmoteHud), or
+--   MaxSeconds.
 -- - Everyone's music: each dance with a licensed track plays it from the dancer's body for
 --   players nearby (MusicHearStuds to MusicMaxStuds), in the Music group (Settings' Music
 --   switch mutes it), at the place the server clock says. Dancers moving in step share one
@@ -347,15 +348,18 @@ function EmotePlayer.play(id: string): (boolean, string?)
 				EmoteSync.offset(workspace:GetServerTimeNow(), at, track.Length, speed)
 		end
 	end)
-	-- Walking or jumping stops it, like Roblox's own emotes (pushes do not).
-	table.insert(
-		links,
-		humanoid:GetPropertyChangedSignal("MoveDirection"):Connect(function()
-			if humanoid.MoveDirection.Magnitude > E.MoveStopSpeed then
-				EmotePlayer.stop("Move")
-			end
-		end)
-	)
+	-- Walking or jumping stops it, like Roblox's own emotes (pushes do not); a Walk dance goes
+	-- on while you walk, over the walk animation, until you jump.
+	if not row.Walk then
+		table.insert(
+			links,
+			humanoid:GetPropertyChangedSignal("MoveDirection"):Connect(function()
+				if humanoid.MoveDirection.Magnitude > E.MoveStopSpeed then
+					EmotePlayer.stop("Move")
+				end
+			end)
+		)
+	end
 	table.insert(
 		links,
 		humanoid.StateChanged:Connect(function(_, new)

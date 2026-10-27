@@ -17809,7 +17809,8 @@ Config.EmoteMenu = {
 	-- public fan clip of the original (designer, 2026-10-27): unlicensed, so it can vanish, and
 	-- then the dance just goes silent. Volume evens each clip out with Rat Dance (measured in
 	-- Studio, 2026-10-27). Prop (optional): a key of Props,
-	-- held while it plays. Speed (optional): the dance's playback speed (1).
+	-- held while it plays. Speed (optional): the dance's playback speed (1). Walk (optional):
+	-- walking does not stop it, only a jump (and the other stops) does.
 	List = {
 		{
 			Id = "RatDance",
@@ -17921,6 +17922,7 @@ Config.EmoteMenu = {
 			Creator = "Emote Plaza",
 			Length = 2.0,
 			Prop = "BloxyCola", -- designer: Gojo holds a Bloxy Cola
+			Walk = true, -- designer, 2026-10-27: it keeps going while you walk; a jump stops it
 		},
 		{
 			Id = "LowCortisol",
