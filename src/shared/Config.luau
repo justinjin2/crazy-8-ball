@@ -17980,6 +17980,9 @@ Config.EmoteMenu = {
 			Turn = { -106.5, 32.6, -30.8 },
 		},
 	},
+	-- The menu starts with these, in this order (designer, 2026-10-27: the ones with music
+	-- first); every other dance follows in List's order. An id not in the menu is skipped.
+	First = { "Popcorn", "RatDance", "LowCortisol", "SegaWalk", "Bullseye", "GojoWalk" },
 	-- Our own emotes (designer, 2026-10-26): Popcorn (lounging on a beach lounger, throwing
 	-- popcorn at your mouth, half of it bouncing off your face) and Bullseye (a bow and a
 	-- target pop up, one shot dead centre, a blow on the bow like a smoking gun). Made by Lucky
@@ -18255,11 +18258,29 @@ Config.EmoteMenu = {
 	},
 }
 
--- Our own emotes come first in the menu while their switch is on (Config.EmoteMenu.Custom).
+-- Our own emotes join the menu while their switch is on (Config.EmoteMenu.Custom), then the
+-- menu is put in order: Config.EmoteMenu.First, then the rest as they were.
 if Config.EmoteMenu.Custom.Enabled then
 	for i, row in Config.EmoteMenu.Custom.List do
 		table.insert(Config.EmoteMenu.List, i, row :: any)
 	end
+end
+do
+	local rank = {}
+	for i, id in Config.EmoteMenu.First do
+		rank[id] = i
+	end
+	local was = {}
+	for i, row in Config.EmoteMenu.List do
+		was[row] = i
+	end
+	table.sort(Config.EmoteMenu.List, function(a: any, b: any)
+		local ra, rb = rank[a.Id] or math.huge, rank[b.Id] or math.huge
+		if ra ~= rb then
+			return ra < rb
+		end
+		return was[a] < was[b]
+	end)
 end
 
 return Config

@@ -116,15 +116,33 @@ return {
 		H.expect(S.endsAfter(money :: any) == nil, "a loop never ends by itself")
 	end,
 
+	["the menu starts with First, in order, then the rest as listed"] = function()
+		local _, Config = load()
+		local E = Config.EmoteMenu
+		local ids = {}
+		for _, row in E.List do
+			table.insert(ids, row.Id)
+		end
+		local n = 0
+		for _, id in E.First do
+			local at = table.find(ids, id)
+			if at then
+				n += 1
+				H.expect(at == n, "first, in order: " .. id)
+			end
+		end
+		H.expect(n >= 4, "the first ones are in the menu")
+		H.expect(ids[1] == "Popcorn" and ids[2] == "RatDance", "Popcorn, then Rat Dance")
+		local passinho, gangnam = table.find(ids, "Passinho"), table.find(ids, "Gangnam")
+		H.expect(passinho == n + 1 and gangnam == n + 2, "the rest keep their order")
+	end,
+
 	["our own emotes are in the menu while their switch is on"] = function()
 		local S, Config = load()
 		local C = Config.EmoteMenu.Custom
-		for i, row in C.List do
+		for _, row in C.List do
 			local found = S.find(Config.EmoteMenu.List, row.Id)
 			H.expect((found ~= nil) == C.Enabled, "listed iff on: " .. row.Id)
-			if C.Enabled then
-				H.expect(Config.EmoteMenu.List[i] == row, "first, in order: " .. row.Id)
-			end
 			H.expect(type(C.Models[row.Scene]) == "number", "a model: " .. row.Id)
 			H.expect(type(C[row.Scene]) == "table", "a scene: " .. row.Id)
 		end
