@@ -11,7 +11,7 @@
 -- Also when a player left the server, walked out or surrendered (designer, 2026-10-07), for
 -- the winner and the forfeiter alike. Not for 2v2, 3v3 or Solo, or a draw (the plain result
 -- screen). Once seen (Seen "Result"), a tap, click or A skips the pan. A match starting stops
--- it (Progression). Numbers in Config.Cutscenes.Result.
+-- it (Progression). Numbers in Config.Cutscenes.Result; off there (Enabled) since 2026-10-27.
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -93,7 +93,7 @@ end
 --- Whether this summary gets the cutscene: a 1v1 with a winner (however it ended: a leave or
 --- a surrender too), and the player's own body here. /result's preview gets it too.
 function ResultCutscene.wants(summary: any): boolean
-	if type(summary) ~= "table" or summary.solo == true then
+	if not R.Enabled or type(summary) ~= "table" or summary.solo == true then
 		return false
 	end
 	if summary.winner ~= 1 and summary.winner ~= 2 then

@@ -17759,6 +17759,10 @@ Config.Cutscenes = {
 	-- back in on the sky and the camera tilts down into the player's own camera. Partway down
 	-- the result screen opens (centred) and the bars slide away. Studs, degrees and seconds.
 	Result = {
+		-- Off (designer, 2026-10-27: less friction after a match): a 1v1's result screen opens
+		-- at once, like a 2v2's, so Rematch or Leave can be pressed straight away. True brings
+		-- the fade and the camera tilt back.
+		Enabled = false,
 		FadeInSeconds = 0.35, -- to black (the bars slide in meanwhile)
 		HoldSeconds = 0.15, -- black
 		FadeOutSeconds = 0.45,
