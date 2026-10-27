@@ -4590,7 +4590,13 @@ timer of a new block stay the designer's call.
   cover the balls.
 - 2026-10-27: **how our own emotes behave** (built that way; the designer can change any):
   first in the tray; never in step with a nearby dancer (a one-shot joined midway would start
-  mid-shot); "by Lucky 8" with no Avatar Shop link; a target or umbrella is never put over a
+  mid-shot); "by Lucky 8" with no Avatar Shop link; a target is never put over a
   table, and every tall prop hides on your own screen while you shoot, so none covers the
   balls; the sounds are first picks from Roblox's free library until the designer picks by
   ear.
+- 2026-10-27 (designer, first look): **Popcorn loses the umbrella** (just the lounger) and its
+  only sound is the munch at the end (the start, rustle and stop sounds were annoying);
+  **Bullseye's target stands further off**, 6 to 10 studs (was 4 to 7); during both, **the body
+  keeps its facing** until the player moves: shift lock and the camera can't spin it around the
+  chair (`Custom.HoldFacing`). The designer wants the original songs for the silent dances
+  first; uploading them is the last resort (see the Music item in the roadmap).

@@ -1395,10 +1395,11 @@ Built in their screens' style on the designer's "use your judgment"; screenshots
 - **Our own emotes** (Popcorn, Bullseye; `Config.EmoteMenu.Custom`): first in the tray,
   credited "by Lucky 8" with no Avatar Shop pill (not for sale: the name takes the whole strip
   and X does nothing). Their silhouettes carry their props: Popcorn lounging on the lounger
-  under the umbrella with the bucket, Bullseye drawing the bow. In the world their props are
+  with the bucket, Bullseye drawing the bow. In the world their props are
   plain and realistic, no 8-ball theming (designer, 2026-10-26): a blue-and-white striped
-  lounger, a light-blue scalloped umbrella, a red-and-white bucket, a classic archery target on
-  a wooden easel.
+  lounger, a red-and-white bucket, a classic archery target on
+  a wooden easel. The body keeps the facing it started with until it moves (shift lock and the
+  camera don't turn it).
 - **The results screen with the emotes** (`Config.EmoteMenu.Results`): no blur, so both
   players see each other dance; no DEFEAT: the losing side's headshots and names go grey
   instead, and why it was lost sits on WINNER's line over that side. The winner's screen is
