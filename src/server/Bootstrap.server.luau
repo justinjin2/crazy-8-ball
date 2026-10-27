@@ -158,6 +158,7 @@ TableService.start(workspace, if isArena then "Arena" else "Hub")
 require(script.Parent:WaitForChild("SoloSearch")).start() -- Play Global with no pad (the spawn pill)
 FallGuard.start() -- anyone who drops below the floor goes back to the spawn at once
 require(script.Parent:WaitForChild("EmoteSlots")).start() -- the emote wheel's empty slots filled
+require(script.Parent:WaitForChild("EmoteService")).start() -- the emote menu's dances and music
 ShotService.start()
 UltService.start() -- ults in a match: activation, the bar gains, the Studio UltQA hook
 require(script.Parent:WaitForChild("Bots"):WaitForChild("BotService")).start() -- the bots (the Bots lane)
