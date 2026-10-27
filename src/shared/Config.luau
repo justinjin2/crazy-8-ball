@@ -17894,12 +17894,15 @@ Config.EmoteMenu = {
 			Animation = 104762425338768,
 			Creator = "RobroAnimations UGC",
 			Length = 7.562,
-			-- "HOL UP, WAIT! I JUST HIT THE JACKPOT!!!" (fan clip of the hook), the whole clip.
+			-- "hakari dance" (fan clip by HideK2ng, the designer's pick, 2026-10-27): uploaded sped
+			-- up, so it plays at 0.17 (the designer's pitch); the whole 2.954 s clip, 17.4 s a loop.
+			-- Was "HOL UP, WAIT! I JUST HIT THE JACKPOT!!!" (125879594748603).
 			Music = {
-				Id = "rbxassetid://125879594748603",
-				Start = 0.06,
-				Loop = 3.88,
-				Volume = 0.38,
+				Id = "rbxassetid://118968956615621",
+				Start = 0,
+				Loop = 2.954,
+				Speed = 0.17,
+				Volume = 0.26, -- twice Rat Dance's loudness at 0.5 (measured in Studio)
 			},
 		},
 		{
