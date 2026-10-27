@@ -266,7 +266,9 @@ local function begin(row: EmoteSync.Row, at: number, partner: number?): (Mine?, 
 		intro = intro,
 		since = os.clock(),
 		links = links,
-		release = if row.Scene and E.Custom.HoldFacing then holdFacing(humanoid) else nil,
+		release = if row.Scene and (E.Custom :: any)[row.Scene].HoldFacing == true
+			then holdFacing(humanoid)
+			else nil,
 		walk = slowWalk(humanoid, row.WalkSpeed or E.WalkSpeed),
 	}
 	mine = current

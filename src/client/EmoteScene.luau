@@ -7,7 +7,7 @@
 -- it (its markers: Toss and Crunch; Release, Blow and Poof), so the popcorn and the arrow leave
 -- the hand when the hand lets go.
 -- - Popcorn: a striped lounger under the dancer pops in with a puff (no umbrella: designer,
---   2026-10-27). Each Toss throws a handful at the mouth: about half of it bounces off the face
+--   2026-10-27), welded to their root so it turns with them (shift lock). Each Toss throws a handful at the mouth: about half of it bounces off the face
 --   onto the floor, where a few pile up (PileCap). Crunch munches, its only sound.
 -- - Bullseye: a target pops up straight ahead (closer and smaller with no room, never over a
 --   table). The bow's string follows the drawing hand with the arrow on it; at Release the
@@ -400,6 +400,16 @@ local function toss(scene: Scene, character: Model)
 	if not hand or not hand:IsA("BasePart") or not head or not head:IsA("BasePart") then
 		return
 	end
+	-- The body may have turned since the lounger came (shift lock): what bounces off the face
+	-- goes off the way it faces now.
+	local root = character:FindFirstChild("HumanoidRootPart")
+	if root and root:IsA("BasePart") then
+		local look = root.CFrame.LookVector
+		local flat = Vector3.new(look.X, 0, look.Z)
+		if flat.Magnitude > 1e-3 then
+			scene.base = CFrame.lookAt(root.Position, root.Position + flat.Unit)
+		end
+	end
 	local s = scene.scale
 	scene.tosses += 1
 	local from = (hand.CFrame * CFrame.new(vec(P.Hand, s))).Position
@@ -451,8 +461,18 @@ local function buildPopcorn(scene: Scene, set: Instance, character: Model, anima
 	local s = scene.scale
 	local floor = scene.base * CFrame.new(0, -C.RestRootStuds * s, 0)
 	local lounger = propFrom(set, "Lounger", s, scene.model)
+	local root = character:FindFirstChild("HumanoidRootPart")
 	if lounger then
 		lounger.CFrame = floor * CFrame.new(vec(P.Lounger, s))
+		-- Welded to the root (massless, untouchable): it turns as the body turns, on every
+		-- screen (designer, 2026-10-27: the player always sits on it the right way).
+		if root and root:IsA("BasePart") then
+			lounger.Anchored = false
+			local weld = Instance.new("WeldConstraint")
+			weld.Part0 = root
+			weld.Part1 = lounger
+			weld.Parent = lounger
+		end
 		fadeIn(lounger)
 		scene.lounger = lounger
 	end

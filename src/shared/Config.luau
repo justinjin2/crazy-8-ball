@@ -17996,6 +17996,7 @@ Config.EmoteMenu = {
 				Length = 2.4,
 				Scene = "Popcorn",
 				Prop = "PopcornBucket",
+				WalkSpeed = 0, -- designer, 2026-10-27: no walking while lounging
 			},
 			{
 				Id = "Bullseye",
@@ -18016,6 +18017,7 @@ Config.EmoteMenu = {
 				Length: number,
 				Once: boolean?,
 				Scene: string,
+				WalkSpeed: number?,
 				Prop: string?,
 			}
 		},
@@ -18039,11 +18041,14 @@ Config.EmoteMenu = {
 		-- While you shoot, every emote prop is hidden on your screen (designer: they never
 		-- cover the balls); it comes back when your shot is taken.
 		HideWhileShooting = true,
-		-- The body keeps the way it faced when the dance began (designer, 2026-10-27): no
-		-- turning with the camera or shift lock, no spinning round the lounger; it frees again
-		-- when the dance ends (walking ends it).
-		HoldFacing = true,
+		-- Each scene's HoldFacing: the body keeps the way it faced when the dance began (no
+		-- turning with the camera or shift lock) until it ends. Both stand still (their rows'
+		-- WalkSpeed 0: only a jump ends them).
 		Popcorn = {
+			-- Shift lock and first person turn the lounging body, and the lounger turns with it
+			-- (welded to the root on every screen: the player always sits on it the right way);
+			-- WASD and the stick do nothing (designer, 2026-10-27).
+			HoldFacing = false,
 			-- Where the lounger stands from the floor under the dancer's root, turned as the
 			-- dancer faces (the model's own layout; studs at scale 1). It is lower than the
 			-- cloth, so it never covers the balls. No umbrella (designer, 2026-10-27); the
@@ -18073,6 +18078,9 @@ Config.EmoteMenu = {
 			Hand = { 0, -0.2, -0.1 }, -- the popcorn leaves the right hand here
 		},
 		Bullseye = {
+			-- The body faces the target until the shot is over: no turning with the camera
+			-- or shift lock (designer, 2026-10-27).
+			HoldFacing = true,
 			-- The target stands straight ahead with its face Near to Far studs out, or shrunk
 			-- (to MinScale, in Steps) as close as Tight when that does not fit (designer: it
 			-- comes closer, the emote always plays). It never stands over a table (nor within

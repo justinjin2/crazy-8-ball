@@ -280,6 +280,15 @@ return {
 		H.expect(E.MusicToleranceSeconds >= E.Align.ToleranceSeconds, "a song's seek is rarer")
 	end,
 
+	["Popcorn stands still and turns with shift lock; Bullseye holds its facing"] = function()
+		local S, Config = load()
+		local C = Config.EmoteMenu.Custom
+		local popcorn = S.find(C.List, "Popcorn")
+		H.expect(popcorn ~= nil and popcorn.WalkSpeed == 0, "no walking while lounging")
+		H.expect(C.Popcorn.HoldFacing == false, "shift lock turns the lounging body")
+		H.expect(C.Bullseye.HoldFacing == true, "Bullseye faces its target")
+	end,
+
 	["an asset id's number"] = function()
 		local S = load()
 		H.expect(S.assetNumber("rbxassetid://123") == "123", "the number")
