@@ -98,7 +98,9 @@ local function layout()
 	if word and word:IsA("TextLabel") then
 		HudParts.setTextSize(word, if phone then B.PhoneWordPx else B.WordPx)
 	end
-	menu:layout(size, Vector2.new(size.X * share, size.Y - bottom - px), phone)
+	-- The tray's arrow points at the top of the noob, which reaches above the button.
+	local artTop = size.Y - bottom - px - px * math.max(0, B.ArtScale / 2 - B.ArtY)
+	menu:layout(size, Vector2.new(size.X * share, artTop), phone)
 end
 
 --- Whether the tray is open (Main lets a controller's selection rest there in a match).

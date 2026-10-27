@@ -17971,12 +17971,13 @@ Config.EmoteMenu = {
 		ArtScale = 1.1,
 		PadKey = "ButtonR3", -- the controller button that opens and closes the tray
 	},
-	-- The tray (designer's pick 2A, 2026-10-26): four across, two rows and a peek, the credit
-	-- strip at the bottom. Units scale with the screen (k = width / Units.W).
+	-- The tray (designer's pick 2A, 2026-10-26): three across (was four: less wide and busy,
+	-- designer, the same night), two rows and a peek, the credit strip at the bottom, and a
+	-- small arrow under it pointing at the button it drops from.
 	Tray = {
-		Columns = 4,
-		WidthPx = 476, -- on a big screen
-		PhoneWidthPx = 300,
+		Columns = 3,
+		WidthPx = 364, -- on a big screen (cards about 104 px, as with four across at 476)
+		PhoneWidthPx = 240, -- on a phone (cards about 68 px)
 		MaxHeightShare = 0.62, -- of the screen's height, at most
 		HeaderPx = 54,
 		PhoneHeaderPx = 40,
@@ -17988,7 +17989,16 @@ Config.EmoteMenu = {
 		NamePx = 15, -- a card's name
 		PhoneNamePx = 12,
 		PeekShare = 0.18, -- how much of the third row shows (scroll hint)
-		AboveButtonPx = 8, -- the tray's bottom sits this far over the button's top
+		-- The gap: the arrow's tip stops this far above the top of the button's noob, and the
+		-- arrow under the tray is this tall (designer: "a little gap ... a little arrow").
+		ButtonGapPx = 8,
+		PhoneButtonGapPx = 5,
+		ArrowPx = 13,
+		PhoneArrowPx = 9,
+		TopMarginPx = 8, -- the tray never reaches nearer the screen's top than this
+		-- The open: the tray grows out of its arrow from this share of its size (a dropdown;
+		-- it never reaches below the arrow), the close shrinks it back the same way.
+		OpenFromScale = 0.3,
 		FavoriteFill = { 255, 240, 186 }, -- a favourite card's tint
 		Well = { 214, 232, 252 }, -- a card's preview stage
 		FavoriteWell = { 255, 233, 163 },

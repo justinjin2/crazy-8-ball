@@ -1,7 +1,8 @@
 --!strict
--- EmoteMenu: the emote tray (designer's pick 2A, 2026-10-26; Config.EmoteMenu.Tray). It pops up
--- out of the EMOTE button with no blur, so the player still sees their character:
--- - A header (the hand-drawn noob, EMOTES, the red X) over a sheet of cards, four across, two
+-- EmoteMenu: the emote tray (designer's pick 2A, 2026-10-26; Config.EmoteMenu.Tray). It grows
+-- up out of the EMOTE button with no blur, so the player still sees their character, a small
+-- arrow under it pointing at the button (a dropdown; it never reaches below the arrow):
+-- - A header (the hand-drawn noob, EMOTES, the red X) over a sheet of cards, three across, two
 --   rows and a peek of the third so players know to scroll.
 -- - A card: its dance looping as a dark silhouette (EmotePreview; only the cards in view move),
 --   its short name, and a star. A favourite's star is gold, its card yellow, and it comes first.
@@ -82,11 +83,28 @@ function EmoteMenu.new(screen: ScreenGui, icon: string)
 	self.anchor = Vector2.new(0, 0) -- the button's top centre, in pixels
 	self.phone = false
 
-	local panel = HudParts.menuCard(screen, "EmoteTray", K.PanelCornerPx)
-	panel.Visible = false
-	panel.ZIndex = 20
+	-- The tray: the card and the arrow under it. It grows out of the arrow's tip (layout puts
+	-- the root's AnchorPoint there, the point a UIScale grows from).
+	local root = HudParts.frame(screen, "EmoteTray")
+	root.Visible = false
+	root.ZIndex = 20
+	root.SelectionGroup = true -- the stick stays among the cards
+	self.root = root
+	local arrow = HudParts.frame(root, "Arrow")
+	arrow.BackgroundTransparency = 0
+	arrow.BackgroundColor3 = color(K.Colors.White)
+	arrow.AnchorPoint = Vector2.new(0.5, 0.5)
+	arrow.Rotation = 45
+	arrow.ZIndex = 1 -- behind the card: only its lower half shows, a point under the card
+	local arrowEdge = Instance.new("UIStroke")
+	arrowEdge.Color = HudParts.color(K.Colors.Ink)
+	arrowEdge.Thickness = K.PanelStrokePx
+	arrowEdge.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	arrowEdge.Parent = arrow
+	self.arrow = arrow
+	local panel = HudParts.menuCard(root, "Card", K.PanelCornerPx)
+	panel.ZIndex = 2
 	self.panel = panel
-	panel.SelectionGroup = true -- the stick stays among the cards
 
 	local header = HudParts.frame(panel, "Header")
 	header.ZIndex = 3
@@ -346,6 +364,9 @@ end
 function EmoteMenu.layout(self: any, size: Vector2, anchor: Vector2, phone: boolean)
 	self.anchor, self.phone = anchor, phone
 	local width = math.min(if phone then T.PhoneWidthPx else T.WidthPx, size.X - 24)
+	if width < 1 then
+		return
+	end
 	local header = if phone then T.PhoneHeaderPx else T.HeaderPx
 	local creditPx = if phone then T.PhoneCreditPx else T.CreditPx
 	local pad = if phone then math.floor(T.PadPx * 0.6) else T.PadPx
@@ -357,13 +378,25 @@ function EmoteMenu.layout(self: any, size: Vector2, anchor: Vector2, phone: bool
 	local cardH = cardW + namePx + 12
 	local rows = 2 + T.PeekShare
 	local wanted = header + pad + round(cardH * rows + gap * 2) + creditPx
-	local height = math.min(wanted, math.floor(size.Y * T.MaxHeightShare))
+	local arrowPx = if phone then T.PhoneArrowPx else T.ArrowPx
+	local tipY = anchor.Y - (if phone then T.PhoneButtonGapPx else T.ButtonGapPx)
+	local height = math.max(
+		header + creditPx + cardH,
+		math.min(wanted, math.floor(size.Y * T.MaxHeightShare), tipY - arrowPx - T.TopMarginPx)
+	)
+	-- Above the button and kept on screen, the arrow's tip over the button's centre.
+	local left = math.clamp(anchor.X - width / 2, 12, size.X - width - 12)
+	local inset = math.min(K.PanelCornerPx + arrowPx, width / 2) -- clear of the round corners
+	local tipX = math.clamp(anchor.X - left, inset, width - inset)
+	local root = self.root
+	root.Size = UDim2.fromOffset(width, height + arrowPx)
+	root.AnchorPoint = Vector2.new(tipX / width, 1)
+	root.Position = UDim2.fromOffset(round(left + tipX), round(tipY))
+	local side = arrowPx * math.sqrt(2) -- a square turned 45 degrees: its lower half shows
+	self.arrow.Size = UDim2.fromOffset(side, side)
+	self.arrow.Position = UDim2.fromOffset(tipX, height)
 	local panel = self.panel
 	panel.Size = UDim2.fromOffset(width, height)
-	-- Above the button, kept on screen.
-	local x = math.clamp(anchor.X - width / 2, 12, size.X - width - 12)
-	local y = math.max(8, anchor.Y - T.AboveButtonPx - height)
-	panel.Position = UDim2.fromOffset(round(x), round(y))
 	HudParts.setSheetTop(panel, header)
 	local h = self.header
 	h.Position = UDim2.fromOffset(0, 0)
@@ -429,8 +462,9 @@ function EmoteMenu.show(self: any)
 		return
 	end
 	self.open = true
-	self.panel.Visible = true
-	UIAnim.slam(self.panel, nil, { burst = false, shake = "Nudge" })
+	-- Out of the arrow, like a dropdown: never past the button (a slam from big reached over it).
+	self.root.Visible = true
+	UIAnim.expandIn(self.root, 0, T.OpenFromScale)
 	local order = EmoteSync.order(E.List, EmotePlayer.favorites())
 	for i, id in order do
 		local card = self.cards[id]
@@ -493,11 +527,11 @@ function EmoteMenu.close(self: any)
 	self.open = false
 	ContextActionService:UnbindAction(ACTION)
 	local selected = GuiService.SelectedObject
-	if selected and selected:IsDescendantOf(self.panel) then
+	if selected and selected:IsDescendantOf(self.root) then
 		GuiService.SelectedObject = nil
 	end
 	self:refreshActive()
-	UIAnim.popOut(self.panel)
+	UIAnim.popOut(self.root)
 end
 
 return EmoteMenu
