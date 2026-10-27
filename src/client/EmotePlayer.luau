@@ -431,8 +431,8 @@ function EmotePlayer.preloadMusic()
 end
 
 --- Whether you may dance now (EmoteHud's button is up): the Sync prompts show only then.
-function EmotePlayer.allowSync(on: boolean)
-	EmoteSyncPrompt.allow(on, dances)
+function EmotePlayer.allowSync(on: boolean, inMatch: boolean)
+	EmoteSyncPrompt.allow(on, dances, inMatch)
 end
 
 --- The favourites ([id] = true).

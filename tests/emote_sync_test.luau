@@ -300,6 +300,18 @@ return {
 		H.expect(gojo ~= nil and gojo.Speed == nil, "the animation as it was")
 	end,
 
+	["Sync works in a match too, on a controller button the ability does not use"] = function()
+		local _, Config = load()
+		local Sy = Config.EmoteMenu.Sync
+		H.expect(Sy.InMatch == true, "in matches (designer)")
+		H.expect(
+			Sy.PadKey == "ButtonX" and Sy.MatchPadKey == "ButtonY",
+			"X in the lobby, Y in a match"
+		)
+		local ult = Config.Ults and Config.Ults.PadKey
+		H.expect(ult == nil or ult ~= Sy.MatchPadKey, "never the ability's button")
+	end,
+
 	["an asset id's number"] = function()
 		local S = load()
 		H.expect(S.assetNumber("rbxassetid://123") == "123", "the number")

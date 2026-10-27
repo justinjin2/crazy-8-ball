@@ -111,8 +111,9 @@ function EmoteHud.isOpen(): boolean
 	return started and menu:isOpen()
 end
 
---- Every frame (Main): show or hide the button from where the player is.
-function EmoteHud.update(inMatch: boolean, shooting: boolean)
+--- Every frame (Main): show or hide the button from where the player is (`picking`: the
+--- ability pick is up, its Y taken).
+function EmoteHud.update(inMatch: boolean, shooting: boolean, picking: boolean)
 	if not started then
 		return
 	end
@@ -130,8 +131,9 @@ function EmoteHud.update(inMatch: boolean, shooting: boolean)
 		and not LuckyClient.isOpen()
 		and not GiftDrop.isPlaying()
 		and not blocked
-	-- Sync only in the lobby: in a match the controller's X is the ult's and the pick's.
-	EmotePlayer.allowSync(visible and not inMatch)
+	-- Sync in a match too (Sync.InMatch; a controller's Y there, X being the ult's), never
+	-- under the ability pick.
+	EmotePlayer.allowSync(visible and not picking and (not inMatch or E.Sync.InMatch), inMatch)
 	if visible == shown then
 		return
 	end

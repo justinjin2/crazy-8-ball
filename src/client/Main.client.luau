@@ -1517,7 +1517,7 @@ local function renderFrame(dt: number)
 		and snapshot ~= nil
 		and snapshot.phase == "Resolving"
 		and not avatar:stroking()
-	EmoteHud.update(inMatch, controlled and not strokePlayed)
+	EmoteHud.update(inMatch, controlled and not strokePlayed, ultPick:isShown())
 	-- The ult bar: it fades while the cue is pulled back, the bottom lines sit above it, and the
 	-- controller guide lists "Ult" while it offers its press.
 	-- A controller's power left resting is not a pull: the ability can still be pressed.

@@ -1,11 +1,11 @@
 --!strict
 -- EmoteSyncPrompt: the "Sync" prompt on every other dancer near you (designer, 2026-10-27;
 -- Config.EmoteMenu.Sync). Roblox's own ProximityPrompt, made on this client only (nobody else
--- sees yours): E on a keyboard, the controller's X, a tap on a phone, held HoldSeconds. Holding
--- it asks EmotePlayer to sync: you dance their dance in step with them (a Duo: its partner).
--- A prompt shows while you may dance in the lobby (EmoteHud's button is up, no match: there
--- the controller's X is the ult's), and hides on a dancer you already move in step with, and on
--- a duo dancer who has a partner already.
+-- sees yours): E on a keyboard, the controller's X (Y in a match: X is the ability's there), a
+-- tap on a phone, held HoldSeconds. Holding it asks EmotePlayer to sync: you dance their dance
+-- in step with them (a Duo: its partner). A prompt shows while you may dance (EmoteHud's button
+-- is up; in a match too, Sync.InMatch, but not under the ability pick), and hides on a dancer
+-- you already move in step with, and on a duo dancer who has a partner already.
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -23,6 +23,7 @@ export type Dancer = { id: string, at: number, partner: number? }
 
 local prompts: { [number]: ProximityPrompt } = {}
 local allowed = false
+local padKey: Enum.KeyCode = (Enum.KeyCode :: any)[E.Sync.PadKey]
 local onSync: ((number) -> ())? = nil
 -- Your own dance (its id and `at`), to hide the prompt of a dancer you are in step with.
 local mineId: string?, mineAt: number? = nil, nil
@@ -89,7 +90,7 @@ function EmoteSyncPrompt.set(userId: number, dancer: Dancer?)
 		made.Name = "EmoteSync"
 		made.ActionText = Strings.Emotes.Sync
 		made.KeyboardKeyCode = Enum.KeyCode.E
-		made.GamepadKeyCode = Enum.KeyCode.ButtonX
+		made.GamepadKeyCode = padKey
 		made.HoldDuration = E.Sync.HoldSeconds
 		made.MaxActivationDistance = E.Sync.Studs
 		made.RequiresLineOfSight = false
@@ -119,8 +120,18 @@ function EmoteSyncPrompt.mine(id: string?, at: number?, dancers: { [number]: Dan
 	end
 end
 
---- Whether you may dance now (EmoteHud's button is up): the prompts show only then.
-function EmoteSyncPrompt.allow(on: boolean, dancers: { [number]: Dancer })
+--- Whether you may sync now (EmoteHud: you may dance, and Sync may here); `inMatch` picks the
+--- controller's button.
+function EmoteSyncPrompt.allow(on: boolean, dancers: { [number]: Dancer }, inMatch: boolean)
+	local key: Enum.KeyCode = (Enum.KeyCode :: any)[if inMatch
+		then E.Sync.MatchPadKey
+		else E.Sync.PadKey]
+	if key ~= padKey then
+		padKey = key
+		for _, prompt in prompts do
+			prompt.GamepadKeyCode = key
+		end
+	end
 	if on == allowed then
 		return
 	end

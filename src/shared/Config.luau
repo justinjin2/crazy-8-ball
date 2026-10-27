@@ -18202,6 +18202,12 @@ Config.EmoteMenu = {
 		Studs = 10, -- the prompt shows within this many studs of the dancer
 		HoldSeconds = 0.3, -- held this long (designer: a short hold, never by accident)
 		SlackStuds = 8, -- the server allows this much further
+		-- In a match too (designer, 2026-10-27), while you may dance (waiting, or once your
+		-- stroke has played) and the ability pick is not up. A controller holds PadKey in the
+		-- lobby and MatchPadKey in a match (X is the ability's there). Off: lobby only.
+		InMatch = true,
+		PadKey = "ButtonX",
+		MatchPadKey = "ButtonY",
 	},
 	-- A dance goes on until you jump, pick another, reset, or your turn takes the body; a
 	-- loop has no time limit (designer, 2026-10-27). Walking does not stop it: you walk at
