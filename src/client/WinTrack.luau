@@ -160,6 +160,7 @@ function WinTrack.new(screen: ScreenGui): any
 	root.ZIndex = T.ZIndex
 	root.Visible = false
 	self.root = root
+	TutorialAnchors.set("WinTrack", root) -- the emote jump hint keeps above it
 	self.scale = Instance.new("UIScale")
 	self.scale.Parent = root
 	-- What pops in and out; everything else sits inside it.

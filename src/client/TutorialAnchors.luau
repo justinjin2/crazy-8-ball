@@ -14,7 +14,8 @@
 -- is set once the box is clicked), Banner (the top banner, which the line keeps under), Challenge,
 -- Offer, OfferDismiss, Invite (the hub corners), HotbarSlot1..9 (the lucky block hotbar), Group,
 -- Favorite, Like (Free Reward's frames, highlighted once), ColumnRays (the layer under the left
--- column: glows behind its tiles).
+-- column: glows behind its tiles), WinTrack (the lobby's wins track: EmoteHud's jump hint keeps
+-- above it).
 --
 -- A screen may also hide one of its parts while the tutorial says so (TutorialAnchors.hidden).
 

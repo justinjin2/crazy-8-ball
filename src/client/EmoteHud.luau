@@ -14,6 +14,7 @@
 --   once ever (Settings' seen "EmoteButton"; shown only once the saved state is in).
 -- - While your dance plays, "Jump to cancel emote at any time" over the button, until your first
 --   jump ends one, once ever (seen "EmoteJump"); any other stop only hides it till the next.
+--   Over a new player's open wins track (TutorialAnchors "WinTrack") it goes above the track.
 -- Main calls update(inMatch, shooting) every frame (shooting: aiming or stroking); it only
 -- changes what changed.
 local ContextActionService = game:GetService("ContextActionService")
@@ -35,6 +36,7 @@ local Menus = require(script.Parent.Menus)
 local Progression = require(script.Parent.Progression)
 local Seen = require(script.Parent.Seen)
 local SettingsState = require(script.Parent.SettingsState)
+local TutorialAnchors = require(script.Parent.TutorialAnchors)
 local UIAnim = require(script.Parent.UIAnim)
 local UISound = require(script.Parent.UISound)
 
@@ -56,6 +58,7 @@ local dot: Frame
 local dotShown = false
 local hint: TextLabel
 local hintShown = false
+local hintSpot = { x = 0, y = 0, w = 0, edge = 0 } -- over the noob's head (layout)
 local menu: any
 local shown = false
 local bound = false
@@ -99,6 +102,34 @@ local function bind(on: boolean)
 	end
 end
 
+-- The hint over the noob's head; over the open wins track (a new player's lobby), above the
+-- track on its middle instead, so it never covers the track's steps.
+local function placeHint()
+	if not hintShown then
+		return
+	end
+	local spot = hintSpot
+	local x, y = spot.x, spot.y
+	local track = TutorialAnchors.get("WinTrack")
+	if track and TutorialAnchors.showing("WinTrack") then
+		local origin = screen.AbsolutePosition
+		local left = track.AbsolutePosition.X - origin.X
+		local right = left + track.AbsoluteSize.X
+		local top = track.AbsolutePosition.Y - origin.Y
+		local across = x - spot.w / 2 < right + B.HintGapPx and x + spot.w / 2 > left - B.HintGapPx
+		if across and y > top - B.HintGapPx then
+			local width = screen.AbsoluteSize.X
+			x = math.clamp(
+				(left + right) / 2,
+				spot.w / 2 + spot.edge,
+				width - spot.w / 2 - spot.edge
+			)
+			y = top - B.HintGapPx
+		end
+	end
+	hint.Position = UDim2.fromOffset(math.floor(x), math.floor(y))
+end
+
 local function layout()
 	local size = screen.AbsoluteSize
 	if size.X <= 0 then
@@ -128,7 +159,8 @@ local function layout()
 	local highest = size.X - hintW / 2 - B.HintEdgePx
 	local centreX = math.min(math.max(size.X * share, lowest), highest)
 	hint.Size = UDim2.fromOffset(hintW, hintH)
-	hint.Position = UDim2.fromOffset(math.floor(centreX), math.floor(headY - B.HintGapPx))
+	hintSpot = { x = centreX, y = headY - B.HintGapPx, w = hintW, edge = B.HintEdgePx }
+	placeHint()
 	local word = button:FindFirstChild("Word", true)
 	if word and word:IsA("TextLabel") then
 		HudParts.setTextSize(word, if phone then B.PhoneWordPx else B.WordPx)
@@ -184,6 +216,7 @@ function EmoteHud.update(inMatch: boolean, shooting: boolean, picking: boolean)
 	if wantHint ~= hintShown then
 		hintShown = wantHint
 		if wantHint then
+			placeHint()
 			UIAnim.popIn(hint)
 		else
 			hint.Visible = false
@@ -263,6 +296,25 @@ function EmoteHud.start(playerGui: PlayerGui)
 	end)
 	screen:GetPropertyChangedSignal("AbsoluteSize"):Connect(layout)
 	layout()
+	-- The wins track moves, opens and folds: the hint follows it (only while it shows).
+	local watching: GuiObject? = nil
+	local function watchTrack()
+		local track = TutorialAnchors.get("WinTrack")
+		if track == nil or track == watching then
+			return
+		end
+		watching = track
+		for _, property in { "AbsolutePosition", "AbsoluteSize", "Visible" } do
+			track:GetPropertyChangedSignal(property):Connect(placeHint)
+		end
+		placeHint()
+	end
+	TutorialAnchors.Changed:Connect(function(name: string)
+		if name == "WinTrack" then
+			watchTrack()
+		end
+	end)
+	watchTrack()
 end
 
 return EmoteHud
