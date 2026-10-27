@@ -18239,7 +18239,11 @@ Config.EmoteMenu = {
 		XShare = 0.79, -- its centre across the screen (0.5 centre, 1 the right edge)
 		BottomPx = 14, -- its bottom above the screen's bottom
 		PhoneXShare = 0.71, -- on a phone: left of the jump button
-		PhoneBottomPx = 6,
+		-- On a phone the EMOTE word (it hangs a few px under the button) keeps a clear gap over
+		-- the screen's edge, its bottom about level with the money pill's (MoneyHud: 8 px margin,
+		-- the 26 px pill centred on the 40 px stack, so its bottom 15 px up). Designer,
+		-- 2026-10-27: it touched the edge (was 6).
+		PhoneBottomPx = 22,
 		-- The noob's picture in the button: its centre's height (a share of the button, 0 the
 		-- top) and its size (a share of the button). It reaches a little above the button.
 		-- No idle rock and no sun rays: only the candy's own sway while hovered (designer,
