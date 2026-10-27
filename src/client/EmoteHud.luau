@@ -19,6 +19,7 @@ local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local EmoteMenu = require(script.Parent.EmoteMenu)
 local EmotePlayer = require(script.Parent.EmotePlayer)
+local EmoteScene = require(script.Parent.EmoteScene)
 local Freecam = require(script.Parent.Freecam)
 local GiftDrop = require(script.Parent.GiftDrop)
 local HudParts = require(script.Parent.HudParts)
@@ -116,6 +117,7 @@ function EmoteHud.update(inMatch: boolean, shooting: boolean)
 	if shooting and EmotePlayer.current() then
 		EmotePlayer.stop("Turn") -- the turn takes the body
 	end
+	EmoteScene.setShooting(shooting) -- our own emotes' tall props hide from your shot
 	local player = Players.LocalPlayer
 	local blocked = Progression.isBusy() and not Progression.resultUp()
 	local visible = not shooting

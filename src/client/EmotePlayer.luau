@@ -9,6 +9,8 @@
 --   switch mutes it), at the place the server clock says. Dancers moving in step share one
 --   copy (EmoteSync.groupKey), so a group's song never doubles.
 -- - The favourites: the server's list, for the menu (Changed fires when it changes).
+-- - Our own emotes (Config.EmoteMenu.Custom): Popcorn plays its intro once, then its loop;
+--   Bullseye plays once and ends. Their props and effects round every dancer: EmoteScene.
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -16,6 +18,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local EmoteSync = require(Shared:WaitForChild("EmoteSync"))
 local Net = require(Shared:WaitForChild("Net"))
+local EmoteScene = require(script.Parent.EmoteScene)
 local SoundGroups = require(script.Parent.SoundGroups)
 
 local E = Config.EmoteMenu
@@ -28,9 +31,16 @@ EmotePlayer.Changed = changed.Event
 
 local started = false
 local favorites: { [string]: boolean } = {}
--- Your own dance: its row, its track, when it started (os.clock) and its watchers.
-local mine: { id: string, track: AnimationTrack, since: number, links: { RBXScriptConnection } }? =
-	nil
+-- Your own dance: its row, its track (and the intro before it), when it started (os.clock)
+-- and its watchers.
+type Mine = {
+	id: string,
+	track: AnimationTrack,
+	intro: AnimationTrack?,
+	since: number,
+	links: { RBXScriptConnection },
+}
+local mine: Mine? = nil
 local busy = false -- a Play request is out
 local tracks: { [string]: AnimationTrack } = {} -- your character's loaded dances, by id
 local tracksOf: Animator? = nil
@@ -54,20 +64,22 @@ local function animator(): Animator?
 	return humanoid and humanoid:FindFirstChildOfClass("Animator")
 end
 
--- Your character's track for a dance, loaded once per character (a track per press would pile
--- up past Roblox's 64-track limit).
-local function trackFor(row: EmoteSync.Row): AnimationTrack?
+-- Your character's track for a dance (or its intro: `intro`), loaded once per character (a
+-- track per press would pile up past Roblox's 64-track limit). It loops unless it plays once.
+local function trackFor(row: EmoteSync.Row, intro: boolean?): AnimationTrack?
 	local a = animator()
-	if a == nil then
+	local id = if intro then row.Intro else row.Animation
+	if a == nil or id == nil then
 		return nil
 	end
 	if a ~= tracksOf then
 		tracks, tracksOf = {}, a
 	end
-	local track = tracks[row.Id]
+	local key = if intro then row.Id .. "/Intro" else row.Id
+	local track = tracks[key]
 	if not track then
 		local animation = Instance.new("Animation")
-		animation.AnimationId = "rbxassetid://" .. row.Animation
+		animation.AnimationId = "rbxassetid://" .. id
 		local ok, loaded = pcall(function()
 			return a:LoadAnimation(animation)
 		end)
@@ -77,8 +89,8 @@ local function trackFor(row: EmoteSync.Row): AnimationTrack?
 		end
 		local fresh: AnimationTrack = loaded
 		fresh.Priority = Enum.AnimationPriority.Action
-		fresh.Looped = true
-		tracks[row.Id] = fresh
+		fresh.Looped = not intro and row.Once ~= true
+		tracks[key] = fresh
 		return fresh
 	end
 	return track
@@ -174,10 +186,15 @@ local function onDance(userId: number, id: string?, at: number?)
 	if old then
 		dances[userId] = nil
 		leaveMusic(userId, old.id, old.at)
+		EmoteScene.stop(userId)
 	end
 	if id and at then
 		dances[userId] = { id = id, at = at }
 		joinMusic(userId, id, at)
+		local row = EmoteSync.find(E.List, id)
+		if row and row.Scene then
+			EmoteScene.start(userId, row)
+		end
 	end
 end
 
@@ -195,6 +212,9 @@ local function endMine(fade: boolean)
 		link:Disconnect()
 	end
 	current.track:Stop(if fade then E.FadeSeconds else 0)
+	if current.intro then
+		current.intro:Stop(if fade then E.FadeSeconds else 0)
+	end
 	changed:Fire()
 end
 
@@ -227,16 +247,56 @@ function EmotePlayer.play(id: string): (boolean, string?)
 	local character = Players.LocalPlayer.Character
 	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
 	local track = trackFor(row)
-	if humanoid == nil or track == nil then
+	local intro = if row.Intro then trackFor(row, true) else nil
+	if humanoid == nil or track == nil or (row.Intro ~= nil and intro == nil) then
 		task.spawn(request, "Stop", "Other")
 		return false, "Busy"
 	end
 	endMine(false)
 	local speed = row.Speed or 1
-	track:Play(E.FadeSeconds, 1, speed)
+	local links = {}
+	local current: Mine =
+		{ id = row.Id, track = track, intro = intro, since = os.clock(), links = links }
+	mine = current
+	if intro then
+		-- Our own emotes start on their own: the intro, then the loop from its start, blended
+		-- in as the intro ends (its last pose is the loop's first).
+		intro:Play(E.FadeSeconds, 1, speed)
+		local chained = false
+		table.insert(
+			links,
+			intro.Stopped:Connect(function()
+				if mine == current and not chained then
+					EmotePlayer.stop("Other") -- something else stopped it (a turn's pose)
+				end
+			end)
+		)
+		task.spawn(function()
+			local deadline = os.clock() + E.LoadSeconds
+			while intro.Length <= 0 and os.clock() < deadline and mine == current do
+				task.wait()
+			end
+			local left = (intro.Length - intro.TimePosition) / speed - E.FadeSeconds
+			if left > 0 then
+				task.wait(left)
+			end
+			if mine == current then
+				chained = true
+				track:Play(E.FadeSeconds, 1, speed)
+				track.TimePosition = 0
+				intro:Stop(E.FadeSeconds)
+			end
+		end)
+	else
+		track:Play(E.FadeSeconds, 1, speed)
+	end
 	local at = if type(answer.at) == "number" then answer.at else workspace:GetServerTimeNow()
-	-- In step with the loop the server started (yours, or the dancer you joined).
+	-- In step with the loop the server started (yours, or the dancer you joined). Our own
+	-- emotes start on their own: from their start.
 	task.spawn(function()
+		if row.Scene then
+			return
+		end
 		local deadline = os.clock() + E.LoadSeconds
 		while track.Length <= 0 and os.clock() < deadline do
 			task.wait()
@@ -246,9 +306,6 @@ function EmotePlayer.play(id: string): (boolean, string?)
 				EmoteSync.offset(workspace:GetServerTimeNow(), at, track.Length, speed)
 		end
 	end)
-	local links = {}
-	local current = { id = row.Id, track = track, since = os.clock(), links = links }
-	mine = current
 	-- Walking or jumping stops it, like Roblox's own emotes (pushes do not).
 	table.insert(
 		links,
@@ -269,7 +326,8 @@ function EmotePlayer.play(id: string): (boolean, string?)
 	table.insert(
 		links,
 		track.Stopped:Connect(function()
-			-- Something else stopped it (a turn's pose stops every track): tell the server.
+			-- Something else stopped it (a turn's pose stops every track), or a one-shot is
+			-- done: tell the server.
 			if mine == current then
 				EmotePlayer.stop("Other")
 			end

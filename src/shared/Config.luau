@@ -17907,13 +17907,16 @@ Config.EmoteMenu = {
 	} :: {
 		{
 			Id: string,
-			Catalog: number,
+			Catalog: number?,
 			Animation: number,
 			Creator: string,
 			Length: number,
 			Speed: number?,
 			Prop: string?,
 			Music: { Id: string, Start: number, Loop: number, Volume: number? }?,
+			Intro: number?,
+			Once: boolean?,
+			Scene: string?,
 		}
 	},
 	-- Things a dance holds, made by the server on the hand and gone when it stops (seen by
@@ -17929,6 +17932,200 @@ Config.EmoteMenu = {
 			-- 2026-10-26).
 			Offset = { -0.12, -0.26, -0.19 },
 			Turn = { -64, 74, 2 },
+		},
+		-- Our own emotes' (Custom): Popcorn's red-and-white bucket and Bullseye's bow, meshes
+		-- from the Popcorn and Bullseye models (tools/blender/emotes). Offset and Turn put them
+		-- where the animations were posed round them (tools/emotes/make_emote_anims.luau).
+		PopcornBucket = {
+			MeshId = "rbxassetid://97101566647465",
+			TextureId = "rbxassetid://83335729057596",
+			Size = { 1.044, 1.339, 1.05 },
+			Hand = "LeftHand", -- on the belly, the right hand digs in
+			Offset = { 0.091, -0.165, -0.601 },
+			Turn = { -105.7, 34.6, 46.9 },
+		},
+		Bow = {
+			MeshId = "rbxassetid://115272583287075",
+			TextureId = "rbxassetid://96536403729988",
+			Size = { 0.295, 3.469, 0.543 },
+			Hand = "LeftHand", -- the bow hand; the right draws the string
+			Offset = { 0.092, 0.139, -0.041 },
+			Turn = { -106.5, 32.6, -30.8 },
+		},
+	},
+	-- Our own emotes (designer, 2026-10-26): Popcorn (lounging under a beach umbrella, throwing
+	-- popcorn at your mouth, half of it bouncing off your face) and Bullseye (a bow and a
+	-- target pop up, one shot dead centre, a blow on the bow like a smoking gun). Made by Lucky
+	-- 8 (group 675425213): animations, models and sprite uploaded there. Their props, effects
+	-- and sounds are built round each dancer on every client nearby (src/client/EmoteScene.luau,
+	-- src/shared/EmoteSceneMath.luau). Off: the menu exactly as before.
+	Custom = {
+		Enabled = true,
+		-- The rows, put first in List while Enabled (at the bottom of this file). No Catalog:
+		-- not for sale, so no Avatar Shop link. Scene: the props and effects (below). Intro: an
+		-- animation played once before the loop (its last pose is the loop's first). Once: it
+		-- plays one time and ends (the server ends it after Length too).
+		List = {
+			{
+				Id = "Popcorn",
+				Animation = 92414707292170, -- PopcornLoop (tools/emotes/popcorn_anim.luau)
+				Intro = 101661105635659, -- PopcornIntro: sits back into the lounger (0.8 s)
+				Creator = "Lucky 8",
+				Length = 2.4,
+				Scene = "Popcorn",
+				Prop = "PopcornBucket",
+			},
+			{
+				Id = "Bullseye",
+				Animation = 90958833606867, -- BullseyeShot (tools/emotes/bullseye_anim.luau)
+				Creator = "Lucky 8",
+				Length = 3.6,
+				Once = true,
+				Scene = "Bullseye",
+				Prop = "Bow",
+			},
+		} :: {
+			{
+				Id: string,
+				Animation: number,
+				Intro: number?,
+				Creator: string,
+				Length: number,
+				Once: boolean?,
+				Scene: string,
+				Prop: string?,
+			}
+		},
+		-- The props' models (Lounger, Umbrella, Bucket, KernelA, KernelB; Target, Bow, Arrow),
+		-- loaded once per server into this ReplicatedStorage folder (EmoteService) for the
+		-- clients to clone, retried LoadRetries times LoadRetrySeconds apart. Without them a
+		-- dance plays with its hand prop only.
+		Models = { Popcorn = 121716712153613, Bullseye = 80309530019247 },
+		FolderName = "EmoteAssets",
+		LoadRetries = 3,
+		LoadRetrySeconds = 2,
+		SceneStuds = 150, -- a dancer farther than this from your camera gets no scene here
+		NearStuds = 70, -- thrown popcorn and the sounds only this near (cheap far away)
+		TrackSeconds = 3, -- a scene waits this long for the dancer's animation to show up
+		-- A body's root over the floor at scale 1 (HipHeight 2.1924 + half the root's 2):
+		-- the props scale with the body, kept within these.
+		RestRootStuds = 3.1924,
+		MinBodyScale = 0.6,
+		MaxBodyScale = 1.6,
+		PopSeconds = 0.2, -- a prop fades in (with a puff) and out (with a poof) this fast
+		-- While you shoot, every emote prop is hidden on your screen (designer: they never
+		-- cover the balls); it comes back when your shot is taken.
+		HideWhileShooting = true,
+		Popcorn = {
+			-- Where the lounger and umbrella stand from the floor under the dancer's root,
+			-- turned as the dancer faces (the model's own layout; studs at scale 1).
+			Lounger = { 0, 1.234, -0.175 },
+			Umbrella = { -1.025, 3.317, 0.614 },
+			-- The umbrella's canopy (its centre's X and Z from the floor point, and its radius)
+			-- keeps TableMargin off every table, else there is no umbrella (a lounger is lower
+			-- than the cloth: it never covers the balls).
+			Canopy = { -0.85, 0.55 },
+			CanopyRadius = 3.1,
+			TableMargin = 0.5,
+			-- Each "Toss" (the loop's marker): Count kernels (LowCount with Lower effects) leave
+			-- the right hand over SpreadSeconds and reach the face in FlightSeconds; MissShare of
+			-- them hit somewhere on the face (up to FaceAcross across, FaceUp up) and bounce off
+			-- (BounceOut out, BounceUp up, BounceSide sideways, studs/s) to the floor, the rest
+			-- go in the mouth. Gravity: studs/s^2, light, so popcorn floats.
+			Count = 6,
+			LowCount = 3,
+			MissShare = 0.5,
+			SpreadSeconds = 0.08,
+			FlightSeconds = 0.3,
+			FaceAcross = 0.35,
+			FaceUp = 0.3,
+			BounceOut = 6,
+			BounceUp = 7,
+			BounceSide = 4,
+			Gravity = 70,
+			-- The kernels on the floor round a lounger: at most this many (oldest go first).
+			PileCap = 24,
+			LowPileCap = 10,
+			SpriteBurst = 5, -- flat popcorn pieces scattered from the hand each toss
+			Mouth = { 0, -0.22, -0.58 }, -- the mouth from the Head's centre (tools/emotes/rig.luau)
+			Hand = { 0, -0.2, -0.1 }, -- the popcorn leaves the right hand here
+			-- Its card in the tray: the camera this far out and at this height (studs), so the
+			-- whole umbrella shows (Tray.PreviewDistance and PreviewLookY otherwise).
+			Preview = { Distance = 11, LookY = 0.1 },
+		},
+		Bullseye = {
+			-- The target stands straight ahead with its face Near to Far studs out, or shrunk
+			-- (to MinScale, in Steps) as close as Tight when that does not fit (designer: it
+			-- comes closer, the emote always plays). It never stands over a table (nor within
+			-- TableMargin of one): then there is no target and the arrow flies off. Back and
+			-- Half: how far it reaches behind its face and to each side (studs at scale 1).
+			Near = 4,
+			Far = 7,
+			Tight = 3.4,
+			MinScale = 0.5,
+			Steps = 5,
+			Back = 2.1,
+			Half = 1.6,
+			TableMargin = 0.3,
+			-- From the Bullseye model's centres (assets/emotes/bullseye/bullseye_points.json):
+			-- the face's centre and the floor under the target, the arrow's nock, and the bow's
+			-- string ends.
+			Face = { 0.0055, 1.226, 0.8341 },
+			TargetFloor = { 0.0055, -3.224, 0.8241 },
+			ArrowNock = { 0, -0.0349, 1.45 },
+			ArrowLength = 2.9,
+			BowTop = { 0, 1.53, 0.2285 },
+			BowBottom = { 0, -1.53, 0.2285 },
+			BowGrip = { 0, 0, -0.1715 }, -- where the arrow rests on the bow
+			AimHeight = 1.1, -- the arrow's line over the root (studs at scale 1), for the wall ray
+			NockOnHand = { 0, -0.15, 0 }, -- where the right hand holds the string and arrow
+			NockAt = 0.3, -- the arrow is on the string from here (s) to the "Release" marker
+			FlightSeconds = 0.2, -- the arrow's flight to the target
+			StickStuds = 0.35, -- how deep it sticks in
+			StringWidth = 0.035,
+			StringColor = { 240, 236, 225 },
+			-- The hit: the target rocks back WobbleDegrees and shakes still over WobbleSeconds,
+			-- flashes white for FlashSeconds, a shock ring grows to RingStuds, a gold burst and
+			-- Splinters fly out (half with Lower effects).
+			WobbleDegrees = 7,
+			WobbleSeconds = 0.9,
+			FlashSeconds = 0.25,
+			RingStuds = 7,
+			RingSeconds = 0.45,
+			BurstStuds = 6,
+			BurstSeconds = 0.7,
+			Splinters = 12,
+			Twinkles = 8,
+			BlowPuffs = 4, -- the smoke off the bow's top limb at "Blow"
+			-- Its card in the tray: the body turned a quarter (degrees) so the draw reads side-on,
+			-- and moved this far across (studs) so the bow fits.
+			Preview = { Turn = 90, Shift = -1.1 },
+		},
+		-- The effects' sprites: Puff and Twinkle (the lucky blocks'), Ring and Shard (the cue
+		-- effects'), Burst (Config.UI.Effects.Firework.Gold, an 8 x 8 flipbook) and Popcorn
+		-- (assets/emotes/popcorn/popcorn_sprite.png, Lucky 8).
+		Sprites = {
+			Puff = "rbxassetid://108727667390410",
+			Twinkle = "rbxassetid://93784382803534",
+			Ring = "rbxassetid://75727040461896",
+			Shard = "rbxassetid://120459779090958",
+			Burst = "rbxassetid://74896337141026",
+			Popcorn = "rbxassetid://138195617882872",
+		},
+		-- The sounds (Roblox's free sound library), heard by everyone nearby: full volume to
+		-- HearStuds, silent from MaxStuds. First picks; the designer chooses by ear.
+		HearStuds = 10,
+		MaxStuds = 60,
+		Sounds = {
+			Puff = { Id = "rbxassetid://9116406899", Volume = 0.5 }, -- props pop in and out
+			Creak = { Id = "rbxassetid://9114494161", Volume = 0.4 }, -- leaning back
+			Rustle = { Id = "rbxassetid://9117845608", Volume = 0.3 }, -- a hand in the bucket
+			Munch = { Id = "rbxassetid://9113138343", Volume = 0.6 }, -- "Crunch"
+			Draw = { Id = "rbxassetid://9125405388", Volume = 0.5 }, -- the string pulled
+			Release = { Id = "rbxassetid://9113166206", Volume = 0.6 }, -- the arrow looses
+			Thunk = { Id = "rbxassetid://9113161146", Volume = 0.8 }, -- it sticks
+			Ding = { Id = "rbxassetid://9126073318", Volume = 0.5 }, -- dead centre
+			Blow = { Id = "rbxassetid://9113702967", Volume = 0.4 }, -- the smoking bow
 		},
 	},
 	-- The music from a dancer: heard by players nearby, fading to nothing (designer: "players
@@ -18034,5 +18231,12 @@ Config.EmoteMenu = {
 		GreyName = { 190, 194, 204 }, -- their names
 	},
 }
+
+-- Our own emotes come first in the menu while their switch is on (Config.EmoteMenu.Custom).
+if Config.EmoteMenu.Custom.Enabled then
+	for i, row in Config.EmoteMenu.Custom.List do
+		table.insert(Config.EmoteMenu.List, i, row :: any)
+	end
+end
 
 return Config

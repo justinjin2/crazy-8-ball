@@ -13,15 +13,20 @@
 --   starting client with { dancers, favorites }.
 -- - A dance ends on Stop, after MaxSeconds, or when its character goes; a dance with a Prop
 --   (Gojo's Bloxy Cola) holds it on the hand until then.
+-- - Our own emotes (Config.EmoteMenu.Custom: Popcorn, Bullseye) always start on their own
+--   (never in step), a one-shot ends after its length, and their props' models are loaded
+--   once into ReplicatedStorage for the clients' scenes (EmoteScene).
 -- - The preview rig: a plain R15 body in ReplicatedStorage (EmotePreviewRig) the menu's cards
 --   dance as silhouettes.
 -- - Analytics (Funnel): the custom event Emote (id, device, Lobby or Match) and EmoteMenu
 --   (device, where) for each tray opened.
+local InsertService = game:GetService("InsertService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared.Config)
+local EmotePropBuilder = require(Shared.EmotePropBuilder)
 local EmoteSync = require(Shared.EmoteSync)
 local Net = require(Shared.Net)
 local Funnel = require(script.Parent.Funnel)
@@ -29,6 +34,7 @@ local PlayerData = require(script.Parent.PlayerData)
 local Tables = require(script.Parent.TableService)
 
 local E = Config.EmoteMenu
+local C = E.Custom
 local RIG_NAME = "EmotePreviewRig"
 -- How a client may say a dance ended (anything else is logged as "Other").
 local STOPS = { Move = true, Turn = true, Menu = true, Other = true }
@@ -91,34 +97,7 @@ end
 
 -- The prop a dance holds, welded to the hand (seen by everyone), or nil.
 local function makeProp(player: Player, key: string?): Instance?
-	local spec = if key then E.Props[key] else nil
-	local character = player.Character
-	local hand = character and spec and character:FindFirstChild(spec.Hand)
-	if not spec or not hand or not hand:IsA("BasePart") then
-		return nil
-	end
-	local part = Instance.new("Part")
-	part.Name = "EmoteProp"
-	part.Size = Vector3.new(spec.Size[1], spec.Size[2], spec.Size[3])
-	part.CanCollide = false
-	part.CanQuery = false
-	part.CanTouch = false
-	part.Massless = true
-	part.CastShadow = false
-	local mesh = Instance.new("SpecialMesh")
-	mesh.MeshType = Enum.MeshType.FileMesh
-	mesh.MeshId = spec.MeshId
-	mesh.TextureId = spec.TextureId
-	mesh.Parent = part
-	local weld = Instance.new("Weld")
-	weld.Part0 = hand
-	weld.Part1 = part
-	weld.C0 = CFrame.new(spec.Offset[1], spec.Offset[2], spec.Offset[3])
-		* CFrame.Angles(math.rad(spec.Turn[1]), math.rad(spec.Turn[2]), math.rad(spec.Turn[3]))
-	weld.Parent = part
-	part.CFrame = hand.CFrame * weld.C0
-	part.Parent = character
-	return part
+	return EmotePropBuilder.build(E.Props, key, player.Character)
 end
 
 local function stop(player: Player, tell: boolean)
@@ -158,14 +137,15 @@ local function play(player: Player, id: any): any
 			})
 		end
 	end
-	local at = EmoteSync.joinAt(now, row.Id, nearby, E.SyncStuds)
+	local at = EmoteSync.startAt(now, row, nearby, E.SyncStuds)
 	local dance: Dance =
 		{ id = row.Id, at = at, since = os.clock(), prop = makeProp(player, row.Prop) }
 	dancing[player] = dance
 	state():FireAllClients({ userId = player.UserId, id = row.Id, at = at })
 	Funnel.event(player, "Emote", 1, row.Id, Funnel.device(player), where(player))
-	-- The cap: an AFK dancer stops after MaxSeconds (the client stops itself then too).
-	task.delay(E.MaxSeconds, function()
+	-- The cap: an AFK dancer stops after MaxSeconds (the client stops itself then too); a
+	-- one-shot when it is done (its client stops it too; the later of the two is a no-op).
+	task.delay(EmoteSync.endsAfter(row) or E.MaxSeconds, function()
 		if dancing[player] == dance then
 			stop(player, true)
 		end
@@ -220,6 +200,46 @@ local function answer(player: Player, kind: any, a: any, b: any): any
 		return { ok = true, dancers = list, favorites = favorites }
 	end
 	return { ok = false, reason = "BadRequest" }
+end
+
+-- Our own emotes' prop models, loaded once (Config.EmoteMenu.Custom.Models) into a
+-- ReplicatedStorage folder for the clients to clone; scripts inside are removed. One that does
+-- not load is warned about; its dance still plays, with its hand prop only.
+local function loadModels()
+	local folder = Instance.new("Folder")
+	folder.Name = C.FolderName
+	folder.Parent = ReplicatedStorage
+	local models: { [string]: number } = C.Models
+	for name, id in models do
+		task.spawn(function()
+			local why = "?"
+			for attempt = 1, math.max(C.LoadRetries, 1) do
+				local ok, result = pcall(InsertService.LoadAsset, InsertService, id)
+				if ok and result then
+					local children = result:GetChildren()
+					local model = if #children == 1 then children[1] else result
+					for _, d in model:GetDescendants() do
+						if d:IsA("BaseScript") or d:IsA("ModuleScript") then
+							d:Destroy()
+						end
+					end
+					model.Name = name
+					model.Parent = folder
+					if model ~= result then
+						result:Destroy()
+					end
+					return
+				end
+				why = tostring(result)
+				if attempt < C.LoadRetries then
+					task.wait(C.LoadRetrySeconds)
+				end
+			end
+			warn(
+				("[8ball] EmoteService: emote model %s (%d) did not load: %s"):format(name, id, why)
+			)
+		end)
+	end
 end
 
 -- A plain R15 body for the menu's previews (the client dances copies of it in its cards).
@@ -286,6 +306,9 @@ function EmoteService.start()
 		return
 	end
 	task.spawn(buildRig)
+	if C.Enabled then
+		loadModels()
+	end
 	PlayerData.Loaded:Connect(sendFavorites)
 	local function watch(player: Player)
 		player.CharacterRemoving:Connect(function()

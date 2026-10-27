@@ -78,10 +78,13 @@ return {
 				"unique id " .. tostring(row.Id)
 			)
 			seen[row.Id] = true
+			H.expect(row.Animation > 0 and row.Length > 0, "ids and length " .. row.Id)
+			-- Only our own emotes (a Scene) have no catalog item.
 			H.expect(
-				row.Catalog > 0 and row.Animation > 0 and row.Length > 0,
-				"ids and length " .. row.Id
+				(row.Catalog or 0) > 0 or (row.Scene ~= nil and row.Catalog == nil),
+				"catalog " .. row.Id
 			)
+			H.expect(row.Intro == nil or row.Intro > 0, "intro " .. row.Id)
 			H.expect(type(row.Creator) == "string" and row.Creator ~= "", "creator " .. row.Id)
 			H.expect(type(Strings.Emotes.Names[row.Id]) == "string", "named " .. row.Id)
 			H.expect(row.Prop == nil or Config.EmoteMenu.Props[row.Prop] ~= nil, "prop " .. row.Id)
@@ -95,6 +98,40 @@ return {
 			S.find(Config.EmoteMenu.List, "Nope") == nil and S.find(Config.EmoteMenu.List, 5) == nil,
 			"unknown"
 		)
+	end,
+
+	["our own emotes start on their own; a one-shot ends after its length"] = function()
+		local S = load()
+		local nearby =
+			{ { id = "Popcorn", at = 60, distance = 2 }, { id = "Money", at = 70, distance = 2 } }
+		local popcorn =
+			{ Id = "Popcorn", Animation = 1, Creator = "x", Length = 2.4, Scene = "Popcorn" }
+		local money = { Id = "Money", Catalog = 1, Animation = 1, Creator = "x", Length = 9 }
+		H.expect(S.startAt(100, popcorn :: any, nearby, 24) == 100, "never in step")
+		H.expect(S.startAt(100, money :: any, nearby, 24) == 70, "a bought dance joins")
+		local shot = { Id = "Bullseye", Animation = 1, Creator = "x", Length = 3.6, Once = true }
+		H.expect(near(S.endsAfter(shot :: any) :: number, 3.6), "one shot")
+		shot.Speed = 2
+		H.expect(near(S.endsAfter(shot :: any) :: number, 1.8), "at its speed")
+		H.expect(S.endsAfter(money :: any) == nil, "a loop never ends by itself")
+	end,
+
+	["our own emotes are in the menu while their switch is on"] = function()
+		local S, Config = load()
+		local C = Config.EmoteMenu.Custom
+		for i, row in C.List do
+			local found = S.find(Config.EmoteMenu.List, row.Id)
+			H.expect((found ~= nil) == C.Enabled, "listed iff on: " .. row.Id)
+			if C.Enabled then
+				H.expect(Config.EmoteMenu.List[i] == row, "first, in order: " .. row.Id)
+			end
+			H.expect(type(C.Models[row.Scene]) == "number", "a model: " .. row.Id)
+			H.expect(type(C[row.Scene]) == "table", "a scene: " .. row.Id)
+		end
+		for name, sound in C.Sounds do
+			H.expect(sound.Id:match("^rbxassetid://%d+$") ~= nil, "sound id " .. name)
+			H.expect(sound.Volume > 0 and sound.Volume <= 1, "volume " .. name)
+		end
 	end,
 
 	["a group key tells two starts of the same dance apart"] = function()

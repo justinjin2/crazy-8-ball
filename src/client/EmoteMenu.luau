@@ -9,7 +9,7 @@
 -- - The credit strip at the bottom names the card in focus and its maker ("by Voxelates"),
 --   with one small Avatar Shop link (MarketplaceService:PromptPurchase on its catalog item):
 --   the dances are borrowed here, theirs to keep only from the shop (designer: no prices, no
---   Buy on the cards).
+--   Buy on the cards). Our own emotes (no catalog item: Popcorn, Bullseye) have no link.
 -- - A card pressed starts its dance and the tray closes (designer: "Menu closes").
 -- - Controller: the first card is selected on open; the stick or D-pad moves; A dances; Y
 --   stars; X opens the shop link; B (or R3 again) closes. Touch and mouse: tap or click.
@@ -344,12 +344,13 @@ end
 
 function EmoteMenu.shopFocus(self: any)
 	local row = if self.focus then EmoteSync.find(E.List, self.focus) else nil
-	if row == nil then
-		return
+	local catalog = row and row.Catalog
+	if catalog == nil then
+		return -- our own: not for sale
 	end
 	UISound.play("Click")
 	pcall(function()
-		MarketplaceService:PromptPurchase(Players.LocalPlayer, row.Catalog)
+		MarketplaceService:PromptPurchase(Players.LocalPlayer, catalog)
 	end)
 end
 
@@ -464,11 +465,14 @@ function EmoteMenu.layoutCredit(self: any)
 	self.shop.AnchorPoint = Vector2.new(1, 0.5)
 	self.shop.Position = UDim2.new(1, -pad, 0.5, 1)
 	self.shop.Size = UDim2.new(0, shopW, 0.62, 0) -- of the strip's height
+	local row = self.creditRow
+	-- Our own emotes are not for sale: no Avatar Shop link, the name takes the strip.
+	local forSale = row == nil or row.Catalog ~= nil
+	self.shop.Visible = forSale
 	local name = self.creditName
 	name.TextSize = if phone then T.PhoneCreditNamePx else T.CreditNamePx
 	name.Position = UDim2.fromOffset(pad, 3)
-	name.Size = UDim2.new(1, -(pad * 2 + shopW + 6), 1, -3)
-	local row = self.creditRow
+	name.Size = UDim2.new(1, -(pad * 2 + (if forSale then shopW + 6 else 0)), 1, -3)
 	if row == nil then
 		name.Text = ""
 		return

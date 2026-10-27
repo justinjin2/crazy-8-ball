@@ -3,18 +3,23 @@
 -- is a loop that started at a server time `at`, so every client can work out where it is now
 -- and players who join a dance nearby share its `at` and move in step; its music loops the same
 -- way from its own start. The menu shows favourites first, each group in the list's order.
+-- Our own emotes (a row with a Scene: Popcorn, Bullseye) always start on their own, never in
+-- step: a one-shot joined midway would start mid-shot.
 
 local EmoteSync = {}
 
 export type Row = {
 	Id: string,
-	Catalog: number,
+	Catalog: number?, -- nil for our own (not for sale: no Avatar Shop link)
 	Animation: number,
 	Creator: string,
 	Length: number,
 	Speed: number?,
 	Prop: string?,
 	Music: { Id: string, Start: number, Loop: number, Volume: number? }?,
+	Intro: number?, -- an animation played once before the loop
+	Once: boolean?, -- plays one time, then the dance ends
+	Scene: string?, -- our own emote's props and effects (EmoteScene)
 }
 
 -- A dancer seen from the one starting: what they dance, since when, and how far away (studs).
@@ -63,6 +68,23 @@ function EmoteSync.joinAt(now: number, id: string, nearby: { Nearby }, radius: n
 		end
 	end
 	return if best then best.at else now
+end
+
+--- The `at` a dance of `row` starting now uses: our own emotes start now, the rest may join
+--- a dancer nearby in step (joinAt).
+function EmoteSync.startAt(now: number, row: Row, nearby: { Nearby }, radius: number): number
+	if row.Scene ~= nil then
+		return now
+	end
+	return EmoteSync.joinAt(now, row.Id, nearby, radius)
+end
+
+--- How long a dance that plays once lasts (seconds, at its speed); nil for one that loops.
+function EmoteSync.endsAfter(row: Row): number?
+	if row.Once ~= true then
+		return nil
+	end
+	return row.Length / (row.Speed or 1)
 end
 
 --- One key per group of dancers moving in step (their music plays once).

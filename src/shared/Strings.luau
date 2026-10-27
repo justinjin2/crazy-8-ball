@@ -2530,6 +2530,8 @@ return {
 			Money = "Money",
 			GojoWalk = "Gojo Walk",
 			LowCortisol = "Low Cortisol",
+			Popcorn = "Popcorn", -- our own (Config.EmoteMenu.Custom)
+			Bullseye = "Bullseye",
 		},
 	},
 }
