@@ -155,7 +155,7 @@ return {
 			end
 		end
 		H.expect((E :: any).MaxSeconds == nil, "no time limit")
-		H.expect(E.WalkSpeed == 16, "Roblox's walking speed while dancing")
+		H.expect(E.WalkSpeed == 8, "half of Roblox's walking speed while dancing (designer)")
 	end,
 
 	["the menu starts with First, in order, then the rest as listed"] = function()

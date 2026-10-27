@@ -18239,9 +18239,11 @@ Config.EmoteMenu = {
 	},
 	-- A dance goes on until you jump, pick another, reset, or your turn takes the body; a
 	-- loop has no time limit (designer, 2026-10-27). Walking does not stop it: you walk at
-	-- this speed meanwhile (Roblox's default; a row's own WalkSpeed wins), and back at your
-	-- speed after. Set on your own client only, never lower than a table's hold.
-	WalkSpeed = 16,
+	-- this speed meanwhile (a row's own WalkSpeed wins: Gojo/Geto 1.72, Popcorn/Bullseye 0), and
+	-- back at your speed after. Set on your own client only, never lower than a table's hold.
+	-- Half of Roblox's 16 (designer, 2026-10-27: dancers can't run round the map; the lobby's
+	-- own walk is 20.8).
+	WalkSpeed = 8,
 	FadeSeconds = 0.2, -- a dance blends in and out
 	-- A dance whose animation has not loaded after this long is hidden from the menu (a
 	-- creator may delete or change their item).
