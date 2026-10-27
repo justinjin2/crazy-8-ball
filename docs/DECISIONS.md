@@ -4557,3 +4557,25 @@ timer of a new block stay the designer's call.
   designer chose this over practice pay). A global "fill" queue for partial groups comes
   later, after reading the new `TeamPad` and `TeamPing` custom events (no team-queue numbers
   existed before). Each part has its own Config switch.
+- 2026-10-26 (designer): **the emote menu.** An EMOTE button (their hand-drawn noob, bottom
+  right) opens a tray of 13 trending Marketplace emotes, all free to use here: each plays on
+  your own character by its animation id (players never need to own it), with the creator
+  credited and a small Avatar Shop link to get it for keeps. Picks from the mockups: the
+  pop-up tray (2A), the credit strip with a small shop link, looping black-silhouette previews,
+  favourites first in yellow (saved, `EmoteFavorites`). A dance loops until you move (2 min
+  cap), closes the menu, and players nearby doing the same dance move in step. Controller: R3.
+  Never while you shoot. Custom emotes (Popcorn, Bullseye) come in a later update.
+- 2026-10-26 (designer): **emote music is licensed or public Roblox audio only, nothing
+  uploaded by us.** The trend songs are copyrighted; an upload under the Lucky 8 group risks
+  the group that owns the game, and same-melody "parody" remakes are still covers. A dance
+  with a licensed track plays it from the dancer for players nearby (the Music group, so
+  Settings' Music switch mutes it); the rest dance silent until a licensed version is found and
+  approved by ear. At release: Rat Dance and Low Cortisol (DistrokidOfficial).
+- 2026-10-26 (designer): **the results screen loses its blur and DEFEAT** (with the emotes):
+  both players see each other dance; the loser's own card greys instead ("kids dont really
+  like to lose"). The winner's screen is unchanged. `Config.EmoteMenu.Results`.
+- 2026-10-26 (designer, after a test-place try): **the EMOTE button holds still** (it sways
+  only while hovered, no sun rays); **the tray shows three dances per row** (less wide and
+  busy) and **drops up out of the button** through a small arrow with a gap above it, growing
+  from the arrow's tip instead of slamming in (the slam flashed every row below the button for
+  a frame); **Gojo Walk's Bloxy Cola is in the left hand**, at his mouth, as in the anime.

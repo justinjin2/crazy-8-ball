@@ -64,6 +64,10 @@ local UIAnim = require(script.Parent.UIAnim)
 local UISound = require(script.Parent.UISound)
 
 local C = Config.UI.Progress.Result
+-- The emote update's changes (Config.EmoteMenu.Results, designer 2026-10-26): no blur, no DEFEAT,
+-- the losing side greyed. Off with the emote menu: the screen as before.
+local ER = Config.EmoteMenu.Results
+local EMOTES_ON = Config.EmoteMenu.Enabled
 local K = Config.UI.Kit
 local P = Strings.Progress
 local RankWords = Strings.Ranks
@@ -261,7 +265,13 @@ end
 
 -- One player's card: the headshot, the badge on the outer top corner, the name under it, a
 -- crown for a winner, LEFT for a player who left.
-local function makePlayer(parent: Instance, player: any, winner: boolean, zIndex: number): any
+local function makePlayer(
+	parent: Instance,
+	player: any,
+	winner: boolean,
+	zIndex: number,
+	grey: boolean?
+): any
 	local root = frame(parent, "Player")
 	root.ZIndex = zIndex
 	local card = HudParts.card(root, "Portrait", Config.Multiplayer.Style.PortraitCornerPx)
@@ -309,6 +319,12 @@ local function makePlayer(parent: Instance, player: any, winner: boolean, zIndex
 		local words = HudParts.text(left, "Text", K.Text.Body, P.Left)
 		words.Size = UDim2.fromScale(1, 1)
 		words.TextWrapped = false
+	end
+	if grey then
+		-- The losing side, greyed (designer, 2026-10-26: no DEFEAT, "just grey out the player").
+		image.ImageColor3 = HudParts.color(ER.GreyTint)
+		image.ImageTransparency = math.max(image.ImageTransparency, ER.GreyFade)
+		name.TextColor3 = HudParts.color(ER.GreyName)
 	end
 	local crown, sparkles = nil, {}
 	if winner then
@@ -502,7 +518,8 @@ function ResultScreen.build(self: any, view: any)
 		local players = {}
 		for _, player in list do
 			if type(player) == "table" then
-				table.insert(players, makePlayer(side, player, won, 1))
+				local grey = EMOTES_ON and ER.GreyLoser and not solo and winner ~= nil and not won
+				table.insert(players, makePlayer(side, player, won, 1, grey))
 			end
 		end
 		table.insert(view.sides, {
@@ -531,10 +548,12 @@ function ResultScreen.build(self: any, view: any)
 	view.lossTitle, view.lossReason, view.lossSide = nil, nil, nil
 	if not solo and winner ~= nil then
 		view.lossSide = if winner == mine then 2 else 1 -- your side is the left one
-		view.lossTitle = HudParts.text(face, "LossTitle", C.TitleTextPx, P.Loss, tone("Red"))
-		view.lossTitle.TextWrapped = false
-		view.lossTitle.ZIndex = 3
-		view.lossTitle.Visible = false
+		if not EMOTES_ON or ER.LoserTitle then
+			view.lossTitle = HudParts.text(face, "LossTitle", C.TitleTextPx, P.Loss, tone("Red"))
+			view.lossTitle.TextWrapped = false
+			view.lossTitle.ZIndex = 3
+			view.lossTitle.Visible = false
+		end
 		if winner ~= mine then
 			local together = type(teams[mine]) == "table" and #teams[mine] > 1
 			local reasons: { [string]: string } = (
@@ -987,6 +1006,15 @@ function ResultScreen.layout(self: any, settled: boolean?)
 			view.lossReason.Size =
 				UDim2.fromOffset(sideWidth + C.LossReasonSpillPx * 2, C.LossReasonHeightPx)
 		end
+	elseif view.lossReason then
+		-- No DEFEAT (the emote update): why it was lost sits on WINNER's line over your side.
+		local lossLeft = if view.lossSide == 1 then 0 else sideWidth + C.VsWidth
+		view.lossReason.Position = UDim2.fromOffset(
+			lossLeft - C.LossReasonSpillPx,
+			top + (C.TitleHeight - C.LossReasonHeightPx) / 2
+		)
+		view.lossReason.Size =
+			UDim2.fromOffset(sideWidth + C.LossReasonSpillPx * 2, C.LossReasonHeightPx)
 	end
 	if view.vs then
 		view.vs.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -1079,7 +1107,10 @@ function ResultScreen.open(self: any, summary: any, onDone: (() -> ())?)
 		return
 	end
 	self.root.Visible = true
-	ScreenBlur.set(self, true)
+	-- No blur with the emote update (designer, 2026-10-26): both players see each other dance.
+	if not EMOTES_ON or ER.Blur then
+		ScreenBlur.set(self, true)
+	end
 	TweenService:Create(
 		view.backdrop,
 		TweenInfo.new(K.Motion.PopSeconds, Enum.EasingStyle.Quad),

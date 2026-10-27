@@ -951,3 +951,29 @@ configured product. The existing ProcessReceipt grants one credit and records th
 in one PlayerData mutation; it acknowledges only after the existing persistence barrier.
 A current target consumes that credit; missing/finished targets retain it across reconnects.
 A skipped block carries Paid through save repair into the cue's paid-origin count.
+
+## The emote menu (2026-10-26)
+
+`Config.EmoteMenu` (switch `Enabled`) lists the dances: the Marketplace item (`Catalog`, for
+the Avatar Shop link), the animation inside it (`Animation`, played by id), the creator, the
+loop's length, an optional licensed track (`Music = {Id, Start, Loop}`) and an optional held
+`Prop`. `EmoteSync` (pure, Lune-tested) holds the maths: where a loop that started at server
+time `at` is now, the music's place, `joinAt` (the nearest same-dance dancer within
+`SyncStuds`), favourites-first order.
+
+- **Server** `EmoteService`: `EmoteRequest` (RemoteFunction, rate limited) answers Play (refused
+  for an unknown id or a body that cannot dance: none, dead, not R15, root anchored by a turn),
+  Stop, Favorite (`PlayerData.setEmoteFavorite`, the save's `EmoteFavorites` map, no version
+  bump), Open (analytics) and Who (a starting client's catch-up). Play picks `at`, welds the
+  prop to the hand and tells everyone through `EmoteState`. It builds the preview body
+  (`ReplicatedStorage.EmotePreviewRig`). Analytics: custom events `Emote` (id, device, Lobby or
+  Match) and `EmoteMenu` (device, where).
+- **Client** `EmotePlayer` plays your own dance on your Animator (it replicates by itself) at the
+  place the server clock says, stops it on walking, jumping, a turn's pose (`track.Stopped`) or
+  the cap, and plays everyone's music from the dancer: one Sound per group in step
+  (`groupKey`), in the Music SoundGroup. `EmoteHud` owns the button and its ScreenGui
+  (DisplayOrder 2, over the HUD and the results); Main calls `update(inMatch, controlled)` each
+  frame and lets a controller's selection rest in the tray (`dropStrayMatchSelection`, HubPad's
+  `freeTheStick`). `EmoteMenu` is the tray; `EmotePreview` one card's ViewportFrame silhouette.
+- **Results:** `ResultScreen` reads `Config.EmoteMenu.Results` (no blur, no DEFEAT, greyed loser)
+  only while the menu is on; off, the screen is as before.

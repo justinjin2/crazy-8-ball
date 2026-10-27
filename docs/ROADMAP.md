@@ -554,6 +554,22 @@ Plan: the designer's answers of 2026-10-26 (DECISIONS). Each step has its own Co
 - [ ] **Global fill queue.** Partial groups from any server packed into one arena match
   (`Config.GlobalQueue.Fill`): plan it after reading a few days of `TeamPad`/`TeamPing`.
 
+### The emote menu (designer, 2026-10-26)
+
+Built on branch `claude/emotes-f304f0` for the 2026-10-26 update (`Config.EmoteMenu.Enabled`).
+
+- [x] **Button and tray.** The hand-drawn EMOTE button, the pop-up tray (pick 2A) with looping
+  silhouettes, favourites first in yellow (saved), the credit strip and Avatar Shop link, R3.
+- [x] **Dancing.** 13 Marketplace emotes by animation id, loop until you move (2 min cap), in
+  step with nearby dancers of the same dance, Gojo Walk's Bloxy Cola.
+- [x] **Results screen.** No blur, no DEFEAT, the losing side greyed (`EmoteMenu.Results`).
+- [x] **Music, first two.** Rat Dance and Low Cortisol (licensed DistrokidOfficial tracks).
+- [ ] **Music for the other dances.** Licensed or public Roblox tracks only, each approved by
+  ear by the designer (Scenario has a candidate: 119090123327521).
+- [ ] **Custom emotes.** Popcorn and Bullseye: own models, animation, VFX and SFX.
+- [ ] **Read the numbers.** `Emote` and `EmoteMenu` custom events after a few days: share of
+  players who open the tray, dances per session, the favourite dances.
+
 ### About one to two weeks after release
 
 - [ ] **6.3 Pro lobby.** Separate place with a teleport door, Diamond I and above, Difficult

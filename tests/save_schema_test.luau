@@ -361,6 +361,7 @@ local FIELDS = {
 	"Social",
 	"Trades",
 	"LuckyBlocks",
+	"EmoteFavorites",
 }
 
 -- Sub-fields the fuzz breaks, by table.
@@ -1736,5 +1737,34 @@ return {
 			)
 		)
 		H.expect(bytes < 16 * 1024, ("%d bytes is over 16 KB"):format(bytes))
+	end,
+
+	["an older save without emote favourites loads clean, and bad ones are dropped"] = function()
+		local Config, SaveSchema = setup()
+		-- A save from before the emote menu (2026-10-26): no EmoteFavorites at all.
+		local old = SaveSchema.template()
+		old.EmoteFavorites = nil
+		local out, notes = SaveSchema.migrate(old)
+		H.expect(#notes == 0, "no migration needed")
+		reconcile(out, SaveSchema.template())
+		H.expect(
+			type(out.EmoteFavorites) == "table" and next(out.EmoteFavorites) == nil,
+			"added empty"
+		)
+		local _, fixes = SaveSchema.validate(out)
+		H.expect(#fixes == 0, "clean: " .. table.concat(fixes, "; "))
+		assertClean(Config, SaveSchema, out)
+		-- A favourite kept, junk values dropped.
+		local save = SaveSchema.template()
+		save.EmoteFavorites = { RatDance = true, Scuba = "yes", [5] = true }
+		local fixed, why = SaveSchema.validate(save)
+		H.expect(fixed.EmoteFavorites.RatDance == true, "kept")
+		H.expect(fixed.EmoteFavorites.Scuba == nil and fixed.EmoteFavorites[5] == nil, "dropped")
+		H.expect(#why >= 2, "reported")
+		-- Not a table at all: replaced by an empty map.
+		local broken = SaveSchema.template()
+		broken.EmoteFavorites = 7
+		local mended = SaveSchema.validate(broken)
+		H.expect(type(mended.EmoteFavorites) == "table", "mended")
 	end,
 }
