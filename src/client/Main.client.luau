@@ -1510,7 +1510,14 @@ local function renderFrame(dt: number)
 		overHotbar = (matchBar:isOpen() and not matchBar:isSpawnPill()) or opponentPrompt:isOpen(),
 		overHotbarPx = matchBar:spawnLift(),
 	})
-	EmoteHud.update(inMatch, controlled) -- the EMOTE button: never while shooting
+	-- The EMOTE button: never while you aim or stroke. Once your stroke has played the body is
+	-- yours while the balls roll (the shot camera may still follow them), so you may dance
+	-- until your next turn takes it again (designer, 2026-10-27).
+	local strokePlayed = shooter()
+		and snapshot ~= nil
+		and snapshot.phase == "Resolving"
+		and not avatar:stroking()
+	EmoteHud.update(inMatch, controlled and not strokePlayed)
 	-- The ult bar: it fades while the cue is pulled back, the bottom lines sit above it, and the
 	-- controller guide lists "Ult" while it offers its press.
 	-- A controller's power left resting is not a pull: the ability can still be pressed.

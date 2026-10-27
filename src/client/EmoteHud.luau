@@ -4,12 +4,14 @@
 -- centre and its right edge (their red circle): right of the lucky-block hotbar in the lobby,
 -- under the power bar's column in a match, left of Roblox's jump button on a phone. Its own
 -- ScreenGui just above the HUD, so it also shows over the results screen.
--- - Shown in the lobby, while waiting your turn and on the results; hidden while you shoot (and
---   your dance stops as your turn takes the body), under a full menu, the lucky block reel, a
+-- - Shown in the lobby, while waiting your turn, from the moment your stroke has played (the
+--   balls rolling) and on the results; hidden while you aim and stroke (and your dance stops as
+--   your turn takes the body), under a full menu, the lucky block reel, a
 --   popup, the Gift's cutscene, the freecam and the guided tutorial, and for an R6 body.
 -- - A press (or R3 on a controller, its glyph on the button) opens or closes the tray
 --   (EmoteMenu). It sways only while hovered (the candy's own hover), never idle.
--- Main calls update(inMatch, shooting) every frame; it only changes what changed.
+-- Main calls update(inMatch, shooting) every frame (shooting: aiming or stroking); it only
+-- changes what changed.
 local ContextActionService = game:GetService("ContextActionService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
