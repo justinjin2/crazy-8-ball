@@ -154,7 +154,12 @@ One line each; the long form is the 2026-10-12 (evening) entry at the top of
   `EmoteAlign`, `Config.EmoteMenu.Align`); the song from every dancer's body, louder together,
   up to 4 voices (`EmoteMusic`, Audio API); Popcorn and Bullseye stand still, Popcorn's lounger
   turns with shift lock; Gojo/Geto walk 1.72; in a match the EMOTE button shows once your
-  stroke has played, and Sync works there on a controller's Y (`Sync.InMatch`). Checked in
+  stroke has played, and Sync works there on a controller's Y (`Sync.InMatch`). Then: a red
+  "!" on the EMOTE button until the first press and "Jump to cancel emote at any time" until
+  the first jump (once per player); dancing walk 8; the emotes' sounds as Sound effects'
+  second switch (All / Emotes); Bullseye's puffs 70% smaller, half as many, and no emote puff
+  on your screen while you shoot. A fresh-player run in Studio (tutorial skip, daily rewards,
+  gift, invite) showed the dot and hint with nothing covered on a phone. Checked in
   Studio alone (a dance on the clock within 0.03 s, the song on the clock, Popcorn and
   Bullseye stillness, console clean); **not yet checked with two players**. A server-side
   "ContentId rbxassetid://203785492 failed: Asset type does not match" (a Roblox audio, "Pop

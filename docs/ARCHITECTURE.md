@@ -983,7 +983,9 @@ nearest same-dance dancer within `SyncStuds`), the `nearest` few, favourites-fir
   on `Animator.AnimationPlayed` and in a 0.5 s pass past 0.05 s of drift (`Align`; off: only
   yours). `EmoteMusic` plays each in-step group's song as one `AudioPlayer` wired to an
   `AudioEmitter` on each of up to `MusicVoices` nearest dancers (one playback, so never out of
-  time; Roblox's camera listener hears it; the Music group's volume mutes it).
+  time; Roblox's camera listener hears it; the EmoteMusic sound group mutes it, set by
+  Settings' `EmoteSounds`, the Sound effects row's second switch; the scenes' sounds are in
+  the EmoteSfx group, on only with both switches on).
   `EmoteSyncPrompt` puts a ProximityPrompt (this client only) on each other dancer, in the
   lobby and in a match (`Sync.InMatch`; a controller's Y there, X in the lobby; not under the
   ability pick); holding it calls `EmotePlayer.sync`. `EmoteHud` owns the button and its
@@ -1006,7 +1008,10 @@ nearest same-dance dancer within `SyncStuds`), the `nearest` few, favourites-fir
   (pure, Lune-tested) places the target (closer and smaller with no room, never over a table's
   box), rolls each handful (about half
   misses, seeded so every client throws the same) and the kernels' arcs. While you shoot,
-  `EmoteHud` hides every tall prop on your screen (`EmoteScene.setShooting`). While a scene
+  `EmoteHud` hides every tall prop on your screen and clears and holds back every puff
+  (`EmoteScene.setShooting`). `EmoteHud` also shows the "!" and the jump hint once per player
+  (Settings' seen kinds EmoteButton, EmoteJump); the hint keeps above the wins track
+  (TutorialAnchors "WinTrack"). While a scene
   plays, Bullseye's dancer's own client holds the body's facing (`Custom.Bullseye.HoldFacing`:
   AutoRotate off and an `AlignOrientation`), so shift lock and the camera can't turn it;
   Popcorn's is free and its lounger is welded to the root on every screen, so it turns with a

@@ -4647,3 +4647,15 @@ timer of a new block stay the designer's call.
   two side by side sound 1.5 times one (each 0.75), four about 2.25, counted by how loud each
   voice reaches you, so one of a group that walked apart sounds like a dancer alone
   (`MusicTwoTogether`).
+- 2026-10-27: A soft first-time emote tutorial, once per player (designer): a red "!" on the
+  EMOTE button until the first press (the left column's badge), and "Jump to cancel emote at
+  any time" while dancing until the first jump ends a dance (Settings' seen kinds EmoteButton,
+  EmoteJump; no save shape change). Over a new player's open wins track the line goes above
+  the track. Dancing walk is half as fast (16 to 8).
+- 2026-10-27: The emotes' sounds are a second switch on the Sound effects row, "All" and
+  "Emotes" (designer: a row of their own made Settings too crowded on a phone). Emotes mutes the
+  dance songs and Popcorn's and Bullseye's sounds; All mutes every sound effect, emote ones
+  included, but not the songs (`EmoteSounds`, event `EmoteSoundsSwitched`).
+- 2026-10-27: Bullseye's puffs are 70% smaller and half as many, and no emote puff or smoke
+  shows on your screen while you shoot (designer: a friend hid the table from the shooter with
+  the target's puff; `Custom.Bullseye.PuffSizeShare`, `PuffCountShare`).
