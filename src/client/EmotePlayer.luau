@@ -35,6 +35,9 @@ local EmotePlayer = {}
 local changed = Instance.new("BindableEvent")
 --- Fires when the favourites change, or your own dance starts or stops.
 EmotePlayer.Changed = changed.Event
+local jumped = Instance.new("BindableEvent")
+--- Fires when a jump ends your dance (EmoteHud's first-time hint).
+EmotePlayer.Jumped = jumped.Event
 
 local started = false
 local favorites: { [string]: boolean } = {}
@@ -310,6 +313,9 @@ local function begin(row: EmoteSync.Row, at: number, partner: number?): (Mine?, 
 		humanoid.StateChanged:Connect(function(_, new)
 			if new == Enum.HumanoidStateType.Jumping or new == Enum.HumanoidStateType.Dead then
 				EmotePlayer.stop("Move")
+				if new == Enum.HumanoidStateType.Jumping then
+					jumped:Fire()
+				end
 			end
 		end)
 	)

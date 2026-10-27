@@ -337,6 +337,21 @@ return {
 		H.expect(S.curveAt({}, 5) == 0, "no curve")
 	end,
 
+	["the first-time nudges are saved seen kinds, worded"] = function()
+		local _, Config = load()
+		local Strings = H.require("Strings")
+		local kinds = Config.Settings.SeenKinds
+		H.expect(table.find(kinds, "EmoteButton") ~= nil, "the button's dot, once")
+		H.expect(table.find(kinds, "EmoteJump") ~= nil, "the jump line, once")
+		H.expect(
+			Strings.Emotes.JumpHint == "Jump to cancel emote at any time",
+			"the designer's words"
+		)
+		local B = Config.EmoteMenu.Button
+		H.expect(B.HintMinLeftShare > 0.5 and B.HintMinLeftShare < 0.8, "clear of the middle")
+		H.expect(B.PhoneBottomPx >= 20, "a phone's button clear of the edge")
+	end,
+
 	["an asset id's number"] = function()
 		local S = load()
 		H.expect(S.assetNumber("rbxassetid://123") == "123", "the number")

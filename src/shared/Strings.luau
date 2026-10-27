@@ -2517,6 +2517,8 @@ return {
 		Shop = "Avatar Shop", -- the credit strip's link: the dance's page to get it for keeps
 		-- Each dance's short name on its card (Config.EmoteMenu.List's Id).
 		Sync = "Sync", -- the prompt on a dancer near you: dance with them, in step
+		-- A player's first dances, until their first jump ends one (once ever).
+		JumpHint = "Jump to cancel emote at any time",
 		Names = {
 			RatDance = "Rat Dance",
 			Passinho = "Passinho",

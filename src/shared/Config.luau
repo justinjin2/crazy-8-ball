@@ -18269,6 +18269,17 @@ Config.EmoteMenu = {
 		PhoneDotPx = 20,
 		DotTextPx = 14,
 		DotAt = { 0.92, 0.06 },
+		-- "Jump to cancel emote at any time" over the button while a player's dance plays, until
+		-- their first jump ends one, once ever (designer, 2026-10-27; seen "EmoteJump"): white
+		-- with the ink outline, its bottom HintGapPx over the noob's head, kept HintEdgePx in
+		-- from the screen's sides (the bottom middle is the hotbar's and Play Global's).
+		HintPx = 20,
+		PhoneHintPx = 15,
+		HintGapPx = 8,
+		HintEdgePx = 10,
+		-- Its left end never left of this share of the screen, so a phone's line keeps clear of
+		-- Play Global and the hotbar in the middle (it slides right, still inside HintEdgePx).
+		HintMinLeftShare = 0.62,
 	},
 	-- The tray (designer's pick 2A, 2026-10-26): three across (was four: less wide and busy,
 	-- designer, the same night), two rows and a peek, the credit strip at the bottom, and a

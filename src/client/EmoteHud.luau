@@ -12,10 +12,13 @@
 --   (EmoteMenu). It sways only while hovered (the candy's own hover), never idle.
 -- - A red "!" dot (the left column's click-once badge) sits on it until a player's first press,
 --   once ever (Settings' seen "EmoteButton"; shown only once the saved state is in).
+-- - While your dance plays, "Jump to cancel emote at any time" over the button, until your first
+--   jump ends one, once ever (seen "EmoteJump"); any other stop only hides it till the next.
 -- Main calls update(inMatch, shooting) every frame (shooting: aiming or stroking); it only
 -- changes what changed.
 local ContextActionService = game:GetService("ContextActionService")
 local Players = game:GetService("Players")
+local TextService = game:GetService("TextService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
@@ -51,6 +54,8 @@ local screen: ScreenGui
 local button: TextButton
 local dot: Frame
 local dotShown = false
+local hint: TextLabel
+local hintShown = false
 local menu: any
 local shown = false
 local bound = false
@@ -108,6 +113,22 @@ local function layout()
 	button.Size = UDim2.fromOffset(px, px)
 	local dotPx = if phone then B.PhoneDotPx else B.DotPx
 	dot.Size = UDim2.fromOffset(dotPx, dotPx)
+	-- The jump hint over the noob's head, inside the screen's sides.
+	local hintPx = if phone then B.PhoneHintPx else B.HintPx
+	HudParts.setTextSize(hint, hintPx)
+	local words = TextService:GetTextSize(
+		hint.Text,
+		hintPx,
+		HudParts.measureFont(hint),
+		Vector2.new(10000, 1000)
+	)
+	local hintW, hintH = math.ceil(words.X) + 8, math.ceil(words.Y) + 4
+	local headY = size.Y - bottom - px - px * math.max(0, B.ArtScale / 2 - B.ArtY)
+	local lowest = math.max(hintW / 2 + B.HintEdgePx, size.X * B.HintMinLeftShare + hintW / 2)
+	local highest = size.X - hintW / 2 - B.HintEdgePx
+	local centreX = math.min(math.max(size.X * share, lowest), highest)
+	hint.Size = UDim2.fromOffset(hintW, hintH)
+	hint.Position = UDim2.fromOffset(math.floor(centreX), math.floor(headY - B.HintGapPx))
 	local word = button:FindFirstChild("Word", true)
 	if word and word:IsA("TextLabel") then
 		HudParts.setTextSize(word, if phone then B.PhoneWordPx else B.WordPx)
@@ -153,6 +174,19 @@ function EmoteHud.update(inMatch: boolean, shooting: boolean, picking: boolean)
 			UIAnim.popIn(dot)
 		else
 			dot.Visible = false
+		end
+	end
+	-- The jump hint: while your dance plays, until your first jump ends one.
+	local wantHint = visible
+		and EmotePlayer.current() ~= nil
+		and SettingsState.loaded()
+		and not Seen.get("EmoteJump")
+	if wantHint ~= hintShown then
+		hintShown = wantHint
+		if wantHint then
+			UIAnim.popIn(hint)
+		else
+			hint.Visible = false
 		end
 	end
 	if visible == shown then
@@ -215,8 +249,18 @@ function EmoteHud.start(playerGui: PlayerGui)
 	mark.TextWrapped = false
 	mark.Size = UDim2.fromScale(1, 1)
 	mark.ZIndex = 7
+	hint = HudParts.text(screen, "JumpHint", B.HintPx, Strings.Emotes.JumpHint)
+	hint.TextWrapped = false
+	hint.AnchorPoint = Vector2.new(0.5, 1)
+	hint.ZIndex = 5
+	hint.Visible = false
 	menu = EmoteMenu.new(screen, B.Icon)
 	EmotePlayer.start()
+	EmotePlayer.Jumped:Connect(function()
+		if not Seen.get("EmoteJump") then
+			Seen.mark("EmoteJump") -- the hint goes for good
+		end
+	end)
 	screen:GetPropertyChangedSignal("AbsoluteSize"):Connect(layout)
 	layout()
 end
