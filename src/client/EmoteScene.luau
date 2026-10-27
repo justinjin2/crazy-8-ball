@@ -6,15 +6,14 @@
 -- SceneStuds of the camera. The beats come from the dancer's own animation as this client sees
 -- it (its markers: Toss and Crunch; Release, Blow and Poof), so the popcorn and the arrow leave
 -- the hand when the hand lets go.
--- - Popcorn: a striped lounger under the dancer and a beach umbrella (none where its canopy
---   would reach over a table) pop in with a puff. Each Toss throws a handful at the mouth:
---   about half of it bounces off the face onto the floor, where a few pile up (PileCap). Crunch
---   munches; each loop's start rustles the bucket.
+-- - Popcorn: a striped lounger under the dancer pops in with a puff (no umbrella: designer,
+--   2026-10-27). Each Toss throws a handful at the mouth: about half of it bounces off the face
+--   onto the floor, where a few pile up (PileCap). Crunch munches, its only sound.
 -- - Bullseye: a target pops up straight ahead (closer and smaller with no room, never over a
 --   table). The bow's string follows the drawing hand with the arrow on it; at Release the
 --   arrow flies into the gold: a flash, a shock ring, a gold burst, splinters, twinkles and a
 --   wobble. Blow puffs smoke off the bow; Poof takes the bow, the arrow and the target away.
--- - While you shoot, the tall props (umbrella, target, arrow) are hidden on your screen, so none
+-- - While you shoot, the tall props (target, arrow) are hidden on your screen, so none
 --   ever covers the balls (HideWhileShooting).
 -- Lower effects: fewer kernels and sparks. The only per-frame work is the arrow riding a string
 -- and popcorn in the air, and the frame step disconnects when there is none.
@@ -453,17 +452,6 @@ local function buildPopcorn(scene: Scene, set: Instance, character: Model, anima
 		fadeIn(lounger)
 		scene.lounger = lounger
 	end
-	local canopy = floor * Vector3.new(P.Canopy[1] * s, 0, P.Canopy[2] * s)
-	if
-		EmoteSceneMath.clearOf(tableBoxes(), canopy.X, canopy.Z, P.CanopyRadius * s, P.TableMargin)
-	then
-		local umbrella = propFrom(set, "Umbrella", s, scene.model)
-		if umbrella then
-			umbrella.CFrame = floor * CFrame.new(vec(P.Umbrella, s))
-			fadeIn(umbrella)
-			addTall(scene, umbrella)
-		end
-	end
 	for _, name in { "KernelA", "KernelB" } do
 		local kernel = propFrom(set, name, s, scene.model)
 		if kernel then
@@ -474,8 +462,6 @@ local function buildPopcorn(scene: Scene, set: Instance, character: Model, anima
 	end
 	local at = if lounger then lounger.Position else floor.Position
 	puff(scene, at, if Quality.isLow() then 6 else 12)
-	play(scene, "Puff", scene.puffAt)
-	play(scene, "Creak", scene.puffAt)
 	scene.spritesAt = spot(scene, at)
 	scene.sprites = emitter(scene.spritesAt :: Attachment, {
 		Texture = C.Sprites.Popcorn,
@@ -509,12 +495,6 @@ local function buildPopcorn(scene: Scene, set: Instance, character: Model, anima
 		scene.links,
 		loop:GetMarkerReachedSignal("Crunch"):Connect(function()
 			play(scene, "Munch", character:FindFirstChild("Head"))
-		end)
-	)
-	table.insert(
-		scene.links,
-		loop.DidLoop:Connect(function()
-			play(scene, "Rustle", character:FindFirstChild("EmoteProp"))
 		end)
 	)
 end
@@ -960,7 +940,6 @@ function EmoteScene.stop(userId: number)
 		local lounger = scene.lounger
 		if lounger then
 			puff(scene, lounger.Position, if Quality.isLow() then 6 else 12)
-			play(scene, "Puff", scene.puffAt)
 		end
 		for _, part in scene.model:GetChildren() do
 			if part:IsA("BasePart") then

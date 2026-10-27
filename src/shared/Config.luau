@@ -17953,7 +17953,7 @@ Config.EmoteMenu = {
 			Turn = { -106.5, 32.6, -30.8 },
 		},
 	},
-	-- Our own emotes (designer, 2026-10-26): Popcorn (lounging under a beach umbrella, throwing
+	-- Our own emotes (designer, 2026-10-26): Popcorn (lounging on a beach lounger, throwing
 	-- popcorn at your mouth, half of it bouncing off your face) and Bullseye (a bow and a
 	-- target pop up, one shot dead centre, a blow on the bow like a smoking gun). Made by Lucky
 	-- 8 (group 675425213): animations, models and sprite uploaded there. Their props, effects
@@ -17996,7 +17996,7 @@ Config.EmoteMenu = {
 				Prop: string?,
 			}
 		},
-		-- The props' models (Lounger, Umbrella, Bucket, KernelA, KernelB; Target, Bow, Arrow),
+		-- The props' models (Lounger, Bucket, KernelA, KernelB; Target, Bow, Arrow),
 		-- loaded once per server into this ReplicatedStorage folder (EmoteService) for the
 		-- clients to clone, retried LoadRetries times LoadRetrySeconds apart. Without them a
 		-- dance plays with its hand prop only.
@@ -18021,16 +18021,11 @@ Config.EmoteMenu = {
 		-- when the dance ends (walking ends it).
 		HoldFacing = true,
 		Popcorn = {
-			-- Where the lounger and umbrella stand from the floor under the dancer's root,
-			-- turned as the dancer faces (the model's own layout; studs at scale 1).
+			-- Where the lounger stands from the floor under the dancer's root, turned as the
+			-- dancer faces (the model's own layout; studs at scale 1). It is lower than the
+			-- cloth, so it never covers the balls. No umbrella (designer, 2026-10-27); the
+			-- model still has one.
 			Lounger = { 0, 1.234, -0.175 },
-			Umbrella = { -1.025, 3.317, 0.614 },
-			-- The umbrella's canopy (its centre's X and Z from the floor point, and its radius)
-			-- keeps TableMargin off every table, else there is no umbrella (a lounger is lower
-			-- than the cloth: it never covers the balls).
-			Canopy = { -0.85, 0.55 },
-			CanopyRadius = 3.1,
-			TableMargin = 0.5,
 			-- Each "Toss" (the loop's marker): Count kernels (LowCount with Lower effects) leave
 			-- the right hand over SpreadSeconds and reach the face in FlightSeconds; MissShare of
 			-- them hit somewhere on the face (up to FaceAcross across, FaceUp up) and bounce off
@@ -18053,9 +18048,6 @@ Config.EmoteMenu = {
 			SpriteBurst = 5, -- flat popcorn pieces scattered from the hand each toss
 			Mouth = { 0, -0.22, -0.58 }, -- the mouth from the Head's centre (tools/emotes/rig.luau)
 			Hand = { 0, -0.2, -0.1 }, -- the popcorn leaves the right hand here
-			-- Its card in the tray: the camera this far out and at this height (studs), so the
-			-- whole umbrella shows (Tray.PreviewDistance and PreviewLookY otherwise).
-			Preview = { Distance = 11, LookY = 0.1 },
 		},
 		Bullseye = {
 			-- The target stands straight ahead with its face Near to Far studs out, or shrunk
@@ -18121,9 +18113,8 @@ Config.EmoteMenu = {
 		HearStuds = 10,
 		MaxStuds = 60,
 		Sounds = {
-			Puff = { Id = "rbxassetid://9116406899", Volume = 0.5 }, -- props pop in and out
-			Creak = { Id = "rbxassetid://9114494161", Volume = 0.4 }, -- leaning back
-			Rustle = { Id = "rbxassetid://9117845608", Volume = 0.3 }, -- a hand in the bucket
+			-- Popcorn makes only the munch (designer, 2026-10-27: the rest was annoying).
+			Puff = { Id = "rbxassetid://9116406899", Volume = 0.5 }, -- Bullseye's props pop in and out
 			Munch = { Id = "rbxassetid://9113138343", Volume = 0.6 }, -- "Crunch"
 			Draw = { Id = "rbxassetid://9125405388", Volume = 0.5 }, -- the string pulled
 			Release = { Id = "rbxassetid://9113166206", Volume = 0.6 }, -- the arrow looses

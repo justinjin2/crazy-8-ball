@@ -5,7 +5,7 @@
 -- animation, lit by nothing so it reads as a dark silhouette. Only the cards on screen move
 -- (setActive); with Lower effects or Reduce Motion each holds one pose. A dance whose
 -- animation never loads reports it (onFailed) so the menu can hide that card. A dance's hand
--- prop is in the silhouette too, and our own emotes' set: Popcorn's lounger and umbrella.
+-- prop is in the silhouette too, and Popcorn's lounger.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
@@ -39,7 +39,7 @@ local function color(values: { number }): Color3
 	return Color3.fromRGB(values[1], values[2], values[3])
 end
 
--- Popcorn's lounger and umbrella under the preview's body (its root at `root`), once the
+-- Popcorn's lounger under the preview's body (its root at `root`), once the
 -- server has loaded their model (EmoteService).
 local function dressPopcorn(world: WorldModel, root: CFrame)
 	local assets = ReplicatedStorage:WaitForChild(C.FolderName, 30)
@@ -48,7 +48,7 @@ local function dressPopcorn(world: WorldModel, root: CFrame)
 		return
 	end
 	local floor = root * CFrame.new(0, -C.RestRootStuds, 0)
-	for _, name in { "Lounger", "Umbrella" } do
+	for _, name in { "Lounger" } do
 		local source = set:FindFirstChild(name, true)
 		local at = (C.Popcorn :: any)[name]
 		if source and source:IsA("BasePart") and at then

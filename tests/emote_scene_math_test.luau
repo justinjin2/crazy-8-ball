@@ -1,7 +1,7 @@
 --!strict
 -- EmoteSceneMath: our own emotes' scene maths (designer, 2026-10-26): Bullseye's target comes
--- closer or smaller when there is no room and never stands over a table, Popcorn's umbrella
--- stays off the tables, about half of each handful misses, and a thrown kernel lands where
+-- closer or smaller when there is no room and never stands over a table, about half of each
+-- handful misses, and a thrown kernel lands where
 -- it was aimed.
 
 local H = require("./harness")
@@ -52,9 +52,6 @@ return {
 		-- A box turned a quarter: its length now runs along world Z.
 		local turned = { x = 0, z = -10, cos = 0, sin = 1, hx = 3, hz = 2 }
 		H.expect(near(M.boxEnter(0, 0, 0, -1, turned, 0), 7), "turned box")
-		H.expect(near(M.boxDistance(0, 0, box), 7), "distance to its near side")
-		H.expect(M.boxDistance(1, -10, box) == 0, "inside is 0")
-		H.expect(near(M.boxDistance(5, -17, box), 5), "a corner: 3-4-5")
 	end,
 
 	["Bullseye's target stands at full size up to Far away in the open"] = function()
@@ -96,14 +93,6 @@ return {
 		local d3, s3 = M.targetSpot(spec(Config, math.huge, { beside }))
 		H.expect(d3 ~= nil and s3 < 1, "shrunk to fit beside it")
 		H.expect(d3 ~= nil and B.Half * s3 + B.TableMargin <= 1.4 + 1e-9, "clear of its side")
-	end,
-
-	["the umbrella stays off the tables"] = function()
-		local M = load()
-		local boxes = { table_(0, 0) }
-		H.expect(M.clearOf(boxes, 0, 20, 3.1, 0.5), "far from it")
-		H.expect(not M.clearOf(boxes, 0, 7, 3.1, 0.5), "over its side")
-		H.expect(M.clearOf({}, 0, 0, 3.1, 0.5), "no tables")
 	end,
 
 	["about half of each handful misses, the same on every client"] = function()

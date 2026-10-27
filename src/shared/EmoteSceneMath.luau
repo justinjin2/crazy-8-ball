@@ -1,7 +1,7 @@
 --!strict
 -- EmoteSceneMath: the plain arithmetic behind our own emotes' scenes (src/client/EmoteScene.luau,
--- Config.EmoteMenu.Custom): where Bullseye's target stands (never over a table), whether
--- Popcorn's umbrella fits, the handful of popcorn Popcorn throws (about half of it misses), and
+-- Config.EmoteMenu.Custom): where Bullseye's target stands (never over a table), the handful
+-- of popcorn Popcorn throws (about half of it misses), and
 -- a thrown kernel's arc. Pure: no Instances and no Roblox types, so
 -- tests/emote_scene_math_test.luau runs it in Lune. Visual only, so trig is fine here.
 
@@ -95,30 +95,6 @@ function EmoteSceneMath.boxEnter(
 		end
 	end
 	return enter
-end
-
---- How far the point (x, z) is from `box` (0 inside or on it).
-function EmoteSceneMath.boxDistance(x: number, z: number, box: Box): number
-	local lx, lz = toBox(box, x - box.x, z - box.z)
-	local ox = math.max(math.abs(lx) - box.hx, 0)
-	local oz = math.max(math.abs(lz) - box.hz, 0)
-	return math.sqrt(ox * ox + oz * oz)
-end
-
---- Whether a circle at (x, z) of `radius` keeps `margin` off every box (Popcorn's umbrella).
-function EmoteSceneMath.clearOf(
-	boxes: { Box },
-	x: number,
-	z: number,
-	radius: number,
-	margin: number
-): boolean
-	for _, box in boxes do
-		if EmoteSceneMath.boxDistance(x, z, box) < radius + margin then
-			return false
-		end
-	end
-	return true
 end
 
 --- Where Bullseye's target stands: (distance of its face straight ahead, scale), or nil when
