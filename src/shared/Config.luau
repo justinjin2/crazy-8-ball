@@ -7980,6 +7980,11 @@ Config.Multiplayer = {
 	-- within this long and the same players play again, the other team breaking, and the
 	-- series score goes on; otherwise the table frees. Long enough to read the result screen. (tune)
 	RematchSeconds = 20,
+	-- The result screen's custom analytics event (designer, 2026-10-27: measure the 1v1 result
+	-- cutscene's removal, Cutscenes.Result). One per real player's answer after a two-sided
+	-- game: value the seconds since the result, fields the mode ("1v1"), the answer (Rematch,
+	-- Decline, WalkedOff, Lobby or Another) and the device. Nobody answering logs nothing.
+	ResultAnalytics = { Event = "ResultChoice" },
 	PocketSettleSeconds = 0.6, -- extra settling after a pocket (designer, 2026-10-04: was 1)
 	VoteSeconds = 10, -- unanimous surrender window
 	VoteCooldownSeconds = 30, -- prevent surrender prompt spam

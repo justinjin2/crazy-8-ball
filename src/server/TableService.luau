@@ -395,6 +395,23 @@ local function setText(object: TextLabel, text: string)
 	end
 end
 
+-- A player's answer on a finished game's result screen goes to the ResultChoice event
+-- (Config.Multiplayer.ResultAnalytics). Called once the engine took the answer (the table
+-- stays in its Result phase until the next advance).
+local function logResultChoice(e: any, p: Player, choice: string)
+	if e.phase ~= "Result" or not e.phaseStartedAt then
+		return
+	end
+	Funnel.event(
+		p,
+		M.ResultAnalytics.Event,
+		math.round((now() - e.phaseStartedAt) * 10) / 10,
+		Strings.Match.Mode:format(e.teamSize, e.teamSize),
+		choice,
+		Funnel.device(p)
+	)
+end
+
 -- A 2v2 or 3v3 pad's waits that ended since the last refresh go to the TeamPad event
 -- (PadExits; Config.Multiplayer.Queue.Analytics).
 local function logPadExits(t: any)
@@ -1016,12 +1033,16 @@ local function poll(t: any, time: number)
 					and root
 					and outsideArea(t, root, M.Fence.EscapeStuds)
 				then
-					Engine.action(
-						e,
-						p.UserId,
-						{ kind = "Decline", epoch = e.epoch, turnId = e.turnId },
-						time
-					)
+					if
+						Engine.action(
+							e,
+							p.UserId,
+							{ kind = "Decline", epoch = e.epoch, turnId = e.turnId },
+							time
+						)
+					then
+						logResultChoice(e, p, "WalkedOff")
+					end
 				end
 			end
 		elseif
@@ -1545,8 +1566,8 @@ function Service.startArenaSolo(p: Player): boolean
 end
 
 --- A player's table vote from the arena's own row (Play another and Lobby also say no to
---- the rematch). True when the engine took it.
-function Service.arenaDecline(p: Player): boolean
+--- the rematch; `choice` names which for the ResultChoice event). True when the engine took it.
+function Service.arenaDecline(p: Player, choice: string): boolean
 	local t = tables[1]
 	if not arena or not t then
 		return false
@@ -1556,6 +1577,7 @@ function Service.arenaDecline(p: Player): boolean
 	if
 		Engine.action(e, p.UserId, { kind = "Decline", epoch = e.epoch, turnId = e.turnId }, now())
 	then
+		logResultChoice(e, p, choice)
 		Service.broadcast(t)
 		return true
 	end
@@ -2018,6 +2040,9 @@ function Service.start(parent: Instance, mode: string?)
 		local accepted = Engine.action(t.engine, p.UserId, payload, now(), rng:NextInteger(1, 2))
 		if accepted and payload.kind == "LeaveQueue" then
 			t.left[p.UserId] = true
+		end
+		if accepted and (payload.kind == "Rematch" or payload.kind == "Decline") then
+			logResultChoice(t.engine, p, payload.kind)
 		end
 		releaseMissing(t)
 		if accepted or t.engine.revision ~= t.sentRevision then

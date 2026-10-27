@@ -630,7 +630,7 @@ local function onAction(p: Player, kind: string)
 		if search and GlobalQueue.cancel(search) == "matched" then
 			return -- the new match stands: its teleport is on its way
 		end
-		TableService.arenaDecline(p)
+		TableService.arenaDecline(p, "Lobby")
 		-- A team goes back together: teammates waiting on the team (or on its search) go too.
 		local going = { p }
 		if record.mode > 1 then
@@ -653,7 +653,7 @@ local function onAction(p: Player, kind: string)
 		end
 		choice[p.UserId] = "Another"
 		decideBy[p.UserId] = nil
-		TableService.arenaDecline(p)
+		TableService.arenaDecline(p, "Another")
 		local side = teammates(team)
 		local ready = #side == record.mode
 		for _, mate in side do
