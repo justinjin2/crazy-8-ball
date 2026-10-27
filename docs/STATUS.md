@@ -142,11 +142,17 @@ One line each; the long form is the 2026-10-12 (evening) entry at the top of
   waiting for a free lobby, the 1v1 result cutscene, cue outlines and the "pop" aura, new cue
   card pictures, ball callouts, no fat-fingered shots (`Config.Input.TouchPull`), the player
   list size, the matchmaking bar and spawn pill (parked), lighting day 10 min / sunset 5.
-- **Our own emotes, Popcorn and Bullseye** (`Config.EmoteMenu.Custom`, branch
-  `claude/nervous-brattain-cea4ae`, on top of the emote menu branch; not in `gui-v4` yet):
-  built and checked in Studio, first-look changes in (no umbrella, munch only, target further,
-  facing held); waiting for the seven sounds by ear and a second player seeing them live. The
-  same branch gives six dances a fan clip of their original song, to approve by ear.
+- **The emote system, merged into `gui-v4` 2026-10-27 (`36cdb4c6`), not pushed, not published**
+  (switch `Config.EmoteMenu.Enabled`; Sync alone `Config.EmoteMenu.Sync.Enabled`): the EMOTE
+  button (bottom right, R3) and tray of 13 dances (Popcorn, Rat Dance, Low Cortisol, Sega Walk,
+  Bullseye, Gojo Walk, Geto Walk, Passinho, Scenario, Scuba, Rakai, Jackpot, Money) with the
+  designer's own song uploads; dances go on while walking (at 16; Gojo/Geto 1.6) until a jump,
+  another pick or a reset; Sync prompts on dancers in the lobby (Gojo/Geto pair one to one);
+  the results screen without blur or DEFEAT, the losing side greyed. Last checked on the Crazy
+  8 Test Place (version 23). **Still to do before publishing:** Sync with two real accounts;
+  a phone and a controller; the fan clip on Sega Walk and the uploaded songs are the
+  designer's risk (they can be taken down: the dance then goes silent). The designer goes on
+  editing it from `~/Desktop/8ball` in a new conversation.
 - **The abilities:** the one-by-one review goes on (unreviewed ones are provisional); phone,
   controller, sounds by ear, the sneak with two players, the designer's voice lines.
 - **Tutorial v2 leftovers** (`docs/prompts/TUTORIAL_V2_REPORT.md`, last section): the first
