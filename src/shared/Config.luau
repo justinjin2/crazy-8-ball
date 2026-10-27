@@ -17809,9 +17809,12 @@ Config.EmoteMenu = {
 	-- PlaybackSpeed, pitch and tempo together; 1 when nil); nil = silent. Licensed where Roblox has the song, else a
 	-- public fan clip of the original (designer, 2026-10-27): unlicensed, so it can vanish, and
 	-- then the dance just goes silent. Volume evens each clip out with Rat Dance (measured in
-	-- Studio, 2026-10-27). Prop (optional): a key of Props,
-	-- held while it plays. Speed (optional): the dance's playback speed (1). Walk (optional):
-	-- walking does not stop it, only a jump (and the other stops) does.
+	-- Studio, 2026-10-27). The designer's own uploads (Lucky 8, 2026-10-27) are the clips cut
+	-- in step for each dance (tools: emote-music-upload), from 0, normalised; Volume evens them
+	-- out with Rat Dance at MusicVolume. Prop (optional): a key of Props, held while it plays.
+	-- Speed (optional): the dance's playback speed (1). WalkSpeed (optional): your walking
+	-- speed while you dance it (else WalkSpeed below). Duo (optional): the dance's partner: a
+	-- player who syncs with it dances the Duo instead, and only one may (Gojo and Geto).
 	List = {
 		{
 			Id = "RatDance",
@@ -17829,6 +17832,8 @@ Config.EmoteMenu = {
 			Animation = 83796130837213,
 			Creator = "Setalcix Emote Creations",
 			Length = 5.35,
+			-- The designer's upload: 8 bars from the drop (11.49 s in the song), 170 BPM.
+			Music = { Id = "rbxassetid://140070002304389", Start = 0, Loop = 11.288, Volume = 0.77 },
 		},
 		{
 			Id = "SegaWalk",
@@ -17840,35 +17845,13 @@ Config.EmoteMenu = {
 			Music = { Id = "rbxassetid://8003103632", Start = 0, Loop = 2.947 },
 		},
 		{
-			Id = "Gangnam",
-			Catalog = 104142334418357,
-			Animation = 129764254213842,
-			Creator = "Our new group!",
-			Length = 9.983,
-			-- "Gangnam style" (fan clip): the 1:08 drop, matched against the designer's file;
-			-- 3 beats at 132 BPM from the drop.
-			Music = {
-				Id = "rbxassetid://108709108822851",
-				Start = 0.86,
-				Loop = 1.364,
-				Volume = 0.95,
-			},
-		},
-		{
-			Id = "ComeBack",
-			Catalog = 113273786867095,
-			Animation = 79280618149696,
-			Creator = "tireds",
-			Length = 8.035,
-		},
-		{
 			Id = "Scenario",
 			Catalog = 128771561752851,
 			Animation = 81747251604858,
 			Creator = "vkioxd",
 			Length = 8.133,
-			-- "scenario" (fan clip, 9.5 s, by name only: not matched to the designer's file).
-			Music = { Id = "rbxassetid://84578156777313", Start = 0, Loop = 9.45, Volume = 1.15 },
+			-- The designer's upload: the beat's first 8 bars, 118 BPM.
+			Music = { Id = "rbxassetid://83447678488509", Start = 0, Loop = 16.282, Volume = 0.64 },
 		},
 		{
 			Id = "Scuba",
@@ -17876,8 +17859,8 @@ Config.EmoteMenu = {
 			Animation = 123761889433592,
 			Creator = "hexa's archives",
 			Length = 1.333,
-			-- "Scuba" (fan clip, by name only; a quiet upload, hence the volume).
-			Music = { Id = "rbxassetid://133678222550740", Start = 0.05, Loop = 5.2, Volume = 4.4 },
+			-- The designer's upload: one 16-beat cycle of the meme clip.
+			Music = { Id = "rbxassetid://111124889471217", Start = 0, Loop = 5.949, Volume = 0.97 },
 		},
 		{
 			Id = "Rakai",
@@ -17885,8 +17868,8 @@ Config.EmoteMenu = {
 			Animation = 115858722399476,
 			Creator = "MocapAnimations",
 			Length = 5.167,
-			-- "RAKAI" (fan clip, by name only), its sound part (silent after 3.25 s).
-			Music = { Id = "rbxassetid://72224724697479", Start = 0.02, Loop = 3.23, Volume = 1.05 },
+			-- The designer's upload: 8 bars from the drop (13.77 s in the instrumental), 140 BPM.
+			Music = { Id = "rbxassetid://106492816333402", Start = 0, Loop = 13.711, Volume = 0.5 },
 		},
 		{
 			Id = "Jackpot",
@@ -17894,23 +17877,8 @@ Config.EmoteMenu = {
 			Animation = 104762425338768,
 			Creator = "RobroAnimations UGC",
 			Length = 7.562,
-			-- "hakari dance" (fan clip by HideK2ng, the designer's pick, 2026-10-27): uploaded sped
-			-- up, so it plays at 0.17 (the designer's pitch); the whole 2.954 s clip, 17.4 s a loop.
-			-- Was "HOL UP, WAIT! I JUST HIT THE JACKPOT!!!" (125879594748603).
-			Music = {
-				Id = "rbxassetid://118968956615621",
-				Start = 0,
-				Loop = 2.954,
-				Speed = 0.17,
-				Volume = 0.26, -- twice Rat Dance's loudness at 0.5 (measured in Studio)
-			},
-		},
-		{
-			Id = "WantYouBack",
-			Catalog = 88086466491938,
-			Animation = 82218443616796,
-			Creator = "Lost n' Found",
-			Length = 10.0,
+			-- The designer's upload: 4 bars from "wait hold up" (22.25 s in the song), 130 BPM.
+			Music = { Id = "rbxassetid://92809468889605", Start = 0, Loop = 7.384, Volume = 0.75 },
 		},
 		{
 			Id = "Money",
@@ -17918,7 +17886,9 @@ Config.EmoteMenu = {
 			Animation = 104248876465825,
 			Creator = "Animations World",
 			Length = 9.967,
-			Once = true, -- designer, 2026-10-27: it does not loop; its music (when it has one) ends too
+			Once = true, -- designer, 2026-10-27: it does not loop, nor its music
+			-- The designer's upload: the whole short, from its first beat.
+			Music = { Id = "rbxassetid://84435393748508", Start = 0, Loop = 16.326, Volume = 0.6 },
 		},
 		{
 			Id = "GojoWalk",
@@ -17927,7 +17897,19 @@ Config.EmoteMenu = {
 			Creator = "Emote Plaza",
 			Length = 2.0,
 			Prop = "BloxyCola", -- designer: Gojo holds a Bloxy Cola
-			Walk = true, -- designer, 2026-10-27: it keeps going while you walk; a jump stops it
+			-- The animation's own walk (its planted foot moves 1.7 studs a second, Geto's 1.4),
+			-- one speed for both so a duo walks side by side (designer, 2026-10-27).
+			WalkSpeed = 1.6,
+			Duo = "GetoWalk",
+		},
+		{
+			Id = "GetoWalk",
+			Catalog = 102352130626103,
+			Animation = 107663187613247,
+			Creator = "Emote Plaza",
+			Length = 2.0,
+			WalkSpeed = 1.6,
+			Duo = "GojoWalk", -- designer, 2026-10-27: pairs with Gojo Walk
 		},
 		{
 			Id = "LowCortisol",
@@ -17951,6 +17933,8 @@ Config.EmoteMenu = {
 			Intro: number?,
 			Once: boolean?,
 			Scene: string?,
+			WalkSpeed: number?,
+			Duo: string?,
 		}
 	},
 	-- Things a dance holds, made by the server on the hand and gone when it stops (seen by
@@ -17989,7 +17973,7 @@ Config.EmoteMenu = {
 	},
 	-- The menu starts with these, in this order (designer, 2026-10-27: the ones with music
 	-- first); every other dance follows in List's order. An id not in the menu is skipped.
-	First = { "Popcorn", "RatDance", "LowCortisol", "SegaWalk", "Bullseye", "GojoWalk" },
+	First = { "Popcorn", "RatDance", "LowCortisol", "SegaWalk", "Bullseye", "GojoWalk", "GetoWalk" },
 	-- Our own emotes (designer, 2026-10-26): Popcorn (lounging on a beach lounger, throwing
 	-- popcorn at your mouth, half of it bouncing off your face) and Bullseye (a bow and a
 	-- target pop up, one shot dead centre, a blow on the bow like a smoking gun). Made by Lucky
@@ -18177,11 +18161,23 @@ Config.EmoteMenu = {
 	-- Dancing together (designer: auto-sync): a player who starts a dance that someone within
 	-- this many studs is already doing joins it in step, and their music plays once.
 	SyncStuds = 24,
-	-- A dance stops by itself after this long (designer: loops until you move, capped so an
-	-- AFK player does not loop music all session).
-	MaxSeconds = 120,
+	-- Sync (designer, 2026-10-27): a "Sync" prompt on every other dancer near you (Roblox's
+	-- own prompt: E, the controller's X, a tap on a phone, held briefly); it starts their
+	-- dance on you in step with them, music and all. Any number may sync to a dance, except a
+	-- Duo: Gojo and Geto, one partner each. The server checks the distance with some slack (a
+	-- walking dancer moves on while the request travels).
+	Sync = {
+		Enabled = true, -- off: no prompts, and the server refuses a sync
+		Studs = 10, -- the prompt shows within this many studs of the dancer
+		HoldSeconds = 0.3, -- held this long (designer: a short hold, never by accident)
+		SlackStuds = 8, -- the server allows this much further
+	},
+	-- A dance goes on until you jump, pick another, reset, or your turn takes the body; a
+	-- loop has no time limit (designer, 2026-10-27). Walking does not stop it: you walk at
+	-- this speed meanwhile (Roblox's default; a row's own WalkSpeed wins), and back at your
+	-- speed after. Set on your own client only, never lower than a table's hold.
+	WalkSpeed = 16,
 	FadeSeconds = 0.2, -- a dance blends in and out
-	MoveStopSpeed = 0.1, -- walking input above this stops a dance (Humanoid.MoveDirection)
 	-- A dance whose animation has not loaded after this long is hidden from the menu (a
 	-- creator may delete or change their item).
 	LoadSeconds = 3,

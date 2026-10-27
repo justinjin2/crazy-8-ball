@@ -132,6 +132,7 @@ function EmoteHud.update(inMatch: boolean, shooting: boolean)
 		return
 	end
 	shown = visible
+	EmotePlayer.allowSync(visible)
 	bind(visible)
 	if visible then
 		UIAnim.popIn(button)

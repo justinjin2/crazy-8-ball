@@ -122,6 +122,44 @@ return {
 		H.expect(S.endsAfter(money :: any) == nil, "a loop never ends by itself")
 	end,
 
+	["syncing gives their dance, or its duo partner while the duo is free"] = function()
+		local S, Config = load()
+		local list = Config.EmoteMenu.List
+		local rat = S.syncRow(list, "RatDance", false)
+		H.expect(rat ~= nil and rat.Id == "RatDance", "the same dance")
+		local many = S.syncRow(list, "RatDance", true)
+		H.expect(many ~= nil and many.Id == "RatDance", "no limit outside a duo")
+		local geto = S.syncRow(list, "GojoWalk", false)
+		H.expect(geto ~= nil and geto.Id == "GetoWalk", "Gojo gives Geto")
+		local gojo = S.syncRow(list, "GetoWalk", false)
+		H.expect(gojo ~= nil and gojo.Id == "GojoWalk", "Geto gives Gojo")
+		local taken, why = S.syncRow(list, "GojoWalk", true)
+		H.expect(taken == nil and why == "Taken", "a duo is two")
+		local gone, why2 = S.syncRow(list, "Nope", false)
+		H.expect(gone == nil and why2 == "Gone", "an unknown dance")
+	end,
+
+	["the menu has the designer's 13 dances, each named, with no time limit"] = function()
+		local _, Config = load()
+		local E = Config.EmoteMenu
+		local Strings = H.require("Strings")
+		H.expect(#E.List == 13, "13 dances, got " .. #E.List)
+		for _, row in E.List do
+			H.expect(type(Strings.Emotes.Names[row.Id]) == "string", "a name: " .. row.Id)
+			if row.Duo then
+				local pair = nil
+				for _, other in E.List do
+					if other.Id == row.Duo then
+						pair = other
+					end
+				end
+				H.expect(pair ~= nil and pair.Duo == row.Id, "duo both ways: " .. row.Id)
+			end
+		end
+		H.expect((E :: any).MaxSeconds == nil, "no time limit")
+		H.expect(E.WalkSpeed == 16, "Roblox's walking speed while dancing")
+	end,
+
 	["the menu starts with First, in order, then the rest as listed"] = function()
 		local _, Config = load()
 		local E = Config.EmoteMenu
@@ -139,8 +177,8 @@ return {
 		end
 		H.expect(n >= 4, "the first ones are in the menu")
 		H.expect(ids[1] == "Popcorn" and ids[2] == "RatDance", "Popcorn, then Rat Dance")
-		local passinho, gangnam = table.find(ids, "Passinho"), table.find(ids, "Gangnam")
-		H.expect(passinho == n + 1 and gangnam == n + 2, "the rest keep their order")
+		local passinho, scenario = table.find(ids, "Passinho"), table.find(ids, "Scenario")
+		H.expect(passinho == n + 1 and scenario == n + 2, "the rest keep their order")
 	end,
 
 	["our own emotes are in the menu while their switch is on"] = function()

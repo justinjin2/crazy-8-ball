@@ -2516,19 +2516,18 @@ return {
 		By = "by %s", -- the credit strip: the dance's maker (a name, never translated)
 		Shop = "Avatar Shop", -- the credit strip's link: the dance's page to get it for keeps
 		-- Each dance's short name on its card (Config.EmoteMenu.List's Id).
+		Sync = "Sync", -- the prompt on a dancer near you: dance with them, in step
 		Names = {
 			RatDance = "Rat Dance",
 			Passinho = "Passinho",
 			SegaWalk = "Sega Walk",
-			Gangnam = "Gangnam",
-			ComeBack = "Come Back",
 			Scenario = "Scenario",
 			Scuba = "Scuba",
 			Rakai = "Rakai",
 			Jackpot = "Jackpot",
-			WantYouBack = "Want You Back",
 			Money = "Money",
 			GojoWalk = "Gojo Walk",
+			GetoWalk = "Geto Walk",
 			LowCortisol = "Low Cortisol",
 			Popcorn = "Popcorn", -- our own (Config.EmoteMenu.Custom)
 			Bullseye = "Bullseye",

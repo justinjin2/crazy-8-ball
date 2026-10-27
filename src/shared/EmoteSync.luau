@@ -20,7 +20,8 @@ export type Row = {
 	Intro: number?, -- an animation played once before the loop
 	Once: boolean?, -- plays one time, then the dance ends
 	Scene: string?, -- our own emote's props and effects (EmoteScene)
-	Walk: boolean?, -- walking does not stop it, only a jump does
+	WalkSpeed: number?, -- your walking speed while you dance it
+	Duo: string?, -- the partner dance one player who syncs with it dances instead
 }
 
 -- A dancer seen from the one starting: what they dance, since when, and how far away (studs).
@@ -78,6 +79,26 @@ function EmoteSync.musicOncePosition(
 		return nil
 	end
 	return start + played
+end
+
+--- What syncing with a dancer of `theirs` gives you: their row, or its Duo partner's while
+--- the duo is free (`partnered`: they have a partner who is not you). Nil and why otherwise.
+function EmoteSync.syncRow(list: { any }, theirs: any, partnered: boolean): (Row?, string?)
+	local row = EmoteSync.find(list, theirs)
+	if row == nil then
+		return nil, "Gone"
+	end
+	if row.Duo == nil then
+		return row, nil
+	end
+	if partnered then
+		return nil, "Taken" -- a duo is two
+	end
+	local pair = EmoteSync.find(list, row.Duo)
+	if pair == nil then
+		return nil, "Gone"
+	end
+	return pair, nil
 end
 
 --- Whether a dance whose loop started at `at` is still new enough at `now` (less than `within`

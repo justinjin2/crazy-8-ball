@@ -7,12 +7,17 @@
 --   for an unknown id, or while the character cannot dance (none, dead, not R15, or held by a
 --   turn: its root anchored). `at` is the server time the loop started: that of the nearest
 --   player within SyncStuds already doing the same dance, else now (EmoteSync.joinAt).
+--   ("Sync", userId) -> { ok, id, at }: you dance what that player dances, in step with them
+--   (their `at`); they must be dancing within Sync.Studs (plus SlackStuds). A Duo dance (Gojo
+--   and Geto) gives you its partner dance, and only while they have no partner yet.
 --   ("Stop", how), ("Favorite", id, on) (the save's EmoteFavorites) and ("Open") (analytics).
--- - EmoteState to everyone: { userId, id, at } when a dance starts, { userId, stop = true } when
---   it ends; one player gets { favorites } on load and after each change. ("Who") answers a
---   starting client with { dancers, favorites }.
--- - A dance ends on Stop, after MaxSeconds, or when its character goes; a dance with a Prop
---   (Gojo's Bloxy Cola) holds it on the hand until then.
+-- - EmoteState to everyone: { userId, id, at, partner? } when a dance starts (partner: the
+--   duo dancer synced with), { userId, stop = true } when it ends; one player gets
+--   { favorites } on load and after each change. ("Who") answers a starting client with
+--   { dancers, favorites }.
+-- - A dance ends on Stop, when it plays once and is done, or when its character goes (no time
+--   limit: designer, 2026-10-27); a dance with a Prop (Gojo's Bloxy Cola) holds it on the hand
+--   until then.
 -- - Our own emotes (Config.EmoteMenu.Custom: Popcorn, Bullseye) always start on their own
 --   (never in step), a one-shot ends after its length, and their props' models are loaded
 --   once into ReplicatedStorage for the clients' scenes (EmoteScene).
@@ -41,7 +46,7 @@ local STOPS = { Move = true, Turn = true, Menu = true, Other = true }
 
 local EmoteService = {}
 
-type Dance = { id: string, at: number, since: number, prop: Instance? }
+type Dance = { id: string, at: number, since: number, prop: Instance?, partner: Player? }
 
 local started = false
 local dancing: { [Player]: Dance } = {}
@@ -109,9 +114,48 @@ local function stop(player: Player, tell: boolean)
 	if dance.prop then
 		dance.prop:Destroy()
 	end
+	local partner = dance.partner
+	local theirs = partner and dancing[partner]
+	if theirs and theirs.partner == player then
+		theirs.partner = nil -- their duo is free for someone else
+	end
 	if tell then
 		state():FireAllClients({ userId = player.UserId, stop = true })
 	end
+end
+
+-- Start `row` on `player` with its loop from `at` (in step with `partner` for a duo).
+local function begin(player: Player, row: EmoteSync.Row, at: number, partner: Player?): any
+	stop(player, false)
+	local dance: Dance = {
+		id = row.Id,
+		at = at,
+		since = os.clock(),
+		prop = makeProp(player, row.Prop),
+		partner = partner,
+	}
+	dancing[player] = dance
+	local theirs = partner and dancing[partner]
+	if theirs then
+		theirs.partner = player
+	end
+	state():FireAllClients({
+		userId = player.UserId,
+		id = row.Id,
+		at = at,
+		partner = if partner then partner.UserId else nil,
+	})
+	Funnel.event(player, "Emote", 1, row.Id, Funnel.device(player), where(player))
+	-- A one-shot ends when it is done (its client stops it too; the later is a no-op).
+	local ends = EmoteSync.endsAfter(row)
+	if ends then
+		task.delay(ends, function()
+			if dancing[player] == dance then
+				stop(player, true)
+			end
+		end)
+	end
+	return { ok = true, id = row.Id, at = at }
 end
 
 local function play(player: Player, id: any): any
@@ -123,13 +167,12 @@ local function play(player: Player, id: any): any
 	if why then
 		return { ok = false, reason = why }
 	end
-	stop(player, false)
 	local now = workspace:GetServerTimeNow()
 	local here = root(player) :: BasePart
 	local nearby: { EmoteSync.Nearby } = {}
 	for other, dance in dancing do
 		local there = root(other)
-		if there then
+		if there and other ~= player then
 			table.insert(nearby, {
 				id = dance.id,
 				at = dance.at,
@@ -137,20 +180,35 @@ local function play(player: Player, id: any): any
 			})
 		end
 	end
-	local at = EmoteSync.startAt(now, row, nearby, E.SyncStuds)
-	local dance: Dance =
-		{ id = row.Id, at = at, since = os.clock(), prop = makeProp(player, row.Prop) }
-	dancing[player] = dance
-	state():FireAllClients({ userId = player.UserId, id = row.Id, at = at })
-	Funnel.event(player, "Emote", 1, row.Id, Funnel.device(player), where(player))
-	-- The cap: an AFK dancer stops after MaxSeconds (the client stops itself then too); a
-	-- one-shot when it is done (its client stops it too; the later of the two is a no-op).
-	task.delay(EmoteSync.endsAfter(row) or E.MaxSeconds, function()
-		if dancing[player] == dance then
-			stop(player, true)
-		end
-	end)
-	return { ok = true, at = at }
+	return begin(player, row, EmoteSync.startAt(now, row, nearby, E.SyncStuds), nil)
+end
+
+-- Sync with `userId`'s dance: theirs (or its duo partner), in step with them.
+local function sync(player: Player, userId: any): any
+	if not E.Sync.Enabled then
+		return { ok = false, reason = "Off" }
+	end
+	local target = if type(userId) == "number" then Players:GetPlayerByUserId(userId) else nil
+	local theirs = target and dancing[target]
+	if target == nil or target == player or theirs == nil then
+		return { ok = false, reason = "Gone" }
+	end
+	local why = busy(player)
+	if why then
+		return { ok = false, reason = why }
+	end
+	local here, there = root(player), root(target)
+	local reach = E.Sync.Studs + E.Sync.SlackStuds
+	if here == nil or there == nil or (there.Position - here.Position).Magnitude > reach then
+		return { ok = false, reason = "TooFar" }
+	end
+	local partnered = theirs.partner ~= nil and theirs.partner ~= player
+	local row, reason = EmoteSync.syncRow(E.List, theirs.id, partnered)
+	if row == nil then
+		return { ok = false, reason = reason }
+	end
+	Funnel.event(player, "EmoteSync", 1, theirs.id, Funnel.device(player), where(player))
+	return begin(player, row, theirs.at, if row.Id ~= theirs.id then target else nil)
 end
 
 local function sendFavorites(player: Player)
@@ -173,6 +231,8 @@ local function answer(player: Player, kind: any, a: any, b: any): any
 	end
 	if kind == "Play" then
 		return play(player, a)
+	elseif kind == "Sync" then
+		return sync(player, a)
 	elseif kind == "Stop" then
 		stop(player, true)
 		return { ok = true, how = if STOPS[a] then a else "Other" }
@@ -193,7 +253,12 @@ local function answer(player: Player, kind: any, a: any, b: any): any
 		-- A client starting up: who is dancing now, and its favourites.
 		local list = {}
 		for other, dance in dancing do
-			table.insert(list, { userId = other.UserId, id = dance.id, at = dance.at })
+			table.insert(list, {
+				userId = other.UserId,
+				id = dance.id,
+				at = dance.at,
+				partner = if dance.partner then dance.partner.UserId else nil,
+			})
 		end
 		local data = PlayerData.read(player)
 		local favorites = EmoteSync.cleanFavorites(E.List, data and data.EmoteFavorites)
