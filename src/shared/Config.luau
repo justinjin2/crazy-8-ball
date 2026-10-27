@@ -17923,11 +17923,12 @@ Config.EmoteMenu = {
 			MeshId = "rbxassetid://10470609",
 			TextureId = "rbxassetid://10470600",
 			Size = { 0.58, 1.03, 0.58 }, -- studs: the mesh's own size
-			Hand = "RightHand",
-			-- Where it sits from the hand's centre, studs and degrees: upright, gripped near
-			-- its top (checked in Studio, 2026-10-26).
-			Offset = { 0, -0.3, 0 },
-			Turn = { 0, 0, 0 },
+			Hand = "LeftHand", -- the hand Gojo drinks with (designer, 2026-10-26)
+			-- Where it sits from the hand's centre, studs and degrees (CFrame.Angles): its top at
+			-- the mouth, tipped up for a drink, through the whole loop (checked in Studio,
+			-- 2026-10-26).
+			Offset = { -0.12, -0.26, -0.19 },
+			Turn = { -64, 74, 2 },
 		},
 	},
 	-- The music from a dancer: heard by players nearby, fading to nothing (designer: "players
