@@ -4,7 +4,7 @@ Current state only, rewritten in place. Keep it to about two screens (under 100 
 step is finished and verified, move its dated entry to the top of
 `docs/archive/STATUS_HISTORY.md` and keep only what is still true or still open here.
 
-Updated 2026-10-27 (emote fixes pushed, on the test place, not published). **The game is live** (officially released 2026-10-10). Work goes on
+Updated 2026-10-27 (emote fixes pushed, on the test place, not published; the 1v1 result cutscene off, pushed). **The game is live** (officially released 2026-10-10). Work goes on
 in `~/Desktop/8ball`, branch `gui-v4`. The STATUS from just before launch, in full, is the top
 entry of `docs/archive/STATUS_HISTORY.md`.
 
@@ -177,6 +177,14 @@ One line each; the long form is the 2026-10-12 (evening) entry at the top of
   CODE "2KLIKES" FOR 15 FREE ABILITY SPINS + $20K CASH! / NEXT CODE AT 5000 LIKES! / Still
   working codes: 1KLIKES, 250LIKES). Check live: redeem 2KLIKES once, then again for "already
   used"; watch `CodeRedeemed` (field 2KLIKES). At 2,791 likes and ~900 a day on 2026-10-27.
+- **No result cutscene after a 1v1, pushed 2026-10-27 (`7ad43dad`), not published:** a 1v1's
+  result screen opens at once like a 2v2's (no fade to black, no camera tilt from the sky;
+  `Config.Cutscenes.Result.Enabled` false, true brings it back). New custom event
+  `ResultChoice` (`16310059`): value the seconds from the result to the answer, fields the mode,
+  the answer (Rematch, Decline, WalkedOff, Lobby, Another) and the device; nothing measured
+  this before, so 2v2 (never had the cutscene) is the comparison. Checked in Studio: a 1v1
+  surrender and the tutorial's first match (fresh player) open the result at once, Rematch and
+  Leave log the event, console clean. Check live: finish a 1v1 on a phone, a PC and a pad.
 - **The abilities:** the one-by-one review goes on (unreviewed ones are provisional); phone,
   controller, sounds by ear, the sneak with two players, the designer's voice lines.
 - **Tutorial v2 leftovers** (`docs/prompts/TUTORIAL_V2_REPORT.md`, last section): the first
