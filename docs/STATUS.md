@@ -4,7 +4,7 @@ Current state only, rewritten in place. Keep it to about two screens (under 100 
 step is finished and verified, move its dated entry to the top of
 `docs/archive/STATUS_HISTORY.md` and keep only what is still true or still open here.
 
-Updated 2026-10-27 (emote fixes pushed, on the test place, not published; the 1v1 result cutscene off, pushed). **The game is live** (officially released 2026-10-10). Work goes on
+Updated 2026-10-27 (**published by the designer 2026-10-27: everything up to `7c4d85aa`**: the emote system, 2KLIKES, the 1v1 result cutscene off). **The game is live** (officially released 2026-10-10). Work goes on
 in `~/Desktop/8ball`, branch `gui-v4`. The STATUS from just before launch, in full, is the top
 entry of `docs/archive/STATUS_HISTORY.md`.
 
@@ -142,14 +142,14 @@ One line each; the long form is the 2026-10-12 (evening) entry at the top of
   waiting for a free lobby, the 1v1 result cutscene, cue outlines and the "pop" aura, new cue
   card pictures, ball callouts, no fat-fingered shots (`Config.Input.TouchPull`), the player
   list size, the matchmaking bar and spawn pill (parked), lighting day 10 min / sunset 5.
-- **The emote system, merged into `gui-v4` 2026-10-27 (`36cdb4c6`), not pushed, not published**
+- **The emote system, merged into `gui-v4` 2026-10-27 (`36cdb4c6`), published 2026-10-27**
   (switch `Config.EmoteMenu.Enabled`; Sync alone `Config.EmoteMenu.Sync.Enabled`): the EMOTE
   button (bottom right, R3) and tray of 13 dances (Popcorn, Rat Dance, Low Cortisol, Sega Walk,
   Bullseye, Gojo Walk, Geto Walk, Passinho, Scenario, Scuba, Rakai, Jackpot, Money) with the
   designer's own song uploads; dances go on while walking (at 16; Gojo/Geto 1.6) until a jump,
   another pick or a reset; Sync prompts on dancers in the lobby (Gojo/Geto pair one to one);
   the results screen without blur or DEFEAT, the losing side greyed. Last checked on the Crazy
-  8 Test Place (version 23). **Fixed 2026-10-27, pushed on `gui-v4`, not published; on the Crazy 8 Test Place as version 27**; two together 1.5x, not double (`MusicTwoTogether`)
+  8 Test Place (version 23). **Fixed 2026-10-27, published 2026-10-27 (also on the Crazy 8 Test Place as version 27)**; two together 1.5x, not double (`MusicTwoTogether`)
   (`03896675`..`3bd0aa42`, DECISIONS): Sync in step on every screen (one server clock,
   `EmoteAlign`, `Config.EmoteMenu.Align`); the song from every dancer's body, louder together,
   up to 4 voices (`EmoteMusic`, Audio API); Popcorn and Bullseye stand still, Popcorn's lounger
@@ -165,19 +165,19 @@ One line each; the long form is the 2026-10-12 (evening) entry at the top of
   "ContentId rbxassetid://203785492 failed: Asset type does not match" (a Roblox audio, "Pop
   Close Sound") shows once per Studio session about 0.5 s after the save loads: not in our
   code, the place, the emote or ability models, or the designer's avatar items; it was there
-  before the emote fixes. Still open. **Still to do
-  before publishing:** a 2-player test (Studio Test > Clients and Servers, or two accounts on
+  before the emote fixes. Still open. **Live without
+  its 2-player test, still to do on the live game:** a 2-player test (Studio Test > Clients and Servers, or two accounts on
   the test place): Sync, both screens in step, the song from both bodies; a match: the button
   after your stroke; a phone and a controller (Y in a match); the fan clip on Sega Walk and the
   uploaded songs are the designer's risk (they can be taken down: the dance then goes silent).
-- **The 2KLIKES code, pushed 2026-10-27 (`d9c6175e`), not published:** 15 spins + $20,000, the
+- **The 2KLIKES code, published 2026-10-27 (`d9c6175e`):** 15 spins + $20,000, the
   Abilities code box and the tutorial name it (USE CODE 2KLIKES / NEXT CODE AT 5,000 LIKES);
   1KLIKES works until 2026-11-01 00:00 UTC, 250LIKES until 2026-10-31 00:00 UTC. **The game
   description changes only once this is live** (top lines: THANK YOU FOR 2000 LIKES! / USE
   CODE "2KLIKES" FOR 15 FREE ABILITY SPINS + $20K CASH! / NEXT CODE AT 5000 LIKES! / Still
   working codes: 1KLIKES, 250LIKES). Check live: redeem 2KLIKES once, then again for "already
   used"; watch `CodeRedeemed` (field 2KLIKES). At 2,791 likes and ~900 a day on 2026-10-27.
-- **No result cutscene after a 1v1, pushed 2026-10-27 (`7ad43dad`), not published:** a 1v1's
+- **No result cutscene after a 1v1, published 2026-10-27 (`7ad43dad`):** a 1v1's
   result screen opens at once like a 2v2's (no fade to black, no camera tilt from the sky;
   `Config.Cutscenes.Result.Enabled` false, true brings it back). New custom event
   `ResultChoice` (`16310059`): value the seconds from the result to the answer, fields the mode,
