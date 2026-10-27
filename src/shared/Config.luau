@@ -18155,6 +18155,14 @@ Config.EmoteMenu = {
 	MusicHearStuds = 12, -- full volume up to here
 	MusicMaxStuds = 70, -- silent from here
 	MusicLoadSeconds = 5, -- a track not loaded by then is skipped (the dance goes on silent)
+	-- Every dancer of a song plays it from their own body (designer, 2026-10-27): one playback
+	-- per group in step, heard from up to MusicVoices of its dancers nearest your camera
+	-- (designer: 4; a bigger circle gets no louder; 1 is one voice per group, as before),
+	-- picked again every MusicVoiceSeconds; a song more than MusicToleranceSeconds off its
+	-- dance's clock is put back (a seek is heard, so this is looser than the dance's).
+	MusicVoices = 4,
+	MusicVoiceSeconds = 1,
+	MusicToleranceSeconds = 0.1,
 	-- Every screen shows every dancer where the server clock says (2026-10-27: Sync was out
 	-- of step). A dance is a loop started at a server time; your client picks that time as you
 	-- press (so it starts at once, from its first frame, music too) and the server takes it if

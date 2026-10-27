@@ -10,10 +10,8 @@
 --   from their `at` (a Duo: Gojo gets you Geto, and the other way round), and asks the server.
 -- - Every dancer's track, yours included, is kept on the server clock on this screen
 --   (EmoteAlign), so dancers in step look in step whatever their pings.
--- - Everyone's music: each dance with a licensed track plays it from the dancer's body for
---   players nearby (MusicHearStuds to MusicMaxStuds), in the Music group (Settings' Music
---   switch mutes it), at the place the server clock says. Dancers moving in step share one
---   copy (EmoteSync.groupKey), so a group's song never doubles.
+-- - Everyone's music: each dance's song is heard from every one of its dancers, in time
+--   (EmoteMusic).
 -- - The favourites: the server's list, for the menu (Changed fires when it changes).
 -- - Our own emotes (Config.EmoteMenu.Custom): Popcorn plays its intro once, then its loop;
 --   Bullseye plays once and ends. Their props and effects round every dancer: EmoteScene.
@@ -26,9 +24,9 @@ local Config = require(Shared:WaitForChild("Config"))
 local EmoteSync = require(Shared:WaitForChild("EmoteSync"))
 local Net = require(Shared:WaitForChild("Net"))
 local EmoteAlign = require(script.Parent.EmoteAlign)
+local EmoteMusic = require(script.Parent.EmoteMusic)
 local EmoteScene = require(script.Parent.EmoteScene)
 local EmoteSyncPrompt = require(script.Parent.EmoteSyncPrompt)
-local SoundGroups = require(script.Parent.SoundGroups)
 
 local E = Config.EmoteMenu
 
@@ -56,9 +54,8 @@ local mine: Mine? = nil
 local busy = false -- a Play request is out
 local tracks: { [string]: AnimationTrack } = {} -- your character's loaded dances, by id
 local tracksOf: Animator? = nil
--- Everyone's dances (the server's word) and the music groups playing.
+-- Everyone's dances (the server's word).
 local dances: { [number]: EmoteSyncPrompt.Dancer } = {}
-local groups: { [string]: { sound: Sound, members: { [number]: boolean } } } = {}
 
 local function request(...: any): any
 	local ok, result = pcall(function(...)
@@ -108,101 +105,6 @@ local function trackFor(row: EmoteSync.Row, intro: boolean?): AnimationTrack?
 	return track
 end
 
-local function rootOf(userId: number): BasePart?
-	local player = Players:GetPlayerByUserId(userId)
-	local character = player and player.Character
-	local part = character and character:FindFirstChild("HumanoidRootPart")
-	return if part and part:IsA("BasePart") then part else nil
-end
-
-------------------------------------------------------------------------------------------------
--- The music
-------------------------------------------------------------------------------------------------
-
-local function musicOf(id: string): any
-	local row = EmoteSync.find(E.List, id)
-	return row and row.Music
-end
-
-local function placeSound(group: any)
-	for userId in group.members do
-		local part = rootOf(userId)
-		if part then
-			group.sound.Parent = part
-			return
-		end
-	end
-	group.sound.Parent = nil
-end
-
-local function joinMusic(userId: number, id: string, at: number)
-	local music = musicOf(id)
-	if music == nil then
-		return
-	end
-	local key = EmoteSync.groupKey(id, at)
-	local group = groups[key]
-	if group then
-		group.members[userId] = true
-		if group.sound.Parent == nil then
-			placeSound(group)
-		end
-		return
-	end
-	local sound = Instance.new("Sound")
-	sound.Name = "EmoteMusic"
-	sound.SoundId = music.Id
-	sound.Volume = music.Volume or E.MusicVolume
-	sound.PlaybackSpeed = music.Speed or 1
-	-- A dance that plays once (Money) plays its music once too: it never loops.
-	local row = EmoteSync.find(E.List, id)
-	local once = row ~= nil and row.Once == true
-	sound.Looped = not once
-	sound.PlaybackRegionsEnabled = true
-	sound.PlaybackRegion = NumberRange.new(music.Start, music.Start + music.Loop)
-	sound.LoopRegion = NumberRange.new(music.Start, music.Start + music.Loop)
-	sound.RollOffMode = Enum.RollOffMode.InverseTapered
-	sound.RollOffMinDistance = E.MusicHearStuds
-	sound.RollOffMaxDistance = E.MusicMaxStuds
-	sound.SoundGroup = SoundGroups.get("Music") -- before parenting: never adopted into Sfx
-	group = { sound = sound, members = { [userId] = true } }
-	groups[key] = group
-	placeSound(group)
-	task.spawn(function()
-		local deadline = os.clock() + E.MusicLoadSeconds
-		while not sound.IsLoaded and os.clock() < deadline and groups[key] == group do
-			task.wait(0.1)
-		end
-		if groups[key] ~= group or not sound.IsLoaded then
-			return -- stopped meanwhile, or the track is gone: the dance goes on silent
-		end
-		local now = workspace:GetServerTimeNow()
-		local position: number? = if once
-			then EmoteSync.musicOncePosition(now, at, music.Start, music.Loop, music.Speed)
-			else EmoteSync.musicPosition(now, at, music.Start, music.Loop, music.Speed)
-		if position == nil then
-			return -- a play-once dance's music is over: not again
-		end
-		sound.TimePosition = position
-		sound:Play()
-	end)
-end
-
-local function leaveMusic(userId: number, id: string, at: number)
-	local key = EmoteSync.groupKey(id, at)
-	local group = groups[key]
-	if group == nil then
-		return
-	end
-	group.members[userId] = nil
-	if next(group.members) == nil then
-		groups[key] = nil
-		group.sound:Destroy()
-	elseif group.sound.Parent == nil or group.sound.Parent == rootOf(userId) then
-		placeSound(group) -- the one it played from stopped: it moves to another of the group
-	end
-end
-
 local function onDance(userId: number, id: string?, at: number?, partner: number?)
 	local old = dances[userId]
 	if old and id == old.id and at == old.at then
@@ -220,7 +122,7 @@ local function onDance(userId: number, id: string?, at: number?, partner: number
 	EmoteAlign.set(userId, id, at)
 	if old then
 		dances[userId] = nil
-		leaveMusic(userId, old.id, old.at)
+		EmoteMusic.leave(userId, old.id, old.at)
 		EmoteScene.stop(userId)
 		-- Their duo partner is free again.
 		for other, dance in dances do
@@ -233,7 +135,7 @@ local function onDance(userId: number, id: string?, at: number?, partner: number
 	if id and at then
 		local dance: EmoteSyncPrompt.Dancer = { id = id, at = at, partner = partner }
 		dances[userId] = dance
-		joinMusic(userId, id, at)
+		EmoteMusic.join(userId, id, at)
 		local row = EmoteSync.find(E.List, id)
 		if row and row.Scene then
 			EmoteScene.start(userId, row)
@@ -496,7 +398,7 @@ local function preload(class: string, property: string, ids: { string })
 	task.spawn(function()
 		local items = {}
 		for _, id in ids do
-			local item = Instance.new(class :: any)
+			local item: any = Instance.new(class :: any)
 			item[property] = id
 			table.insert(items, item)
 		end
@@ -566,6 +468,7 @@ function EmotePlayer.start()
 		return
 	end
 	started = true
+	EmoteMusic.start()
 	-- The dances' animations (small) a little after joining, so everyone's dance shows at once.
 	task.delay(E.Align.PreloadSeconds, function()
 		local ids = {}

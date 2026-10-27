@@ -178,6 +178,21 @@ function EmoteSync.nearest(
 	return out
 end
 
+--- A song's loudness by distance from a dancer (studs to 0..1, for AudioEmitter's
+--- SetDistanceAttenuation): full to `hear`, then falling as hear/distance, tapered to silence
+--- at `max` (like a Sound's InverseTapered roll-off).
+function EmoteSync.musicCurve(hear: number, max: number): { [number]: number }
+	local curve: { [number]: number } = { [0] = 1, [hear] = 1 }
+	for _, k in { 1.5, 2, 3, 4, 5 } do
+		local d = hear * k
+		if d < max then
+			curve[d] = math.min(hear / d, (max - d) / (max - hear))
+		end
+	end
+	curve[max] = 0
+	return curve
+end
+
 --- The number in an asset id ("rbxassetid://123" gives "123"), or nil.
 function EmoteSync.assetNumber(id: string?): string?
 	return if id then string.match(id, "%d+") else nil

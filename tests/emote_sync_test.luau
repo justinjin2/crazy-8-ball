@@ -263,6 +263,23 @@ return {
 		H.expect(list[1].key == 1, "the list is untouched")
 	end,
 
+	["a song is full near a dancer and silent from its far end"] = function()
+		local S, Config = load()
+		local E = Config.EmoteMenu
+		local curve = S.musicCurve(12, 70)
+		H.expect(curve[0] == 1 and curve[12] == 1, "full to 12")
+		H.expect(near(curve[24], 0.5) and near(curve[36], 1 / 3), "then hear/distance")
+		H.expect(curve[70] == 0, "silent at 70")
+		H.expect(curve[60] ~= nil and curve[60] < 0.2, "tapered near the end")
+		local last = 1
+		for _, d in { 0, 12, 18, 24, 36, 48, 60, 70 } do
+			H.expect(curve[d] ~= nil and curve[d] <= last, "falls: " .. d)
+			last = curve[d]
+		end
+		H.expect(E.MusicVoices == 4, "4 voices (designer)")
+		H.expect(E.MusicToleranceSeconds >= E.Align.ToleranceSeconds, "a song's seek is rarer")
+	end,
+
 	["an asset id's number"] = function()
 		local S = load()
 		H.expect(S.assetNumber("rbxassetid://123") == "123", "the number")
