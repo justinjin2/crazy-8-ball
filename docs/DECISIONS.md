@@ -4613,3 +4613,8 @@ timer of a new block stay the designer's call.
   (`Config.EmoteMenu.First`), the rest as listed. **Gojo Walk keeps going while you walk**
   (`Walk = true` on its row) until you jump. Rat Dance's music starts at the song's first beat
   (was 2.7 s in), and Popcorn's munch is much quieter (0.6 to 0.2).
+- 2026-10-27 (designer): **Jackpot plays the "hakari dance" fan clip** (118968956615621, an
+  upload sped up about 6x) at the designer's pitch, 0.17 (music rows take a `Speed`); his
+  call, after being told it is the real song disguised to pass Roblox's check. **A dance just
+  started begins from the beginning** (`FreshSeconds`): its music from Start and its animation
+  from the first frame, instead of skipping the load time to stay on the server's clock.
