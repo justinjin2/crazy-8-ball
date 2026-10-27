@@ -556,20 +556,22 @@ Plan: the designer's answers of 2026-10-26 (DECISIONS). Each step has its own Co
 
 ### The emote menu (designer, 2026-10-26)
 
-Built on branch `claude/emotes-f304f0` for the 2026-10-26 update (`Config.EmoteMenu.Enabled`).
+Built on two lane branches and merged into `gui-v4` 2026-10-27 (`36cdb4c6`); the lanes are
+closed and all emote work is in `~/Desktop/8ball` (`Config.EmoteMenu.Enabled`).
 
 - [x] **Button and tray.** The hand-drawn EMOTE button, the pop-up tray (pick 2A) with looping
   silhouettes, favourites first in yellow (saved), the credit strip and Avatar Shop link, R3.
-- [x] **Dancing.** 13 Marketplace emotes by animation id, loop until you move (2 min cap), in
+- [x] **Dancing.** 13 dances, going on while walking until a jump, another pick or a reset, in
   step with nearby dancers of the same dance, Gojo Walk's Bloxy Cola.
 - [x] **Results screen.** No blur, no DEFEAT, the losing side greyed (`EmoteMenu.Results`).
-- [x] **Music, first two.** Rat Dance and Low Cortisol (licensed DistrokidOfficial tracks).
-- [ ] **Music for the other dances.** Public fan clips of the originals are in for Sega Walk,
-  Gangnam, Scenario, Scuba, Rakai and Jackpot (2026-10-27, branch
-  `claude/nervous-brattain-cea4ae`), each to be approved by ear; Come Back, Want You Back,
-  Money and Passinho have no public copy (the designer uploads them if needed).
-- [ ] **Custom emotes.** Popcorn and Bullseye: own models, animation, VFX and SFX
-  (`Config.EmoteMenu.Custom`, branch `claude/nervous-brattain-cea4ae`).
+- [x] **Music.** Rat Dance and Low Cortisol licensed; the designer's own uploads for Passinho,
+  Scenario, Scuba, Rakai, Jackpot and Money; Sega Walk a public fan clip; Gojo/Geto silent.
+- [x] **Custom emotes.** Popcorn and Bullseye: own models, animation, VFX and SFX
+  (`Config.EmoteMenu.Custom`).
+- [x] **Sync.** Prompts on dancers in the lobby, Gojo/Geto pair one to one
+  (`Config.EmoteMenu.Sync.Enabled`).
+- [ ] **Bug fixes and checks before publishing.** The designer's bug list; Sync with two real
+  accounts; a phone and a controller.
 - [ ] **Custom emote sounds by ear.** The designer picks each of the nine sounds
   (`Custom.Sounds`; first picks from Roblox's free library are in).
 - [ ] **Read the numbers.** `Emote` and `EmoteMenu` custom events after a few days: share of
