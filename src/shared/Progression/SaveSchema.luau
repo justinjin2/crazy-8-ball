@@ -85,6 +85,7 @@ local MAP_KEYS = {
 	"Social",
 	"Trades",
 	"LuckyBlocks",
+	"EmoteFavorites",
 }
 
 -- Shop's true/false fields, in the order fixes are reported.
@@ -231,6 +232,9 @@ function SaveSchema.template(): any
 		-- From?, Luck? } (economy v5: a climbed block's mark, the kind it started as, and
 		-- whether the Grand Opening Luck ran at its climb).
 		LuckyBlocks = LuckyBlocks.fresh(),
+		-- The emote menu's favourites (2026-10-26; Config.EmoteMenu.List ids): [id] = true. A new
+		-- field, so no version bump: Reconcile adds it to an older save.
+		EmoteFavorites = {},
 	}
 end
 
@@ -1416,6 +1420,8 @@ function SaveSchema.validate(data: any): (any, { string })
 	fixTrades(data.Trades, fixes)
 
 	fixLuckyBlocks(data.LuckyBlocks, fixes)
+
+	fixMap(data.EmoteFavorites, "EmoteFavorites", SaveCfg.MaxSmallEntries, onlyTrue, fixes)
 
 	return data, fixes
 end

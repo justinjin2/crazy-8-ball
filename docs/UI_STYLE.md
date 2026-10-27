@@ -1364,3 +1364,44 @@ Built in their screens' style on the designer's "use your judgment"; screenshots
   claimed cue flies to the CUES button. In Cues and the Index it shows "Day 7" and "Day 7 of
   your first week" where a block cue shows its chance.
 
+## 31. The emote button and tray (designer's pick 2A, 2026-10-26)
+
+- **The button** (`EmoteHud`, `Config.EmoteMenu.Button`): the designer's hand-drawn noob
+  (#4 of three sketches, `assets/ui/icons/emote.png`), EMOTE under it in Fredoka, white with
+  the ink outline; no candy face behind it. It holds still and sways only while hovered (the
+  candy's own hover), with no sun rays (designer, 2026-10-26). Bottom right, between the screen's
+  centre and its right edge (the designer's red circle): right of the lucky-block hotbar in the
+  lobby, under the power bar's column in a match, left of the jump button on a phone. Shown in
+  the lobby, while waiting your turn and on the results; never while you shoot. R3's glyph on
+  its corner for a controller.
+- **The tray** (`EmoteMenu`): a lively menu card dropping up out of the button: a small white
+  arrow under the card points at the noob's head, a little gap above it (`Tray.ButtonGapPx`,
+  `Tray.ArrowPx`), and the tray grows out of that arrow's tip (from 30% with a Back ease, the
+  cards expanding in one by one), so nothing ever shows below the button. Header: the noob,
+  EMOTES, the red X. Three cards across (designer, 2026-10-26: less wide and busy), two rows
+  and a peek of the third, scrolling. A card: white with the ink border, a
+  pale-blue well with the dance looping as a black silhouette (a plain R15 body lit by nothing,
+  `EmotePreview`; only the cards on screen move; Lower effects and Reduce Motion hold one
+  pose), the 1-2 word name under it, a star on the top-right corner. A favourite's card and
+  well turn pale yellow, its star full gold, and it moves to the front; an unstarred star is
+  the gold star dimmed grey (`Tray.StarOff`).
+- **The credit strip** at the bottom: one line, the card in focus's name then "by <creator>"
+  smaller in grey (cut with … when long), and a small white "Avatar Shop" pill (the item's page, to get it for keeps). No price, no buy icon
+  per card: every dance is free to use here (designer: "borrowing" without saying so). The
+  card in focus is the hovered or selected one, else the dance you are doing, else the first.
+- **Controller:** R3 opens and closes it; the first card is selected; A dances, Y stars, X the
+  Avatar Shop, B closes. A pick closes the tray.
+- **Phone:** 240 px wide (364 on a big screen), at most 62% of the screen's height.
+- **Our own emotes** (Popcorn, Bullseye; `Config.EmoteMenu.Custom`): first in the tray,
+  credited "by Lucky 8" with no Avatar Shop pill (not for sale: the name takes the whole strip
+  and X does nothing). Their silhouettes carry their props: Popcorn lounging on the lounger
+  with the bucket, Bullseye drawing the bow. In the world their props are
+  plain and realistic, no 8-ball theming (designer, 2026-10-26): a blue-and-white striped
+  lounger, a red-and-white bucket, a classic archery target on
+  a wooden easel. The body keeps the facing it started with until it moves (shift lock and the
+  camera don't turn it).
+- **The results screen with the emotes** (`Config.EmoteMenu.Results`): no blur, so both
+  players see each other dance; no DEFEAT: the losing side's headshots and names go grey
+  instead, and why it was lost sits on WINNER's line over that side. The winner's screen is
+  unchanged.
+

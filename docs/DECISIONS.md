@@ -4557,3 +4557,72 @@ timer of a new block stay the designer's call.
   designer chose this over practice pay). A global "fill" queue for partial groups comes
   later, after reading the new `TeamPad` and `TeamPing` custom events (no team-queue numbers
   existed before). Each part has its own Config switch.
+- 2026-10-26 (designer): **the emote menu.** An EMOTE button (their hand-drawn noob, bottom
+  right) opens a tray of 13 trending Marketplace emotes, all free to use here: each plays on
+  your own character by its animation id (players never need to own it), with the creator
+  credited and a small Avatar Shop link to get it for keeps. Picks from the mockups: the
+  pop-up tray (2A), the credit strip with a small shop link, looping black-silhouette previews,
+  favourites first in yellow (saved, `EmoteFavorites`). A dance loops until you move (2 min
+  cap), closes the menu, and players nearby doing the same dance move in step. Controller: R3.
+  Never while you shoot. Custom emotes (Popcorn, Bullseye) come in a later update.
+- 2026-10-26 (designer): **emote music is licensed or public Roblox audio only, nothing
+  uploaded by us.** The trend songs are copyrighted; an upload under the Lucky 8 group risks
+  the group that owns the game, and same-melody "parody" remakes are still covers. A dance
+  with a licensed track plays it from the dancer for players nearby (the Music group, so
+  Settings' Music switch mutes it); the rest dance silent until a licensed version is found and
+  approved by ear. At release: Rat Dance and Low Cortisol (DistrokidOfficial).
+- 2026-10-26 (designer): **the results screen loses its blur and DEFEAT** (with the emotes):
+  both players see each other dance; the loser's own card greys instead ("kids dont really
+  like to lose"). The winner's screen is unchanged. `Config.EmoteMenu.Results`.
+- 2026-10-26 (designer, after a test-place try): **the EMOTE button holds still** (it sways
+  only while hovered, no sun rays); **the tray shows three dances per row** (less wide and
+  busy) and **drops up out of the button** through a small arrow with a gap above it, growing
+  from the arrow's tip instead of slamming in (the slam flashed every row below the button for
+  a frame); **Gojo Walk's Bloxy Cola is in the left hand**, at his mouth, as in the anime.
+- 2026-10-26 (designer, interview and concept round): **our own emotes, Popcorn and Bullseye**,
+  made by Lucky 8 with their own models, animations, effects and sounds. Popcorn: lounging
+  under a beach umbrella throwing popcorn at your mouth, very messy (about half bounces off
+  the face, a few kernels pile up), looping, a lazy "too easy" taunt. Bullseye: one shot; a bow
+  and a target pop up, a natural draw dead into the gold, a big hit (gold burst, shock ring,
+  splinters, wobble; no text), a blow on the bow like a smoking gun, then a poof. Realistic
+  props, no 8-ball theming (concept v2). Usable wherever the menu is; sounds heard nearby; with
+  no room the target comes closer and the emote always plays; at a table the props never
+  cover the balls.
+- 2026-10-27: **how our own emotes behave** (built that way; the designer can change any):
+  first in the tray; never in step with a nearby dancer (a one-shot joined midway would start
+  mid-shot); "by Lucky 8" with no Avatar Shop link; a target is never put over a
+  table, and every tall prop hides on your own screen while you shoot, so none covers the
+  balls; the sounds are first picks from Roblox's free library until the designer picks by
+  ear.
+- 2026-10-27 (designer, first look): **Popcorn loses the umbrella** (just the lounger) and its
+  only sound is the munch at the end (the start, rustle and stop sounds were annoying);
+  **Bullseye's target stands further off**, 6 to 10 studs (was 4 to 7); during both, **the body
+  keeps its facing** until the player moves: shift lock and the camera can't spin it around the
+  chair (`Custom.HoldFacing`). The designer wants the original songs for the silent dances
+  first; uploading them is the last resort (see the Music item in the roadmap).
+- 2026-10-27 (designer): **emote music may be a public fan clip of the original song**
+  (replaces "licensed only" of 2026-10-26 for songs Roblox has no licensed copy of): the
+  original matters most, the designer accepts that a clip can vanish (its dance then goes
+  silent). Sega Walk, Gangnam, Scenario, Scuba, Rakai and Jackpot have one; Come Back, Want
+  You Back, Money and Passinho have no public copy, so the designer uploads those if the
+  clips are not good. Gojo Walk stays silent (designer's brief).
+- 2026-10-27 (designer): **no uploads of copyrighted songs**: the designer decided against
+  uploading the original songs for Come Back, Want You Back, Money and Passinho himself (too
+  much risk); those dances get a similar Creator Store track or one of his own. **The menu's
+  order** starts Popcorn, Rat Dance, Low Cortisol, Sega Walk, Bullseye, Gojo Walk
+  (`Config.EmoteMenu.First`), the rest as listed. **Gojo Walk keeps going while you walk**
+  (`Walk = true` on its row) until you jump. Rat Dance's music starts at the song's first beat
+  (was 2.7 s in), and Popcorn's munch is much quieter (0.6 to 0.2).
+- 2026-10-27 (designer): **Jackpot plays the "hakari dance" fan clip** (118968956615621, an
+  upload sped up about 6x) at the designer's pitch, 0.17 (music rows take a `Speed`); his
+  call, after being told it is the real song disguised to pass Roblox's check. **A dance just
+  started begins from the beginning** (`FreshSeconds`): its music from Start and its animation
+  from the first frame, instead of skipping the load time to stay on the server's clock.
+- 2026-10-27 (designer): **13 dances with their original songs**: his own uploads for Passinho,
+  Scenario, Scuba, Rakai, Jackpot and Money (replacing the fan clips and the hakari clip);
+  Gangnam, Come Back and Want You Back are gone; **Geto Walk** joins as Gojo Walk's duo. **A
+  dance goes on while you walk**, until a jump, another pick or a reset (no time limit), at
+  Roblox's 16 (Gojo and Geto 1.6, one speed so a pair walks together). **Sync**: Roblox's
+  standard prompt on each other dancer within 10 studs, a 0.3 s hold (his picks), lobby only
+  (in a match X is the ult's); Gojo and Geto pair up one to one, every other dance takes any
+  number. The EMOTE icon lost its bottom-left and top-right motion marks.

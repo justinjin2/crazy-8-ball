@@ -17786,4 +17786,513 @@ do
 	A.Clips.CueStrike[3].FromSpeed = hard
 end
 
+---------------------------------------------------------------------------------------------
+-- The emote menu (designer, 2026-10-26: "more expression of players in-game and sociability").
+-- An EMOTE button at the bottom right (lobby, waiting your turn, the results; never while
+-- shooting) opens a tray of hand-picked Roblox Marketplace emotes, free to use in this game:
+-- each card loops its dance as a dark silhouette, a star makes it a favourite (first, in
+-- yellow), and the strip at the bottom names its maker with one small Avatar Shop link. A dance
+-- loops until the player moves, picks another or their turn starts; players nearby who start
+-- the same dance join it in step, and its music (licensed only) plays from the dancer for
+-- players nearby. Server: src/server/EmoteService.luau; client: EmoteHud, EmoteMenu,
+-- EmotePreview, EmotePlayer; pure maths: src/shared/EmoteSync.luau. Roblox's own emote wheel
+-- (Config.Emotes) stays for the player's own emotes. Off: no button, no menu, results as before.
+---------------------------------------------------------------------------------------------
+Config.EmoteMenu = {
+	Enabled = true,
+	-- The dances, in the menu's order (favourites come first). Id: the save's and the remotes'
+	-- key (Strings.Emotes.Names[Id] is its short name); Catalog: the Marketplace item (the
+	-- Avatar Shop link); Animation: the animation inside it, played by id; Creator: who made it
+	-- (data, never translated); Length: its loop in seconds (read in Studio, 2026-10-26).
+	-- Music (optional): a track { Id, Start (s), Loop (s), Volume, Speed }: it plays from Start
+	-- and loops the Loop seconds after it (the track's own seconds), at Speed (its
+	-- PlaybackSpeed, pitch and tempo together; 1 when nil); nil = silent. Licensed where Roblox has the song, else a
+	-- public fan clip of the original (designer, 2026-10-27): unlicensed, so it can vanish, and
+	-- then the dance just goes silent. Volume evens each clip out with Rat Dance (measured in
+	-- Studio, 2026-10-27). The designer's own uploads (Lucky 8, 2026-10-27) are the clips cut
+	-- in step for each dance (tools: emote-music-upload), from 0, normalised; Volume evens them
+	-- out with Rat Dance at MusicVolume. Prop (optional): a key of Props, held while it plays.
+	-- Speed (optional): the dance's playback speed (1). WalkSpeed (optional): your walking
+	-- speed while you dance it (else WalkSpeed below). Duo (optional): the dance's partner: a
+	-- player who syncs with it dances the Duo instead, and only one may (Gojo and Geto).
+	List = {
+		{
+			Id = "RatDance",
+			Catalog = 98603994713783,
+			Animation = 113375965758912,
+			Creator = "Voxelates",
+			Length = 4.438,
+			-- "rat dance nicos nextbos" (DistrokidOfficial): from the very start (designer,
+			-- 2026-10-27: it starts at the beginning), 32 beats at 107.7 BPM.
+			Music = { Id = "rbxassetid://108236999118620", Start = 0, Loop = 17.833 },
+		},
+		{
+			Id = "Passinho",
+			Catalog = 104131847054135,
+			Animation = 83796130837213,
+			Creator = "Setalcix Emote Creations",
+			Length = 5.35,
+			-- The designer's upload: 8 bars from the drop (11.49 s in the song), 170 BPM.
+			Music = { Id = "rbxassetid://140070002304389", Start = 0, Loop = 11.288, Volume = 0.77 },
+		},
+		{
+			Id = "SegaWalk",
+			Catalog = 137950035611079,
+			Animation = 111823656989061,
+			Creator = "OliFlam",
+			Length = 4.0,
+			-- "Cancun Carti" (fan clip, the designer's pick), the whole clip.
+			Music = { Id = "rbxassetid://8003103632", Start = 0, Loop = 2.947 },
+		},
+		{
+			Id = "Scenario",
+			Catalog = 128771561752851,
+			Animation = 81747251604858,
+			Creator = "vkioxd",
+			Length = 8.133,
+			-- The designer's upload: the beat's first 8 bars, 118 BPM.
+			Music = { Id = "rbxassetid://83447678488509", Start = 0, Loop = 16.282, Volume = 0.64 },
+		},
+		{
+			Id = "Scuba",
+			Catalog = 70919402339484,
+			Animation = 123761889433592,
+			Creator = "hexa's archives",
+			Length = 1.333,
+			-- The designer's upload: one 16-beat cycle of the meme clip.
+			Music = { Id = "rbxassetid://111124889471217", Start = 0, Loop = 5.949, Volume = 0.97 },
+		},
+		{
+			Id = "Rakai",
+			Catalog = 135686271244127,
+			Animation = 115858722399476,
+			Creator = "MocapAnimations",
+			Length = 5.167,
+			-- The designer's upload: 8 bars from the drop (13.77 s in the instrumental), 140 BPM.
+			Music = { Id = "rbxassetid://106492816333402", Start = 0, Loop = 13.711, Volume = 0.5 },
+		},
+		{
+			Id = "Jackpot",
+			Catalog = 123007489009174,
+			Animation = 104762425338768,
+			Creator = "RobroAnimations UGC",
+			Length = 7.562,
+			-- The designer's upload: 4 bars from "wait hold up" (22.25 s in the song), 130 BPM.
+			Music = { Id = "rbxassetid://92809468889605", Start = 0, Loop = 7.384, Volume = 0.75 },
+		},
+		{
+			Id = "Money",
+			Catalog = 89114994401113,
+			Animation = 104248876465825,
+			Creator = "Animations World",
+			Length = 9.967,
+			Once = true, -- designer, 2026-10-27: it does not loop, nor its music
+			-- The designer's upload: the whole short, from its first beat.
+			Music = { Id = "rbxassetid://84435393748508", Start = 0, Loop = 16.326, Volume = 0.6 },
+		},
+		{
+			Id = "GojoWalk",
+			Catalog = 86211239618105,
+			Animation = 77984099336391,
+			Creator = "Emote Plaza",
+			Length = 2.0,
+			Prop = "BloxyCola", -- designer: Gojo holds a Bloxy Cola
+			-- The animation's own walk (its planted foot moves 1.7 studs a second, Geto's 1.4),
+			-- one speed for both so a duo walks side by side (designer, 2026-10-27).
+			WalkSpeed = 1.6,
+			Duo = "GetoWalk",
+		},
+		{
+			Id = "GetoWalk",
+			Catalog = 102352130626103,
+			Animation = 107663187613247,
+			Creator = "Emote Plaza",
+			Length = 2.0,
+			WalkSpeed = 1.6,
+			Duo = "GojoWalk", -- designer, 2026-10-27: pairs with Gojo Walk
+		},
+		{
+			Id = "LowCortisol",
+			Catalog = 138149876527113,
+			Animation = 79636012137057,
+			Creator = "Animations",
+			Length = 9.333,
+			-- "Low Cortisol" (DistrokidOfficial), from 31 s (designer): 64 beats at 129.2 BPM.
+			Music = { Id = "rbxassetid://110919391228823", Start = 31.184, Loop = 29.722 },
+		},
+	} :: {
+		{
+			Id: string,
+			Catalog: number?,
+			Animation: number,
+			Creator: string,
+			Length: number,
+			Speed: number?,
+			Prop: string?,
+			Music: { Id: string, Start: number, Loop: number, Volume: number?, Speed: number? }?,
+			Intro: number?,
+			Once: boolean?,
+			Scene: string?,
+			WalkSpeed: number?,
+			Duo: string?,
+		}
+	},
+	-- Things a dance holds, made by the server on the hand and gone when it stops (seen by
+	-- everyone). BloxyCola: Roblox's own can (gear 10472779's mesh and texture).
+	Props = {
+		BloxyCola = {
+			MeshId = "rbxassetid://10470609",
+			TextureId = "rbxassetid://10470600",
+			Size = { 0.58, 1.03, 0.58 }, -- studs: the mesh's own size
+			Hand = "LeftHand", -- the hand Gojo drinks with (designer, 2026-10-26)
+			-- Where it sits from the hand's centre, studs and degrees (CFrame.Angles): its top at
+			-- the mouth, tipped up for a drink, through the whole loop (checked in Studio,
+			-- 2026-10-26).
+			Offset = { -0.12, -0.26, -0.19 },
+			Turn = { -64, 74, 2 },
+		},
+		-- Our own emotes' (Custom): Popcorn's red-and-white bucket and Bullseye's bow, meshes
+		-- from the Popcorn and Bullseye models (tools/blender/emotes). Offset and Turn put them
+		-- where the animations were posed round them (tools/emotes/make_emote_anims.luau).
+		PopcornBucket = {
+			MeshId = "rbxassetid://97101566647465",
+			TextureId = "rbxassetid://83335729057596",
+			Size = { 1.044, 1.339, 1.05 },
+			Hand = "LeftHand", -- on the belly, the right hand digs in
+			Offset = { 0.091, -0.165, -0.601 },
+			Turn = { -105.7, 34.6, 46.9 },
+		},
+		Bow = {
+			MeshId = "rbxassetid://115272583287075",
+			TextureId = "rbxassetid://96536403729988",
+			Size = { 0.295, 3.469, 0.543 },
+			Hand = "LeftHand", -- the bow hand; the right draws the string
+			Offset = { 0.092, 0.139, -0.041 },
+			Turn = { -106.5, 32.6, -30.8 },
+		},
+	},
+	-- The menu starts with these, in this order (designer, 2026-10-27: the ones with music
+	-- first); every other dance follows in List's order. An id not in the menu is skipped.
+	First = { "Popcorn", "RatDance", "LowCortisol", "SegaWalk", "Bullseye", "GojoWalk", "GetoWalk" },
+	-- Our own emotes (designer, 2026-10-26): Popcorn (lounging on a beach lounger, throwing
+	-- popcorn at your mouth, half of it bouncing off your face) and Bullseye (a bow and a
+	-- target pop up, one shot dead centre, a blow on the bow like a smoking gun). Made by Lucky
+	-- 8 (group 675425213): animations, models and sprite uploaded there. Their props, effects
+	-- and sounds are built round each dancer on every client nearby (src/client/EmoteScene.luau,
+	-- src/shared/EmoteSceneMath.luau). Off: the menu exactly as before.
+	Custom = {
+		Enabled = true,
+		-- The rows, put first in List while Enabled (at the bottom of this file). No Catalog:
+		-- not for sale, so no Avatar Shop link. Scene: the props and effects (below). Intro: an
+		-- animation played once before the loop (its last pose is the loop's first). Once: it
+		-- plays one time and ends (the server ends it after Length too).
+		List = {
+			{
+				Id = "Popcorn",
+				Animation = 92414707292170, -- PopcornLoop (tools/emotes/popcorn_anim.luau)
+				Intro = 101661105635659, -- PopcornIntro: sits back into the lounger (0.8 s)
+				Creator = "Lucky 8",
+				Length = 2.4,
+				Scene = "Popcorn",
+				Prop = "PopcornBucket",
+			},
+			{
+				Id = "Bullseye",
+				Animation = 90958833606867, -- BullseyeShot (tools/emotes/bullseye_anim.luau)
+				Creator = "Lucky 8",
+				Length = 3.6,
+				Once = true,
+				Scene = "Bullseye",
+				Prop = "Bow",
+			},
+		} :: {
+			{
+				Id: string,
+				Animation: number,
+				Intro: number?,
+				Creator: string,
+				Length: number,
+				Once: boolean?,
+				Scene: string,
+				Prop: string?,
+			}
+		},
+		-- The props' models (Lounger, Bucket, KernelA, KernelB; Target, Bow, Arrow),
+		-- loaded once per server into this ReplicatedStorage folder (EmoteService) for the
+		-- clients to clone, retried LoadRetries times LoadRetrySeconds apart. Without them a
+		-- dance plays with its hand prop only.
+		Models = { Popcorn = 121716712153613, Bullseye = 80309530019247 },
+		FolderName = "EmoteAssets",
+		LoadRetries = 3,
+		LoadRetrySeconds = 2,
+		SceneStuds = 150, -- a dancer farther than this from your camera gets no scene here
+		NearStuds = 70, -- thrown popcorn and the sounds only this near (cheap far away)
+		TrackSeconds = 3, -- a scene waits this long for the dancer's animation to show up
+		-- A body's root over the floor at scale 1 (HipHeight 2.1924 + half the root's 2):
+		-- the props scale with the body, kept within these.
+		RestRootStuds = 3.1924,
+		MinBodyScale = 0.6,
+		MaxBodyScale = 1.6,
+		PopSeconds = 0.2, -- a prop fades in (with a puff) and out (with a poof) this fast
+		-- While you shoot, every emote prop is hidden on your screen (designer: they never
+		-- cover the balls); it comes back when your shot is taken.
+		HideWhileShooting = true,
+		-- The body keeps the way it faced when the dance began (designer, 2026-10-27): no
+		-- turning with the camera or shift lock, no spinning round the lounger; it frees again
+		-- when the dance ends (walking ends it).
+		HoldFacing = true,
+		Popcorn = {
+			-- Where the lounger stands from the floor under the dancer's root, turned as the
+			-- dancer faces (the model's own layout; studs at scale 1). It is lower than the
+			-- cloth, so it never covers the balls. No umbrella (designer, 2026-10-27); the
+			-- model still has one.
+			Lounger = { 0, 1.234, -0.175 },
+			-- Each "Toss" (the loop's marker): Count kernels (LowCount with Lower effects) leave
+			-- the right hand over SpreadSeconds and reach the face in FlightSeconds; MissShare of
+			-- them hit somewhere on the face (up to FaceAcross across, FaceUp up) and bounce off
+			-- (BounceOut out, BounceUp up, BounceSide sideways, studs/s) to the floor, the rest
+			-- go in the mouth. Gravity: studs/s^2, light, so popcorn floats.
+			Count = 6,
+			LowCount = 3,
+			MissShare = 0.5,
+			SpreadSeconds = 0.08,
+			FlightSeconds = 0.3,
+			FaceAcross = 0.35,
+			FaceUp = 0.3,
+			BounceOut = 6,
+			BounceUp = 7,
+			BounceSide = 4,
+			Gravity = 70,
+			-- The kernels on the floor round a lounger: at most this many (oldest go first).
+			PileCap = 24,
+			LowPileCap = 10,
+			SpriteBurst = 5, -- flat popcorn pieces scattered from the hand each toss
+			Mouth = { 0, -0.22, -0.58 }, -- the mouth from the Head's centre (tools/emotes/rig.luau)
+			Hand = { 0, -0.2, -0.1 }, -- the popcorn leaves the right hand here
+		},
+		Bullseye = {
+			-- The target stands straight ahead with its face Near to Far studs out, or shrunk
+			-- (to MinScale, in Steps) as close as Tight when that does not fit (designer: it
+			-- comes closer, the emote always plays). It never stands over a table (nor within
+			-- TableMargin of one): then there is no target and the arrow flies off. Back and
+			-- Half: how far it reaches behind its face and to each side (studs at scale 1).
+			Near = 6,
+			Far = 10, -- further off (designer, 2026-10-27: was 4 to 7)
+			Tight = 3.4,
+			MinScale = 0.5,
+			Steps = 5,
+			Back = 2.1,
+			Half = 1.6,
+			TableMargin = 0.3,
+			-- From the Bullseye model's centres (assets/emotes/bullseye/bullseye_points.json):
+			-- the face's centre and the floor under the target, the arrow's nock, and the bow's
+			-- string ends.
+			Face = { 0.0055, 1.226, 0.8341 },
+			TargetFloor = { 0.0055, -3.224, 0.8241 },
+			ArrowNock = { 0, -0.0349, 1.45 },
+			ArrowLength = 2.9,
+			BowTop = { 0, 1.53, 0.2285 },
+			BowBottom = { 0, -1.53, 0.2285 },
+			BowGrip = { 0, 0, -0.1715 }, -- where the arrow rests on the bow
+			AimHeight = 1.1, -- the arrow's line over the root (studs at scale 1), for the wall ray
+			NockOnHand = { 0, -0.15, 0 }, -- where the right hand holds the string and arrow
+			NockAt = 0.3, -- the arrow is on the string from here (s) to the "Release" marker
+			FlightSeconds = 0.2, -- the arrow's flight to the target
+			StickStuds = 0.35, -- how deep it sticks in
+			StringWidth = 0.035,
+			StringColor = { 240, 236, 225 },
+			-- The hit: the target rocks back WobbleDegrees and shakes still over WobbleSeconds,
+			-- flashes white for FlashSeconds, a shock ring grows to RingStuds, a gold burst and
+			-- Splinters fly out (half with Lower effects).
+			WobbleDegrees = 7,
+			WobbleSeconds = 0.9,
+			FlashSeconds = 0.25,
+			RingStuds = 7,
+			RingSeconds = 0.45,
+			BurstStuds = 6,
+			BurstSeconds = 0.7,
+			Splinters = 12,
+			Twinkles = 8,
+			BlowPuffs = 4, -- the smoke off the bow's top limb at "Blow"
+			-- Its card in the tray: the body turned a quarter (degrees) so the draw reads side-on,
+			-- and moved this far across (studs) so the bow fits.
+			Preview = { Turn = 90, Shift = -1.1 },
+		},
+		-- The effects' sprites: Puff and Twinkle (the lucky blocks'), Ring and Shard (the cue
+		-- effects'), Burst (Config.UI.Effects.Firework.Gold, an 8 x 8 flipbook) and Popcorn
+		-- (assets/emotes/popcorn/popcorn_sprite.png, Lucky 8).
+		Sprites = {
+			Puff = "rbxassetid://108727667390410",
+			Twinkle = "rbxassetid://93784382803534",
+			Ring = "rbxassetid://75727040461896",
+			Shard = "rbxassetid://120459779090958",
+			Burst = "rbxassetid://74896337141026",
+			Popcorn = "rbxassetid://138195617882872",
+		},
+		-- The sounds (Roblox's free sound library), heard by everyone nearby: full volume to
+		-- HearStuds, silent from MaxStuds. First picks; the designer chooses by ear. Seconds
+		-- (optional): only the sound's first this many seconds play.
+		HearStuds = 10,
+		MaxStuds = 60,
+		Sounds = {
+			-- Popcorn makes only the munch (designer, 2026-10-27: the rest was annoying): the
+			-- designer's crunch, only its first crunch (0.1 to 0.38 s, then quiet), very quiet
+			-- (designer, 2026-10-27: 0.025 was inaudible; was "Crunch" 9113138343 at 0.6, 0.2).
+			Puff = { Id = "rbxassetid://9116406899", Volume = 0.5 }, -- Bullseye's props pop in and out
+			Munch = { Id = "rbxassetid://120048375176233", Volume = 0.07, Seconds = 0.5 },
+			Draw = { Id = "rbxassetid://9125405388", Volume = 0.5 }, -- the string pulled
+			Release = { Id = "rbxassetid://9113166206", Volume = 0.6 }, -- the arrow looses
+			Thunk = { Id = "rbxassetid://9113161146", Volume = 0.8 }, -- it sticks
+			Ding = { Id = "rbxassetid://9126073318", Volume = 0.5 }, -- dead centre
+			Blow = { Id = "rbxassetid://9113702967", Volume = 0.4 }, -- the smoking bow
+		},
+	},
+	-- The music from a dancer: heard by players nearby, fading to nothing (designer: "players
+	-- nearby"), in the Music group so Settings' Music switch mutes it.
+	MusicVolume = 0.5, -- a track's volume when its row gives none
+	MusicHearStuds = 12, -- full volume up to here
+	MusicMaxStuds = 70, -- silent from here
+	MusicLoadSeconds = 5, -- a track not loaded by then is skipped (the dance goes on silent)
+	-- A dance started this recently (seconds since its loop's start) begins from the beginning:
+	-- its music from Start and your own animation from its first frame, instead of skipping
+	-- what loading and the server's answer took (designer, 2026-10-27: Rat Dance's song must
+	-- start at the beginning). Older (joining someone in step): in step, as before.
+	FreshSeconds = 3,
+	-- Dancing together (designer: auto-sync): a player who starts a dance that someone within
+	-- this many studs is already doing joins it in step, and their music plays once.
+	SyncStuds = 24,
+	-- Sync (designer, 2026-10-27): a "Sync" prompt on every other dancer near you (Roblox's
+	-- own prompt: E, the controller's X, a tap on a phone, held briefly); it starts their
+	-- dance on you in step with them, music and all. Any number may sync to a dance, except a
+	-- Duo: Gojo and Geto, one partner each. The server checks the distance with some slack (a
+	-- walking dancer moves on while the request travels).
+	Sync = {
+		Enabled = true, -- off: no prompts, and the server refuses a sync
+		Studs = 10, -- the prompt shows within this many studs of the dancer
+		HoldSeconds = 0.3, -- held this long (designer: a short hold, never by accident)
+		SlackStuds = 8, -- the server allows this much further
+	},
+	-- A dance goes on until you jump, pick another, reset, or your turn takes the body; a
+	-- loop has no time limit (designer, 2026-10-27). Walking does not stop it: you walk at
+	-- this speed meanwhile (Roblox's default; a row's own WalkSpeed wins), and back at your
+	-- speed after. Set on your own client only, never lower than a table's hold.
+	WalkSpeed = 16,
+	FadeSeconds = 0.2, -- a dance blends in and out
+	-- A dance whose animation has not loaded after this long is hidden from the menu (a
+	-- creator may delete or change their item).
+	LoadSeconds = 3,
+	-- Requests per player: a burst, then this many a second (EmoteRequest).
+	RequestBurst = 6,
+	RequestPerSecond = 2,
+	-- The button: the designer's hand-drawn noob (#4, 2026-10-26), bottom right between the
+	-- screen's centre and its right edge (their red circle), clear of the hotbar, the power
+	-- bar and Roblox's jump button.
+	Button = {
+		-- assets/ui/icons/emote.png (Lucky 8, decal 132544200168263): two of its four motion
+		-- marks gone, bottom left and top right (designer, 2026-10-27: too much motion).
+		Icon = "rbxassetid://101229121269358",
+		SizePx = 78, -- the icon's box on a big screen (the column's tiles: 78)
+		PhoneSizePx = 52, -- on a phone (smaller side under Config.Multiplayer.Style.ShortHeight)
+		WordPx = 18, -- EMOTE under it
+		PhoneWordPx = 12,
+		XShare = 0.79, -- its centre across the screen (0.5 centre, 1 the right edge)
+		BottomPx = 14, -- its bottom above the screen's bottom
+		PhoneXShare = 0.71, -- on a phone: left of the jump button
+		PhoneBottomPx = 6,
+		-- The noob's picture in the button: its centre's height (a share of the button, 0 the
+		-- top) and its size (a share of the button). It reaches a little above the button.
+		-- No idle rock and no sun rays: only the candy's own sway while hovered (designer,
+		-- 2026-10-26: "only when hovering over it").
+		ArtY = 0.42,
+		ArtScale = 1.1,
+		PadKey = "ButtonR3", -- the controller button that opens and closes the tray
+	},
+	-- The tray (designer's pick 2A, 2026-10-26): three across (was four: less wide and busy,
+	-- designer, the same night), two rows and a peek, the credit strip at the bottom, and a
+	-- small arrow under it pointing at the button it drops from.
+	Tray = {
+		Columns = 3,
+		WidthPx = 364, -- on a big screen (cards about 104 px, as with four across at 476)
+		PhoneWidthPx = 240, -- on a phone (cards about 68 px)
+		MaxHeightShare = 0.62, -- of the screen's height, at most
+		HeaderPx = 54,
+		PhoneHeaderPx = 40,
+		CreditPx = 40,
+		PhoneCreditPx = 30,
+		PadPx = 12, -- the sheet's inner margin
+		GapPx = 10, -- between cards
+		PhoneGapPx = 7,
+		NamePx = 15, -- a card's name
+		PhoneNamePx = 12,
+		-- The credit strip's one line: the dance's name, then "by <maker>" smaller and grey, cut
+		-- short with "..." when the tray is narrow; the Avatar Shop pill on its right.
+		CreditNamePx = 15,
+		PhoneCreditNamePx = 12,
+		CreditByPx = 13,
+		PhoneCreditByPx = 11,
+		CreditBy = { 120, 126, 145 }, -- the "by <maker>" grey
+		ShopPx = 112, -- the Avatar Shop pill's width
+		PhoneShopPx = 88,
+		PeekShare = 0.18, -- how much of the third row shows (scroll hint)
+		-- The gap: the arrow's tip stops this far above the top of the button's noob, and the
+		-- arrow under the tray is this tall (designer: "a little gap ... a little arrow").
+		ButtonGapPx = 8,
+		PhoneButtonGapPx = 5,
+		ArrowPx = 13,
+		PhoneArrowPx = 9,
+		TopMarginPx = 8, -- the tray never reaches nearer the screen's top than this
+		-- The open: the tray grows out of its arrow from this share of its size (a dropdown;
+		-- it never reaches below the arrow), the close shrinks it back the same way.
+		OpenFromScale = 0.3,
+		FavoriteFill = { 255, 240, 186 }, -- a favourite card's tint
+		Well = { 214, 232, 252 }, -- a card's preview stage
+		FavoriteWell = { 255, 233, 163 },
+		-- A star that is not a favourite: the gold star dimmed by this grey and see-through.
+		StarOff = { 120, 128, 150 },
+		StarOffFade = 0.45,
+		Silhouette = { 27, 32, 51 }, -- the dancer in a preview (ink)
+		-- The preview's camera: its field of view, how far in front of the body it stands
+		-- (studs) and the height it looks at (studs from the body's root; feet at about -3).
+		PreviewFov = 40,
+		PreviewDistance = 9.5,
+		PreviewLookY = -0.45,
+	},
+	-- The results screen (designer, 2026-10-26, with the emotes): no blur, so both players see
+	-- each other dance; the loser sees no DEFEAT and their own card greys ("kids dont really
+	-- like to lose"). The winner's screen is unchanged.
+	Results = {
+		Blur = false,
+		LoserTitle = false,
+		GreyLoser = true,
+		GreyTint = { 150, 150, 150 }, -- the losing side's headshots, multiplied by this grey
+		GreyFade = 0.3, -- and this see-through, washed out on the white card
+		GreyName = { 190, 194, 204 }, -- their names
+	},
+}
+
+-- Our own emotes join the menu while their switch is on (Config.EmoteMenu.Custom), then the
+-- menu is put in order: Config.EmoteMenu.First, then the rest as they were.
+if Config.EmoteMenu.Custom.Enabled then
+	for i, row in Config.EmoteMenu.Custom.List do
+		table.insert(Config.EmoteMenu.List, i, row :: any)
+	end
+end
+do
+	local rank = {}
+	for i, id in Config.EmoteMenu.First do
+		rank[id] = i
+	end
+	local was = {}
+	for i, row in Config.EmoteMenu.List do
+		was[row] = i
+	end
+	table.sort(Config.EmoteMenu.List, function(a: any, b: any)
+		local ra, rb = rank[a.Id] or math.huge, rank[b.Id] or math.huge
+		if ra ~= rb then
+			return ra < rb
+		end
+		return was[a] < was[b]
+	end)
+end
+
 return Config

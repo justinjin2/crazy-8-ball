@@ -951,3 +951,50 @@ configured product. The existing ProcessReceipt grants one credit and records th
 in one PlayerData mutation; it acknowledges only after the existing persistence barrier.
 A current target consumes that credit; missing/finished targets retain it across reconnects.
 A skipped block carries Paid through save repair into the cue's paid-origin count.
+
+## The emote menu (2026-10-26)
+
+`Config.EmoteMenu` (switch `Enabled`) lists the dances: the Marketplace item (`Catalog`, for
+the Avatar Shop link), the animation inside it (`Animation`, played by id), the creator, the
+loop's length, an optional track (`Music = {Id, Start, Loop, Volume}`: licensed, or a public fan clip) and an optional held
+`Prop`. `EmoteSync` (pure, Lune-tested) holds the maths: where a loop that started at server
+time `at` is now, the music's place, `joinAt` (the nearest same-dance dancer within
+`SyncStuds`), favourites-first order.
+
+- **Server** `EmoteService`: `EmoteRequest` (RemoteFunction, rate limited) answers Play (refused
+  for an unknown id or a body that cannot dance: none, dead, not R15, root anchored by a turn),
+  Sync (another dancer's dance, or its `Duo` partner while free, from their `at`, within
+  `Sync.Studs` plus slack: `EmoteSync.syncRow`), Stop, Favorite (`PlayerData.setEmoteFavorite`,
+  the save's `EmoteFavorites` map, no version bump), Open (analytics) and Who (a starting
+  client's catch-up, with each dancer's duo partner). Play picks `at`, welds the
+  prop to the hand and tells everyone through `EmoteState`. It builds the preview body
+  (`ReplicatedStorage.EmotePreviewRig`). Analytics: custom events `Emote` (id, device, Lobby or
+  Match) and `EmoteMenu` (device, where).
+- **Client** `EmotePlayer` plays your own dance on your Animator (it replicates by itself) at the
+  place the server clock says, stops it on a jump, another pick, a reset or a turn's pose
+  (`track.Stopped`); walking goes on at `WalkSpeed` (or the row's), set on this client only and
+  put back after. `EmoteSyncPrompt` puts a ProximityPrompt (this client only) on each other
+  dancer in the lobby; holding it calls `EmotePlayer.sync`. It plays everyone's music from the dancer: one Sound per group in step
+  (`groupKey`), in the Music SoundGroup. `EmoteHud` owns the button and its ScreenGui
+  (DisplayOrder 2, over the HUD and the results); Main calls `update(inMatch, controlled)` each
+  frame and lets a controller's selection rest in the tray (`dropStrayMatchSelection`, HubPad's
+  `freeTheStick`). `EmoteMenu` is the tray; `EmotePreview` one card's ViewportFrame silhouette.
+- **Results:** `ResultScreen` reads `Config.EmoteMenu.Results` (no blur, no DEFEAT, greyed loser)
+  only while the menu is on; off, the screen is as before.
+- **Our own emotes** (`Config.EmoteMenu.Custom`, switch `Enabled`; off, the menu is as before):
+  Popcorn and Bullseye, made by Lucky 8. Their rows go first in `List` (at the bottom of
+  Config) with no `Catalog`, a `Scene`, and `Intro` (played once before the loop) or `Once`
+  (one shot; the server ends it after `Length`, `EmoteSync.endsAfter`); they never join a
+  dancer in step (`EmoteSync.startAt`). The hand props (bucket, bow) are ordinary `Props`,
+  welded by `EmotePropBuilder` (shared with the previews). `EmoteService` loads the two prop
+  models once into `ReplicatedStorage.EmoteAssets`. On every client `EmotePlayer` starts an
+  `EmoteScene` for each such dancer within `SceneStuds`: the lounger, or the target,
+  string, arrow and hit effects, built locally and driven by the dancer's own track as that
+  client sees it (its KeyframeMarkers: Toss, Crunch; Release, Blow, Poof). `EmoteSceneMath`
+  (pure, Lune-tested) places the target (closer and smaller with no room, never over a table's
+  box), rolls each handful (about half
+  misses, seeded so every client throws the same) and the kernels' arcs. While you shoot,
+  `EmoteHud` hides every tall prop on your screen (`EmoteScene.setShooting`). While a scene
+  plays, the dancer's own client holds the body's facing (`Custom.HoldFacing`: AutoRotate off
+  and an `AlignOrientation`), so shift lock and the camera can't turn it. The animations
+  are authored in Lune (`tools/emotes/`), the models in Blender (`tools/blender/emotes/`).

@@ -3378,6 +3378,30 @@ function PlayerData.setSetting(player: Player, key: string, value: boolean): boo
 	return true
 end
 
+--- Makes an emote a favourite or not (the emote menu; EmoteService checks `id` is one of
+--- Config.EmoteMenu.List). Answers whether it is set.
+function PlayerData.setEmoteFavorite(player: Player, id: string, on: boolean): boolean
+	local op = "setEmoteFavorite"
+	if not isPlayer(player) then
+		return refuse(op, player, "not a player")
+	elseif type(id) ~= "string" or #id > Config.Save.MaxIdLength then
+		return refuse(op, player, "bad emote id")
+	elseif type(on) ~= "boolean" then
+		return refuse(op, player, "value is not a boolean")
+	end
+	local data = liveData(op, player)
+	if data == nil then
+		return false
+	end
+	local favorites = data.EmoteFavorites
+	if (favorites[id] == true) == on then
+		return true
+	end
+	favorites[id] = if on then true else nil
+	commit(player, data, op)
+	return true
+end
+
 --- Marks a moment (one of Config.Settings.SeenKinds) seen: Flags["Seen:<kind>"]. Answers
 --- whether it is marked.
 function PlayerData.markMomentSeen(player: Player, kind: string): boolean

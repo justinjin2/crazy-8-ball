@@ -2509,4 +2509,28 @@ return {
 			Error = "Something went wrong (see the server log).",
 		},
 	},
+	-- The emote menu (Config.EmoteMenu; EmoteHud, EmoteMenu, designer 2026-10-26).
+	Emotes = {
+		Button = "EMOTE", -- under the bottom-right icon
+		Title = "EMOTES", -- the tray's header
+		By = "by %s", -- the credit strip: the dance's maker (a name, never translated)
+		Shop = "Avatar Shop", -- the credit strip's link: the dance's page to get it for keeps
+		-- Each dance's short name on its card (Config.EmoteMenu.List's Id).
+		Sync = "Sync", -- the prompt on a dancer near you: dance with them, in step
+		Names = {
+			RatDance = "Rat Dance",
+			Passinho = "Passinho",
+			SegaWalk = "Sega Walk",
+			Scenario = "Scenario",
+			Scuba = "Scuba",
+			Rakai = "Rakai",
+			Jackpot = "Jackpot",
+			Money = "Money",
+			GojoWalk = "Gojo Walk",
+			GetoWalk = "Geto Walk",
+			LowCortisol = "Low Cortisol",
+			Popcorn = "Popcorn", -- our own (Config.EmoteMenu.Custom)
+			Bullseye = "Bullseye",
+		},
+	},
 }

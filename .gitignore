@@ -26,6 +26,7 @@ assets/**/blender_sample.txt
 assets/**/mcp_tools.json
 assets/**/renders/checkpoint_*.png
 assets/abilities/**/renders/
+assets/emotes/**/renders/
 assets/**/checkpoints/
 __pycache__/
 

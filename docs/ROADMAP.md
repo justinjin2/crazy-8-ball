@@ -554,6 +554,27 @@ Plan: the designer's answers of 2026-10-26 (DECISIONS). Each step has its own Co
 - [ ] **Global fill queue.** Partial groups from any server packed into one arena match
   (`Config.GlobalQueue.Fill`): plan it after reading a few days of `TeamPad`/`TeamPing`.
 
+### The emote menu (designer, 2026-10-26)
+
+Built on branch `claude/emotes-f304f0` for the 2026-10-26 update (`Config.EmoteMenu.Enabled`).
+
+- [x] **Button and tray.** The hand-drawn EMOTE button, the pop-up tray (pick 2A) with looping
+  silhouettes, favourites first in yellow (saved), the credit strip and Avatar Shop link, R3.
+- [x] **Dancing.** 13 Marketplace emotes by animation id, loop until you move (2 min cap), in
+  step with nearby dancers of the same dance, Gojo Walk's Bloxy Cola.
+- [x] **Results screen.** No blur, no DEFEAT, the losing side greyed (`EmoteMenu.Results`).
+- [x] **Music, first two.** Rat Dance and Low Cortisol (licensed DistrokidOfficial tracks).
+- [ ] **Music for the other dances.** Public fan clips of the originals are in for Sega Walk,
+  Gangnam, Scenario, Scuba, Rakai and Jackpot (2026-10-27, branch
+  `claude/nervous-brattain-cea4ae`), each to be approved by ear; Come Back, Want You Back,
+  Money and Passinho have no public copy (the designer uploads them if needed).
+- [ ] **Custom emotes.** Popcorn and Bullseye: own models, animation, VFX and SFX
+  (`Config.EmoteMenu.Custom`, branch `claude/nervous-brattain-cea4ae`).
+- [ ] **Custom emote sounds by ear.** The designer picks each of the nine sounds
+  (`Custom.Sounds`; first picks from Roblox's free library are in).
+- [ ] **Read the numbers.** `Emote` and `EmoteMenu` custom events after a few days: share of
+  players who open the tray, dances per session, the favourite dances.
+
 ### About one to two weeks after release
 
 - [ ] **6.3 Pro lobby.** Separate place with a teleport door, Diamond I and above, Difficult
