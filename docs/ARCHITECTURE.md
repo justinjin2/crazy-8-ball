@@ -957,28 +957,40 @@ A skipped block carries Paid through save repair into the cue's paid-origin coun
 `Config.EmoteMenu` (switch `Enabled`) lists the dances: the Marketplace item (`Catalog`, for
 the Avatar Shop link), the animation inside it (`Animation`, played by id), the creator, the
 loop's length, an optional track (`Music = {Id, Start, Loop, Volume}`: licensed, or a public fan clip) and an optional held
-`Prop`. `EmoteSync` (pure, Lune-tested) holds the maths: where a loop that started at server
-time `at` is now, the music's place, `joinAt` (the nearest same-dance dancer within
-`SyncStuds`), favourites-first order.
+`Prop`. `EmoteSync` (pure, Lune-tested) holds the maths: where a dance that started at server
+time `at` is now (`phase`: Popcorn's intro, then its loop; a one-shot's end), `drift` round a
+loop, the music's place and distance curve, `clampAt` (a client's start time), `joinAt` (the
+nearest same-dance dancer within `SyncStuds`), the `nearest` few, favourites-first order.
 
 - **Server** `EmoteService`: `EmoteRequest` (RemoteFunction, rate limited) answers Play (refused
   for an unknown id or a body that cannot dance: none, dead, not R15, root anchored by a turn),
   Sync (another dancer's dance, or its `Duo` partner while free, from their `at`, within
   `Sync.Studs` plus slack: `EmoteSync.syncRow`), Stop, Favorite (`PlayerData.setEmoteFavorite`,
   the save's `EmoteFavorites` map, no version bump), Open (analytics) and Who (a starting
-  client's catch-up, with each dancer's duo partner). Play picks `at`, welds the
+  client's catch-up, with each dancer's duo partner). Play takes the client's `at` (it started
+  the dance at once) within `Align.MaxSkewSeconds`, or a nearby dancer's to join in step; a
+  stop names the dance's `at`, so a client ignores one for a dance it already replaced. It welds the
   prop to the hand and tells everyone through `EmoteState`. It builds the preview body
   (`ReplicatedStorage.EmotePreviewRig`). Analytics: custom events `Emote` (id, device, Lobby or
   Match) and `EmoteMenu` (device, where).
-- **Client** `EmotePlayer` plays your own dance on your Animator (it replicates by itself) at the
-  place the server clock says, stops it on a jump, another pick, a reset or a turn's pose
-  (`track.Stopped`); walking goes on at `WalkSpeed` (or the row's), set on this client only and
-  put back after. `EmoteSyncPrompt` puts a ProximityPrompt (this client only) on each other
-  dancer in the lobby; holding it calls `EmotePlayer.sync`. It plays everyone's music from the dancer: one Sound per group in step
-  (`groupKey`), in the Music SoundGroup. `EmoteHud` owns the button and its ScreenGui
-  (DisplayOrder 2, over the HUD and the results); Main calls `update(inMatch, controlled)` each
-  frame and lets a controller's selection rest in the tray (`dropStrayMatchSelection`, HubPad's
-  `freeTheStick`). `EmoteMenu` is the tray; `EmotePreview` one card's ViewportFrame silhouette.
+- **Client** `EmotePlayer` starts your own dance at once on your Animator (it replicates by
+  itself) from an `at` it picks on the server clock, then asks the server (a refusal stops it,
+  another `at` moves it); it stops on a jump, another pick, a reset or a turn's pose
+  (`track.Stopped`); walking goes on at `WalkSpeed` (or the row's; Popcorn and Bullseye 0), set
+  on this client only and put back after. Sync starts the dancer's dance at once from their
+  `at`. `EmoteAlign` keeps every dancer's track near the camera, yours included, on the server
+  clock on this screen (TimePosition does not replicate; Roblox's copy arrives late by ping):
+  on `Animator.AnimationPlayed` and in a 0.5 s pass past 0.05 s of drift (`Align`; off: only
+  yours). `EmoteMusic` plays each in-step group's song as one `AudioPlayer` wired to an
+  `AudioEmitter` on each of up to `MusicVoices` nearest dancers (one playback, so never out of
+  time; Roblox's camera listener hears it; the Music group's volume mutes it).
+  `EmoteSyncPrompt` puts a ProximityPrompt (this client only) on each other dancer, in the
+  lobby and in a match (`Sync.InMatch`; a controller's Y there, X in the lobby; not under the
+  ability pick); holding it calls `EmotePlayer.sync`. `EmoteHud` owns the button and its
+  ScreenGui (DisplayOrder 2, over the HUD and the results); Main calls
+  `update(inMatch, aimingOrStroking, abilityPickUp)` each frame, so the button shows once your
+  stroke has played, and lets a controller's selection rest in the tray
+  (`dropStrayMatchSelection`, HubPad's `freeTheStick`). `EmoteMenu` is the tray; `EmotePreview` one card's ViewportFrame silhouette.
 - **Results:** `ResultScreen` reads `Config.EmoteMenu.Results` (no blur, no DEFEAT, greyed loser)
   only while the menu is on; off, the screen is as before.
 - **Our own emotes** (`Config.EmoteMenu.Custom`, switch `Enabled`; off, the menu is as before):
@@ -995,6 +1007,8 @@ time `at` is now, the music's place, `joinAt` (the nearest same-dance dancer wit
   box), rolls each handful (about half
   misses, seeded so every client throws the same) and the kernels' arcs. While you shoot,
   `EmoteHud` hides every tall prop on your screen (`EmoteScene.setShooting`). While a scene
-  plays, the dancer's own client holds the body's facing (`Custom.HoldFacing`: AutoRotate off
-  and an `AlignOrientation`), so shift lock and the camera can't turn it. The animations
+  plays, Bullseye's dancer's own client holds the body's facing (`Custom.Bullseye.HoldFacing`:
+  AutoRotate off and an `AlignOrientation`), so shift lock and the camera can't turn it;
+  Popcorn's is free and its lounger is welded to the root on every screen, so it turns with a
+  shift lock turn. The animations
   are authored in Lune (`tools/emotes/`), the models in Blender (`tools/blender/emotes/`).

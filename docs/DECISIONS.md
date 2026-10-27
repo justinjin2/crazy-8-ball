@@ -4626,3 +4626,20 @@ timer of a new block stay the designer's call.
   standard prompt on each other dancer within 10 studs, a 0.3 s hold (his picks), lobby only
   (in a match X is the ult's); Gojo and Geto pair up one to one, every other dance takes any
   number. The EMOTE icon lost its bottom-left and top-right motion marks.
+- 2026-10-27: Emote Sync is in step on every screen. Two causes: a dance joined under 3 s
+  after its leader started played from frame 0 (the FreshSeconds rule), and nothing lined up
+  what other screens see (Roblox copies a dancer's track late by ping; TimePosition does not
+  replicate). Every client now seeks every nearby dancer's track to one server clock
+  (`EmoteAlign`), and the pressing client starts at once on that clock. A full client-side
+  animation system (replication off) was not chosen: it would touch walking, the cue pose and
+  the cutscenes on the live game.
+- 2026-10-27: Each dancer plays the song from their own body (designer): one AudioPlayer per
+  in-step group wired to an emitter on each dancer, so it is louder together and never out of
+  time; at most 4 voices (designer) so a big circle does not blast.
+- 2026-10-27: Popcorn and Bullseye stand still (only a jump ends them). Popcorn's body turns
+  with shift lock and its lounger turns with it; Bullseye keeps its facing (designer).
+- 2026-10-27: Gojo and Geto Walk 7.5% faster (1.6 to 1.72), the walking speed only, not the
+  animation (designer).
+- 2026-10-27: In a match the EMOTE button shows once your stroke has played and hides on your
+  turn; Sync works in matches too, on a controller's Y there since X is the ability's
+  (designer).

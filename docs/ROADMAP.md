@@ -570,8 +570,11 @@ closed and all emote work is in `~/Desktop/8ball` (`Config.EmoteMenu.Enabled`).
   (`Config.EmoteMenu.Custom`).
 - [x] **Sync.** Prompts on dancers in the lobby, Gojo/Geto pair one to one
   (`Config.EmoteMenu.Sync.Enabled`).
-- [ ] **Bug fixes and checks before publishing.** The designer's bug list; Sync with two real
-  accounts; a phone and a controller.
+- [x] **The designer's first fix list** (2026-10-27): Sync in step on every screen, the song
+  from every dancer (4 voices), Popcorn and Bullseye still, Popcorn's lounger turns with shift
+  lock, Gojo/Geto 1.72, the button after your stroke in a match, Sync in matches (Y).
+- [ ] **Checks before publishing.** Two players (Sync, both screens, the song from both
+  bodies); a match; a phone and a controller.
 - [ ] **Custom emote sounds by ear.** The designer picks each of the nine sounds
   (`Custom.Sounds`; first picks from Roblox's free library are in).
 - [ ] **Read the numbers.** `Emote` and `EmoteMenu` custom events after a few days: share of
