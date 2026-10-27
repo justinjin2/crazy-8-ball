@@ -17988,6 +17988,15 @@ Config.EmoteMenu = {
 		PhoneGapPx = 7,
 		NamePx = 15, -- a card's name
 		PhoneNamePx = 12,
+		-- The credit strip's one line: the dance's name, then "by <maker>" smaller and grey, cut
+		-- short with "..." when the tray is narrow; the Avatar Shop pill on its right.
+		CreditNamePx = 15,
+		PhoneCreditNamePx = 12,
+		CreditByPx = 13,
+		PhoneCreditByPx = 11,
+		CreditBy = { 120, 126, 145 }, -- the "by <maker>" grey
+		ShopPx = 112, -- the Avatar Shop pill's width
+		PhoneShopPx = 88,
 		PeekShare = 0.18, -- how much of the third row shows (scroll hint)
 		-- The gap: the arrow's tip stops this far above the top of the button's noob, and the
 		-- arrow under the tray is this tall (designer: "a little gap ... a little arrow").

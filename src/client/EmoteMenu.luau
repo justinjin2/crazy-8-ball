@@ -15,6 +15,7 @@
 --   stars; X opens the shop link; B (or R3 again) closes. Touch and mouse: tap or click.
 local ContextActionService = game:GetService("ContextActionService")
 local GuiService = game:GetService("GuiService")
+local LocalizationService = game:GetService("LocalizationService")
 local MarketplaceService = game:GetService("MarketplaceService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -53,6 +54,11 @@ type Card = {
 
 local function color(values: { number }): Color3
 	return Color3.fromRGB(values[1], values[2], values[3])
+end
+
+-- Text made safe for a rich-text label.
+local function escape(text: string): string
+	return (text:gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;"))
 end
 
 local function round(n: number): number
@@ -165,18 +171,17 @@ function EmoteMenu.new(screen: ScreenGui, icon: string)
 	edge.BackgroundColor3 = HudParts.color(K.Colors.Ink)
 	edge.Size = UDim2.new(1, 0, 0, 3)
 	edge.ZIndex = 4
-	local name = HudParts.note(credit, "Name", 15, "")
+	-- One line, so the name and its maker never run into each other: "Rat Dance by
+	-- Voxelates", the maker smaller and grey (rich text), cut short with "..." when narrow.
+	local name = HudParts.note(credit, "Name", T.CreditNamePx, "")
+	name.TextScaled = false
+	name.RichText = true
+	name.TextTruncate = Enum.TextTruncate.AtEnd
 	name.TextXAlignment = Enum.TextXAlignment.Left
 	name.TextWrapped = false
+	name.AutoLocalize = false -- a maker's name is never translated
 	name.ZIndex = 4
 	self.creditName = name
-	local by = HudParts.note(credit, "By", 13, "")
-	by.TextXAlignment = Enum.TextXAlignment.Left
-	by.TextWrapped = false
-	by.TextTransparency = 0.35
-	by.AutoLocalize = false -- a maker's name is never translated
-	by.ZIndex = 4
-	self.creditBy = by
 	local shop = Instance.new("TextButton")
 	shop.Name = "Shop"
 	shop.AutoButtonColor = false
@@ -212,6 +217,19 @@ function EmoteMenu.new(screen: ScreenGui, icon: string)
 		self:refreshFavorites()
 	end)
 	self:refreshFavorites()
+	-- The credit strip's dance name is translated like the cards' (Roblox's
+	-- automatic translation) through the game's translator, fetched once; English needs none.
+	if string.sub(string.lower(Players.LocalPlayer.LocaleId), 1, 2) ~= "en" then
+		task.spawn(function()
+			local ok, translator = pcall(function()
+				return LocalizationService:GetTranslatorForPlayerAsync(Players.LocalPlayer)
+			end)
+			if ok and translator then
+				self.translator = translator
+				self:layoutCredit()
+			end
+		end)
+	end
 	return self
 end
 
@@ -318,8 +336,7 @@ function EmoteMenu.setFocus(self: any, id: string?)
 		return
 	end
 	self.focus = row.Id
-	self.creditName.Text = W.Names[row.Id] or row.Id
-	self.creditBy.Text = W.By:format(row.Creator)
+	self.creditRow = row
 	self:layoutCredit()
 end
 
@@ -439,17 +456,35 @@ function EmoteMenu.layout(self: any, size: Vector2, anchor: Vector2, phone: bool
 end
 
 function EmoteMenu.layoutCredit(self: any)
-	local credit = self.credit
-	local pad = if self.phone then 8 else 12
-	local shopW = if self.phone then 92 else 112
+	local phone = self.phone
+	local pad = if phone then 8 else 12
+	local shopW = if phone then T.PhoneShopPx else T.ShopPx
 	self.shop.AnchorPoint = Vector2.new(1, 0.5)
 	self.shop.Position = UDim2.new(1, -pad, 0.5, 1)
 	self.shop.Size = UDim2.new(0, shopW, 0.62, 0) -- of the strip's height
-	local nameW = math.min(credit.AbsoluteSize.X * 0.45, self.creditName.TextBounds.X + 8)
-	self.creditName.Position = UDim2.fromOffset(pad, 3)
-	self.creditName.Size = UDim2.new(0, math.max(40, nameW), 1, -3)
-	self.creditBy.Position = UDim2.fromOffset(pad + math.max(40, nameW) + 4, 3)
-	self.creditBy.Size = UDim2.new(1, -(pad * 2 + math.max(40, nameW) + shopW + 10), 1, -3)
+	local name = self.creditName
+	name.TextSize = if phone then T.PhoneCreditNamePx else T.CreditNamePx
+	name.Position = UDim2.fromOffset(pad, 3)
+	name.Size = UDim2.new(1, -(pad * 2 + shopW + 6), 1, -3)
+	local row = self.creditRow
+	if row == nil then
+		name.Text = ""
+		return
+	end
+	local title = W.Names[row.Id] or row.Id
+	local translator = self.translator
+	if translator then
+		local ok, text = pcall(translator.Translate, translator, game, title)
+		if ok and type(text) == "string" and text ~= "" then
+			title = text
+		end
+	end
+	name.Text = ('%s  <font size="%d" color="#%s">%s</font>'):format(
+		escape(title),
+		if phone then T.PhoneCreditByPx else T.CreditByPx,
+		color(T.CreditBy):ToHex(),
+		escape(W.By:format(row.Creator))
+	)
 end
 
 function EmoteMenu.isOpen(self: any): boolean
