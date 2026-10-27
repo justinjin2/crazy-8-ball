@@ -17819,9 +17819,9 @@ Config.EmoteMenu = {
 			Animation = 113375965758912,
 			Creator = "Voxelates",
 			Length = 4.438,
-			-- "rat dance nicos nextbos" (DistrokidOfficial): from the song's first beat (designer,
+			-- "rat dance nicos nextbos" (DistrokidOfficial): from the very start (designer,
 			-- 2026-10-27: it starts at the beginning), 32 beats at 107.7 BPM.
-			Music = { Id = "rbxassetid://108236999118620", Start = 0.131, Loop = 17.833 },
+			Music = { Id = "rbxassetid://108236999118620", Start = 0, Loop = 17.833 },
 		},
 		{
 			Id = "Passinho",
@@ -18166,6 +18166,11 @@ Config.EmoteMenu = {
 	MusicHearStuds = 12, -- full volume up to here
 	MusicMaxStuds = 70, -- silent from here
 	MusicLoadSeconds = 5, -- a track not loaded by then is skipped (the dance goes on silent)
+	-- A dance started this recently (seconds since its loop's start) begins from the beginning:
+	-- its music from Start and your own animation from its first frame, instead of skipping
+	-- what loading and the server's answer took (designer, 2026-10-27: Rat Dance's song must
+	-- start at the beginning). Older (joining someone in step): in step, as before.
+	FreshSeconds = 3,
 	-- Dancing together (designer: auto-sync): a player who starts a dance that someone within
 	-- this many studs is already doing joins it in step, and their music plays once.
 	SyncStuds = 24,

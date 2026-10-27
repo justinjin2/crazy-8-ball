@@ -64,6 +64,12 @@ function EmoteSync.musicPosition(
 	return start + ((math.max(0, now - at) * (speed or 1)) % loop)
 end
 
+--- Whether a dance whose loop started at `at` is still new enough at `now` (less than `within`
+--- seconds) to begin from the beginning rather than catch up.
+function EmoteSync.fromStart(now: number, at: number, within: number): boolean
+	return now - at < within
+end
+
 --- The `at` a dance `id` starting now should use: the nearest dancer within `radius` already
 --- doing the same dance (to move in step with them), else `now`.
 function EmoteSync.joinAt(now: number, id: string, nearby: { Nearby }, radius: number): number

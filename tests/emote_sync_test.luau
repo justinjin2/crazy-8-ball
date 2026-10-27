@@ -29,6 +29,8 @@ return {
 		H.expect(near(S.musicPosition(125, 100, 31, 20), 36), "looped once")
 		H.expect(near(S.musicPosition(125, 100, 31, 0), 31), "no loop stays at the start")
 		H.expect(near(S.musicPosition(110, 100, 0, 3, 0.17), 1.7), "at its speed")
+		H.expect(S.fromStart(101.5, 100, 3) == true, "just started: from the beginning")
+		H.expect(S.fromStart(104, 100, 3) == false, "older: in step")
 		H.expect(near(S.musicPosition(120, 100, 0, 3, 0.17), 0.4), "looped once at its speed")
 	end,
 

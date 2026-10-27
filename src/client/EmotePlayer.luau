@@ -163,13 +163,10 @@ local function joinMusic(userId: number, id: string, at: number)
 		if groups[key] ~= group or not sound.IsLoaded then
 			return -- stopped meanwhile, or the track is gone: the dance goes on silent
 		end
-		sound.TimePosition = EmoteSync.musicPosition(
-			workspace:GetServerTimeNow(),
-			at,
-			music.Start,
-			music.Loop,
-			music.Speed
-		)
+		local now = workspace:GetServerTimeNow()
+		sound.TimePosition = if EmoteSync.fromStart(now, at, E.FreshSeconds)
+			then music.Start
+			else EmoteSync.musicPosition(now, at, music.Start, music.Loop, music.Speed)
 		sound:Play()
 	end)
 end
@@ -340,7 +337,8 @@ function EmotePlayer.play(id: string): (boolean, string?)
 	end
 	local at = if type(answer.at) == "number" then answer.at else workspace:GetServerTimeNow()
 	-- In step with the loop the server started (yours, or the dancer you joined). Our own
-	-- emotes start on their own: from their start.
+	-- emotes start on their own: from their start; so does a dance just started (FreshSeconds),
+	-- like its music, rather than skipping what loading took.
 	task.spawn(function()
 		if row.Scene then
 			return
@@ -348,6 +346,9 @@ function EmotePlayer.play(id: string): (boolean, string?)
 		local deadline = os.clock() + E.LoadSeconds
 		while track.Length <= 0 and os.clock() < deadline do
 			task.wait()
+		end
+		if EmoteSync.fromStart(workspace:GetServerTimeNow(), at, E.FreshSeconds) then
+			return
 		end
 		if track.IsPlaying and track.Length > 0 then
 			track.TimePosition =
