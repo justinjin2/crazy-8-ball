@@ -18016,6 +18016,10 @@ Config.EmoteMenu = {
 		-- While you shoot, every emote prop is hidden on your screen (designer: they never
 		-- cover the balls); it comes back when your shot is taken.
 		HideWhileShooting = true,
+		-- The body keeps the way it faced when the dance began (designer, 2026-10-27): no
+		-- turning with the camera or shift lock, no spinning round the lounger; it frees again
+		-- when the dance ends (walking ends it).
+		HoldFacing = true,
 		Popcorn = {
 			-- Where the lounger and umbrella stand from the floor under the dancer's root,
 			-- turned as the dancer faces (the model's own layout; studs at scale 1).

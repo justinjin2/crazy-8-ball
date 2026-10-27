@@ -39,6 +39,7 @@ type Mine = {
 	intro: AnimationTrack?,
 	since: number,
 	links: { RBXScriptConnection },
+	release: (() -> ())?, -- lets go of the held facing (our own emotes)
 }
 local mine: Mine? = nil
 local busy = false -- a Play request is out
@@ -202,6 +203,37 @@ end
 -- Your own dance
 ------------------------------------------------------------------------------------------------
 
+-- Our own emotes hold the body's facing (their lounger and target are built round it): the
+-- camera, shift lock and auto-rotate cannot turn it until the dance ends. Answers how to let go.
+local function holdFacing(humanoid: Humanoid): () -> ()
+	local root = humanoid.RootPart
+	if root == nil then
+		return function() end
+	end
+	local was = humanoid.AutoRotate
+	humanoid.AutoRotate = false
+	local look = root.CFrame.LookVector
+	local flat = Vector3.new(look.X, 0, look.Z)
+	flat = if flat.Magnitude > 1e-3 then flat.Unit else Vector3.new(0, 0, -1)
+	local attachment = Instance.new("Attachment")
+	attachment.Name = "EmoteFacing"
+	attachment.Parent = root
+	local align = Instance.new("AlignOrientation")
+	align.Name = "EmoteFacing"
+	align.Mode = Enum.OrientationAlignmentMode.OneAttachment
+	align.Attachment0 = attachment
+	align.RigidityEnabled = true
+	align.CFrame = CFrame.lookAt(Vector3.zero, flat)
+	align.Parent = root
+	return function()
+		align:Destroy()
+		attachment:Destroy()
+		if humanoid.Parent then
+			humanoid.AutoRotate = was
+		end
+	end
+end
+
 local function endMine(fade: boolean)
 	local current = mine
 	if current == nil then
@@ -210,6 +242,9 @@ local function endMine(fade: boolean)
 	mine = nil
 	for _, link in current.links do
 		link:Disconnect()
+	end
+	if current.release then
+		current.release()
 	end
 	current.track:Stop(if fade then E.FadeSeconds else 0)
 	if current.intro then
@@ -255,8 +290,14 @@ function EmotePlayer.play(id: string): (boolean, string?)
 	endMine(false)
 	local speed = row.Speed or 1
 	local links = {}
-	local current: Mine =
-		{ id = row.Id, track = track, intro = intro, since = os.clock(), links = links }
+	local current: Mine = {
+		id = row.Id,
+		track = track,
+		intro = intro,
+		since = os.clock(),
+		links = links,
+		release = if row.Scene and E.Custom.HoldFacing then holdFacing(humanoid) else nil,
+	}
 	mine = current
 	if intro then
 		-- Our own emotes start on their own: the intro, then the loop from its start, blended
