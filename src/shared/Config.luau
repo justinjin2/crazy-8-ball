@@ -18006,6 +18006,7 @@ Config.EmoteMenu = {
 				Once = true,
 				Scene = "Bullseye",
 				Prop = "Bow",
+				WalkSpeed = 0, -- designer, 2026-10-27: no walking while shooting
 			},
 		} :: {
 			{

@@ -287,6 +287,8 @@ return {
 		H.expect(popcorn ~= nil and popcorn.WalkSpeed == 0, "no walking while lounging")
 		H.expect(C.Popcorn.HoldFacing == false, "shift lock turns the lounging body")
 		H.expect(C.Bullseye.HoldFacing == true, "Bullseye faces its target")
+		local bullseye = S.find(C.List, "Bullseye")
+		H.expect(bullseye ~= nil and bullseye.WalkSpeed == 0, "no walking while shooting")
 	end,
 
 	["an asset id's number"] = function()
