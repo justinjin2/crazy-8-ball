@@ -315,8 +315,8 @@ return {
 		local codes = {}
 		local row = Config.Daily.Codes[U.CodeBanner.ActiveCode]
 		H.expect(
-			row ~= nil and row.Spins == 15 and row.Money == 10000,
-			"the banner's code gives 15 spins and $10,000"
+			row ~= nil and row.Spins == 15 and row.Money == 20000,
+			"the banner's code gives 15 spins and $20,000"
 		)
 		local ok, reward = Daily.redeem(codes, "  release ", DAY * 86400)
 		H.expect(ok and (reward :: any).spins == 3 and (reward :: any).lucky == 0, "3 spins")
@@ -342,6 +342,15 @@ return {
 		H.expect(ok1k and (got1k :: any).spins == 15, "1KLIKES gives 15 spins")
 		H.expect((got1k :: any).money == 10000, "and $10,000")
 		H.expect(not Daily.isLive("1KLIKES"), "1KLIKES on without /code on")
+		-- It works through 2026-10-31 after 2KLIKES (2026-10-27) and expires 2026-11-01 00:00
+		-- UTC; 2KLIKES gives 15 spins and $20,000, always on.
+		H.expect(Daily.redeem({}, "1KLIKES", 1793491200 - 1), "1KLIKES still works on 2026-10-31")
+		local late1k, late1kWhy = Daily.redeem({}, "1KLIKES", 1793491200)
+		H.expect(not late1k and late1kWhy == "Expired", "1KLIKES expired from 2026-11-01")
+		local ok2k, got2k = Daily.redeem(codes, "2klikes", 1793491200)
+		H.expect(ok2k and (got2k :: any).spins == 15, "2KLIKES gives 15 spins")
+		H.expect((got2k :: any).money == 20000, "and $20,000")
+		H.expect(not Daily.isLive("2KLIKES"), "2KLIKES on without /code on")
 		local out = RewardView.reward(reward :: any)
 		H.expect(out.spins == 3 and out.lucky == 0 and out.money == 0, "the reply's chip")
 		-- Lucky Spins are retired: a code row with LuckySpins pays plain spins.
@@ -535,7 +544,7 @@ return {
 		end
 		H.expect(p.live and not p.restricted and not p.vip and not p.devAll, "flags")
 		H.expect(p.moneyPerSpin == 10000 and #p.moneyPacks == 4, "money")
-		H.expect(p.code.active == "1KLIKES" and p.code.nextGoalLikes == 2000, "the code box")
+		H.expect(p.code.active == "2KLIKES" and p.code.nextGoalLikes == 5000, "the code box")
 		H.expect((p :: any).auto == nil and (p :: any).autoStopChoices == nil, "no Auto Spin")
 		for _, key in SpinView.productKeys() do
 			local product = p.products[key]
