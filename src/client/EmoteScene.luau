@@ -53,6 +53,7 @@ type Scene = {
 	tosses: number,
 	puff: ParticleEmitter?,
 	puffAt: Attachment?,
+	puffCount: number, -- its puffs' share of the count asked (Bullseye's are fewer)
 	-- Popcorn
 	lounger: BasePart?,
 	kernels: { BasePart },
@@ -187,9 +188,9 @@ end
 
 local function puff(scene: Scene, at: Vector3, count: number)
 	local e, a = scene.puff, scene.puffAt
-	if e and a then
+	if e and a and not (shooting and C.HideWhileShooting) then
 		a.Position = at
-		e:Emit(count)
+		e:Emit(math.max(1, math.round(count * scene.puffCount)))
 	end
 end
 
@@ -854,7 +855,7 @@ local function buildBullseye(scene: Scene, set: Instance, character: Model, anim
 	table.insert(
 		scene.links,
 		found:GetMarkerReachedSignal("Blow"):Connect(function()
-			if scene.smoke and not scene.poofed then
+			if scene.smoke and not scene.poofed and not (shooting and C.HideWhileShooting) then
 				scene.smoke:Emit(B.BlowPuffs)
 				play(scene, "Blow", scene.bow)
 			end
@@ -896,9 +897,10 @@ local function build(scene: Scene)
 	scene.floorY = root.Position.Y - C.RestRootStuds * s
 	scene.model.Parent = scenesFolder()
 	scene.puffAt = spot(scene, root.Position)
+	local share = if scene.kind == "Bullseye" then B.PuffSizeShare else 1
 	scene.puff = emitter(scene.puffAt :: Attachment, {
 		Texture = C.Sprites.Puff,
-		Size = seq(1.0 * s, 2.4 * s),
+		Size = seq(1.0 * s * share, 2.4 * s * share),
 		Transparency = seq(0.15, 1),
 		Lifetime = NumberRange.new(0.45, 0.7),
 		Speed = NumberRange.new(3, 6),
@@ -941,6 +943,7 @@ function EmoteScene.start(userId: number, row: any)
 		tall = {},
 		pile = {},
 		tosses = 0,
+		puffCount = if row.Scene == "Bullseye" then B.PuffCountShare else 1,
 		kernels = {},
 		drawn = {},
 		targetScale = 1,
@@ -1004,6 +1007,12 @@ function EmoteScene.setShooting(on: boolean)
 	for _, scene in scenes do
 		for _, part in scene.tall do
 			hide(part)
+		end
+		if on and scene.puff then
+			scene.puff:Clear()
+		end
+		if on and scene.smoke then
+			scene.smoke:Clear()
 		end
 	end
 end

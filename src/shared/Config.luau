@@ -18069,7 +18069,8 @@ Config.EmoteMenu = {
 		MaxBodyScale = 1.6,
 		PopSeconds = 0.2, -- a prop fades in (with a puff) and out (with a poof) this fast
 		-- While you shoot, every emote prop is hidden on your screen (designer: they never
-		-- cover the balls); it comes back when your shot is taken.
+		-- cover the balls); it comes back when your shot is taken. Their puffs and smoke are
+		-- cleared and none is made meanwhile (2026-10-27: a Bullseye could block a shot's view).
 		HideWhileShooting = true,
 		-- Each scene's HoldFacing: the body keeps the way it faced when the dance began (no
 		-- turning with the camera or shift lock) until it ends. Both stand still (their rows'
@@ -18154,6 +18155,11 @@ Config.EmoteMenu = {
 			Splinters = 12,
 			Twinkles = 8,
 			BlowPuffs = 4, -- the smoke off the bow's top limb at "Blow"
+			-- Its pop-in and poof puffs are this share of Popcorn's size, and this share as many
+			-- (designer, 2026-10-27: the target's puff, right ahead of the archer, could hide the
+			-- table from the shooter; 70% smaller, half as many).
+			PuffSizeShare = 0.3,
+			PuffCountShare = 0.5,
 			-- Its card in the tray: the body turned a quarter (degrees) so the draw reads side-on,
 			-- and moved this far across (studs) so the bow fits.
 			Preview = { Turn = 90, Shift = -1.1 },

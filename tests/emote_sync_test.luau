@@ -291,6 +291,15 @@ return {
 		H.expect(bullseye ~= nil and bullseye.WalkSpeed == 0, "no walking while shooting")
 	end,
 
+	["Bullseye's puffs are small and few, and hidden while you shoot"] = function()
+		local _, Config = load()
+		local C = Config.EmoteMenu.Custom
+		local share = C.Bullseye.PuffSizeShare
+		H.expect(share >= 0.2 and share <= 0.4, "60 to 80% smaller (designer)")
+		H.expect(C.Bullseye.PuffCountShare <= 0.5, "half as many or fewer")
+		H.expect(C.HideWhileShooting == true, "no prop or puff on your screen while you shoot")
+	end,
+
 	["Gojo and Geto walk side by side, 7.5% faster than their first 1.6"] = function()
 		local S, Config = load()
 		local gojo = S.find(Config.EmoteMenu.List, "GojoWalk")
