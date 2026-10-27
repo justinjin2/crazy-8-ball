@@ -17918,6 +17918,7 @@ Config.EmoteMenu = {
 			Animation = 104248876465825,
 			Creator = "Animations World",
 			Length = 9.967,
+			Once = true, -- designer, 2026-10-27: it does not loop; its music (when it has one) ends too
 		},
 		{
 			Id = "GojoWalk",

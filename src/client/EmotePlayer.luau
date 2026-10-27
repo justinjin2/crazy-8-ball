@@ -144,7 +144,10 @@ local function joinMusic(userId: number, id: string, at: number)
 	sound.SoundId = music.Id
 	sound.Volume = music.Volume or E.MusicVolume
 	sound.PlaybackSpeed = music.Speed or 1
-	sound.Looped = true
+	-- A dance that plays once (Money) plays its music once too: it never loops.
+	local row = EmoteSync.find(E.List, id)
+	local once = row ~= nil and row.Once == true
+	sound.Looped = not once
 	sound.PlaybackRegionsEnabled = true
 	sound.PlaybackRegion = NumberRange.new(music.Start, music.Start + music.Loop)
 	sound.LoopRegion = NumberRange.new(music.Start, music.Start + music.Loop)
@@ -164,9 +167,20 @@ local function joinMusic(userId: number, id: string, at: number)
 			return -- stopped meanwhile, or the track is gone: the dance goes on silent
 		end
 		local now = workspace:GetServerTimeNow()
-		sound.TimePosition = if EmoteSync.fromStart(now, at, E.FreshSeconds)
+		local position: number? = if EmoteSync.fromStart(now, at, E.FreshSeconds)
 			then music.Start
+			elseif once then EmoteSync.musicOncePosition(
+				now,
+				at,
+				music.Start,
+				music.Loop,
+				music.Speed
+			)
 			else EmoteSync.musicPosition(now, at, music.Start, music.Loop, music.Speed)
+		if position == nil then
+			return -- a play-once dance's music is over: not again
+		end
+		sound.TimePosition = position
 		sound:Play()
 	end)
 end

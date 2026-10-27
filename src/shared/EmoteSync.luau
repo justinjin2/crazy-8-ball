@@ -64,6 +64,22 @@ function EmoteSync.musicPosition(
 	return start + ((math.max(0, now - at) * (speed or 1)) % loop)
 end
 
+--- Where the music of a dance that plays once is at `now`: like musicPosition but never
+--- looping; nil once its Loop seconds are over (it is not played again).
+function EmoteSync.musicOncePosition(
+	now: number,
+	at: number,
+	start: number,
+	loop: number,
+	speed: number?
+): number?
+	local played = math.max(0, now - at) * (speed or 1)
+	if played >= loop then
+		return nil
+	end
+	return start + played
+end
+
 --- Whether a dance whose loop started at `at` is still new enough at `now` (less than `within`
 --- seconds) to begin from the beginning rather than catch up.
 function EmoteSync.fromStart(now: number, at: number, within: number): boolean
