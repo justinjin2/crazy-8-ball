@@ -963,14 +963,18 @@ time `at` is now, the music's place, `joinAt` (the nearest same-dance dancer wit
 
 - **Server** `EmoteService`: `EmoteRequest` (RemoteFunction, rate limited) answers Play (refused
   for an unknown id or a body that cannot dance: none, dead, not R15, root anchored by a turn),
-  Stop, Favorite (`PlayerData.setEmoteFavorite`, the save's `EmoteFavorites` map, no version
-  bump), Open (analytics) and Who (a starting client's catch-up). Play picks `at`, welds the
+  Sync (another dancer's dance, or its `Duo` partner while free, from their `at`, within
+  `Sync.Studs` plus slack: `EmoteSync.syncRow`), Stop, Favorite (`PlayerData.setEmoteFavorite`,
+  the save's `EmoteFavorites` map, no version bump), Open (analytics) and Who (a starting
+  client's catch-up, with each dancer's duo partner). Play picks `at`, welds the
   prop to the hand and tells everyone through `EmoteState`. It builds the preview body
   (`ReplicatedStorage.EmotePreviewRig`). Analytics: custom events `Emote` (id, device, Lobby or
   Match) and `EmoteMenu` (device, where).
 - **Client** `EmotePlayer` plays your own dance on your Animator (it replicates by itself) at the
-  place the server clock says, stops it on walking, jumping, a turn's pose (`track.Stopped`) or
-  the cap, and plays everyone's music from the dancer: one Sound per group in step
+  place the server clock says, stops it on a jump, another pick, a reset or a turn's pose
+  (`track.Stopped`); walking goes on at `WalkSpeed` (or the row's), set on this client only and
+  put back after. `EmoteSyncPrompt` puts a ProximityPrompt (this client only) on each other
+  dancer in the lobby; holding it calls `EmotePlayer.sync`. It plays everyone's music from the dancer: one Sound per group in step
   (`groupKey`), in the Music SoundGroup. `EmoteHud` owns the button and its ScreenGui
   (DisplayOrder 2, over the HUD and the results); Main calls `update(inMatch, controlled)` each
   frame and lets a controller's selection rest in the tray (`dropStrayMatchSelection`, HubPad's

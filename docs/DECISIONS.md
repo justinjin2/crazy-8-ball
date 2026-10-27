@@ -4618,3 +4618,11 @@ timer of a new block stay the designer's call.
   call, after being told it is the real song disguised to pass Roblox's check. **A dance just
   started begins from the beginning** (`FreshSeconds`): its music from Start and its animation
   from the first frame, instead of skipping the load time to stay on the server's clock.
+- 2026-10-27 (designer): **13 dances with their original songs**: his own uploads for Passinho,
+  Scenario, Scuba, Rakai, Jackpot and Money (replacing the fan clips and the hakari clip);
+  Gangnam, Come Back and Want You Back are gone; **Geto Walk** joins as Gojo Walk's duo. **A
+  dance goes on while you walk**, until a jump, another pick or a reset (no time limit), at
+  Roblox's 16 (Gojo and Geto 1.6, one speed so a pair walks together). **Sync**: Roblox's
+  standard prompt on each other dancer within 10 studs, a 0.3 s hold (his picks), lobby only
+  (in a match X is the ult's); Gojo and Geto pair up one to one, every other dance takes any
+  number. The EMOTE icon lost its bottom-left and top-right motion marks.
