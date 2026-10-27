@@ -4606,3 +4606,10 @@ timer of a new block stay the designer's call.
   silent). Sega Walk, Gangnam, Scenario, Scuba, Rakai and Jackpot have one; Come Back, Want
   You Back, Money and Passinho have no public copy, so the designer uploads those if the
   clips are not good. Gojo Walk stays silent (designer's brief).
+- 2026-10-27 (designer): **no uploads of copyrighted songs**: the designer decided against
+  uploading the original songs for Come Back, Want You Back, Money and Passinho himself (too
+  much risk); those dances get a similar Creator Store track or one of his own. **The menu's
+  order** starts Popcorn, Rat Dance, Low Cortisol, Sega Walk, Bullseye, Gojo Walk
+  (`Config.EmoteMenu.First`), the rest as listed. **Gojo Walk keeps going while you walk**
+  (`Walk = true` on its row) until you jump. Rat Dance's music starts at the song's first beat
+  (was 2.7 s in), and Popcorn's munch is much quieter (0.6 to 0.2).
