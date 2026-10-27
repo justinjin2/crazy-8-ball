@@ -7,6 +7,8 @@
 -- icon, its name, a grey line and a big ON / OFF switch; a press flips the switch (SettingsState
 -- shows it at once and saves it). "Camera after a shot" has three buttons side by side instead
 -- (HORIZONTAL, VERTICAL, PLAYER; ShotView, Config.UI.Settings.Segments; designer, 2026-10-25):
+-- ... and Sound effects has two switches, "All" and "Emotes" (Config.UI.Settings.Pairs; the
+-- second, the emotes' sounds, is its own button; designer, 2026-10-27),
 -- a press on one picks it, the lit pill in the view's colour slides under it and the grey line
 -- names the view; a press elsewhere on the row (a gamepad's A) moves to the next view. While
 -- Config.Freecam is enabled a last row, Freecam (Config.Settings.Actions: not saved), starts the
@@ -75,8 +77,21 @@ type Row = {
 	words: { Off: string, On: string }?, -- and its words (Strings.Settings.Choices)
 	onX: number, -- the words' centre across the switch with the knob right, as a share
 	segments: any?, -- a three-button row's Config.UI.Settings.Segments entry (ShotCam only)
+	pair: Pair?, -- a two-switch row's second switch (Config.UI.Settings.Pairs)
 	pill: Frame?, -- its lit pill, under the picked button
 	labels: { [string]: TextLabel }, -- its buttons' words, by view
+}
+
+-- A two-switch row's second switch, and both switches' words and their box.
+type Pair = {
+	key: string,
+	button: TextButton,
+	track: Frame,
+	knob: Frame,
+	state: TextLabel,
+	box: Frame,
+	firstWord: TextLabel,
+	secondWord: TextLabel,
 }
 
 -- A three-button row's view now (only ShotCam has three).
@@ -153,15 +168,28 @@ function SettingsMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 			return
 		end
 		local on = if row.key == "Freecam" then Freecam.active() else SettingsState.get(row.key)
-		local goal = {
-			Position = if on then UDim2.new(1, -inset, 0.5, 0) else UDim2.new(0, inset, 0.5, 0),
-			AnchorPoint = if on then Vector2.new(1, 0.5) else Vector2.new(0, 0.5),
-		}
-		if animate and row.track.AbsoluteSize.Y > 0 and not UIAnim.reduced() then
-			TweenService:Create(row.knob, TweenInfo.new(K.Motion.PopSeconds), goal):Play()
-		else
-			row.knob.Position = goal.Position
-			row.knob.AnchorPoint = goal.AnchorPoint
+		local function slide(track: Frame, knob: Frame, value: boolean)
+			local goal = {
+				Position = if value
+					then UDim2.new(1, -inset, 0.5, 0)
+					else UDim2.new(0, inset, 0.5, 0),
+				AnchorPoint = if value then Vector2.new(1, 0.5) else Vector2.new(0, 0.5),
+			}
+			if animate and track.AbsoluteSize.Y > 0 and not UIAnim.reduced() then
+				TweenService:Create(knob, TweenInfo.new(K.Motion.PopSeconds), goal):Play()
+			else
+				knob.Position = goal.Position
+				knob.AnchorPoint = goal.AnchorPoint
+			end
+		end
+		slide(row.track, row.knob, on)
+		local pair = row.pair
+		if pair then
+			local second = SettingsState.get(pair.key)
+			slide(pair.track, pair.knob, second)
+			pair.track.BackgroundColor3 = HudParts.tone(if second then "Green" else "Grey")
+			pair.state.Text = if second then W.On else W.Off
+			pair.state.Position = UDim2.fromScale(if second then row.onX else 1 - row.onX, 0.5)
 		end
 		local choice, words = row.choice, row.words
 		if choice and words then
@@ -211,6 +239,38 @@ function SettingsMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		end)
 	end
 
+	-- An ON / OFF switch: the rounded track, its white knob and its word.
+	local function makeSwitch(parent: Instance, name: string): (Frame, Frame, TextLabel)
+		local track = HudParts.frame(parent, name)
+		track.BackgroundTransparency = 0
+		track.AnchorPoint = Vector2.new(1, 0.5)
+		track.ZIndex = 4
+		HudParts.corner(track, 999)
+		local trackEdge = Instance.new("UIStroke")
+		trackEdge.Color = HudParts.tone("Ink")
+		trackEdge.Thickness = U.StrokePx
+		trackEdge.Parent = track
+		local knob = HudParts.frame(track, "Knob")
+		knob.BackgroundTransparency = 0
+		knob.BackgroundColor3 = HudParts.tone("White")
+		knob.SizeConstraint = Enum.SizeConstraint.RelativeYY
+		knob.Size = UDim2.new(1, -2 * U.KnobInsetPx, 1, -2 * U.KnobInsetPx)
+		knob.ZIndex = 6
+		HudParts.corner(knob, 999)
+		local knobEdge = Instance.new("UIStroke")
+		knobEdge.Color = HudParts.tone("Ink")
+		knobEdge.Thickness = 1
+		knobEdge.Transparency = 0.6
+		knobEdge.Parent = knob
+		local state = HudParts.text(track, "State", 14, "")
+		state.AutoLocalize = true
+		state.AnchorPoint = Vector2.new(0.5, 0.5)
+		state.Size = UDim2.fromScale(0.5, 0.8)
+		state.TextWrapped = false
+		state.ZIndex = 5
+		return track, knob, state
+	end
+
 	for _, key in KEYS do
 		local button = Instance.new("TextButton")
 		button.Name = key
@@ -246,33 +306,48 @@ function SettingsMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 			line.TextWrapped = false
 			line.ZIndex = 4
 		end
-		local track = HudParts.frame(button, "Switch")
-		track.BackgroundTransparency = 0
-		track.AnchorPoint = Vector2.new(1, 0.5)
-		track.ZIndex = 4
-		HudParts.corner(track, 999)
-		local trackEdge = Instance.new("UIStroke")
-		trackEdge.Color = HudParts.tone("Ink")
-		trackEdge.Thickness = U.StrokePx
-		trackEdge.Parent = track
-		local knob = HudParts.frame(track, "Knob")
-		knob.BackgroundTransparency = 0
-		knob.BackgroundColor3 = HudParts.tone("White")
-		knob.SizeConstraint = Enum.SizeConstraint.RelativeYY
-		knob.Size = UDim2.new(1, -2 * U.KnobInsetPx, 1, -2 * U.KnobInsetPx)
-		knob.ZIndex = 6
-		HudParts.corner(knob, 999)
-		local knobEdge = Instance.new("UIStroke")
-		knobEdge.Color = HudParts.tone("Ink")
-		knobEdge.Thickness = 1
-		knobEdge.Transparency = 0.6
-		knobEdge.Parent = knob
-		local state = HudParts.text(track, "State", 14, "")
-		state.AutoLocalize = true
-		state.AnchorPoint = Vector2.new(0.5, 0.5)
-		state.Size = UDim2.fromScale(0.5, 0.8)
-		state.TextWrapped = false
-		state.ZIndex = 5
+		-- A two-switch row keeps both switches and their words in one box at its right end.
+		local pairSpec = (U.Pairs :: any)[key]
+		local box: Frame? = nil
+		if pairSpec then
+			local made = HudParts.frame(button, "Switches")
+			made.AnchorPoint = Vector2.new(1, 0.5)
+			made.ZIndex = 4
+			box = made
+		end
+		local track, knob, state = makeSwitch(box or button, "Switch")
+		local pair: Pair? = nil
+		if pairSpec and box then
+			local words = (W.Pairs :: any)[key]
+			local firstWord = HudParts.note(box, "FirstWord", U.CaptionUnits, words.First)
+			local secondWord = HudParts.note(box, "SecondWord", U.CaptionUnits, words.Second)
+			for _, word in { firstWord, secondWord } do
+				word.TextWrapped = false
+				word.TextXAlignment = Enum.TextXAlignment.Right
+				word.AnchorPoint = Vector2.new(1, 0.5)
+				word.ZIndex = 4
+			end
+			local secondTrack, secondKnob, secondState = makeSwitch(box, "SecondSwitch")
+			-- The second switch is its own button (the row's press is the first's).
+			local secondButton = Instance.new("TextButton")
+			secondButton.Name = "Press"
+			secondButton.Text = ""
+			secondButton.AutoButtonColor = false
+			secondButton.BackgroundTransparency = 1
+			secondButton.Size = UDim2.fromScale(1, 1)
+			secondButton.ZIndex = 7
+			secondButton.Parent = secondTrack
+			pair = {
+				key = pairSpec.Second,
+				button = secondButton,
+				track = secondTrack,
+				knob = secondKnob,
+				state = secondState,
+				box = box,
+				firstWord = firstWord,
+				secondWord = secondWord,
+			}
+		end
 		local row: Row = {
 			key = key,
 			button = button,
@@ -287,6 +362,7 @@ function SettingsMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 			words = (W.Choices :: any)[key],
 			onX = 0.32,
 			segments = (U.Segments :: any)[key],
+			pair = pair,
 			pill = nil,
 			labels = {},
 		}
@@ -353,6 +429,17 @@ function SettingsMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 			SettingsState.set(key, not SettingsState.get(key))
 		end
 		button.Activated:Connect(presses[key])
+		if pair then
+			local second = pair
+			presses[second.key] = function()
+				UISound.play("Click")
+				if not UIAnim.reduced() then
+					UIAnim.bounce(second.track)
+				end
+				SettingsState.set(second.key, not SettingsState.get(second.key))
+			end
+			second.button.Activated:Connect(presses[second.key])
+		end
 		paint(row, false)
 	end
 
@@ -454,6 +541,28 @@ function SettingsMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 			row.icon.Position = UDim2.new(0, pad, 0.5, 0)
 			local top = round((rowH - block) / 2)
 			local rowSwitchW = if row.segments then px(row.segments.SwitchUnits[1]) else switchW
+			local pair = row.pair
+			local captionPx = math.max(U.MinTextPx, linePx)
+			local firstRight = 0 -- a pair's first switch: its right end inside the box
+			if pair then
+				-- [All] [switch]  [Emotes] [switch]: both words at one size, the box's width.
+				local pairW = px(U.PairSwitchUnits)
+				local captionGap, pairGap = px(U.CaptionGapUnits), px(U.PairGapUnits)
+				local firstW = math.ceil(textWidth(pair.firstWord.Text, captionPx)) + 4
+				local secondW = math.ceil(textWidth(pair.secondWord.Text, captionPx)) + 4
+				rowSwitchW = firstW + captionGap + pairW + pairGap + secondW + captionGap + pairW
+				pair.box.Size = UDim2.fromOffset(rowSwitchW, switchH)
+				pair.box.Position = UDim2.new(1, -pad, 0.5, 0)
+				pair.track.Size = UDim2.fromOffset(pairW, switchH)
+				pair.track.Position = UDim2.fromScale(1, 0.5)
+				HudParts.setTextSize(pair.secondWord, captionPx)
+				pair.secondWord.Size = UDim2.fromOffset(secondW, captionPx + 4)
+				pair.secondWord.Position = UDim2.new(1, -(pairW + captionGap), 0.5, 0)
+				HudParts.setTextSize(pair.firstWord, captionPx)
+				pair.firstWord.Size = UDim2.fromOffset(firstW, captionPx + 4)
+				pair.firstWord.Position = UDim2.new(0, firstW, 0.5, 0)
+				firstRight = firstW + captionGap + pairW
+			end
 			if row.segments then
 				-- On a phone the page's scale is small and the words cannot shrink past MinTextPx:
 				-- the control grows into the row's spare width until every word fits (2026-10-25:
@@ -476,8 +585,13 @@ function SettingsMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 				line.Position = UDim2.fromOffset(textX, top + rowTitlePx + 4)
 				line.Size = UDim2.fromOffset(textW, linePx + 2)
 			end
-			row.track.Size = UDim2.fromOffset(rowSwitchW, switchH)
-			row.track.Position = UDim2.new(1, -pad, 0.5, 0)
+			if pair then
+				row.track.Size = UDim2.fromOffset(px(U.PairSwitchUnits), switchH)
+				row.track.Position = UDim2.new(0, firstRight, 0.5, 0)
+			else
+				row.track.Size = UDim2.fromOffset(rowSwitchW, switchH)
+				row.track.Position = UDim2.new(1, -pad, 0.5, 0)
+			end
 			local statePx = math.max(U.MinTextPx, round(switchH * U.SwitchTextShare))
 			local words = row.words
 			local segments = row.segments
@@ -505,6 +619,17 @@ function SettingsMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 				row.onX = (switchW - switchH) / 2 / math.max(switchW, 1)
 			end
 			HudParts.setTextSize(row.state, statePx)
+			if pair then
+				-- The pair's narrower switches: ON / OFF fit beside the knob, one size for both.
+				local room = math.max(1, px(U.PairSwitchUnits) - switchH - 4 * U.KnobInsetPx)
+				local widest = math.max(textWidth(W.On, statePx), textWidth(W.Off, statePx))
+				local pairStatePx = if widest > room
+					then math.max(U.MinTextPx, math.floor(statePx * room / widest))
+					else statePx
+				HudParts.setTextSize(row.state, pairStatePx)
+				HudParts.setTextSize(pair.state, pairStatePx)
+				row.onX = (px(U.PairSwitchUnits) - switchH) / 2 / math.max(px(U.PairSwitchUnits), 1)
+			end
 			paint(row, false)
 			y += rowH + gap
 		end
@@ -551,6 +676,14 @@ function SettingsMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 			local below = rows[index + 1]
 			row.button.NextSelectionUp = (if above then above.button else nil) :: any
 			row.button.NextSelectionDown = (if below then below.button else input) :: any
+			local pair = row.pair
+			if pair then
+				-- The D-pad's right reaches the second switch, its left goes back to the row.
+				row.button.NextSelectionRight = pair.button
+				pair.button.NextSelectionLeft = row.button
+				pair.button.NextSelectionUp = row.button.NextSelectionUp
+				pair.button.NextSelectionDown = row.button.NextSelectionDown
+			end
 		end
 		local last = rows[#rows]
 		input.NextSelectionUp = (if last then last.button else nil) :: any
@@ -562,7 +695,7 @@ function SettingsMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 	if stage then
 		for index, row in rows do
 			stage:add("Row" .. index, row.button)
-			stage:add("Switch" .. index, row.track)
+			stage:add("Switch" .. index, if row.pair then row.pair.box else row.track)
 		end
 		stage:add("Codes", strip)
 		stage:add("CodeIcon", codeIcon)

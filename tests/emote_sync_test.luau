@@ -352,17 +352,17 @@ return {
 		H.expect(B.PhoneBottomPx >= 20, "a phone's button clear of the edge")
 	end,
 
-	["Emote music is its own switch, on by default, under Music"] = function()
+	["the emotes' sounds are the Sound effects row's second switch, on by default"] = function()
 		local _, Config = load()
 		local Strings = H.require("Strings")
-		local C = Config.Settings
-		H.expect(C.Defaults.EmoteMusic == true, "on by default")
-		local music, emote = table.find(C.Order, "Music"), table.find(C.Order, "EmoteMusic")
-		H.expect(music ~= nil and emote == music + 1, "right under Music")
-		H.expect(Strings.Settings.Rows.EmoteMusic == "Emote music", "named")
-		H.expect(Strings.Settings.Lines.EmoteMusic == nil, "a plain row (short on a phone)")
-		local icon = Config.UI.Settings.Icons.EmoteMusic
-		H.expect(icon ~= nil and Config.UI.Kit.Icons[icon] ~= nil, "an icon")
+		local C, U = Config.Settings, Config.UI.Settings
+		H.expect(C.Defaults.EmoteSounds == true, "on by default")
+		H.expect(table.find(C.Order, "EmoteSounds") == nil, "not a row of its own (phone)")
+		H.expect(table.find(C.Hidden, "EmoteSounds") ~= nil, "saved, with no row")
+		H.expect(U.Pairs.Sfx and U.Pairs.Sfx.Second == "EmoteSounds", "on Sound effects' row")
+		local words = Strings.Settings.Pairs.Sfx
+		H.expect(words.First == "All" and words.Second == "Emotes", "each switch named")
+		H.expect(#C.Order == 5, "five rows, as before")
 	end,
 
 	["an asset id's number"] = function()

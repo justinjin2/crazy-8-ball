@@ -7678,7 +7678,6 @@ Config.UI = {
 			Star = "rbxassetid://125192913454809", -- the favorite star
 			Challenge = "rbxassetid://127346327357150", -- the Daily Challenge
 			Gear = "rbxassetid://125677637012120", -- Settings
-			Emote = "rbxassetid://101229121269358", -- the EMOTE button's noob (its Settings row)
 			Heart = "rbxassetid://93822415051422", -- the thank-you burst
 			FreeReward = "rbxassetid://120885254928899", -- the column's Free Reward tile (Gift) -- the shake hint's finger
 			Calendar = "rbxassetid://81931904688937", -- the daily streak
@@ -16622,9 +16621,11 @@ Config.Settings = {
 	Defaults = {
 		Sfx = true, -- sound effects on
 		Music = true, -- the lobby music on (Config.Music; designer, 2026-10-10: music is back)
-		-- The emotes' songs (EmoteMusic) on for you; off silences every dancer's song on your
-		-- screen only (designer, 2026-10-27). Apart from the lobby music.
-		EmoteMusic = true,
+		-- The emotes' sounds on for you: every dancer's song (EmoteMusic) and Popcorn's and
+		-- Bullseye's own sounds (EmoteScene, with Sfx on too); off silences them on your screen
+		-- only (designer, 2026-10-27). Its switch is the Sound effects row's second, "Emotes"
+		-- (UI.Settings.Pairs), not a row of its own (a phone's page was too crowded).
+		EmoteSounds = true,
 		LowFx = false, -- Lower effects (Quality: fewer particles, calmer UI loops)
 		-- Show my country flag in the player list and after my name over my head. On for
 		-- everyone by default (designer, 2026-10-25: a sense of nationality; was off until
@@ -16642,9 +16643,9 @@ Config.Settings = {
 		ListOpen = false, -- the player list left open (designer 2026-10-07: folded until opened)
 	} :: { [string]: boolean },
 	-- The rows, top to bottom (music back 2026-10-10, the shot camera 2026-10-11).
-	Order = { "Music", "EmoteMusic", "Sfx", "LowFx", "ShowFlag", "ShotCam" },
+	Order = { "Music", "Sfx", "LowFx", "ShowFlag", "ShotCam" },
 	-- Saved switches with no row on the Settings screen (the HUD remembers them).
-	Hidden = { "ListOpen", "ShotCamTall" },
+	Hidden = { "ListOpen", "ShotCamTall", "EmoteSounds" },
 	-- The kinds Seen may mark (anything else is refused).
 	-- EmoteButton: the EMOTE button's first press (its "new" dot goes); EmoteJump: a dance's
 	-- first jump (the "Jump to cancel" line goes). Designer, 2026-10-27: once, for everyone.
@@ -16756,10 +16757,21 @@ Config.UI.Settings = {
 			MaxRowShare = 0.55,
 		},
 	},
+	-- A row with two ON / OFF switches side by side (designer, 2026-10-27: the emotes' sounds
+	-- in the Sound effects row, not a row of their own): its own switch first, then Second's,
+	-- each with its word before it (Strings.Settings.Pairs), CaptionGapUnits between a word and
+	-- its switch and PairGapUnits between the two. A press on the row (a gamepad's A) flips the
+	-- first; the second is its own button (the D-pad's right).
+	Pairs = {
+		Sfx = { Second = "EmoteSounds" },
+	} :: { [string]: { Second: string } },
+	PairSwitchUnits = 150, -- each of the two switches' width (the height is SwitchUnits')
+	CaptionUnits = 26, -- the word before each
+	CaptionGapUnits = 10,
+	PairGapUnits = 26,
 	-- Each row's Kit.Icons key.
 	Icons = {
 		Music = "Sound",
-		EmoteMusic = "Emote",
 		Sfx = "Sound",
 		LowFx = "Effects",
 		ShowFlag = "Globe",
@@ -16792,24 +16804,16 @@ Config.UI.Settings = {
 			{ Ids = { "Header" }, Kind = "Fade", At = 0.12, Length = 0.15 },
 			{ Ids = { "Basket", "Title", "Money", "Close" }, Kind = "Pop", At = 0.18 },
 			{
-				Ids = { "Row1", "Row2", "Row3", "Row4", "Row5", "Row6", "Row7" },
+				Ids = { "Row1", "Row2", "Row3", "Row4", "Row5", "Row6" },
 				Kind = "Pop",
 				At = 0.22,
-				Stagger = 1.2, -- seven rows within the time six took at 1.5 (Emote music, 2026-10-27)
+				Stagger = 1.5,
 			},
 			{
-				Ids = {
-					"Switch1",
-					"Switch2",
-					"Switch3",
-					"Switch4",
-					"Switch5",
-					"Switch6",
-					"Switch7",
-				},
+				Ids = { "Switch1", "Switch2", "Switch3", "Switch4", "Switch5", "Switch6" },
 				Kind = "Pop",
 				At = 0.3,
-				Stagger = 1.2, -- seven rows within the time six took at 1.5 (Emote music, 2026-10-27)
+				Stagger = 1.5,
 			},
 			{ Ids = { "Codes" }, Kind = "Grow", At = 0.34 },
 			{ Ids = { "CodeIcon" }, Kind = "Pop", At = 0.4, Burst = "Gold" },

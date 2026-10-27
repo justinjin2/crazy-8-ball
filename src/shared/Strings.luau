@@ -1396,7 +1396,6 @@ return {
 		Title = "Settings",
 		Rows = {
 			Music = "Music",
-			EmoteMusic = "Emote music",
 			Sfx = "Sound effects",
 			LowFx = "Lower effects",
 			ShowFlag = "Show my country flag",
@@ -1420,6 +1419,11 @@ return {
 		},
 		On = "ON",
 		Off = "OFF",
+		-- A two-switch row's words before each switch (Config.UI.Settings.Pairs): Sound effects'
+		-- All (every sound effect) and Emotes (every dancer's song and the emotes' own sounds).
+		Pairs = {
+			Sfx = { First = "All", Second = "Emotes" },
+		} :: { [string]: { First: string, Second: string } },
 		-- A two-view row's sides instead of ON / OFF (Config.UI.Settings.Choices).
 		Choices = {} :: { [string]: { Off: string, On: string } },
 		-- A three-button row's buttons (Config.UI.Settings.Segments). "Top" is HORIZONTAL's

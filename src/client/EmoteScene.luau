@@ -171,7 +171,7 @@ local function play(scene: Scene, key: string, parent: Instance?)
 		made.RollOffMode = Enum.RollOffMode.InverseTapered
 		made.RollOffMinDistance = C.HearStuds
 		made.RollOffMaxDistance = C.MaxStuds
-		made.SoundGroup = SoundGroups.get("Sfx")
+		made.SoundGroup = SoundGroups.get("EmoteSfx") -- Settings' Emotes switch, and Sfx
 		if spec.Seconds then
 			made.PlaybackRegionsEnabled = true
 			made.PlaybackRegion = NumberRange.new(0, spec.Seconds)

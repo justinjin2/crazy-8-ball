@@ -29,7 +29,10 @@ SettingsState.Changed = changed.Event
 local function apply()
 	SoundGroups.setOn("Sfx", current.Sfx ~= false)
 	SoundGroups.setOn("Music", current.Music ~= false)
-	SoundGroups.setOn("EmoteMusic", current.EmoteMusic ~= false)
+	-- The emotes' sounds: the songs follow their switch; the emotes' own sounds are sound
+	-- effects too, so Sfx off silences them as well.
+	SoundGroups.setOn("EmoteMusic", current.EmoteSounds ~= false)
+	SoundGroups.setOn("EmoteSfx", current.Sfx ~= false and current.EmoteSounds ~= false)
 	Quality.set(current.LowFx == true)
 end
 

@@ -130,11 +130,11 @@ local function onRequest(player: Player, action: any, a: any, b: any): any
 				Funnel.device(player)
 			)
 		end
-		-- The emotes' songs switched (designer, 2026-10-27): how many turn them off.
-		if ok and a == "EmoteMusic" and before ~= nil and before.EmoteMusic ~= b then
+		-- The emotes' sounds switched (designer, 2026-10-27): how many turn them off.
+		if ok and a == "EmoteSounds" and before ~= nil and before.EmoteSounds ~= b then
 			Funnel.event(
 				player,
-				"EmoteMusicSwitched",
+				"EmoteSoundsSwitched",
 				1,
 				if b then "On" else "Off",
 				Funnel.device(player)

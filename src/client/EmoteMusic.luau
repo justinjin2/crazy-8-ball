@@ -9,8 +9,8 @@
 -- loud as a dancer alone). It plays where the server clock
 -- says (EmoteSync.musicPosition), so a song joined late is in step with its dance, and is
 -- re-sought when it drifted past MusicToleranceSeconds. Roblox's listener on the camera
--- (SoundService.DefaultListenerLocation) hears the emitters. Settings' Emote music switch (the
--- EmoteMusic sound group, apart from the lobby's Music) mutes it on this screen. A pass every MusicVoiceSeconds re-picks the voices; nothing runs every
+-- (SoundService.DefaultListenerLocation) hears the emitters. Settings' Emotes switch (on the
+-- Sound effects row; the EmoteMusic sound group, apart from the lobby's Music) mutes it here. A pass every MusicVoiceSeconds re-picks the voices; nothing runs every
 -- frame, and the pass stops when no song plays.
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -242,7 +242,7 @@ function EmoteMusic.leave(userId: number, id: string, at: number)
 	end
 end
 
---- Follow Settings' Emote music switch (client, once).
+--- Follow Settings' Emotes switch (client, once).
 function EmoteMusic.start()
 	if started then
 		return
