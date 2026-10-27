@@ -17898,8 +17898,9 @@ Config.EmoteMenu = {
 			Length = 2.0,
 			Prop = "BloxyCola", -- designer: Gojo holds a Bloxy Cola
 			-- The animation's own walk (its planted foot moves 1.7 studs a second, Geto's 1.4),
-			-- one speed for both so a duo walks side by side (designer, 2026-10-27).
-			WalkSpeed = 1.6,
+			-- one speed for both so a duo walks side by side (designer, 2026-10-27), then 7.5%
+			-- faster (1.6 -> 1.72; designer, 2026-10-27: the walk only, not the animation).
+			WalkSpeed = 1.72,
 			Duo = "GetoWalk",
 		},
 		{
@@ -17908,7 +17909,7 @@ Config.EmoteMenu = {
 			Animation = 107663187613247,
 			Creator = "Emote Plaza",
 			Length = 2.0,
-			WalkSpeed = 1.6,
+			WalkSpeed = 1.72, -- as Gojo Walk's
 			Duo = "GojoWalk", -- designer, 2026-10-27: pairs with Gojo Walk
 		},
 		{

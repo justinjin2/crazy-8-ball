@@ -291,6 +291,15 @@ return {
 		H.expect(bullseye ~= nil and bullseye.WalkSpeed == 0, "no walking while shooting")
 	end,
 
+	["Gojo and Geto walk side by side, 7.5% faster than their first 1.6"] = function()
+		local S, Config = load()
+		local gojo = S.find(Config.EmoteMenu.List, "GojoWalk")
+		local geto = S.find(Config.EmoteMenu.List, "GetoWalk")
+		H.expect(gojo ~= nil and geto ~= nil and gojo.WalkSpeed == geto.WalkSpeed, "one speed")
+		H.expect(gojo ~= nil and near(gojo.WalkSpeed :: number, 1.6 * 1.075), "1.72")
+		H.expect(gojo ~= nil and gojo.Speed == nil, "the animation as it was")
+	end,
+
 	["an asset id's number"] = function()
 		local S = load()
 		H.expect(S.assetNumber("rbxassetid://123") == "123", "the number")
