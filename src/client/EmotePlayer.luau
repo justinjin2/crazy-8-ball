@@ -27,6 +27,7 @@ local EmoteAlign = require(script.Parent.EmoteAlign)
 local EmoteMusic = require(script.Parent.EmoteMusic)
 local EmoteScene = require(script.Parent.EmoteScene)
 local EmoteSyncPrompt = require(script.Parent.EmoteSyncPrompt)
+local GuiQA = require(script.Parent.GuiQA)
 
 local E = Config.EmoteMenu
 
@@ -477,6 +478,11 @@ function EmotePlayer.start()
 	end
 	started = true
 	EmoteMusic.start()
+	-- Studio checks: start a dance as its tray card does (nothing outside Studio).
+	GuiQA.add("emote", function(id: string): any
+		local ok, why = EmotePlayer.play(id)
+		return if ok then "on" else why
+	end)
 	-- The dances' animations (small) a little after joining, so everyone's dance shows at once.
 	task.delay(E.Align.PreloadSeconds, function()
 		local ids = {}
