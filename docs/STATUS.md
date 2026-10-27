@@ -4,7 +4,7 @@ Current state only, rewritten in place. Keep it to about two screens (under 100 
 step is finished and verified, move its dated entry to the top of
 `docs/archive/STATUS_HISTORY.md` and keep only what is still true or still open here.
 
-Updated 2026-10-27 (emote fixes, committed, not pushed). **The game is live** (officially released 2026-10-10). Work goes on
+Updated 2026-10-27 (emote fixes pushed, on the test place, not published). **The game is live** (officially released 2026-10-10). Work goes on
 in `~/Desktop/8ball`, branch `gui-v4`. The STATUS from just before launch, in full, is the top
 entry of `docs/archive/STATUS_HISTORY.md`.
 
@@ -149,14 +149,18 @@ One line each; the long form is the 2026-10-12 (evening) entry at the top of
   designer's own song uploads; dances go on while walking (at 16; Gojo/Geto 1.6) until a jump,
   another pick or a reset; Sync prompts on dancers in the lobby (Gojo/Geto pair one to one);
   the results screen without blur or DEFEAT, the losing side greyed. Last checked on the Crazy
-  8 Test Place (version 23). **Fixed 2026-10-27, committed on `gui-v4`, not pushed**
+  8 Test Place (version 23). **Fixed 2026-10-27, pushed on `gui-v4`, not published; on the Crazy 8 Test Place as version 24**
   (`03896675`..`3bd0aa42`, DECISIONS): Sync in step on every screen (one server clock,
   `EmoteAlign`, `Config.EmoteMenu.Align`); the song from every dancer's body, louder together,
   up to 4 voices (`EmoteMusic`, Audio API); Popcorn and Bullseye stand still, Popcorn's lounger
   turns with shift lock; Gojo/Geto walk 1.72; in a match the EMOTE button shows once your
   stroke has played, and Sync works there on a controller's Y (`Sync.InMatch`). Checked in
   Studio alone (a dance on the clock within 0.03 s, the song on the clock, Popcorn and
-  Bullseye stillness, console clean); **not yet checked with two players**. **Still to do
+  Bullseye stillness, console clean); **not yet checked with two players**. A server-side
+  "ContentId rbxassetid://203785492 failed: Asset type does not match" (a Roblox audio, "Pop
+  Close Sound") shows once per Studio session about 0.5 s after the save loads: not in our
+  code, the place, the emote or ability models, or the designer's avatar items; it was there
+  before the emote fixes. Still open. **Still to do
   before publishing:** a 2-player test (Studio Test > Clients and Servers, or two accounts on
   the test place): Sync, both screens in step, the song from both bodies; a match: the button
   after your stroke; a phone and a controller (Y in a match); the fan clip on Sega Walk and the
