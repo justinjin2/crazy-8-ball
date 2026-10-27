@@ -4574,3 +4574,8 @@ timer of a new block stay the designer's call.
 - 2026-10-26 (designer): **the results screen loses its blur and DEFEAT** (with the emotes):
   both players see each other dance; the loser's own card greys instead ("kids dont really
   like to lose"). The winner's screen is unchanged. `Config.EmoteMenu.Results`.
+- 2026-10-26 (designer, after a test-place try): **the EMOTE button holds still** (it sways
+  only while hovered, no sun rays); **the tray shows three dances per row** (less wide and
+  busy) and **drops up out of the button** through a small arrow with a gap above it, growing
+  from the arrow's tip instead of slamming in (the slam flashed every row below the button for
+  a frame); **Gojo Walk's Bloxy Cola is in the left hand**, at his mouth, as in the anime.
