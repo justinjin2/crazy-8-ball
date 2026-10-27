@@ -4667,3 +4667,4 @@ timer of a new block stay the designer's call.
   they got before and it never reads as less than 1KLIKES (spin packs are about 10% of Robux,
   11,583 R$). 2,791 likes, about 900 a day, 975 playing: 5,000 is about 2 to 3 days away.
   Measure: `CodeRedeemed` for 2KLIKES, the spin packs' sales and the money sinks a week on.
+- 2026-10-27 (designer, live): every emote sound 45% quieter for a dancer alone (`Config.EmoteMenu.Loudness` 0.55: the songs and Popcorn's and Bullseye's sounds); dancers in step still get louder together (`MusicTwoTogether`).
