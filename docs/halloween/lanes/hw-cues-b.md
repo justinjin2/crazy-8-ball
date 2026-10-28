@@ -23,6 +23,8 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
 
 ## Status
 
+- 09:22 coordinator: halloween @403da7da has cues-a drop 2 (skin keys, --also-manifest, budget stop, the builder ONLY filter, Aim joint; Firework row unchanged but a comment); lint OK, 1370 tests, Studio synced. Run `git fetch && git merge origin/halloween`. Cues B: you can generate rows now.
+- 09:20 coordinator REQUEST (Broom blockout, broom_body_vs_C3b.png): (1) the bristle end shows a flat round cap with a dot grid (reads as a fake disc): the bristles must end in splayed, uneven straw tips with no visible end face, fuller like C3b; (2) the handle is far straighter than C3b: Justin asked for "imperfect and curly and wavy... like a stick pulled from an actual branch": bigger S-bends and knots between the hand zones (keep the two hand zones straight); (3) the hat charm reads tiny at gameplay distance: about 2x. Not a gate blocker, fix before the 11:15 gate 2.
 - 09:12 coordinator: halloween @792bbb35 has every lane's interfaces (sys 1c9f99b7, core 1c9945a0, cues-a drop 1 1039f19b, gui b2c51102, map 6d45e218); lint OK, 1370 tests, Studio boot clean. Run `git fetch && git merge origin/halloween` now. Gate 1 is at 10:00: shots + one caption line each in your Gate shots by 09:55.
 - 09:12 coordinator: your 7426eca8 (builder, Broom blockout, stubs, lane test) is lane work, merged with your first finished cue; keep pushing to hw-cues-b.
 - 09:05 coordinator REQUEST (all lanes, blocks a merge): `src/client/Main.client.luau` is 12-14 top-level locals from Luau's 200-local limit; past it the client fails to compile in Studio and live and lint/tests stay green. Put every Main.client addition inside `do ... end` (zero new top-level locals), e.g. `do local ok, err = pcall(...) ... end`. New test `tests/client_compiles_test.luau` (on halloween @HEAD) compiles every src script and fails if Main.client has fewer than 8 locals left; run it before you push.
@@ -66,6 +68,12 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
   neighbours), compact = a closed bud 0.3 past the butt; `spider_parts.glb` 134241355070040,
   `Crown.glb` 88297987618252, atlas decals with image ids). Preview beside the concept:
   `gate2/spider_body_vs_C1b.png`. No spider bodies, legs or creatures anywhere.
+- 09:32 P9, P12, P15 done together: `tools/hw_sprites_b.py` draws all nine sheets (Broom:
+  crescent, straw leaf, bat flap 4x4 Loop, witch over the moon 4x4 OneShot; Cat: run-in-place
+  4x4 Loop and leap 4x4 OneShot, black with a 1.5 px gold rim; Spider: radial web, silk strand
+  (tileable Beam texture), web ring decal), uploaded with image ids in the manifest. The cats
+  run in place and the bat flaps front-on, so no flipbook travels (the moonwalk rule); the
+  witch crosses within her own cell. Both-sides check in the lab comes with each aura step.
 
 ## Shared-file changes
 
@@ -87,6 +95,10 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
   READY (about 10:00): Cues B needs it for gate 2.
 
 ## Assumptions
+
+- The silhouette flipbooks are drawn as 2D jointed capsule rigs in Pillow (posed per frame,
+  4x supersampled, deterministic) instead of a Blender rig: the same black-on-transparent
+  frames with the rim added from the alpha edge, faster to iterate, no Blender run per sheet.
 
 - Past-butt radial room: a compact (non-Aim) part may sit up to 0.45 from the axis past the
   butt (the brief gives only the 0.3 length); the Broom's hat charm brim corner reaches 0.42

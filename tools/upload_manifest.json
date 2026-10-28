@@ -437,6 +437,60 @@
     "assetType": "Model",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/vfx/black_cat/cat_leap_4x4.png": {
+    "assetId": "98170765493066",
+    "assetType": "Decal",
+    "imageId": "114540965456482",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/vfx/black_cat/cat_run_4x4.png": {
+    "assetId": "105454913916499",
+    "assetType": "Decal",
+    "imageId": "120281480144576",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/vfx/spider/silk.png": {
+    "assetId": "102032864350114",
+    "assetType": "Decal",
+    "imageId": "94518948967265",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/vfx/spider/web.png": {
+    "assetId": "96639118500165",
+    "assetType": "Decal",
+    "imageId": "117540828296742",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/vfx/spider/web_ring.png": {
+    "assetId": "117112524858267",
+    "assetType": "Decal",
+    "imageId": "109603483431038",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/vfx/witch_broom/bat_flap_4x4.png": {
+    "assetId": "102426836220602",
+    "assetType": "Decal",
+    "imageId": "112103632429044",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/vfx/witch_broom/crescent.png": {
+    "assetId": "91685715536997",
+    "assetType": "Decal",
+    "imageId": "87107087522024",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/vfx/witch_broom/straw.png": {
+    "assetId": "88876590677875",
+    "assetType": "Decal",
+    "imageId": "82454926277152",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/vfx/witch_broom/witch_moon_4x4.png": {
+    "assetId": "116524474658676",
+    "assetType": "Decal",
+    "imageId": "84520190351120",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball-refs/emotes/birdbrain_loop.flac": {
     "assetId": "75387278867392",
     "assetType": "Audio",
