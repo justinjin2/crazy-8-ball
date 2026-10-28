@@ -665,7 +665,7 @@ Justin's changes at a gate go straight into the work and into the lane file's St
   card and take it out of draft alone first, so it ships.
 - [ ] 13. Every Cues B request answered within 30 minutes (backup uploads, path fixes), in your
   Status (the last by 15:00).
-- [ ] 14. Integration: after B's rows reach `halloween`, merge it (manifest and CueSkins
+- [x] 14. Integration: after B's rows reach `halloween`, merge it (manifest and CueSkins
   conflicts by the 3.4 rules), build all five with ONLY in your window, check the path on the
   Broom, Spider and Cat (hands, back, fade, `Aim`); fix or answer each problem.
 - [x] 15. Lower effects, quiet in the hands and the Night lighting for both cues; their cost
