@@ -12,6 +12,9 @@
 --     thumbnail, name, tier tag, OK) once the player is free (no match, result, menu, popup or
 --     lucky-block reel). A step reached in a match waits with that match's chip.
 --   { spider = true }: the Spider Cue's NEW CUE! card the same way.
+--   { king = { paid, candy, money, xp, back } }: a timed King win's line over the chip, at once
+--     (over the result card, which shows a Pc match's $0 and no XP): "Pumpkin King beaten! +150
+--     Candy +$2,500 +100 XP" in gold, or "Already rewarded this visit. He's back at :45!".
 -- Nothing shows before HwOn (the tutorial not over). Purely visual: the server already saved it.
 local ContextActionService = game:GetService("ContextActionService")
 local GuiService = game:GetService("GuiService")
@@ -168,6 +171,21 @@ function CandyToast.moment(self: any, msg: any)
 		self:push("card", function()
 			self:showCard(H.Spider.Cue, W.FromSpider)
 		end)
+	elseif type(msg.king) == "table" then
+		local king = msg.king
+		local function count(x: any): number
+			return if type(x) == "number" and x == x then math.max(0, math.floor(x)) else 0
+		end
+		local words = if king.paid == true
+			then W.KingPaid:format(
+				Format.commas(count(king.candy)),
+				Format.moneyDelta(count(king.money)),
+				Format.xp(count(king.xp))
+			)
+			else W.KingRepeat:format(if type(king.back) == "string" then king.back else "")
+		self:push("now", function()
+			self:line(words, king.paid == true)
+		end)
 	end
 end
 
@@ -317,6 +335,56 @@ function CandyToast.chip(self: any, candy: number, x2: boolean, from: Vector2?)
 			end
 		end)
 		shrink:Play()
+	end)
+end
+
+--- A line of words in an Ink pill over the chips' start (gold when `gold`): pops in, holds
+--- LineSeconds, fades. Shrinks its text to fit a narrow screen.
+function CandyToast.line(self: any, words: string, gold: boolean)
+	local size = self.layer.AbsoluteSize
+	local short = size.Y < SHORT
+	local px = if short then T.LineShortPx else T.LinePx
+	local room = size.X - 2 * T.LineMarginPx
+	local textW = TextService:GetTextSize(words, px, font(), Vector2.new(10000, 1000)).X + 6
+	if textW + 2 * T.LinePadPx > room then
+		px = math.max(T.LineMinPx, math.floor(px * (room - 2 * T.LinePadPx) / textW))
+		textW = TextService:GetTextSize(words, px, font(), Vector2.new(10000, 1000)).X + 6
+	end
+	local height = px + 2 * T.LinePadPx
+	local chip = if short then T.ShortChipPx else T.ChipPx
+	local pill = HudParts.pill(self.layer, "KingLine", HudParts.tone("Ink"))
+	pill.AnchorPoint = Vector2.new(0.5, 1)
+	local at = self:centre() - self.layer.AbsolutePosition
+	pill.Position = UDim2.fromOffset(at.X, at.Y - chip / 2 - T.LineGapPx)
+	pill.Size = UDim2.fromOffset(textW + 2 * T.LinePadPx, height)
+	local text = HudParts.text(
+		pill,
+		"Words",
+		px,
+		words,
+		if gold then HudParts.tone("Gold") else HudParts.tone("White")
+	)
+	text.AutoLocalize = false -- numbers in it
+	text.TextWrapped = false
+	text.Size = UDim2.fromScale(1, 1)
+	text.ZIndex = 2
+	UIAnim.popIn(pill)
+	if gold then
+		UIAnim.slam(text, HudParts.tone("Gold"), { burst = true })
+	end
+	task.delay(T.LineSeconds, function()
+		if pill.Parent == nil then
+			return
+		end
+		local fade = TweenInfo.new(0.3)
+		TweenService:Create(pill, fade, { BackgroundTransparency = 1 }):Play()
+		HudParts.setTextTransparency(text, 1)
+		local stroke = pill:FindFirstChildOfClass("UIStroke")
+		if stroke then
+			TweenService:Create(stroke, fade, { Transparency = 1 }):Play()
+		end
+		task.wait(0.3)
+		pill:Destroy()
 	end)
 end
 

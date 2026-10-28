@@ -17433,6 +17433,14 @@ Config.UI.Halloween = {
 		DimTransparency = 0.45, -- the screen behind it
 		CardDisplayOrder = 45, -- its screen: over the tutorial's popups (40), under the scenes (60)
 		AutoCloseSeconds = 8, -- it closes itself after this long (OK closes it sooner)
+		-- The timed King's win line over the chip ("Pumpkin King beaten! +150 Candy ...").
+		LinePx = 24, -- its text (a phone's: LineShortPx; smaller still, to LineMinPx, if too wide)
+		LineShortPx = 18,
+		LineMinPx = 12,
+		LinePadPx = 10, -- inside the pill
+		LineMarginPx = 16, -- kept from the screen's sides
+		LineGapPx = 12, -- above the chip
+		LineSeconds = 4, -- it holds this long, then fades
 	},
 	-- The end screen (Halloween/EndScreen; the M5 mock): laid out at WidthPx (a phone's
 	-- ShortWidthPx) and scaled down to fit.

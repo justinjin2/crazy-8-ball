@@ -50,6 +50,16 @@ local function visitNow(): number?
 	return if ok and type(start) == "number" then start else nil
 end
 
+-- The minute of the King's next visit, ":45" (the map lane's Rules.kingNext and minuteText),
+-- or "" without them.
+local function nextVisitText(): string
+	local ok, text = pcall(function(): any
+		local Rules = require(Shared:WaitForChild("HalloweenMap"):WaitForChild("Rules")) :: any
+		return Rules.minuteText(Rules.kingNext(Clock.serverNow()))
+	end)
+	return if ok and type(text) == "string" then text else ""
+end
+
 -- Whether the King visits on a schedule (the map lane's Config.HalloweenMap.Boss.Mode "Timed")
 -- rather than sitting on his throne; a missing key is the throne.
 local function kingTimed(): boolean
@@ -371,6 +381,17 @@ function CandyService.bossWon(player: Player, visitStart: number?): BossWon
 				warn("[8ball] CandyService: the King's XP failed: " .. tostring(err))
 			end
 		end
+		-- The win's line on screen (CandyToast): what it paid, or that this visit already paid
+		-- and when he is back (the result card shows a Pc match's $0 and no XP).
+		Net.get("Halloween"):FireClient(player, {
+			king = {
+				paid = boss.granted,
+				candy = boss.amount,
+				money = boss.money or 0,
+				xp = xp,
+				back = nextVisitText(),
+			},
+		})
 	end
 	after(player, result, "Boss")
 	return { granted = boss.granted, amount = boss.amount, cooldownEndsAt = boss.cooldownEndsAt }
