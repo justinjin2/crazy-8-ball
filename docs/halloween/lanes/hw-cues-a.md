@@ -35,6 +35,9 @@ From PLAN §4 (everything else is read-only; ask through Requests):
 
 ## Status
 
+- 09:22 coordinator: halloween @403da7da has cues-a drop 2 (skin keys, --also-manifest, budget stop, the builder ONLY filter, Aim joint; Firework row unchanged but a comment); lint OK, 1370 tests, Studio synced. Run `git fetch && git merge origin/halloween`. Cues B: you can generate rows now.
+- 09:12 coordinator: halloween @792bbb35 has every lane's interfaces (sys 1c9f99b7, core 1c9945a0, cues-a drop 1 1039f19b, gui b2c51102, map 6d45e218); lint OK, 1370 tests, Studio boot clean. Run `git fetch && git merge origin/halloween` now. Gate 1 is at 10:00: shots + one caption line each in your Gate shots by 09:55.
+- 09:12 coordinator REQUEST (blocks your drop 3 merge): tests/catalog_test.luau:62-63 still expects exactly 2 Exclusive cues; it fails the moment a Halloween skin leaves draft (Catalog.ofRarity adds ready cues). Make it `2 + ready` like your new test at :180.
 - 09:05 coordinator REQUEST (all lanes, blocks a merge): `src/client/Main.client.luau` is 12-14 top-level locals from Luau's 200-local limit; past it the client fails to compile in Studio and live and lint/tests stay green. Put every Main.client addition inside `do ... end` (zero new top-level locals), e.g. `do local ok, err = pcall(...) ... end`. New test `tests/client_compiles_test.luau` (on halloween @HEAD) compiles every src script and fails if Main.client has fewer than 8 locals left; run it before you push.
 - 2026-10-28 09:05: **READY drop 1 @ 7bef0153** (pushed). The five Catalog rows (`eventCue`:
   Exclusive, `Event = "Halloween2026"`, `StandIn = "Classic"`, Effects Epic / Legendary /
@@ -66,6 +69,15 @@ From PLAN §4 (everything else is read-only; ask through Requests):
   `maps_from`, `look`, `"Aim": "fade"` through `k.joint(..., aim='fade')` in `CuePieces.Kit`,
   `<sid>`, `<sid>_aura`, `<sid>_pocket`). `CuePreview.py --thumb` with bodies and their `Aim`
   overhangs comes by 12:00 (Progress 9).
+
+- 2026-10-28 09:35: step 3 done: `candy_corn` (7 parts, 5,216 triangles) and `jack_o_lantern`
+  (7 parts, 7,040) modelled in `CuePiecesHalloween_A.py`, both passing `check_body` (the 2.6
+  rules, sampled every 0.1 stud; the checker also caught three real rule hits on the way:
+  a ring inside the tip zone, the vine rising inside the bridge zone, a leaf reaching into the
+  grip zone), plus `jack_o_lantern_pocket` (4 parts, 6,120: the shell with the face cut out, the
+  jaw on its snapping hinge, the Neon core, the stem). GLBs exported, headless previews in
+  `gate1/`. No uploads yet. The three kernels wear one 64 px palette map (one MeshPart instead
+  of three; the only texture on either body).
 
 ## Shared-file changes
 
@@ -104,3 +116,17 @@ Planned (PLAN §7 shared files; own block or line only; add the sha to each as i
 - `Catalog.ready` returns false for an unknown id (never grant what the catalog lacks).
 
 ## Gate shots
+
+Gate 1 (09:35, `~/Desktop/8ball-refs/halloween/shots/hw-cues-a/gate1/`): drop 1 @ 7bef0153,
+drop 2 @ eb98e2ef (both pushed; `halloween` @ 14e2d157 merged in).
+
+- `candy_corn_body_preview.png`: the Candy Corn body alone, headless Blender: whole cue from
+  the side, three quarter from above-behind, the bulb (white, orange, yellow dome), the joint
+  (orange rings, white sleeve, the orange barber-pole ribbon, the three kernels on top), the
+  kernel tip, the other three quarter. Flat glossy plastic; the sparkle and glow come from the
+  aura and the Neon tip in game.
+- `jack_o_lantern_body_preview.png`: the Jack-o'-Lantern body: green stem tip with a brown
+  ring, ribbed orange shaft, the vine spiralling the whole length with five leaves on top, the
+  two wood collars with their slits (Neon in game), the carved pumpkin with its curly stem.
+- `jack_o_lantern_pocket_preview.png`: the pocket jack-o'-lantern (front, three quarter, the
+  grin close, the back): the face cut through the shell to the glowing core, the jaw's seam.

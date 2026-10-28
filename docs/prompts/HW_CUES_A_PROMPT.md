@@ -638,9 +638,9 @@ Justin's changes at a gate go straight into the work and into the lane file's St
   `ONLY`/`ALL` filter with `row.Body`, the guarded Halloween imports in `CuePieces.py`, a valid
   `CuePiecesHalloween_A.py`; the ONLY run proven in your window; push; `MERGE drop 2` (the
   coordinator merges it about 08:45).
-- [ ] 3. Candy Corn and Jack bodies modelled in `CuePiecesHalloween_A.py` with the envelope
+- [x] 3. Candy Corn and Jack bodies modelled in `CuePiecesHalloween_A.py` with the envelope
   assert, GLBs, headless previews beside the concepts (side and three quarter). No uploads yet.
-- [ ] 4. Gate 1 shots and lines (09:00): the headless previews, the drop 1 and drop 2 shas.
+- [x] 4. Gate 1 shots and lines (09:00): the headless previews, the drop 1 and drop 2 shas.
 - [ ] 5. After gate 1 (Justin's gate 1 changes in first): both bodies uploaded (dry-run first),
   image ids resolved, skin JSONs (`"draft": true`) with `body`, `maps_from`, `look`.
 - [ ] 6. Drop 3 (by 10:00): `CueSkins.bodyOf`, the CueStickBuilder hide, the CueSkinLook body
