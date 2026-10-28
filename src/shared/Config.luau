@@ -3890,6 +3890,7 @@ Config.Halloween = {
 	-- Requests from the client (the Halloween remote): a bucket of Burst requests refilled at
 	-- PerSecond, so two quick CLAIMs both count but a spamming client is held back.
 	Requests = { Burst = 4, PerSecond = 4 },
+	PackPromptGapSeconds = 30, -- HwMenu PackPrompt (a Get Candy press) logged at most this often
 	-- The two Candy packs (Config.Products.List Candy500 / Candy2000; flat, fill the whole track,
 	-- not quests).
 	Packs = { Enabled = true, Keys = { "Candy500", "Candy2000" } },

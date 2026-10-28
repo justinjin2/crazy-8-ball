@@ -522,8 +522,10 @@ function CandyService.band(candy: number): string
 	return ">7000"
 end
 
--- Requests from the client (the Halloween remote): each player's bucket (C.Requests).
+-- Requests from the client (the Halloween remote): each player's bucket (C.Requests) and when
+-- their last PackPrompt was logged.
 local buckets: { [Player]: { tokens: number, at: number } } = setmetatable({}, { __mode = "k" }) :: any
+local lastPackPrompt: { [Player]: number } = setmetatable({}, { __mode = "k" }) :: any
 
 -- Takes one request from the player's bucket; false when it is empty (the request is dropped).
 local function takeRequest(player: Player): boolean
@@ -571,8 +573,13 @@ local function onRequest(player: Player, msg: any)
 			CandyService.changed(player)
 		end
 	elseif type(msg.pack) == "string" and table.find(C.Packs.Keys, msg.pack) ~= nil then
-		-- A Get Candy button (its Buy goes to the Store): the start of the pack funnel (HwPack).
-		Funnel.event(player, "HwMenu", 1, "PackPrompt", msg.pack)
+		-- A Get Candy button (its Buy goes to the Store): the start of the pack funnel (HwPack),
+		-- logged at most once every PackPromptGapSeconds a player (the analytics budget).
+		local t = os.clock()
+		if t - (lastPackPrompt[player] or -math.huge) >= C.PackPromptGapSeconds then
+			lastPackPrompt[player] = t
+			Funnel.event(player, "HwMenu", 1, "PackPrompt", msg.pack)
+		end
 	end
 end
 
