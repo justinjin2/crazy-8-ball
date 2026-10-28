@@ -68,7 +68,7 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
   neighbours), compact = a closed bud 0.3 past the butt; `spider_parts.glb` 134241355070040,
   `Crown.glb` 88297987618252, atlas decals with image ids). Preview beside the concept:
   `gate2/spider_body_vs_C1b.png`. No spider bodies, legs or creatures anywhere.
-- 10:06 P17 piece: `spider_pocket` built headless (a silver Neon orb web of eight spokes and four
+- 10:00 P17 piece: `spider_pocket` built headless (a silver Neon orb web of eight spokes and four
   rings turning 24 deg/s, a ForceField funnel of six silk threads to an apex 1.3 up turning the
   other way, a crimson Neon hourglass bead glowing at the apex; 3 parts, 2,208 triangles; no
   spider), packed, uploaded (70623027624109) and wired into the Spider finisher (Rise, Scale,
@@ -163,3 +163,35 @@ the Broom body, compact bristles, no aura yet):
   straw head's cut ends and cards.
 - `broom_4_bristles.png`: the -X side: the binding and the compact straw head (0.3 past the
   butt, 0.48 across).
+
+Gate 2 (10:05, `~/Desktop/8ball-refs/halloween/shots/hw-cues-b/gate2/`; drop 3 is not in
+`halloween` yet, so the in-game shots show each body drawn over the shared Classic shaft (a
+local-only row with `piece` pointed at the body, never committed): the Classic wrap shows
+through in the grip zone and the Aim fade cannot run; the hands and own-aim views come with
+drop 3):
+
+- `broom_body_vs_C3b.png`: concept C3b on top, the reworked Broom body below (headless): the
+  branch-wave handle with two knots and bigger lumps, the bushy straw head with no end face
+  (dome of strands, fraying cone, 40 frayed cards all round), the 2x hat charm past the butt.
+- `cat_body_vs_C2c.png`, `spider_body_vs_C1b.png`: the Cat and Spider bodies beside their
+  concepts (unchanged since gate 1's build: glossy black atlas shaft with gold rings and claw
+  slashes, skinned tail with the gold rim shell; segmented chrome shaft with chevrons, spear
+  ferrule, crimson hourglass, skinned eight-blade crown with silk webs).
+- `broom_body_stand_lab.jpg`, `broom_body_back_lab.jpg`: the Broom on the lab stand (bright
+  floor, Eclipse three stands to the right) with its aura: violet haze and glow, emerald wisps,
+  stars, crescents, straw leaves, bats, the two Neon ribbons; and on a back, beside the
+  Classic-wearing bots. The bats were too big and flew along the cue (the host part's Top is
+  the cue axis): now 0.36 studs, drifting up in world space (row fixed after the shot).
+- `cat_body_stand_lab.jpg`: the Cat on the stand: gold claw tip, ring pairs, the tail curling
+  up at the butt; shadow cats running in place in the smoke around it, embers.
+- `spider_body_stand_lab.jpg`: the Spider on the stand: chevron segments, the crown, web
+  flecks turning, silk beams along the shaft, black smoke at the butt.
+- `broom_aura_stand_lab.jpg`, `broom_aura_back_lab.jpg`, `cat_aura_stand_lab.jpg`,
+  `spider_aura_stand_lab.jpg`: the same auras on the plain shared shaft (first lab pass).
+- `broom_finisher_lab.jpg`: the Broom finisher mid-way: the portal piece's violet ring and
+  charms over the pocket, the moon with the witch crossing (the witch was 2x too big against
+  the moon: the sprite was redrawn and re-uploaded after this shot, the piece's Rise and Scale
+  curves made bigger).
+- Not yet shot: hands and own-aim views (need drop 3), the Cat and Spider finishers mid-burst
+  (they fire clean; the lobby's tutorial arrows and join pads sat in every clear stretch I
+  tried, the shots show only their shadows and rings), Night lighting.
