@@ -6,7 +6,7 @@
 --
 -- The interface other lanes call (each call in a pcall at its call site):
 --   CandyService.add(player, amount, source, opts?) -> number   Candy added (0 when refused)
---   CandyService.bossWon(player) -> { granted, amount, cooldownEndsAt }   the map lane's King
+--   CandyService.bossWon(player, visitStart?) -> { granted, amount, cooldownEndsAt }   the King
 --   CandyService.bossCooldown(player) -> number   unix time the King is ready again (0: now)
 --   CandyService.pickup(player) -> (ok, reason)   reason "Cap" | "NotLive" | "NotLoaded" | nil
 --   CandyService.isLive() -> boolean
@@ -37,6 +37,26 @@ local function isPlayer(x: any): boolean
 end
 
 export type BossWon = { granted: boolean, amount: number, cooldownEndsAt: number }
+
+-- The start of the King's visit running now, or else of the next one (the map lane's
+-- HalloweenMap/Rules.kingWindow on the Halloween clock); nil without it.
+local function visitNow(): number?
+	local ok, start = pcall(function(): any
+		local Rules = require(Shared:WaitForChild("HalloweenMap"):WaitForChild("Rules")) :: any
+		return if type(Rules.kingWindow) == "function"
+			then Rules.kingWindow(Clock.serverNow())
+			else nil
+	end)
+	return if ok and type(start) == "number" then start else nil
+end
+
+-- Whether the King visits on a schedule (the map lane's Config.HalloweenMap.Boss.Mode "Timed")
+-- rather than sitting on his throne; a missing key is the throne.
+local function kingTimed(): boolean
+	local map = (Config :: any).HalloweenMap
+	local boss = if type(map) == "table" then map.Boss else nil
+	return type(boss) == "table" and boss.Mode == "Timed"
+end
 
 export type AddOpts = {
 	boost: boolean?, -- apply the event multiplier and the friends + group boost (match Candy)
@@ -320,26 +340,46 @@ function CandyService.add(player: Player, amount: number, source: string, opts: 
 end
 
 --- A Pumpkin King win (the map lane, from BotService.matchEnded): every win counts for the
---- King quests and KingWins; the first Boss.PaidWinsPerDay wins of the UTC day pay Boss.Candy
---- (flat); every win starts the personal Boss.CooldownSeconds cooldown. Not Live: nothing.
-function CandyService.bossWon(player: Player): BossWon
+--- King quests and KingWins. On the throne: the first Boss.PaidWinsPerDay wins of the UTC day
+--- pay Boss.Candy (flat) and every win starts the personal Boss.CooldownSeconds cooldown.
+--- Timed (`visitStart`: the start of the visit the challenge was seated in): the visit's first
+--- win pays Boss.Visit once (Candy and money in one change with the visit's mark, then the XP
+--- through the real rank rules), later wins pay nothing; no cooldown. Not Live: nothing.
+function CandyService.bossWon(player: Player, visitStart: number?): BossWon
 	local none: BossWon = { granted = false, amount = 0, cooldownEndsAt = 0 }
 	if not isPlayer(player) or not CandyService.isLive() then
 		return none
 	end
-	local boss, result = PlayerData.hwBoss(player, CandyService.ctx())
+	local timed = kingTimed() and type(visitStart) == "number"
+	local boss, result =
+		PlayerData.hwBoss(player, CandyService.ctx(), if timed then visitStart else nil)
 	if boss == nil then
 		return none
 	end
 	logCandy(player, boss.amount, "Boss")
+	if timed then
+		-- HwKing: a visit's win (value: its Candy; a: paid or a repeat in the same visit).
+		Funnel.event(player, "HwKing", boss.amount, if boss.granted then "Paid" else "Repeat")
+		local xp = boss.xp or 0
+		if boss.granted and xp > 0 then
+			-- Ranking reads CandyService at settle: required here, late.
+			local ok, err = pcall(function(): any
+				(require(script.Parent.Parent.Ranking) :: any).addXp(player, xp)
+				return nil
+			end)
+			if not ok then
+				warn("[8ball] CandyService: the King's XP failed: " .. tostring(err))
+			end
+		end
+	end
 	after(player, result, "Boss")
 	return { granted = boss.granted, amount = boss.amount, cooldownEndsAt = boss.cooldownEndsAt }
 end
 
 --- When the player's King cooldown ends (unix seconds, the server clock), or 0 when none runs.
 function CandyService.bossCooldown(player: Player): number
-	if not isPlayer(player) then
-		return 0
+	if not isPlayer(player) or kingTimed() then
+		return 0 -- a timed King has no cooldown: one paid win a visit (bossWon)
 	end
 	return PlayerData.hwBossCooldown(player, Clock.serverNow())
 end
@@ -672,7 +712,8 @@ function CandyService.dev(player: Player, args: { string }): { string }
 		end
 		PlayerData.hwActive(player, math.floor(n), CandyService.ctx())
 	elseif verb == "kingwin" then
-		local won = CandyService.bossWon(player)
+		-- A timed King: a win in the visit running now (or the next one), as BossService passes.
+		local won = CandyService.bossWon(player, if kingTimed() then visitNow() else nil)
 		say(D.KingWin:format(won.amount, math.max(0, won.cooldownEndsAt - Clock.serverNow())))
 	elseif verb == "convert" then
 		local result = PlayerData.hwConvert(player, CandyService.ctx())
@@ -737,7 +778,8 @@ local function startQA()
 		elseif op == "pickup" then
 			return CandyService.pickup(player)
 		elseif op == "boss" then
-			return CandyService.bossWon(player)
+			-- a: the visit's start (Timed mode), else the visit running now.
+			return CandyService.bossWon(player, if type(a) == "number" then a else visitNow())
 		elseif op == "cooldown" then
 			local at = CandyService.bossCooldown(player)
 			return if at > 0 then at - Clock.serverNow() else 0

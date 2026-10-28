@@ -3783,7 +3783,18 @@ Config.Halloween = {
 	Match = { Enabled = true, PerBall = 3, Finished = 10, Win = 25 },
 	-- Beating the Pumpkin King: the first PaidWinsPerDay wins of a UTC day pay Candy (flat);
 	-- every win starts a personal cooldown of CooldownSeconds (the King's prompt shows it).
-	Boss = { Candy = 50, PaidWinsPerDay = 2, CooldownSeconds = 900 },
+	Boss = {
+		Candy = 50,
+		PaidWinsPerDay = 2,
+		CooldownSeconds = 900,
+		-- Timed mode (Config.HalloweenMap.Boss.Mode "Timed": he visits 12 min twice an hour,
+		-- designer 2026-10-28): the first win of each visit pays Visit instead, once per player
+		-- (Candy flat; Money as a reward, never boosted; Xp through the real rank rules, rank-ups
+		-- and their rewards included); later wins in the visit pay nothing but count for the
+		-- King quests; no cooldown. Numbers proposed by the coordinator, about one strong real
+		-- win each (docs/ECONOMY.md).
+		Visit = { Candy = 150, Money = 2500, Xp = 100 },
+	},
 	-- Lobby pickups (map's CandyDrop spawns them): Candy each (flat), at most HourCap per player
 	-- per UTC hour. The ONLY pickup cap: CandyService.pickup enforces it.
 	Pickup = { Candy = 1, HourCap = 40 },
