@@ -279,6 +279,8 @@ return {
 		Resting = "The Pumpkin King is resting. Ready in %s.", -- the note on a press while he rests
 		CandyWon = "+%d CANDY", -- the billboard over the table on a win
 		CandyPickup = "+%d", -- the billboard on a picked-up candy
+		KingDevStarted = "The Pumpkin King is on his way to a table.", -- /king (designer only)
+		KingDevFailed = "No King match: %s.", -- /king: why (Busy, NoTable, Throttle...)
 		-- What he says (BotService.say): short, kind, never an insult.
 		Taunts = {
 			Seated = {
