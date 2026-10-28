@@ -1182,10 +1182,11 @@ local dayCycle = DayCycle.new() -- the map's day and sunset light (an arena star
 -- The Haunted Rooftop (Halloween 2026, hw-map): the event's Night, the King's prompt, the candy.
 do
 	local ok, err = pcall(function()
-		require(script.Parent:WaitForChild("HalloweenMap"):WaitForChild("MapClient")).start(
-			dayCycle,
-			hub
-		)
+		-- FindFirstChild, never a wait: the folder may be gone after the event (nothing to start).
+		local folder = script.Parent:FindFirstChild("HalloweenMap")
+		if folder and folder:FindFirstChild("MapClient") then
+			require(script.Parent.HalloweenMap.MapClient).start(dayCycle, hub)
+		end
 	end)
 	if not ok then
 		warn("[HalloweenMap] MapClient failed to start: " .. tostring(err))

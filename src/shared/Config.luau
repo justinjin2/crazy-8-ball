@@ -9471,7 +9471,7 @@ Config.HalloweenMap = {
 		Cue = "JackOLanternCue", -- his cue (Cues A's row; an existing cue until it lands)
 		ReadyAttribute = "PumpkinKingReadyAt", -- player attribute: unix seconds his cooldown ends
 		LineAttribute = "PumpkinKingLine", -- player attribute: their place in his line (Timed)
-		BeatAttribute = "PumpkinKingBeat", -- player attribute: the visit they won a prize in (Timed)
+		BeatAttribute = "PumpkinKingBeat", -- player attribute: the visit they beat him in (Timed)
 		Aura = { Rate = 12, LightRange = 10 }, -- flame wisps a second (halved on low quality); studs
 		-- The candy explosion over the table on a win: sprites, sparkles, seconds, drawn this close.
 		-- CandyScale: each flung candy's size against the lobby candy mesh; FlashStuds: the
