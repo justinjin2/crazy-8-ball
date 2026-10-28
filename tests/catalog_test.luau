@@ -152,7 +152,7 @@ return {
 		-- PLAN §3: id, Effect (the visual ladder level).
 		local EVENT = {
 			{ "JackOLanternCue", "Legendary" },
-			{ "CandyCornCue", "Epic" }, -- holds track slot 2 until the designer's pick
+			{ "PitchforkCue", "Legendary" },
 			{ "WitchBroomCue", "Secret" },
 			{ "SpiderCue", "Mythic" },
 			{ "HalloweenSwordCue", "Secret" },
