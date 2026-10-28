@@ -310,6 +310,8 @@ def piece_row(spec):
     row = {'Id': pid, 'Frame': spec.get('Frame', 'cue'), 'Rigid': rigid, 'Models': models, 'Parts': parts, 'Joints': joints}
     if spec.get('Paths'):
         row['Paths'] = spec['Paths']
+    if spec.get('Upright'):
+        row['Upright'] = True  # rigid parts keep the design's orientation (CuePiece: no FLIP)
     return row
 
 

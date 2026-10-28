@@ -1,0 +1,176 @@
+{
+  "id": "jack_o_lantern_pocket",
+  "Frame": "pocket",
+  "Upright": true,
+  "frame": "Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)",
+  "Triangles": 6120,
+  "Parts": [
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#FF7A1C",
+      "Transparency": 0.0,
+      "Reflectance": 0.08,
+      "Name": "Skull_Shell",
+      "File": "pieces/jack_o_lantern_pocket/Skull_Shell.obj",
+      "Joint": "Skull",
+      "Offset": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "Size": [
+        1.9408,
+        1.84,
+        1.9408
+      ],
+      "Triangles": 3896
+    },
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#2F5A2A",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Skull_Stem",
+      "File": "pieces/jack_o_lantern_pocket/Skull_Stem.obj",
+      "Joint": "Skull",
+      "Offset": [
+        0.0,
+        2.0483,
+        -0.1381
+      ],
+      "Size": [
+        0.2,
+        0.4036,
+        0.4646
+      ],
+      "Triangles": 120
+    },
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#FF7A1C",
+      "Transparency": 0.0,
+      "Reflectance": 0.08,
+      "Name": "Jaw_Shell",
+      "File": "pieces/jack_o_lantern_pocket/Jaw_Shell.obj",
+      "Joint": "Jaw",
+      "Offset": [
+        0.0,
+        0.448,
+        -0.4615
+      ],
+      "Size": [
+        1.8466,
+        0.736,
+        0.9229
+      ],
+      "Triangles": 888
+    },
+    {
+      "Material": "Neon",
+      "Color": "#FFC34D",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Core_Core",
+      "File": "pieces/jack_o_lantern_pocket/Core_Core.obj",
+      "Joint": "Core",
+      "Offset": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "Size": [
+        1.9176,
+        1.7296,
+        1.9176
+      ],
+      "Triangles": 1216
+    }
+  ],
+  "Joints": {
+    "Skull": {
+      "Parent": null,
+      "Pivot": [
+        0,
+        0,
+        0.5
+      ],
+      "PivotRoblox": [
+        0,
+        0.5,
+        0.0
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            1,
+            0,
+            0
+          ],
+          "Amp": 4.0,
+          "Period": 1.6
+        },
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0,
+            0,
+            1
+          ],
+          "Amp": 3.0,
+          "Period": 2.2,
+          "Phase": 40
+        }
+      ]
+    },
+    "Jaw": {
+      "Parent": "Skull",
+      "Pivot": [
+        0,
+        0.0,
+        0.74
+      ],
+      "PivotRoblox": [
+        0,
+        0.74,
+        0.0
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            1,
+            0,
+            0
+          ],
+          "Base": 9.0,
+          "Amp": 9.0,
+          "Period": 0.28,
+          "Shape": "snap"
+        }
+      ]
+    },
+    "Core": {
+      "Parent": "Skull",
+      "Pivot": [
+        0,
+        0,
+        1.0
+      ],
+      "PivotRoblox": [
+        0,
+        1.0,
+        0.0
+      ],
+      "Motion": [],
+      "Visual": [
+        {
+          "Kind": "Glow",
+          "Min": 0.0,
+          "Max": 0.5,
+          "Period": 0.45
+        }
+      ]
+    }
+  }
+}

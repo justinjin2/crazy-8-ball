@@ -36,6 +36,7 @@ local Inventory = require(Shared.Progression.Inventory)
 local Requests = require(Shared.Progression.Requests)
 local Shop = require(Shared.Progression.Shop)
 local Restock = require(Shared.Progression.Restock)
+local Catalog = require(Shared.Progression.Catalog) -- the Halloween equip event (hw-cues-a)
 local Announce = require(script.Parent.Announce)
 local Counters = require(script.Parent.Counters)
 local PlayerData = require(script.Parent.PlayerData)
@@ -285,6 +286,11 @@ function HANDLERS.EquipCue(player: Player, r: Requests.Request): Reply
 		return refuse("NotOwned")
 	end
 	Funnel.cueEquipped(player, cueId) -- the lucky block funnel (the tutorial lane)
+	local cue = Catalog.get(cueId)
+	if cue and cue.Event == "Halloween2026" then
+		-- Halloween 2026 (hw-cues-a): how often each event cue is picked up, in Creator Hub.
+		Funnel.event(player, "HalloweenCueEquipped", 1, cueId)
+	end
 	if onEquipped then
 		task.spawn(onEquipped, player, cueId)
 	end

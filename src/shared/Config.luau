@@ -6539,6 +6539,21 @@ Config.CueSkins = {
 	},
 }
 
+-- Halloween 2026 (lane hw-cues-a, 2026-10-28): cues drawn by their own model. A skin's Body
+-- (a ReplicatedStorage.CuePieces template) replaces the shared cue mesh, which is hidden; the
+-- body follows the stick's visibility and camera fade (never AuraOff, Lower effects or the
+-- quiet share), wears the outline and skips the ink ribbons. A missing body template draws
+-- the shared mesh in the skin's maps (Classic's) instead.
+Config.CueSkins.Bodies = {
+	Enabled = true, -- false: every body cue draws the shared mesh (switch; true only once verified)
+	Outline = true, -- false: body cues wear no outline Highlight (cut switch)
+	MaxParts = 8, -- a body's MeshParts, hard limit (tests/cue_body_test.luau; A's own aim at 6)
+	MaxOverhangStuds = 1.5, -- an Aim-fade joint's reach past the butt, cap (tests)
+	AimFadeSeconds = 0.25, -- an Aim-fade joint eases to clear and back over this (tune)
+	PastButtStuds = 0.3, -- how far a body may reach past the butt (tests)
+	TipSlackStuds = 0.01, -- a body must reach this close to the pivot (tests)
+}
+
 Config.Effects = {
 	-- Seconds for a pocketed ball to drop out of sight.
 	SinkDropSeconds = 0.35,
