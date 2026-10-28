@@ -519,9 +519,9 @@ validation, the no-award guard outside the live experience, the spend guard.
 - [x] 7. First Studio roam pass (checks 1, 3, 4, 8) and gate 1 shots; merge `halloween` after 08:30.
 - [ ] 8. Gate 1 (09:00): shots in `gate1/`, one line each in the lane file.
 - [x] 9. `tools/export_badges.luau` + the rest of `tools/roblox_badges.py` around the step-1 probe (dry run, duplicate skip, manifest, cost guard, write-back, `--self-test`); dry-run plan in the lane file.
-- [ ] 10. Create the 5 free badges and ONE paid one; Justin confirms group funds (waiting file); create the other 46; `--write-config`; manifest + ids committed (by 10:45).
+- [x] 10. Create the 5 free badges and ONE paid one; Justin confirms group funds (waiting file); create the other 46; `--write-config`; manifest + ids committed (by 10:45).
 - [ ] 11. Gate 2 (11:00): shots in `gate2/`, one line each in the lane file.
-- [ ] 12. Pure `src/shared/Progression/Badges.luau` + `tests/badges_test.luau` + config_test and save_schema_test lines; `Inventory.everOwned`; the `halloween` rule kind (Pumpkin Slayer, Halloween 2026) and its tests; the BroomRider rule after the Cues A merge.
+- [x] 12. Pure `src/shared/Progression/Badges.luau` + `tests/badges_test.luau` + config_test and save_schema_test lines; `Inventory.everOwned`; the `halloween` rule kind (Pumpkin Slayer, Halloween 2026) and its tests; the BroomRider rule after the Cues A merge.
 - [x] 13. Server queue in `src/server/Badges.luau`: load pass, Changed debounce, holds (tutorial, reel), budget, stagger, award/has/retry, Studio and test-place logging, `BadgeAwarded`, `BadgesQA`.
 - [x] 14. Hooks: Ranking settle (Squad, BeatOwner), `UltService.Used` (Ability1, `countUltMatch`), OwnerHere, InGroup, PumpkinSlayer grant (map's call; the `KingWins` rule back-pays).
 - [ ] 15. Result walk-off exemption; roam checks 2, 5, 6, 7, 9, 10; `Roam.Enabled = true` once all pass.
