@@ -699,42 +699,41 @@
             "Shape": "Cylinder",
             "ShapeStyle": "Volume"
           },
-          "Rate": 3,
+          "Rate": 2,
           "Lifetime": [
-            2.0,
-            3.0
+            1.8,
+            2.6
           ],
           "Speed": [
-            0.5,
-            0.9
+            0.15,
+            0.35
           ],
           "SpreadAngle": [
-            60,
-            60
+            180,
+            180
           ],
-          "EmissionDirection": "Top",
           "Acceleration": [
             0,
-            0.3,
+            0.9,
             0
           ],
-          "Drag": 0.4,
+          "Drag": 0.3,
           "Size": [
             [
               0,
-              0.3
+              0.22
             ],
             [
               0.3,
-              0.48
+              0.36
             ],
             [
               0.85,
-              0.48
+              0.36
             ],
             [
               1,
-              0.3
+              0.22
             ]
           ],
           "Transparency": [
@@ -1297,21 +1296,20 @@
             1.6
           ],
           "Speed": [
-            0.6,
-            1.2
+            0.3,
+            0.7
           ],
           "SpreadAngle": [
-            70,
-            70
+            180,
+            180
           ],
-          "EmissionDirection": "Top",
           "Acceleration": [
             0,
-            0.6,
+            1.2,
             0
           ],
           "Drag": 0.6,
-          "Size": 0.4,
+          "Size": 0.32,
           "Transparency": [
             [
               0,
@@ -1873,8 +1871,8 @@
             1.8
           ],
           "Speed": [
-            1.5,
-            3
+            1.0,
+            2.2
           ],
           "SpreadAngle": [
             50,
@@ -1883,11 +1881,11 @@
           "EmissionDirection": "Top",
           "Acceleration": [
             0,
-            0.8,
+            1.2,
             0
           ],
           "Drag": 0.6,
-          "Size": 0.5,
+          "Size": 0.4,
           "Transparency": [
             [
               0,
