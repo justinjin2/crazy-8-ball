@@ -309,8 +309,8 @@ Planned (PLAN §7 shared files; own block or line only; add the sha to each as i
 - 10:45 **Coordinator requests in full (brief 3.6), standing:**
   1. Merges on request: drop 1 7bef0153, drop 2 eb98e2ef, drop 3 37573b2c (the body path,
      `Bodies.Enabled = true`), CuePreview bodies 5078ac33, Candy Corn 1bd06f55, Jack-o'-Lantern
-     ba50947d (with the `Upright` flag 73fc00ae), analytics d6dccb21: all on `hw-cues-a`,
-     pushed; `hw-cues-a` already contains `halloween` @ f32c3d1b, so the merge is clean.
+     ba50947d (with the `Upright` flag 73fc00ae), analytics d6dccb21, the skinned Aim-fade
+     fix ed8b7ca3 (10:59): all on `hw-cues-a`, pushed; `hw-cues-a` already contains `halloween` @ f32c3d1b, so the merge is clean.
   2. After both cue lanes are merged: run `python3 tools/cue_skins_data.py` in the `halloween`
      checkout and commit. On a `tools/upload_manifest.json` conflict take the union (an `"ok"`
      row wins, keys sorted, `indent=2, sort_keys=True`, never drop a row); on a
