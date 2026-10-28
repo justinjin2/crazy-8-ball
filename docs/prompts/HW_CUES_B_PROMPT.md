@@ -628,12 +628,12 @@ floor by **15:00**, write a Request to the coordinator at once (Cues A may take 
 - [ ] 7. Bodies in the game: drops 2 and 3 merged, rows generated, the ONLY build of the three in
   your window; each checked in the hands (long wind-up, steep shot), on a back (small R15, tall
   R15, R6, walking and sitting), raised over a rail, and in the aim view at phone and PC sizes.
-- [ ] 8. Gate 2 at 11:00: the three bodies on a stand, a back, in the hands and in the aim view
+- [x] 8. Gate 2 at 11:00: the three bodies on a stand, a back, in the hands and in the aim view
   beside Eclipse and their concepts; shots in `gate2/`, lines in the lane file.
 - [x] 9. Broom sprites: bat flap 4x4, crescent, straw leaf, witch over the moon 4x4, a portal
   swirl if needed; drawn by `tools/hw_sprites_b.py`, checked from both sides, uploaded, image
   ids applied.
-- [ ] 10. Broom aura: `witch_broom_aura` ribbons, haze, wisps, stars, bats, flecks, charm sparkle,
+- [x] 10. Broom aura: `witch_broom_aura` ribbons, haze, wisps, stars, bats, flecks, charm sparkle,
   crystal and binding lights, violet outline; ≤170/s; Lower effects; judged on the bright floor
   and under Night beside Eclipse.
 - [ ] 11. Broom trail and finisher: violet-emerald trail with stars, crescents, straw and bats;
@@ -641,18 +641,18 @@ floor by **15:00**, write a Request to the coordinator at once (Cues A may take 
   a solo match on all three cloths.
 - [x] 12. Black Cat sprites: run-in-place 4x4 and leap 4x4 (black, thin gold rim), checked from
   both sides; uploaded, ids applied.
-- [ ] 13. Black Cat aura: black smoke, gold-edged wisps, embers, shadow cats, collar light, gold
+- [x] 13. Black Cat aura: black smoke, gold-edged wisps, embers, shadow cats, collar light, gold
   outline; ≤120/s; Lower effects; Day and Night.
 - [ ] 14. Black Cat trail and finisher: gold-cored dark trail with the pack, smoke and sparks;
   the leap out of the pocket with smoke, shards, gold ring and sparks, library sound; every ball
   readable on charcoal; solo match.
 - [x] 15. Spider sprites: radial web, silk strand, web ring decal; uploaded, ids applied.
-- [ ] 16. Spider aura: black smoke, silk beams between blade tips and along the shaft, web
+- [x] 16. Spider aura: black smoke, silk beams between blade tips and along the shaft, web
   flecks, glints, the hourglass glint, silver outline; ≤120/s; Lower effects; Day and Night; no
   creature anywhere.
-- [ ] 17. Spider trail and finisher: silk trail with strands and flecks; `spider_pocket` web
+- [x] 17. Spider trail and finisher: silk trail with strands and flecks; `spider_pocket` web
   rising and opening, web ring, smoke, sparks, crimson glint, library sound; solo match.
-- [ ] 18. Long overhangs decided, before any card: the aim fade watched in your aim camera at
+- [x] 18. Long overhangs decided, before any card: the aim fade watched in your aim camera at
   phone and PC sizes → long variants on (rebuilt, uploaded, re-checked on a back); otherwise
   the compact ones ship and the cut is logged.
 - [ ] 19. Cards: the three thumbnails with their auras and the overhang variant P18 chose,

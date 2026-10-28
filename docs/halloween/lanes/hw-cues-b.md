@@ -23,6 +23,16 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
 
 ## Status
 
+- 11:10 P20 part: the lineup shots are in `gate2/` (`lineup_six_day_lab.jpg`,
+  `lineup_six_night_lab.jpg`, `trio_bodies_night_lab.jpg`, `trio_bodies_day_lab.jpg`): the
+  three beside Eclipse, Beta and Firework at 37 and 18 studs, Day and Night. Finding: at 37
+  studs the three read thinner than the Unique references, the Spider quietest; nothing to
+  change before the gate, logged for the designer's look. Not checked (logged, not ticked):
+  the aim view at the four sizes and a rejoin with each cue equipped (the real cue needs drop
+  3 merged and the drafts off), the Broom and Cat trails on the other cloths (the solo match
+  ran on one table), every ball readable on charcoal for the Cat. `REQUIRE_ALL` and the row
+  commit wait on the merge: the watcher saw drop 3 (hw-cues-a @37573b2c) still outside
+  `origin/halloween` at 11:06 (head f32c3d1b); a new watcher runs to 11:30.
 - 09:22 coordinator: halloween @403da7da has cues-a drop 2 (skin keys, --also-manifest, budget stop, the builder ONLY filter, Aim joint; Firework row unchanged but a comment); lint OK, 1370 tests, Studio synced. Run `git fetch && git merge origin/halloween`. Cues B: you can generate rows now.
 - 09:20 coordinator REQUEST (Broom blockout, broom_body_vs_C3b.png): (1) the bristle end shows a flat round cap with a dot grid (reads as a fake disc): the bristles must end in splayed, uneven straw tips with no visible end face, fuller like C3b; (2) the handle is far straighter than C3b: Justin asked for "imperfect and curly and wavy... like a stick pulled from an actual branch": bigger S-bends and knots between the hand zones (keep the two hand zones straight); (3) the hat charm reads tiny at gameplay distance: about 2x. Not a gate blocker, fix before the 11:15 gate 2.
 - 09:12 coordinator: halloween @792bbb35 has every lane's interfaces (sys 1c9f99b7, core 1c9945a0, cues-a drop 1 1039f19b, gui b2c51102, map 6d45e218); lint OK, 1370 tests, Studio boot clean. Run `git fetch && git merge origin/halloween` now. Gate 1 is at 10:00: shots + one caption line each in your Gate shots by 09:55.
@@ -416,5 +426,19 @@ for at 08:55 and 10:08).
   embers; the Spider's dummy behind.
 - `spider_back_body_lab.jpg`: the Spider body on a back: the segmented chrome shaft wrapped
   in silk with web flecks, the spear ferrule up, the crimson crown by the hip.
+- `lineup_six_day_lab.jpg`: the six stands at z 70 under Day from 37 studs, as a watcher
+  across the lobby sees them: Firework, Beta and Eclipse (left) beside the Spider, the Cat and
+  the Broom (right). The three Halloween bodies read thinner than the three Unique references
+  at this distance; the Broom's violet halo and ribbons and the Cat's smoke still mark them,
+  the Spider is the quietest (chrome and silk on the bright floor).
+- `lineup_six_night_lab.jpg`: the same six under Night: the Eclipse's gold orbits, the Broom's
+  halo and the Cat's gold glints carry; the Spider's silk beams and crimson glint are small
+  but visible at 37 studs.
+- `trio_bodies_night_lab.jpg`: the Eclipse (left) with the Spider, the Cat and the Broom from
+  18 studs under Night: bodies, auras and the two Night-only accents (the halo, the Cat's
+  collar light) in one frame.
+- `trio_bodies_day_lab.jpg`: the same four from 18 studs under Day: the Spider's chrome shaft
+  and crimson streak, the Cat's black shaft with the gold claw tip and smoke, the Broom's bark
+  handle with the halo and ribbons beside the Eclipse's gold orbits.
 - Not yet shot: hands from a watcher's side (the match camera owns the camera on my turn);
   tall R15, R6, walking and sitting carriers need other avatars (not in this window).
