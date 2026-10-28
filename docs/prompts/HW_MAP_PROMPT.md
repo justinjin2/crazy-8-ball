@@ -630,7 +630,7 @@ request: ask in your lane file's Requests when a verified part should land early
 - [x] 11. CandyDrop and its client FX: spawning, eligibility, the teleport check, CandyService.pickup's `(ok, reason)`, the bag-full note only for `"Cap"`, analytics; a 5-minute walk test.
 - [x] 12. The purple night sky: gen_sky night variant (headless), 6 uploads, Night.Sky ids, the Night-to-Sunset swap checked in Play.
 - [x] 13. `TableBuilder.addDecor` and the three kits (bounds-checked, no collision), on every table, removed at the end.
-- [ ] 14. Props: dead trees, pumpkins, spooky planters, tombstones, string lights, cobwebs (headless Blender, uploads, Assets); the hide list applied and restored; the budget counted.
+- [x] 14. Props: dead trees, pumpkins, spooky planters, tombstones, string lights, cobwebs (headless Blender, uploads, Assets); the hide list applied and restored; the budget counted.
 - [ ] 15. The full flip test: Before → Countdown → Live → Ended → Live in one Play session, a boot during Live, an arena (lighting and tables only); console clean.
 - [ ] 16. Performance pass: counts against the budget, frame time on vs off, the low-quality path, the server loops' cost.
 - [ ] 17. Every verified part's switch set true in Config, each checked once with its own switch off (before the device and fresh-player runs, so they test what ships).

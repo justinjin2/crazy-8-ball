@@ -51,6 +51,22 @@ From PLAN §4 (everything else is read-only to this lane; ask through Requests):
 
 ## Status
 
+- 11:20 hw-map: step 14 done (68dbca8e meshes, ebfbe1f7 MapProps, d8d0f166 budget). While Live
+  the lobby hides its 18 palms, 12 fern planters and 9 planter beds (found in the window:
+  `Palm_N` x18 Models, `FernPlanter_N` x12, `PlanterBed_N` x11 of which 42 and 48 are the
+  portals'; their pots `PalmPlanter_N` and collision twins stay; the piano is the throne's own
+  hide). Each palm's pot grows a dead tree (scaled to the palm, leaning inward, its lanterns
+  glowing); each planter becomes a dark box in its pot's place with a dressing on top (beds: two
+  tombstones, two dead bushes, three jack-o'-lanterns; pots: a bush and a jack-o'-lantern); six
+  strings of lights (orange, purple) hang under the pergola's front and middle beams, cobwebs in
+  its four front corners, pumpkin clusters at the throne's two lanterns. Flip test: Live 51
+  props and 39 hidden; Ended and Before put all 41 Models and the piano back; Live again the
+  same. **Budget** (counted in Studio, Live, lobby at rest): 47,786 triangles of 60,000, 112
+  MeshParts of 130, 16 unique meshes (OVERRULED below), 3 lights of 6 (throne 2, aura 1);
+  first count was 159 MeshParts, fixed by merging each table's pairs into one mesh and the
+  throne's small pumpkins into the one-piece mesh. Worst case on top: 40 candies (9,760 tris,
+  40 MeshParts) and 3 table Kings (2,520, 9) while they last. Shots: `shots/hw-map/props/01-03`,
+  `decor/04`. Now: the flip test with an arena (15).
 - 11:00 hw-map: step 13 done (28fd816f meshes, fa43df20 kits). Every table wears its mode's
   kit while Live, arenas too, and loses it at the end: Orchid 1v1 (purple underglow, two glowing
   bats on the long aprons; 3 parts, 196 tris), Pumpkin 2v2 (orange underglow, trim ring under
@@ -150,11 +166,11 @@ coordinator resolves overlaps. Planned (add the commit sha when each lands):
   §2 Tables and `tests/halloween_contract_test.luau:214` (yours) changed: say go and I change
   Config, my tests and the cloth tool in one commit, or change the contract line yourself and I
   follow.
-- **ROJO CONNECT AGAIN** (09:50): the `lane-hw-map.rbxl` window's plugin shows `[Rojo-Warn]
+- RESOLVED 10:00 (Justin reconnected). **ROJO CONNECT AGAIN** (09:50): the `lane-hw-map.rbxl` window's plugin shows `[Rojo-Warn]
   Disconnected from an error: WebSocket error: 400` and has none of this branch's code. Rojo on
   34886 is up (pid 20013 since 08:47). Please click Connect to `localhost:34886` once more
   (and Accept if it asks to confirm the changes).
-- **ROJO RECONNECT** (08:53): the `lane-hw-map.rbxl` window has none of this branch's code (no
+- RESOLVED 09:00. **ROJO RECONNECT** (08:53): the `lane-hw-map.rbxl` window has none of this branch's code (no
   `ServerScriptService.Server.HalloweenMap`, no `Config.HalloweenMap`), so its Rojo plugin is not
   on 34886 (maybe auto-connected to 34872). Please Connect it to `localhost:34886` (Rojo on
   34886 is up). Working on files meanwhile.
@@ -189,6 +205,18 @@ coordinator resolves overlaps. Planned (add the commit sha when each lands):
   a pool of light under the table (a solid Neon plate read as a yellow slab). The 2v2 kit's
   orange is (255, 90, 10): Neon draws (255, 122, 26) nearly yellow.
 - The decor goes on arena tables too (part of the table's look, like the cloth tint).
+
+- OVERRULED: `Props.Budget.UniqueMeshes` is 16, not the brief's 8. The event's 16 meshes hold
+  6,900 triangles in all on one palette texture (one upload); getting to 8 would merge props
+  whose places are data (trees, strings of lights, dressings) into fixed meshes. The draw cost
+  the cap guards is met by the MeshParts count (112 of 130) and the shared texture.
+- Spooky planters: the brief's "dark box" is a Slate Part the size and place of the hidden
+  planter's pot (`__Opaque` part), shadow on, no collision (the collision twin stays); the fern
+  dressing is drawn 1.39x on the 4.16 pots so it fills the top instead of sitting small.
+- String lights hang only on the pergola (front and middle beams, 6 strands); none on the
+  railing (it is 400 studs round; cut-order 2 anyway). Pumpkin clusters only at the throne's two
+  lanterns: the spawn's tall lanterns stand at the spawn (the brief keeps the spawn clear) and
+  the side lanterns sit by beds that now carry pumpkins.
 
 ### King difficulty (bot_duel, 200 games a row, `--no-write`, 2026-10-28)
 
