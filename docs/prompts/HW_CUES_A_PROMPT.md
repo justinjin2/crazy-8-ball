@@ -668,9 +668,9 @@ Justin's changes at a gate go straight into the work and into the lane file's St
 - [ ] 14. Integration: after B's rows reach `halloween`, merge it (manifest and CueSkins
   conflicts by the 3.4 rules), build all five with ONLY in your window, check the path on the
   Broom, Spider and Cat (hands, back, fade, `Aim`); fix or answer each problem.
-- [ ] 15. Lower effects, quiet in the hands and the Night lighting for both cues; their cost
+- [x] 15. Lower effects, quiet in the hands and the Night lighting for both cues; their cost
   (parts, emitters, particles a second, lights) beside Eclipse's in the lane file.
-- [ ] 16. Analytics: `HalloweenCueEquipped` in `Items.luau`, seen in the Studio log.
+- [x] 16. Analytics: `HalloweenCueEquipped` in `Items.luau`, seen in the Studio log.
 - [ ] 17. Devices: Index row and detail, My Cues, power bar and YOU GOT at phone, iPad, PC and
   TV (pad), shots.
 - [ ] 18. Fresh-player run on the final build, console clean.

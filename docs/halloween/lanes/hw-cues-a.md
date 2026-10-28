@@ -55,6 +55,40 @@ From PLAN §4 (everything else is read-only; ask through Requests):
 
 ## Status (continued)
 
+- 2026-10-28 10:41: **Progress 15 and 16 done.** Analytics @ d6dccb21 (pushed): one
+  `Funnel.event(player, "HalloweenCueEquipped", 1, cueId)` in `HANDLERS.EquipCue` for a
+  Catalog row with `Event = "Halloween2026"`; the Studio server log shows
+  `Funnel: event HalloweenCueEquipped 1 [JackOLanternCue, , ]` and the same for
+  `CandyCornCue` on equip. Lower effects (Settings `LowFx` on through GuiQA `settingsPress`):
+  Jack in hand keeps its body whole, the aura thins to faint smoke
+  (`jack_hands_lower_effects.jpg`); `Quality.rate()` scales only emitter rates (CueVfx), so
+  the finisher keeps its flash, rings, bursts and piece by construction (Effects reads no
+  Quality). Quiet in the hands: aura only at the quiet share (`jack_hands_after_equip` and
+  `candy_hands_aura_quiet`). Night: Map's `Config.Lighting.Night` is in `halloween` but
+  nothing applies it yet (no `LightCycle.event` in src), so I pushed it myself in my window
+  (Night in Day's slot through `LightCycle.state` and `MapLighting.apply`, the real cycle
+  idle): both stands under the violet night (`night_candy_stand.jpg`, `night_jack_stand.jpg`):
+  the warm lights pool on the lilac floor without flooding it white, the Jack reads as a
+  flame-wrapped orange cue, the Candy as a warm gold one; both backs show their butt pieces.
+  Repeat the lab under the real Night once Map's cycle lands. Cost beside Eclipse's and
+  Infernal's (from the skin and piece data; aura particles a second at full rate, back half):
+
+  | cue | body parts / tris | aura emitters | aura /s | orbiters | lights | beams | trail /s | finisher burst | pocket piece |
+  |---|---|---|---|---|---|---|---|---|---|
+  | Candy Corn (Epic) | 7 / 5,216 | 5 | 68 | 1 (+head) | 1 | 0 | 28 | 106 once | none |
+  | Jack-o'-Lantern (Secret) | 7 / 7,040 | 6 | 93 | 2 (+2 heads) | 3 | 0 | 34 | 120 once + 4 parts / 6,120 tris | jack_o_lantern_pocket |
+  | Eclipse (reference) | 48 / 58,352 | 14 | 98 | 2 | 1 | 1 | 31 | 84 once | none |
+  | Infernal (reference) | 1 / 19,500 | 4 | 57 | 3 | 1 | 5 | 33 | 86 once + 2 parts / 27,500 tris | infernal_pocket |
+
+  Both sit under Eclipse on parts, triangles, emitters and particles; Jack's three lights are
+  the one number above the references (Eclipse 1, Infernal 1), each with Flicker and a short
+  range, the back at half rate.
+- **Devices (Progress 17), a blocker:** `tools/halloween/studio_size.sh lane-hw-cues-a.rbxl show`
+  answers "no Studio window title contains ..." from this shell (System Events lists no window
+  for any RobloxStudio process: Accessibility is not granted to this terminal). The device
+  sizes need the helper or the coordinator's posted outer sizes; until then the phone / iPad /
+  TV shots are not taken. `GuiQA:Invoke("padMode", true)` works for the TV layout at the
+  current size.
 - 2026-10-28 10:33: **Both cues out of draft: Candy Corn @ 1bd06f55, Jack-o'-Lantern @ ba50947d**
   (Progress 12; pushed; lint green, the full run 1,409 green, `client_compiles_test` green).
   Cards: `cue_skin.py <sid> --thumb` for both (the body with its frozen aura), uploaded to the
@@ -293,3 +327,7 @@ Gate 2 addition (10:28, `gate2/`): Jack-o'-Lantern complete @ db1a9fdb (+ 73fc00
 - `my_cues_candy_jack_cards.jpg`: My Cues: the two new cards beside VIP and the equipped Classic.
 - `jack_power_bar_card_and_hands.jpg`: a solo fixture with Jack equipped: the power bar draws
   its card, the body in hand.
+- `night_candy_stand.jpg`, `night_jack_stand.jpg`: both stands under Map's Night preset
+  (pushed into Lighting in my window): the warm lights on the lilac floor, the backs' pieces.
+- `jack_hands_lower_effects.jpg`: Jack in hand with Lower effects on: the body whole, the aura
+  thinned to faint smoke.
