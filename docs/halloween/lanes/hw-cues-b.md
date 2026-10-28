@@ -22,6 +22,28 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
   `Index.luau`, `Textures.luau` (regenerate after every merge conflict there).
 
 ## Status
+- 19:50 **Spider v13 polish, READY** (the coordinator's three points after v12). 1. The dome,
+  eyes and blades are smooth-shaded: `tools/cue_pieces_glb.py` now honours an opt-in
+  `"Smooth": true` on a part row (every other lane's parts still pack flat), written by SMOOTH +
+  patch_smooth in the builder (Body_Body, Body_Red, Crown_Blade, Eyes_Eye); the facets are gone
+  in the crown close-up at the same 7 parts / 9,812 tris (no segments added, the budget had no
+  room). 2. Hand at aim retaken with the new build: the shaft sits under the camera, nothing
+  crosses the aim line (gate2/spider_v13_hand_lab.jpg). 3. C1's chevron scales, small: red
+  emissive chevrons painted on the shaft atlas between the zigzag bands (two rows a band, 0.016
+  lines); they read as red ticks along the shaft from the stand and the back. New body GLB
+  119622637359515 (Crown.glb 93000287192965 unchanged), atlas 119513146574407 /
+  123115177768198 / 138639821578265 (image ids 136685013702647 / 137219366088334 /
+  89592941305226 applied). Sheet gate2/spider_v13_side_by_side.jpg (C1, C1 crown, v13 crown
+  close, stand, hand, back; spider_v13_*_lab.jpg). Gaps unchanged from v12: fewer and blunter
+  blades than C1's layered spikes, no silver lacquer on the blades, no webs (removed by
+  request). Lab notes: hw-map found the Solo portal's cyan light tints the default lab spot
+  (-40, 0, 70); the v13 stand and back were shot there (on a black and red cue the tint shows
+  on the floor, not the body); next captures at (-80, 0, 68). Hand-shot gotcha: in a fresh Play
+  the tutorial's bot waits on QueuePad_01 and a lobby bot can sit on a pad, so /solo answers
+  "needs just you" or "Stand on a 1v1 pad"; after the tutorial skip use
+  `ServerStorage.PoolMatchQA:Invoke("fixture", 4, { userId = 544959133, solo = true })`, which
+  unseats me everywhere and starts the solo game at table 4. Commits 6424946d (the packer flag,
+  a shared tool: Cues A please note) + 9e6ae788 (content); lint OK, 1,477 tests.
 - 19:40 **Spider v12, the crown to C1's close-up, READY** (the coordinator's 19:3x review of
   v11, five points). The dome is plain glossy black: the purple pixelated checker was the lobby
   skybox mirrored at Reflectance 0.15, now 0 on the dome and the blades. Sixteen Neon red eye
@@ -442,10 +464,19 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
   the coordinator's §2.2 merges the same way).
 - `src/shared/CueSkins/*`: generated only by `python3 tools/cue_skins_data.py`; on a conflict
   regenerate, never merge by hand.
+- `tools/cue_pieces_glb.py` (6424946d, 19:50): an opt-in `"Smooth": true` part-row key packs
+  that part smooth-shaded; a row without it packs flat as before, so no other lane's pieces
+  change. The builder writes the key (SMOOTH + patch_smooth); the generated rows carry it.
 - No other shared file (no Config, Strings, HubCorners, Net, DevCommands, save or config test).
 
 ## Requests
 
+- 19:50 **READY SpiderCue v13 @ 9e6ae788** (skin `spider`: body 119622637359515 + Crown
+  93000287192965, atlas 119513146574407 / 123115177768198 / 138639821578265 with image ids
+  applied, aura, pocket and card as the 19:25 READY; base `halloween` @5020858d; lint OK,
+  1,477 tests, cue_skins_data.py clean). Carries 6424946d, a shared-tool change:
+  `tools/cue_pieces_glb.py` packs a part row with `"Smooth": true` smooth-shaded, the default
+  unchanged. Template build in Team Create: `ONLY = { "SpiderCue" }`.
 - 19:40 **READY SpiderCue v12 @ 094488d6** (skin `spider`: body 102318984627266 + Crown 93000287192965,
   the other ids as the 19:25 READY; base `halloween` @c133dacb; lint OK, 1,477 tests,
   cue_skins_data.py clean). Template build in Team Create: `ONLY = { "SpiderCue" }`.

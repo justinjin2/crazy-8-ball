@@ -95,7 +95,8 @@
         0.6928,
         6.96
       ],
-      "Triangles": 2932
+      "Triangles": 2932,
+      "Smooth": true
     },
     {
       "Material": "Neon",
@@ -115,7 +116,8 @@
         0.396,
         5.3865
       ],
-      "Triangles": 1920
+      "Triangles": 1920,
+      "Smooth": true
     },
     {
       "Material": "Neon",
@@ -155,7 +157,8 @@
         0.86,
         1.23
       ],
-      "Triangles": 528
+      "Triangles": 528,
+      "Smooth": true
     },
     {
       "Material": "Neon",
@@ -175,7 +178,8 @@
         0.8591,
         0.5146
       ],
-      "Triangles": 320
+      "Triangles": 320,
+      "Smooth": true
     }
   ],
   "Joints": {
