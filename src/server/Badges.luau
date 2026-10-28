@@ -343,15 +343,6 @@ local function onLoaded(player: Player)
 		elseif ownerHere() then
 			Badges.grant(player, "MetOwner", "Owner")
 		end
-		-- Part of the Crew: in the group now (Social sets InGroup after the load) or later.
-		if player:GetAttribute("InGroup") == true then
-			Badges.grant(player, "Crew", "Group")
-		end
-	end)
-	player:GetAttributeChangedSignal("InGroup"):Connect(function()
-		if player:GetAttribute("InGroup") == true and states[player] then
-			Badges.grant(player, "Crew", "Group")
-		end
 	end)
 end
 

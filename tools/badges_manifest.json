@@ -24,14 +24,14 @@
     "cost": 100,
     "iconImageId": 96709028254909,
     "id": 1277347348028555,
-    "name": "Pocket Pro",
+    "name": "Marksman",
     "time": "2026-10-28T09:50:25-0400"
   },
   "Balls10000": {
     "cost": 100,
     "iconImageId": 118322930429806,
     "id": 7174693576307,
-    "name": "Pocket Machine",
+    "name": "Deadeye",
     "time": "2026-10-28T09:50:27-0400"
   },
   "BeatOwner": {
@@ -50,6 +50,7 @@
   },
   "Crew": {
     "cost": 100,
+    "disabled": true,
     "iconImageId": 124685259489920,
     "id": 2950008037199385,
     "name": "Part of the Crew",
@@ -66,28 +67,28 @@
     "cost": 100,
     "iconImageId": 139703792281116,
     "id": 494978037344337,
-    "name": "Legendary Pull",
+    "name": "Legendary Find",
     "time": "2026-10-28T09:50:04-0400"
   },
   "CueMythic": {
     "cost": 100,
     "iconImageId": 134862981568249,
     "id": 832024187830975,
-    "name": "Mythic Moment",
+    "name": "Mythic Find",
     "time": "2026-10-28T09:50:07-0400"
   },
   "CueRare": {
     "cost": 100,
     "iconImageId": 79077305734906,
     "id": 207940625235143,
-    "name": "Shiny!",
+    "name": "Rare Find",
     "time": "2026-10-28T09:50:00-0400"
   },
   "CueSecret": {
     "cost": 100,
     "iconImageId": 121154596295437,
     "id": 1923791243743351,
-    "name": "Secret Keeper",
+    "name": "Secret Find",
     "time": "2026-10-28T09:50:09-0400"
   },
   "CueUnique": {
@@ -101,14 +102,14 @@
     "cost": 100,
     "iconImageId": 99641036694994,
     "id": 3048335140968827,
-    "name": "Curator",
+    "name": "Super Collector",
     "time": "2026-10-28T09:50:16-0400"
   },
   "Cues25": {
     "cost": 100,
     "iconImageId": 82954589879426,
     "id": 1158904462514818,
-    "name": "Cue Rack",
+    "name": "Master Collector",
     "time": "2026-10-28T09:50:18-0400"
   },
   "Cues5": {
@@ -122,7 +123,7 @@
     "cost": 100,
     "iconImageId": 95738348508042,
     "id": 112973040839564,
-    "name": "Museum",
+    "name": "Grand Collector",
     "time": "2026-10-28T09:50:20-0400"
   },
   "FirstWin": {
@@ -157,7 +158,7 @@
     "cost": 100,
     "iconImageId": 124809173480484,
     "id": 2829128822759859,
-    "name": "Lives Here",
+    "name": "Diehard",
     "time": "2026-10-28T09:50:34-0400"
   },
   "MetOwner": {
@@ -169,6 +170,7 @@
   },
   "Money10M": {
     "cost": 100,
+    "disabled": true,
     "iconImageId": 138311998961873,
     "id": 217838342274579,
     "name": "Tycoon",
@@ -353,7 +355,7 @@
     "cost": 100,
     "iconImageId": 109462386097106,
     "id": 376201506130396,
-    "name": "Pool Shark",
+    "name": "Ace",
     "time": "2026-10-28T09:14:32-0400"
   },
   "Wins500": {

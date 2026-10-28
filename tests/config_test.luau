@@ -485,7 +485,10 @@ return {
 		H.expect(Config.Multiplayer.Roam.HomeExtraStuds >= 0, "HomeExtraStuds")
 		local B = Config.Badges
 		H.expect(B.StaggerSeconds == 3, "one award per player every 3 s (PLAN section 2)")
-		H.expect(#B.List == 52, ("52 badges, got %d"):format(#B.List))
+		H.expect(
+			#B.List == 50,
+			("50 badges (Tycoon and Part of the Crew cut), got %d"):format(#B.List)
+		)
 		local seen = {}
 		for _, row in B.List do
 			H.expect(not seen[row.Key], "duplicate key " .. row.Key)
