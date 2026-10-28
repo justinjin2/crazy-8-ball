@@ -3886,10 +3886,7 @@ Config.Halloween = {
 			{ At = 50, Spins = 1 },
 			{ At = 150, Cue = "JackOLanternCue" },
 			{ At = 300, Money = 2500 },
-			-- TODO(slot 2, designer 2026-10-28 19:2x): Bone or a red / hellfire cue, his pick.
-			-- CandyCornCue only holds the slot until then and leaves with it (catalog, skin,
-			-- strings, Art); it was never published.
-			{ At = 500, Cue = "CandyCornCue" },
+			{ At = 500, Cue = "PitchforkCue" }, -- the designer's slot-2 pick (2026-10-28 19:40)
 			{ At = 1000, Spins = 2 },
 			{ At = 1500, Money = 5000 },
 			{ At = 2000, Cue = "WitchBroomCue" },
@@ -17389,8 +17386,8 @@ Config.UI.Halloween = {
 	-- Pictures (image ids; "" = the fallback named): the cue cards until the cue lanes' thumbnails
 	-- exist (the approved concept art), the gift boxes, the end screen's candy pile and cash.
 	Art = {
-		CandyCornCue = "rbxassetid://99907004080834", -- holds slot 2 until the designer's pick
 		JackOLanternCue = "rbxassetid://114487013205177",
+		PitchforkCue = "", -- TODO: its card art (hw-map's card id); "" = a blank card
 		SpiderCue = "rbxassetid://134067061693157",
 		WitchBroomCue = "rbxassetid://83442214439619",
 		HalloweenSwordCue = "", -- TODO: its card art (cues-a's thumbnail); "" = a blank card

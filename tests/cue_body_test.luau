@@ -87,7 +87,7 @@ return {
 	["the Cues A bodies' piece.json files obey the body rules (checked while draft)"] = function()
 		local Config = H.require("Config")
 		local B = Config.CueSkins.Bodies
-		for _, pid in { "candy_corn", "jack_o_lantern" } do
+		for _, pid in { "jack_o_lantern" } do
 			local path = ("assets/cue/pieces/%s/piece.json"):format(pid)
 			H.expect(fs.isFile(path), path .. " exists")
 			local spec = serde.decode("json", fs.readFile(path))
