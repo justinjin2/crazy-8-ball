@@ -450,12 +450,14 @@ function Countdown.new(screen: ScreenGui)
 		stepGuide(kingUp, free)
 	end
 	task.spawn(function()
+		local warned = false -- a failing tick warns once; the loop goes on
 		while screen.Parent ~= nil do
 			local ok, err = pcall(function(): any
 				tick()
 				return nil
 			end)
-			if not ok then
+			if not ok and not warned then
+				warned = true
 				warn("[8ball] Halloween countdown: " .. tostring(err))
 			end
 			task.wait(1)
