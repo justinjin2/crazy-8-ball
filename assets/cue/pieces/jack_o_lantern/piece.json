@@ -217,9 +217,11 @@
       "Visual": [
         {
           "Kind": "Glow",
-          "Min": 0.1,
-          "Max": 0.75,
-          "Period": 1.3
+          "Min": 0.25,
+          "Max": 0.8,
+          "Period": 0.55,
+          "Shape": "flicker",
+          "Color": "#FFC040"
         },
         {
           "Kind": "Blink",
