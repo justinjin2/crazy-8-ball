@@ -34,6 +34,7 @@ From PLAN §4 (everything else is read-only; ask through Requests):
   holds and retries otherwise), so a skin leaves draft only when the cue is complete.
 
 ## Status
+- 13:19 coordinator: `halloween` @d0b1d604 adds map 656825bf + ee17dc24 (**Boss.Mode "Timed" is ON**: the King visits the roof's middle at UTC :15 and :45 for 12 min) + 092ab2c9 (result-card pumpkin portrait) + 4ebc50cb (winners last in his line), core fa17a763 (visit reward +150 Candy / +$2,500 / +100 XP once a visit, KingVisit save mark, the King timer pill) and cues-a 95325e31 (the Jack's own signature, no ribbons). Reward fairness checked: kept. Lint OK, 1,468 tests, Team Create: :15 arrival, challenge seated, Jack lab, console clean. Merge `origin/halloween` before your next READY.
 - 12:37 coordinator: `halloween` @7be001ed adds map 88e9cceb (throne builds once; Studio: 1 throne, 1 King) + 623d0051 (timed King schedule, Mode Throne), core 1361de6d (ActiveGate, pacing), sys 57bc2b91 (50 badges, v2 icons), cues-a 66af67b0 (painted Jack, Candy rework) + fec0cb91 (deterministic generator; a main-checkout regen is now clean), cues-b 0e3569b6 (Broom redo). Lint OK, 1,465 tests, Team Create play console clean. JUSTIN (12:35): the Pumpkin King becomes a timed visitor (UTC :15 and :45, 12 min, middle of the map, 1.5x size, a top timer, the King's line when tables are full, one paid win a visit: +150 Candy, +$2,500, +100 XP). Map and core build it by 15:00; Throne mode stays the fallback. Run `git fetch && git merge origin/halloween` before your next READY.
 - 12:15 coordinator: `halloween` @5dae747d adds map 7fd462cc + 39815514 (night rooftop, King, drops, /king), core d7120fac (the 11:30 review fixed, the Rush chip names what runs) and gui c9f01ea6 (the boost lines restyle, VIP perks in the Soft step). The contract test is now STRICT. Lint OK, 1,460 tests, Team Create play console clean (shots/coordinator/merge_5dae747d_boost_lines.jpg). Known blocker sent to map: the throne builds twice on a server that starts during Live. Run `git fetch && git merge origin/halloween` before your next READY.
 - 11:55 coordinator: 11:30 review of 83e876db: one should-fix for the rework. Toggling Lower effects makes a hidden body stick reappear as a ghost: CuePiece's Quality.Changed handler calls applyHidden() with no args (base 0), CueSkinLook.step skips invisible looks, so the body shows where the cue was last drawn until it is next shown. Fix: keep the last modifier/eye/studs and reuse them in the Quality handler (and setAura). Minor: gate CueAssets' body warm on Config.CueSkins.Bodies.Enabled; HalloweenCueEquipped also fires on re-equipping the same cue.
@@ -59,6 +60,23 @@ From PLAN §4 (everything else is read-only; ask through Requests):
 - 09:55 coordinator: `halloween` @82ab885c (+ docs f8566968) has core interface 2 (7f01d27b: Halloween save field, CandyService, /hw; switches off), sys 4cdf5620 (roam off, badges off) and gui f2562efb (boost pill ON, friend boost ON, Cue Preview core off). Lint OK, 1,404 tests, Studio play console clean, pill shows +120%. Run `git fetch && git merge origin/halloween` before your next READY. Main.client still has 12 top-level locals to spare: hooks stay inside `do ... end`.
 
 ## Status (continued)
+
+- **13:20 READY hw-cues-a @ 83bcdd4e: the Candy Corn's signature (no ribbons), the second of the
+  designer's 12:55 three.** The old ribbons, haze, full-length kernel sprites, the orbiter and
+  the beam are gone. Its own hand-made effect: a candy fountain pours kernels off the tip
+  (the kernel flipbook, under gravity, tumbling), four real kernels hop on the shaft just
+  behind the tip (a quick drop, a slow rise, a tumble), sugar crystals stand on the orange and
+  yellow bands and twinkle, sugar sparkles ride the surface, and at the butt the cellophane
+  wrapper's crinkled orange wings snap open and ease closed in two pairs behind the dome, with
+  the tie. Decor `candy_corn_aura` 14 parts / 808 tris (asset 78851369686323), Aura 58/s;
+  Lower effects keeps two kernels, two wings and the crystals. Same ids, switches and catalog
+  row; the painted bands body stays. Side-by-side for Justin:
+  `~/Desktop/8ball-refs/halloween/shots/hw-cues-a/gate2/side_by_side_candy_signature.jpg`
+  (new / before with ribbons / the Firework reference); the wrapper close-up
+  `gate2/sig_candy_butt_v3.jpg`. Commit 5be5b0a9, merged `origin/halloween` @ 23e289f4
+  (83bcdd4e); lint clean, 1,466 tests pass, generator no-op. Next: the Black Cat (from Cues B's
+  eb95993d, the coordinator's 13:08 rule: tail flick, shadow cats, gold claw swipe, embers and
+  collar light; no head, face, eyes or paw prints), READY by 16:00.
 
 - 13:05: **READY hw-cues-a @ 95325e31: the Jack's signature, no ribbons (Justin 12:55 via the
   coordinator: the cues all looked identical, the ribbon effect reused; each cue its own
@@ -683,3 +701,7 @@ Gate 2 addition (10:28, `gate2/`): Jack-o'-Lantern complete @ db1a9fdb (+ 73fc00
   `sig_jack_back_v2.jpg`: 13:05, the Jack's signature (no ribbons) close, the face/jaw/embers
   from above, on a back; `sig_jack_close_v1.jpg`, `sig_jack_face_v1.jpg`: the first pass
   (the face glow went white before Color was set).
+- `side_by_side_candy_signature.jpg`, `sig_candy_close_v3.jpg`, `sig_candy_butt_v3.jpg`: 13:20, the
+  Candy's signature (no ribbons) close, and the orange wrapper wings at the butt;
+  `sig_candy_close_v1.jpg`, `sig_candy_close_v2.jpg`, `sig_candy_tip_v2.jpg` (the fountain),
+  `sig_candy_butt_v2.jpg` (the first translucent wrapper), `sig_candy_back_v2.jpg`: the earlier passes.
