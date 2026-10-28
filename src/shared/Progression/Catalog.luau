@@ -257,7 +257,7 @@ local CUES: { Cue } = {
 	-- CandyCue (the Candy Cane invite cue) and PhantomCue are taken: never reused.
 	eventCue("CandyCornCue", "Epic"), -- track 150
 	eventCue("JackOLanternCue", "Legendary"), -- track 500
-	eventCue("BlackCatCue", "Mythic"), -- track 2,000
+	eventCue("BoneCue", "Mythic"), -- track 2,000 (the Black Cat's place since 2026-10-28)
 	eventCue("SpiderCue", "Mythic"), -- 3 h 01 m of active event play
 	eventCue("WitchBroomCue", "Secret"), -- track 7,000
 }

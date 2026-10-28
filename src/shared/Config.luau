@@ -3889,7 +3889,7 @@ Config.Halloween = {
 			{ At = 500, Cue = "JackOLanternCue" },
 			{ At = 1000, Spins = 2 },
 			{ At = 1500, Money = 5000 },
-			{ At = 2000, Cue = "BlackCatCue" },
+			{ At = 2000, Cue = "BoneCue" },
 			{ At = 3000, Spins = 3 },
 			{ At = 4500, Money = 10000 },
 			{ At = 5500, Spins = 5 },
@@ -17387,7 +17387,7 @@ Config.UI.Halloween = {
 	Art = {
 		CandyCornCue = "rbxassetid://99907004080834",
 		JackOLanternCue = "rbxassetid://114487013205177",
-		BlackCatCue = "rbxassetid://95439931834328",
+		BoneCue = "rbxassetid://131967740072541", -- its own card (assets/cue/thumbs/bone.png)
 		SpiderCue = "rbxassetid://134067061693157",
 		WitchBroomCue = "rbxassetid://83442214439619",
 		Header = "rbxassetid://100823591958466", -- the menu header's jack-o'-lantern ("" = the Candy icon)

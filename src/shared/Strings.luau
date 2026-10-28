@@ -730,7 +730,7 @@ return {
 			-- Halloween 2026 (docs/halloween/PLAN.md §3)
 			CandyCornCue = "Candy Corn Cue",
 			JackOLanternCue = "Jack-o'-Lantern Cue",
-			BlackCatCue = "Black Cat Cue",
+			BoneCue = "Bone Cue",
 			SpiderCue = "Spider Cue",
 			WitchBroomCue = "Witch's Broom",
 		},
@@ -1943,7 +1943,7 @@ return {
 		CueShort = {
 			CandyCornCue = "Candy Corn",
 			JackOLanternCue = "Jack-o'-Lantern",
-			BlackCatCue = "Black Cat",
+			BoneCue = "Bone",
 			SpiderCue = "Spider",
 			WitchBroomCue = "Witch's Broom",
 		},

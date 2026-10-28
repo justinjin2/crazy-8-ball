@@ -413,11 +413,6 @@
     "imageId": "100823591958466",
     "status": "ok"
   },
-  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/black_cat_aura/black_cat_aura_parts.glb": {
-    "assetId": "103166820594434",
-    "assetType": "Model",
-    "status": "ok"
-  },
   "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/candy_corn/candy_corn_parts.glb": {
     "assetId": "135070490205166",
     "assetType": "Model",
@@ -455,12 +450,6 @@
     "imageId": "110159550393453",
     "status": "ok"
   },
-  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/vfx/black_cat/claw_swipe.png": {
-    "assetId": "137606027112313",
-    "assetType": "Decal",
-    "imageId": "139208403900742",
-    "status": "ok"
-  },
   "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/vfx/candy_corn/bands_512.png": {
     "assetId": "134639070931625",
     "assetType": "Decal",
@@ -495,39 +484,6 @@
     "assetId": "87025522416082",
     "assetType": "Decal",
     "imageId": "100529744606848",
-    "status": "ok"
-  },
-  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/pieces/black_cat/Tail.glb": {
-    "assetId": "133878609951821",
-    "assetType": "Model",
-    "status": "ok"
-  },
-  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/pieces/black_cat/atlas_color.png": {
-    "assetId": "95747904436181",
-    "assetType": "Decal",
-    "imageId": "70872651253415",
-    "status": "ok"
-  },
-  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/pieces/black_cat/atlas_emissive.png": {
-    "assetId": "71056628970591",
-    "assetType": "Decal",
-    "imageId": "125549519255659",
-    "status": "ok"
-  },
-  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/pieces/black_cat/atlas_normal.png": {
-    "assetId": "80592588137888",
-    "assetType": "Decal",
-    "imageId": "77812296800419",
-    "status": "ok"
-  },
-  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/pieces/black_cat/black_cat_parts.glb": {
-    "assetId": "97976303474135",
-    "assetType": "Model",
-    "status": "ok"
-  },
-  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/pieces/black_cat_aura/black_cat_aura_parts.glb": {
-    "assetId": "108664970112629",
-    "assetType": "Model",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/pieces/spider/Crown.glb": {
@@ -606,12 +562,6 @@
     "assetType": "Model",
     "status": "ok"
   },
-  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/thumbs/black_cat.png": {
-    "assetId": "115496115118704",
-    "assetType": "Decal",
-    "imageId": "139545705429939",
-    "status": "ok"
-  },
   "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/thumbs/spider.png": {
     "assetId": "123638860690562",
     "assetType": "Decal",
@@ -622,18 +572,6 @@
     "assetId": "75454419026225",
     "assetType": "Decal",
     "imageId": "121330247838904",
-    "status": "ok"
-  },
-  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/vfx/black_cat/cat_leap_4x4.png": {
-    "assetId": "98170765493066",
-    "assetType": "Decal",
-    "imageId": "114540965456482",
-    "status": "ok"
-  },
-  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/vfx/black_cat/cat_run_4x4.png": {
-    "assetId": "105454913916499",
-    "assetType": "Decal",
-    "imageId": "120281480144576",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/vfx/spider/silk.png": {
@@ -676,6 +614,46 @@
     "assetId": "77938547508430",
     "assetType": "Decal",
     "imageId": "113918266054738",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-map/assets/cue/pieces/bone/bone_parts.glb": {
+    "assetId": "84663268268673",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-map/assets/cue/pieces/bone_pocket/bone_pocket_parts.glb": {
+    "assetId": "78687625811913",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-map/assets/cue/thumbs/bone.png": {
+    "assetId": "137357376268612",
+    "assetType": "Decal",
+    "imageId": "131967740072541",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-map/assets/cue/vfx/bone/bone_512.png": {
+    "assetId": "120188138929757",
+    "assetType": "Decal",
+    "imageId": "78151215613806",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-map/assets/cue/vfx/bone/flame_8x8.png": {
+    "assetId": "81401326515445",
+    "assetType": "Decal",
+    "imageId": "100565885816987",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-map/assets/cue/vfx/bone/skull_512.png": {
+    "assetId": "118776807369861",
+    "assetType": "Decal",
+    "imageId": "93343656057249",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-map/assets/cue/vfx/bone/skull_jaw_512.png": {
+    "assetId": "130907496602792",
+    "assetType": "Decal",
+    "imageId": "70582963869082",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball-refs/emotes/birdbrain_loop.flac": {

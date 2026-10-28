@@ -12,8 +12,7 @@ local GO_LIVE = 1793228400 -- Wed Oct 28 19:00 EDT
 local COUNTDOWN = 1793226600 -- 18:30 EDT
 local ENDS = 1793750400 -- Tue Nov 3 19:00 EST
 local DOUBLE_FROM, DOUBLE_TO = 1793419200, 1793505600 -- Oct 31, US Eastern
-local EVENT_CUES =
-	{ "CandyCornCue", "JackOLanternCue", "BlackCatCue", "SpiderCue", "WitchBroomCue" }
+local EVENT_CUES = { "CandyCornCue", "JackOLanternCue", "BoneCue", "SpiderCue", "WitchBroomCue" }
 
 local function tryRequire(path: string): any
 	local ok, mod = pcall(H.require, path)
@@ -153,7 +152,7 @@ return {
 				{ 500, "JackOLanternCue" },
 				{ 1000, 2 },
 				{ 1500, 5000 },
-				{ 2000, "BlackCatCue" },
+				{ 2000, "BoneCue" },
 				{ 3000, 3 },
 				{ 4500, 10000 },
 				{ 5500, 5 },

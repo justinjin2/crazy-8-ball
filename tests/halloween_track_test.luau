@@ -20,7 +20,7 @@ return {
 			{ 500, "Cue", "JackOLanternCue" },
 			{ 1000, "Spins", 2 },
 			{ 1500, "Money", 5000 },
-			{ 2000, "Cue", "BlackCatCue" },
+			{ 2000, "Cue", "BoneCue" },
 			{ 3000, "Spins", 3 },
 			{ 4500, "Money", 10000 },
 			{ 5500, "Spins", 5 },

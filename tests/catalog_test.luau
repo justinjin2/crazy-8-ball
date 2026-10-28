@@ -153,7 +153,7 @@ return {
 		local EVENT = {
 			{ "CandyCornCue", "Epic" },
 			{ "JackOLanternCue", "Legendary" },
-			{ "BlackCatCue", "Mythic" },
+			{ "BoneCue", "Mythic" },
 			{ "SpiderCue", "Mythic" },
 			{ "WitchBroomCue", "Secret" },
 		}
