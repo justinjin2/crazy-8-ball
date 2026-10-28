@@ -206,6 +206,18 @@ One line each; the long form is the 2026-10-12 (evening) entry at the top of
   Studio quirk), so check it live. Checked in Studio: 14 cards in the new order, Bird Brain's
   song at 0.39 and its animation, console clean. Check live: Avatar Shop on any emote opens
   Roblox's buy popup; Bird Brain's song loops without a seam; the songs quieter, the crunch heard.
+- **Bird Brain as the whole 30 s dance, pushed 2026-10-28, not published:** one emote is at
+  most 10 s, so the row plays "Teto Birdbrain Dance" Part 1, 2 and 3 of 3 in turn (`Parts`,
+  each 10 s, by nameswapped3; Avatar Shop opens Part 1, 104263317795993). The song (the kept
+  upload) plays once a loop from "but I falter" to its end (23.5 s), then is quiet until the
+  loop at 30 s (`Music.Every`). New in the emote system: rows with Parts (EmotePlayer hands each
+  part to the next PartLeadSeconds early; EmoteAlign seeks only the current part) and
+  `Music.Every`; every other dance runs as before. Checked in Studio with the card-press hook:
+  P1, P2 at 10 s, P3 at 20 s, P1 at 30 s on the clock within 0.02 s; the song quiet from 23.5 s
+  and back at 30 s; a jump ends it; Rat Dance loops as before; console clean. **Needs a
+  2-player look:** another player's screen switches parts late by ping, which may show a blip
+  at each part change. Check live: dance Bird Brain 35 s on a phone and a PC; a friend watches
+  the changes at 10, 20 and 30 s.
 - **The abilities:** the one-by-one review goes on (unreviewed ones are provisional); phone,
   controller, sounds by ear, the sneak with two players, the designer's voice lines.
 - **Tutorial v2 leftovers** (`docs/prompts/TUTORIAL_V2_REPORT.md`, last section): the first
