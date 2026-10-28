@@ -64,6 +64,18 @@ From PLAN §4 (lanes ask for these through their own lane file's Requests):
 - 11:36 Merged cues-a 83e876db (drop 3 37573b2c through ed8b7ca3: cue bodies, Bodies.Enabled, Candy Corn + Jack-o'-Lantern out of draft, Upright, analytics, Aim-fade), core 3c4b87aa (READY 10:16: menu, tile, quests, Spider, packs, art, funnel), sys c5b6b607 (FINAL fe78db7a) and gui 3438ea94 (FINAL 1dc99f84) -> `halloween` @537270fd, pushed. Only conflict: tools/upload_manifest.json (union, 984 rows, sort_keys). Lint OK, Main.client headroom 12, 1,436 tests, Team Create play console clean (only the old 203785492 lines), tile + Rush chip + pill +120% seen (shots/coordinator/merge_537270fd_lobby.jpg). Review workflow wf_055b7a55-6ba runs after the push (see Assumptions). Lanes told (Status line in all six; cues-b by message).
 - 11:39 Gate 2 page published on the same artifact (v 1793201977-1533): 127 lane shots, the six gate-1 asks still open + a 7th (keep the lanes' four OVERRULED calls?). Justin back at 11:33.
 - Late: the coordinator stopped at 09:51 for Justin's gate-1 answers and sat idle until 11:30, so drop 3 (MERGE NOW 09:45) went in 1 h 50 min late and cues-b waited on it. From now on a stop for Justin keeps a background watch on lane READY lines.
+- 11:49 Merged core de236025 (Progression.quiet counts the NEW CUE! card and end screen) + cues-b a431419b (Broom, Cat, Spider out of draft) -> @64085ab2, pushed; cue_skins_data.py clean (66 skins, 28 pieces); 1,441 tests; Team Create play clean.
+- 11:50 Justin's answers (gate 1/2), in his words in the transcript:
+  1. Icons OK: set them automatically each hour (5H at 14:00 ... LIVE at 19:00), LIVE for a day, then the plain icon (19:00 Oct 29).
+  2. The event already exists (his own "??? HALLOWEEN UPDATE", id 3257813357457179184): fix only the times (it said 17:00 EDT to Nov 1 18:00).
+  3. Title: no countdown title. At release he adds the pumpkin emoji by hand, nothing else.
+  4. Store schedule yes, minus 2 and 3.
+  5. The zero-boost pill a bit dimmer, plus a restyle: no background, green "Money Boost: +XX%", orange "Candy Boost: +XX%" -> hw-gui.
+  6. Badges: fine that they're made. He dislikes the icons and some names -> hw-sys asks him directly.
+  Plus: the five cues "look terrible ... nothing like Beta Cue, Firework Cue": redo or improve -> both cue lanes, last READY 16:00.
+- 11:55 Icon route test passed (identical copy 108723548670554 set and confirmed by GET, original 123614794049673 back). Event times PATCHed: 2026-10-28T23:00Z to 2026-11-04T00:00Z (200, title and text unchanged; tools/halloween/store_page.py event-times). icon-schedule --go running under caffeinate (pid in store/icon-schedule.out, log store/log.txt), last step plain at 1793314800.
+- 11:55 Review wf_055b7a55-6ba (8 agents) of the 11:36 merge: no blocker. cues-a 1 should-fix (ghost body on a Lower-effects toggle) + 1 minor; core 6 minor; sys 1 minor; gui: the four 09:55 items were never fixed (my 11:36 merge message said they were; corrected here) -> sent back. All as Status lines in the lane files.
+- 11:55 Map CONTRACT CHANGE approved (3v3 cloth (88,176,32), PLAN updated); map READY 7fd462cc in trial merge (tests + review running).
 
 ## Shared-file changes
 
