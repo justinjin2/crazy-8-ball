@@ -162,6 +162,15 @@ local function savePass(player: Player, retro: boolean)
 	local stats = if type(save.Stats) == "table" then save.Stats else {}
 	local flags = if type(save.Flags) == "table" then save.Flags else {}
 	st.tutorialDone = Steps.Ends[Steps.load(flags.Tutorial, stats.Matches, stats.Wins)] == true
+	-- Held already: done, so a live grant (every ability use, every team settle) stops at the
+	-- state check instead of reading (deep-copying) the save again.
+	if type(save.Badges) == "table" then
+		for key, owned in save.Badges do
+			if owned == true and byKey[key] then
+				st.done[key] = true
+			end
+		end
+	end
 	for _, key in Rules.pending(Rules.fromSave(save, B.List), save, B.List, B.Paused) do
 		enqueue(player, key, retro, "Save")
 	end
