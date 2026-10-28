@@ -422,6 +422,7 @@ function BoostPill.refresh(self: any)
 				task.delay(Config.UI.Motion.Stagger, function()
 					if self.on and self.chipOn then
 						UIAnim.popIn(self.chip)
+						self:breathe(true)
 					end
 				end)
 			end
@@ -430,6 +431,7 @@ function BoostPill.refresh(self: any)
 			self.card.Visible = false
 			UIAnim.popOut(self.tag)
 			self.chip.Visible = false
+			self:breathe(false)
 		end
 	end
 	if self.card.Visible then
