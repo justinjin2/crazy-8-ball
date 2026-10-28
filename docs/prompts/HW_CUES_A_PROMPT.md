@@ -663,7 +663,7 @@ Justin's changes at a gate go straight into the work and into the lane file's St
   `--allow-missing`; this is what lets core grant them); checked in the Index, My Cues and the
   power bar; push; a merge Request per cue. If line 11 is not done by 14:00, do Candy Corn's
   card and take it out of draft alone first, so it ships.
-- [ ] 13. Every Cues B request answered within 30 minutes (backup uploads, path fixes), in your
+- [x] 13. Every Cues B request answered within 30 minutes (backup uploads, path fixes), in your
   Status (the last by 15:00).
 - [x] 14. Integration: after B's rows reach `halloween`, merge it (manifest and CueSkins
   conflicts by the 3.4 rules), build all five with ONLY in your window, check the path on the
