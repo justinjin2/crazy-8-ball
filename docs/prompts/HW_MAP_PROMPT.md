@@ -637,6 +637,6 @@ request: ask in your lane file's Requests when a verified part should land early
 - [x] 18. Devices: prompt, notices, billboards and portrait at the four sizes and with the pad; screenshots.
 - [x] 19. Fresh-player run during Live (tutorial, Skip, first match, the prompt after the tutorial).
 - [x] 20. Lane file Status final + all screenshots.
-- [ ] 21. Merge halloween, re-test, push.
+- [x] 21. Merge halloween, re-test, push.
 
 ## Notes

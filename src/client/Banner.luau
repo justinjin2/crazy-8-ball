@@ -307,6 +307,18 @@ function Banner.onBanner(self: any, payload: any)
 			at = os.clock(),
 		})
 		ChatTags.system(ChatTags.paint(text, tint))
+	elseif kind == "King" then
+		-- The timed Pumpkin King arrived in the roof's middle, or left ("He returns at :45!"),
+		-- in the event's orange (Halloween 2026, hw-map lane).
+		local nextAt = name(payload.next)
+		if payload.here ~= true and (nextAt == nil or not nextAt:match("^:%d%d$")) then
+			return
+		end
+		local text = if payload.here == true then COPY.KingArrived else COPY.KingLeft:format(nextAt)
+		local rgb = Config.HalloweenMap.Boss.Timed.BannerColor
+		local tint = Color3.fromRGB(rgb[1], rgb[2], rgb[3])
+		self:push({ text = text, color = tint, at = os.clock() })
+		ChatTags.system(ChatTags.paint(text, tint))
 	end
 end
 

@@ -3783,7 +3783,18 @@ Config.Halloween = {
 	Match = { Enabled = true, PerBall = 3, Finished = 10, Win = 25 },
 	-- Beating the Pumpkin King: the first PaidWinsPerDay wins of a UTC day pay Candy (flat);
 	-- every win starts a personal cooldown of CooldownSeconds (the King's prompt shows it).
-	Boss = { Candy = 50, PaidWinsPerDay = 2, CooldownSeconds = 900 },
+	Boss = {
+		Candy = 50,
+		PaidWinsPerDay = 2,
+		CooldownSeconds = 900,
+		-- Timed mode (Config.HalloweenMap.Boss.Mode "Timed": he visits 12 min twice an hour,
+		-- designer 2026-10-28): the first win of each visit pays Visit instead, once per player
+		-- (Candy flat; Money as a reward, never boosted; Xp through the real rank rules, rank-ups
+		-- and their rewards included); later wins in the visit pay nothing but count for the
+		-- King quests; no cooldown. Numbers proposed by the coordinator, about one strong real
+		-- win each (docs/ECONOMY.md).
+		Visit = { Candy = 150, Money = 2500, Xp = 100 },
+	},
 	-- Lobby pickups (map's CandyDrop spawns them): Candy each (flat), at most HourCap per player
 	-- per UTC hour. The ONLY pickup cap: CandyService.pickup enforces it.
 	Pickup = { Candy = 1, HourCap = 40 },
@@ -3884,6 +3895,12 @@ Config.Halloween = {
 	-- The playtime cue: Seconds of ACTIVE play while the event is Live (any server; idle time
 	-- does not count: SkyDropService.isActive), 3 h 01 m.
 	Spider = { Enabled = true, Cue = "SpiderCue", Seconds = 10860 },
+	-- Active play (the Spider and the "Play N min" quests) counts in a match and in the lobby
+	-- alike, idle time never (SkyDropService.isActive), and only once the player has finished a
+	-- real match that UTC day, like the Sky clock: before it the time is held (in memory, at most
+	-- HoldCapSeconds) and credited when that match is done, so no real play is lost and standing
+	-- in the lobby with an auto-clicker earns nothing. Off: every active second counts at once.
+	ActiveGate = { Enabled = true, HoldCapSeconds = 1800 },
 	TickSeconds = 5, -- the server adds active time and retries held grants this often
 	PushSeconds = 2, -- at most one event view pushed to a player this often
 	ActivePushSeconds = 30, -- active time alone re-sends the view this often (the menu shows minutes)
@@ -9398,6 +9415,27 @@ Config.HalloweenMap = {
 	},
 	Boss = {
 		Enabled = true, -- the Pumpkin King's challenge
+		-- Where and when he plays (designer, 2026-10-28, gate 2 option 2): "Timed": he visits the
+		-- middle of the roof on a schedule every server shares (Timed below) and is challenged at
+		-- his stage there, a line forming when the tables are full; "Throne": always on his
+		-- throne at the piano (Throne above). Core reads it too (the reward per visit, the timer).
+		Mode = "Timed",
+		Timed = {
+			-- A visit starts every EverySeconds at OffsetSeconds past each period (UTC :15 and
+			-- :45) and lasts StaySeconds (to :27 and :57: never in the :00-:10 Candy Rush).
+			EverySeconds = 1800,
+			OffsetSeconds = 900,
+			StaySeconds = 720,
+			-- His stage, the throne's pivot, in the roof's open middle: the aisle x -8.5..8.5 and
+			-- the band z -1.25..10.27 between the pads (seen from the spawn).
+			Pivot = { 0, 0, 4 },
+			YawDegrees = 0, -- facing the spawn (+Z)
+			Scale = 1.5, -- the King on his stage throne against a normal avatar
+			TableScale = 1.5, -- the King at a table against a normal avatar
+			LineStuds = 40, -- a player in his line who walks this far from his prompt drops out
+			ServerStuds = 20, -- the server accepts a challenge this close to his prompt
+			BannerColor = { 255, 140, 30 }, -- his arrival and leaving banners (the event's orange)
+		},
 		-- A practice bot: Settle pays it as PC (no rank, practice money, the PC cap), so the
 		-- King can't be farmed. Never a new kind.
 		Kind = "Pc",
@@ -9428,6 +9466,8 @@ Config.HalloweenMap = {
 		TauntEverySeconds = 6, -- the King speaks at most this often
 		Cue = "JackOLanternCue", -- his cue (Cues A's row; an existing cue until it lands)
 		ReadyAttribute = "PumpkinKingReadyAt", -- player attribute: unix seconds his cooldown ends
+		LineAttribute = "PumpkinKingLine", -- player attribute: their place in his line (Timed)
+		BeatAttribute = "PumpkinKingBeat", -- player attribute: the visit they won a prize in (Timed)
 		Aura = { Rate = 12, LightRange = 10 }, -- flame wisps a second (halved on low quality); studs
 		-- The candy explosion over the table on a win: sprites, sparkles, seconds, drawn this close.
 		-- CandyScale: each flung candy's size against the lobby candy mesh; FlashStuds: the
@@ -17354,6 +17394,24 @@ Config.UI.Halloween = {
 		StartedSeconds = 6, -- "THE HALLOWEEN EVENT HAS STARTED!" stays this long
 		StartedWindowSeconds = 120, -- a player busy at 19:00 still gets it this long after
 	},
+	-- The timed Pumpkin King's timer in the same pill while Live (Halloween/Countdown; only with
+	-- Config.HalloweenMap.Boss.Mode "Timed"): "PUMPKIN KING IN 14:22", then in gold "PUMPKIN
+	-- KING IS HERE! 9:41". A tap (or A on the selected pill) shows the guide to him: the
+	-- tutorial arrow's chevrons in one beam from the body and its arrowhead over him.
+	King = {
+		Tag = "PumpkinKing", -- the map lane's CollectionService tag on his figure
+		SpotStuds = 9, -- with no figure in reach: the guide's point over his stage's pivot
+		HeadLiftStuds = 1.5, -- the arrowhead's tip over his head
+		HeadPx = 56, -- the arrowhead's size on screen at any distance (it points down)
+		HeadBobShare = 0.25, -- it bobs up this share of its size...
+		HeadBobSeconds = 1.1, -- ...and back in this long
+		BodyLiftStuds = 0.6, -- the beam's start over the HumanoidRootPart (chest height)
+		FlowPerSecond = -1.6, -- the chevrons' scroll in repeats a second (minus: toward him)
+		FadeShare = 0.12, -- the beam fades in over this share of it at the body
+		ArriveStuds = 16, -- the guide goes off this close to him (flat distance)
+		GuideSeconds = 120, -- or after this long
+		MinHitPx = 40, -- the pill's tap area is at least this tall (phones)
+	},
 	-- The Candy toast and the NEW CUE! card (Halloween/CandyToast).
 	Toast = {
 		ChipPx = 44, -- the "+57" chip's height (a phone's: ShortChipPx)
@@ -18005,6 +18063,9 @@ Config.Badges = {
 	RevealMarginSeconds = 2,
 	Retries = { 5, 20, 60 }, -- seconds before each retry of a failed call; then wait for the next join
 	Paused = {} :: { [string]: boolean }, -- [Key] = true: cut or misbehaving; the row never awards (a one-line publish)
+	-- The designer cut Tycoon (Money10M, out of reach) and Part of the Crew (Crew) on 2026-10-28:
+	-- their rows are gone and the two badges are disabled on Roblox (they cannot be deleted;
+	-- tools/badges_manifest.json keeps their ids). 50 rows.
 	List = {
 		{ Key = "Welcome", BadgeId = 3774850189892880, Rule = { always = true } },
 		{ Key = "FirstWin", BadgeId = 3575671673255502, Rule = { stat = "Wins", atLeast = 1 } },
@@ -18088,11 +18149,6 @@ Config.Badges = {
 			BadgeId = 2699082964518478,
 			Rule = { stat = "MoneyEarned", atLeast = 1000000 },
 		},
-		{
-			Key = "Money10M",
-			BadgeId = 217838342274579,
-			Rule = { stat = "MoneyEarned", atLeast = 10000000 },
-		},
 		{ Key = "Squad", BadgeId = 432657693674846, Rule = { event = "TeamMatch" } },
 		{ Key = "Ability1", BadgeId = 97386214196697, Rule = { event = "UltUsed" } },
 		{
@@ -18100,7 +18156,6 @@ Config.Badges = {
 			BadgeId = 2989268570496762,
 			Rule = { stat = "UltMatches", atLeast = 100 },
 		},
-		{ Key = "Crew", BadgeId = 2950008037199385, Rule = { event = "InGroup" } },
 		{ Key = "MetOwner", BadgeId = 3300678702313834, Rule = { event = "OwnerHere" } },
 		{ Key = "BeatOwner", BadgeId = 4060031209370529, Rule = { event = "BeatOwner" } },
 		{

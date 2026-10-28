@@ -134,6 +134,7 @@ return {
 			Cap = { 255, 210, 30 },
 			Accent = { 255, 255, 255 },
 		},
+		Piece = "candy_corn_aura",
 		Body = "candy_corn",
 	},
 	CandyCue = {
@@ -506,6 +507,7 @@ return {
 			Cap = { 255, 138, 28 },
 			Accent = { 62, 142, 58 },
 		},
+		Piece = "jack_o_lantern_aura",
 		Body = "jack_o_lantern",
 	},
 	KitsuneCue = {

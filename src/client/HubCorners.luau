@@ -45,6 +45,7 @@ local TutorialAnchors = require(script.Parent.TutorialAnchors)
 local UIAnim = require(script.Parent.UIAnim)
 local UISound = require(script.Parent.UISound)
 local EventButton = require(script.Parent.Halloween.EventButton) -- Halloween 2026 (hw-core)
+local KingTimer = require(script.Parent.Halloween.Countdown) -- the timed King's pill (hw-core)
 
 local C = Config.UI.Corners
 local U = Config.UI.Settings
@@ -813,6 +814,7 @@ function HubCorners.padStops(self: any): { GuiObject }
 	for _, button in
 		{
 			self.eventTile.button, -- the Halloween tile first (hw-core)
+			KingTimer.padStop() :: any, -- the timed King's pill, shown only while he counts (hw-core)
 			self.challenge.button,
 			self.offerTile.button,
 			self.offerDismiss,
@@ -864,6 +866,7 @@ function HubCorners.blurPad(self: any)
 			self.plusTile.button,
 			self.deps.boostPill and self.deps.boostPill.tag, -- the boost pill (hw-gui lane)
 			self.eventTile.button, -- the Halloween tile (hw-core)
+			KingTimer.padStop() :: any, -- the timed King's pill (hw-core)
 		} :: { GuiObject }
 	do
 		button.Selectable = false
@@ -879,11 +882,13 @@ end
 --- Whether the controller is on the corner buttons now (focusPad).
 function HubCorners.padFocusedOn(self: any, object: Instance?): boolean
 	local pill = self.deps.boostPill and self.deps.boostPill.tag -- in money's root (hw-gui lane)
+	local king = KingTimer.padStop() -- the timed King's pill, in the HUD's screen (hw-core)
 	return self.padFocused
 		and object ~= nil
 		and (
 			object:IsDescendantOf(self.root)
 			or (pill ~= nil and (object == pill or object:IsDescendantOf(pill)))
+			or (king ~= nil and object == king)
 		)
 end
 

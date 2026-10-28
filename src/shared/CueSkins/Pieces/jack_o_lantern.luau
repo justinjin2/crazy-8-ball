@@ -5,18 +5,21 @@
 return {
 	Id = "jack_o_lantern",
 	Frame = "cue",
-	Rigid = "110253384942835",
+	Rigid = "120351810341434",
 	Models = {},
 	Parts = {
 		{
 			Material = "SmoothPlastic",
-			Color = "#FF7A1C",
+			Color = "#FFFFFF",
 			Transparency = 0,
-			Reflectance = 0.1,
-			Name = "Body_Orange",
+			Reflectance = 0.06,
+			SurfaceAppearance = {
+				ColorMap = "rbxassetid://100529744606848",
+			},
+			Name = "Body_Rind",
 			Joint = "Body",
-			Offset = { 0, 0, -0.2625 },
-			Size = { 0.6746, 0.6746, 6.805 },
+			Offset = { 0, 0, -0.0825 },
+			Size = { 0.6746, 0.6746, 7.165 },
 		},
 		{
 			Material = "SmoothPlastic",
@@ -25,18 +28,8 @@ return {
 			Reflectance = 0.03,
 			Name = "Body_Green",
 			Joint = "Body",
-			Offset = { 0, 0.0639, -0.1488 },
-			Size = { 0.1141, 0.2419, 7.2977 },
-		},
-		{
-			Material = "SmoothPlastic",
-			Color = "#5A3A22",
-			Transparency = 0,
-			Reflectance = 0.03,
-			Name = "Body_Brown",
-			Joint = "Body",
-			Offset = { 0, 0, -0.2325 },
-			Size = { 0.3733, 0.3733, 6.865 },
+			Offset = { 0, 0.0732, -3.7033 },
+			Size = { 0.08, 0.2233, 0.1886 },
 		},
 		{
 			Material = "SmoothPlastic",
@@ -75,8 +68,8 @@ return {
 			Reflectance = 0,
 			Name = "Face_Face",
 			Joint = "Face",
-			Offset = { 0, 0.1897, -3.42 },
-			Size = { 0.44, 0.3594, 0.28 },
+			Offset = { 0, 0.1937, -3.4325 },
+			Size = { 0.5, 0.3674, 0.305 },
 		},
 	},
 	Joints = {
@@ -124,9 +117,11 @@ return {
 			Visual = {
 				{
 					Kind = "Glow",
-					Min = 0,
-					Max = 0.55,
-					Period = 1.3,
+					Min = 0.25,
+					Max = 0.8,
+					Period = 0.55,
+					Shape = "flicker",
+					Color = "#FFC040",
 				},
 				{
 					Kind = "Blink",

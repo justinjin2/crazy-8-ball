@@ -2,9 +2,9 @@
 -- HalloweenMap.Rules (Halloween 2026, hw-map lane): the Haunted Rooftop's decisions as pure
 -- functions (no Instances, no clock of its own), so Lune tests every one: which state the map
 -- follows, what a state change does, the Pumpkin King's tier, who may get candy, the teleport
--- check, what a pickup's answer means, what the props may hide and where a table's decor may
--- go. EventMap, BossService, CandyDrop and MapClient call these; Config.HalloweenMap holds
--- every number.
+-- check, what a pickup's answer means, what the props may hide, where a table's decor may
+-- go, and when the King visits and who is next in his line. EventMap, BossService, CandyDrop
+-- and MapClient call these; Config.HalloweenMap holds every number.
 
 local Config = require(script.Parent.Parent.Config)
 
@@ -222,6 +222,100 @@ end
 function Rules.clock(seconds: number): string
 	local s = math.max(0, math.ceil(seconds))
 	return ("%d:%02d"):format(s // 60, s % 60)
+end
+
+--- Whether the King visits on a schedule (Boss.Mode "Timed") rather than sitting on his throne.
+function Rules.kingTimed(): boolean
+	return HM.Boss.Mode == "Timed"
+end
+
+--- The King's visit (Boss.Timed) running at `now`, or else the next one: (start, end), unix
+--- seconds on the server clock. Pure, so every server and client agree; he is here while
+--- start <= now < end. The event's Live check is the caller's.
+function Rules.kingWindow(now: number): (number, number)
+	local T = HM.Boss.Timed
+	local start = (now - T.OffsetSeconds) // T.EverySeconds * T.EverySeconds + T.OffsetSeconds
+	if now >= start + T.StaySeconds then
+		start += T.EverySeconds
+	end
+	return start, start + T.StaySeconds
+end
+
+--- Whether the King is here at `now` (a visit is running).
+function Rules.kingHere(now: number): boolean
+	local start, finish = Rules.kingWindow(now)
+	return start <= now and now < finish
+end
+
+--- The start of his visit after the one at `now` (or the next one when none runs).
+function Rules.kingNext(now: number): number
+	local start, finish = Rules.kingWindow(now)
+	return if start <= now and now < finish then start + HM.Boss.Timed.EverySeconds else start
+end
+
+--- ":45" for a unix time (its UTC minute), as the King's notices name his next visit.
+function Rules.minuteText(at: number): string
+	return (":%02d"):format(math.floor(at / 60) % 60)
+end
+
+--- The place `id` has in the King's line (user ids, first in line first), or would get on
+--- joining it. Winners last (fairness review, 2026-10-28): one who already won this visit
+--- (`beaten[id]`) joins at the back, one who hasn't joins ahead of every winner.
+function Rules.linePlace(line: { number }, id: number, beaten: { [number]: boolean }?): number
+	local at = table.find(line, id)
+	if at then
+		return at
+	end
+	if beaten and not beaten[id] then
+		for i, other in line do
+			if beaten[other] then
+				return i
+			end
+		end
+	end
+	return #line + 1
+end
+
+--- `id` joins the King's line once (Rules.linePlace's order). Its place.
+function Rules.lineJoin(line: { number }, id: number, beaten: { [number]: boolean }?): number
+	local place = Rules.linePlace(line, id, beaten)
+	if line[place] ~= id then
+		table.insert(line, place, id)
+	end
+	return place
+end
+
+--- Who the line seats next: the first one `free` says can play now (not in another match). A
+--- winner of this visit only while nobody in the line has yet to win. Nil: nobody.
+function Rules.lineNext(
+	line: { number },
+	beaten: { [number]: boolean },
+	free: (id: number) -> boolean
+): number?
+	local unpaidWaiting = false
+	for _, id in line do
+		if not beaten[id] then
+			unpaidWaiting = true
+			break
+		end
+	end
+	for _, id in line do
+		if (unpaidWaiting and beaten[id]) or not free(id) then
+			continue
+		end
+		return id
+	end
+	return nil
+end
+
+--- `id` leaves the line (walked away, left the server, seated). True when it was in it.
+function Rules.lineDrop(line: { number }, id: number): boolean
+	local at = table.find(line, id)
+	if at then
+		table.remove(line, at)
+		return true
+	end
+	return false
 end
 
 return Rules

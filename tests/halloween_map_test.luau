@@ -391,6 +391,147 @@ return {
 		H.near(R.spawnDelay(0.5), Config.HalloweenMap.Candy.SpawnEverySeconds, 1e-9, "pace")
 	end,
 
+	["two ons at once build the throne once (a server starting while Live)"] = function()
+		-- Bootstrap's thread and EventMap's pass both turn the throne on while the first build
+		-- waits on the meshes (the coordinator's 12:16 blocker: two thrones). Once parks the
+		-- second caller until the first build ends.
+		local Once = H.require("HalloweenMap.Once")
+		local builds = 0
+		local once = Once.new(function(): boolean
+			builds += 1
+			coroutine.yield() -- the mesh wait
+			return true
+		end)
+		local answers = {}
+		local a = coroutine.create(function()
+			answers.a = once:run()
+		end)
+		local b = coroutine.create(function()
+			answers.b = once:run()
+		end)
+		coroutine.resume(a) -- starts the build, waits on the meshes
+		coroutine.resume(b) -- finds it building: waits for it
+		H.expect(builds == 1, "the second on does not build")
+		H.expect(coroutine.status(b) == "suspended", "the second on waits for the build")
+		coroutine.resume(a) -- the meshes are in: the build ends and wakes the waiting on
+		H.expect(coroutine.status(a) == "dead" and coroutine.status(b) == "dead", "both ons end")
+		H.expect(answers.a == true and answers.b == true, "both see it built")
+		H.expect(once:run() == true and builds == 1, "a later on builds nothing")
+	end,
+
+	["a build that found no meshes is tried again, and an error reaches its caller"] = function()
+		local Once = H.require("HalloweenMap.Once")
+		local tries = 0
+		local once = Once.new(function(): boolean
+			tries += 1
+			return tries >= 2
+		end)
+		H.expect(once:run() == false, "no meshes: not built")
+		H.expect(once:run() == true and tries == 2, "the next on builds it")
+		local failing = Once.new(function(): boolean
+			error("boom", 0)
+		end)
+		local ok, err = pcall(function()
+			failing:run()
+		end)
+		H.expect(not ok and err == "boom", "the error is passed on")
+		H.expect(failing.building == false, "a failed build does not block the next")
+	end,
+
+	["the timed King visits at :15 and :45 for 12 minutes, never in the Candy Rush"] = function()
+		local R = H.require("HalloweenMap.Rules")
+		local Config = H.require("Config")
+		local T = Config.HalloweenMap.Boss.Timed
+		H.expect(T.EverySeconds == 1800 and T.OffsetSeconds == 900, "UTC :15 and :45")
+		H.expect(T.StaySeconds == 720, "12 minutes")
+		H.expect(T.StaySeconds < T.EverySeconds, "he leaves before the next visit")
+		local hour = 1793228400 -- Wed Oct 28 23:00 UTC (StartsAt, an hour mark)
+		local s, e = R.kingWindow(hour)
+		H.expect(s == hour + 900 and e == hour + 1620, "at :00 the next visit is :15-:27")
+		H.expect(not R.kingHere(hour), "not here at :00")
+		s, e = R.kingWindow(hour + 900)
+		H.expect(s == hour + 900 and R.kingHere(hour + 900), "here from :15:00")
+		H.expect(R.kingHere(hour + 1619.5) and not R.kingHere(hour + 1620), "gone at :27:00")
+		s = R.kingWindow(hour + 1620)
+		H.expect(s == hour + 2700, "after :27 the next is :45")
+		s, e = R.kingWindow(hour + 3000)
+		H.expect(s == hour + 2700 and e == hour + 3420, "here :45-:57")
+		H.expect(not R.kingHere(hour + 3420), "gone at :57:00")
+		H.expect(R.kingNext(hour + 1000) == hour + 2700, "next after this visit")
+		H.expect(R.kingNext(hour + 2000) == hour + 2700, "next while away")
+		H.expect(
+			R.minuteText(hour + 2700) == ":45" and R.minuteText(hour + 900) == ":15",
+			"minutes"
+		)
+		-- Every second of every visit is clear of the Rush (UTC minutes 0 .. Rush.Minutes - 1).
+		local rush = Config.Halloween.Rush and Config.Halloween.Rush.Minutes or 10
+		for t = hour, hour + 7200, 30 do
+			if R.kingHere(t) then
+				H.expect(math.floor(t / 60) % 60 >= rush, "a visit in the Rush at " .. t)
+			end
+		end
+	end,
+
+	["the King's line keeps its order, joins once and drops"] = function()
+		local R = H.require("HalloweenMap.Rules")
+		local line = {}
+		H.expect(R.lineJoin(line, 11) == 1 and R.lineJoin(line, 22) == 2, "first and second")
+		H.expect(R.lineJoin(line, 11) == 1 and #line == 2, "joining twice keeps the place")
+		H.expect(R.lineJoin(line, 33) == 3, "third")
+		H.expect(R.lineDrop(line, 22) and table.find(line, 33) == 2, "the rest move up")
+		H.expect(not R.lineDrop(line, 99), "dropping a stranger does nothing")
+		H.expect(line[1] == 11, "the first in line is next")
+	end,
+
+	["a winner of this visit waits behind everyone who hasn't won"] = function()
+		local R = H.require("HalloweenMap.Rules")
+		local beaten = { [11] = true, [44] = true } -- 11 and 44 already won this visit
+		local line = {}
+		H.expect(R.lineJoin(line, 11, beaten) == 1, "a winner alone is first")
+		H.expect(R.lineJoin(line, 22, beaten) == 1, "someone who hasn't won goes ahead of him")
+		H.expect(R.lineJoin(line, 33, beaten) == 2, "and the next one behind them, still ahead")
+		H.expect(R.lineJoin(line, 44, beaten) == 4, "a second winner at the very back")
+		H.expect(table.concat(line, ",") == "22,33,11,44", "unpaid first in order, then winners")
+		H.expect(R.lineJoin(line, 22, beaten) == 1 and #line == 4, "joining again keeps the place")
+		H.expect(R.linePlace(line, 55, beaten) == 3 and #line == 4, "linePlace only looks")
+		H.expect(R.linePlace(line, 55) == 5, "with no winners known it is first come first served")
+		local everyone = function(_id: number): boolean
+			return true
+		end
+		H.expect(R.lineNext(line, beaten, everyone) == 22, "the first who hasn't won plays next")
+		local busy = { [22] = true, [33] = true }
+		local free = function(id: number): boolean
+			return not busy[id]
+		end
+		H.expect(
+			R.lineNext(line, beaten, free) == nil,
+			"no winner gets a table while anyone who hasn't won waits, even in another match"
+		)
+		R.lineDrop(line, 22)
+		R.lineDrop(line, 33)
+		H.expect(R.lineNext(line, beaten, free) == 11, "only winners left: the first of them")
+		H.expect(R.lineNext({}, beaten, everyone) == nil, "an empty line seats nobody")
+	end,
+
+	["the timed King's fixed notices name the minutes his schedule uses"] = function()
+		-- The queue notices can't be formatted, so they spell ":15 and :45"; they must follow
+		-- Boss.Timed if it ever moves.
+		local Strings = H.require("Strings")
+		local Config = H.require("Config")
+		local R = H.require("HalloweenMap.Rules")
+		local T = Config.HalloweenMap.Boss.Timed
+		local first = R.minuteText(T.OffsetSeconds)
+		local second = R.minuteText(T.OffsetSeconds + T.EverySeconds)
+		H.expect(3600 // T.EverySeconds == 2, "two visits an hour, as the notices say")
+		for _, key in { "KingLeft", "KingAway" } do
+			local text = Strings.GlobalQueue.Failed[key]
+			H.expect(
+				text:find(first .. " and " .. second, 1, true) ~= nil,
+				key .. " names " .. first .. " and " .. second
+			)
+		end
+	end,
+
 	["the King's queue notices stay short enough for the queue card"] = function()
 		-- The card is UI.Queue.StatusWidth px at every screen size (no UIScale), 20 px of it padding.
 		-- Measured in Studio (TextService, FredokaOne 18 px): 43 characters is the longest King
@@ -398,7 +539,11 @@ return {
 		local Strings = H.require("Strings")
 		local Config = H.require("Config")
 		H.expect(Config.UI.Queue.StatusWidth == 320, "the card these lengths were measured for")
-		for _, key in { "KingBusy", "KingNoTable", "KingCooldown", "KingNotNow" } do
+		local keys = { "KingBusy", "KingNoTable", "KingCooldown", "KingNotNow" }
+		for _, key in { "KingLined", "KingLineLeft", "KingLeft", "KingAway", "KingLinedBeaten" } do
+			table.insert(keys, key)
+		end
+		for _, key in keys do
 			local text = Strings.GlobalQueue.Failed[key]
 			H.expect(type(text) == "string" and utf8.len(text) <= 43, key .. " fits the card")
 		end

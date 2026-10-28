@@ -1,111 +1,302 @@
 #!/usr/bin/env python3
-"""The game's 52 Roblox badge icons (hw-sys lane, 2026-10-28; HW_SYS_PROMPT section 2.3).
+"""The game's Roblox badge icons (hw-sys lane, 2026-10-28; v2 after the designer's look).
 
-    python3 tools/gen_badge_icons.py --gen trophy_gold cue_epic ...   generate those motifs
-    python3 tools/gen_badge_icons.py --gen-all                         every motif not made yet
     python3 tools/gen_badge_icons.py --compose [Key ...]               assets/ui/badges/<Key>.png
     python3 tools/gen_badge_icons.py --sheet out.png [Key ...]         contact sheet, 150 px circles
-    python3 tools/gen_badge_icons.py --list out.png                    the 52: icon, name, how (Strings)
+    python3 tools/gen_badge_icons.py --list out.png                    the badges: icon, name, how
 
-One look for all of them: a glossy cartoon motif (UI_STYLE sections 1 and 6: chunky shapes, a
-thick ink outline, a shine, a small drop lip, no words) generated once per motif by
-tools/openai_image.py and kept outside git (RAW_DIR), set on one shared round frame drawn here
-with one ring colour per family. Roblox crops a badge to a circle, so everything sits inside a
-460 px circle of the 512 px canvas. Milestone badges add a bold numeral drawn here (it reads at
-150 px). The rank badges reuse the rank emblems (assets/ui/ranks/<tier>_1.png, reyes.png): no
-generation.
+The designer (2026-10-28): the first set looked AI-made and did not match the game, so every
+icon is now drawn here as vector art, no image generation: a flat cartoon pool ball in the
+game's colours with UI_STYLE's thick ink outline (#1B2033), one cel-shade step, a white shine
+and a white number disc holding a Fredoka One numeral and/or a small flat symbol. Solid balls
+for single badges, striped balls for a family's steps. The rank badges keep the rank emblems
+(assets/ui/ranks) on a light disc in the tier's ring. Each icon is an SVG page rendered by
+headless Chrome (it has the font and real curves) to a 512 px PNG; Roblox crops a badge to a
+circle, so everything sits inside a 460 px circle.
 """
 
 import argparse
+import base64
 import math
 import os
 import subprocess
 import sys
+import tempfile
 
-from PIL import Image, ImageChops, ImageDraw, ImageFilter, ImageFont
+from PIL import Image, ImageChops, ImageDraw, ImageFont
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT_DIR = os.path.join(ROOT, "assets", "ui", "badges")
 RANK_DIR = os.path.join(ROOT, "assets", "ui", "ranks")
-RAW_DIR = os.path.expanduser("~/Desktop/8ball-refs/halloween/badges_raw")
+FREDOKA = os.path.expanduser("~/Desktop/8ball-refs/gui-v3/tools/fonts/FredokaOne-Regular.ttf")
+CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 SIZE = 512
-CENTER = SIZE / 2
+C = SIZE / 2
 SAFE_RADIUS = 230  # Roblox's circle crop: keep everything inside a 460 px circle
-RING_OUTER = 226
-RING_WIDTH = 24
-INK = (27, 32, 51, 255)  # #1B2033, UI_STYLE's ink outline
-FONT = "/System/Library/Fonts/Supplemental/Arial Black.ttf"
+BALL_R = 212
+INK = "#1B2033"  # UI_STYLE's ink outline
+OUTLINE = 14
+WHITE = "#FFFFFF"
+PALE = "#DCE7F5"  # the white parts' shade step (the panels' pale blue)
 
-STYLE = (
-    "A single glossy cartoon mobile-game icon of {subject}. Chunky rounded shapes, a thick dark "
-    "navy ink outline (#1B2033) around every shape, bright saturated colours, soft cel shading, "
-    "a crisp white shine highlight on the upper left, a small darker drop lip along the bottom "
-    "edge. The whole object is centred and fully visible with a generous empty margin all "
-    "round. No text, no letters, no numbers, no frame, no badge, no circle behind it, no "
-    "ground shadow: only the object on a fully transparent background."
-)
 
-# motif -> what is drawn (one generation each; several badges share a motif)
-MOTIFS = {
-    "welcome": "a night city rooftop with a big glossy black 8 ball sitting on it, purple sky glow behind the rooftop edge",
-    "trophy_bronze": "a chunky bronze trophy cup with two handles and a little 8 ball on its lid",
-    "trophy_silver": "a chunky shiny silver trophy cup with two handles and a little 8 ball on its lid",
-    "trophy_gold": "a chunky shiny gold trophy cup with two handles and a little 8 ball on its lid",
-    "trophy_prism": "a chunky crystal trophy cup with two handles, holographic rainbow pastel shimmer, sparkles, a little 8 ball on its lid",
-    "trophy_first": "a chunky gold trophy cup with two handles, a blue ribbon bow tied on it and confetti bits round it",
-    "flame": "a big fiery cartoon flame, orange and yellow, wrapped round a glossy black 8 ball",
-    "cue_rare": "a pool cue stick crossed diagonally behind a glossy 8 ball, the cue glowing bright blue (#3B9BFF) with small blue sparkles",
-    "cue_epic": "a pool cue stick crossed diagonally behind a glossy 8 ball, the cue glowing vivid purple (#A259FF) with small purple sparkles",
-    "cue_legendary": "a pool cue stick crossed diagonally behind a glossy 8 ball, the cue shining gold (#F2B200) with golden rays and sparkles",
-    "cue_mythic": "a pool cue stick crossed diagonally behind a glossy 8 ball, the cue pale holographic pastel cyan, lilac and pink with twinkling white stars",
-    "cue_secret": "a pool cue stick crossed diagonally behind a glossy 8 ball, the cue near-black with a glitchy red (#FF283C) and white shimmer",
-    "cue_unique": "a pool cue stick crossed diagonally behind a glossy 8 ball, the cue hot pink (#FF5CB8) with a single star charm and pink sparkles",
-    "rack": "a wooden wall rack holding five colourful pool cue sticks standing upright side by side",
-    "pocket": "a pool ball dropping into a pool table's corner pocket with a little motion swoosh, green cloth and brown wood rail",
-    "table": "a small chunky green pool table seen from a three-quarter angle with a few colourful balls on it",
-    "star": "a big golden star burst with a white sparkle and a little 8 ball in its centre",
-    "cash": "a fat stack of green paper cash bills with a paper band round the middle",
-    "squad": "three glossy pool balls side by side like a team, a blue one, a red one and a black 8 ball, two crossed cue sticks behind them",
-    "bolt": "a big glowing yellow lightning bolt with electric blue sparks",
-    "crown": "a chunky shiny gold royal crown with red and blue gems",
-    "crown_beat": "a chunky gold royal crown knocked tilted sideways with a pool cue tapping it, little stars of impact",
-    "shield": "a blue and white heraldic shield with a glossy black 8 ball in its centre",
-    "pumpkin_night": "a glowing carved jack-o'-lantern pumpkin with a crescent moon and purple night sparkles behind it",
-    "pumpkin_king": "a carved jack-o'-lantern pumpkin head wearing a spiky gold crown, glowing orange eyes, fierce but kid-friendly",
-    "broom": "a witch's broom with a crooked wooden handle, straw bristles and a glowing violet crystal at the tip",
-}
+def shade(hex_colour, k):
+    """`hex_colour` darkened (k < 1) or lightened toward white (k > 1)."""
+    r, g, b = (int(hex_colour[i:i + 2], 16) for i in (1, 3, 5))
+    if k <= 1:
+        r, g, b = (int(v * k) for v in (r, g, b))
+    else:
+        f = k - 1
+        r, g, b = (int(v + (255 - v) * f) for v in (r, g, b))
+    return f"#{r:02X}{g:02X}{b:02X}"
 
-PRISM = [(127, 231, 255), (183, 156, 255), (255, 156, 230), (255, 255, 255)]
-RAINBOW = [(255, 60, 60), (255, 170, 0), (255, 230, 0), (60, 220, 90), (40, 170, 255), (150, 90, 255)]
 
-# family -> (ring colour or gradient list, disc inner colour, disc outer colour)
-FAMILIES = {
-    "welcome": ((139, 92, 246), (92, 60, 190), (40, 24, 92)),
-    "first": ((59, 155, 255), (52, 66, 120), (16, 22, 48)),
-    "bronze": ((205, 127, 50), (60, 62, 100), (18, 20, 40)),
-    "silver": ((192, 199, 208), (60, 66, 104), (18, 20, 40)),
-    "gold": ((242, 178, 0), (60, 62, 100), (18, 20, 40)),
-    "prism": (PRISM, (70, 60, 150), (26, 20, 70)),
-    "rank": ((44, 54, 88), (60, 72, 120), (20, 24, 44)),
-    "streak": ((255, 106, 26), (200, 70, 20), (80, 20, 10)),
-    "rare": ((59, 155, 255), (40, 110, 210), (12, 34, 80)),
-    "epic": ((162, 89, 255), (110, 50, 200), (40, 16, 84)),
-    "legendary": ((242, 178, 0), (110, 70, 20), (40, 24, 8)),
-    "mythic": (PRISM, (60, 50, 140), (26, 20, 70)),
-    "secret": ((255, 40, 60), (60, 40, 50), (30, 24, 32)),
-    "unique": ((255, 92, 184), (210, 60, 150), (90, 16, 64)),
-    "collection": ((20, 184, 166), (14, 130, 120), (6, 50, 48)),
-    "balls": ((34, 163, 90), (24, 120, 66), (8, 50, 26)),
-    "matches": ((59, 155, 255), (40, 110, 210), (12, 34, 80)),
-    "nice": ((255, 196, 0), (50, 80, 170), (14, 24, 60)),
-    "money": ((47, 191, 79), (30, 140, 60), (10, 56, 24)),
-    "squad": ((34, 193, 230), (20, 140, 180), (6, 50, 70)),
-    "ability": ((91, 91, 255), (60, 60, 210), (20, 20, 90)),
-    "owner": ((255, 196, 0), (150, 40, 60), (50, 10, 24)),
-    "beat": ((255, 59, 92), (200, 40, 70), (80, 12, 28)),
-    "crew": ((47, 123, 255), (30, 90, 220), (10, 30, 90)),
-    "halloween": ((255, 122, 26), (90, 40, 150), (34, 14, 70)),
-}
+# --- the small flat symbols, drawn round (0, 0), about 90 x 90 ------------------------------
+
+def trophy(colour):
+    dark = shade(colour, 0.78)
+    return f"""
+    <g stroke="{INK}" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
+      <path d="M-28,-30 C-52,-32 -54,0 -22,4" fill="none"/>
+      <path d="M28,-30 C52,-32 54,0 22,4" fill="none"/>
+      <rect x="-8" y="16" width="16" height="16" fill="{dark}"/>
+      <rect x="-26" y="30" width="52" height="14" rx="5" fill="{colour}"/>
+      <path d="M-34,-40 H34 V-14 C34,10 18,22 0,22 C-18,22 -34,10 -34,-14 Z" fill="{colour}"/>
+    </g>
+    <path d="M-22,-32 V-16 C-22,-4 -16,4 -8,8" stroke="#FFFFFF" stroke-width="6" fill="none"
+          stroke-linecap="round" opacity="0.85"/>"""
+
+
+def flame(colour="#FF7A1A", core="#FFD23F"):
+    return f"""
+    <path d="M2,-46 C18,-28 38,-14 34,12 C31,34 16,44 0,44 C-17,44 -33,33 -34,12
+             C-35,-6 -22,-14 -16,-30 C-8,-20 -6,-12 -4,-6 C2,-20 4,-32 2,-46 Z"
+          fill="{colour}" stroke="{INK}" stroke-width="7" stroke-linejoin="round"/>
+    <path d="M1,-2 C10,8 17,16 15,27 C13,36 7,40 0,40 C-8,40 -14,34 -14,26 C-14,15 -5,10 1,-2 Z"
+          fill="{core}"/>"""
+
+
+def star(colour="#FFC400"):
+    pts = []
+    for i in range(10):
+        r = 46 if i % 2 == 0 else 21
+        a = -math.pi / 2 + i * math.pi / 5
+        pts.append(f"{r * math.cos(a):.1f},{r * math.sin(a):.1f}")
+    return (f'<polygon points="{" ".join(pts)}" fill="{colour}" stroke="{INK}" stroke-width="7" '
+            'stroke-linejoin="round"/>')
+
+
+def cue(colour):
+    """A cue stick across the disc, its butt in `colour`."""
+    return f"""
+    <g transform="rotate(-45)" stroke="{INK}" stroke-width="7" stroke-linejoin="round">
+      <path d="M-56,-13 H-4 V13 H-56 C-64,13 -68,7 -68,0 C-68,-7 -64,-13 -56,-13 Z" fill="{colour}"/>
+      <path d="M-4,-13 L52,-8 V8 L-4,13 Z" fill="#F1D3A1"/>
+      <rect x="52" y="-8" width="14" height="16" rx="3" fill="#3B9BFF"/>
+    </g>"""
+
+
+def crossed_cues(colour):
+    return (f'<g transform="scale(0.92)"><g transform="rotate(90)">{cue(colour)}</g>{cue(colour)}</g>')
+
+
+def pocket():
+    """A ball dropping into a pocket."""
+    return f"""
+    <path d="M-44,16 C-44,46 44,46 44,16 Z" fill="{INK}" stroke="{INK}" stroke-width="7" stroke-linejoin="round"/>
+    <ellipse cx="0" cy="16" rx="44" ry="12" fill="#22A35A" stroke="{INK}" stroke-width="7"/>
+    <ellipse cx="0" cy="18" rx="30" ry="7" fill="{INK}"/>
+    <circle cx="0" cy="-16" r="22" fill="#FFFFFF" stroke="{INK}" stroke-width="7"/>
+    <path d="M-34,-44 L-24,-30 M0,-58 V-46 M34,-44 L24,-30" stroke="{INK}" stroke-width="7" stroke-linecap="round"/>"""
+
+
+def table():
+    """A little pool table from above."""
+    pockets = "".join(f'<circle cx="{x}" cy="{y}" r="7" fill="{INK}"/>'
+                      for x in (-40, 0, 40) for y in (-24, 24))
+    return f"""
+    <rect x="-50" y="-34" width="100" height="68" rx="12" fill="#9C5B2E" stroke="{INK}" stroke-width="7"/>
+    <rect x="-38" y="-22" width="76" height="44" rx="4" fill="#22A35A"/>
+    {pockets}
+    <circle cx="-12" cy="2" r="7" fill="#FFFFFF" stroke="{INK}" stroke-width="3"/>
+    <circle cx="14" cy="-4" r="7" fill="#FFC928" stroke="{INK}" stroke-width="3"/>"""
+
+
+def cash():
+    """A bill with a coin-round middle."""
+    return f"""
+    <rect x="-50" y="-30" width="100" height="60" rx="8" fill="#3DD66B" stroke="{INK}" stroke-width="7"/>
+    <rect x="-38" y="-18" width="76" height="36" rx="5" fill="none" stroke="#1F8A3E" stroke-width="5"/>
+    <circle cx="0" cy="0" r="14" fill="#1F8A3E"/>"""
+
+
+def three_balls():
+    """A team: three balls together."""
+    balls = (("#E0464E", -26, 14), ("#3B9BFF", 26, 14), ("#FFC928", 0, -28))
+    return "".join(f'<circle cx="{x}" cy="{y}" r="27" fill="{c}" stroke="{INK}" stroke-width="7"/>'
+                   f'<circle cx="{x}" cy="{y}" r="10" fill="#FFFFFF"/>' for c, x, y in balls)
+
+
+def bolt():
+    return (f'<path d="M10,-50 L-30,6 H-4 L-14,50 L30,-10 H4 Z" fill="#FFD23F" stroke="{INK}" '
+            'stroke-width="7" stroke-linejoin="round"/>')
+
+
+def crown(colour="#FFC400"):
+    return f"""
+    <path d="M-46,30 L-50,-24 L-24,0 L0,-36 L24,0 L50,-24 L46,30 Z" fill="{colour}" stroke="{INK}"
+          stroke-width="7" stroke-linejoin="round"/>
+    <circle cx="0" cy="10" r="8" fill="#E0464E" stroke="{INK}" stroke-width="4"/>
+    <circle cx="-26" cy="14" r="6" fill="#3B9BFF" stroke="{INK}" stroke-width="4"/>
+    <circle cx="26" cy="14" r="6" fill="#3B9BFF" stroke="{INK}" stroke-width="4"/>"""
+
+
+def crown_beat():
+    """The owner's crown knocked off: tilted, with a hit star."""
+    return f"""<g transform="translate(6,8) rotate(-24) scale(0.86)">{crown()}</g>
+    <g transform="translate(-36,-34) scale(0.42)">{star("#FFFFFF")}</g>"""
+
+
+def broom():
+    return f"""
+    <g transform="rotate(-40)" stroke="{INK}" stroke-width="7" stroke-linejoin="round">
+      <rect x="-60" y="-6" width="74" height="12" rx="6" fill="#9C5B2E"/>
+      <path d="M12,-10 L56,-26 C62,-8 62,8 56,26 L12,10 Z" fill="#F2C14E"/>
+      <path d="M12,-12 V12" stroke-width="9"/>
+    </g>
+    <circle cx="-38" cy="38" r="8" fill="#B79CFF" stroke="{INK}" stroke-width="4"/>"""
+
+
+# --- the pieces of a ball -------------------------------------------------------------------
+
+PRISM = "prism"  # the Mythic shimmer as a flat gradient (UI_STYLE section 4)
+RAINBOW = "rainbow"  # Reyes' VIP rainbow
+FILLS = {PRISM: ("url(#prism)", "#9A86D9"), RAINBOW: ("url(#rainbow)", "#B0507A")}
+
+
+def defs():
+    return f"""<defs><clipPath id="ball"><circle cx="{C}" cy="{C}" r="{BALL_R}"/></clipPath>
+    <linearGradient id="prism" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7FE7FF"/><stop offset="0.5" stop-color="#B79CFF"/>
+      <stop offset="1" stop-color="#FF9CE6"/></linearGradient>
+    <linearGradient id="rainbow" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#FF4D4D"/><stop offset="0.2" stop-color="#FFA41B"/>
+      <stop offset="0.4" stop-color="#FFE14D"/><stop offset="0.6" stop-color="#3DD66B"/>
+      <stop offset="0.8" stop-color="#3B9BFF"/><stop offset="1" stop-color="#A259FF"/></linearGradient>
+    </defs>"""
+
+
+def fill_of(colour):
+    """(lit fill, shade fill) for a hex colour or a gradient name."""
+    if colour in FILLS:
+        return FILLS[colour]
+    return colour, (PALE if colour == WHITE else shade(colour, 0.8))
+
+
+def ball_body(colour, stripe=None):
+    """A solid ball in `colour`, or (stripe set) a white ball with a `stripe` band."""
+    lit, dark = fill_of(WHITE if stripe else colour)
+    out = [f'<g clip-path="url(#ball)">',
+           # one cel step: the dark shade, then the lit colour offset up-left over it
+           f'<circle cx="{C}" cy="{C}" r="{BALL_R}" fill="{dark}"/>',
+           f'<circle cx="{C - 16}" cy="{C - 18}" r="{BALL_R - 6}" fill="{lit}"/>']
+    if stripe:
+        band_lit, band_dark = fill_of(stripe)
+        band = 128  # half the band's height
+        out.append(f'<rect x="0" y="{C - band}" width="{SIZE}" height="{band * 2}" fill="{band_dark}"/>')
+        out.append(f'<clipPath id="lit"><circle cx="{C - 16}" cy="{C - 18}" r="{BALL_R - 6}"/></clipPath>')
+        out.append(f'<rect x="0" y="{C - band}" width="{SIZE}" height="{band * 2}" fill="{band_lit}" clip-path="url(#lit)"/>')
+        out.append(f'<path d="M0,{C - band} H{SIZE} M0,{C + band} H{SIZE}" stroke="{INK}" stroke-width="8"/>')
+    out.append("</g>")
+    return "\n".join(out)
+
+
+def shine():
+    return f"""
+    <ellipse cx="{C - 92}" cy="{C - 112}" rx="54" ry="26" fill="#FFFFFF" opacity="0.9"
+             transform="rotate(-38 {C - 92} {C - 112})"/>
+    <circle cx="{C - 150}" cy="{C - 50}" r="11" fill="#FFFFFF" opacity="0.9"/>"""
+
+
+def rim():
+    return f'<circle cx="{C}" cy="{C}" r="{BALL_R}" fill="none" stroke="{INK}" stroke-width="{OUTLINE}"/>'
+
+
+def disc(r=124):
+    return f"""
+    <circle cx="{C}" cy="{C}" r="{r}" fill="{PALE}"/>
+    <circle cx="{C - 7}" cy="{C - 8}" r="{r - 6}" fill="#FFFFFF"/>
+    <circle cx="{C}" cy="{C}" r="{r}" fill="none" stroke="{INK}" stroke-width="9"/>"""
+
+
+def numeral(text, y, size):
+    return (f'<text x="{C}" y="{y}" font-family="Fredoka" font-size="{size}" text-anchor="middle" '
+            f'fill="{INK}">{text}</text>')
+
+
+def disc_content(num=None, symbol=None):
+    """The disc's inside: a numeral, a symbol, or a small symbol over a numeral."""
+    if num and symbol:
+        size = {1: 116, 2: 106, 3: 86}.get(len(num), 76)
+        return (f'<g transform="translate({C},{C - 56}) scale(0.98)">{symbol}</g>'
+                + numeral(num, C + 84, size))
+    if num:
+        size = {1: 170, 2: 140, 3: 104}.get(len(num), 86)
+        return numeral(num, C + size * 0.36, size)
+    return f'<g transform="translate({C},{C + 2}) scale(1.7)">{symbol}</g>'
+
+
+def pool_ball(colour, num=None, symbol=None, stripe=None):
+    return "\n".join([defs(), ball_body(colour, stripe), disc(), disc_content(num, symbol), shine(), rim()])
+
+
+def eight_ball():
+    return pool_ball("#2B2F45", num="8")
+
+
+def pumpkin(crowned=False):
+    """The Halloween ball: a pumpkin-orange ball, ridges, a stem and a carved face; the Pumpkin
+    King's wears a crown in place of the stem."""
+    orange = "#FF8A1F"
+    ridges = "".join(
+        f'<ellipse cx="{C}" cy="{C}" rx="{rx}" ry="{BALL_R + 10}" fill="none" stroke="{shade(orange, 0.78)}" stroke-width="9"/>'
+        for rx in (70, 150))
+    face = f"""
+    <g stroke="{INK}" stroke-width="8" stroke-linejoin="round" fill="{INK}">
+      <polygon points="{C - 104},{C - 2} {C - 26},{C - 2} {C - 65},{C - 76}"/>
+      <polygon points="{C + 26},{C - 2} {C + 104},{C - 2} {C + 65},{C - 76}"/>
+      <path d="M{C - 122},{C + 38} Q{C},{C + 90} {C + 122},{C + 38}
+               L{C + 98},{C + 114} L{C + 62},{C + 98} L{C + 40},{C + 130} L{C},{C + 110}
+               L{C - 40},{C + 130} L{C - 62},{C + 98} L{C - 98},{C + 114} Z"/>
+    </g>"""
+    top = C - BALL_R
+    stem = f"""
+    <path d="M{C - 22},{top + 26} C{C - 24},{top - 6} {C - 8},{top - 34} {C + 20},{top - 40}
+             C{C + 30},{top - 42} {C + 36},{top - 30} {C + 28},{top - 22} C{C + 14},{top - 12} {C + 18},{top + 4} {C + 20},{top + 26} Z"
+          fill="#3FA34D" stroke="{INK}" stroke-width="9" stroke-linejoin="round"/>"""
+    if crowned:
+        stem = f'<g transform="translate({C},{top + 12}) scale(1.25)">{crown()}</g>'
+    body = "\n".join([ball_body(orange), f'<g clip-path="url(#ball)">{ridges}</g>', face, shine(), rim(), stem])
+    # a little smaller and lower than a ball, so the stem stays inside the circle crop
+    return f'{defs()}<g transform="translate({C},{C + 14}) scale(0.92) translate({-C},{-C})">{body}</g>'
+
+
+def rank_disc(key, ring):
+    """A rank emblem on a light disc with the tier's ring (the old dark disc was off)."""
+    with open(os.path.join(RANK_DIR, RANK_FILES[key]), "rb") as handle:
+        data = base64.b64encode(handle.read()).decode()
+    box = 330
+    return f"""{defs()}
+    <circle cx="{C}" cy="{C}" r="{BALL_R}" fill="{fill_of(ring)[0]}"/>
+    <circle cx="{C}" cy="{C}" r="{BALL_R - 30}" fill="{PALE}"/>
+    <circle cx="{C - 8}" cy="{C - 10}" r="{BALL_R - 40}" fill="#FFFFFF"/>
+    <circle cx="{C}" cy="{C}" r="{BALL_R - 30}" fill="none" stroke="{INK}" stroke-width="8"/>
+    <image href="data:image/png;base64,{data}" x="{C - box / 2}" y="{C - box / 2 - 4}" width="{box}" height="{box}"
+           preserveAspectRatio="xMidYMid meet"/>
+    <ellipse cx="{C - 120}" cy="{C - 140}" rx="34" ry="14" fill="#FFFFFF" opacity="0.8"
+             transform="rotate(-40 {C - 120} {C - 140})"/>
+    {rim()}"""
+
 
 RANK_FILES = {
     "RankBronze": "bronze_1.png", "RankSilver": "silver_1.png", "RankGold": "gold_1.png",
@@ -113,222 +304,141 @@ RANK_FILES = {
     "RankVeteran": "veteran_1.png", "RankMaster": "master_1.png",
     "RankGrandmaster": "grandmaster_1.png", "RankReyes": "reyes.png",
 }
-
-# Key -> (family, motif or None for a rank emblem, numeral or None), in Config.Badges order
-BADGES = {
-    "Welcome": ("welcome", "welcome", None),
-    "FirstWin": ("first", "trophy_first", None),
-    "Wins5": ("bronze", "trophy_bronze", "5"),
-    "Wins10": ("bronze", "trophy_bronze", "10"),
-    "Wins25": ("silver", "trophy_silver", "25"),
-    "Wins50": ("silver", "trophy_silver", "50"),
-    "Wins100": ("gold", "trophy_gold", "100"),
-    "Wins250": ("gold", "trophy_gold", "250"),
-    "Wins500": ("prism", "trophy_prism", "500"),
-    "Wins1000": ("prism", "trophy_prism", "1K"),
-    **{key: ("rank", None, None) for key in RANK_FILES},
-    "Streak3": ("streak", "flame", "3"),
-    "Streak5": ("streak", "flame", "5"),
-    "Streak10": ("streak", "flame", "10"),
-    "CueRare": ("rare", "cue_rare", None),
-    "CueEpic": ("epic", "cue_epic", None),
-    "CueLegendary": ("legendary", "cue_legendary", None),
-    "CueMythic": ("mythic", "cue_mythic", None),
-    "CueSecret": ("secret", "cue_secret", None),
-    "CueUnique": ("unique", "cue_unique", None),
-    "Cues5": ("collection", "rack", "5"),
-    "Cues10": ("collection", "rack", "10"),
-    "Cues25": ("collection", "rack", "25"),
-    "Cues50": ("collection", "rack", "50"),
-    "Balls100": ("balls", "pocket", "100"),
-    "Balls1000": ("balls", "pocket", "1K"),
-    "Balls10000": ("balls", "pocket", "10K"),
-    "Matches10": ("matches", "table", "10"),
-    "Matches100": ("matches", "table", "100"),
-    "Matches1000": ("matches", "table", "1K"),
-    "Nice10": ("nice", "star", "10"),
-    "Nice100": ("nice", "star", "100"),
-    "Money1M": ("money", "cash", "1M"),
-    "Money10M": ("money", "cash", "10M"),
-    "Squad": ("squad", "squad", None),
-    "Ability1": ("ability", "bolt", None),
-    "Ability100": ("ability", "bolt", "100"),
-    "Crew": ("crew", "shield", None),
-    "MetOwner": ("owner", "crown", None),
-    "BeatOwner": ("beat", "crown_beat", None),
-    "Halloween2026": ("halloween", "pumpkin_night", None),
-    "PumpkinSlayer": ("halloween", "pumpkin_king", None),
-    "BroomRider": ("halloween", "broom", None),
+# Each tier's colour (Config's rank Colors); Grandmaster's gold, as its black would vanish
+RANK_RINGS = {
+    "RankBronze": "#CD7F46", "RankSilver": "#AAB6C8", "RankGold": "#FFC428", "RankPlatinum": "#78B0E6",
+    "RankDiamond": "#3CD6E6", "RankExpert": "#E84048", "RankVeteran": "#40C460", "RankMaster": "#9E5CE6",
+    "RankGrandmaster": "#FFC428", "RankReyes": RAINBOW,
 }
-assert len(BADGES) == 52
+
+GOLD = "#F2B200"
+BRONZE = "#D9883C"
+SILVER = "#B8C2CF"
+ORANGE = "#FF7A1A"  # the 5 ball
+TEAL = "#14B8A6"
+GREEN = "#22A35A"  # the 6 ball
+BLUE = "#2F6FE0"  # the 2 ball
+RED = "#E0464E"  # the 3 ball
+INDIGO = "#5B5BFF"
+RARITY = {"Rare": "#3B9BFF", "Epic": "#A259FF", "Legendary": "#F2B200", "Mythic": PRISM,
+          "Secret": "#2A2230", "Unique": "#FF5CB8"}
+CUE_BUTT = {"Mythic": "#B79CFF", "Secret": "#FF283C"}
 
 
-def raw_path(motif):
-    return os.path.join(RAW_DIR, motif + ".png")
+def wins(num, band):
+    return lambda: pool_ball(band, num=num, symbol=trophy(GOLD if band in FILLS else band), stripe=band)
 
 
-def generate(motif):
-    """One motif through tools/openai_image.py (1024, transparent, high), kept outside git."""
-    os.makedirs(RAW_DIR, exist_ok=True)
-    cmd = [sys.executable, os.path.join(ROOT, "tools", "openai_image.py"),
-           "--prompt", STYLE.format(subject=MOTIFS[motif]), "--out", raw_path(motif),
-           "--size", "1024x1024", "--background", "transparent", "--quality", "high",
-           "--tag", "badge_" + motif]
-    print("generating", motif, flush=True)
-    return subprocess.run(cmd).returncode
+def rarity(name):
+    return lambda: pool_ball(RARITY[name], symbol=cue(CUE_BUTT.get(name, RARITY[name])))
 
 
-def gradient_ring(colours, size, inner, outer):
-    """An RGBA ring whose colour sweeps round through `colours` (the prismatic families)."""
-    img = Image.new("RGBA", (size, size), (0, 0, 0, 0))
-    px = img.load()
-    c = size / 2
-    n = len(colours)
-    for y in range(size):
-        for x in range(size):
-            dx, dy = x + 0.5 - c, y + 0.5 - c
-            d = math.hypot(dx, dy)
-            if inner <= d <= outer:
-                a = (math.atan2(dy, dx) / (2 * math.pi) + 0.5) * n
-                i = int(a) % n
-                f = a - int(a)
-                c0, c1 = colours[i], colours[(i + 1) % n]
-                px[x, y] = tuple(int(c0[k] + (c1[k] - c0[k]) * f) for k in range(3)) + (255,)
-    return img
+# Key -> a function that returns the icon's SVG body, in Config.Badges order
+BADGES = {
+    "Welcome": eight_ball,
+    "FirstWin": lambda: pool_ball("#FFC928", num="1", symbol=trophy(GOLD)),
+    "Wins5": wins("5", BRONZE),
+    "Wins10": wins("10", BRONZE),
+    "Wins25": wins("25", SILVER),
+    "Wins50": wins("50", SILVER),
+    "Wins100": wins("100", GOLD),
+    "Wins250": wins("250", GOLD),
+    "Wins500": wins("500", PRISM),
+    "Wins1000": wins("1K", PRISM),
+    **{key: (lambda k=key: rank_disc(k, RANK_RINGS[k])) for key in RANK_FILES},
+    "Streak3": lambda: pool_ball(ORANGE, num="3", symbol=flame()),
+    "Streak5": lambda: pool_ball(ORANGE, num="5", symbol=flame()),
+    "Streak10": lambda: pool_ball(ORANGE, num="10", symbol=flame()),
+    "CueRare": rarity("Rare"),
+    "CueEpic": rarity("Epic"),
+    "CueLegendary": rarity("Legendary"),
+    "CueMythic": rarity("Mythic"),
+    "CueSecret": rarity("Secret"),
+    "CueUnique": rarity("Unique"),
+    "Cues5": lambda: pool_ball(TEAL, num="5", symbol=crossed_cues(TEAL), stripe=TEAL),
+    "Cues10": lambda: pool_ball(TEAL, num="10", symbol=crossed_cues(TEAL), stripe=TEAL),
+    "Cues25": lambda: pool_ball(TEAL, num="25", symbol=crossed_cues(TEAL), stripe=TEAL),
+    "Cues50": lambda: pool_ball(TEAL, num="50", symbol=crossed_cues(TEAL), stripe=TEAL),
+    "Balls100": lambda: pool_ball(GREEN, num="100", symbol=pocket(), stripe=GREEN),
+    "Balls1000": lambda: pool_ball(GREEN, num="1K", symbol=pocket(), stripe=GREEN),
+    "Balls10000": lambda: pool_ball(GREEN, num="10K", symbol=pocket(), stripe=GREEN),
+    "Matches10": lambda: pool_ball(BLUE, num="10", symbol=table(), stripe=BLUE),
+    "Matches100": lambda: pool_ball(BLUE, num="100", symbol=table(), stripe=BLUE),
+    "Matches1000": lambda: pool_ball(BLUE, num="1K", symbol=table(), stripe=BLUE),
+    "Nice10": lambda: pool_ball(RED, num="10", symbol=star(), stripe=RED),
+    "Nice100": lambda: pool_ball(RED, num="100", symbol=star(), stripe=RED),
+    "Money1M": lambda: pool_ball("#2FBF4F", num="1M", symbol=cash()),
+    "Squad": lambda: pool_ball("#22C1E6", symbol=three_balls()),
+    "Ability1": lambda: pool_ball(INDIGO, symbol=bolt()),
+    "Ability100": lambda: pool_ball(INDIGO, num="100", symbol=bolt(), stripe=INDIGO),
+    "MetOwner": lambda: pool_ball("#7B4BD6", symbol=crown()),
+    "BeatOwner": lambda: pool_ball("#FF3B5C", symbol=crown_beat()),
+    "Halloween2026": pumpkin,
+    "PumpkinSlayer": lambda: pumpkin(crowned=True),
+    "BroomRider": lambda: pool_ball("#5B2A86", symbol=broom()),
+}
+assert len(BADGES) == 50
 
 
-def frame(family):
-    """The shared round frame: a radial disc, the family ring with a shine, ink outlines."""
-    ring, inner_col, outer_col = FAMILIES[family]
-    scale = 4  # draw big, then downscale, for smooth edges
-    big = SIZE * scale
-    c = big / 2
-    img = Image.new("RGBA", (big, big), (0, 0, 0, 0))
-    draw = ImageDraw.Draw(img)
-    r_out = RING_OUTER * scale
-    r_in = (RING_OUTER - RING_WIDTH) * scale
-    ink = 7 * scale
-    # ink rim behind everything
-    draw.ellipse([c - r_out - ink, c - r_out - ink, c + r_out + ink, c + r_out + ink], fill=INK)
-    # disc: radial gradient from inner_col (centre) to outer_col (edge)
-    disc = Image.new("RGBA", (big, big), (0, 0, 0, 0))
-    dd = ImageDraw.Draw(disc)
-    steps = 60
-    for i in range(steps):
-        f = i / (steps - 1)
-        r = r_in * (1 - f) + 1
-        col = tuple(int(outer_col[k] + (inner_col[k] - outer_col[k]) * f) for k in range(3)) + (255,)
-        oy = -r_in * 0.18 * f  # the light centre sits a little high
-        dd.ellipse([c - r, c - r + oy, c + r, c + r + oy], fill=col)
-    mask = Image.new("L", (big, big), 0)
-    ImageDraw.Draw(mask).ellipse([c - r_in, c - r_in, c + r_in, c + r_in], fill=255)
-    img.paste(disc, (0, 0), mask)
-    # ring
-    if isinstance(ring, list):
-        ring_img = gradient_ring(ring, SIZE, RING_OUTER - RING_WIDTH, RING_OUTER).resize((big, big), Image.LANCZOS)
-        img.alpha_composite(ring_img)
-    else:
-        ring_mask = Image.new("L", (big, big), 0)
-        rm = ImageDraw.Draw(ring_mask)
-        rm.ellipse([c - r_out, c - r_out, c + r_out, c + r_out], fill=255)
-        rm.ellipse([c - r_in, c - r_in, c + r_in, c + r_in], fill=0)
-        solid = Image.new("RGBA", (big, big), ring + (255,))
-        img.paste(solid, (0, 0), ring_mask)
-        # drop lip: the ring's lower half a shade darker
-        lip = Image.new("L", (big, big), 0)
-        ImageDraw.Draw(lip).ellipse([c - r_out, c - r_out + 10 * scale, c + r_out, c + r_out + 10 * scale], fill=0)
-        dark = Image.new("RGBA", (big, big), tuple(int(v * 0.72) for v in ring) + (255,))
-        lower = ImageChops.subtract(ring_mask, Image.new("L", (big, big), 0))
-        ImageDraw.Draw(lower).rectangle([0, 0, big, c + r_out * 0.35], fill=0)
-        img.paste(dark, (0, 0), lower)
-    # shine on the ring's upper left
-    shine = Image.new("L", (big, big), 0)
-    sd = ImageDraw.Draw(shine)
-    sd.arc([c - r_out + 6 * scale, c - r_out + 6 * scale, c + r_out - 6 * scale, c + r_out - 6 * scale],
-           200, 290, fill=200, width=7 * scale)
-    shine = shine.filter(ImageFilter.GaussianBlur(2 * scale))
-    img.paste(Image.new("RGBA", (big, big), (255, 255, 255, 255)), (0, 0), shine)
-    # ink line between ring and disc
-    draw = ImageDraw.Draw(img)
-    draw.ellipse([c - r_in, c - r_in, c + r_in, c + r_in], outline=INK, width=5 * scale)
-    return img.resize((SIZE, SIZE), Image.LANCZOS)
+def page(body):
+    return f"""<!doctype html><html><head><style>
+@font-face {{ font-family: Fredoka; src: url("file://{FREDOKA}"); }}
+html, body {{ margin: 0; background: transparent; }}
+</style></head><body>
+<svg xmlns="http://www.w3.org/2000/svg" width="{SIZE}" height="{SIZE}" viewBox="0 0 {SIZE} {SIZE}">
+{body}
+</svg></body></html>"""
 
 
-def fit(img, box):
-    """`img` cropped to its content and scaled to fit a box x box square."""
-    bbox = img.getbbox()
-    if bbox:
-        img = img.crop(bbox)
-    w, h = img.size
-    k = box / max(w, h)
-    return img.resize((max(1, int(w * k)), max(1, int(h * k))), Image.LANCZOS)
-
-
-def numeral(img, text):
-    """A bold white numeral with an ink outline, at the bottom of the disc."""
-    draw = ImageDraw.Draw(img)
-    size = 104 if len(text) <= 2 else 86
-    font = ImageFont.truetype(FONT, size)
-    bbox = draw.textbbox((0, 0), text, font=font, stroke_width=12)
-    w, h = bbox[2] - bbox[0], bbox[3] - bbox[1]
-    x = CENTER - w / 2 - bbox[0]
-    y = SIZE - 70 - h - bbox[1] - 14
-    shadow = Image.new("RGBA", img.size, (0, 0, 0, 0))
-    ImageDraw.Draw(shadow).text((x, y + 7), text, font=font, fill=INK, stroke_width=12, stroke_fill=INK)
-    img.alpha_composite(shadow)
-    draw.text((x, y), text, font=font, fill=(255, 255, 255, 255), stroke_width=12, stroke_fill=INK)
-
-
-def compose(key):
-    family, motif, num = BADGES[key]
-    img = frame(family)
-    if motif is None:
-        art = Image.open(os.path.join(RANK_DIR, RANK_FILES[key])).convert("RGBA")
-        art = fit(art, 340)
-        oy = -6
-    else:
-        path = raw_path(motif)
-        if not os.path.exists(path):
-            print(f"{key}: motif {motif} not generated yet")
-            return False
-        art = fit(Image.open(path).convert("RGBA"), 300 if num else 330)
-        oy = -34 if num else -4
-    x = int(CENTER - art.size[0] / 2)
-    y = int(CENTER - art.size[1] / 2 + oy)
-    img.alpha_composite(art, (x, y))
-    if num:
-        numeral(img, num)
-    # Roblox shows a circle: clear anything past the safe radius
+def render(body, out):
+    """One SVG page to a 512 px PNG through headless Chrome, clipped to Roblox's safe circle."""
+    with tempfile.TemporaryDirectory() as tmp:
+        html = os.path.join(tmp, "icon.html")
+        with open(html, "w") as handle:
+            handle.write(page(body))
+        shot = os.path.join(tmp, "icon.png")
+        subprocess.run([CHROME, "--headless=new", "--disable-gpu", "--hide-scrollbars",
+                        "--allow-file-access-from-files", "--default-background-color=00000000",
+                        f"--window-size={SIZE},{SIZE}", f"--screenshot={shot}", "file://" + html],
+                       check=True, capture_output=True)
+        img = Image.open(shot).convert("RGBA")
     mask = Image.new("L", (SIZE, SIZE), 0)
-    ImageDraw.Draw(mask).ellipse([CENTER - SAFE_RADIUS, CENTER - SAFE_RADIUS, CENTER + SAFE_RADIUS, CENTER + SAFE_RADIUS], fill=255)
-    alpha = ImageChops.multiply(img.getchannel("A"), mask)
-    img.putalpha(alpha)
-    os.makedirs(OUT_DIR, exist_ok=True)
-    img.save(os.path.join(OUT_DIR, key + ".png"), optimize=True)
+    ImageDraw.Draw(mask).ellipse([C - SAFE_RADIUS, C - SAFE_RADIUS, C + SAFE_RADIUS, C + SAFE_RADIUS], fill=255)
+    img.putalpha(ImageChops.multiply(img.getchannel("A"), mask))
+    img.save(out, optimize=True)
+
+
+def compose(key, out_dir=OUT_DIR):
+    os.makedirs(out_dir, exist_ok=True)
+    render(BADGES[key](), os.path.join(out_dir, key + ".png"))
     return True
 
 
-def sheet(out, keys):
-    """Every badge at 150 px in a circle (how the game page shows them), with its key."""
-    cols = 8
+def sheet(out, keys, src_dir=OUT_DIR):
+    """Every badge at 150 px in a circle (how the game page shows them), with its key, on
+    Roblox's light and dark page colours."""
+    cols = min(8, len(keys))
     cell = 170
     rows = math.ceil(len(keys) / cols)
-    img = Image.new("RGBA", (cols * cell, rows * (cell + 22)), (238, 240, 246, 255))
+    band = rows * (cell + 22)
+    img = Image.new("RGBA", (cols * cell, band * 2), (255, 255, 255, 255))
+    ImageDraw.Draw(img).rectangle([0, band, cols * cell, band * 2], fill=(25, 27, 29, 255))
     draw = ImageDraw.Draw(img)
     font = ImageFont.truetype("/System/Library/Fonts/Supplemental/Arial.ttf", 12)
     mask = Image.new("L", (150, 150), 0)
     ImageDraw.Draw(mask).ellipse([0, 0, 149, 149], fill=255)
-    for i, key in enumerate(keys):
-        path = os.path.join(OUT_DIR, key + ".png")
-        if not os.path.exists(path):
-            continue
-        icon = Image.open(path).convert("RGBA").resize((150, 150), Image.LANCZOS)
-        icon.putalpha(ImageChops.multiply(icon.getchannel("A"), mask))
-        x = (i % cols) * cell + 10
-        y = (i // cols) * (cell + 22) + 8
-        img.alpha_composite(icon, (x, y))
-        tw = draw.textlength(key, font=font)
-        draw.text((x + 75 - tw / 2, y + 154), key, font=font, fill=(40, 44, 60, 255))
+    for half, text_fill in ((0, (40, 44, 60, 255)), (1, (220, 222, 228, 255))):
+        for i, key in enumerate(keys):
+            path = os.path.join(src_dir, key + ".png")
+            if not os.path.exists(path):
+                continue
+            icon = Image.open(path).convert("RGBA").resize((150, 150), Image.LANCZOS)
+            icon.putalpha(ImageChops.multiply(icon.getchannel("A"), mask))
+            x = (i % cols) * cell + 10
+            y = half * band + (i // cols) * (cell + 22) + 8
+            img.alpha_composite(icon, (x, y))
+            tw = draw.textlength(key, font=font)
+            draw.text((x + 75 - tw / 2, y + 154), key, font=font, fill=text_fill)
     img.save(out)
     print("wrote", out)
 
@@ -364,25 +474,17 @@ def badge_list(out):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--gen", nargs="*", default=None, help="motifs to generate")
-    parser.add_argument("--gen-all", action="store_true", help="every motif not generated yet")
     parser.add_argument("--compose", nargs="*", default=None, help="badge keys (default all)")
+    parser.add_argument("--out-dir", default=OUT_DIR, help="where --compose writes (default assets/ui/badges)")
     parser.add_argument("--sheet", nargs="+", default=None, help="out.png [keys...]")
     parser.add_argument("--list", default=None, help="out.png: the badge list with names")
     args = parser.parse_args()
-    if args.gen:
-        for motif in args.gen:
-            generate(motif)
-    if args.gen_all:
-        for motif in MOTIFS:
-            if not os.path.exists(raw_path(motif)):
-                generate(motif)
     if args.compose is not None:
         for key in args.compose or list(BADGES):
-            compose(key)
+            compose(key, args.out_dir)
     if args.sheet:
         out, keys = args.sheet[0], args.sheet[1:] or list(BADGES)
-        sheet(out, keys)
+        sheet(out, keys, args.out_dir)
     if args.list:
         badge_list(args.list)
     return 0
