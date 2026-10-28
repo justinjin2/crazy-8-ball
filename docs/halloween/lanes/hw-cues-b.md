@@ -68,6 +68,11 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
   neighbours), compact = a closed bud 0.3 past the butt; `spider_parts.glb` 134241355070040,
   `Crown.glb` 88297987618252, atlas decals with image ids). Preview beside the concept:
   `gate2/spider_body_vs_C1b.png`. No spider bodies, legs or creatures anywhere.
+- 10:50 P14 in the same solo game, the Cat equipped (EquipCue by request): a pot of the 10 fired
+  its finisher at the real pocket (the HUD crossed the 10, $132), no console errors; the
+  capture came after its 1.6 s window, so the lab phase strip stands for its look. The own
+  aim view shot (`cat_own_view_aim_lab.jpg`): the aura's quiet share by the cue reads as a
+  shadow cat and smoke on the felt; the trail is a short dark smudge at this shot speed.
 - 10:49 P11 in a real solo game (my window; the tutorial skipped by its own report, Painicane
   put on QueuePad_03 by script, `/solo` through the Studio DevCommandsQA hook, the Broom
   given with `/givecue` and equipped through ItemRequest EquipCue, shots sent as ShotFired
@@ -308,4 +313,7 @@ drop 3):
   corner pocket, the witch over the moon and bats above, seen from the watcher's side.
 - `broom_trail_match_lab.jpg`: a long rail shot: the cue ball's violet-emerald trail with a
   crescent as it slows by the corner; short and soft at this speed.
+- `cat_own_view_aim_lab.jpg`: the same game with the Cat equipped, the shooter's own aim view
+  at PC size: the cue in hand (Classic wood before drop 3), a shadow cat and the dark smoke
+  on the felt by the cue at the quiet share, the PULL card drawing the Cat's card art.
 - Not yet shot: hands and own-aim views with the bodies (need drop 3).
