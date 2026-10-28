@@ -261,6 +261,7 @@ function Progression.start(screen: ScreenGui, hooks: Hooks)
 	UISound.preload()
 	ItemState.start() -- early, so the snapshots sent on load are heard
 	SettingsState.start() -- the switches (sound groups, Lower effects) and the seen moments
+	require(script.Parent.Halloween.State).start() -- the Halloween event's view (hw-core)
 	Music.start() -- the background music (its Settings row: the Music group)
 	money = MoneyHud.new(screen)
 	vipTag = VipTag.new(money) -- VIP's tag over the money pill (a VIP only)

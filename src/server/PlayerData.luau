@@ -3618,6 +3618,20 @@ function PlayerData.hwBoss(player: Player, ctx: HwCtx): (HwLedger.BossResult?, H
 	return boss, result
 end
 
+--- Which of `ids` (cue ids) the save owns: { [id] = true } (empty before the save loads).
+function PlayerData.hwOwned(player: Player, ids: { string }): { [string]: boolean }
+	local data = peek(player)
+	local owned: { [string]: boolean } = {}
+	if data ~= nil then
+		for _, id in ids do
+			if Inventory.count(data, id) > 0 then
+				owned[id] = true
+			end
+		end
+	end
+	return owned
+end
+
 --- The player's King cooldown end (unix seconds; 0 when none or the save is not loaded).
 function PlayerData.hwBossCooldown(player: Player, now: number): number
 	local data = peek(player)

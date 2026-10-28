@@ -442,6 +442,14 @@ local REMOTES: { [string]: string } = {
 	-- server -> everyone: { userId, id, at } (someone started a dance) or { userId, stop = true };
 	-- server -> one player: { favorites = { [id] = true } } on load and after each change.
 	EmoteState = "RemoteEvent",
+	-- The Halloween event (hw-core; src/server/Halloween/CandyService.luau, client
+	-- Halloween/State). server -> one player: { view = { candy, earned, bought, given, active,
+	-- spider, open, boards, hooks, seen, kingReadyAt, converted, convertedMoney, endSeen, owned,
+	-- on = { quests, packs, spider } } } (at most one every Config.Halloween.PushSeconds), or a
+	-- moment: { toast = { candy, source, x2 } } (Candy landed), { step = index } (a track prize),
+	-- { spider = true }. client -> server, rate limited: { claim = "<board>.<slot>" },
+	-- { seen = true } (the menu opened), { endSeen = true } (the end screen shown).
+	Halloween = "RemoteEvent",
 }
 
 -- Values per table in an AimBroadcast batch.

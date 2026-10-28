@@ -17,7 +17,9 @@ local ServerStorage = game:GetService("ServerStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
+local Net = require(Shared:WaitForChild("Net"))
 local Strings = require(Shared:WaitForChild("Strings"))
+local Steps = require(Shared.Tutorial.Steps)
 local Clock = require(Shared.Halloween.Clock)
 local Event = require(Shared.Halloween.Event)
 local CandyMath = require(Shared.Halloween.CandyMath)
@@ -28,6 +30,10 @@ local Funnel = require(script.Parent.Parent.Funnel)
 local C = Config.Halloween
 
 local CandyService = {}
+
+local function isPlayer(x: any): boolean
+	return typeof(x) == "Instance" and x:IsA("Player") and x.Parent == Players
+end
 
 export type BossWon = { granted: boolean, amount: number, cooldownEndsAt: number }
 
@@ -66,12 +72,166 @@ function CandyService.ctx(): PlayerData.HwCtx
 	return { now = now, open = Event.boardIndex(now), hooks = CandyService.hooks() }
 end
 
-function CandyService.isLive(): boolean
-	return Event.isLive(Clock.serverNow())
+-- The event's cues (the track's and the Spider): the end screen shows the ones owned.
+local EVENT_CUES: { string } = {}
+for _, step in Config.Halloween.Track.Steps do
+	if step.Cue ~= nil then
+		table.insert(EVENT_CUES, step.Cue)
+	end
+end
+table.insert(EVENT_CUES, C.Spider.Cue)
+
+-- Whether the player's tutorial is over (Done or Skipped): nothing Halloween shows before.
+local function tutorialOver(player: Player): boolean
+	local step = PlayerData.flag(player, "Tutorial")
+	return type(step) == "string" and Steps.Ends[step] == true
 end
 
-local function isPlayer(x: any): boolean
-	return typeof(x) == "Instance" and x:IsA("Player") and x.Parent == Players
+-- The player attributes the client and other lanes read: Candy (earned + bought) and HwOn
+-- (the save loaded, the event switched on, the tutorial over).
+local function setAttributes(player: Player, hw: any?)
+	local candy = if hw then hw.Earned + hw.Bought else 0
+	local on = hw ~= nil and C.Enabled == true and tutorialOver(player)
+	if player:GetAttribute("Candy") ~= candy then
+		player:SetAttribute("Candy", candy)
+	end
+	if player:GetAttribute("HwOn") ~= on then
+		player:SetAttribute("HwOn", on)
+	end
+end
+
+-- The client's whole view of the player's event (the Halloween remote's { view }).
+local function viewOf(player: Player, hw: any): any
+	local ctx = CandyService.ctx()
+	local boards = {}
+	for n = 1, Quests.count() do
+		local quests = {}
+		if n <= ctx.open then
+			local list: { Quests.Quest } = Quests.board(n, ctx.hooks) or {}
+			for _, q in list do
+				table.insert(quests, {
+					key = q.key,
+					kind = q.kind,
+					need = q.need,
+					have = Quests.progress(hw.Q, q),
+					reward = q.reward,
+					icon = q.icon,
+					claimed = hw.Claimed[q.key] == true,
+				})
+			end
+		end
+		table.insert(boards, { n = n, opensAt = Event.boardOpensAt(n), quests = quests })
+	end
+	local given = {}
+	for key in hw.Given do
+		table.insert(given, tonumber(key))
+	end
+	table.sort(given)
+	return {
+		candy = hw.Earned + hw.Bought,
+		earned = hw.Earned,
+		bought = hw.Bought,
+		given = given,
+		active = hw.Active,
+		spider = hw.Spider,
+		open = ctx.open,
+		boards = boards,
+		hooks = ctx.hooks,
+		seen = hw.Seen,
+		kingReadyAt = hw.KingReadyAt,
+		converted = hw.Converted,
+		convertedMoney = hw.ConvertedMoney,
+		endSeen = hw.EndSeen,
+		owned = PlayerData.hwOwned(player, EVENT_CUES),
+		on = {
+			quests = C.Quests.Enabled == true,
+			packs = C.Packs.Enabled == true,
+			spider = C.Spider.Enabled == true,
+		},
+	}
+end
+
+local lastPush: { [Player]: number } = setmetatable({}, { __mode = "k" }) :: any
+local pushQueued: { [Player]: boolean } = setmetatable({}, { __mode = "k" }) :: any
+
+local function send(player: Player)
+	if player.Parent ~= Players then
+		return
+	end
+	local hw = PlayerData.halloween(player)
+	setAttributes(player, hw)
+	if hw == nil then
+		return
+	end
+	lastPush[player] = os.clock()
+	Net.get("Halloween"):FireClient(player, { view = viewOf(player, hw) })
+end
+
+--- The player's event changed: the attributes now, the view pushed at most once every
+--- PushSeconds (a later change inside the gap goes out with the queued push).
+function CandyService.changed(player: Player)
+	if not isPlayer(player) or pushQueued[player] then
+		return
+	end
+	local wait = (lastPush[player] or -math.huge) + C.PushSeconds - os.clock()
+	if wait <= 0 then
+		send(player)
+		return
+	end
+	pushQueued[player] = true
+	task.delay(wait, function()
+		pushQueued[player] = nil
+		local ok, err = pcall(function(): any
+			send(player)
+			return nil
+		end)
+		if not ok then
+			warn("[8ball] CandyService: push failed: " .. tostring(err))
+		end
+	end)
+end
+
+-- After a mutation: the moments the client shows (a Candy chip, a track prize, the Spider),
+-- the quest analytics, and the view.
+local function after(player: Player, result: PlayerData.HwResult?, source: string)
+	if result == nil then
+		return
+	end
+	local remote = Net.get("Halloween")
+	if result.candy > 0 and source ~= "Pickup" and source ~= "Dev" then
+		remote:FireClient(player, {
+			toast = {
+				candy = result.candy,
+				source = source,
+				x2 = source == "Match" and Event.multiplier(Clock.serverNow()) > 1,
+			},
+		})
+	end
+	for _, index in result.steps do
+		remote:FireClient(player, { step = index })
+		local step = Config.Halloween.Track.Steps[index]
+		Funnel.event(
+			player,
+			"HwTrack",
+			step.At,
+			step.Cue or (if step.Spins then "Spins" else "Money")
+		)
+	end
+	if result.spider then
+		remote:FireClient(player, { spider = true })
+		Funnel.event(player, "HwSpider", 1)
+	end
+	for _, routed in result.quests do
+		if routed.done then
+			local board = tonumber(string.match(routed.key, "^(%d+)")) or 0
+			Funnel.event(player, "HwQuest", board, routed.key, "Done")
+		end
+	end
+	CandyService.changed(player)
+end
+
+function CandyService.isLive(): boolean
+	return Event.isLive(Clock.serverNow())
 end
 
 -- The friends + group boost inputs from the player's attributes (the GUI lane's FriendsHere,
@@ -117,6 +277,7 @@ function CandyService.add(player: Player, amount: number, source: string, opts: 
 	local result = PlayerData.hwAddCandy(player, candy, "Earned", CandyService.ctx(), o.events)
 	local added = if result then result.candy else 0
 	logCandy(player, added, source)
+	after(player, result, source)
 	return added
 end
 
@@ -128,11 +289,12 @@ function CandyService.bossWon(player: Player): BossWon
 	if not isPlayer(player) or not CandyService.isLive() then
 		return none
 	end
-	local boss = PlayerData.hwBoss(player, CandyService.ctx())
+	local boss, result = PlayerData.hwBoss(player, CandyService.ctx())
 	if boss == nil then
 		return none
 	end
 	logCandy(player, boss.amount, "Boss")
+	after(player, result, "Boss")
 	return { granted = boss.granted, amount = boss.amount, cooldownEndsAt = boss.cooldownEndsAt }
 end
 
@@ -153,7 +315,10 @@ function CandyService.pickup(player: Player): (boolean, string?)
 	if not CandyService.isLive() then
 		return false, "NotLive"
 	end
-	local ok, reason = PlayerData.hwPickup(player, CandyService.ctx())
+	local ok, reason, result = PlayerData.hwPickup(player, CandyService.ctx())
+	if ok then
+		after(player, result, "Pickup")
+	end
 	return ok, reason
 end
 
@@ -225,6 +390,7 @@ function CandyService.matchSettled(player: Player, f: MatchFacts): number
 	local result = PlayerData.hwAddCandy(player, candy, "Earned", CandyService.ctx(), events)
 	local added = if result then result.candy else 0
 	logCandy(player, added, "Match")
+	after(player, result, "Match")
 	return added
 end
 
@@ -254,11 +420,63 @@ end
 local function tickPlayer(player: Player): any
 	local ctx = CandyService.ctx()
 	if Event.over(ctx.now) then
-		PlayerData.hwConvert(player, ctx)
+		local result = PlayerData.hwConvert(player, ctx)
+		if result ~= nil then
+			Funnel.event(player, "HwConvert", result.money, CandyService.band(result.money // 10))
+			CandyService.changed(player)
+		end
 		return nil
 	end
-	PlayerData.hwRetry(player)
+	after(player, PlayerData.hwRetry(player), "Retry")
 	return nil
+end
+
+-- A Candy amount's band for the HwConvert event's field (few distinct values).
+function CandyService.band(candy: number): string
+	for _, top in { 0, 100, 500, 2000, 7000 } do
+		if candy <= top then
+			return ("<=%d"):format(top)
+		end
+	end
+	return ">7000"
+end
+
+-- Requests from the client (the Halloween remote), at most one every MIN_GAP seconds.
+local MIN_GAP = 0.25
+local lastRequest: { [Player]: number } = setmetatable({}, { __mode = "k" }) :: any
+
+local function onRequest(player: Player, msg: any)
+	if type(msg) ~= "table" then
+		return
+	end
+	local t = os.clock()
+	if t - (lastRequest[player] or -math.huge) < MIN_GAP then
+		return
+	end
+	lastRequest[player] = t
+	if type(msg.claim) == "string" then
+		local key = msg.claim
+		local amount, result = PlayerData.hwClaim(player, key, CandyService.ctx())
+		if amount > 0 then
+			local board = tonumber(string.match(key, "^(%d+)")) or 0
+			Funnel.event(player, "HwQuest", board, key, "Claimed")
+			Funnel.event(player, "HwMenu", 1, "Claim")
+			logCandy(player, amount, "Quest")
+		end
+		after(player, result, "Quest")
+		if result == nil or amount == 0 then
+			CandyService.changed(player) -- a refused claim: the client's view is set right
+		end
+	elseif msg.seen == true then
+		Funnel.event(player, "HwMenu", 1, "Open")
+		if PlayerData.hwMark(player, "Seen") then
+			CandyService.changed(player)
+		end
+	elseif msg.endSeen == true then
+		if PlayerData.hwMark(player, "EndSeen") then
+			CandyService.changed(player)
+		end
+	end
 end
 
 -- The /hw dev command (DevCommands; the designer's account only, checked there). Returns the
@@ -353,6 +571,7 @@ function CandyService.dev(player: Player, args: { string }): { string }
 		say(D.Usage)
 		return lines
 	end
+	CandyService.changed(player)
 	local now = Clock.serverNow()
 	local hw = PlayerData.halloween(player)
 	say(
@@ -423,19 +642,54 @@ function CandyService.start()
 	started = true
 	startQA()
 	listenUlts()
+	Net.get("Halloween").OnServerEvent:Connect(function(player: Player, msg: any)
+		local ok, err = pcall(function(): any
+			onRequest(player, msg)
+			return nil
+		end)
+		if not ok then
+			warn("[8ball] CandyService: request failed: " .. tostring(err))
+		end
+	end)
 	PlayerData.Loaded:Connect(function(player: Player)
-		local ok, err = pcall(tickPlayer, player)
+		local ok, err = pcall(function(): any
+			tickPlayer(player)
+			send(player)
+			return nil
+		end)
 		if not ok then
 			warn("[8ball] CandyService: on load: " .. tostring(err))
 		end
 	end)
+	-- The tutorial's end (its save flag) turns the event on for the player.
+	PlayerData.Changed:Connect(function(player: Player, op: string)
+		if op == "setFlag" and player:GetAttribute("HwOn") ~= true then
+			local ok, err = pcall(function(): any
+				setAttributes(player, PlayerData.halloween(player))
+				return nil
+			end)
+			if not ok then
+				warn("[8ball] CandyService: HwOn: " .. tostring(err))
+			end
+		end
+	end)
 	task.spawn(function()
+		local lastState, lastBoard = nil, nil
 		while true do
 			task.wait(C.TickSeconds)
+			local now = Clock.serverNow()
+			local state, board = Event.state(now), Event.boardIndex(now)
+			-- A new board opened, the event started or ended: every view again.
+			local everyone = (lastState ~= nil and state ~= lastState)
+				or (lastBoard ~= nil and board ~= lastBoard)
+			lastState, lastBoard = state, board
 			for _, player in Players:GetPlayers() do
 				local ok, err = pcall(tickPlayer, player)
 				if not ok then
 					warn("[8ball] CandyService: tick: " .. tostring(err))
+				end
+				if everyone then
+					CandyService.changed(player)
 				end
 			end
 		end

@@ -552,7 +552,7 @@ conversion with an end screen, the tutorial gate, the tile, the menu.
 - [x] Interface 2: `Halloween` save field (template, MAP_KEYS, validate, old-save test), the PlayerData block, real `CandyService` (add, bossWon, bossCooldown -> unix time or 0, pickup -> ok + reason "Cap"/"NotLive"/"NotLoaded", isLive) in Bootstrap, tests; pushed, lane file says ready
 - [x] `/hw` dev command block (time offsets, candy, quest, active, kingwin, convert, reset), checked in Studio
 - [ ] Take the 08:30 interface merge (`git fetch && git merge halloween`), lint, tests, push; later merges on Request from 08:45 (cues-a drop 2, drop 3 + GUI pill about 10:00-10:20), merge `halloween` again after each
-- [ ] Match Candy at settle (Ranking hook, CandyMath with `finished`, Rush/double, friends/group through `Money.friendBoost`/`boostParts` with the guarded fallback, no "+0"), HwCandy/HwMatch events; tutorial game pays in Studio
+- [x] Match Candy at settle (Ranking hook, CandyMath with `finished`, Rush/double, friends/group through `Money.friendBoost`/`boostParts` with the guarded fallback, no "+0"), HwCandy/HwMatch events; tutorial game pays in Studio
 - [ ] Client state: `Halloween` remote, `Candy`/`HwOn` attributes, `State.luau`; nothing visible before the tutorial is Done/Skipped
 - [ ] Event tile in the right-side slot (HubCorners spec, pure placement + overlap test, first `padStops` entry, NEW, "!"); gate 1 shots
 - [ ] Track steps + gifts + cue grants (only when `Catalog.ready(id)`, held otherwise and retried on load and every tick) and the Spider active clock (SkyDropService getter, 5 s tick, grant at 10,860 s); tests
