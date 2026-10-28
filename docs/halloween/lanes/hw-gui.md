@@ -95,6 +95,20 @@ From PLAN §4 (everything else is read-only; ask below under Requests):
   are at this window's 1523x814. The coordinator's device sweep must cover the pill, card and
   chip at phone and iPad sizes (Request below).
 
+- **Steps 9-10 (pad, sweep): pill ON (`Config.UI.BoostPill.Enabled = true`). Ready for the pill
+  merge.** Checked in Studio (1523x814 window): D-pad left (GuiQA `pad DPadLeft`) focuses the
+  corners and the pill becomes a stop (`Selectable` true, `SelectionImageObject` the corners'
+  ring); selected, it stays held (`padFocusedOn`); D-pad left again (the `blurPad` B uses)
+  closes its card, drops the selection and makes it unselectable; walking unaffected
+  (WalkSpeed 20.8). Studio's simulated gamepad keys reach no button (A did not fire Invite
+  either), so a real A press and B on a pad are for the coordinator's sweep. Tutorial: hidden
+  at Arrow, pops in at Done and after a real Skip (fresh save, `TutorialEvent "Skip"`); console
+  clean; the `BoostCard` custom event logs on the first open. In a match (solo fixture) the pill
+  and chip show, `Active` false, clear of the spin widget and ability bar at this size. Not
+  reachable here: the four device sizes and a phone-size match (layout test only), a played
+  shot's pay (the fixture's solo break pocketed nothing; the pay path is checked through
+  `Economy.boost` and the money tests).
+
 ## Shared-file changes
 
 PLAN §7 shared files: your own block or line only; the coordinator resolves overlaps. Planned
@@ -112,13 +126,15 @@ PLAN §7 shared files: your own block or line only; the coordinator resolves ove
 - `TutorialService.luau` `FUNNEL_EVENTS`: `BoostCardOpened`, `CuePreviewCues`,
   `CuePreviewIndex`, `CuePreviewTrack`, `CuePreviewEquip` (custom events `BoostCard` and
   `CuePreview`).
-- `HubCorners.luau` (core edits it too): the pill as ONE `padStops` entry right after
-  `self.plusTile.button` (core's event tile is the first entry, its line); own lines in
-  `blurPad` and `padFocusedOn`.
+- `HubCorners.luau` (core edits it too) **b0674d4c**: the pill as ONE `padStops` entry right after
+  `self.plusTile.button` (core's event tile is the first entry, its line); the same entry in
+  `blurPad`'s list plus `deps.boostPill:closeCard()` after it; `padFocusedOn` also holds the pill
+  (it lives in money's root); in `new`, the pill gets the corners' pad ring
+  (`SelectionImageObject = padRing()`). The two lists gained `:: { GuiObject }` casts.
 - `Net.luau:395` (core and map edit it too): the new event names in the comment only.
-- `Config.luau`: the `Config.Economy` friend lines after `PlusBoost` (**37d80752**, added only); `Config.UI.BoostPill`;
-  `Config.UI.CuePreview`.
-- `Strings.luau`: `Strings.BoostPill`, `Strings.CuePreview`.
+- `Config.luau`: the `Config.Economy` friend lines after `PlusBoost` (**37d80752**, added only);
+  `Config.UI.BoostPill` and `Config.UI.CuePreview` after `Config.UI.LuckClover` (**3fd23656**).
+- `Strings.luau`: `Strings.BoostPill`, `Strings.CuePreview` after `LuckClover` (**3fd23656**).
 - `Progression.luau`: :265-267, :302-309 (BoostPill instead of VipTag, `deps`), :615
   (`setInMatch`, `CuePreview.close()`).
 - `Main.client.luau:1265`: one guarded line (the preview's cue in `ids`).
@@ -148,6 +164,9 @@ PLAN §7 shared files: your own block or line only; the coordinator resolves ove
   844x390 and 1024x768 (this lane could not resize Studio: no Accessibility for window control).
 - **To the coordinator:** a touch sweep of the Cue Preview in the device emulator (not scriptable
   from a lane).
+- **To the coordinator (10:xx): please merge `hw-gui` for the pill** (BoostPill ON, friend boost
+  ON, HudLayout, pad stop, events). After the merge core's `RushChip.content` and
+  `CandyIcon` light the chip up by themselves; nothing else to wire.
 - **To the coordinator:** the HubCorners and Net overlaps with core at merge (my lines are listed
   under Shared-file changes).
 

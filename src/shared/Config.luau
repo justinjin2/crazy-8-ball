@@ -9434,7 +9434,7 @@ Config.UI.LuckClover = {
 -- the VIP tag; tap, click or A opens "YOUR BOOSTS"; the Rush chip's shell sits over it (core
 -- fills its words). Pixels and seconds; "Short" for a phone on its side. HudLayout places both.
 Config.UI.BoostPill = {
-	Enabled = false, -- true once the four sizes and the pad pass; false = today's VIP tag
+	Enabled = true, -- on since the Studio sweep (2026-10-28; phone sizes by the layout test); false = today's VIP tag
 	ZIndex = 12, -- over the money pill, as the VIP tag
 	HeightPx = 34, -- the VIP tag's
 	ShortHeightPx = 26,
