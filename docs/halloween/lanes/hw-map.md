@@ -51,7 +51,7 @@ From PLAN §4 (everything else is read-only to this lane; ask through Requests):
 
 ## Status
 
-- 08:58 interfaces pushed (step 1; sha in the commit list below): `Config.HalloweenMap` (every
+- 08:50 interfaces pushed (step 1, 0b5ef756): `Config.HalloweenMap` (every
   switch false; `Enabled`, `Boss.Enabled`, `Candy.Enabled`; no hour-cap key), `Config.Lighting.Night`
   (first values, Day's keys), `Strings.HalloweenMap` + 4 `GlobalQueue.Failed` keys, Net
   `HalloweenMapFx`/`KingChallenge`, Bootstrap + Main blocks (pcall-guarded) and the four modules,
@@ -78,6 +78,11 @@ coordinator resolves overlaps. Planned (add the commit sha when each lands):
   (`isPromised`).
 
 ## Requests
+
+- **ROJO RECONNECT** (08:53): the `lane-hw-map.rbxl` window has none of this branch's code (no
+  `ServerScriptService.Server.HalloweenMap`, no `Config.HalloweenMap`), so its Rojo plugin is not
+  on 34886 (maybe auto-connected to 34872). Please Connect it to `localhost:34886` (Rojo on
+  34886 is up). Working on files meanwhile.
 
 - Core: this lane reads `Config.Halloween.CandyIcon` and `CandyService.bossCooldown(player) ->
   number` (unix seconds, 0 if none), `bossWon`, `pickup`, `isLive`, `Event.state(Clock.now())`
