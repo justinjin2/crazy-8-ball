@@ -1,0 +1,543 @@
+{
+  "id": "witch_broom_pocket",
+  "Frame": "pocket",
+  "frame": "Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)",
+  "Triangles": 4928,
+  "Parts": [
+    {
+      "Material": "Neon",
+      "Color": "#9B4DFF",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Portal_Violet",
+      "File": "pieces/witch_broom_pocket/Portal_Violet.obj",
+      "Joint": "Portal",
+      "Offset": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "Size": [
+        1.92,
+        0.1141,
+        1.92
+      ],
+      "Triangles": 800
+    },
+    {
+      "Material": "Neon",
+      "Color": "#F0E4FF",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Portal_Pale",
+      "File": "pieces/witch_broom_pocket/Portal_Pale.obj",
+      "Joint": "Portal",
+      "Offset": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "Size": [
+        1.868,
+        0.1642,
+        1.868
+      ],
+      "Triangles": 960
+    },
+    {
+      "Material": "ForceField",
+      "Color": "#9B4DFF",
+      "Transparency": 0.45,
+      "Reflectance": 0.0,
+      "Name": "Portal_Disc",
+      "File": "pieces/witch_broom_pocket/Portal_Disc.obj",
+      "Joint": "Portal",
+      "Offset": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "Size": [
+        1.72,
+        0.008,
+        1.72
+      ],
+      "Triangles": 160
+    },
+    {
+      "Material": "Neon",
+      "Color": "#2EE6A0",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Counter_Emerald",
+      "File": "pieces/witch_broom_pocket/Counter_Emerald.obj",
+      "Joint": "Counter",
+      "Offset": [
+        0.0,
+        0.55,
+        0.0
+      ],
+      "Size": [
+        1.52,
+        0.1141,
+        1.52
+      ],
+      "Triangles": 800
+    },
+    {
+      "Material": "Neon",
+      "Color": "#F0E4FF",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Counter_Pale",
+      "File": "pieces/witch_broom_pocket/Counter_Pale.obj",
+      "Joint": "Counter",
+      "Offset": [
+        0.0,
+        0.55,
+        0.0
+      ],
+      "Size": [
+        1.468,
+        0.1642,
+        1.468
+      ],
+      "Triangles": 960
+    },
+    {
+      "Material": "Neon",
+      "Color": "#FFD36A",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Charm1_Gold",
+      "File": "pieces/witch_broom_pocket/Charm1_Gold.obj",
+      "Joint": "Charm1",
+      "Offset": [
+        -0.9,
+        0.12,
+        0.0
+      ],
+      "Size": [
+        0.0346,
+        0.22,
+        0.22
+      ],
+      "Triangles": 288
+    },
+    {
+      "Material": "Neon",
+      "Color": "#F0E4FF",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Charm2_Pale",
+      "File": "pieces/witch_broom_pocket/Charm2_Pale.obj",
+      "Joint": "Charm2",
+      "Offset": [
+        -0.495,
+        0.67,
+        0.495
+      ],
+      "Size": [
+        0.2,
+        0.2,
+        0.03
+      ],
+      "Triangles": 24
+    },
+    {
+      "Material": "Neon",
+      "Color": "#FFD36A",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Charm3_Gold",
+      "File": "pieces/witch_broom_pocket/Charm3_Gold.obj",
+      "Joint": "Charm3",
+      "Offset": [
+        0.0,
+        0.12,
+        0.9
+      ],
+      "Size": [
+        0.22,
+        0.22,
+        0.0346
+      ],
+      "Triangles": 288
+    },
+    {
+      "Material": "Neon",
+      "Color": "#F0E4FF",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Charm4_Pale",
+      "File": "pieces/witch_broom_pocket/Charm4_Pale.obj",
+      "Joint": "Charm4",
+      "Offset": [
+        0.495,
+        0.67,
+        0.495
+      ],
+      "Size": [
+        0.2,
+        0.2,
+        0.03
+      ],
+      "Triangles": 24
+    },
+    {
+      "Material": "Neon",
+      "Color": "#FFD36A",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Charm5_Gold",
+      "File": "pieces/witch_broom_pocket/Charm5_Gold.obj",
+      "Joint": "Charm5",
+      "Offset": [
+        0.9,
+        0.12,
+        0.0
+      ],
+      "Size": [
+        0.0346,
+        0.22,
+        0.22
+      ],
+      "Triangles": 288
+    },
+    {
+      "Material": "Neon",
+      "Color": "#F0E4FF",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Charm6_Pale",
+      "File": "pieces/witch_broom_pocket/Charm6_Pale.obj",
+      "Joint": "Charm6",
+      "Offset": [
+        0.495,
+        0.67,
+        -0.495
+      ],
+      "Size": [
+        0.2,
+        0.2,
+        0.03
+      ],
+      "Triangles": 24
+    },
+    {
+      "Material": "Neon",
+      "Color": "#FFD36A",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Charm7_Gold",
+      "File": "pieces/witch_broom_pocket/Charm7_Gold.obj",
+      "Joint": "Charm7",
+      "Offset": [
+        0.0,
+        0.12,
+        -0.9
+      ],
+      "Size": [
+        0.22,
+        0.22,
+        0.0346
+      ],
+      "Triangles": 288
+    },
+    {
+      "Material": "Neon",
+      "Color": "#F0E4FF",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Charm8_Pale",
+      "File": "pieces/witch_broom_pocket/Charm8_Pale.obj",
+      "Joint": "Charm8",
+      "Offset": [
+        -0.495,
+        0.67,
+        -0.495
+      ],
+      "Size": [
+        0.2,
+        0.2,
+        0.03
+      ],
+      "Triangles": 24
+    }
+  ],
+  "Joints": {
+    "Portal": {
+      "Parent": null,
+      "Pivot": [
+        0,
+        0,
+        0
+      ],
+      "PivotRoblox": [
+        0,
+        0,
+        0.0
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0,
+            0,
+            1
+          ],
+          "Rate": 90.0
+        }
+      ],
+      "Visual": [
+        {
+          "Kind": "Glow",
+          "Min": 0.0,
+          "Max": 0.4,
+          "Period": 0.7
+        }
+      ]
+    },
+    "Counter": {
+      "Parent": "Portal",
+      "Pivot": [
+        0,
+        0,
+        0.55
+      ],
+      "PivotRoblox": [
+        0,
+        0.55,
+        0.0
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0,
+            0,
+            1
+          ],
+          "Rate": -200.0
+        }
+      ],
+      "Visual": [
+        {
+          "Kind": "Glow",
+          "Min": 0.0,
+          "Max": 0.5,
+          "Period": 0.5,
+          "Phase": 90
+        }
+      ]
+    },
+    "Charm1": {
+      "Parent": "Portal",
+      "Pivot": [
+        0.9,
+        0.0,
+        0.12
+      ],
+      "PivotRoblox": [
+        -0.9,
+        0.12,
+        0.0
+      ],
+      "Motion": [
+        {
+          "Kind": "Bob",
+          "Dir": [
+            0,
+            0,
+            1
+          ],
+          "Amp": 0.06,
+          "Period": 0.9,
+          "Phase": 0
+        }
+      ]
+    },
+    "Charm2": {
+      "Parent": "Counter",
+      "Pivot": [
+        0.4949747468305833,
+        0.4949747468305832,
+        0.67
+      ],
+      "PivotRoblox": [
+        -0.495,
+        0.67,
+        0.495
+      ],
+      "Motion": [
+        {
+          "Kind": "Bob",
+          "Dir": [
+            0,
+            0,
+            1
+          ],
+          "Amp": 0.06,
+          "Period": 0.9,
+          "Phase": 45
+        }
+      ]
+    },
+    "Charm3": {
+      "Parent": "Portal",
+      "Pivot": [
+        5.5109105961630896e-17,
+        0.9,
+        0.12
+      ],
+      "PivotRoblox": [
+        -0.0,
+        0.12,
+        0.9
+      ],
+      "Motion": [
+        {
+          "Kind": "Bob",
+          "Dir": [
+            0,
+            0,
+            1
+          ],
+          "Amp": 0.06,
+          "Period": 0.9,
+          "Phase": 90
+        }
+      ]
+    },
+    "Charm4": {
+      "Parent": "Counter",
+      "Pivot": [
+        -0.4949747468305832,
+        0.4949747468305833,
+        0.67
+      ],
+      "PivotRoblox": [
+        0.495,
+        0.67,
+        0.495
+      ],
+      "Motion": [
+        {
+          "Kind": "Bob",
+          "Dir": [
+            0,
+            0,
+            1
+          ],
+          "Amp": 0.06,
+          "Period": 0.9,
+          "Phase": 135
+        }
+      ]
+    },
+    "Charm5": {
+      "Parent": "Portal",
+      "Pivot": [
+        -0.9,
+        1.1021821192326179e-16,
+        0.12
+      ],
+      "PivotRoblox": [
+        0.9,
+        0.12,
+        0.0
+      ],
+      "Motion": [
+        {
+          "Kind": "Bob",
+          "Dir": [
+            0,
+            0,
+            1
+          ],
+          "Amp": 0.06,
+          "Period": 0.9,
+          "Phase": 180
+        }
+      ]
+    },
+    "Charm6": {
+      "Parent": "Counter",
+      "Pivot": [
+        -0.49497474683058335,
+        -0.4949747468305832,
+        0.67
+      ],
+      "PivotRoblox": [
+        0.495,
+        0.67,
+        -0.495
+      ],
+      "Motion": [
+        {
+          "Kind": "Bob",
+          "Dir": [
+            0,
+            0,
+            1
+          ],
+          "Amp": 0.06,
+          "Period": 0.9,
+          "Phase": 225
+        }
+      ]
+    },
+    "Charm7": {
+      "Parent": "Portal",
+      "Pivot": [
+        -1.6532731788489269e-16,
+        -0.9,
+        0.12
+      ],
+      "PivotRoblox": [
+        0.0,
+        0.12,
+        -0.9
+      ],
+      "Motion": [
+        {
+          "Kind": "Bob",
+          "Dir": [
+            0,
+            0,
+            1
+          ],
+          "Amp": 0.06,
+          "Period": 0.9,
+          "Phase": 270
+        }
+      ]
+    },
+    "Charm8": {
+      "Parent": "Counter",
+      "Pivot": [
+        0.4949747468305831,
+        -0.49497474683058335,
+        0.67
+      ],
+      "PivotRoblox": [
+        -0.495,
+        0.67,
+        -0.495
+      ],
+      "Motion": [
+        {
+          "Kind": "Bob",
+          "Dir": [
+            0,
+            0,
+            1
+          ],
+          "Amp": 0.06,
+          "Period": 0.9,
+          "Phase": 315
+        }
+      ]
+    }
+  }
+}

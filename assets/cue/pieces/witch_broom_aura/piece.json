@@ -1,0 +1,119 @@
+{
+  "id": "witch_broom_aura",
+  "Frame": "cue",
+  "frame": "Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)",
+  "Triangles": 3832,
+  "Parts": [
+    {
+      "Material": "Neon",
+      "Color": "#9B4DFF",
+      "Transparency": 0.12,
+      "Reflectance": 0.0,
+      "Name": "RibbonViolet_Violet",
+      "File": "pieces/witch_broom_aura/RibbonViolet_Violet.obj",
+      "Joint": "RibbonViolet",
+      "Offset": [
+        0.0002,
+        -0.0005,
+        -0.1158
+      ],
+      "Size": [
+        0.6928,
+        0.6913,
+        6.5687
+      ],
+      "Triangles": 1916
+    },
+    {
+      "Material": "Neon",
+      "Color": "#2EE6A0",
+      "Transparency": 0.15,
+      "Reflectance": 0.0,
+      "Name": "RibbonEmerald_Emerald",
+      "File": "pieces/witch_broom_aura/RibbonEmerald_Emerald.obj",
+      "Joint": "RibbonEmerald",
+      "Offset": [
+        0.0002,
+        0.0005,
+        -0.1167
+      ],
+      "Size": [
+        0.6329,
+        0.6315,
+        6.567
+      ],
+      "Triangles": 1916
+    }
+  ],
+  "Joints": {
+    "RibbonViolet": {
+      "Parent": null,
+      "Pivot": [
+        0,
+        -3.5,
+        0
+      ],
+      "PivotRoblox": [
+        0,
+        0,
+        0.0
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0,
+            1,
+            0
+          ],
+          "Rate": 45.0
+        }
+      ],
+      "Aura": true,
+      "Visual": [
+        {
+          "Kind": "Glow",
+          "Min": 0.0,
+          "Max": 0.45,
+          "Period": 2.6,
+          "Phase": 0
+        }
+      ],
+      "Low": "hide"
+    },
+    "RibbonEmerald": {
+      "Parent": null,
+      "Pivot": [
+        0,
+        -3.5,
+        0
+      ],
+      "PivotRoblox": [
+        0,
+        0,
+        0.0
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0,
+            1,
+            0
+          ],
+          "Rate": -45.0
+        }
+      ],
+      "Aura": true,
+      "Visual": [
+        {
+          "Kind": "Glow",
+          "Min": 0.0,
+          "Max": 0.45,
+          "Period": 4.0,
+          "Phase": 90
+        }
+      ]
+    }
+  }
+}

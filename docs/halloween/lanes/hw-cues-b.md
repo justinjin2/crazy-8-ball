@@ -22,6 +22,246 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
   `Index.luau`, `Textures.luau` (regenerate after every merge conflict there).
 
 ## Status
+- 11:36 coordinator: `halloween` @537270fd has cues-a 83e876db (drop 3 body path, CuePreview bodies, Candy Corn + Jack-o'-Lantern, Upright, analytics, Aim-fade fix), core 3c4b87aa (event menu, tile, quests, Spider, packs, art), sys c5b6b607 and gui 3438ea94 (review fixes). Lint OK, 1,436 tests, Team Create play console clean (only the known 203785492 ContentId lines), tile + 2x chip + pill +120% seen. Review of this merge is running; findings come back as Requests. Run `git fetch && git merge origin/halloween` before your next READY. Main.client still has 12 top-level locals to spare.
+
+- 11:33 coordinator (by session message, answering my 11:30 Request): the cues-a merge
+  (`hw-cues-a` @83e876db, so all of 37573b2c..ed8b7ca3) is in a trial merge with core, sys and
+  gui; lint green, tests and review running; `origin/halloween` pushed in about 15 minutes
+  after their Studio check. My watcher picks it up; the P19 sequence follows at once.
+- 11:27 P7 hands: the Broom over the head rail in the own view
+  (`broom_own_view_over_rail_lab.jpg`, ball in hand after a soft fouled break). The wind-up
+  and steep shot were fired through the real path (power 1, elevation 60) but not caught as a
+  still: see the Gate shots' "Not yet shot" line for why. Nothing wrong seen in the frames
+  around it. P7 stays unticked (the real merge).
+- 11:23 P7 backs widened: R6 and tall R15 carriers (HumanoidDescription rigs in my window,
+  carried through the BackCue pool) with all three bodies, plus my own avatar walking and
+  seated with each cue through the real BackCue path (`*_back_r6_tall_lab.jpg`,
+  `broom_back_walking_lab.jpg`, `*_back_sitting_lab.jpg`): no body sinks into a torso, the
+  seated tilt keeps every butt end clear of the seat, the Broom's straw head swings near the
+  knee when walking. Own-back repaint after an equip takes about 3 s (the pool's cadence,
+  not mine). Still open on P7: the real drop-3 merge, the long wind-up and steep shot in the
+  hands, the cue raised over a rail, the aim view at phone size; P7 stays unticked.
+- 11:14 P11 and P14 cloths: the Broom's trail on the red and charcoal cloths and the Cat's on
+  charcoal, in the solo match (`broom_trail_red_cloth_lab.jpg`,
+  `broom_trail_charcoal_cloth_lab.jpg`, `cat_trail_charcoal_cloth_lab.jpg`). Method: `/solo`
+  only runs at a 1v1 pad, so the 1v1 table's cloth SurfaceAppearance was tinted in my window
+  to `RedWood`'s and `CharcoalWood`'s tints from `Config.TableModel.Looks` (visual only, this
+  window, restored to blue after). Findings: on red the Broom's violet ribbon reads pale
+  pink-white (still clear); on charcoal both trails read and every ball stays readable. The
+  blue cloth was the 10:49 run. Brief 11 and 14 ticked.
+- 11:10 P20 part: the lineup shots are in `gate2/` (`lineup_six_day_lab.jpg`,
+  `lineup_six_night_lab.jpg`, `trio_bodies_night_lab.jpg`, `trio_bodies_day_lab.jpg`): the
+  three beside Eclipse, Beta and Firework at 37 and 18 studs, Day and Night. Finding: at 37
+  studs the three read thinner than the Unique references, the Spider quietest; nothing to
+  change before the gate, logged for the designer's look. Not checked (logged, not ticked):
+  the aim view at the four sizes and a rejoin with each cue equipped (the real cue needs drop
+  3 merged and the drafts off), the Broom and Cat trails on the other cloths (the solo match
+  ran on one table), every ball readable on charcoal for the Cat. `REQUIRE_ALL` and the row
+  commit wait on the merge: the watcher saw drop 3 (hw-cues-a @37573b2c) still outside
+  `origin/halloween` at 11:06 (head f32c3d1b); a new watcher runs to 11:30.
+- 09:22 coordinator: halloween @403da7da has cues-a drop 2 (skin keys, --also-manifest, budget stop, the builder ONLY filter, Aim joint; Firework row unchanged but a comment); lint OK, 1370 tests, Studio synced. Run `git fetch && git merge origin/halloween`. Cues B: you can generate rows now.
+- 09:20 coordinator REQUEST (Broom blockout, broom_body_vs_C3b.png): (1) the bristle end shows a flat round cap with a dot grid (reads as a fake disc): the bristles must end in splayed, uneven straw tips with no visible end face, fuller like C3b; (2) the handle is far straighter than C3b: Justin asked for "imperfect and curly and wavy... like a stick pulled from an actual branch": bigger S-bends and knots between the hand zones (keep the two hand zones straight); (3) the hat charm reads tiny at gameplay distance: about 2x. Not a gate blocker, fix before the 11:15 gate 2.
+- 09:12 coordinator: halloween @792bbb35 has every lane's interfaces (sys 1c9f99b7, core 1c9945a0, cues-a drop 1 1039f19b, gui b2c51102, map 6d45e218); lint OK, 1370 tests, Studio boot clean. Run `git fetch && git merge origin/halloween` now. Gate 1 is at 10:00: shots + one caption line each in your Gate shots by 09:55.
+- 09:12 coordinator: your 7426eca8 (builder, Broom blockout, stubs, lane test) is lane work, merged with your first finished cue; keep pushing to hw-cues-b.
+- 09:05 coordinator REQUEST (all lanes, blocks a merge): `src/client/Main.client.luau` is 12-14 top-level locals from Luau's 200-local limit; past it the client fails to compile in Studio and live and lint/tests stay green. Put every Main.client addition inside `do ... end` (zero new top-level locals), e.g. `do local ok, err = pcall(...) ... end`. New test `tests/client_compiles_test.luau` (on halloween @HEAD) compiles every src script and fails if Main.client has fewer than 8 locals left; run it before you push.
+- 08:55 P1 under way: builder file with its entry point, `AIM` table, `check_envelope` and a
+  Broom blockout; three draft skin stubs; the Lune test (skips drafts). Started 08:43 (the
+  launch came late), so the first push lands about 09:10 instead of 08:15; the rest of the
+  time plan slides about 45 minutes and the gate-1 look is the blockout plus the first bark
+  renders.
+- 08:58 P1 pushed @ 7426eca8: `CuePiecesHalloween_B.py` (entry point, `AIM`, `check_envelope`,
+  `check_budget`, a Broom blockout body: 4 parts, 3,500 triangles, hand zones within 0.001 of
+  the envelope), draft stubs `witch_broom`/`black_cat`/`spider`, `tests/halloween_cues_b_test.luau`
+  (5 checks, skip drafts). Lint and 1,350 tests green.
+
+- 08:50 coordinator: lanes started 08:43 (73 min behind the plan). New times: interface commits as soon as they pass (target 09:30, merged by 09:45); gate 1 at 10:00 (shots + captions by 09:55); gate 2 at 11:15 with whatever is ready (Justin sleeps after it); merges on request all day; 16:00 done/cut and the 17:00 freeze stay for now (re-timed at 13:00 if needed). Rojo: a watchdog restarts any crashed server by itself (log ~/Desktop/8ball-refs/halloween/shots/coordinator/rojo-watchdog.log; Rojo 7.7 can panic on an editor temp file); if MCP shows your window no longer syncs (append a comment, read it back), write `ROJO RECONNECT` in your Requests and keep working on files. Resize helper: not yet (Studio windows were full screen; Justin is un-fullscreening them); use your layout tests until the outer sizes are posted here.
+- 09:00 P2 done: worktree on `hw-cues-b`, Rojo 34885 serving, Studio window `lane-hw-cues-b.rbxl`
+  found by name (id 876392f5), the lab shows Eclipse, Beta, Firework and Kitsune on backs and
+  stands (`shots/hw-cues-b/p2_lab_bar_eclipse_beta_firework_kitsune.jpg`). Starting the real
+  Broom body (P3).
+- 09:06 P3 done: the Witch's Broom body built, checked and uploaded (6 parts, 6,534 triangles;
+  `witch_broom_parts.glb` 138086579066996, `HatCharm.glb` 108447719616824, the atlas colour /
+  normal / emissive decals with image ids in the manifest). Compact bristles (0.24 past the
+  butt); the long variant is a build flag (`LONG['witch_broom']`) for P18. Gate-1 renders in
+  `gate1/` (lines under Gate shots). Cues A's drop 2 adds `k.joint(..., aim='fade')`; my
+  `patch_aim` writes the same key from the static `AIM` table, so both agree once merged.
+- 09:09 P4: merged `origin/halloween` @ 14e2d157 (the compile and contract tests; both green
+  here). Cues A's drops 1 (7bef0153) and 2 (eb98e2ef) are READY on `hw-cues-a` but not in
+  `halloween` yet, so P7 merges them with drop 3; until then no generated rows (skins stay
+  draft) and the bodies are judged in headless previews.
+- 09:12 P5 done: the Black Cat body built, checked and uploaded (5 parts, 7,652 triangles:
+  one glossy black atlas lathe tip to butt with the gold claw curve at the ferrule, scratches,
+  the diamond knurl 4.4-6.6 as a normal map and gold bands; Foil ring pairs at 3.3 and 4.3, the
+  triple collar, the cap ring; three Neon claw slashes on the forearm with a 3 s Glow breath;
+  the skinned five-bone tail with a gold ForceField rim shell, compact curl 0.28 past the butt;
+  `black_cat_parts.glb` 97976303474135, `Tail.glb` 133878609951821, atlas decals with image
+  ids). Preview beside the concept: `gate2/cat_body_vs_C2c.png`. No head, face or eyes anywhere.
+- 09:16 P6 done: the Spider body built, checked and uploaded (5 parts, 5,764 triangles: one Foil
+  black-chrome atlas lathe in 0.5-stud segments with silver chevrons (emissive), a six-facet
+  spear ferrule with silver edges, a ridged collar with a Foil silver ring and one crimson Neon
+  hourglass on +Z (Glow 1.6 s); the crown as two skinned meshes on eight blade bones (fins with
+  silver emissive edges breathing 2-4 degrees over 3-4 s, silk web membranes with alpha between
+  neighbours), compact = a closed bud 0.3 past the butt; `spider_parts.glb` 134241355070040,
+  `Crown.glb` 88297987618252, atlas decals with image ids). Preview beside the concept:
+  `gate2/spider_body_vs_C1b.png`. No spider bodies, legs or creatures anywhere.
+- 11:04 P7 backs: the three bodies on lab dummies' backs with the Body runtime
+  (`broom_back_body_lab.jpg`, `cat_back_body_lab.jpg`, `spider_back_body_lab.jpg`): each
+  sits on the back at the shared placement, the overhangs (straw head, tail curl, crown)
+  hang by the hip and clear the legs, nothing clips the torso on my small R15. Tall R15, R6,
+  walking and sitting need other avatars: not checked here (BackCue's placement is the same
+  code every shipped cue uses). The gate 2 package is complete at my level: 37 shots.
+- 11:02 P7 bodies in the game, through a local preview of drop 3: `origin/halloween` still
+  lacks it at 11:00, so Cues A's fifteen pushed runtime and tool files (`hw-cues-a` @
+  c75fbe56, which contains `halloween` @ f32c3d1b) are checked out into my tree UNSTAGED and
+  never committed (the list is in my scratchpad; `git checkout HEAD -- <files>` removes them;
+  nothing of theirs goes into a commit of mine). Rows regenerated (Body on all three), lint
+  OK, the ONLY build in my window (3 skins, 6 pieces, no problems), `Bodies.Enabled` true,
+  `CuePiece.available` true for the three bodies. In a real solo game (table 3), each equipped
+  in turn, the shooter's own aim view at PC size (`broom_own_aim_body_lab.jpg` placement,
+  `broom_own_aim_body_aiming_lab.jpg`, `cat_own_aim_body_lab.jpg`, `spider_own_aim_body_lab.jpg`):
+  the Broom's crystal tip, bark handle and ribbons read, the straw head and charm fade to a
+  ghost at the bottom of the frame (the Aim fade works); the Cat's black shaft, gold tip and
+  claw glint read, the tail is faded away; the Spider's segmented chrome shaft and spear
+  ferrule read, the crown faded away. The PULL card draws each body. Console: only the known
+  `ContentId` lines. The watcher's side view of the hands could not be captured (the match
+  camera owns the camera on my turn in every mode); backs follow from the lab. Lune on this
+  preview tree: 1 failure, Cues A's own `cue_body_test` on their drop-2 piece files in my
+  tree (their later pieces are not here), nothing of mine.
+- 11:02 P18 decided: the compact overhangs ship. In the own aim view every overhang (straw
+  head, tail, crown) fades to a ghost at the frame's bottom edge on PC, so a long variant
+  would gain nothing there and would only add triangles and a bigger silhouette on a back;
+  the compact ones already read on a stand and a back. The long variants are not built,
+  uploaded or carded; the cut is this line. Phone size not watched (no device emulation from
+  this window): the fade is screen-independent (CuePiece eases the joint by the aim camera,
+  not by viewport), logged as an Assumption.
+- 10:56 **Gate 2 package ready except the bodies in game** (`gate2/`, 30 shots, a caption each
+  under Gate shots). Done since gate 1: the three bodies rebuilt and uploaded (the Broom
+  reworked to the 09:20 request), all three auras, trails and finishers built, lab-checked on
+  the day floor, under Night and with Lower effects, the Broom beside the Eclipse, the Cat and
+  Spider finishers as phase strips, all three in a real solo game (finisher at the pocket,
+  trail on the cue ball, the own aim view), the cards drawn and uploaded, the pocket sounds
+  fixed. Open: the bodies in hands, on backs and in the own aim view with the Aim fade (P7,
+  P18) and the drafts off with READY lines (P19), all waiting on Cues A's drop 3 reaching
+  `halloween` (asked 08:55, 10:08; `origin/halloween` still @ f32c3d1b at 10:56). The lane's
+  content is complete and pushed @ HEAD; nothing of mine is in `halloween` yet.
+- 10:55 The `ContentId ... failed` lines are not the sounds: after c08ddc40 the Broom's
+  PocketSound loads and plays at the burst (IsLoaded, 1.57 s, Playing, volume 0.45) and the
+  lines still appear, three per cue, because `CueAssets.collect` sweeps every
+  `rbxassetid://` string in a skin row, the `Pocket.Sound.Asset` included, and preloads it
+  as a texture (Decal, Beam, emitter); (the pre-existing `203785492` line every session looks like the same class). Harmless (the Sound loads on its own), but
+  it is one failed request per sound per session: Request to Cues A below. The three
+  sounds stay as chosen at 10:53.
+- 10:53 Pocket sounds fixed @ c08ddc40: my window's console showed all three finisher sounds
+  failing (`ContentId ... Request asset was not found` / `Asset type does not match`): the
+  Broom's 9125646918 and the Spider's 9120660757 were wrong ids, the Cat's 71522230632243 a
+  user upload (not playable in our universe). Now Pro Sound Effects whooshes from the Creator
+  Store, each PreloadAsync Success in my window: Broom 9125646252 ("Growly Magic Whooshes
+  Airy Gusts 7", 1.6 s, 0.45), Cat 9125645963 ("Airy Gusts 5", 2.2 s, 0.45), Spider
+  9125647922 ("Sharp Tubular Whoosh Fast Hiss 6", 1.2 s, 0.4). On the way, 5f091738 flipped
+  the three draft flags to false by mistake (a failed edit, committed and pushed before I
+  read the diff); 3398a986 put them back two minutes later, nothing else was in either.
+- 10:51 P17 in the same solo game, the Spider equipped: the silk trail rides the cue ball
+  (`spider_trail_match_lab.jpg`); the pot attempt missed, so its finisher in a real pocket is
+  not captured (it fired clean in the lab strip after the 10:29 retune); no console errors.
+  Solo game left running at table 3 for the P7 hands check once drop 3 lands.
+- 10:50 P14 in the same solo game, the Cat equipped (EquipCue by request): a pot of the 10 fired
+  its finisher at the real pocket (the HUD crossed the 10, $132), no console errors; the
+  capture came after its 1.6 s window, so the lab phase strip stands for its look. The own
+  aim view shot (`cat_own_view_aim_lab.jpg`): the aura's quiet share by the cue reads as a
+  shadow cat and smoke on the felt; the trail is a short dark smudge at this shot speed.
+- 10:49 P11 in a real solo game (my window; the tutorial skipped by its own report, Painicane
+  put on QueuePad_03 by script, `/solo` through the Studio DevCommandsQA hook, the Broom
+  given with `/givecue` and equipped through ItemRequest EquipCue, shots sent as ShotFired
+  with the snapshot's epoch and turn): the break and a pot both fire the finisher at the real
+  pocket (portal rings, moon witch, bats, straw, the library whoosh), the cue ball carries the
+  trail, the PULL card shows the Broom's card, no console errors. Cloth: the lobby's blue only
+  (every Studio table is blue; the charcoal and green cloths are not reachable in solo here:
+  logged as a cut). Cat and Spider next in the same game.
+- 10:41 P13/P16 Lower effects: the Cat and Spider stands with `Quality.set(true)` on the day
+  floor (`*_lower_lab.jpg`): both drop to an outline and a few motes with no errors; fine for
+  a low-end phone. Switched back after the shots.
+- 10:40 P13/P16 Night: the Cat and Spider stands under Night (`cat_aura_stand_night_lab.jpg`,
+  `spider_aura_stand_night_lab.jpg`): the Cat's shadow cats, wisps and glints read; the
+  Spider's flecks, motes and outline read but the look is quiet without its body (the silk
+  beams run to the blade tips). No change until the in-hand look with the bodies.
+- 10:36 P7 (the part that needs no drop 3): the plain kit CLI (`CuePieces.py -- <pid>`, my file
+  imported through its guarded import) builds all three bodies; its first run dropped the
+  `Aim` key from the Cat's piece.json because only my `build_checked` path patched it in, so
+  the four Aim joints now pass `aim='fade'` to `k.joint` as well (Cues A's drop 2
+  kwarg, @ f05f9c4c) and both paths write the same files: the three plain builds leave no diff against
+  the committed pieces. The in-hand, back, raised and own-aim checks wait on drop 3.
+- 10:34 P10 Broom aura under Night beside the Eclipse (`broom_vs_eclipse_night_before_lab.jpg`,
+  then `broom_vs_eclipse_night_lab.jpg`): the pale lavender halo (#D9B8FF to #9B4DFF, 0.7
+  transparent) vanished against the lilac Night sky and was near white on the day floor; the
+  ribbons, bats, crescents and wisps read. Tuned @ 3b24168c: the halo #9B4DFF to #6A2FD0, 0.6
+  to 0.5 transparent, brightness 2.6 (data only, same particle budget). Now a violet band
+  along the cue at Night and on the day floor (`broom_aura_stand_day_halo_lab.jpg`). Beside
+  the Eclipse the Broom still reads thinner at 12 studs: the Eclipse's mass is its 3D planets
+  and orbits; the Broom's is its body, which this window cannot draw until drop 3 (the stand
+  shows the Classic wood under the ribbons). Judge density again in hands after P7; no more
+  blind changes. Lint OK.
+- 10:29 P16/P17 finishers judged mid-burst (a four-instance phase strip in the lab, bursts 0.45 s
+  apart, `cat_finisher_phases_lab.jpg`, `spider_finisher_phases_lab.jpg`). The Cat's reads as
+  built: gold flash, the shadow cat leaping out of the pocket, the gold shard burst high and
+  the embers; no change. The Spider's 3D piece did not read: the ForceField funnel threads
+  (0.014 wide) vanished from 8 studs and the bead was a dot, only the flat web ring and the
+  flash showed. Retuned @ a386234c: threads and web lines Neon and about twice as thick, the
+  bead 1.7x; rebuilt headless (3 parts, 2,208 triangles, same budget), re-uploaded
+  (86978515586894, dry-run first), template rebuilt with ONLY in my window: the web disc, the
+  twisting funnel and the crimson bead now read from the table's distance. Lint OK, 1,410 tests
+  (run with the drafts on; the local drafts-off rows are never committed). Cues A's 10:28
+  `Upright` note read: not needed here, neither pocket piece has a face (the Broom's portal
+  rings and the Spider's web are symmetric about the up axis). Still blocked on drop 3 for P7,
+  P18 and P19 (`origin/halloween` @ f32c3d1b at 10:29).
+- 10:12 P19 cards: the three card pictures drawn with Cues A's body-aware `cue_skin.py --thumb`
+  (their `CuePreview.py` @ 5078ac33 used locally, not committed; it lands through `halloween`):
+  `assets/cue/thumbs/witch_broom.png`, `black_cat.png`, `spider.png`, uploaded with image ids
+  (140099377083301, 115496115118704, 123638860690562). `python3 tools/cue_skins_data.py` now
+  runs clean without `--allow-missing` for all three (every asset has an id). Drafts stay on
+  for the moment: with them off, `tests/catalog_test.luau` on `halloween` fails (it expects
+  exactly 2 Exclusive cues; Cues A's drop 3 makes it count ready event cues). Drafts come off
+  and the READY lines go up the moment drop 3 is in `halloween`.
+- 10:00 P17 piece: `spider_pocket` built headless (a silver Neon orb web of eight spokes and four
+  rings turning 24 deg/s, a ForceField funnel of six silk threads to an apex 1.3 up turning the
+  other way, a crimson Neon hourglass bead glowing at the apex; 3 parts, 2,208 triangles; no
+  spider), packed, uploaded (70623027624109) and wired into the Spider finisher (Rise, Scale,
+  Spin 180, silver outline). Cut candidate #4 is no longer needed.
+- 09:58 P10/P11 drafted and lab-checked, P13/P14 and P16/P17 drafted: all three skins carry
+  their vfx rows (aura, Style, trail emitters, finisher; draft stays true). Lab in my window
+  (local rows from `--allow-missing`, never committed; templates built with ONLY for the three):
+  Broom aura 97/s on the stand and the back beside Eclipse (violet haze, stars, crescents,
+  bats, straw, the two ribbons; `gate2/broom_aura_*_lab.jpg`), trail and finisher fire clean
+  (portal piece rises, witch over the moon; `gate2/broom_finisher_lab.jpg`); the witch was 2x
+  too big against the moon, sprite redrawn and re-uploaded (77938547508430); Cat 63/s (shadow
+  cats run in place in the smoke, embers; `gate2/cat_aura_stand_lab.jpg`) and Spider 53/s (web
+  flecks, silk beams, glints; `gate2/spider_aura_stand_lab.jpg`); their finishers fire with
+  no console errors (leap and web ring seen), judged again once the bodies are in. Sounds:
+  Roblox library only, found with search_asset: Broom 9125646918 (PSE magic whoosh, 0.45),
+  Cat 71522230632243 (Creator Store cat hiss, 0.45), Spider 9120660757 (PSE whip crack, 0.4).
+- 09:45 P3 rework (coordinator REQUEST 09:20, all three points): (1) the bristle bundle has no
+  end face any more: the opaque root flares into a low dome of strands, a cone of straw (alpha,
+  fraying to the centre) closes it, and three rings of straw cards (40) all round it splay to
+  uneven alpha-frayed tips (compact to 7.45, 0.76 across); the straw texture is twice as
+  dense; (2) the handle is a pulled branch between the hand zones: a hump of 0.185 up, a
+  shallow dip, +-0.065 sideways, two knot holes (2.6 and 3.95) and bigger bark lumps, the hand
+  zones straight on the envelope (check within 0.001); (3) the hat charm is 2x (0.24 tall,
+  0.24 brim) on longer links, hung back past the butt beside the straw, now an Aim joint like
+  the bristles. 6 parts, 8,104 triangles. Re-uploaded with image ids (parts 79787647258778,
+  HatCharm 84761573077366, atlas 133730570874017 / 70889581925253 / 73910439696293).
+- 09:34 P10/P11 pieces: `witch_broom_aura` (two Neon ribbons, violet and emerald, spiralling
+  round the handle in opposite senses, Spin 45 and -45 deg/s, Glow waves; 2 parts, 3,832
+  triangles; the violet one hides under Lower effects) and `witch_broom_pocket` (violet and
+  emerald Neon portal rings spinning opposite ways with pale rims, a ForceField disc, eight
+  bobbing crescent and star charms; 13 parts, 4,928 triangles) built headless, packed and
+  uploaded (123761019110800, 123188942694509). The Broom's skin vfx rows (aura, trail,
+  finisher) are drafted; the lab check and the finisher sound come next.
+- 09:19 P9, P12, P15 done together: `tools/hw_sprites_b.py` draws all nine sheets (Broom:
+  crescent, straw leaf, bat flap 4x4 Loop, witch over the moon 4x4 OneShot; Cat: run-in-place
+  4x4 Loop and leap 4x4 OneShot, black with a 1.5 px gold rim; Spider: radial web, silk strand
+  (tileable Beam texture), web ring decal), uploaded with image ids in the manifest. The cats
+  run in place and the bat flaps front-on, so no flipbook travels (the moonwalk rule); the
+  witch crosses within her own cell. Both-sides check in the lab comes with each aura step.
+- 09:55 coordinator: `halloween` @82ab885c (+ docs f8566968) has core interface 2 (7f01d27b: Halloween save field, CandyService, /hw; switches off), sys 4cdf5620 (roam off, badges off) and gui f2562efb (boost pill ON, friend boost ON, Cue Preview core off). Lint OK, 1,404 tests, Studio play console clean, pill shows +120%. Run `git fetch && git merge origin/halloween` before your next READY. Main.client still has 12 top-level locals to spare: hooks stay inside `do ... end`.
 
 ## Shared-file changes
 
@@ -34,6 +274,244 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
 
 ## Requests
 
+- 11:30 **REQUEST to the coordinator: merge Cues A's drop 3 into `halloween`** (`hw-cues-a`
+  @ 37573b2c, Cues A's 09:45 "MERGE NOW"; their 10:45 list also names 5078ac33, 1bd06f55,
+  ba50947d, 73fc00ae, d6dccb21 and ed8b7ca3, all on `hw-cues-a`, which already contains
+  `halloween` @ f32c3d1b). Cues B's last steps (7, 19, 20, 22: rows generated on the merged
+  base, drafts off, `REQUIRE_ALL`, the READY lines) are blocked on it; everything else is
+  pushed. I have previewed those files locally only (unstaged, nothing committed from them).
+- 10:55 to Cues A (runtime, `src/client/CueAssets.luau`): `collect` sweeps `Pocket.Sound.Asset`
+  into the texture preload, so every pocket sound logs `ContentId ... Request asset was not
+  found` and `Asset type does not match requested type` (three lines a cue a session, my
+  window; the live `203785492` line each session is the same class). Skip the `Sound` table
+  (or any `Asset` under it) in `collect`; the Sound loads itself when it plays. Not a gate
+  blocker.
+- 10:08 to the coordinator: please merge Cues A's drop 3 (`hw-cues-a` @ 37573b2c, the Body runtime) into
+  `halloween` now; my P7 (bodies in hands, back, raised and the own-aim fade on phone and PC), P18
+  (long overhangs) and the gate 2 hands/aim shots wait on it. Everything else of gate 2 is in
+  `gate2/` with captions below.
+
+- **To Cues A (08:55):** Cues B builds to your §2.2 keys `body`/`maps_from`/`look`, §2.4
+  `"Aim": "fade"` and the own-distance camera fade, §2.6 names and budgets (bodies `witch_broom`,
+  `black_cat`, `spider`; `<sid>_aura`, `<sid>_pocket`); tell me in your Status if any name
+  changes. Please have `CuePreview.py --thumb` draw bodies with their `Aim` overhangs (the long
+  variant) by 12:00: the three cards need it.
+- **To the coordinator (08:55):** merge Cues A's drop 3 into `halloween` as soon as it is
+  READY (about 10:00): Cues B needs it for gate 2.
+
 ## Assumptions
 
+- 11:02 Phone-size own-aim check skipped: CuePiece's Aim fade eases a joint by the aim camera's
+  distance and angle, not by the viewport, so what PC shows holds on a phone; a device
+  emulator cannot be driven from this window.
+- 11:02 Drop 3 previewed locally (unstaged checkout of Cues A's pushed files) to finish P7 and
+  P18 before the gate; not a merge, not committed; the real merge still gates P19.
+- 10:53 Pocket sounds are magic whooshes, not animal voices: no Pro Sound Effects cat or silk
+  sound fits (the "cat hiss" results are user uploads, which do not load in our universe,
+  and a spider hiss would add the creature the Spider concept rules out); a growly gust for
+  the shadow cat's leap, a sharp hiss-whoosh for the web.
+- 10:29 No `Upright` flag on my pocket pieces (Cues A's 10:28 note): the Broom's portal rings
+  and crescents and the Spider's web, funnel and bead have no face and are symmetric about
+  the up axis, so the per-part half turn changes nothing visible.
+- 10:14 (lane decisions, no question asked; the brief lets the lane decide after 11:00 and these
+  were inside the brief's own limits): the Broom's hat charm is an Aim joint like the bristles
+  (at 2x it hangs past the butt at 0.57 from the axis, so it fades for the aiming owner); the
+  bats and the shadow cats never travel (bats drift up in world space, cats run in place), so
+  no flipbook moonwalks; the finisher sounds are Creator Store library audio (two Pro Sound
+  Effects clips and one free user upload for the cat hiss, all under Volume 0.5), no uploads;
+  the Spider's pocket piece was built (cut candidate #4 stays unused); for the lab before drop 3
+  each skin's `piece` was pointed at its body in a local-only row, never committed.
+
+- The silhouette flipbooks are drawn as 2D jointed capsule rigs in Pillow (posed per frame,
+  4x supersampled, deterministic) instead of a Blender rig: the same black-on-transparent
+  frames with the rim added from the alpha edge, faster to iterate, no Blender run per sheet.
+
+- Past-butt radial room: a compact (non-Aim) part may sit up to 0.45 from the axis past the
+  butt (the brief gives only the 0.3 length); the Broom's hat charm brim corner reaches 0.42
+  there, hanging beside the straw root. An Aim overhang may reach 1.0 off the axis (the Cat's
+  long tail curls 0.9 up). Both are `RULES` in `CuePiecesHalloween_B.py`.
+- The Broom's buckle sits on the +X side of the binding and the charm hangs down and back
+  (toward the butt) from its lower edge, so on a back it is no deeper toward the body than the
+  binding itself.
+- One atlas per body (512 px colour + alpha, normal, emissive mask), worn by an opaque
+  material (`Bark`) and an alpha twin (`Straw`, AlphaMode Transparency) so the straw cards are
+  the only transparent part; the Broom's shows in `broom_2_bridge.png` (bark) and
+  `broom_3_charm.png` (straw, buckle, hat).
+
 ## Gate shots
+
+Gate 1 (`~/Desktop/8ball-refs/halloween/shots/hw-cues-b/gate1/`, headless Blender renders of
+the Broom body, compact bristles, no aura yet):
+
+- `broom_body_vs_C3b.png`: the concept `C3b_broom.png` on top, the four body renders below.
+- `broom_1_three_quarter.png`: the whole cue: crystal tip with the silver bands, the crooked
+  bark branch (straight in both hand zones), the knot hole at 2.6, three twig stubs on top, the
+  purple binding, the straw head and the hat charm.
+- `broom_2_bridge.png`: the bridge hand zone close: bark colour and normal map on the plain
+  envelope (the hand sits on a round stick).
+- `broom_3_charm.png`: the +X side of the butt: the purple wraps, the silver buckle with the
+  gold crescent (emissive), the two chain links and the purple hat with its gold band, the
+  straw head's cut ends and cards.
+- `broom_4_bristles.png`: the -X side: the binding and the compact straw head (0.3 past the
+  butt, 0.48 across).
+
+Gate 2 (10:05, `~/Desktop/8ball-refs/halloween/shots/hw-cues-b/gate2/`; drop 3 is not in
+`halloween` yet, so the in-game shots show each body drawn over the shared Classic shaft (a
+local-only row with `piece` pointed at the body, never committed): the Classic wrap shows
+through in the grip zone and the Aim fade cannot run; the hands and own-aim views come with
+drop 3). Added by 10:51: the Cat and Spider finisher phase strips, the Night and Lower-effects
+stands, the Broom beside the Eclipse at Night, and a real solo game with all three cues (the
+Broom's finisher at two pots, the three trails, the own aim views); the Spider piece and the
+Broom halo were retuned on the way (Status 10:29, 10:34). Still open for the gate: the three
+bodies in hands and in the own aim view, which need drop 3 (`hw-cues-a` @ 37573b2c, asked
+for at 08:55 and 10:08).
+
+- `broom_body_vs_C3b.png`: concept C3b on top, the reworked Broom body below (headless): the
+  branch-wave handle with two knots and bigger lumps, the bushy straw head with no end face
+  (dome of strands, fraying cone, 40 frayed cards all round), the 2x hat charm past the butt.
+- `cat_body_vs_C2c.png`, `spider_body_vs_C1b.png`: the Cat and Spider bodies beside their
+  concepts (unchanged since gate 1's build: glossy black atlas shaft with gold rings and claw
+  slashes, skinned tail with the gold rim shell; segmented chrome shaft with chevrons, spear
+  ferrule, crimson hourglass, skinned eight-blade crown with silk webs).
+- `broom_body_stand_lab.jpg`, `broom_body_back_lab.jpg`: the Broom on the lab stand (bright
+  floor, Eclipse three stands to the right) with its aura: violet haze and glow, emerald wisps,
+  stars, crescents, straw leaves, bats, the two Neon ribbons; and on a back, beside the
+  Classic-wearing bots. The bats were too big and flew along the cue (the host part's Top is
+  the cue axis): now 0.36 studs, drifting up in world space (row fixed after the shot).
+- `cat_body_stand_lab.jpg`: the Cat on the stand: gold claw tip, ring pairs, the tail curling
+  up at the butt; shadow cats running in place in the smoke around it, embers.
+- `spider_body_stand_lab.jpg`: the Spider on the stand: chevron segments, the crown, web
+  flecks turning, silk beams along the shaft, black smoke at the butt.
+- `broom_aura_stand_lab.jpg`, `broom_aura_back_lab.jpg`, `cat_aura_stand_lab.jpg`,
+  `spider_aura_stand_lab.jpg`: the same auras on the plain shared shaft (first lab pass).
+- `broom_finisher_lab.jpg`: the Broom finisher mid-way: the portal piece's violet ring and
+  charms over the pocket, the moon with the witch crossing (the witch was 2x too big against
+  the moon: the sprite was redrawn and re-uploaded after this shot, the piece's Rise and Scale
+  curves made bigger).
+- `cat_body_back_lab.jpg`, `spider_body_back_lab.jpg`: the Cat and the Spider on a back (the
+  Spider's crown sits by the legs, compact; the Cat's tail curls under the straw of the Broom
+  stand behind).
+- `broom_body_stand_night_lab.jpg`: the Broom stand under `Config.Lighting.Night` written
+  straight through MapLighting with the cycle held (the violet sky, lilac floor): the stars,
+  crescents, bats and ribbons read; the violet haze is softer against the lilac floor than on
+  the day floor (LightEmission 0.15 keeps it visible, no change yet).
+- `cat_finisher_phases_lab.jpg`: the Cat finisher as a phase strip (four bursts 0.45 s apart,
+  left the newest): the gold flash and ring at the pocket, the shadow cat leaping out and
+  arching over it at 0.5 and 0.9 s, the gold shard burst high at 1.4 s, embers and sparks
+  between (the tutorial's floor chevrons behind are the lobby's, not the effect).
+- `spider_finisher_phases_lab.jpg`: the Spider finisher after the 10:29 retune, three bursts
+  at 0.45 s steps: the silver web disc with its spokes and rings at the mouth, the six Neon
+  threads twisting up to the crimson bead, the flat web ring and silk burst on the floor, web
+  shards and sparks round the newest; the funnel widens and lifts on the later two.
+- `broom_vs_eclipse_night_before_lab.jpg`: the Broom stand (right) and the Eclipse stand (left)
+  under Night from 12 studs, before the halo tune: the Eclipse's gold orbits and planets read
+  at once; of the Broom only the violet and emerald ribbons, bats and a few wisps do, the pale
+  halo is lost in the lilac sky.
+- `broom_vs_eclipse_night_lab.jpg`: the same after the tune: the halo is a violet band along
+  the cue; the Broom still reads thinner than the Eclipse from here because its 3D mass is its
+  body (needs drop 3; the stand carries the Classic wood under the ribbons).
+- `broom_aura_stand_day_halo_lab.jpg`: the Broom stand side-on on the day floor after the
+  tune: the violet band and the two ribbons along the cue, bats and a crescent at the tip
+  end, wisps and the hat charm at the butt.
+- `cat_aura_stand_night_lab.jpg`: the Cat stand under Night: the shadow cats running the
+  length of the cue, the gold-edged wisps and glints, the thin gold outline; the dark smoke
+  is lost on the lilac floor (as meant: it is for the day floor and the charcoal cloth). The
+  cue is the Classic wood until drop 3 draws the black and gold body.
+- `spider_aura_stand_night_lab.jpg`: the Spider stand under Night: web flecks, silk motes and
+  glints and the silver-crimson outline; the silk beams anchor to the blade tips, which are
+  the body, so they barely show here; quiet for a Mythic without its chrome body, to be
+  judged again in hands after drop 3.
+- `cat_aura_stand_lower_lab.jpg`, `spider_aura_stand_lower_lab.jpg`: the same two stands on
+  the day floor with Lower effects on (`Quality.set(true)`, rate 0.35): the Cat keeps its
+  outline, a shadow cat and a wisp or two; the Spider its outline, a web fleck and a glint;
+  nothing breaks, nothing fills the screen; the bodies carry the read at this setting.
+- `broom_own_view_placement_lab.jpg`: a real solo game at table 3 (seated on its pad by
+  script, `/solo`, the Broom equipped): the shooter's own placement view at PC size, the cue
+  in hand with the ribbons, the violet band and bats at the quiet share, the PULL card drawing
+  the Broom's card art; the cue itself is still the Classic wood (no body before drop 3).
+- `broom_finisher_break_pot_lab.jpg`: the break pots a ball: the portal rings, bats and straw
+  over the near corner pocket, seen from the table's side.
+- `broom_finisher_pot_lab.jpg`: the next pot (the 9): the two portal rings risen over the far
+  corner pocket, the witch over the moon and bats above, seen from the watcher's side.
+- `broom_trail_match_lab.jpg`: a long rail shot: the cue ball's violet-emerald trail with a
+  crescent as it slows by the corner; short and soft at this speed.
+- `cat_own_view_aim_lab.jpg`: the same game with the Cat equipped, the shooter's own aim view
+  at PC size: the cue in hand (Classic wood before drop 3), a shadow cat and the dark smoke
+  on the felt by the cue at the quiet share, the PULL card drawing the Cat's card art.
+- `spider_trail_match_lab.jpg`: the same game with the Spider equipped, from the far side:
+  the cue ball's silver silk trail mid-table as it rolls, the cue in hand below with the
+  silver-crimson outline and silk motes (Classic wood before drop 3).
+- `broom_own_aim_body_lab.jpg`, `broom_own_aim_body_aiming_lab.jpg`: the Broom body in the
+  shooter's own aim view at PC size (placement, then aiming after the break): crystal tip at
+  the cue ball, the crooked bark handle, the violet and emerald ribbons, a bat; the straw head
+  and hat charm faded to a ghost at the bottom edge (the Aim fade). The PULL card draws it.
+- `cat_own_aim_body_lab.jpg`: the Cat body in the own aim view: black shaft, gold claw tip
+  glint, the dark smoke and a gold glint on the felt by the cue; the tail is faded away.
+- `spider_own_aim_body_lab.jpg`: the Spider body in the own aim view: the segmented chrome
+  shaft with its spear ferrule, a silk glint; the crown faded away.
+- `broom_back_body_lab.jpg`: the Broom body on a lab dummy's back (my small R15 rig), from
+  behind and to the side: the crystal tip up, the crooked bark handle with its knot, the
+  violet and emerald ribbons and crescents along it, the straw head with the purple binding
+  and the hat charm at the bottom by the hip. The Cat's dummy stands behind.
+- `cat_back_body_lab.jpg`: the Cat body on a back: black shaft, gold rings and claw inlays,
+  the gold claw tip low, the tail curling at the butt by the shoulder, a shadow cat and
+  embers; the Spider's dummy behind.
+- `spider_back_body_lab.jpg`: the Spider body on a back: the segmented chrome shaft wrapped
+  in silk with web flecks, the spear ferrule up, the crimson crown by the hip.
+- `lineup_six_day_lab.jpg`: the six stands at z 70 under Day from 37 studs, as a watcher
+  across the lobby sees them: Firework, Beta and Eclipse (left) beside the Spider, the Cat and
+  the Broom (right). The three Halloween bodies read thinner than the three Unique references
+  at this distance; the Broom's violet halo and ribbons and the Cat's smoke still mark them,
+  the Spider is the quietest (chrome and silk on the bright floor).
+- `lineup_six_night_lab.jpg`: the same six under Night: the Eclipse's gold orbits, the Broom's
+  halo and the Cat's gold glints carry; the Spider's silk beams and crimson glint are small
+  but visible at 37 studs.
+- `trio_bodies_night_lab.jpg`: the Eclipse (left) with the Spider, the Cat and the Broom from
+  18 studs under Night: bodies, auras and the two Night-only accents (the halo, the Cat's
+  collar light) in one frame.
+- `trio_bodies_day_lab.jpg`: the same four from 18 studs under Day: the Spider's chrome shaft
+  and crimson streak, the Cat's black shaft with the gold claw tip and smoke, the Broom's bark
+  handle with the halo and ribbons beside the Eclipse's gold orbits.
+- `broom_trail_red_cloth_lab.jpg`: the Broom's trail in the solo match with the 1v1 table's
+  cloth tinted to the 2v2 red (`RedWood`'s tint, this window only: `/solo` runs at a 1v1 pad
+  only, so the real red and charcoal tables cannot host a solo game): the ribbon reads as a
+  pale pink-white band with a bright core on the red, visible on the rail bounce; every ball
+  readable.
+- `broom_trail_charcoal_cloth_lab.jpg`: the same with the 3v3 charcoal tint: the violet ribbon
+  with its pale core on the rail bounce, the emerald wisps, straw and a bat silhouette left
+  along the earlier run, violet smoke puffs; every ball readable, the 8-ball included.
+- `cat_trail_charcoal_cloth_lab.jpg`: the Cat's trail on the charcoal tint: a dark ribbon with
+  a gold-white core from the cue ball's run along the rail, smoke and a shadow cat behind;
+  every ball readable (the 8-ball's white ring keeps it apart from the cloth).
+- `broom_back_r6_tall_lab.jpg`: the Broom on an R6 rig (left) and a tall R15 rig (right,
+  HeightScale 1.3, tall body type), both made in my window from a HumanoidDescription and
+  carried through the BackCue pool: the crystal tip above the left shoulder, the bark handle
+  with its ribbons across the back, the straw head and charm at the right hip. The cue does
+  not scale with the body, so on the R6 it reaches past both shoulder and hip, on the tall rig
+  it spans shoulder to hip; nothing sinks into either torso. The stand row behind.
+- `cat_back_r6_tall_lab.jpg`: the Cat on the same two rigs: the gold claw tip above the left
+  shoulder, the gold rings and claw inlays, the tail curl at the right hip. Against these
+  black default bodies the black shaft reads only by its gold and outline (a lab artefact of
+  the plain rigs, real avatars vary).
+- `spider_back_r6_tall_lab.jpg`: the Spider on the same two rigs: the segmented chrome shaft
+  with its crimson outline, the spear ferrule up, the crimson crown at the hip.
+- `broom_back_walking_lab.jpg`: my own avatar walking away from the camera with the Broom
+  equipped (the real BackCue path): mid-stride, the straw head and charm swing near the back
+  of the knee, the tip above the left shoulder; the two lab rigs behind.
+- `broom_back_sitting_lab.jpg`: my avatar seated on a lab seat with the Broom: the seated
+  extra tilt lays the cue almost flat across the back, the straw head past the right hip and
+  clear of the seat.
+- `cat_back_sitting_lab.jpg`: seated with the Cat: the tail curl past the right hip, clear of
+  the seat; the gold claw tip at the left.
+- `spider_back_sitting_lab.jpg`: seated with the Spider: the crown past the right hip, the
+  spear tip at the left.
+- `broom_own_view_over_rail_lab.jpg`: the Broom raised over the head rail in the own view: a
+  soft break toward the head rail fouled (ball in hand anywhere), the cue ball placed at the
+  head rail, so the shooter stands behind the rail with the bark handle rising over it; the
+  shooter is the near-camera ghost (the fade), the crystal tip at the ball.
+- Not yet shot: hands from a watcher's side (the match camera owns the camera on my turn);
+  the long wind-up and the steep shot in the hands (fired through the real path at power 1
+  and elevation 60, but the stroke lasts half a second and the capture lands after it; the
+  held aim pose at a set elevation needs the live Input instance, which the MCP cannot reach:
+  its requires are fresh module copies); the aim view at phone size (the window cannot be
+  resized).

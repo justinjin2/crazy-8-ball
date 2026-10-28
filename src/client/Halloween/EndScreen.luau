@@ -79,6 +79,13 @@ local function rgb(t: { number }): Color3
 end
 
 local open = false
+local showing: ScreenGui? = nil -- the end screen while it is up and not closing
+
+--- Whether the end screen is up (Progression.quiet: the other popups wait for it).
+function EndScreen.busy(): boolean
+	local gui = showing
+	return gui ~= nil and gui.Parent ~= nil
+end
 
 --- Shows the end screen for `candy` Candy that became `money`, with the owned cues `owned`
 --- ({ [cueId] = true }). `onShown` runs as it opens (the server's endSeen).
@@ -254,6 +261,7 @@ function EndScreen.show(
 			return
 		end
 		closed = true
+		showing = nil
 		ContextActionService:UnbindAction(CLOSE_ACTION)
 		local P = progression()
 		if P and money > 0 then
@@ -302,6 +310,7 @@ function EndScreen.show(
 		Enum.KeyCode.ButtonB,
 		Enum.KeyCode.Escape
 	)
+	showing = screen
 	if onShown then
 		onShown()
 	end
