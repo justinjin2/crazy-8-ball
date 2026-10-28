@@ -88,6 +88,24 @@ function Rules.hideList(names: { string }, patterns: { string }): { string }
 	return out
 end
 
+--- The turn about Y (radians, as CFrame.Angles(0, yaw, 0)) that points a leaning mesh's lean
+--- (leanX, leanZ: its crown's offset from its foot at no turn) from (x, z) toward the roof's
+--- middle (0, 0), give or take `jitter` degrees chosen by `id` (the same on every server).
+function Rules.treeYaw(
+	x: number,
+	z: number,
+	leanX: number,
+	leanZ: number,
+	jitter: number,
+	id: number
+): number
+	local function angle(vx: number, vz: number): number
+		return math.atan2(-vz, vx)
+	end
+	local spread = if jitter > 0 then (id * 37) % (2 * jitter + 1) - jitter else 0
+	return angle(-x, -z) - angle(leanX, leanZ) + math.rad(spread)
+end
+
 export type Box = { cx: number, cy: number, cz: number, sx: number, sy: number, sz: number }
 
 --- A decor part (its box in the table's own space: centre and size, studs) may go on a table

@@ -301,6 +301,54 @@ return {
 		end
 	end,
 
+	["a dead tree leans toward the roof's middle, never over the railing"] = function()
+		local R = H.require("HalloweenMap.Rules")
+		local lean = { 1.53, -2.91 } -- the DeadTree mesh's crown offset at no turn
+		for i, spot in
+			{ { 86, 31.5 }, { -86, 75.25 }, { -65, -74.35 }, { 87, -88.25 }, { 0.5, -60 } }
+		do
+			for _, jitter in { 0, 25 } do
+				local yaw = R.treeYaw(spot[1], spot[2], lean[1], lean[2], jitter, i * 7)
+				-- CFrame.Angles(0, yaw, 0) applied to the lean (x, z)
+				local x = lean[1] * math.cos(yaw) + lean[2] * math.sin(yaw)
+				local z = -lean[1] * math.sin(yaw) + lean[2] * math.cos(yaw)
+				local tx, tz = -spot[1], -spot[2]
+				local cos = (x * tx + z * tz)
+					/ (math.sqrt(x * x + z * z) * math.sqrt(tx * tx + tz * tz))
+				H.expect(
+					cos >= math.cos(math.rad(jitter)) - 1e-9,
+					("spot %d leans inward (jitter %d)"):format(i, jitter)
+				)
+			end
+		end
+	end,
+
+	["the rooftop's props are the event's meshes and keep off the tables' areas"] = function()
+		local Config = H.require("Config")
+		local Placement = H.require("Placement")
+		local P = Config.HalloweenMap.Props
+		local origins = Config.HalloweenMap.Assets.Origins
+		H.expect(origins[P.Trees.Prop] ~= nil, "the dead tree is one of the event's meshes")
+		H.expect(origins[P.StrandProp] ~= nil, "the string of lights is one of the event's meshes")
+		for _, row in P.Planters.Dressings do
+			H.expect(origins[row.Prop] ~= nil, row.Prop .. " is one of the event's meshes")
+		end
+		local room = Config.Multiplayer.Fence.RoomStuds
+		for i, row in P.Place do
+			H.expect(origins[row.Prop] ~= nil, row.Prop .. " is one of the event's meshes")
+			if row.At[2] < 8 then -- on the floor (overhead pieces hang 24 up)
+				local _, out = Placement.nearestArea(row.At[1], row.At[3])
+				H.expect(
+					out > room + 1,
+					("placement %d (%s) is clear of every table's area"):format(i, row.Prop)
+				)
+			end
+		end
+		for i, row in P.Strands do
+			H.expect(row.From[2] >= 20 and row.To[2] >= 20, ("strand %d hangs overhead"):format(i))
+		end
+	end,
+
 	["the cloths keep their raw contrast with every ball"] = function()
 		local Config = H.require("Config")
 		local HM = Config.HalloweenMap

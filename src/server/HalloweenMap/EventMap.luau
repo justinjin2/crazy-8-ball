@@ -19,6 +19,7 @@ local Config = require(Shared:WaitForChild("Config"))
 local TableBuilder = require(Shared:WaitForChild("TableBuilder"))
 local Rules = require(Shared:WaitForChild("HalloweenMap"):WaitForChild("Rules"))
 local Assets = require(script.Parent:WaitForChild("Assets"))
+local MapProps = require(script.Parent:WaitForChild("MapProps"))
 
 local HM = Config.HalloweenMap
 
@@ -227,6 +228,9 @@ EventMap.addPart({
 		end
 	end,
 })
+
+-- The rooftop's props and hides (MapProps; the lobby only).
+EventMap.addPart(MapProps.part())
 
 local function setState(state: Rules.State)
 	if state == current then

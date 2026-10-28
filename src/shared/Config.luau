@@ -9279,10 +9279,70 @@ Config.HalloweenMap = {
 			},
 		},
 	},
+	-- The rooftop's props while Live (HalloweenMap/MapProps; the lobby only), built once into a
+	-- ServerStorage holder so Live and Ended only move them.
 	Props = {
 		Enabled = false, -- the dead trees, pumpkins, planters, string lights and cobwebs
-		Hide = {}, -- name patterns under workspace.Map put away while Live (step 14)
-		Place = {}, -- the props' placements (step 14)
+		-- Put away while Live (name patterns under workspace.Map, read in Studio 2026-10-28;
+		-- Rules.hideList never takes a portal's): the 18 palms (their pots and the pots'
+		-- collision stay: a dead tree grows from each pot), the 12 fern planters and 11 planter
+		-- beds, 2 of them the portals' (visual Models; their collision twins stay: each becomes a
+		-- spooky planter of the same footprint). Moved to ServerStorage, never destroyed.
+		Hide = { "^Palm_%d+$", "^FernPlanter_%d+$", "^PlanterBed_%d+$" },
+		Holder = "HalloweenProps", -- the props' Folder (ServerStorage, workspace while Live)
+		-- A hidden palm's dead tree: in the nearest pot, its foot this far under the pot's top
+		-- (in its foliage), this share of the palm's height (the DeadTree mesh is 11.75 at
+		-- scale 1), leaning toward the roof's middle (never over the railing), give or take
+		-- YawJitter degrees.
+		Trees = {
+			Prop = "DeadTree",
+			Replaces = "^Palm_%d+$", -- the hidden Models that get a tree
+			Pots = "^PalmPlanter_%d+$",
+			FootBelowPotTop = 0.6,
+			HeightShare = 0.75,
+			MinScale = 0.9,
+			MaxScale = 2,
+			YawJitter = 25,
+		},
+		-- A hidden planter's spooky twin: a dark box the size and place of its pot (the part whose
+		-- name matches Pot), its dressing mesh on top (scaled to the pot's width against the
+		-- mesh's own Width), the pumpkins turned to face the roof's middle.
+		Planters = {
+			Pot = "__Opaque$",
+			Color = { 44, 34, 52 },
+			Material = "Slate",
+			Dressings = {
+				-- (drawn for a 4-stud pot; 3 makes it fill a pot's top, not sit small on a dark cube)
+				{ Match = "^FernPlanter_", Prop = "PotDressing", Width = 3 },
+				{ Match = "^PlanterBed_", Prop = "BedDressing", Width = 16 },
+			},
+		},
+		-- String lights hung between From and To (the mesh stretched along its length; Glow: the
+		-- bulbs' colour, else Assets.Glow.Strand). The pergola (the map spec): bays between
+		-- 4.5-square columns at X +-57.5 and +-19.2, the front beam's face at Z -74.75, every
+		-- beam's underside 24 up, the globes on the front beam (Z -76.05) and the middle beam
+		-- (Z -86.75): the middle row hangs in front of its globes.
+		Strands = {
+			{ From = { -55.25, 24, -74.6 }, To = { -21.45, 24, -74.6 } },
+			{ From = { -16.95, 24, -74.6 }, To = { 16.95, 24, -74.6 }, Glow = { 170, 80, 255 } },
+			{ From = { 21.45, 24, -74.6 }, To = { 55.25, 24, -74.6 } },
+			{ From = { -55.25, 24, -84.4 }, To = { -21.45, 24, -84.4 }, Glow = { 170, 80, 255 } },
+			{ From = { -16.95, 24, -84.4 }, To = { 16.95, 24, -84.4 } },
+			{ From = { 21.45, 24, -84.4 }, To = { 55.25, 24, -84.4 }, Glow = { 170, 80, 255 } },
+		} :: { { From: { number }, To: { number }, Glow: { number }? } },
+		-- The other placements: a prop's origin at At, turned Yaw degrees, scaled. A cobweb's
+		-- origin is its corner (it fans out, -X at Yaw 0, and down); a pumpkin cluster stands on
+		-- the floor, its pumpkins facing -Z at Yaw 0.
+		Place = {
+			{ Prop = "Cobweb", At = { -55.25, 24, -74.6 }, Yaw = 180, Scale = 1.4 },
+			{ Prop = "Cobweb", At = { 55.25, 24, -74.6 }, Yaw = 0, Scale = 1.4 },
+			{ Prop = "Cobweb", At = { -16.95, 24, -74.6 }, Yaw = 180, Scale = 1.4 },
+			{ Prop = "Cobweb", At = { 16.95, 24, -74.6 }, Yaw = 0, Scale = 1.4 },
+			-- at the two lanterns by the throne's aisle (Lantern_57, Lantern_65), facing the spawn
+			{ Prop = "PumpkinCluster", At = { -17.2, 0, -65 }, Yaw = 180, Scale = 1.2 },
+			{ Prop = "PumpkinCluster", At = { 17.2, 0, -65 }, Yaw = 180, Scale = 1.2 },
+		},
+		StrandProp = "Strand", -- the string-of-lights mesh
 		-- The event's whole cost, counted in Studio.
 		Budget = {
 			Triangles = 60000,
