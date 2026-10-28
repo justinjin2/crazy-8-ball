@@ -1816,6 +1816,56 @@ return {
 		Countdown = "HALLOWEEN EVENT IN %s", -- 18:30-19:00, "HALLOWEEN EVENT IN 29:59"
 		Started = "THE HALLOWEEN EVENT HAS STARTED!",
 		Ended = "THE HALLOWEEN EVENT HAS ENDED!",
+		-- The event menu (Halloween/EventMenu).
+		TrackTitle = "CANDY TRACK",
+		-- The track cards' short cue names.
+		CueShort = {
+			CandyCornCue = "Candy Corn",
+			JackOLanternCue = "Jack-o'-Lantern",
+			BlackCatCue = "Black Cat",
+			SpiderCue = "Spider",
+			WitchBroomCue = "Witch's Broom",
+		},
+		GrandPrize = "GRAND PRIZE",
+		Spins = { One = "1 SPIN", Many = "%d SPINS" }, -- ability spins on a track gift
+		Preview = "Preview",
+		QuestsTitle = "QUESTS",
+		Day = "DAY %d",
+		UnlocksIn = "Unlocks in %s",
+		Claim = "CLAIM",
+		Claimed = "CLAIMED",
+		Reward = "+%d", -- a quest's Candy chip
+		-- A quest's line by its kind (Config.Halloween.Quests): One for a need of 1, else Many with
+		-- the need ("Win 3 matches"); Active takes minutes.
+		Quests = {
+			Matches = { One = "Play 1 match", Many = "Play %d matches" },
+			Wins = { One = "Win 1 match", Many = "Win %d matches" },
+			Balls = { One = "Pocket 1 ball", Many = "Pocket %d balls" },
+			NiceShots = { One = "Make 1 nice shot", Many = "Make %d nice shots" },
+			TeamMatches = { One = "Play a 2v2 or 3v3", Many = "Play %d 2v2 or 3v3 matches" },
+			TeamWins = { One = "Win a 2v2 or 3v3", Many = "Win %d 2v2 or 3v3 matches" },
+			UltMatches = {
+				One = "Use an ability in a match",
+				Many = "Use an ability in %d matches",
+			},
+			King = { One = "Beat the Pumpkin King", Many = "Beat the Pumpkin King %d times" },
+			Pickups = { One = "Pick up 1 lobby Candy", Many = "Pick up %d lobby Candy" },
+			Active = { One = "Play 1 min", Many = "Play %d min" },
+		},
+		QuestsSoon = "Quests open soon!",
+		Spider = "PLAY 3H 01M", -- the playtime cue's panel
+		SpiderOf = "%s / %s", -- "1h 12m / 3h 01m"
+		SpiderNote = "Only active play counts",
+		SpiderDone = "YOURS!",
+		GetCandy = "GET CANDY",
+		PackCandy = "%s Candy",
+		-- The Rush strip at the menu's foot.
+		Rush = "CANDY RUSH",
+		RushSoon = "2x CANDY starts in %s",
+		RushNow = "2x CANDY ends in %s",
+		Night = "HALLOWEEN NIGHT",
+		NightNow = "2x CANDY ALL DAY %s",
+		Yours = "YOURS!",
 		-- The designer's /hw command (DevCommands; CandyService.dev).
 		Dev = {
 			Status = "Halloween: %s at %s UTC (offset %ds). Candy %d, board %d, %dx, active %ds",

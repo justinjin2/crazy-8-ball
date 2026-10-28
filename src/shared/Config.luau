@@ -9798,7 +9798,15 @@ Config.UI.Menu = {
 	-- 8-balls scroll, the white sheet has the still dots and an 8-ball sits on the top edge.
 	-- Menus not listed keep the kit frame (pop in, still pattern). Names as Menus.register.
 	-- "Inventory": the Cues menu (concept 2, 2026-10-08); "Ranked": the roadmap (pick "ranked A").
-	LivelyMenus = { "Shop", "Inventory", "FreeReward", "Ranked", "Settings", "DailyRewards" },
+	LivelyMenus = {
+		"Shop",
+		"Inventory",
+		"FreeReward",
+		"Ranked",
+		"Settings",
+		"DailyRewards",
+		"Halloween",
+	},
 	-- One thing at a time (HudFocus; designer, 2026-10-06): while a full menu is open every
 	-- other screen of ours is off. These ScreenGuis stay on (a "...Menu" screen always does):
 	-- popups that must still reach the player and invisible probes. KeepWith: more per menu.
@@ -16650,6 +16658,106 @@ Config.UI.Halloween = {
 		ShortBadgePx = 20,
 		Icon = "rbxassetid://109690179795075", -- the pumpkin with candy (256 px); "" = the Candy icon
 		GlowTint = { 255, 140, 30 }, -- the pumpkin's soft glow behind it
+	},
+	-- The event menu (Halloween/EventMenu): the lively frame round the Candy pill, the track,
+	-- the quest board, the Spider panel and Get Candy, with the Rush strip pinned at its foot. A
+	-- computer shows the quests and the Spider side by side; a phone one scrolling column.
+	Menu = {
+		WidthShare = 0.72, -- of a computer's screen (the track's 11 nodes need the room)
+		PhoneWidthShare = 0.94,
+		PadPx = 12,
+		GapPx = 10,
+		TextPx = 18, -- body text (a phone's: ShortTextPx)
+		ShortTextPx = 14,
+		HeadPx = 22, -- section titles
+		ShortHeadPx = 17,
+		PillPx = 36, -- the Candy pill and the ends pill
+		ShortPillPx = 30,
+		-- The track: nodes evenly spaced on a bar filled by share between them; on a phone each
+		-- node at least NodeMinPx wide, scrolling sideways.
+		NodePx = 84, -- a node's card (a computer)
+		ShortNodePx = 70,
+		NodeMinPx = 78,
+		GrandScale = 1.25, -- the Witch's Broom's card
+		BarPx = 12,
+		ShortBarPx = 9,
+		TrackColor = { 255, 140, 30 }, -- the bar's fill
+		BarBack = { 60, 40, 90 },
+		CardTint = { 70, 40, 110 }, -- a cue node's card (night purple)
+		GiftTint = { 255, 255, 255 },
+		GivenTint = { 255, 207, 64 }, -- a reached node's gold frame
+		-- The quest board: four rows, each this tall.
+		RowPx = 46,
+		ShortRowPx = 40,
+		TabPx = 30,
+		ShortTabPx = 26,
+		QuestShare = 0.6, -- of a computer's width (the Spider and Get Candy take the rest)
+		-- The Rush strip at the foot.
+		StripPx = 40,
+		ShortStripPx = 32,
+		StripTint = { 46, 20, 82 },
+		RushTint = { 255, 140, 30 },
+		SpiderTint = { 46, 20, 82 },
+		HeadTint = { 255, 140, 30 }, -- the section titles' orange
+		ClaimBounceSeconds = 1.2, -- a waiting CLAIM bounces this often
+		MaxHeightShare = 0.86, -- of the screen's height at most
+	},
+	-- Pictures (image ids; "" = the fallback named): the cue cards until the cue lanes' thumbnails
+	-- exist (the approved concept art), the gift boxes, the end screen's candy pile and cash.
+	Art = {
+		CandyCornCue = "rbxassetid://99907004080834",
+		JackOLanternCue = "rbxassetid://114487013205177",
+		BlackCatCue = "rbxassetid://95439931834328",
+		SpiderCue = "rbxassetid://134067061693157",
+		WitchBroomCue = "rbxassetid://83442214439619",
+		Header = "rbxassetid://100823591958466", -- the menu header's jack-o'-lantern ("" = the Candy icon)
+		Gift = "rbxassetid://130940237317316", -- "" = Kit icon Gift
+		CandyPile = "rbxassetid://100770056241444",
+		CashStack = "rbxassetid://103851828700645", -- "" = Kit icon CashStack (this is ShopMoney's Pack2 stack)
+	},
+	-- A quest row's icon by its Icon key (Config.Halloween.Quests): Kit icon keys; "Candy" is the
+	-- Candy icon.
+	QuestIcons = {
+		Win = "Trophy",
+		Match = "Play",
+		Ball = "Target",
+		Nice = "Star",
+		Team = "People",
+		Ult = "Lightning",
+		King = "Crown",
+		Clock = "Stopwatch",
+	},
+	-- The menu's open (the lively frame's schedule; Stage ids from EventMenu).
+	Open = {
+		OpenSeconds = 0.9,
+		Steps = {
+			{ Ids = { "Panel" }, Kind = "Unroll", At = 0 },
+			{ Ids = { "Header" }, Kind = "Fade", At = 0.12, Length = 0.15 },
+			{ Ids = { "Basket", "Title", "Close" }, Kind = "Pop", At = 0.18 },
+			{ Ids = { "HwCandy", "HwEnds" }, Kind = "Pop", At = 0.2 },
+			{ Ids = { "HwTrack" }, Kind = "Grow", At = 0.22 },
+			{
+				Ids = {
+					"HwNode1",
+					"HwNode2",
+					"HwNode3",
+					"HwNode4",
+					"HwNode5",
+					"HwNode6",
+					"HwNode7",
+					"HwNode8",
+					"HwNode9",
+					"HwNode10",
+				},
+				Kind = "Pop",
+				At = 0.26,
+				Stagger = 1.25,
+			},
+			{ Ids = { "HwNode11" }, Kind = "Pop", At = 0.4, Burst = "Gold" },
+			{ Ids = { "HwQuests", "HwSpider", "HwPacks" }, Kind = "Grow", At = 0.36 },
+			{ Ids = { "HwRush" }, Kind = "Fade", At = 0.46, Length = 0.15 },
+			{ Ids = { "Flair" }, Kind = "Drop", At = 0.6, Length = 0.25 },
+		},
 	},
 }
 
