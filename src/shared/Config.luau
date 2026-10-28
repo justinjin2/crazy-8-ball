@@ -17532,7 +17532,7 @@ Config.UI.PlayerList = {
 -- halloween (the Halloween save field: KingWins, or Candy = Earned + Bought), event (only from a
 -- live hook, never the save). Names and descriptions in Strings.Badges.
 Config.Badges = {
-	Enabled = false, -- the award queue; true once HW_SYS_PROMPT section 4's badge checks pass
+	Enabled = true, -- the award queue (checks passed 2026-10-28); false = no badge is awarded or logged
 	UniverseId = 10767330648, -- awards run only in this experience; Studio and the test place log
 	OwnerUserId = 544959133, -- Painicane: Met the Owner, Beat the Owner
 	StaggerSeconds = 3, -- at most one award per player every 3 s (PLAN section 2)
