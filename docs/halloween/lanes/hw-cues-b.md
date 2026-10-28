@@ -22,6 +22,52 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
   `Index.luau`, `Textures.luau` (regenerate after every merge conflict there).
 
 ## Status
+- 19:25 **Spider v11 in the lab, READY** (the coordinator's 19:08 review of v7: blades forward, no
+  flat web discs, a red atmosphere). The crown turned round: the glossy black eye dome is now
+  the exposed END of the cue (a crown part on a neck, d 7.55-8.21 on the Aim room, twelve Neon
+  eyes), the eight leg-blades root at its base and sweep FORWARD along the butt, flaring to 0.92
+  of the Aim room, every other one short so the silhouette is jagged, their tips at d 6.24 just
+  behind the grip hand's rest (the grip zone 4.4-6.2 must stay flush: the rule every lane
+  builds to), one crossed silk pair a gap (three or seven read as a wire cage in the lab); the
+  three hourglass gems sit on the collar between the blade tips as C1's does; the silk threads
+  on the shaft went (the skin's live Silk beams do that). The aura piece keeps only the four
+  droplines (the web wheels were flat discs). The skin: denser crimson smoke, an additive
+  crimson haze and 16 embers/s round the butt and crown, crimson halo beam and lights, the
+  WebFlecks/WebRing sprites gone (113.15 pps of 120); the pocket piece's funnel threads are
+  red on the white web. Body 8 parts, 7,748 tris; aura 8 parts, 144 tris. Lab on the bright
+  floor: stand, back and a real /solo hand-at-aim shot read as C1's object
+  (gate2/spider_v11_side_by_side.jpg beside the concept; spider_v11_stand/back/hand_lab.jpg;
+  the steps v8-v10 in spider_v8/v9/v10_*_lab.jpg). Nothing over the aim line in hand; the crown
+  fades for the owner at aim. Lint OK, 1,477 tests, cue_skins_data.py clean. Gaps, honestly:
+  (1) the crown's forward reach stops at d 6.24, so the legs sweep 1.3 studs from a dome 1.2
+  studs beyond the real butt and the cue reads that much longer from behind; (2) the blades are
+  flat fins with Neon red rims and read as red hooks at 15 studs, not C1's sculpted claws; (3)
+  the silk between the blades is sparse by design; (4) the red atmosphere is a mist and embers,
+  C1's heavy red clouds would pass 120 pps; (5) the bands are zigzag rings turned a little each,
+  not C1's chevron scales; (6) the finisher (white web decal, crimson ring, the orb web with red
+  threads rising) was captured only mid-burst at a distance (spider_v11_pocket_lab.jpg), not
+  retuned; (7) Lower effects not re-checked this round (the body is the same, the aura keeps two
+  droplines). Stale uploads from the iterations, unused: body GLBs 123770538572118,
+  102342483237763, 134686972547182, 133024411903752, 109804536529474, 115457532150737; Crown
+  GLBs 131305222913783, 106350716062886, 127798671187880, 131507995617743, 95572022306855,
+  99777618640037; aura GLBs 140040762135457, 107703452194610; pocket GLB 86978515586894.
+- 19:05 **Spider redo, v7 in the lab** (Justin 18:45: redone to C1_spider.jpg / C1b_spider.png).
+  The body is real geometry again, 8 parts, 8,216 tris: a glossy black shaft on the envelope
+  with a red crystal spear (atlas), ten Neon red chevron bands each turned a little further so
+  they spiral up, silk threads strung band to band, a six-flat collar at d 6.28-6.62 (the butt
+  zone) with the Neon hourglass gem on its top flat (Glow), a dome cap to 7.28 studded with
+  twelve Neon red eyes (a ring of eight, a cluster of four; the Glow kept red), and the crown
+  (Aim joint): eight skinned leg-blades, none straight up or down, rooted in the collar,
+  sweeping to d 8.19 and flaring to 0.94 of the 1.1 Aim room, Neon red edge strips on the
+  outer curve and the hook, three crossed silk threads a gap (v6's seven read as a wire cage,
+  gate2/spider_v6_crown_lab.jpg). The aura piece lost its hourglass charms (11 parts, 1,296
+  tris). Skin: a crimson smoke haze, red embers off the crown, the gem glint and crimson
+  light at 6.47, red-white crown glints over the blades; 99.5 pps of 120. Lab on the bright
+  floor: the stand and the back read as C1's object, the eyes count on the back cue
+  (gate2/spider_v7_stand_lab.jpg, spider_v7_back_lab.jpg, spider_v6_butt_lab.jpg). Gaps:
+  the gem reads small and only from above (v8: 0.32 tall on three flats); the hand-at-aim
+  shot, the trail and the pocket's red/white web (v8: red funnel threads) are next; the
+  side-by-side against the card comes with the READY.
 - 18:42 **Broom: nothing occult** (Justin 18:45 through the coordinator: the circled pentagrams
   read as satanic). The three spell sigils (a Neon ring, a pentagram, an inner circle) are gone
   from the aura piece; in their place three plain five-point star outlines with a small solid
@@ -383,6 +429,11 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
 
 ## Requests
 
+- 19:25 **READY SpiderCue redo @ f08ee53c** (skin `spider`: body 88368976050945 + Crown
+  97556953003027, atlas 97389489374909 / 74929761773896 / 97411211072627 (image ids applied),
+  aura 110112671613639, pocket 76740152492017, card 94647986969002 / image 75625207590037; base
+  `halloween` @e3ddfde4; lint OK, 1,477 tests, cue_skins_data.py clean). Template build in Team
+  Create: `ONLY = { "SpiderCue" }` (every spider piece id is new).
 - 18:42 **READY WitchBroomCue, nothing occult @ e1ce7b99** (skin `witch_broom`: new aura piece
   118538981575979, new card 101208766181525 / image 109752689782479; base `halloween`
   @e3ddfde4; lint OK, 1,477 tests, cue_skins_data.py clean). Template build in Team Create:

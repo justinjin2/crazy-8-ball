@@ -16,16 +16,22 @@ entry of `docs/archive/STATUS_HISTORY.md`.
   files it changes). From 19:00 EDT a server with the update is Live; one that starts later
   is Live at once. Everything to check, publish and switch off: `docs/halloween/RELEASE.md`.
 - **In it:** Candy (matches, lobby pickups, 2x Candy minutes 0-9 UTC), daily quests, the Candy
-  track, five Halloween cues (each its own effect, no ribbons; the Witch's Broom a new model),
+  track, four Halloween track cues (each its own effect, no ribbons; the lineup below),
   the Spider play-time cue, Candy packs, the timed Pumpkin King (:15 and :45, +150 Candy,
   +$2,500, +100 XP a visit), the night rooftop, roaming during the other player's turn, the
   friend boost and boost text, badges v2. Ends Nov 3 19:00 EST and turns Candy into money.
 - **Verified:** 1,469 Lune tests, lint; the fresh-player run on `16784c7c` (no Halloween text
   in the tutorial, Candy after the first match, popups in order, console clean); Team Create
   synced byte for byte, no test objects in the place, all five cue templates and 13 pieces in.
-- **Open:** a real phone/iPad/controller sweep (only emulated so far); the designer's verdict on
-  the reworked cues (the Jack and Candy Corn read quieter than the Firework); badge icons
-  waiting on Roblox moderation (a placeholder until then); Cue Preview ships off.
+- **The cue redo (designer 18:20-19:18; the release waits for it):** the lineup is now Jack
+  (150 Candy), a red cue (500: the Bone or a red/hellfire cue, four concept sheets with the
+  designer), Witch's Broom (2,000), the new Halloween Sword (7,000, his purple concept C8 as the
+  cue body) and the Spider (3 h of play). Candy Corn, Black Cat and the Ghost are out. In
+  `halloween` now: the Broom without sigils, the night sky and crater moon, Spider v11 (v12
+  reworks its crown). Building: the Jack (hw-sys), the Sword (hw-cues-a), the red cue (hw-map),
+  the Track reorder (hw-core). Template builds in Team Create wait until the designer leaves Play.
+- **Open:** a real phone/iPad/controller sweep (only emulated so far); badge icons waiting on
+  Roblox moderation (a placeholder until then); Cue Preview ships off.
 - **Store page:** the plain Halloween icon is up (the countdown badge removed 17:46); the LIVE
   icon goes up when the publish is out. The Experience Event runs 19:00 Oct 28 to Nov 3.
 
