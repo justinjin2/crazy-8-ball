@@ -331,6 +331,15 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
 
 ## Requests
 
+- 13:42 **READY SpiderCue readability @ 76cdfa8e** (skin `spider`, same ids and rows; the readability pass merged with `halloween` @663de787 as 76cdfa8e; lint OK, 1,469
+  tests, cue_skins_data.py clean). Coordinator 13:35: the webs read faint on the bright floor.
+  `spider_aura` rigid 112575234442239 (13 parts, 1,328 triangles): opaque Neon silk and web
+  lines (silver_bright), web wheels 0.44 across with 0.017 lines, droplines longer and thicker
+  with bigger dew beads; the skin's Silk strands 0.18 wide at 0.2 transparency and brighter,
+  drips/motes/glints brighter. Also restores `_web_wheel`, which 7bae1ea4's comment cleanup cut
+  out of the kit file (the spider_aura builder could not run; no runtime effect). Template build:
+  `ONLY = { "SpiderCue" }`. Lab: `gate2/spider_redo_stand_v4_lab.jpg`;
+  `spider_redo_side_by_side.jpg` refreshed.
 - 13:30 **READY WitchBroomCue remake @ 7bae1ea4** (skin `witch_broom`, same ids and rows; the
   remake commit is 22083cd1, merged with `halloween` @d0b1d604 as 568de991, then a18478af makes the branch cat-neutral (every Cat change comes from Cues A's branch; asked by Cues A and the coordinator 13:28; `git diff origin/halloween...hw-cues-b` touches only witch_broom*, spider*, Index, the manifest and this file) and 7bae1ea4 marks the straw part `Outline = false` for Cues A's runtime key, cue_skins_data.py
   clean, lint OK, tests green). Piece ids: `witch_broom` (body rebuilt: 5 parts, 9,144
