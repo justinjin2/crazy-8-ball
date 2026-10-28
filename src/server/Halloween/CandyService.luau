@@ -193,6 +193,28 @@ end
 
 local lastActivePush: { [Player]: number } = setmetatable({}, { __mode = "k" }) :: any
 
+-- The Halloween funnel (Funnel.once; Steps.Funnels.Halloween): the Candy of each track cue.
+local FUNNEL_CUES: { { at: number, name: string } } = {}
+do
+	local names = { "4_Cue150", "5_Cue500", "6_Cue2000", "7_Broom" }
+	for _, step in C.Track.Steps do
+		if step.Cue ~= nil and #FUNNEL_CUES < #names then
+			table.insert(FUNNEL_CUES, { at = step.At, name = names[#FUNNEL_CUES + 1] })
+		end
+	end
+end
+
+-- The funnel's Candy steps after Candy landed (each logs once a save).
+local function funnelCandy(player: Player)
+	Funnel.once(player, "Halloween", "3_FirstCandy")
+	local total = PlayerData.hwCandy(player)
+	for _, mark in FUNNEL_CUES do
+		if total >= mark.at then
+			Funnel.once(player, "Halloween", mark.name)
+		end
+	end
+end
+
 -- After a mutation: the moments the client shows (a Candy chip, a track prize, the Spider),
 -- the quest analytics, and the view.
 local function after(player: Player, result: PlayerData.HwResult?, source: string)
@@ -200,6 +222,9 @@ local function after(player: Player, result: PlayerData.HwResult?, source: strin
 		return
 	end
 	local remote = Net.get("Halloween")
+	if result.candy > 0 then
+		funnelCandy(player)
+	end
 	if result.candy > 0 and source ~= "Pickup" and source ~= "Dev" then
 		remote:FireClient(player, {
 			toast = {
@@ -465,6 +490,10 @@ local function tickPlayer(player: Player): any
 		end
 		return nil
 	end
+	-- The funnel's first step: the tile shows for the player (Live, tutorial over).
+	if Event.isLive(ctx.now) and player:GetAttribute("HwOn") == true then
+		Funnel.once(player, "Halloween", "1_Button")
+	end
 	-- The Spider's clock (and the Active quests): this tick's seconds while the player is active.
 	if Event.isLive(ctx.now) and PlayerData.isLoaded(player) and activeNow(player) then
 		after(player, PlayerData.hwActive(player, C.TickSeconds, ctx), "Active")
@@ -514,6 +543,7 @@ local function onRequest(player: Player, msg: any)
 		-- Logged once a save (the first open), so a client cannot spend the analytics budget.
 		if PlayerData.hwMark(player, "Seen") then
 			Funnel.event(player, "HwMenu", 1, "Open")
+			Funnel.once(player, "Halloween", "2_Opened")
 			CandyService.changed(player)
 		end
 	elseif msg.endSeen == true then

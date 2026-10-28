@@ -3573,6 +3573,13 @@ function PlayerData.halloween(player: Player): any?
 	return copyOf(data.Halloween, true)
 end
 
+--- The save's Candy (earned + bought; 0 when not loaded), without copying the field.
+function PlayerData.hwCandy(player: Player): number
+	local data = peek(player)
+	local hw = if data ~= nil then data.Halloween else nil
+	return if type(hw) == "table" then HwLedger.total(hw) else 0
+end
+
 --- Adds Candy (`bucket` "Earned" from play, "Bought" from a pack) and counts quest events in the
 --- same commit (Live only for both). nil when the save is not loaded.
 function PlayerData.hwAddCandy(

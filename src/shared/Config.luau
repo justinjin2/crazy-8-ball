@@ -16178,6 +16178,7 @@ Config.Tutorial = {
 			PathR = "FunnelR",
 			Game2 = "FunnelG2",
 			Social = "FunnelSocial",
+			Halloween = "FunnelHw", -- the Halloween event (hw-core)
 		},
 		ThirdMatch = 3, -- the onboarding funnel's ThirdMatch: this many matches played
 		EventGapSeconds = 0.5, -- a client's funnel report of one kind counts at most this often
