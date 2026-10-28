@@ -68,6 +68,12 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
   neighbours), compact = a closed bud 0.3 past the butt; `spider_parts.glb` 134241355070040,
   `Crown.glb` 88297987618252, atlas decals with image ids). Preview beside the concept:
   `gate2/spider_body_vs_C1b.png`. No spider bodies, legs or creatures anywhere.
+- 10:36 P7 (the part that needs no drop 3): the plain kit CLI (`CuePieces.py -- <pid>`, my file
+  imported through its guarded import) builds all three bodies; its first run dropped the
+  `Aim` key from the Cat's piece.json because only my `build_checked` path patched it in, so
+  the four Aim joints now pass `aim='fade'` to `k.joint` as well (@ HEAD, Cues A's drop 2
+  kwarg) and both paths write the same files: the three plain builds leave no diff against
+  the committed pieces. The in-hand, back, raised and own-aim checks wait on drop 3.
 - 10:34 P10 Broom aura under Night beside the Eclipse (`broom_vs_eclipse_night_before_lab.jpg`,
   then `broom_vs_eclipse_night_lab.jpg`): the pale lavender halo (#D9B8FF to #9B4DFF, 0.7
   transparent) vanished against the lilac Night sky and was near white on the day floor; the
