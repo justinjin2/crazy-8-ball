@@ -59,10 +59,12 @@ type King = {
 	lastSeq: number?,
 	ended: boolean?,
 	visit: number?, -- the visit (its start) the challenge was seated in (Timed)
+	goneAt: number?, -- when his bot was first seen gone with no ending (os.clock)
 }
 
 local kings: { [number]: King } = {} -- by bot id
 local promised: { [any]: boolean } = {} -- tables a challenge is being seated at
+local seating = 0 -- challenges being seated now (playBoss waits while his body is built)
 local lastTry: { [Player]: number } = {}
 local warned: { [string]: boolean } = {}
 local line: { number } = {} -- the King's line this visit (user ids, first first; Timed)
@@ -95,14 +97,26 @@ local function candyService(): any?
 	return optional({ "Halloween", "CandyService" })
 end
 
-local function aliveKings(): number
-	local n = 0
-	for _, king in kings do
-		if not king.ended then
-			n += 1
+-- Whether the King bot `botId` still plays (not removed). A King that never saw his result
+-- (his table moved on first) is gone without an ending: forgotten after a grace, so a late
+-- ending (the result's event runs a moment after) still finds him.
+local function playing(botId: number): boolean
+	local bot = BotService.get(botId)
+	if bot ~= nil and not bot.gone then
+		return true
+	end
+	local king = kings[botId]
+	if king and not king.ended then
+		king.goneAt = king.goneAt or os.clock()
+		if os.clock() - (king.goneAt :: number) > 10 then
+			kings[botId] = nil
 		end
 	end
-	return n
+	return false
+end
+
+local function aliveKings(): number
+	return Rules.kingsPlaying(kings, playing, seating)
 end
 
 local function rootOf(p: Player): BasePart?
@@ -316,7 +330,11 @@ local function challenge(
 		logChallenge(p, "NoTable", tiers)
 		return false, "KingNoTable"
 	end
+	-- The visit this seat belongs to, taken now: playBoss waits for his body, and a visit
+	-- ending meanwhile must not credit the win to the next one.
+	local seatVisit = if Rules.kingTimed() then visit or (Rules.kingWindow(Clock.now())) else nil
 	promised[t] = true
+	seating += 1 -- (a press at the same moment sees this seat taken)
 	local ok, bot = pcall(function(): any
 		if Tables.tableOf(p) ~= t.engine.id and not Tables.placeOnPad(t, p) then
 			return nil
@@ -333,6 +351,7 @@ local function challenge(
 		})
 	end)
 	promised[t] = nil
+	seating -= 1
 	if not ok or bot == nil then
 		if not ok then
 			warn("[HalloweenMap] the King's challenge failed: " .. tostring(bot))
@@ -347,7 +366,7 @@ local function challenge(
 		playerTier = playerTier,
 		kingTier = kingTier,
 		lastTaunt = 0,
-		visit = if Rules.kingTimed() then visit or (Rules.kingWindow(Clock.now())) else nil,
+		visit = seatVisit,
 	}
 	if Rules.lineDrop(line, p.UserId) then
 		p:SetAttribute(K.LineAttribute, nil)
@@ -422,6 +441,11 @@ end
 
 local function reward(p: Player, king: King)
 	local amount, granted = 0, false
+	-- Timed: they beat him this visit, paid or not (a repeat win, or one paid on another
+	-- server or before a rejoin): his line puts them behind everyone who hasn't yet.
+	if king.visit then
+		p:SetAttribute(K.BeatAttribute, king.visit)
+	end
 	local CandyService = candyService()
 	if CandyService and CandyService.isLive() then
 		-- Timed: core pays once per visit (the one the challenge was seated in).
@@ -430,9 +454,6 @@ local function reward(p: Player, king: King)
 			granted, amount = r.granted == true, tonumber(r.amount) or 0
 			if type(r.cooldownEndsAt) == "number" then
 				p:SetAttribute(K.ReadyAttribute, r.cooldownEndsAt)
-			end
-			if granted and king.visit then
-				p:SetAttribute(K.BeatAttribute, king.visit)
 			end
 		elseif not ok then
 			warn("[HalloweenMap] bossWon failed: " .. tostring(r))
@@ -654,19 +675,19 @@ function BossService.start(isLobby: boolean)
 			end
 		end
 	end)
-	if Rules.kingTimed() then
+	if Rules.kingVisits() then
 		task.spawn(function()
 			while true do
 				local ok, err = pcall(function()
 					tickVisit()
 				end)
 				if not ok then
-					warn("[HalloweenMap] the King's visit: " .. tostring(err))
+					warnOnce("visit " .. tostring(err), "the King's visit: " .. tostring(err)) -- (every second)
 				end
 				task.wait(1)
 			end
 		end)
-	else
+	elseif not Rules.kingTimed() then
 		EventMap.addPart(KingLook.thronePart())
 	end
 end

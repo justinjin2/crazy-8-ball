@@ -8,6 +8,27 @@ Updated 2026-10-28 (**published by the designer 2026-10-27: everything up to `7c
 in `~/Desktop/8ball`, branch `gui-v4`. The STATUS from just before launch, in full, is the top
 entry of `docs/archive/STATUS_HISTORY.md`.
 
+## Halloween 2026 (branch `halloween`, pushed, NOT published)
+
+- **Waiting to publish:** `halloween` (it also carries `gui-v4`'s emote audio update). The
+  release is no longer tied to 19:00 (designer, 2026-10-28 17:46): it goes out tonight once
+  the robustness pass is done (each lane's area plus two independent reviews of the existing
+  files it changes). From 19:00 EDT a server with the update is Live; one that starts later
+  is Live at once. Everything to check, publish and switch off: `docs/halloween/RELEASE.md`.
+- **In it:** Candy (matches, lobby pickups, 2x Candy minutes 0-9 UTC), daily quests, the Candy
+  track, five Halloween cues (each its own effect, no ribbons; the Witch's Broom a new model),
+  the Spider play-time cue, Candy packs, the timed Pumpkin King (:15 and :45, +150 Candy,
+  +$2,500, +100 XP a visit), the night rooftop, roaming during the other player's turn, the
+  friend boost and boost text, badges v2. Ends Nov 3 19:00 EST and turns Candy into money.
+- **Verified:** 1,469 Lune tests, lint; the fresh-player run on `16784c7c` (no Halloween text
+  in the tutorial, Candy after the first match, popups in order, console clean); Team Create
+  synced byte for byte, no test objects in the place, all five cue templates and 13 pieces in.
+- **Open:** a real phone/iPad/controller sweep (only emulated so far); the designer's verdict on
+  the reworked cues (the Jack and Candy Corn read quieter than the Firework); badge icons
+  waiting on Roblox moderation (a placeholder until then); Cue Preview ships off.
+- **Store page:** the plain Halloween icon is up (the countdown badge removed 17:46); the LIVE
+  icon goes up when the publish is out. The Experience Event runs 19:00 Oct 28 to Nov 3.
+
 ## The game is live
 
 - **Released 2026-10-10** with economy v6 (every save started over on the `_v2` stores before

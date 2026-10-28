@@ -50,6 +50,51 @@ From PLAN §4 (everything else is read-only to this lane; ask through Requests):
 - `Config.HalloweenMap.Props.Budget.Lights = 6` (throne 2 + the throne King's aura 1 + 3 table Kings).
 
 ## Status
+- 18:07 hw-map: **ROBUSTNESS PASS** (coordinator 17:52), on halloween @cb89ebcc (merged 77026883).
+  Three read-only reviews (the King server; candy and the client; props, Night and switches),
+  every finding checked against the code; my own Studio checks below. Ten fixes, one commit
+  each, no look changes:
+  - 21c40032 the Throne switch off now stops the timed King's visits (Timed put the stage up
+    anyway). Lune test; Studio: no throne in a visit window.
+  - 50a47a53 CandyDrop's 1 s / 0.2 s loops and the King's 1 s visit loop warn once per failure.
+  - c8b1b6d5 `Rules.kingVisits()` covers master, Boss and Throne; core's timer line uses it
+    (core's f2883db2 plus its robustness READY), so a King kill switch also hides "PUMPKIN KING
+    IN 14:22" and the guide. Lune test.
+  - 0cb6e4b0 a King whose table moved on before he saw the result (Surrender + Decline + one
+    more action in one burst, or a surrender and a disconnect) counted toward MaxAtOnce forever:
+    three of them made the King unplayable on that server. Reproduced in Studio; fixed
+    (`Rules.kingsPlaying`, a 10 s grace); Studio: after 3 such bursts a 4th challenge is still
+    seated. Lune test.
+  - 0e8543a0 matches being seated (his body still building) count toward MaxAtOnce: presses at
+    the same moment could start more than 3. Lune test.
+  - 4f5031fe a seat takes its visit before the body build: a visit ending in that wait credited
+    the win to the next visit (an extra pay at the event's last visit).
+  - 22113f90 any timed win sets PumpkinKingBeat (repeat or other-server wins kept jumping the line;
+    pay was already once a visit by core's KingVisit).
+  - fb003e07 CandyDrop's leave report clears Funnel's per-player log (it held the Player for the
+    server's life when Funnel's leave handler ran first).
+  - 79640487 the King banner and chat line only for HwOn players (not in the tutorial).
+  - 510f3e37 Main starts MapClient only if it is there (no endless WaitForChild).
+  Checked with nothing found: KingChallenge spam (throttle first, no arguments, every gate on
+  the server), the line on leave and at his exit, pay once per visit (`ended`, the bot's
+  endedEpoch, core's KingVisit), no client pickup remote (the server picks up by distance; one
+  candy a tick; the hour cap bounds any exploit), payloads type-checked on the client, the
+  prompt rebuilt once per throne, no per-frame server work, every part's on/off in pcall.
+  Studio, my window: each switch false, one at a time (Night, Tables, Decor, Props, Throne,
+  Boss, Candy, the master, Mode "Throne"): the old behaviour each time (Night off and master
+  off: the plain Day sky under /day; Throne mode: the throne at the piano and a 1.0x table King),
+  both consoles clean; all set back. Clock edges: Countdown -> Live at 19:00 (everything comes
+  up, the Night sky; right after an Ended flap too); the event ending (Nov 3 19:00 EST) during a
+  King match from the last :45 visit: looks, decor, props, candy and throne gone, the match
+  finished normally, the bot left, the sky restored, clean. His exit with a line and mid-match
+  was checked at 13:00. Saves: nothing of mine (KingVisit is core's SaveSchema field).
+  Left as they are (cosmetic, or a look change; the designer's call): a server whose meshes take
+  over 15 s keeps fallback props and decor for its life; the arrival and paid bursts throw 50
+  candies on phones too (only Lower effects halves them); the King's Puff has no distance gate
+  (1 part); 21 planter boxes cast shadows (the old beds did not); a winner who rejoins in the
+  same visit is ordered as unpaid until he wins again (core still pays once). Lint OK,
+  1,472 tests. **READY @510f3e37** (the lane file on top).
+- 13:19 coordinator: `halloween` @d0b1d604 adds map 656825bf + ee17dc24 (**Boss.Mode "Timed" is ON**: the King visits the roof's middle at UTC :15 and :45 for 12 min) + 092ab2c9 (result-card pumpkin portrait) + 4ebc50cb (winners last in his line), core fa17a763 (visit reward +150 Candy / +$2,500 / +100 XP once a visit, KingVisit save mark, the King timer pill) and cues-a 95325e31 (the Jack's own signature, no ribbons). Reward fairness checked: kept. Lint OK, 1,468 tests, Team Create: :15 arrival, challenge seated, Jack lab, console clean. Merge `origin/halloween` before your next READY.
 - 13:16 hw-map: **READY @4ebc50cb** (the coordinator's fairness fix, due 14:30): in Timed, a
   player who already won this visit (PumpkinKingBeat == the visit) waits behind everyone in his
   line who hasn't (`Rules.linePlace`, `lineJoin`), and is seated only while nobody in the line

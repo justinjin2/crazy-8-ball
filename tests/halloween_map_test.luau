@@ -472,6 +472,24 @@ return {
 		end
 	end,
 
+	["a King whose bot is gone without an ending stops counting toward MaxAtOnce"] = function()
+		local R = H.require("HalloweenMap.Rules")
+		local kings = {
+			[-1] = { ended = true }, -- a finished match
+			[-2] = {}, -- playing
+			[-3] = {}, -- his table reset before he saw the result: removed, never ended
+		}
+		local alive = { [-1] = false, [-2] = true, [-3] = false }
+		local n = R.kingsPlaying(kings, function(id: number): boolean
+			return alive[id]
+		end)
+		H.expect(n == 1, "only the King still playing counts, got " .. n)
+		local withSeating = R.kingsPlaying(kings, function(id: number): boolean
+			return alive[id]
+		end, 2)
+		H.expect(withSeating == 3, "two Kings being seated count too (his body is still building)")
+	end,
+
 	["the King's line keeps its order, joins once and drops"] = function()
 		local R = H.require("HalloweenMap.Rules")
 		local line = {}
@@ -481,6 +499,35 @@ return {
 		H.expect(R.lineDrop(line, 22) and table.find(line, 33) == 2, "the rest move up")
 		H.expect(not R.lineDrop(line, 99), "dropping a stranger does nothing")
 		H.expect(line[1] == 11, "the first in line is next")
+	end,
+
+	["the Throne switch off stops the timed King's visits (no throne anywhere)"] = function()
+		local R = H.require("HalloweenMap.Rules")
+		local HM = H.require("Config").HalloweenMap
+		local mode, throne = HM.Boss.Mode, HM.Throne.Enabled
+		HM.Boss.Mode, HM.Throne.Enabled = "Timed", true
+		H.expect(R.kingVisits(), "Timed with the throne on: he visits")
+		HM.Throne.Enabled = false
+		local off = R.kingVisits()
+		HM.Boss.Mode = "Throne"
+		local throneMode = R.kingVisits()
+		HM.Boss.Mode, HM.Throne.Enabled = mode, throne
+		H.expect(not off, "Timed with the Throne switch off: no visits, no stage")
+		H.expect(not throneMode, "Throne mode never runs the visits")
+	end,
+
+	["any King switch off stops his visits (the map, the Boss)"] = function()
+		local R = H.require("HalloweenMap.Rules")
+		local HM = H.require("Config").HalloweenMap
+		local mode, master, boss = HM.Boss.Mode, HM.Enabled, HM.Boss.Enabled
+		HM.Boss.Mode = "Timed"
+		HM.Enabled = false
+		local masterOff = R.kingVisits()
+		HM.Enabled, HM.Boss.Enabled = true, false
+		local bossOff = R.kingVisits()
+		HM.Boss.Mode, HM.Enabled, HM.Boss.Enabled = mode, master, boss
+		H.expect(not masterOff, "the map's master switch off: no visits")
+		H.expect(not bossOff, "the Boss switch off: no visits")
 	end,
 
 	["a winner of this visit waits behind everyone who hasn't won"] = function()
