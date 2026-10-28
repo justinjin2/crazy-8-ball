@@ -9,11 +9,14 @@
 -- their LIVE rects instead (measured AbsolutePosition/AbsoluteSize), so this mirror only has to
 -- be close enough for the test to catch a layout that cannot fit.
 --
--- The rules (`boost`): the pill sits in the row over the money pill, LeftPx right of the money
--- HUD's left edge; on a short screen at least ColumnGapPx right of the left column, so the
--- column never has to lift for it. Its width is fixed by WidestText. The chip sits right over
+-- The rules (`boost`): the "pill" (since 2026-10-28 its lines of outlined text with no
+-- background: Money Boost, and Candy Boost over it while the event is live) sits right over the
+-- money pill, LeftPx right of the money HUD's left edge; on a short screen at least ColumnGapPx
+-- right of the left column when it fits there, so the column never moves for it, else over the
+-- money pill with the column kept above it (`columnAfter`); if it still touches a piece (an
+-- iPad's full hotbar) it rises over it. Its width is fixed by WidestText. The chip sits right over
 -- the pill at the same left x; if it would touch another piece it becomes the compact chip
--- ("2x 8:12"), then its words shrink (never under MinTextPx), and as a last resort it rises
+-- ("CANDY 8:12"), then its words shrink (never under MinTextPx), and as a last resort it rises
 -- over the piece it touches. The card sits over the pill; when it is too tall for the room
 -- there its foot lines go (the last first), then it scales down (`cardFit`). Text widths are
 -- the CharWidthShare estimate, in the test and the game alike.
@@ -35,6 +38,7 @@ export type Screen = { w: number, h: number }
 -- What is on screen (the test's cases; the game passes what it sees).
 export type Scene = {
 	vip: boolean?,
+	candy: boolean?, -- the Candy Boost line shows (the event is live): two lines, not one
 	moneyText: string?, -- the money pill's words ("$125,000")
 	moneyPlus: boolean?, -- the money pill's gold "+" (hidden in a match); nil = shown
 	plusShown: boolean?, -- the Roblox Plus tile right of Invite
@@ -58,8 +62,9 @@ export type Others = {
 }
 
 export type Boost = {
-	pill: Rect,
+	pill: Rect, -- the lines' box (one line, or two with Candy)
 	pillTextPx: number,
+	lineH: number, -- one line's height
 	chip: Rect?,
 	chipText: string?, -- the words the chip shows (the compact form when chipCompact)
 	chipTextPx: number,
@@ -86,14 +91,13 @@ function HudLayout.textWidth(text: string, px: number): number
 	return math.ceil((utf8.len(text) or #text) * px * P.CharWidthShare)
 end
 
---- The pill's size on this screen: (width, height, text px).
-function HudLayout.pillSize(screen: Screen): (number, number, number)
+--- The lines' box on this screen for `lines` lines (1 or 2): (width, height, text px, line
+--- height).
+function HudLayout.pillSize(screen: Screen, lines: number): (number, number, number, number)
 	local short = HudLayout.short(screen)
-	local h = if short then P.ShortHeightPx else P.HeightPx
+	local lineH = if short then P.ShortLinePx else P.LinePx
 	local textPx = if short then P.ShortTextPx else P.TextPx
-	local icon = math.floor(h * P.IconShare)
-	local w = P.PadPx + icon + P.InnerGapPx + HudLayout.textWidth(P.WidestText, textPx) + P.PadPx
-	return w, h, textPx
+	return HudLayout.textWidth(P.WidestText, textPx), lineH * lines, textPx, lineH
 end
 
 --- The chip's size for `text` at `textPx` with or without its icon: (width, height).
@@ -108,7 +112,7 @@ function HudLayout.chipSize(
 	return CHIP.PadPx + iconW + HudLayout.textWidth(text, textPx) + CHIP.PadPx, h
 end
 
---- The compact chip's words: "2x CANDY 8:12" -> "2x 8:12" (the first word and the clock).
+--- The compact chip's words: "CANDY RUSH 8:12" -> "CANDY 8:12" (the first word and the clock).
 function HudLayout.compact(text: string): string
 	local first = text:match("^(%S+)")
 	local rest = text:match(CHIP.CompactPattern)
@@ -238,13 +242,20 @@ local function inside(a: Rect, screen: Screen): boolean
 	return a.x >= 0 and a.y >= 0 and a.x + a.w <= screen.w and a.y + a.h <= screen.h
 end
 
--- The obstacles a chip must clear, in a fixed order.
-local function obstaclesOf(others: Others, pill: Rect): { Rect }
-	local list: { Rect } = { pill, others.money, others.invite }
-	for _, r in { others.plus, others.hotbar, others.winTrack, others.column } :: { Rect? } do
+-- The obstacles a piece must clear, in a fixed order (the column only when `column`: a piece
+-- the column keeps above need not clear it).
+local function obstaclesOf(others: Others, pill: Rect?, column: boolean): { Rect }
+	local list: { Rect } = { others.money, others.invite }
+	if pill then
+		table.insert(list, 1, pill)
+	end
+	for _, r in { others.plus, others.hotbar, others.winTrack } :: { Rect? } do
 		if r then
 			table.insert(list, r)
 		end
+	end
+	if column and others.column then
+		table.insert(list, others.column)
 	end
 	return list
 end
@@ -264,12 +275,28 @@ end
 --- Where the pill, the chip and the card go, given the other pieces' rects.
 function HudLayout.boost(screen: Screen, s: Scene, others: Others): Boost
 	local short = HudLayout.short(screen)
-	local pw, ph, pillTextPx = HudLayout.pillSize(screen)
-	local x = others.money.x + P.LeftPx
-	if short and others.column then
-		x = math.max(x, others.column.x + others.column.w + P.ColumnGapPx)
+	local pw, ph, pillTextPx, lineH = HudLayout.pillSize(screen, if s.candy then 2 else 1)
+	local y = others.money.y - P.GapPx - ph
+	local pill = { x = round(others.money.x + P.LeftPx), y = y, w = pw, h = ph }
+	local column = others.column
+	if short and column then
+		local right = column.x + column.w + P.ColumnGapPx
+		local beside = { x = round(math.max(pill.x, right)), y = y, w = pw, h = ph }
+		if not firstHit(beside, obstaclesOf(others, nil, true), screen) then
+			pill = beside
+		end
 	end
-	local pill = { x = round(x), y = others.money.y - P.GapPx - ph, w = pw, h = ph }
+	-- Right of the column, the chip clears it too; over the money pill the column keeps above both.
+	local clearColumn = column ~= nil and pill.x >= column.x + column.w
+	-- Last resort: rise over a piece it touches (an iPad's full hotbar), a few pieces at most.
+	local blockers = obstaclesOf(others, nil, clearColumn)
+	local blocked = firstHit(pill, blockers, screen)
+	local lifts = 0
+	while blocked and lifts < #blockers do
+		lifts += 1
+		pill = { x = pill.x, y = math.min(pill.y, blocked.y - P.GapPx - ph), w = pw, h = ph }
+		blocked = firstHit(pill, blockers, screen)
+	end
 
 	local chip: Rect? = nil
 	local chipText: string? = nil
@@ -277,7 +304,7 @@ function HudLayout.boost(screen: Screen, s: Scene, others: Others): Boost
 	local compact, lifted = false, false
 	local text = s.chipText
 	if text and text ~= "" then
-		local obstacles = obstaclesOf(others, pill)
+		local obstacles = obstaclesOf(others, pill, clearColumn)
 		local function at(words: string, px: number, y: number?): Rect
 			local w, h = HudLayout.chipSize(screen, words, px, true)
 			return { x = pill.x, y = y or (pill.y - CHIP.GapPx - h), w = w, h = h }
@@ -324,6 +351,7 @@ function HudLayout.boost(screen: Screen, s: Scene, others: Others): Boost
 	return {
 		pill = pill,
 		pillTextPx = pillTextPx,
+		lineH = lineH,
 		chip = chip,
 		chipText = chipText,
 		chipTextPx = chipTextPx,

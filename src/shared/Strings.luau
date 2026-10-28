@@ -1283,6 +1283,11 @@ return {
 	BoostPill = {
 		Title = "YOUR BOOSTS",
 		Percent = "+%d%%",
+		-- The HUD lines over the money pill (no background): Money green, Candy orange.
+		Lines = {
+			Money = "Money Boost: +%d%%",
+			Candy = "Candy Boost: +%d%%", -- while the event is live
+		},
 		Parts = {
 			Vip = "VIP",
 			Group = "Group",
