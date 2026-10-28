@@ -88,6 +88,7 @@ local MAP_KEYS = {
 	"LuckyBlocks",
 	"EmoteFavorites",
 	"Badges",
+	"Halloween",
 }
 
 -- Shop's true/false fields, in the order fixes are reported.
@@ -135,6 +136,32 @@ local DAILY_KEYS = {
 --- A fresh copy of a new player's save. Every call builds new tables, so changing one copy
 --- never changes the next. Every map starts empty: ProfileStore's Reconcile copies template
 --- keys into saves that lack them, so an entry here would appear in every player's map.
+--- A fresh Halloween table (the event's save field): Candy from play and from packs, the
+--- active seconds (the Spider), the track steps given, quest progress and claims, the Pumpkin
+--- King's day and cooldown, the pickup hour, and the conversion's marks. String keys only.
+function SaveSchema.freshHalloween(): any
+	return {
+		Earned = 0, -- Candy from play: matches, quests, the King, pickups
+		Bought = 0, -- Candy from the two packs
+		Active = 0, -- seconds of active play while the event was Live (the Spider)
+		Given = {}, -- ["1".."11"] = true: track steps granted
+		Spider = false, -- the Spider Cue granted
+		Q = {}, -- ["<board>.<slot>"] = quest progress (a whole number)
+		Claimed = {}, -- ["<board>.<slot>"] = true
+		KingDay = 0, -- the UTC day (unix // 86400) KingPaid counts
+		KingPaid = 0, -- paid King wins that day
+		KingWins = 0, -- every King win (the PumpkinSlayer badge reads it)
+		KingReadyAt = 0, -- unix seconds the personal King cooldown ends
+		PickHour = 0, -- the UTC hour (unix // 3600) PickCount counts
+		PickCount = 0, -- lobby pickups that hour
+		Seen = false, -- opened the event menu once (the tile's NEW)
+		Converted = false, -- the end's Candy to money is done (once per save)
+		ConvertedMoney = 0,
+		ConvertedAt = 0, -- unix seconds
+		EndSeen = false, -- the end screen was shown
+	}
+end
+
 function SaveSchema.template(): any
 	local stats = {}
 	for _, key in STAT_KEYS do
@@ -241,6 +268,10 @@ function SaveSchema.template(): any
 		-- A new field, so no version bump: Reconcile adds it to an older save. Unknown keys stay,
 		-- so a retired badge never strips anything.
 		Badges = {},
+		-- The Halloween 2026 event (2026-10-28; Config.Halloween, Halloween/Ledger). A new field,
+		-- so no version bump: Reconcile adds it to an older save. Candy is never spent: the
+		-- track counts Earned + Bought, and once the event ends it all becomes money (Converted).
+		Halloween = SaveSchema.freshHalloween(),
 	}
 end
 
@@ -1250,6 +1281,39 @@ local function fixLuckyBlocks(blocks: { [any]: any }, fixes: { string })
 	end
 end
 
+-- The Halloween field's whole counters, unix times and true/false marks (freshHalloween).
+local HALLOWEEN_COUNTS = {
+	"Earned",
+	"Bought",
+	"Active",
+	"KingDay",
+	"KingPaid",
+	"KingWins",
+	"PickHour",
+	"PickCount",
+	"ConvertedMoney",
+}
+local HALLOWEEN_TIMES = { "KingReadyAt", "ConvertedAt" }
+local HALLOWEEN_FLAGS = { "Spider", "Seen", "Converted", "EndSeen" }
+
+-- The Halloween field (2026-10-28): whole counters and times clamped, marks true or false,
+-- Given and Claimed sets, Q whole progress counts. Unknown keys are kept.
+local function fixHalloween(hw: { [any]: any }, fixes: { string })
+	for _, key in HALLOWEEN_COUNTS do
+		fixInteger(hw, key, "Halloween." .. key, SaveCfg.StatCap, fixes)
+	end
+	for _, key in HALLOWEEN_TIMES do
+		fixInteger(hw, key, "Halloween." .. key, SaveCfg.UnixTimeCap, fixes)
+	end
+	for _, key in HALLOWEEN_FLAGS do
+		fixBoolean(hw, key, "Halloween." .. key, fixes)
+	end
+	local small = SaveCfg.MaxSmallEntries
+	fixMapAt(hw, "Given", "Halloween.Given", small, onlyTrue, fixes)
+	fixMapAt(hw, "Q", "Halloween.Q", small, wholeFrom1(SaveCfg.StatCap), fixes)
+	fixMapAt(hw, "Claimed", "Halloween.Claimed", small, onlyTrue, fixes)
+end
+
 function SaveSchema.validate(data: any): (any, { string })
 	local fixes: { string } = {}
 	if type(data) ~= "table" then
@@ -1430,6 +1494,7 @@ function SaveSchema.validate(data: any): (any, { string })
 	fixMap(data.EmoteFavorites, "EmoteFavorites", SaveCfg.MaxSmallEntries, onlyTrue, fixes)
 
 	fixMap(data.Badges, "Badges", SaveCfg.MaxBadgeEntries, onlyTrue, fixes)
+	fixHalloween(data.Halloween, fixes)
 
 	return data, fixes
 end
