@@ -57,7 +57,7 @@ local function refresh(player: Player)
 	if player:GetAttribute(COUNT_ATTRIBUTE) ~= shown then
 		player:SetAttribute(COUNT_ATTRIBUTE, shown)
 	end
-	local cap = Config.Economy.FriendBoostMaxFriends or 4
+	local cap = Config.Economy.FriendBoostMaxFriends
 	peak[player] = math.max(peak[player] or 0, math.min(shown, cap))
 end
 
@@ -94,7 +94,7 @@ local function ask(player: Player, other: Player)
 		known[key] = false -- 0 for the rest of the session
 		return
 	end
-	task.delay(Config.Economy.FriendRetrySeconds or 30, function()
+	task.delay(Config.Economy.FriendRetrySeconds, function()
 		if player.Parent == Players and other.Parent == Players and failures[key] == tries then
 			ask(player, other)
 			refresh(player)
