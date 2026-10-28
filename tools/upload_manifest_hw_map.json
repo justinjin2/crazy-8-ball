@@ -34,5 +34,10 @@
     "assetType": "Decal",
     "imageId": "121512489350859",
     "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-map/assets/halloween/map/HalloweenMap_props.glb": {
+    "assetId": "137550009666802",
+    "assetType": "Model",
+    "status": "ok"
   }
 }

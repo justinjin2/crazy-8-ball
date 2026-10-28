@@ -9133,11 +9133,40 @@ Config.HalloweenMap = {
 		-- The candy explosion over the table on a win: sprites, sparkles, seconds, drawn this close.
 		Burst = { Candies = 50, Sparkles = 30, Seconds = 2, ShowStuds = 120 },
 	},
+	-- The event's meshes (assets/halloween/map/gen_props.py: one .glb, one palette texture),
+	-- uploaded as one Model and loaded on the server (HalloweenMap/Assets) into ReplicatedStorage
+	-- [Folder], one template Model per prop. Origins: where each prop's origin sat along
+	-- Blender X in the file (its pivot: a pumpkin's centre, a tree's or a tombstone's foot, a
+	-- strand's ends' middle, a cobweb's corner). Pieces named "*.Glow" are drawn Neon in Glow.
+	Assets = {
+		Model = 137550009666802, -- HalloweenMap_props.glb (tools/upload_manifest_hw_map.json)
+		Folder = "HalloweenMapAssets",
+		LoadRetries = 3,
+		LoadRetrySeconds = 2,
+		WaitSeconds = 15, -- the most a part waits for the meshes before its fallback shapes
+		Origins = {
+			Pumpkin = 0,
+			Crown = 4,
+			DeadTree = 10,
+			Tombstone = 18,
+			Strand = 32,
+			Bat = 46,
+			Cobweb = 50,
+			CandyOrange = 55,
+			CandyPurple = 58,
+			Bush = 62,
+		},
+		-- The Neon glow by prop (RGB): the carved faces, the lanterns' glass, the bulbs.
+		Glow = {
+			Pumpkin = { 255, 190, 60 },
+			DeadTree = { 255, 150, 50 },
+			Strand = { 255, 130, 40 },
+		},
+	},
 	-- The Pumpkin King's look (KingLook; the approved mocks/v2/P1_pumpkin_king.png): a blocky
 	-- R15 body in a black suit, a glowing carved pumpkin head with a tilted gold crown, a purple
 	-- cape lined orange, an orange bow tie, a gold chain, pumpkin epaulettes, a purple and orange
-	-- flame aura. Colours RGB 0-255. Meshes: uploaded MeshPart ids by piece name (empty: the
-	-- code-built shapes).
+	-- flame aura. Colours RGB 0-255 (the head and crown meshes: Assets; the rest code-built).
 	King = {
 		Body = {
 			Head = { 20, 20, 24 },
@@ -9154,7 +9183,6 @@ Config.HalloweenMap = {
 		Cape = { 92, 34, 150 },
 		Lining = { 255, 122, 26 },
 		Vest = { 255, 122, 26 },
-		Meshes = {} :: { [string]: { Mesh: string, Texture: string?, Size: { number } } },
 		Icon = "", -- his 256x256 portrait (rbxassetid; empty: the PC robot's)
 		-- His idle and walk (Body.build's keys; nil: Config.Bots.Animations); the throne figure
 		-- sits (Sit).

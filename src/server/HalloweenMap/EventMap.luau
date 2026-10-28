@@ -18,6 +18,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local TableBuilder = require(Shared:WaitForChild("TableBuilder"))
 local Rules = require(Shared:WaitForChild("HalloweenMap"):WaitForChild("Rules"))
+local Assets = require(script.Parent:WaitForChild("Assets"))
 
 local HM = Config.HalloweenMap
 
@@ -216,6 +217,7 @@ function EventMap.start(isArena: boolean)
 		return
 	end
 	isArenaServer = isArena
+	Assets.start() -- the event's meshes, loaded in the background
 	task.spawn(function()
 		while true do
 			local state = Rules.mapState(

@@ -6,11 +6,10 @@
 --
 -- Every piece is welded (WeldConstraint, so AvatarPose keeps them while he shoots), Massless
 -- and touches nothing; the throne has one invisible collision box and nothing else collides.
--- A piece with an uploaded mesh in Config.HalloweenMap.King.Meshes uses it (AssetService,
--- cached once); otherwise the code-built shape stands in. Real lights: his aura's one, the
+-- The carved pumpkin (his head, the throne's back, the small pumpkins) and the crown are the
+-- event's meshes (HalloweenMap/Assets); while they are not loaded, code-built shapes stand in. Real lights: his aura's one, the
 -- throne's two (Config.HalloweenMap.Props.Budget.Lights).
 
-local AssetService = game:GetService("AssetService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerStorage = game:GetService("ServerStorage")
@@ -19,6 +18,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local Catalog = require(Shared:WaitForChild("Progression"):WaitForChild("Catalog"))
+local Assets = require(script.Parent:WaitForChild("Assets"))
 
 local HM = Config.HalloweenMap
 local KL = HM.King
@@ -59,45 +59,6 @@ local function piece(
 	return p
 end
 
--- Uploaded meshes by piece name (Config.King.Meshes), made once and cloned after.
-local meshCache: { [string]: MeshPart | false } = {}
-
-local function meshPiece(name: string): MeshPart?
-	local spec = KL.Meshes[name]
-	if spec == nil then
-		return nil
-	end
-	local cached: MeshPart | false | nil = meshCache[name]
-	if cached == nil then
-		local ok, made = pcall(function()
-			return AssetService:CreateMeshPartAsync(Content.fromUri(spec.Mesh))
-		end)
-		if ok and made then
-			local part = made :: MeshPart
-			if spec.Texture then
-				part.TextureID = spec.Texture
-			end
-			part.Size = Vector3.new(spec.Size[1], spec.Size[2], spec.Size[3])
-			cached = part
-		else
-			warn(("[HalloweenMap] the King's %s mesh failed: %s"):format(name, tostring(made)))
-			cached = false
-		end
-		meshCache[name] = cached :: MeshPart | false
-	end
-	if cached then
-		local copy = (cached :: MeshPart):Clone()
-		copy.Name = name
-		copy.CanCollide = false
-		copy.CanQuery = false
-		copy.CanTouch = false
-		copy.CastShadow = false
-		copy.Massless = true
-		return copy
-	end
-	return nil
-end
-
 local function weld(part: BasePart, to: BasePart, at: CFrame)
 	part.CFrame = to.CFrame * at
 	part.Anchored = false
@@ -106,6 +67,40 @@ local function weld(part: BasePart, to: BasePart, at: CFrame)
 	w.Part1 = part
 	w.Parent = part
 	part.Parent = to.Parent
+end
+
+-- A prop from the event's meshes (Assets: "Pumpkin", "Crown") laid out with its origin at
+-- `cf`, each piece stretched by `scale` (studs per stud, per axis): welded to `to` (a body
+-- part, `cf` in its space) or anchored into `parent` (`cf` in world space). False while the
+-- meshes are not loaded (the caller builds its fallback shape).
+local function prop(
+	name: string,
+	cf: CFrame,
+	scale: Vector3,
+	to: BasePart?,
+	parent: Instance?
+): boolean
+	local model = Assets.clone(name)
+	if model == nil then
+		return false
+	end
+	local pivot = model:GetPivot()
+	for _, part in model:GetChildren() do
+		if part:IsA("BasePart") then
+			local rel = pivot:ToObjectSpace(part.CFrame)
+			part.Size = part.Size * scale
+			local at = cf * CFrame.new(rel.Position * scale) * rel.Rotation
+			if to then
+				weld(part, to, at)
+			else
+				part.Anchored = true
+				part.CFrame = at
+				part.Parent = parent
+			end
+		end
+	end
+	model:Destroy()
+	return true
 end
 
 -- A carved face (two triangle eyes and a toothy grin) in Neon on the front (-Z) of a pumpkin
@@ -246,10 +241,7 @@ local function dressHead(head: BasePart)
 	end
 	local size = Vector3.new(1.9, 1.55, 1.9)
 	local at = CFrame.new(0, 0.12, 0)
-	local mesh = meshPiece("PumpkinHead")
-	if mesh then
-		weld(mesh, head, at)
-	else
+	if not prop("Pumpkin", at, Vector3.new(0.95, 0.85, 0.95), head) then
 		local shell = piece("PumpkinHead", Enum.PartType.Ball, size, rgb(KL.Pumpkin))
 		weld(shell, head, at)
 		carve(head, at, size, rgb(KL.Glow), "Head")
@@ -265,9 +257,19 @@ local function dressHead(head: BasePart)
 	local crownAt = at
 		* CFrame.new(0.15, size.Y / 2 + 0.15, 0)
 		* CFrame.Angles(0, 0, math.rad(-KL.CrownTiltDegrees))
-	local crownMesh = meshPiece("Crown")
-	if crownMesh then
-		weld(crownMesh, head, crownAt)
+	if prop("Crown", crownAt * CFrame.new(0, -0.1, 0), Vector3.one, head) then
+		-- the purple gems at the points' feet (the .glb's points: Blender angle 72k degrees)
+		for k = 0, 4 do
+			local a = 2 * math.pi * k / 5
+			local gem = piece(
+				"CrownGem",
+				Enum.PartType.Ball,
+				Vector3.new(0.17, 0.17, 0.17),
+				rgb(KL.Gem),
+				Enum.Material.Neon
+			)
+			weld(gem, head, crownAt * CFrame.new(-math.cos(a) * 0.56, 0.08, math.sin(a) * 0.56))
+		end
 	else
 		local band = piece(
 			"Crown",
@@ -332,13 +334,10 @@ local function dressTorso(torso: BasePart)
 		)
 		weld(eyes, torso, CFrame.new(side * s.X * 0.48, s.Y * 0.5, -0.25))
 	end
-	local cape = meshPiece("Cape")
 	local capeAt = CFrame.new(0, s.Y * 0.45, s.Z / 2 + 0.08)
 		* CFrame.Angles(math.rad(8), 0, 0)
 		* CFrame.new(0, -1.5, 0)
-	if cape then
-		weld(cape, torso, capeAt)
-	else
+	do
 		local outside = piece(
 			"Cape",
 			nil,
@@ -485,10 +484,16 @@ local function buildThrone(): Model
 	-- The giant jack-o'-lantern back with its glowing grin.
 	local backSize = Vector3.new(12, 10.5, 5.5)
 	local backAt = CFrame.new(0, 7.6, -6.6)
-	local back = meshPiece("ThroneBack")
-	if back then
-		place(model, back, backAt)
-	else
+	-- (the pumpkin faces -Z; the throne's front is +Z: half a turn)
+	if
+		not prop(
+			"Pumpkin",
+			pivot() * backAt * CFrame.Angles(0, math.pi, 0),
+			Vector3.new(6, 5.6, 2.9),
+			nil,
+			model
+		)
+	then
 		local shell = piece("ThroneBack", Enum.PartType.Ball, backSize, rgb(KL.Pumpkin))
 		place(model, shell, backAt)
 		for i = -2, 2 do
@@ -582,12 +587,22 @@ local function buildThrone(): Model
 			)
 			local small = Vector3.new(1.7, 1.35, 1.7) * (if k == 1 then 1 else 1.25)
 			local pAt = CFrame.new(side * (spot[1] + 1.6), small.Y / 2, z + 1)
-			local pumpkin = piece("SmallPumpkin", Enum.PartType.Ball, small, rgb(KL.Pumpkin))
-			place(model, pumpkin, pAt)
-			local face = piece("SmallPumpkinFace", nil, Vector3.new(0.2, 0.2, 0.2), black)
-			face.Transparency = 1
-			place(model, face, pAt * CFrame.Angles(0, math.pi, 0))
-			carve(face, CFrame.new(), small, rgb(KL.Glow), "Small")
+			local scale = small.X / 2
+			local meshed = prop(
+				"Pumpkin",
+				pivot() * pAt * CFrame.Angles(0, math.pi + side * 0.4, 0),
+				Vector3.new(scale, scale, scale),
+				nil,
+				model
+			)
+			if not meshed then
+				local pumpkin = piece("SmallPumpkin", Enum.PartType.Ball, small, rgb(KL.Pumpkin))
+				place(model, pumpkin, pAt)
+				local face = piece("SmallPumpkinFace", nil, Vector3.new(0.2, 0.2, 0.2), black)
+				face.Transparency = 1
+				place(model, face, pAt * CFrame.Angles(0, math.pi, 0))
+				carve(face, CFrame.new(), small, rgb(KL.Glow), "Small")
+			end
 		end
 		-- The purple crest banners on black posts.
 		local bx = side * 8.2
@@ -774,6 +789,7 @@ end
 --- Build the throne and its figure once (yields for the body), kept in ServerStorage.
 function KingLook.prepareThrone()
 	if built == nil then
+		Assets.wait() -- the meshes (a fallback shape for any that never come)
 		local model = buildThrone()
 		buildFigure(model)
 		model.Parent = storage()
