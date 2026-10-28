@@ -269,7 +269,19 @@ function Progression.start(screen: ScreenGui, hooks: Hooks)
 	money = MoneyHud.new(screen)
 	-- The boost pill over the money pill in the VIP tag's place (Halloween 2026, hw-gui lane;
 	-- off: VIP's tag, a VIP only). Both have the tag's shape (Purchased, LuckClover).
-	vipTag = if Config.UI.BoostPill.Enabled then BoostPill.new(money) else VipTag.new(money)
+	-- A pill that fails to build falls back to the VIP tag, so the HUD below still starts.
+	local pillOk, pill = false, nil
+	if Config.UI.BoostPill.Enabled then
+		pillOk, pill = pcall(BoostPill.new, money)
+		if not pillOk then
+			warn(
+				("[8ball] BoostPill failed to build, the VIP tag shows instead: %s"):format(
+					tostring(pill)
+				)
+			)
+		end
+	end
+	vipTag = if pillOk then pill else VipTag.new(money)
 	LuckClover.new(money, vipTag) -- the Grand Opening Luck's clover beside it (while it runs)
 	flyer = CashFlyer.new(screen, money, hooks.pocketToScreen)
 	newRank = NewRankPopup.new(screen, flyer, money)
@@ -312,7 +324,7 @@ function Progression.start(screen: ScreenGui, hooks: Hooks)
 		flyer = flyer,
 		rankHud = rankHud,
 		vipTag = vipTag,
-		boostPill = if Config.UI.BoostPill.Enabled then vipTag else nil, -- HubCorners' pad stop
+		boostPill = if pillOk then vipTag else nil, -- HubCorners' pad stop
 		hotbarCenter = LuckyClient.hotbarCenter,
 		bumpHotbar = LuckyClient.bumpHotbar,
 	}

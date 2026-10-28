@@ -32,6 +32,155 @@ From PLAN §4 (everything else is read-only; ask below under Requests):
   `docs/STATUS.md`, `ROADMAP.md`, `DECISIONS.md`, `ECONOMY.md` (coordinator).
 
 ## Status
+- **18:15 READY (robustness pass): hw-gui @00e8b415** (halloween @d9474296 merged clean on top).
+  Lint OK, `client_compiles` OK, **1469/1469 tests**, Studio console clean in every play (only the
+  known 203785492 ContentId and this place's no-API lines). Fix commits: ffadcd82, 165b809d,
+  2e2cc777 (its Progression part handed back in caedb96d), e5720308, 7ceea455, 3039f3f9,
+  4b27c7c6. Nothing needs cutting by switch. Details below.
+- **18:03 ROBUSTNESS PASS (the coordinator's 17:52 request; base halloween @cb89ebcc merged
+  clean).** Area: BoostPill and the boost card, Money.boostParts, and, assigned for this pass
+  (hw-core's files), EventMenu, EventButton, CandyToast. A read-only reviewer agent went
+  through the three core files; every finding below was checked in the code and, where fixed,
+  in Studio. None of these fixes can be Lune-tested (client Instances only): each was proved in
+  Studio by forcing the failure. Six fix commits, one per bug:
+  - **ffadcd82** Progression (my line): a BoostPill that fails to build fell through and stopped
+    the rest of `Progression.start` (the HUD). Now it warns once and the VIP tag shows. Studio,
+    forced error: one warn; VIP tag, corners, column and tile fine.
+  - **165b809d** BoostPill: one error in the 1 s tick would have stopped the pill updating for the
+    session. Now pcall, warn once.
+  - **2e2cc777** Progression + HubCorners (core's lines): EventMenu, CandyToast, Countdown,
+    EndScreen and the tile were built with no pcall inside `Progression.start`, so a missing icon
+    or string stopped the HUD for every player (and `Halloween.Enabled = false` did not stop them
+    being built). Each now builds in a pcall and warns once; the corners' pad stops skip a missing
+    tile (`self.eventTile and ...`). Studio, forced EventMenu and tile errors: two warns; corners,
+    column, emotes, King pill, lines, Settings and D-pad left all work. **The Progression part is
+    handed back in caedb96d** (the coordinator: hw-core takes those lines); the HubCorners part
+    stays.
+  - **4b27c7c6** HubCorners (the coordinator's finding): EventButton and Countdown were required
+    at the top of HubCorners, so a load error in either stopped the corners and the HUD. Now they
+    load lazily in a pcall (warned once); the tile build, both pad-stop lists and `padFocusedOn`
+    take a missing tile or King pill. Studio with EventButton failing to load: one warn; corners,
+    column, King pill, Settings, the pad stops and a solo match work (R7). A clean play: the tile
+    is the first pad stop again and D-pad left releases it.
+  - **e5720308** EventMenu: a pressed CLAIM hid while still selected, leaving a controller on
+    nothing. Now the selection moves to the next waiting CLAIM, else the X. Studio: four claims in
+    a row (`/hw quest done`), the selection always on a visible button.
+  - **7ceea455** EventButton: `target()` ignored hidden corners, so a King win's chip (shown at
+    once) flew to an empty right edge in a match or under the result card. Now no target there and
+    the chip stays and fades, as its header says. Studio: a King chip in a solo match stayed put;
+    a lobby chip still flies to the tile.
+  - **3039f3f9** CandyToast: the NEW CUE! card's screen and full-screen dim were parented before
+    the card was built, so a mid-build error (swallowed by the queue's pcall) would leave the dim
+    over the screen for the session. Now it is parented once whole. Studio: the Spider card shows
+    and OK closes it.
+  - Checked, nothing to fix:
+    - Isolation: `Money.boostParts` and `Money.boost` are nil-safe. The server-message handlers
+      and the toast queue are already in pcalls and drop `{toast={}}` and `{step=99}`. No warn
+      can fire per frame (the pill's chip and tick warns fire once).
+    - The ResultScreen has no Candy lines (the King's line is CandyToast's).
+    - Phone 844x390: the event menu (Root trick) has no text cut (`TextFits` everywhere), only its
+      soft shadow is 4 px past the top. The lines, chip and King pill do not overlap (13:41
+      emulation). The match HUD: lines and chip clear of the spin widget and the ability bar (R5).
+    - Gamepad: with the menu open, B's `8ballMenusClose` is bound; on close it is unbound and the
+      selection is released (nil). The card's B binding is always unbound on close (8 s
+      auto-close).
+    - Popups: nothing during the tutorial (both fresh runs). The match chip waits for a free lobby
+      and now flies before Daily (17:48). The queue is bounded (chips stale after 300 s; at most 6
+      cue cards).
+    - Busy at 19:00 (`/hw time countdown` while in a solo match): the Candy line appeared in the
+      match at 19:00; after the match the start message played, then the King countdown and the
+      tile.
+    - Publish after 19:00: servers boot straight into Live. A new player's tile has NEW until
+      the menu is first opened (all runs). **Nobody sees "THE HALLOWEEN EVENT HAS STARTED!"
+      tonight**: it plays only for a player who saw the countdown (Countdown `wasCounting`).
+    - Leave and cleanup: the event menu open when a solo match started closed itself (4.4 s, as
+      the player was seated). The menu's 1 s loop and bounces stop on close. Chips, line and card
+      destroy themselves.
+    - Switches, each in its own play, then set back (Config clean): `UI.BoostPill.Enabled =
+      false` gives the old VIP tag and no lines or chip (R2). `FriendBoostEnabled = false` gives
+      `friendBoost(3) = 0`, no Friends part and no friend rule on the card. `Halloween.Enabled =
+      false` gives no tile, King pill, Candy line or chip, only the Money line, and a card with no
+      Candy line (R3). No errors in any of the three.
+  - Not fixed (minor, report only):
+    - A NEW CUE! card that pops on a queue pad can stay up to 8 s into a match that starts under
+      it (B, OK or its auto-close end it). It needs a close hook in Progression's `closeScreens`,
+      not worth the risk tonight.
+    - A player busy at 19:00 sees the tile for 0.5 s before the start message hides it for 6 s
+      (Countdown.holding is set by its own 1 s tick). Unreachable with a publish after 19:00.
+  - Console (every play): client and server only the known 203785492 ContentId, this place's
+    no-API lines and the forced-error warns. Shots R2-R6 are in
+    `~/Desktop/8ball-refs/halloween/shots/hw-gui/final1744/`.
+- **17:48 FINAL FRESH-PLAYER RUN (the coordinator's 17:44 request) on hw-gui @971d5c16 =
+  halloween @16784c7c merged clean; lint OK, 1469/1469 tests. No code changed. PASS: the
+  first-Candy chip is fixed.** Window 1523x814, mock save, event Live by BootLive; a client
+  watcher logged every 0.05 s. Shots `~/Desktop/8ball-refs/halloween/shots/hw-gui/final1744/`.
+  - Tutorial Arrow → Pad → Game1 → Skip: no text with HALLOWEEN, KING, CANDY, BOOST or BADGE at
+    any moment (01, 02).
+  - First match (the skipped Game1 played out by script): WINNER 1-0, LegalEight, the card
+    $5,965 + Mystery block; the save got 143 Candy (`HwCandy 143 [Match, x2]`) (03). This time
+    the bot had left by the shot, so the card showed "Opponent left" with Rematch and Leave.
+  - **The chip, in the watcher's seconds:** Continue 175.14 → BRONZE! 175.44 → BRONZE! closes
+    181.46 → "+143" pops 181.59 at 761,446 and stays on screen, flying right (794 → 1294 by
+    182.54) toward the tile (1434,488) → lands 182.61 → King pill back 183.98 → **Daily Rewards
+    opens 184.23, 1.6 s after it landed** (04).
+  - Popups in order: BRONZE! → Daily Rewards (Day 1 claimed, closed) → Invite a friend? (05) →
+    lobby with the tile, the lines, the chip and "PUMPKIN KING IN 10:09".
+  - King: "PUMPKIN KING IS HERE! 11:26" in gold at UTC :15:32, moved below the arrival banner
+    "The Pumpkin King has arrived! Challenge him in the middle!"; Candy line +10% after the Rush,
+    the chip gone (06). `hudOverlap` empty. Minor, not Halloween's: while that banner shows (a
+    few seconds), its top-left corner (501,64) overlaps the Settings icon's label (497,29 to
+    541,73) by 9 px at this size.
+  - Console (the full LogService history): client only the known 203785492 ContentId. Server:
+    info lines (Tutorial, TutorialBot, Funnel incl. `1_Button`, `3_FirstCandy`, KingSpawn :15,
+    server ready, Admin, EconomyLog), "Badges: would award Welcome, FirstWin, RankBronze,
+    Halloween2026", this place's no-API lines (DataStore, MemoryStore, ProfileStore) and the
+    203785492 ContentId. No error or warning from game code.
+- **13:41 FRESH-PLAYER RUN (the coordinator's 13:19 request) on hw-gui @f84823fb = halloween
+  @1908738e merged clean; lint OK, 1468/1468 tests. No code changed (nothing in my files needed
+  a fix).** Window 1523x814 (HUD 1523x756), ProfileStore mock save (NoAccess), event Live by
+  BootLive. Shots `~/Desktop/8ball-refs/halloween/shots/hw-gui/fresh1319/` (Gate shots).
+  - Tutorial Arrow → Pad (QueuePad_02, the bot came) → Game1 → Skip: at each step a scan of every
+    visible text found nothing with HALLOWEEN, KING, CANDY, BOOST or BADGE: no Halloween button,
+    popups, badge toasts or King pill (01, 02). After Skip (still in Game1): "Candy Boost: +120%"
+    (Rush 2x × group 1.1) over "Money Boost: +120%" and "CANDY RUSH 7:54" (03); the tile and the
+    King pill wait for the lobby, as they should.
+  - First match: the skipped Game1 played out by script (PoolMatchQA shots): WINNER 1-0,
+    LegalEight, $6,240 + Mystery block (04). **The result card has no Candy line, by design**
+    (CandyToast: a match's Candy is a "+N" chip after the card closes). The save got 143 Candy =
+    (10 balls × 3 + 10 + 25) × 2.2 (server: `HwCandy 143 [Match, x2, PC]`, `3_FirstCandy`).
+  - Lobby popups in order: BRONZE! (05, closes itself after 6 s) → Daily Rewards (06; Day 1
+    claimed, closed) → Invite a friend? (07) → lobby: HALLOWEEN tile (NEW, !, ENDS IN 6d 0h),
+    "PUMPKIN KING IN 7:16", the lines and the chip (07, 08).
+  - **For hw-core (not my files): the first match's "+143" chip is lost.** A second fresh run
+    with a 0.05 s watcher: the toast arrives with the result card; Continue → BRONZE! → BRONZE!
+    closes (t 122.8) → the chip pops (122.9) → Daily Rewards opens (123.3) and HudFocus disables
+    the HalloweenToast screen (Enabled false; its DisplayOrder 15 over Daily's 10 does not help),
+    so the chip is gone about 0.4 s in, before reaching the tile (hidden too). A new player never
+    really sees their first Candy. Suggestion: `CandyToast.busy()` true while a chip flies
+    (`Progression.quiet` already asks it), so Daily's open waits about 1 s; or keep HalloweenToast
+    up through `Config.UI.Menu.Focus.Keep`.
+  - King pill: "PUMPKIN KING IN 13:17" in a Rush (`/hw time rush`, 08); "PUMPKIN KING IS HERE!
+    11:20" in gold at UTC :15:20 (`/hw time +740`, 11), where the chip has gone and the Candy line
+    reads +10% (group only), correct. PC: nothing touches the pill (645,64 to 877,98);
+    `hudOverlap` empty.
+  - Phone pass (09, 10): the Root trick cannot reach the lobby HUD (PoolHud has no Root; the
+    corners and the King pill read the ScreenGui's size) and `studio_size.sh` sees no Studio
+    window (Terminal has no Accessibility). So an 844x390 frame (the 58 px bar + an 844x332 HUD)
+    holds fresh MoneyHud, BoostPill and Countdown copies on live data: King pill 327,6 to 517,36
+    ("IS HERE!" 310 to 534); chip y 206-236; Candy line 242-260; Money line 260-278; money pill
+    284-324: no overlap. Not emulated: corners, column, win track, match bar, hotbar (my pieces
+    against them: the layout test). The pill sits under the top bar, the rank pill and Settings in
+    the bar row, so they cannot meet at any width: a reading of the code, not a phone render.
+  - Console (both runs, the full LogService history): client only `[8ball] shot done`,
+    `multiplayer client ready` and the known 203785492 ContentId. Server: info lines (Tutorial,
+    TutorialBot, Funnel, server ready, Admin, EconomyLog, the mock-save notice), this unpublished
+    place's no-API lines (DataStore and MemoryStore opening failures, `Leaderboards ... no
+    store`, `[ProfileStore]: Roblox API services unavailable`), "Badges: would award FirstWin,
+    RankBronze, Halloween2026", and 45x `StudioMatchQA:27: Unknown QA table` from my own table-id
+    probe (1-60), not the game. No error or warning from game code.
+- 13:19 coordinator: `halloween` @d0b1d604 adds map 656825bf + ee17dc24 (**Boss.Mode "Timed" is ON**: the King visits the roof's middle at UTC :15 and :45 for 12 min) + 092ab2c9 (result-card pumpkin portrait) + 4ebc50cb (winners last in his line), core fa17a763 (visit reward +150 Candy / +$2,500 / +100 XP once a visit, KingVisit save mark, the King timer pill) and cues-a 95325e31 (the Jack's own signature, no ribbons). Reward fairness checked: kept. Lint OK, 1,468 tests, Team Create: :15 arrival, challenge seated, Jack lab, console clean. Merge `origin/halloween` before your next READY.
+- 12:37 coordinator: `halloween` @7be001ed adds map 88e9cceb (throne builds once; Studio: 1 throne, 1 King) + 623d0051 (timed King schedule, Mode Throne), core 1361de6d (ActiveGate, pacing), sys 57bc2b91 (50 badges, v2 icons), cues-a 66af67b0 (painted Jack, Candy rework) + fec0cb91 (deterministic generator; a main-checkout regen is now clean), cues-b 0e3569b6 (Broom redo). Lint OK, 1,465 tests, Team Create play console clean. JUSTIN (12:35): the Pumpkin King becomes a timed visitor (UTC :15 and :45, 12 min, middle of the map, 1.5x size, a top timer, the King's line when tables are full, one paid win a visit: +150 Candy, +$2,500, +100 XP). Map and core build it by 15:00; Throne mode stays the fallback. Run `git fetch && git merge origin/halloween` before your next READY.
+- 12:15 coordinator: `halloween` @5dae747d adds map 7fd462cc + 39815514 (night rooftop, King, drops, /king), core d7120fac (the 11:30 review fixed, the Rush chip names what runs) and gui c9f01ea6 (the boost lines restyle, VIP perks in the Soft step). The contract test is now STRICT. Lint OK, 1,460 tests, Team Create play console clean (shots/coordinator/merge_5dae747d_boost_lines.jpg). Known blocker sent to map: the throne builds twice on a server that starts during Live. Run `git fetch && git merge origin/halloween` before your next READY.
 - **12:15 READY (restyle + review fixes; hw-gui @bf82d3fc after merging halloween @64085ab2):**
   lint OK, `client_compiles` OK, **1442/1442 tests**, Studio play console clean (only the known
   203785492 ContentId lines). One commit per item:
@@ -407,3 +556,35 @@ effects until Cues A's bodies and skins land, so re-shoot then):
   844x390 and 844x332, iPad; PC is the shots).
 - Switch decision: **OFF**, reason under Status (10:05): the phone and a real controller cannot
   be reached from this lane; the coordinator's sweep (Requests) flips it with one line.
+
+Fresh-player run 13:41 (`~/Desktop/8ball-refs/halloween/shots/hw-gui/fresh1319/`, Studio window
+1523x814, mock save; the phone ones are an emulated 844x390 frame, see Status 13:41):
+- `01-tutorial-arrow-no-halloween-pc.jpg`, `02-tutorial-game1-no-halloween-pc.jpg`: no Halloween
+  button, popup, toast or King pill in the tutorial.
+- `03-after-skip-game1-boost-lines-rush-chip-pc.jpg`: right after Skip, in Game1.
+- `04-first-match-result-card-no-candy-row-pc.jpg`: WINNER, no Candy line (by design).
+- `05-popup1-bronze-rank-up-pc.jpg`, `06-popup2-daily-rewards-pc.jpg`,
+  `07-popup3-invite-lobby-halloween-tile-king-pill-pc.jpg`: the popups in order.
+- `08-lobby-rush-chip-king-countdown-boost-lines-pc.jpg`: the King pill, the chip and the lines.
+- `09-phone-emu-844x390-king-countdown-rush-chip-lines.jpg` (and `-full`),
+  `10-phone-emu-844x390-king-is-here-lines.jpg`: the phone pass.
+- `11-lobby-king-is-here-gold-candy-10-pc.jpg`: "IS HERE!" in gold, Candy +10% after the Rush.
+
+Final fresh-player run 17:48 (`~/Desktop/8ball-refs/halloween/shots/hw-gui/final1744/`, Studio
+window 1523x814, mock save, halloween @16784c7c):
+- `01-tutorial-arrow-no-halloween-pc.jpg`, `02-tutorial-game1-no-halloween-pc.jpg`.
+- `03-first-match-result-card-pc.jpg`: WINNER (the bot had left: Rematch/Leave).
+- `04-popup2-daily-rewards-after-chip-pc.jpg`: Daily opens 1.6 s after the chip landed.
+- `05-popup3-invite-king-countdown-lines-chip-pc.jpg`: the invite, the King countdown, the lines.
+- `06-lobby-king-is-here-banner-candy-10-pc.jpg`: "IS HERE!" under the arrival banner.
+
+Robustness pass 18:03 (same folder `final1744/`, Studio window 1523x814):
+- `R2-switch-boostpill-off-vip-tag-pc.jpg`: `UI.BoostPill.Enabled = false`, the old VIP tag.
+- `R3-switch-halloween-off-money-line-card-pc.jpg`: `Halloween.Enabled = false`, the Money line
+  and the card only.
+- `R4-event-menu-phone-root-844x390.jpg`: the event menu with its Root at 844x390.
+- `R5-match-hud-after-menu-closed-pc.jpg`: the menu closed itself as a solo match started.
+- `R6-busy-at-1900-after-start-message-pc.jpg`: after the start message for a player busy at
+  19:00 (the tile without NEW: the menu had been opened in that play).
+- `R7-tile-module-load-error-match-works-pc.jpg`: EventButton failing to load (forced), a solo
+  match still works.
