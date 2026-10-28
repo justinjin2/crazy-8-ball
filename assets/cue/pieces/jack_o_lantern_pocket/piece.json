@@ -1,6 +1,7 @@
 {
   "id": "jack_o_lantern_pocket",
   "Frame": "pocket",
+  "Upright": true,
   "frame": "Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)",
   "Triangles": 6120,
   "Parts": [

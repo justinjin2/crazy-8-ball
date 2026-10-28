@@ -386,6 +386,12 @@
     "imageId": "87422541803734",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/vfx/jack_o_lantern/jack_4x4.png": {
+    "assetId": "118106652557059",
+    "assetType": "Decal",
+    "imageId": "108632142265177",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball-refs/emotes/birdbrain_loop.flac": {
     "assetId": "75387278867392",
     "assetType": "Audio",

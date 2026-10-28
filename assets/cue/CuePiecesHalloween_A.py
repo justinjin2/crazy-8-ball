@@ -629,6 +629,7 @@ def jack_o_lantern_pocket(k):
     import bmesh
     from mathutils import Vector
     k.frame = 'pocket'
+    k.upright = True   # face and jaw stay where they were built (CuePiece's half turn skipped)
     k.material('Shell', 'SmoothPlastic', '#FF7A1C', Reflectance=0.08)
     k.material('Core', 'Neon', '#FFC34D')
     k.material('Stem', 'SmoothPlastic', '#2F5A2A')
@@ -919,19 +920,96 @@ def rods_sheet(size=1024, grid=4, pad=8):
     return path
 
 
+JACK_VFX_DIR = os.path.join(os.path.dirname(PIECES_DIR), 'vfx', 'jack_o_lantern')
+
+
+def _set_emission(mat, strength):
+    """Every emission input of a material's nodes (looked up by type, never by name)."""
+    if not mat.use_nodes:
+        return
+    for node in mat.node_tree.nodes:
+        if node.type == 'EMISSION':
+            node.inputs['Strength'].default_value = strength
+        elif node.type == 'BSDF_PRINCIPLED' and 'Emission Strength' in node.inputs:
+            node.inputs['Emission Strength'].default_value = strength
+
+
+def jack_sprite(frames=16, px=240):
+    """vfx/jack_o_lantern/_frames_jack/NN.png: the pocket piece's jack-o'-lantern seen from the
+    front with its Neon face flickering like a candle and the head swaying a little: the aura's
+    floating mini jacks, the trail flecks and the finisher's popping jacks. Blender side."""
+    import bpy
+    import cue_common as cc
+    from mathutils import Euler, Vector
+    from CuePieces import attach
+    cc.clear_scene('JackSprite')
+    scene = bpy.context.scene
+    scene.render.engine = 'BLENDER_EEVEE'
+    scene.view_settings.view_transform = 'Standard'
+    scene.render.film_transparent = True
+    scene.render.image_settings.color_mode = 'RGBA'
+    scene.render.resolution_x = scene.render.resolution_y = px
+    world = bpy.data.worlds.new('W')
+    world.use_nodes = True
+    bg = next(n for n in world.node_tree.nodes if n.type == 'BACKGROUND')
+    bg.inputs[0].default_value = (1, 0.85, 0.7, 1)
+    bg.inputs[1].default_value = 0.35
+    scene.world = world
+    root = bpy.data.objects.new('Root', None)
+    scene.collection.objects.link(root)
+    animate = attach(bpy, 'jack_o_lantern_pocket', root)
+    assert animate is not None, 'build jack_o_lantern_pocket first'
+    animate(0.0)
+    cores = [m for m in bpy.data.materials if 'jack_o_lantern_pocket' in m.name and m.name.endswith('_Core')]
+    for loc, e in (((2.5, -4.0, 3.0), 1.6), ((-3.0, -3.0, 1.2), 0.7)):
+        ld = bpy.data.lights.new('L', 'AREA')
+        ld.energy = 220 * e
+        ld.size = 3
+        lo = bpy.data.objects.new('L', ld)
+        lo.location = loc
+        scene.collection.objects.link(lo)
+        lo.rotation_euler = (Vector((0, 0, 1.0)) - Vector(loc)).to_track_quat('-Z', 'Y').to_euler()
+    cam_d = bpy.data.cameras.new('C')
+    cam_d.type = 'ORTHO'
+    cam_d.ortho_scale = 2.7
+    cam = bpy.data.objects.new('C', cam_d)
+    scene.collection.objects.link(cam)
+    scene.camera = cam
+    cam.location = (0, -9, 1.15)
+    cam.rotation_euler = (Vector((0, 0, 1.0)) - Vector(cam.location)).to_track_quat('-Z', 'Z').to_euler()
+    # a candle: an irregular flicker that never repeats inside the sheet
+    flicker = [0.55, 0.9, 1.0, 0.7, 0.35, 0.8, 1.0, 0.95, 0.6, 0.25, 0.7, 1.0, 0.85, 0.5, 0.9, 0.65]
+    out = os.path.join(JACK_VFX_DIR, '_frames_jack')
+    os.makedirs(out, exist_ok=True)
+    for i in range(frames):
+        for m in cores:
+            _set_emission(m, 2.0 + 6.0 * flicker[i])
+        a = 2 * math.pi * i / frames
+        root.rotation_euler = Euler((math.radians(3.0 * math.sin(a * 2)), math.radians(2.0 * math.cos(a)), math.radians(7.0 * math.sin(a))))
+        scene.render.filepath = os.path.join(out, '%02d.png' % i)
+        bpy.ops.render.render(write_still=True)
+    print('CUE jack sprite frames', out)
+
+
 def sheets():
-    """System python: join the kernel frames into kernel_4x4.png and draw the rods sheet."""
+    """System python: join the rendered frames into their 4x4 sheets and draw the rods sheet."""
     from CuePieces import sheet_sprite
     if os.path.isdir(os.path.join(VFX_DIR, '_frames_kernel')):
         sheet_sprite('kernel', 'candy_corn')
+    if os.path.isdir(os.path.join(JACK_VFX_DIR, '_frames_jack')):
+        sheet_sprite('jack', 'jack_o_lantern')
     rods_sheet()
 
 
 def main():
     import sys
     argv = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else sys.argv[1:]
-    if '--sprites' in argv:
-        kernel_sprite()
+    if '--sprites' in argv:   # --sprites [kernel] [jack]: both when no name follows
+        names = [a for a in argv[argv.index('--sprites') + 1:] if not a.startswith('--')] or ['kernel', 'jack']
+        if 'kernel' in names:
+            kernel_sprite()
+        if 'jack' in names:
+            jack_sprite()
         return
     if '--sheets' in argv:
         sheets()
