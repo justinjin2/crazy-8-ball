@@ -722,7 +722,8 @@ local function buildFigure(model: Model)
 	end
 	local root = figure:FindFirstChild("HumanoidRootPart") :: BasePart
 	root.Anchored = true
-	figure:PivotTo(pivot() * CFrame.new(0, 4.6, -2.3))
+	-- Facing the aisle (the throne's front is +Z: half a turn, as the pumpkin back).
+	figure:PivotTo(pivot() * CFrame.new(0, 4.6, -2.3) * CFrame.Angles(0, math.pi, 0))
 	-- His name over his head.
 	local head = figure:FindFirstChild("Head")
 	if head and head:IsA("BasePart") then

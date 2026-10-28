@@ -619,8 +619,8 @@ request: ask in your lane file's Requests when a verified part should land early
 
 - [x] 1. Interfaces pushed by 08:15: Config.HalloweenMap (all switches off; the `Enabled`, `Boss.Enabled` and `Candy.Enabled` keys; no hour-cap key) and Lighting.Night shape, Strings, the two Net remotes, the Bootstrap and Main blocks with their switched-off modules; lane file Requests and attribute names written; lint and tests green.
 - [x] 2. `HalloweenMap/Rules.luau` with its Lune tests (kingTier, hideList, decorInside, eligible, teleported, state actions).
-- [ ] 3. EventMap's switch: Event.state with the Studio force, the two workspace attributes, idempotent on and off, a boot during Live.
-- [ ] 4. Night: Lighting.Night tuned in Play, `LightCycle.event` and `mixStates`, DayCycle following the state with preload and crossfade; Night ≥ 0.9 of Day's brightness, measured.
+- [x] 3. EventMap's switch: Event.state with the Studio force, the two workspace attributes, idempotent on and off, a boot during Live.
+- [x] 4. Night: Lighting.Night tuned in Play, `LightCycle.event` and `mixStates`, DayCycle following the state with preload and crossfade; Night ≥ 0.9 of Day's brightness, measured.
 - [ ] 5. Table looks by mode at run time (black frame + tints, restored at the end); rendered ΔE ≥ 17 under Night and Sunset, table in the lane file; gate 1 shots by 09:00.
 - [ ] 6. First start `bot_duel` in the background for every TierFor row (200 games each, `--no-write`, output to a log outside the repo) so step 9 only reads it; then the BotService boss hooks (description, icon, animations, dress, playBoss, BotsQA "boss"), Body's new arguments, People's icon.
 - [ ] 7. King look (description, head, crown, cape, suit pieces, aura, idle; a placeholder head is fine for gate 2, the real one by 13:00) and the throne at the piano spot with the throne figure; the piano hidden; the Rojo round trip of the first .rbxm checked.
