@@ -135,7 +135,9 @@ return {
 			local got = R.kingTier(tier)
 			local gi, wi = table.find(tiers, got), table.find(tiers, want[tier])
 			H.expect(gi ~= nil and wi ~= nil and gi <= wi and gi >= wi - 1, tier .. " -> " .. got)
-			H.expect(gi :: number >= (table.find(tiers, tier) :: number), tier .. ": never below")
+			-- Never below the player's own tier, but at the top (no tier above Reyes to fall from).
+			local pi = table.find(tiers, tier) :: number
+			H.expect(gi :: number >= pi or pi == #tiers, tier .. ": never below")
 		end
 		H.expect(R.kingTier(nil) == R.kingTier("Bronze"), "no rank counts as Bronze")
 		H.expect(R.kingTier("Unranked") == R.kingTier("Bronze"), "Unranked counts as Bronze")

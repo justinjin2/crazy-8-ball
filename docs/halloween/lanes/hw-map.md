@@ -124,4 +124,25 @@ coordinator resolves overlaps. Planned (add the commit sha when each lands):
 
 ## Assumptions
 
+- OVERRULED: the top three TierFor rows play a Grandmaster King, not Reyes (PLAN: two ranks
+  above, at most Reyes). Measured: a Reyes King left the model player 11.5% (Master), 13.5%
+  (Grandmaster) and 14.0% (Reyes), all under the brief's 20% floor; stepped down one tier they
+  read 26.5% / 33.0% / 36.0%, inside 25-45%. The Reyes row's King is now one tier below the
+  player (the only row so).
+
+### King difficulty (bot_duel, 200 games a row, `--no-write`, 2026-10-28)
+
+| Player | King | Player wins | Note |
+|---|---|---|---|
+| Bronze | Gold | 44.5% | |
+| Silver | Platinum | 39.5% | |
+| Gold | Diamond | 33.5% | |
+| Platinum | Expert | 39.5% | |
+| Diamond | Veteran | 36.0% | |
+| Expert | Master | 26.0% | |
+| Veteran | Grandmaster | 27.5% | |
+| Master | Grandmaster | 26.5% | Reyes King: 11.5% |
+| Grandmaster | Grandmaster | 33.0% | Reyes King: 13.5% |
+| Reyes | Grandmaster | 36.0% | Reyes King: 14.0% |
+
 ## Gate shots

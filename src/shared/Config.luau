@@ -9262,7 +9262,8 @@ Config.HalloweenMap = {
 		MinTier = "Gold", -- the King plays at least this tier...
 		TiersAbove = 2, -- ...and this many tiers above the player's (Unranked counts as Bronze)
 		-- The King's tier by the player's (Rules.kingTier; measured with tools/bot_duel.luau,
-		-- the win shares in docs/halloween/lanes/hw-map.md). (tune)
+		-- the win shares in docs/halloween/lanes/hw-map.md). The top three rows play a
+		-- Grandmaster King: a Reyes King left those players 11-14% (2026-10-28). (tune)
 		TierFor = {
 			Bronze = "Gold",
 			Silver = "Platinum",
@@ -9271,9 +9272,9 @@ Config.HalloweenMap = {
 			Diamond = "Veteran",
 			Expert = "Master",
 			Veteran = "Grandmaster",
-			Master = "Reyes",
-			Grandmaster = "Reyes",
-			Reyes = "Reyes",
+			Master = "Grandmaster",
+			Grandmaster = "Grandmaster",
+			Reyes = "Grandmaster",
 		},
 		MaxAtOnce = 3, -- King matches at once on a server
 		SpareTables = 2, -- free 1v1 tables a King match never takes
