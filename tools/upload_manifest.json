@@ -368,6 +368,18 @@
     "assetType": "Model",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/thumbs/candy_corn.png": {
+    "assetId": "86620364444680",
+    "assetType": "Decal",
+    "imageId": "112696270813806",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/thumbs/jack_o_lantern.png": {
+    "assetId": "107861865998214",
+    "assetType": "Decal",
+    "imageId": "110159550393453",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/vfx/candy_corn/kernel_4x4.png": {
     "assetId": "86802001063942",
     "assetType": "Decal",
