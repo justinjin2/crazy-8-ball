@@ -34,6 +34,7 @@ From PLAN §4 (everything else is read-only; ask through Requests):
   holds and retries otherwise), so a skin leaves draft only when the cue is complete.
 
 ## Status
+- 12:15 coordinator: `halloween` @5dae747d adds map 7fd462cc + 39815514 (night rooftop, King, drops, /king), core d7120fac (the 11:30 review fixed, the Rush chip names what runs) and gui c9f01ea6 (the boost lines restyle, VIP perks in the Soft step). The contract test is now STRICT. Lint OK, 1,460 tests, Team Create play console clean (shots/coordinator/merge_5dae747d_boost_lines.jpg). Known blocker sent to map: the throne builds twice on a server that starts during Live. Run `git fetch && git merge origin/halloween` before your next READY.
 - 11:55 coordinator: 11:30 review of 83e876db: one should-fix for the rework. Toggling Lower effects makes a hidden body stick reappear as a ghost: CuePiece's Quality.Changed handler calls applyHidden() with no args (base 0), CueSkinLook.step skips invisible looks, so the body shows where the cue was last drawn until it is next shown. Fix: keep the last modifier/eye/studs and reuse them in the Quality handler (and setAura). Minor: gate CueAssets' body warm on Config.CueSkins.Bodies.Enabled; HalloweenCueEquipped also fires on re-equipping the same cue.
 - 11:49 coordinator: `halloween` @64085ab2 adds core de236025 (the NEW CUE! card and end screen count in Progression.quiet) and cues-b a431419b (Witch Broom, Black Cat and Spider out of draft). cue_skins_data.py clean on halloween (66 skins, 28 pieces). Lint OK, 1,441 tests, Team Create play console clean. Map's READY 7fd462cc is next. Run `git fetch && git merge origin/halloween` before your next READY.
 - 11:36 coordinator: `halloween` @537270fd has cues-a 83e876db (drop 3 body path, CuePreview bodies, Candy Corn + Jack-o'-Lantern, Upright, analytics, Aim-fade fix), core 3c4b87aa (event menu, tile, quests, Spider, packs, art), sys c5b6b607 and gui 3438ea94 (review fixes). Lint OK, 1,436 tests, Team Create play console clean (only the known 203785492 ContentId lines), tile + 2x chip + pill +120% seen. Review of this merge is running; findings come back as Requests. Run `git fetch && git merge origin/halloween` before your next READY. Main.client still has 12 top-level locals to spare.
@@ -58,6 +59,30 @@ From PLAN §4 (everything else is read-only; ask through Requests):
 
 ## Status (continued)
 
+- 12:36: **Jack round 2 and the Candy Corn rework @ 35d80e33, both painted bodies (coordinator
+  12:05).** Jack (38caf81d): the body lathe now wears a rind colour map (`vfx/jack_o_lantern/
+  rind_512.png`: pumpkin ribs shaded bright on the crests and deep in the grooves with a
+  speckle, dark wood collars with grain at the joint and butt, a green stem, the butt pumpkin
+  burnt toward its end), the face brighter (Glow 0.1-0.75) and the eyes 1.25x; the soft orbs
+  thinned: glow volume 3/s, flame wisps 14/s and smaller, mini-jack sprites 3/s, a thicker dark
+  smoke behind them (Aura 87/s, was 117). Candy (35d80e33): the body lathe wears
+  `vfx/candy_corn/bands_512.png` (crisp cream/white/orange/yellow bands, a pearly sheen, glitter,
+  a hairline dark edge at every band; Reflectance 0.08 so the colours hold in the lobby's light)
+  and the new decor piece `candy_corn_aura` (6 parts, 4,872 tris, asset 140599343589600): a
+  Neon gold swirl and a thinner white sugar swirl spiralling the whole cue (0.17 and 0.21 off,
+  a turn every 1.8 studs, 40 and -30 deg/s, breathing) and four candy-corn kernels circling it
+  at 1.3/2.8/4.3/5.9 studs (aura joints, Spin + Bob, the palette map); Lower effects keeps the
+  gold swirl and two kernels; rows: Outline #FFB030, SugarHalo beam, the soft orbs thinned
+  (Aura 65/s, 1 beam, 2 lights, 1 orbiter). Both maps were first written upside down along
+  the cue (PNG row 0 is UV v = 1): fixed, re-uploaded (rind 87025522416082 / image
+  100529744606848; bands 134639070931625 / 91314085676266; candy body GLB 135070490205166,
+  aura GLB 140599343589600; Jack body GLB 120351810341434). Same ids, switches and catalog rows.
+  Lint green, 1,441 tests pass on the tree before the merge below. ONLY build in my window:
+  2 skins, 5 pieces, no problems. **Side-by-sides for the designer:**
+  `shots/hw-cues-a/gate2/side_by_side_jack_round3.jpg` and `side_by_side_candy_round1.jpg`
+  (new on the lab stand, the gate-2 cue before, the Firework on the same camera). Still open
+  after this round: the orbs read as sprites at the stand's distance; a further cut is one
+  json line each if the designer wants fewer.
 - 12:02: **Jack-o'-Lantern rework, round 1 @ 65df9aea (pushed), for the designer's look.** Body
   kept. New decor piece `jack_o_lantern_aura` (11 parts, 5,528 tris, asset 101189446369887):
   two Neon flame ribbons spiralling the whole cue 0.18 and 0.24 studs off the body (a turn
@@ -552,3 +577,13 @@ Gate 2 addition (10:28, `gate2/`): Jack-o'-Lantern complete @ db1a9fdb (+ 73fc00
 - `rework_jack_stand_v2.jpg`, `rework_jack_stand_close.jpg`, `rework_jack_back_v1.jpg`,
   `rework_jack_stand_v1.jpg`, `rework_firework_stand_ref.jpg`: the rework's stand (wide and
   close), its back, the first round before the glow was toned, and the Firework reference.
+- `side_by_side_jack_round3.jpg`, `side_by_side_candy_round1.jpg`: 12:30, the painted Jack and
+  Candy on the lab stand (top), the gate-2 cue before the rework (middle), the Firework on the
+  same close camera (bottom).
+- `rework_jack_close_v5.jpg`, `rework_jack_stand_v5.jpg`, `rework_jack_back_v5.jpg`: the painted
+  Jack close, wide and on a back. `rework_jack_close_v3.jpg`, `rework_jack_close_v4.jpg`,
+  `rework_jack_stand_v3.jpg`: the rounds before (the map upside down, the orbs thicker).
+- `rework_candy_close_v3.jpg`, `rework_candy_stand_v3.jpg`, `rework_candy_back_v3.jpg`: the
+  painted Candy close, wide and on a back. `rework_candy_stand_v1.jpg`, `rework_candy_close_v2.jpg`:
+  the rounds before (the map upside down; the orbs thicker). `rework_firework_close_ref2.jpg`:
+  the Firework on the same close camera, same light.
