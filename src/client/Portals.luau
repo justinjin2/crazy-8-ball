@@ -37,6 +37,7 @@ local lastSent = -math.huge
 local onPad: { mode: string, x: number, z: number, y: number, sub: TextLabel }? = nil
 local onSince = 0
 local asked = false -- asked on this visit: not again until they leave the pad
+local blocked = false -- seated at a table (Portals.setBlocked): roaming players are never asked
 local dialog: MenuFrame.Dialog? = nil
 local leaving = false -- the question is closing because they walked off
 local askGui: ScreenGui? = nil
@@ -329,7 +330,7 @@ end
 -- Each frame: on a pad asks (once it has been stood on AskAfterSeconds), off it closes the
 -- question. Off (Config.Portals.Ask): standing on a pad sends at once, as before.
 local function step()
-	if folder == nil then
+	if folder == nil or blocked then
 		return
 	end
 	local character = player.Character
@@ -365,6 +366,13 @@ local function step()
 	elseif not asked and os.clock() - onSince >= P.AskAfterSeconds then
 		ask(here)
 	end
+end
+
+--- While `on` (seated at a table whose game is on or showing its result: Progression), a
+--- portal pad asks nothing and sends nothing; a roaming player walks over it like floor. The
+--- server refuses a seated player anyway (PortalService). hw-sys lane, 2026-10-28.
+function Portals.setBlocked(on: boolean)
+	blocked = on
 end
 
 function Portals.start()

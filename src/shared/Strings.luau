@@ -1905,6 +1905,18 @@ return {
 		Countdown = "HALLOWEEN EVENT IN %s", -- 18:30-19:00, "HALLOWEEN EVENT IN 29:59"
 		Started = "THE HALLOWEEN EVENT HAS STARTED!",
 		Ended = "THE HALLOWEEN EVENT HAS ENDED!",
+		-- The designer's /hw command (DevCommands; CandyService.dev).
+		Dev = {
+			Status = "Halloween: %s at %s UTC (offset %ds). Candy %d, board %d, %dx, active %ds",
+			Usage = "/hw [time ...|candy <n>|quest done|active <s>|kingwin|convert|reset]",
+			TimeUsage = "/hw time before|countdown|live|rush|double|end|real|board <n>|+<seconds>",
+			TimeLiveGame = "Test time only works in Studio and on the test place.",
+			Added = "+%d Candy",
+			QuestsDone = "%d quest(s) moved",
+			KingWin = "King win: +%d Candy, cooldown %ds",
+			Converted = "Converted: $%d",
+			NotConverted = "Nothing to convert (the event is not over, or already done)",
+		},
 	},
 	-- The banner at the top middle (Banner). Names are players' usernames.
 	Banner = {

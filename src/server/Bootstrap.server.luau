@@ -61,6 +61,9 @@ Announce.start()
 Items.start()
 Store.start()
 Rewards.start()
+-- The Halloween event's Candy, the King's paid wins, the pickups' cap and the end's conversion
+-- (lobby and arena: matches settle in both).
+require(script.Parent:WaitForChild("Halloween"):WaitForChild("CandyService")).start()
 LuckyBlockService.start() -- lucky blocks: hold, throw, open (the test build)
 EconomyLog.start() -- AnalyticsService economy events for every money source and sink
 Trading.start() -- player-to-player trades (TradeRequest, TradeState) and the trade ledger

@@ -497,6 +497,9 @@ return {
 				"description for " .. row.Key
 			)
 		end
+		local Badges = H.require("Progression.Badges")
+		local problems = Badges.check(B.List, Strings.Badges, H.require("Progression.Catalog"))
+		H.expect(#problems == 0, "Badges.check: " .. table.concat(problems, "; "))
 	end,
 
 	["shared modules cannot see Roblox globals"] = function()

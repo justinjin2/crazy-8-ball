@@ -1694,6 +1694,12 @@ function DevCommands.start()
 			tell(player, line)
 		end
 	end)
+	-- The Halloween event (hw-core): /hw (CandyService.dev lists what it takes).
+	command("Halloween", D.Halloween, function(player: Player, args: { string })
+		for _, line in require(script.Parent.Halloween.CandyService).dev(player, args) do
+			tell(player, line)
+		end
+	end)
 
 	-- Studio only: tests type a command through ServerStorage.DevCommandsQA, since a script
 	-- cannot type into Roblox's chat box: Invoke(userId, "/givecue chalk dust 3") -> (true,

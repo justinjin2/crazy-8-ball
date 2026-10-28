@@ -16385,6 +16385,10 @@ Config.Debug = {
 		-- Only the accounts in UserIds, Studio and live.
 		Tutorial = "/tutorial",
 		Funnel = "/funnel",
+		-- The Halloween event (hw-core; CandyService.dev): /hw time live|countdown|rush|double|end|
+		-- real|board <n>|+<s> (Studio and the test place only), candy <n>, quest done, active <s>,
+		-- kingwin, convert, reset (Studio and the test place only).
+		Halloween = "/hw",
 		-- The ult commands' old names, by command: each still runs its command.
 		OldAliases = {
 			UltBar = "/ultbar",

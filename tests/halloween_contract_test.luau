@@ -199,6 +199,44 @@ return {
 		H.expect(ok, tostring(err))
 	end,
 
+	["halloween: a match's Candy is 3 a ball, 10 finished, +25 a win, boosted by friends and group"] = function()
+		local CandyMath = tryRequire("Halloween.CandyMath")
+		if not present("Halloween.CandyMath (core)", CandyMath) then
+			return
+		end
+		H.expect(
+			CandyMath.base({ balls = 7, finished = 1, won = 1 }) == 56,
+			"7 balls, finished, won: 56"
+		)
+		H.expect(
+			CandyMath.base({ balls = 7, finished = 1, won = 0 }) == 31,
+			"7 balls, finished, lost: 31"
+		)
+		H.expect(
+			CandyMath.base({ balls = 7, finished = 0, won = 0 }) == 21,
+			"the side that forfeited keeps only its balls"
+		)
+		if present("CandyMath.finished (core)", CandyMath.finished) then
+			H.expect(CandyMath.finished(true) == 0, "a forfeit is not finished")
+			H.expect(
+				CandyMath.finished(false) == 1 and CandyMath.finished(nil) == 1,
+				"a played-out match and the winner of a real forfeit get the 10"
+			)
+		end
+		local E = H.require("Config").Economy
+		local was = E.FriendBoostEnabled
+		E.FriendBoostEnabled = true
+		local ok, err = pcall(function()
+			H.near(CandyMath.multiplier(1, 0, false), 1, 1e-9, "no boost")
+			H.near(CandyMath.multiplier(2, 0, false), 2, 1e-9, "Rush or Oct 31 alone")
+			H.near(CandyMath.multiplier(1, 9, false), 1.4, 1e-9, "friends capped at 4")
+			H.near(CandyMath.multiplier(2, 4, true), 3, 1e-9, "2 x (1 + 0.4 + 0.1)")
+			H.expect(CandyMath.match({ balls = 7, finished = 1, won = 1 }, 3) == 168, "56 x 3")
+		end)
+		E.FriendBoostEnabled = was
+		H.expect(ok, tostring(err))
+	end,
+
 	["halloween: map's tables and the King"] = function()
 		local Config = H.require("Config")
 		local M = Config.HalloweenMap
