@@ -68,6 +68,16 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
   neighbours), compact = a closed bud 0.3 past the butt; `spider_parts.glb` 134241355070040,
   `Crown.glb` 88297987618252, atlas decals with image ids). Preview beside the concept:
   `gate2/spider_body_vs_C1b.png`. No spider bodies, legs or creatures anywhere.
+- 09:50 P3 rework (coordinator REQUEST 09:20, all three points): (1) the bristle bundle has no
+  end face any more: the opaque root flares into a low dome of strands, a cone of straw (alpha,
+  fraying to the centre) closes it, and three rings of straw cards (40) all round it splay to
+  uneven alpha-frayed tips (compact to 7.45, 0.76 across); the straw texture is twice as
+  dense; (2) the handle is a pulled branch between the hand zones: a hump of 0.185 up, a
+  shallow dip, +-0.065 sideways, two knot holes (2.6 and 3.95) and bigger bark lumps, the hand
+  zones straight on the envelope (check within 0.001); (3) the hat charm is 2x (0.24 tall,
+  0.24 brim) on longer links, hung back past the butt beside the straw, now an Aim joint like
+  the bristles. 6 parts, 8,104 triangles. Re-uploaded with image ids (parts 79787647258778,
+  HatCharm 84761573077366, atlas 133730570874017 / 70889581925253 / 73910439696293).
 - 09:34 P10/P11 pieces: `witch_broom_aura` (two Neon ribbons, violet and emerald, spiralling
   round the handle in opposite senses, Spin 45 and -45 deg/s, Glow waves; 2 parts, 3,832
   triangles; the violet one hides under Lower effects) and `witch_broom_pocket` (violet and

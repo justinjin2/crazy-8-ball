@@ -2,7 +2,7 @@
   "id": "witch_broom",
   "Frame": "cue",
   "frame": "Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)",
-  "Triangles": 6534,
+  "Triangles": 8104,
   "Parts": [
     {
       "Material": "SmoothPlastic",
@@ -28,14 +28,14 @@
       ],
       "Triangles": 520,
       "Offset": [
-        -0.2788,
-        -0.1736,
-        -3.5343
+        -0.2917,
+        -0.2377,
+        -3.6201
       ],
       "Size": [
-        0.1188,
-        0.1956,
-        0.2138
+        0.2391,
+        0.3345,
+        0.3883
       ]
     },
     {
@@ -95,12 +95,12 @@
       "Joint": "Body",
       "Offset": [
         -0.015,
-        0.0492,
+        0.0521,
         -0.15
       ],
       "Size": [
         0.48,
-        0.5483,
+        0.5542,
         6.7
       ],
       "Triangles": 5340
@@ -121,16 +121,16 @@
       "File": "pieces/witch_broom/Bristles_Bark.obj",
       "Joint": "Bristles",
       "Offset": [
-        0.0,
-        0.018,
-        -3.62
+        -0.0057,
+        0.0128,
+        -3.6675
       ],
       "Size": [
-        0.4434,
-        0.444,
-        0.24
+        0.4788,
+        0.4821,
+        0.335
       ],
-      "Triangles": 286
+      "Triangles": 396
     },
     {
       "Material": "SmoothPlastic",
@@ -149,16 +149,16 @@
       "File": "pieces/witch_broom/Bristles_Straw.obj",
       "Joint": "Bristles",
       "Offset": [
-        -0.007,
-        0.0378,
-        -3.6497
+        0.0028,
+        0.0037,
+        -3.7454
       ],
       "Size": [
-        0.5835,
-        0.4956,
-        0.3024
+        0.8139,
+        0.8117,
+        0.4543
       ],
-      "Triangles": 280
+      "Triangles": 1740
     }
   ],
   "Joints": {
@@ -269,19 +269,20 @@
           "Period": 2.61,
           "Phase": 40
         }
-      ]
+      ],
+      "Aim": "fade"
     },
     "Chain2": {
       "Parent": "Charm",
       "Pivot": [
-        0.24400269985198975,
-        -6.968760013580322,
-        -0.1133585125207901
+        0.24400494992733002,
+        -6.983026504516602,
+        -0.11981915682554245
       ],
       "PivotRoblox": [
         -0.244,
-        -0.1134,
-        -3.4688
+        -0.1198,
+        -3.483
       ],
       "Motion": [
         {
@@ -300,14 +301,14 @@
     "Hat": {
       "Parent": "Chain2",
       "Pivot": [
-        0.25300541520118713,
-        -7.0025200843811035,
-        -0.14171701669692993
+        0.2530099153518677,
+        -7.031053066253662,
+        -0.15463832020759583
       ],
       "PivotRoblox": [
         -0.253,
-        -0.1417,
-        -3.5025
+        -0.1546,
+        -3.5311
       ],
       "Motion": [
         {

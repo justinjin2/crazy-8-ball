@@ -38,7 +38,7 @@ PIECES_DIR = os.path.join(HERE, 'pieces')
 # while the stick is drawn for a shot (`"Aim": "fade"`, Cues A's drop 3), so a long overhang
 # never blocks the aim. Static, never recorded at build time (the file is loaded twice).
 AIM = {
-    'witch_broom': ['Bristles'],
+    'witch_broom': ['Bristles', 'Charm'],
     'black_cat': ['Tail'],
     'spider': ['Crown'],
 }
@@ -430,15 +430,16 @@ BROOM = {
 
 HANDLE = (0.3, 6.75)      # the bark handle's run (d from the tip)
 BINDING = (6.75, 7.0)     # the purple wraps
-KNOT_D, KNOT_ANGLE = 2.6, math.pi * 0.86  # the knot hole: 0.86π from the bottom = up, a little to +X
-TWIGS = ((2.35, 0.14, 0.55), (3.25, 0.22, -0.35), (4.05, 0.17, 0.2))   # (d, length, lean (rad, +X))
+KNOTS = ((2.6, math.pi * 0.86, 0.5), (3.95, math.pi * 1.14, 0.42))  # (d, angle: pi = up, bump) the knot holes between the hand zones
+TWIGS = ((2.35, 0.14, 0.55), (3.0, 0.18, -0.35), (4.05, 0.17, 0.2))   # (d, length, lean (rad, +X))
 
 
 def _broom_atlas(k):
     """Paint and register the Broom's atlas: BARK (the handle's circumference across, its
     length along, with the silver spiral bands at the tip end and the knot hole), BIND (the
     purple wraps), STRAW (strands with alpha for the cards), ROOT (dense straw, opaque), SILVER,
-    GOLD, HAT (purple with a gold band) and BUCKLE (silver with the gold crescent, emissive)."""
+    GOLD, HAT (purple with a gold band) and BUCKLE (silver with the gold crescent, emissive);
+    no end-face region: the bristle bundle closes in a dome of strands."""
     import numpy as np
     A = Atlas('witch_broom')
     A.region('BARK', 0.0, 0.0, 0.5, 1.0)
@@ -450,7 +451,6 @@ def _broom_atlas(k):
     A.region('BUCKLE', 0.5, 0.875, 0.625, 1.0)
     A.region('HAT', 0.625, 0.875, 1.0, 1.0)
     A.region('CHAIN', 0.75, 0.75, 1.0, 0.875)
-    A.region('ENDS', 0.875, 0.5, 1.0, 0.625)
     bark, dark, light, moss = (_rgb(BROOM[x]) for x in ('bark', 'bark_dark', 'bark_light', 'moss'))
 
     # --- BARK: ridges along the length (v), broken by noise; cracks; moss flecks ---------------
@@ -466,19 +466,20 @@ def _broom_atlas(k):
     col = _lerp(col, dark, crack * 0.8)
     mossy = _smooth(_fbm(U * 3, V, 16.0, octaves=3, seed=21), 0.66, 0.76) * (1 - crack) * (1 - ridge)
     col = _lerp(col, moss, mossy * 0.35)
-    # the knot hole at KNOT_D: dark concentric rings sinking into a hole, a raised rim
-    ku = (KNOT_ANGLE / (2 * math.pi))
-    kv = (KNOT_D - HANDLE[0]) / (HANDLE[1] - HANDLE[0])
-    du = (U - ku) * 2.4            # the circumference is ~0.7 studs here, the length 6.45: squash u
-    dv = (V - kv) * 14.0
-    rr = np.sqrt(du * du + dv * dv)
-    rim = _smooth(rr, 0.42, 0.3) * (1 - _smooth(rr, 0.2, 0.08))
-    hole = _smooth(rr, 0.2, 0.06)
-    rings = 0.5 + 0.5 * np.sin(rr * 28 + 2 * grain)
-    knot_col = _lerp(_lerp(bark, dark, 0.3 + 0.5 * rings), _rgb('#1A0E08'), hole)
-    inknot = _smooth(rr, 0.5, 0.3)
-    col = _lerp(col, knot_col, inknot)
-    h = h * (1 - inknot) + inknot * (0.5 * rings * (1 - hole) + 0.8 * rim - 1.2 * hole)
+    # the knot holes (KNOTS): dark concentric rings sinking into a hole, a raised rim
+    for kd, ka, _ in KNOTS:
+        ku = ka / (2 * math.pi)
+        kv = (kd - HANDLE[0]) / (HANDLE[1] - HANDLE[0])
+        du = (U - ku) * 2.4            # the circumference is ~0.7 studs here, the length 6.45: squash u
+        dv = (V - kv) * 14.0
+        rr = np.sqrt(du * du + dv * dv)
+        rim = _smooth(rr, 0.42, 0.3) * (1 - _smooth(rr, 0.2, 0.08))
+        hole = _smooth(rr, 0.2, 0.06)
+        rings = 0.5 + 0.5 * np.sin(rr * 28 + 2 * grain)
+        knot_col = _lerp(_lerp(bark, dark, 0.3 + 0.5 * rings), _rgb('#1A0E08'), hole)
+        inknot = _smooth(rr, 0.5, 0.3)
+        col = _lerp(col, knot_col, inknot)
+        h = h * (1 - inknot) + inknot * (0.5 * rings * (1 - hole) + 0.8 * rim - 1.2 * hole)
     # the silver spiral bands: two stripes winding round the first 0.3 studs (v 0..0.0465)
     band_v = (0.6 - HANDLE[0]) / (HANDLE[1] - HANDLE[0])
     inband = (V < band_v).astype(np.float32)
@@ -496,18 +497,18 @@ def _broom_atlas(k):
     strand = np.zeros_like(U)
     tint = np.zeros_like(U)
     hgt = np.zeros_like(U)
-    rng = [(_hash(i, 1), _hash(i, 2), _hash(i, 3), _hash(i, 4)) for i in range(70)]
+    rng = [(_hash(i, 1), _hash(i, 2), _hash(i, 3), _hash(i, 4)) for i in range(130)]
     for i, (x0, drift, w, tone_) in enumerate(rng):
         x = x0 + (drift - 0.5) * 0.22 * V * V + 0.012 * np.sin(V * 14 + i)
-        end = 0.55 + 0.45 * _hash(i, 5)            # where this strand ends (frayed tips)
-        width = 0.006 + 0.008 * w
+        end = 0.5 + 0.5 * _hash(i, 5)              # where this strand ends (frayed tips)
+        width = 0.007 + 0.009 * w
         m = (np.abs(U - x) < width) & (V < end)
         core = np.clip(1 - np.abs(U - x) / width, 0, 1)
         strand = np.maximum(strand, m * core)
         tint = np.where(m & (core > tint), tone_, tint)
         hgt = np.maximum(hgt, m * core)
     alpha = np.clip(strand * 1.6, 0, 1)
-    alpha = np.maximum(alpha, _smooth(V, 0.08, 0.0))                       # solid at the root
+    alpha = np.maximum(alpha, _smooth(V, 0.3, 0.0))                        # solid for the first third
     scol = _lerp(_lerp(straw_dark, straw, tint), straw_light, _smooth(hgt, 0.6, 1.0) * 0.5)
     scol = _lerp(scol, straw_dark, _smooth(V, 0.0, 0.12) * 0.5)
     A.paint('STRAW', scol, alpha=alpha, height=hgt * 0.6, bump=1.2)
@@ -517,13 +518,6 @@ def _broom_atlas(k):
     g = _fbm(U * 6, V * 0.5, 9.0, octaves=3, seed=31)
     lines = 0.5 + 0.5 * np.sin(2 * np.pi * (U * 26 + 0.3 * g))
     A.paint('ROOT', _lerp(_lerp(straw_dark, straw, lines), straw_light, (lines * g) * 0.5), height=lines * 0.5, bump=1.0)
-    # ENDS: the cut ends of the straw bundle: pale dots on a dark ground
-    U, V = A.grid('ENDS')
-    cell = 9.0
-    fx, fy = (U * cell) % 1.0 - 0.5, (V * cell) % 1.0 - 0.5
-    jitter = _fbm(U, V, 30.0, octaves=2, seed=52) - 0.5
-    dot = _smooth(np.sqrt(fx * fx + fy * fy) + 0.1 * jitter, 0.34, 0.24)
-    A.paint('ENDS', _lerp(_rgb('#5A3A14'), _lerp(straw, straw_light, 0.3), dot), height=dot * 0.8, bump=1.5)
 
     # --- BIND: purple fabric wraps with ridges across (v), a weave ------------------------------
     U, V = A.grid('BIND')
@@ -574,25 +568,30 @@ def _hash(i, j):
 
 
 def _crook(d):
-    """The handle's centreline offset (x, z) at d: straight in both hand zones, a wave of up
-    to ±0.06 between them (brief 2.4), eased in and out."""
-    w = float(_smooth(d, 2.1, 2.45)) * float(_smooth(d, 4.4, 4.05))
-    t = (d - 2.1) / (4.4 - 2.1)
-    return (0.06 * w * math.sin(2 * math.pi * t * 1.0 + 0.4), 0.045 * w * math.sin(2 * math.pi * t * 1.5 + 2.2))
+    """The handle's centreline offset (x, z) at d: straight in both hand zones; between them
+    a pulled branch's wave (coordinator, 09:20): a hump of up to 0.185 upward (the +Z room is
+    0.25), a shallow dip (-0.02, the down room is 0.08) and ±0.065 sideways, eased in and out."""
+    w = float(_smooth(d, 2.1, 2.4)) * float(_smooth(d, 4.4, 4.1))
+    t = min(1.0, max(0.0, (d - 2.1) / (4.4 - 2.1)))
+    x = 0.065 * w * math.sin(2 * math.pi * t * 1.5 + 0.4)
+    z = w * (0.12 * math.sin(math.pi * t) + 0.07 * math.sin(2 * math.pi * t * 2 + 0.3))
+    return (x, z)
 
 
 @piece
 def witch_broom(k):
     """The Witch's Broom body (brief 2.4, concept C3b_broom.png). Tip (0-0.3): a six-sided
     violet Glass crystal over a Neon core (Glow 0.2-0.7 over 2.4 s). Handle (0.3-6.75): one
-    bark lathe exactly on the envelope in both hand zones, crooked between them (±0.06), the
-    knot hole bulging at 2.6, three twig stubs pointing up between 2.3 and 4.2, the silver
-    spiral bands painted flush at 0.3-0.6. Binding (6.75-7.0): purple ridged wraps with a
-    silver square buckle on the +X side carrying a gold crescent (emissive). Bristles (joint
-    Bristles, Aim fade): a dense straw root flaring past the butt and straw cards with alpha
-    (compact to 7.3, 0.5 across; long to 8.2, 0.75 across). The hat charm: two chain links and
-    a purple hat with a gold band, one skinned mesh on a 3-bone Sway chain hung from the buckle
-    (15-20 degrees over 1.8 s), hanging down and back beside the bristle root."""
+    bark lathe exactly on the envelope in both hand zones, a pulled branch's wave between them
+    (a hump of 0.185 up, a dip, ±0.065 sideways), two knot holes bulging at 2.6 and 3.95, three
+    twig stubs pointing up between 2.3 and 4.2, the silver spiral bands painted flush at
+    0.3-0.6. Binding (6.75-7.0): purple ridged wraps with a silver square buckle on the +X side
+    carrying a gold crescent (emissive). Bristles (joint Bristles, Aim fade): a dense straw
+    root flaring past the butt into a dome of strands (no end face) and two rings of straw
+    cards all round it with alpha-frayed uneven tips (compact to 7.45, 0.76 across; long to
+    8.2, 0.88 across). The hat charm (2x): two chain links and a purple hat with a gold band,
+    one skinned mesh on a 3-bone Sway chain hung from the buckle (15-20 degrees over 1.8 s),
+    hanging back past the butt beside the bristle root; an Aim joint, so it fades with them."""
     import bmesh
     from mathutils import Vector, Matrix
     R = _radius()
@@ -620,12 +619,13 @@ def witch_broom(k):
 
     def knot_shape(a, i):
         d = ds[i]
-        da = (a - KNOT_ANGLE + math.pi) % (2 * math.pi) - math.pi
-        bump = math.exp(-(da / 0.7) ** 2) * math.exp(-((d - KNOT_D) / 0.22) ** 2)
-        lump = 0.0
-        if 2.1 < d < 4.4:  # gentle bark lumps on top only (+Z is up: angle pi), never below
-            lump = 0.12 * max(0.0, math.cos(a - math.pi)) * (0.5 + 0.5 * math.sin(d * 7.0))
-        return 1.0 + 0.42 * bump + lump
+        s = 1.0
+        for kd, ka, kb in KNOTS:
+            da = (a - ka + math.pi) % (2 * math.pi) - math.pi
+            s += kb * math.exp(-(da / 0.7) ** 2) * math.exp(-((d - kd) / 0.22) ** 2)
+        if 2.1 < d < 4.4:  # bark lumps on top only (+Z is up: angle pi), never below or sideways
+            s += 0.16 * max(0.0, math.cos(a - math.pi)) * (0.5 + 0.5 * math.sin(d * 7.0))
+        return s
     _lathe_uv(bm, uvl, ds, [R(d) for d in ds], 24, lambda u, v: A.uv('BARK', u, v), centres=centres,
               shape=knot_shape, close=True, cap_uv=A.uv('BARK', 0.5, 0.98))
     k.add('Body', k.mesh_object('Handle', bm, ['Bark']))
@@ -665,66 +665,69 @@ def witch_broom(k):
     k.joint('Bristles', pivot=(0, -7.0, 0), parent='Body',
             motion=[{'Kind': 'Hinge', 'Axis': (1, 0, 0), 'Amp': 1.2, 'Period': 2.6},
                     {'Kind': 'Hinge', 'Axis': (0, 0, 1), 'Amp': 0.8, 'Period': 4.0, 'Phase': 90}])
-    tip_d = 8.2 if long else 7.3
-    tip_r = 0.37 if long else 0.28
-    # the dense root: an opaque straw flare from the binding's end
+    tip_d = 8.2 if long else 7.45
+    tip_r = 0.44 if long else 0.38
+    # the dense root: an opaque straw flare from the binding's end closed by a dome of
+    # converging strands (no flat end face: coordinator, 09:20); the cards fray past it
     bm = bmesh.new()
     uvl = bm.loops.layers.uv.new('UVMap')
-    root_end = 7.45 if long else 7.24
+    root_end = 7.5 if long else 7.26
+    root_r = 0.32 if long else 0.26
     nr = 8
     dsr = [7.0 + (root_end - 7.0) * i / (nr - 1) for i in range(nr)]
-    root_r = 0.30 if long else 0.24
     rsr = [R(7.0) * 0.98 + (root_r - R(7.0) * 0.98) * ((i / (nr - 1)) ** 0.8) for i in range(nr)]
+    dsr += [root_end + a for a in (0.03, 0.06, 0.075)]
+    rsr += [root_r * b for b in (0.85, 0.55, 0.2)]
 
-    def root_shape(a, i):   # fuller on top and the sides, flatter underneath
-        return 0.85 + 0.15 * (0.5 - 0.5 * math.cos(a))  # a = pi at the top
-    rings_r = _lathe_uv(bm, uvl, dsr, rsr, 18, lambda u, v: A.uv('ROOT', u, v), shape=root_shape, close=False)
-    # the cap: the cut ends, a disc whose UVs spread over the ENDS region
-    end_ring = rings_r[-1]
-    cv = bm.verts.new(sum((x.co for x in end_ring[:-1]), Vector()) / (len(end_ring) - 1))
-    for kk in range(len(end_ring) - 1):
-        f = bm.faces.new((end_ring[kk], end_ring[kk + 1], cv))
-        for lp in f.loops:
-            q = lp.vert.co - cv.co
-            lp[uvl].uv = A.uv('ENDS', 0.5 + q.x / (2 * rsr[-1]) * 0.9, 0.5 + q.z / (2 * rsr[-1]) * 0.9)
-    f0 = bm.faces.new(tuple(rings_r[0][:-1][::-1]))
-    _const_uv(bm, uvl, [f0], A.uv('ROOT', 0.5, 0.5))
+    def root_shape(a, i):   # fuller on top and the sides, flatter underneath, a little ragged
+        return (0.85 + 0.15 * (0.5 - 0.5 * math.cos(a))) * (1 + 0.05 * math.sin(a * 5 + i))
+    _lathe_uv(bm, uvl, dsr, rsr, 18, lambda u, v: A.uv('ROOT', u, v), shape=root_shape, close=True,
+              cap_uv=A.uv('ROOT', 0.5, 0.5))
     k.add('Bristles', k.mesh_object('BristleRoot', bm, ['Bark']))
-    # the straw cards: strips from the root ring to the tip, flaring out, over the top and sides
+    # the straw cards: three rings of strips all round the root, flaring out past it to uneven
+    # tips (frayed by the STRAW alpha), fuller and splayed like C3b; first the bundle's end, a
+    # cone of straw converging past the root whose strands fray to the centre: a tangle of
+    # ends, never a face
     bm = bmesh.new()
     uvl = bm.loops.layers.uv.new('UVMap')
-    cards = 14 if long else 10
-    seg = 5 if long else 3
-    d0 = 7.12 if long else 7.0
-    for c in range(cards):
-        frac = (c + 0.5) / cards
-        ang = math.pi + (frac - 0.5) * (math.pi * 1.45)     # from the bottom-left round the top to the bottom-right
-        rad = Vector((math.sin(ang), 0, -math.cos(ang)))
-        tang = Vector((math.cos(ang), 0, math.sin(ang)))
-        width = (0.2 if long else 0.17) * (0.8 + 0.4 * _hash(c, 7))
-        r0 = rsr[1] * 0.9
-        left, right = [], []
-        for s in range(seg + 1):
-            t = s / seg
-            d = d0 + (tip_d - d0) * t
-            r = r0 + (tip_r - r0) * (t ** 0.75) * (0.85 + 0.3 * _hash(c, 8))
-            r = min(r, 0.39)
-            twist = (0.15 * math.sin(t * 3 + c)) * (1 if long else 0.3)
-            p = Vector((0, -d, 0)) + rad * r + tang * (twist * r)
-            w = width * (0.6 + 0.4 * t)
-            left.append(p - tang * (w / 2))
-            right.append(p + tang * (w / 2))
-        _strip_uv(bm, uvl, left, right, lambda u, v: A.uv('STRAW', (c % 3) / 3 + u / 3, v))
+    _lathe_uv(bm, uvl, [root_end - 0.02, root_end + 0.07, root_end + 0.15, root_end + 0.21],
+              [root_r * 1.02, root_r * 0.78, root_r * 0.45, root_r * 0.1], 18,
+              lambda u, v: A.uv('STRAW', u, 0.2 + 0.8 * v), close=False)
+    layers = (((7.02, 0.92, 0.95, 18), (7.1, 0.62, 1.05, 16), (7.18, 0.35, 1.0, 10)) if long
+              else ((7.02, 0.9, 0.9, 16), (7.1, 0.62, 1.0, 14), (7.16, 0.35, 0.95, 10)))
+    seg = 4
+    for li, (d0, r_share, t_scale, cards) in enumerate(layers):   # (start d, start radius share, tip scale, count)
+        for c in range(cards):
+            frac = (c + 0.5 + 0.5 * li) / cards
+            ang = 2 * math.pi * frac
+            rad = Vector((math.sin(ang), 0, -math.cos(ang)))
+            tang = Vector((math.cos(ang), 0, math.sin(ang)))
+            hc = c + 31 * li
+            width = 0.22 * (0.8 + 0.4 * _hash(hc, 7))
+            r0 = root_r * r_share * (0.85 + 0.15 * (0.5 - 0.5 * math.cos(ang)))
+            end = d0 + (tip_d - d0) * (0.72 + 0.28 * _hash(hc, 5))
+            tr = tip_r * t_scale * (0.85 + 0.3 * _hash(hc, 8))
+            left, right = [], []
+            for s in range(seg + 1):
+                t = s / seg
+                d = d0 + (end - d0) * t
+                r = r0 + (tr - r0) * (t ** 0.8)
+                twist = 0.12 * math.sin(t * 3 + c) * (1 if long else 0.4)
+                p = Vector((0, -d, 0)) + rad * r + tang * (twist * r)
+                w = width * (0.7 + 0.5 * t)
+                left.append(p - tang * (w / 2))
+                right.append(p + tang * (w / 2))
+            _strip_uv(bm, uvl, left, right, lambda u, v: A.uv('STRAW', (c % 3) / 3 + u / 3, v))
     ob = k.mesh_object('BristleCards', bm, ['Straw'], smooth=False)
     apply_modifier(k.bpy, ob, 'SOLIDIFY', thickness=0.006, offset=0.0)
     k.add('Bristles', ob)
 
     # --- the hat charm: two chain links and the hat on a 3-bone Sway chain ----------------------
-    # Hung from the buckle's lower edge, down and back toward the butt, so the hat sits beside
-    # the bristle root (past the butt, within 0.42 of the axis).
+    # Hung from the buckle's lower edge, back past the butt and down, so the hat (2x) swings
+    # beside the bristle root; an Aim joint like the bristles, so it fades for the aiming owner.
     P0 = Vector((bo.x - 0.005, -bd - 0.06, -0.085))
-    hang = Vector((0.2, -0.75, -0.63)).normalized()
-    link = 0.045
+    hang = Vector((0.15, -0.8, -0.58)).normalized()
+    link = 0.06
     P1 = P0 + hang * link
     P2 = P1 + hang * link
     period = 1.8
@@ -740,16 +743,16 @@ def witch_broom(k):
     uvl = bm.loops.layers.uv.new('UVMap')
     side = hang.cross(Vector((0, 1, 0))).normalized()
     for i, c in enumerate((P0 + hang * (link * 0.5), P1 + hang * (link * 0.5))):
-        _torus_uv(bm, uvl, c, side if i % 2 == 0 else side.cross(hang), link * 0.5 - 0.004, 0.006, A.uv('CHAIN', 0.5, 0.5), segs=12, minor=6)
+        _torus_uv(bm, uvl, c, side if i % 2 == 0 else side.cross(hang), link * 0.5 - 0.005, 0.008, A.uv('CHAIN', 0.5, 0.5), segs=12, minor=6)
     # the hat: a bent cone hanging point-up from P2, its brim below; built along -Y then turned
-    hat_h, brim_r, crown_r = 0.12, 0.06, 0.036
+    hat_h, brim_r, crown_r = 0.24, 0.12, 0.072   # 2x (coordinator, 09:20): it reads at gameplay distance
     hb = bmesh.new()
     uvh = hb.loops.layers.uv.new('UVMap')
-    hs = [0.0, 0.02, 0.05, 0.08, 0.105, 0.12]
-    hr = [0.004, 0.012, 0.022, 0.03, crown_r, crown_r]
-    bend = [(0.03, 0.0), (0.022, 0.0), (0.012, 0.0), (0.004, 0.0), (0.0, 0.0), (0.0, 0.0)]
+    hs = [0.0, 0.04, 0.1, 0.16, 0.21, 0.24]
+    hr = [0.008, 0.024, 0.044, 0.06, crown_r, crown_r]
+    bend = [(0.06, 0.0), (0.044, 0.0), (0.024, 0.0), (0.008, 0.0), (0.0, 0.0), (0.0, 0.0)]
     _lathe_uv(hb, uvh, hs, hr, 12, lambda u, v: A.uv('HAT', u, 0.34 + 0.66 * (1 - v)), centres=bend, close=False)
-    _lathe_uv(hb, uvh, [hat_h, hat_h + 0.006, hat_h + 0.012, hat_h + 0.018], [crown_r, brim_r, brim_r, crown_r * 0.6], 14,
+    _lathe_uv(hb, uvh, [hat_h, hat_h + 0.012, hat_h + 0.024, hat_h + 0.036], [crown_r, brim_r, brim_r, crown_r * 0.6], 14,
               lambda u, v: A.uv('HAT', u, 0.12 + 0.22 * (1 - v)), close=True, cap_uv=A.uv('HAT', 0.5, 0.05))
     # the hat's local -Y runs from the point (0) down to the brim: hang it along `hang`
     _transform(hb, hb.verts[:], _basis(P2 + hang * 0.0, hang, up_hint=(1, 0, 0)))
