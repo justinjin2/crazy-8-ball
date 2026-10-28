@@ -9353,7 +9353,7 @@ Config.HalloweenMap = {
 	-- Blender X in the file (its pivot: a pumpkin's centre, a tree's or a tombstone's foot, a
 	-- strand's ends' middle, a cobweb's corner). Pieces named "*.Glow" are drawn Neon in Glow.
 	Assets = {
-		Model = 113325392217599, -- HalloweenMap_props.glb (tools/upload_manifest_hw_map.json)
+		Model = 117639181890585, -- HalloweenMap_props.glb (tools/upload_manifest_hw_map.json)
 		Folder = "HalloweenMapAssets",
 		LoadRetries = 3,
 		LoadRetrySeconds = 2,
@@ -9371,6 +9371,9 @@ Config.HalloweenMap = {
 			Bush = 62,
 			PumpkinSmall = 66,
 			Trim = 80,
+			PotDressing = 96,
+			BedDressing = 110,
+			PumpkinCluster = 122,
 		},
 		-- The glowing core inside each pumpkin (studs at scale 1, inside the shell): the carved
 		-- holes glow straight on instead of showing through the one-sided shell.

@@ -569,6 +569,77 @@ def bush(x, seed=3):
     return [at(obj, x)]
 
 
+# ---------------------------------------------------------------------------------------------
+# Merged dressings (HW_MAP_PROMPT 2.5's budget: one MeshPart each): a spooky planter's top and a
+# pumpkin cluster, built from the props above and joined into one piece.
+# ---------------------------------------------------------------------------------------------
+
+def place(at, scale=1.0, yaw=0.0, tilt=(0.0, 0.0)):
+    """The matrix that puts a prop's origin at `at`, turned `yaw` degrees about Z, tipped
+    `tilt` degrees about X and Y, scaled."""
+    return (Matrix.Translation(Vector(at)) @ Matrix.Rotation(math.radians(yaw), 4, "Z")
+            @ Matrix.Rotation(math.radians(tilt[0]), 4, "X") @ Matrix.Rotation(math.radians(tilt[1]), 4, "Y")
+            @ Matrix.Scale(scale, 4))
+
+
+def merged(name, pieces):
+    """One object from several props: `pieces` = [(make, matrix)], each make() returning its
+    objects (made at the origin, then removed from the file)."""
+    bm = bmesh.new()
+    for make, matrix in pieces:
+        objs = make()
+        for obj in objs:
+            n0 = len(bm.verts)
+            bm.from_mesh(obj.data)
+            bm.verts.ensure_lookup_table()
+            bmesh.ops.transform(bm, matrix=matrix, verts=bm.verts[n0:])
+        for obj in objs:
+            me = obj.data
+            bpy.data.objects.remove(obj, do_unlink=True)
+            bpy.data.meshes.remove(me)
+    return new_object(name, bm, smooth=False, recalc=False)
+
+
+def lift(scale):
+    """A small pumpkin's centre height when it sits on z = 0."""
+    return 0.8 * scale
+
+
+def pot_dressing(x):
+    """A fern planter's top turned spooky (origin: the pot's top centre; a 4-stud pot, the game
+    scales it to smaller ones): a dead bush behind, a jack-o'-lantern in front (-Y)."""
+    obj = merged("PotDressing.Body", [
+        (lambda: bush(0, seed=5), place((0.35, 0.45, -0.05))),
+        (lambda: pumpkin_small(0), place((-0.55, -0.75, lift(0.55)), 0.55, yaw=-18)),
+    ])
+    return [at(obj, x)]
+
+
+def bed_dressing(x):
+    """A planter bed's top turned spooky (origin: the bed's top centre; the bed 16 long along X,
+    3 deep): two leaning tombstones, two dead bushes, three jack-o'-lanterns facing -Y."""
+    obj = merged("BedDressing.Body", [
+        (lambda: tombstone(0), place((-4.4, 0.25, -0.05), 1.0, yaw=8, tilt=(-5, 4))),
+        (lambda: tombstone(0), place((3.2, 0.3, -0.05), 0.9, yaw=-10, tilt=(-3, -5))),
+        (lambda: bush(0, seed=3), place((-6.8, 0.35, -0.05))),
+        (lambda: bush(0, seed=9), place((6.7, 0.3, -0.05), 1.1)),
+        (lambda: pumpkin_small(0), place((-2.1, -0.65, lift(0.55)), 0.55, yaw=12)),
+        (lambda: pumpkin_small(0), place((0.9, -0.75, lift(0.4)), 0.4, yaw=-20)),
+        (lambda: pumpkin_small(0), place((5.1, -0.6, lift(0.48)), 0.48, yaw=6)),
+    ])
+    return [at(obj, x)]
+
+
+def pumpkin_cluster(x):
+    """Three jack-o'-lanterns of three sizes on the floor (origin: the cluster's foot)."""
+    obj = merged("PumpkinCluster.Body", [
+        (lambda: pumpkin_small(0), place((0, 0, lift(0.6)), 0.6)),
+        (lambda: pumpkin_small(0), place((0.95, -0.4, lift(0.42)), 0.42, yaw=25)),
+        (lambda: pumpkin_small(0), place((-0.8, -0.5, lift(0.3)), 0.3, yaw=-30)),
+    ])
+    return [at(obj, x)]
+
+
 def main():
     common.clear_scene()
     global MATERIAL, INNER
@@ -588,6 +659,9 @@ def main():
     objects += bush(62)
     objects += pumpkin_small(66)
     objects += trim_ring(80)
+    objects += pot_dressing(96)
+    objects += bed_dressing(110)
+    objects += pumpkin_cluster(122)
     for obj in objects:
         obj.data.materials.clear()
         obj.data.materials.append(MATERIAL)
@@ -605,7 +679,8 @@ def main():
     sun_obj.rotation_euler = (math.radians(50), 0, math.radians(30))
     bpy.context.scene.collection.objects.link(sun_obj)
     for name, target, dist in (("pumpkin", (0, 0, 0), 4.5), ("tree", (10, 0, 6), 22), ("small", (50, 0, 0), 22),
-                               ("pumpkin_small", (66, 0, 0), 4.5)):
+                               ("pumpkin_small", (66, 0, 0), 4.5), ("pot_dressing", (96, 0, 1), 6),
+                               ("bed_dressing", (110, 0, 1), 15), ("pumpkin_cluster", (122, 0, 0.6), 4)):
         common.render_preview(os.path.join(HERE, "renders", name + ".png"), size=512, target=target,
                               distance=dist, elevation=15, azimuth=20 if name != "pumpkin" else 15)
 
