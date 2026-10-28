@@ -96,8 +96,11 @@ local function collect(value: any, out: { string }, seen: { [string]: boolean })
 			table.insert(out, value)
 		end
 	elseif type(value) == "table" then
-		for _, v in value do
-			collect(v, out, seen)
+		for k, v in value do
+			-- A Sound row's Asset is audio: warming it as a Decal only logs "not found".
+			if k ~= "Sound" then
+				collect(v, out, seen)
+			end
 		end
 	end
 end
@@ -397,6 +400,9 @@ local function dress(w: Warm)
 			collect(row.Frames, w.ids, seen)
 			if row.Piece then
 				hasPiece = addPiece(w, row.Piece, seen)
+			end
+			if row.Body then
+				hasPiece = addPiece(w, row.Body, seen) or hasPiece -- the body, warm before a swap
 			end
 			collect(row.Aura, sprites, seen)
 			collect(row.Moving, sprites, seen)

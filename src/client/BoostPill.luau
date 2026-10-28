@@ -564,7 +564,8 @@ function BoostPill.cardLines(self: any): { any }
 	return lines
 end
 
--- The lines under the total: the friend rule, the Candy line, the boosts still to get.
+-- The lines under the total: the friend rule (it also says how to get more), the Candy line,
+-- the boosts still to get.
 function BoostPill.footLines(self: any, room: boolean): { string }
 	local flags = self:flags()
 	local lines = {}
@@ -583,10 +584,6 @@ function BoostPill.footLines(self: any, room: boolean): { string }
 	if room then
 		if flags.group ~= true then
 			table.insert(lines, COPY.Get.Group:format(math.floor(E.GroupBoost * 100 + 0.5)))
-		end
-		local friends = if type(flags.friends) == "number" then flags.friends else 0
-		if E.FriendBoostEnabled == true and friends < E.FriendBoostMaxFriends then
-			table.insert(lines, COPY.Get.Friends:format(math.floor(E.FriendBoost * 100 + 0.5)))
 		end
 		if flags.vip ~= true then
 			table.insert(lines, COPY.Get.Vip:format(math.floor(E.VipBoost * 100 + 0.5)))

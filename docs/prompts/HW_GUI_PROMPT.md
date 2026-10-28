@@ -589,14 +589,14 @@ and card, the chip shell, the layout test, pad access to the pill.
 - [x] 9. Pad and lists: the pill as one `HubCorners.padStops` entry right after Plus (core's event tile stays first), your `blurPad` and `padFocusedOn` lines, each listed under Shared-file changes; MenuColumn and PadGuide names; the `BoostCardOpened` event; GuiQA `hudRects` and `hudOverlap`.
 - [x] 10. (sizes by the layout test only, see lane Status) Studio sweep of the pill: four sizes and pad, `hudOverlap` empty, a match at phone size, the fresh-player run (tutorial and skip); `BoostPill.Enabled = true`; push; lane file asks the coordinator to merge it (the pill merge, about 10:00-10:20).
 - [x] 11. `CuePreviewMath` (panel rects, window framing, loop timeline) and `tests/cue_preview_math_test.luau`.
-- [ ] 12. CuePreview core: registered menu and `CuePreviewMenu` gui, the stage at Origin (stripped table clone or slab, lights, backdrop), camera taken and restored, walking and touch controls held, MODEL tab with auto-turn and drag by mouse, touch and right stick, every close path; switch off.
-- [ ] 13. Gate 2 (11:00): the pill at the four sizes and on the pad, the card with VIP/Group/Friends (2), the preview's first look at phone and PC in `gate2/`.
-- [ ] 14. TRAIL and FINISHER: stroke, trail, pocket, finisher loop through Effects; the preview's cue in Main's holdShots; spinner and timeout.
-- [ ] 15. The preview screen per lively-gui: header, window, info sheet (name, rarity pill, note), tabs on LB/RB, EQUIP (EquipCue, EQUIPPED, hidden when not owned), red X, B and Escape, Strings, open animation, the `CuePreview*` events.
-- [ ] 16. Entry points: Preview in the My Cues detail and the Index detail (only when `enabled()`), each returning where it came from; the public API confirmed in the lane file for core.
-- [ ] 17. Preview checks: four sizes, pad hooks, 10 cycles with no leaks, closes on match start and respawn, Classic/Eclipse/Beta/Grand Opening and the merged Halloween cues; coordinator touch sweep requested; switch ON only if phone and controller pass, else OFF with the reason.
-- [ ] 18. R1.10, R5.1-R5.7, R7.1-R7.2 checked one by one with results in the lane file; every shared-file change listed; lint and tests green.
-- [ ] 19. Lane file Status final + all screenshots (gate1, gate2, final) with one line each.
-- [ ] 20. Merge halloween (`git fetch && git merge halloween`), re-test (lint, tests, a Studio pass of the pill and the preview, and the chip with core's real `RushChip.content` and `CandyIcon` on the Studio test clock; if core's module is not in `halloween` yet, write that in the lane file Status), push.
+- [x] 12. CuePreview core: registered menu and `CuePreviewMenu` gui, the stage at Origin (stripped table clone or slab, lights, backdrop), camera taken and restored, walking and touch controls held, MODEL tab with auto-turn and drag by mouse, touch and right stick, every close path; switch off.
+- [x] 13. Gate 2 (11:00): the pill at the four sizes and on the pad, the card with VIP/Group/Friends (2), the preview's first look at phone and PC in `gate2/`.
+- [x] 14. TRAIL and FINISHER: stroke, trail, pocket, finisher loop through Effects; the preview's cue in Main's holdShots; spinner and timeout.
+- [x] 15. The preview screen per lively-gui: header, window, info sheet (name, rarity pill, note), tabs on LB/RB, EQUIP (EquipCue, EQUIPPED, hidden when not owned), red X, B and Escape, Strings, open animation, the `CuePreview*` events.
+- [x] 16. Entry points: Preview in the My Cues detail and the Index detail (only when `enabled()`), each returning where it came from; the public API confirmed in the lane file for core.
+- [x] 17. Preview checks: four sizes, pad hooks, 10 cycles with no leaks, closes on match start and respawn, Classic/Eclipse/Beta/Grand Opening and the merged Halloween cues; coordinator touch sweep requested; switch ON only if phone and controller pass, else OFF with the reason.
+- [x] 18. R1.10, R5.1-R5.7, R7.1-R7.2 checked one by one with results in the lane file; every shared-file change listed; lint and tests green.
+- [x] 19. Lane file Status final + all screenshots (gate1, gate2, final) with one line each.
+- [x] 20. Merge halloween (`git fetch && git merge halloween`), re-test (lint, tests, a Studio pass of the pill and the preview, and the chip with core's real `RushChip.content` and `CandyIcon` on the Studio test clock; if core's module is not in `halloween` yet, write that in the lane file Status), push.
 
 ## Notes

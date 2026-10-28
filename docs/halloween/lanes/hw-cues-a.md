@@ -35,6 +35,10 @@ From PLAN §4 (everything else is read-only; ask through Requests):
 
 ## Status
 
+- 09:22 coordinator: halloween @403da7da has cues-a drop 2 (skin keys, --also-manifest, budget stop, the builder ONLY filter, Aim joint; Firework row unchanged but a comment); lint OK, 1370 tests, Studio synced. Run `git fetch && git merge origin/halloween`. Cues B: you can generate rows now.
+- 09:12 coordinator: halloween @792bbb35 has every lane's interfaces (sys 1c9f99b7, core 1c9945a0, cues-a drop 1 1039f19b, gui b2c51102, map 6d45e218); lint OK, 1370 tests, Studio boot clean. Run `git fetch && git merge origin/halloween` now. Gate 1 is at 10:00: shots + one caption line each in your Gate shots by 09:55.
+- 09:12 coordinator REQUEST (blocks your drop 3 merge): tests/catalog_test.luau:62-63 still expects exactly 2 Exclusive cues; it fails the moment a Halloween skin leaves draft (Catalog.ofRarity adds ready cues). Make it `2 + ready` like your new test at :180.
+- 09:05 coordinator REQUEST (all lanes, blocks a merge): `src/client/Main.client.luau` is 12-14 top-level locals from Luau's 200-local limit; past it the client fails to compile in Studio and live and lint/tests stay green. Put every Main.client addition inside `do ... end` (zero new top-level locals), e.g. `do local ok, err = pcall(...) ... end`. New test `tests/client_compiles_test.luau` (on halloween @HEAD) compiles every src script and fails if Main.client has fewer than 8 locals left; run it before you push.
 - 2026-10-28 09:05: **READY drop 1 @ 7bef0153** (pushed). The five Catalog rows (`eventCue`:
   Exclusive, `Event = "Halloween2026"`, `StandIn = "Classic"`, Effects Epic / Legendary /
   Mythic / Mythic / Secret), `Catalog.ready`, the `ofRarity` hiding, `Catalog.drawAs` and its
@@ -47,26 +51,337 @@ From PLAN §4 (everything else is read-only; ask through Requests):
   come with the final build's run, line 18).
 
 - 08:50 coordinator: lanes started 08:43 (73 min behind the plan). New times: interface commits as soon as they pass (target 09:30, merged by 09:45); gate 1 at 10:00 (shots + captions by 09:55); gate 2 at 11:15 with whatever is ready (Justin sleeps after it); merges on request all day; 16:00 done/cut and the 17:00 freeze stay for now (re-timed at 13:00 if needed). Rojo: a watchdog restarts any crashed server by itself (log ~/Desktop/8ball-refs/halloween/shots/coordinator/rojo-watchdog.log; Rojo 7.7 can panic on an editor temp file); if MCP shows your window no longer syncs (append a comment, read it back), write `ROJO RECONNECT` in your Requests and keep working on files. Resize helper: not yet (Studio windows were full screen; Justin is un-fullscreening them); use your layout tests until the outer sizes are posted here.
+- 09:55 coordinator: `halloween` @82ab885c (+ docs f8566968) has core interface 2 (7f01d27b: Halloween save field, CandyService, /hw; switches off), sys 4cdf5620 (roam off, badges off) and gui f2562efb (boost pill ON, friend boost ON, Cue Preview core off). Lint OK, 1,404 tests, Studio play console clean, pill shows +120%. Run `git fetch && git merge origin/halloween` before your next READY. Main.client still has 12 top-level locals to spare: hooks stay inside `do ... end`.
+
+## Status (continued)
+
+- 11:04: **Progress 17, phone and iPad, done for the menus by emulation (the resize helper still
+  sees no window):** in Play the Cues menu's `Root` frame set to 844x390 (phone) and 1024x768
+  (iPad) at (0,0), the way the lively menus lay out from Root's AbsoluteSize. Index with the
+  Jack chosen and scrolled to the Exclusive row (3/4: VIP, Starter, Candy Corn, Jack, the CLAIM
+  banners on the owned ones), and My Cues with the Jack's detail: every visible label
+  `TextFits` at both sizes (0 clipped), nothing overlaps, the cards read
+  (`phone_index_jack_detail_844x390.jpg`, `phone_index_exclusive_row_844x390.jpg`,
+  `phone_my_cues_jack_844x390.jpg`, `ipad_index_exclusive_row_1024x768.jpg`,
+  `ipad_my_cues_jack_1024x768.jpg`). Still not emulable from this window: the power bar card
+  (HUD, sizes from the real screen) and YOU GOT (its own ScreenGui); both checked at PC and TV
+  only. Cues B's 11:02 own-aim note: their "crown faded away" at the frame's bottom was the butt
+  leaving the frame; the measured modifier of the skinned crown and charm was 0 until
+  ed8b7ca3, and is 1 now, so on any viewport nothing of a skinned overhang can poke into the
+  aim view (the Aim fade is by the turn state, the near fade by the eye's distance; neither
+  reads the viewport, so B's phone assumption holds).
+
+- 10:59: **Integration preview done (Progress 14 runs for real once B's rows reach
+  `halloween`; neither lane is merged there yet, `halloween` @ f32c3d1b):** a local scratch
+  merge of `origin/hw-cues-b` @ 831ba508 into `hw-cues-a` @ c75fbe56 (local only, never
+  pushed). The only conflict is `tools/upload_manifest.json`, resolved by union (974 ours +
+  995 theirs = 1,004 rows). With B's three skins taken out of draft locally (B's branch still
+  has them draft) `cue_skins_data.py --allow-missing` wrote 66 skins / 28 pieces, and the ONLY
+  build of the five in my window reported 5 skins rebuilt, 9 pieces, 60 other templates
+  untouched, no problems. All five bodies draw through the body path on the stand and on the
+  back (`integ_*` shots), the Broom and the Spider in hands in a solo fixture with their power
+  bar cards, `HalloweenCueEquipped` logs for B's cues too, console clean (only the pre-existing
+  `203785492` lines, which come before any cue is given). **One fix, mine, `src/client/CuePiece.luau`
+  @ ed8b7ca3:** a skinned Aim joint did not clear while aiming. `applyHidden` gave the Aim share
+  to rigid parts only, so the Spider's crown (`Webs`, `Blades`, skinned under `Crown`) and the
+  Broom's hat charm (`HatCharm`, skinned under `Charm`) stayed solid at modifier 0 while the
+  rigid bristles cleared to 1. A skinned part whose root joint is an Aim joint now takes the
+  share (no near fade: its box is the bind pose). Studio after the fix: Spider Webs/Blades
+  1.00 while aiming, HatCharm 1.00, bristles 1.00, body parts 0; lint green; cue_body,
+  cue_looks, cue_motion, cue_placement and client_compiles tests pass. Scratch reverted: the
+  tree is `hw-cues-a` again (the five Edit templates stay in my window).
+
+- 2026-10-28 10:45: **Fresh-player pre-run on this build (Progress 18 runs again on the final
+  build):** a new mock save joins at the tutorial's Arrow (`fresh_join_tutorial_arrow.jpg`),
+  steps on the reserved table's pad, the bot comes, Game1 starts with Classic in hand, the
+  break pots two (STREAK x2, `fresh_game1_break_streak.jpg`), the hints step on; after a
+  skip the lobby's popups (Daily Rewards, Invite a friend) show as before (10:37 captures).
+  Console: no CueSkinLook, CuePiece, CueAssets or Effects warning, no script error; the one
+  error line in every session is `ContentId: rbxassetid://203785492 failed ... Asset type
+  does not match requested type` three times at join, present before this lane's changes
+  (not a cue asset; worth a look by whoever owns it).
+- 2026-10-28 10:44: **Progress 19, the rows against the shots (R2.1, R2.2, R2.8, R2.9):**
+  - R2.1 Candy Corn Cue (Epic, track 150): unique model and tip (the candy-corn body: white
+    glowing kernel tip, orange rings, the barber-pole ribbon, the banded bulb, three turning
+    kernels: `candy_lab_stand.jpg`, the card); aura (haze, kernel flipbook, sugar sparkles,
+    crackle, one gold swirl, one warm light: `candy_lab_stand.jpg`, `candy_hands_aura_quiet.jpg`);
+    trail (gold strip, tumbling kernels, sugar dots: `candy_trail_kernels_after_scratch.jpg`);
+    pocket finisher (flash, two rings, gold fountain, kernels, rods, glitter, the library pop:
+    `candy_finisher_break_pot.jpg`); animated parts (the kernel carousel and the pulsing tip,
+    drop 3's joints); flipbook VFX (`kernel_4x4.png`, `rods_4x4.png`); card art
+    (`assets/cue/thumbs/candy_corn.png`); Index entry (`index_exclusive_row_candy_jack.jpg`).
+    Epic-sized: 72 particles a second, no beam, one light (the cost table).
+  - R2.2 Jack-o'-Lantern Cue (Legendary, track 500): unique model and tip (green stem tip,
+    ribbed orange shaft, the vine and leaves, slit collars, the carved pumpkin butt:
+    `jack_lab_stand.jpg`, the card); **no candy corn on it** (none in the body, aura, trail or
+    finisher data); aura (dark smoke, flame wisps, embers, crackle, the mini-jack flipbook,
+    the face glow, two flame heads, three flickering lights: `jack_lab_stand.jpg`,
+    `night_jack_stand.jpg`); trail (flame ribbon, embers, jack flecks: `jack_trail.jpg`);
+    pocket finisher = the laughing jack (`jack_finisher_rise.jpg`: the jack rises face-on,
+    jaw snapping, the fire column, seeds and embers, four mini jacks, the library laugh);
+    animated parts (the face flicker, the leaves' sway, the slit pulse, the jack's jaw and
+    wobble); flipbook VFX (`jack_4x4.png`); card art (`assets/cue/thumbs/jack_o_lantern.png`);
+    Index entry (the same row shot). Legendary-sized: 93 particles a second, no beam.
+  - R2.8 the rarity ladder: the Catalog's `Effect` levels are Epic (Candy Corn), Legendary
+    (Jack), Mythic (Black Cat), Mythic (Spider), Secret (Witch's Broom) (`eventCue` rows in
+    `Catalog.luau` 258-262; `catalog_test` checks them); the first two rungs are built and out
+    of draft, each sized to its tier (Candy under Jack on every count in the cost table).
+  - R2.9 unique model: the body path (drop 3) draws a skin's own model over the hidden cue
+    mesh for every cue with a `body` row, including Cues B's three; both of mine wear it in
+    hand, on the back, raised, fading and under Lower effects (`03-candy-hands`,
+    `04-jack-hands`, `jack_hands_lower_effects.jpg`, the lab backs).
+- 2026-10-28 10:43: **Progress 17 (devices): PC and TV done, phone and iPad BLOCKED.** At the
+  window's PC size (1523x814 viewport): the Index's Exclusive row, its detail, My Cues and the
+  power bar (10:33 entry). TV through `GuiQA:Invoke("padMode", true)` (the pad hints on):
+  the Index's Exclusive row (`tv_index_exclusive_row.jpg`), the Index detail with the Jack
+  chosen (`tv_index_jack_detail.jpg`), My Cues (`tv_my_cues.jpg`), YOU GOT for both cues
+  through the quick reveal (`tv_you_got_jack.jpg`, `tv_you_got_candy.jpg`): the cards read
+  at every size the GUI lane draws them, the names fit on one line. Phone (844x390) and iPad
+  (1024x768) need the window resized: `tools/halloween/studio_size.sh` finds no Studio window
+  from this shell (System Events lists zero windows for every RobloxStudio process, with
+  assistive access working for other apps), so those two sizes are blocked until the
+  coordinator posts the outer sizes or resizes the window. Nothing of mine is size-specific:
+  the cards are the GUI lane's components with my images.
+- 2026-10-28 10:41: **Progress 15 and 16 done.** Analytics @ d6dccb21 (pushed): one
+  `Funnel.event(player, "HalloweenCueEquipped", 1, cueId)` in `HANDLERS.EquipCue` for a
+  Catalog row with `Event = "Halloween2026"`; the Studio server log shows
+  `Funnel: event HalloweenCueEquipped 1 [JackOLanternCue, , ]` and the same for
+  `CandyCornCue` on equip. Lower effects (Settings `LowFx` on through GuiQA `settingsPress`):
+  Jack in hand keeps its body whole, the aura thins to faint smoke
+  (`jack_hands_lower_effects.jpg`); `Quality.rate()` scales only emitter rates (CueVfx), so
+  the finisher keeps its flash, rings, bursts and piece by construction (Effects reads no
+  Quality). Quiet in the hands: aura only at the quiet share (`jack_hands_after_equip` and
+  `candy_hands_aura_quiet`). Night: Map's `Config.Lighting.Night` is in `halloween` but
+  nothing applies it yet (no `LightCycle.event` in src), so I pushed it myself in my window
+  (Night in Day's slot through `LightCycle.state` and `MapLighting.apply`, the real cycle
+  idle): both stands under the violet night (`night_candy_stand.jpg`, `night_jack_stand.jpg`):
+  the warm lights pool on the lilac floor without flooding it white, the Jack reads as a
+  flame-wrapped orange cue, the Candy as a warm gold one; both backs show their butt pieces.
+  Repeat the lab under the real Night once Map's cycle lands. Cost beside Eclipse's and
+  Infernal's (from the skin and piece data; aura particles a second at full rate, back half):
+
+  | cue | body parts / tris | aura emitters | aura /s | orbiters | lights | beams | trail /s | finisher burst | pocket piece |
+  |---|---|---|---|---|---|---|---|---|---|
+  | Candy Corn (Epic) | 7 / 5,216 | 5 | 68 | 1 (+head) | 1 | 0 | 28 | 106 once | none |
+  | Jack-o'-Lantern (Legendary) | 7 / 7,040 | 6 | 93 | 2 (+2 heads) | 3 | 0 | 34 | 120 once + 4 parts / 6,120 tris | jack_o_lantern_pocket |
+  | Eclipse (reference) | 48 / 58,352 | 14 | 98 | 2 | 1 | 1 | 31 | 84 once | none |
+  | Infernal (reference) | 1 / 19,500 | 4 | 57 | 3 | 1 | 5 | 33 | 86 once + 2 parts / 27,500 tris | infernal_pocket |
+
+  Both sit under Eclipse on parts, triangles, emitters and particles; Jack's three lights are
+  the one number above the references (Eclipse 1, Infernal 1), each with Flicker and a short
+  range, the back at half rate.
+- **Devices (Progress 17), a blocker:** `tools/halloween/studio_size.sh lane-hw-cues-a.rbxl show`
+  answers "no Studio window title contains ..." from this shell (System Events lists no window
+  for any RobloxStudio process: Accessibility is not granted to this terminal). The device
+  sizes need the helper or the coordinator's posted outer sizes; until then the phone / iPad /
+  TV shots are not taken. `GuiQA:Invoke("padMode", true)` works for the TV layout at the
+  current size.
+- 2026-10-28 10:33: **Both cues out of draft: Candy Corn @ 1bd06f55, Jack-o'-Lantern @ ba50947d**
+  (Progress 12; pushed; lint green, the full run 1,409 green, `client_compiles_test` green).
+  Cards: `cue_skin.py <sid> --thumb` for both (the body with its frozen aura), uploaded to the
+  group as Decals, image ids in the manifest (candy 112696270813806, jack 110159550393453);
+  `"draft": false`, the generator clean without `--allow-missing`: the Index has
+  `CandyCornCue`, `JackOLanternCue`, the `candy_corn` and `jack_o_lantern` bodies and
+  `jack_o_lantern_pocket` (Upright); `Catalog.ready` is true for both, so core can grant
+  them. Studio (my window, Play, a fresh mock save, the tutorial skipped, both given with
+  `/givecue`): the Index's Exclusive row reads 3 / 4 with VIP, Starter, Candy Corn Cue and
+  Jack-o'-Lantern Cue and their cards (`index_exclusive_row_candy_jack.jpg`); My Cues shows
+  both cards as NEW beside VIP and the equipped Classic (`my_cues_candy_jack_cards.jpg`); the
+  power bar draws Jack's card with the Jack body in hand in a solo fixture
+  (`jack_power_bar_card_and_hands.jpg`). Console: no cue warnings. The templates for both
+  are built in my window only (`build_cue_templates.luau` `ONLY`); the live place needs them
+  built at integration (Progress 14), not by this lane.
+- 2026-10-28 10:28: **Jack-o'-Lantern complete @ db1a9fdb** (Progress 10 and 11; the `Upright`
+  flag it needed @ 73fc00ae, its own commit; both pushed). Aura: dark smoke, flame wisps,
+  rising embers, crackle, the mini-jack flipbook (16 frames of the pocket jack laughing,
+  rendered headless with its real materials: `CuePiecesHalloween_A.py -- --sprites jack`, then
+  `--sheets`), the face glow at the pumpkin, two flame-head orbiters, three flickering lights:
+  93 particles a second, back 46. The face flicker, the leaves' sway and the slit pulse are
+  the body's own joints (drop 3). Trail: a flame ribbon with a white core, embers and jack
+  flecks riding the ball. Finisher (1.7 s): flash, a dark and an orange ring, a dim fire
+  column, the jack rising out of the pocket face-on wrapped in flame, its jaw snapping, four
+  mini jacks popping, a seed-and-ember burst, a dissolve, the Roblox library laugh 9116239118
+  ("Laugh Evil Male", Pro Sound Effects, 3.7 s; PreloadAsync Success, played at the pocket,
+  no load error in the console). Lab (stand and back), a solo fixture (in hand, a break with
+  two pots, the trail), the finisher fired at the pocket in Play (`jack_finisher_rise.jpg`).
+  Found on the way: the pocket jack came up showing its back, its jaw cap inside out at the
+  front, from the per-part half turn in CuePiece (Assumptions); fixed with `Upright` on this
+  piece alone, no shipped piece changes. The two fire layers were then dimmed so the grin and
+  jaw read through the flames. Jack stays `"draft": true` until its card (Progress 12, next).
+- **To Cues B (10:28):** if a pocket creature of yours has a face and comes up showing its
+  back (or a part of it sits turned), set `k.upright = True` in its builder (after `k.frame`)
+  and regenerate: piece.json gets `"Upright": true` and CuePiece skips the half turn for that
+  piece only (@ 73fc00ae, in `hw-cues-a`; ask for the merge if you need it). A plain decor
+  piece with no face does not need it.
+- 2026-10-28 10:02: **CuePreview bodies @ 5078ac33** (Progress 9, pushed): `python3 tools/cue_skin.py
+  <sid> --thumb` draws a skin with `body`: the body parented over the mesh (hidden, as in the
+  game), every part whole with its Aim overhang (the long variant), the square framed to the
+  body's reach past the butt, the outline traced from the body (the in-game Highlight adorns
+  the body model), `maps_from` for the hidden mesh's maps, the whole body thickened through
+  the cue's scale like the plain mesh is. Proof: `assets/cue/thumbs/candy_corn.png` (the card,
+  aura frozen). Nothing changes for a skin without `body`.
+- **To Cues B (10:02):** `tools/cue_skin.py <sid> --thumb` with bodies is in @ 5078ac33; `Aim`
+  parts show whole. Your skin needs `body`, `maps_from` and (for the maps) nothing else; the
+  thumb goes to `assets/cue/thumbs/<sid>.png`.
+- 2026-10-28 09:59: **Candy Corn complete @ e78636a4** (Progress 7; pushed after the `halloween`
+  merge and the full run). Aura: a warm haze behind, the kernel flipbook (16 frames of the
+  body's own kernel tumbling, rendered headless with its real materials:
+  `CuePiecesHalloween_A.py -- --sprites`, then `--sheets` joins it and draws the rods sheet),
+  sugar sparkles white-hot to orange to yellow, crackle sparks, one gold swirl orbiter with a
+  glowing head, one warm light: 72 particles a second, back 36, no beam (Epic). Trail: the
+  gold sparkle strip with a white core, tumbling kernels and sugar dots riding the ball.
+  Finisher (about 1.1 s, no piece): flash, an orange and a yellow ring, a gold fountain, 12
+  kernels, 24 rods in the three colours, a glitter fall, the Roblox library pop 9119669295
+  ("Suction Pop 2", Pro Sound Effects, PreloadAsync Success in my window) at 0.3. Lab beside
+  Eclipse, Beta, Firework, Infernal and Blood Moon; a solo fixture: in hand, two breaks (pots,
+  a streak), a scratch, the finisher at the pocket. Two data mistakes found and fixed on the
+  way (an orbiter Head takes plain numbers; a pocket layer's Host.Offset is a vector); the
+  console is clean after them. Also: CueAssets no longer warms a Sound id as a Decal (that
+  logged "not found" for every pocket sound), and `catalog_test` counts ready event cues in
+  the Exclusive row (the coordinator's 09:12 request). Candy Corn stays `"draft": true` until
+  its card (Progress 12).
+- 2026-10-28 09:45: **READY drop 3 @ 2c205868** (skins and uploads @ 37573b2c; pushed once the
+  full test run is green; lint green, `client_compiles_test` green). `CueSkins.bodyOf` is the
+  one decision; CueStickBuilder hides the mesh (Transparency 1, no shadow, still the root) and
+  writes `Body`/`Mesh` attributes; CueSkinLook builds the body as a CuePiece that follows
+  Visible and never AuraOff, wears the outline (adornee = the body model) and skips the ink;
+  CuePiece fades each part on the owner's near camera and eases `"Aim": "fade"` joints clear
+  while aiming (`own = true` on your own stick's attach); CueAssets warms bodies;
+  `Config.CueSkins.Bodies` (`Enabled = true`, the switch). `tests/cue_body_test.luau`: the 2.6
+  envelope rules on every Index body and on both piece.json files, the pocket piece's frame
+  and jaw, `bodyOf`, the Aim key through `Motion.rig`. Studio (my window, a local non-draft
+  copy, templates built with `ONLY`): both bodies in hand in a solo fixture (`03-candy-hands`,
+  `04-jack-hands`: the tip at the ball, Jack's pumpkin at the butt measured by raycast), AuraOff
+  keeps the body, Visible hides and shows it, the per-part fade probe (eye on the shaft: shaft
+  gone, butt 0.18), Candy to Jack to Beta to Firework to Jack swaps, Lower effects keeps the
+  body, a back cue wears it, console clean of CueSkinLook/CuePiece/CueAssets lines. Found and
+  fixed on the way: both bodies first showed end for end (the rigid-part half-turn, see
+  Assumptions). Uploads: `candy_corn_parts.glb` 123970008672363, `jack_o_lantern_parts.glb`
+  110253384942835, `jack_o_lantern_pocket_parts.glb` 133027458090786, `kernel_palette.png`
+  decal 120865108870850 / image 119521496210859; the skin JSONs carry `"draft": true`.
+- **To Cues B (09:45):** a body renders in your Blender design orientation (tip at the tip,
+  +X side on the +X side); an aura or pocket decor piece renders turned half about the up axis,
+  as every shipped decor piece does (see Assumptions): a pocket face modelled looking toward
+  +Z shows looking toward -Z, and left and right swap. Check `<sid>_pocket` and `<sid>_aura`
+  in the lab with that in mind, or ask me to give them the body's un-turned rest.
+- 2026-10-28 09:55: **READY drop 2 @ eb98e2ef** (pushed; `halloween` @ 14e2d157 merged in, the
+  new `client_compiles_test` green, 1346 tests, lint green). The data tool: `body`,
+  `maps_from`, `look`, `--also-manifest`, the budget stop (body cues' pieces only: the shipped
+  Mythic pieces predate it, the Dragon's aura alone is 36,790 triangles); the builder
+  `ONLY`/`ALL` filter with `row.Body`, proven in my window (`ONLY = { "BetaCue" }`: 1 skin and
+  2 pieces rebuilt, 60 templates and 17 pieces the same instances, nothing gone); the guarded
+  imports and the `Aim` joint key in `CuePieces.py`; `CuePiecesHalloween_A.py` with
+  `check_body`. Found and fixed on the way: a plain regenerate from a lane worktree swapped the
+  Kitsune, Celestial Dragon and Firework ids (two "ok" uploads of the same files, the
+  generator preferred the one the live rows do not use) and lost the Firework pocket volume
+  (hand-edited in the generated row on 10-07): now the id the shipped rows carry wins and the
+  volume lives in `firework.json`, so `git diff src/shared/CueSkins` after a regenerate is empty.
+- **To Cues B (09:55):** the names and keys stay exactly as your 08:55 note (`body`,
+  `maps_from`, `look`, `"Aim": "fade"` through `k.joint(..., aim='fade')` in `CuePieces.Kit`,
+  `<sid>`, `<sid>_aura`, `<sid>_pocket`). `CuePreview.py --thumb` with bodies and their `Aim`
+  overhangs comes by 12:00 (Progress 9).
+
+- 2026-10-28 09:35: step 3 done: `candy_corn` (7 parts, 5,216 triangles) and `jack_o_lantern`
+  (7 parts, 7,040) modelled in `CuePiecesHalloween_A.py`, both passing `check_body` (the 2.6
+  rules, sampled every 0.1 stud; the checker also caught three real rule hits on the way:
+  a ring inside the tip zone, the vine rising inside the bridge zone, a leaf reaching into the
+  grip zone), plus `jack_o_lantern_pocket` (4 parts, 6,120: the shell with the face cut out, the
+  jaw on its snapping hinge, the Neon core, the stem). GLBs exported, headless previews in
+  `gate1/`. No uploads yet. The three kernels wear one 64 px palette map (one MeshPart instead
+  of three; the only texture on either body).
+
 ## Shared-file changes
 
 Planned (PLAN §7 shared files; own block or line only; add the sha to each as it lands):
 
-- `src/shared/Config.luau`: own block `Config.CueSkins.Bodies` after `Config.CueSkins` (drop 3).
+- `src/shared/Config.luau` @ 2c205868: own block `Config.CueSkins.Bodies` after `Config.CueSkins` (drop 3).
 - `src/shared/Strings.luau`: the 5 cue names in `Strings.Progress.Cues` (drop 1).
-- `src/client/Main.client.luau:134`: `own = true` on your own stick's `attach` (drop 3, one line).
+- `src/client/Main.client.luau:134` @ 2c205868: `own = true` on your own stick's `attach` (drop 3, one line).
 - `tools/upload_manifest.json`: own rows and B's backup rows (union on conflict).
 - `src/shared/CueSkins/*` (generated): regenerated, never hand-edited.
 - `src/server/Items.luau` `HANDLERS.EquipCue`: one `Funnel.event` line (analytics).
 - `tests/config_test.luau`: only if a `Config.CueSkins.Bodies` check is added (own line).
+- `assets/cue/CuePieces.py` @ eb98e2ef: the two guarded Halloween imports (planned) plus
+  `Kit.joint(aim=)` and the `Aim` key in `export` (one kwarg, two lines: the joint key both cue
+  lanes' briefs name has to reach piece.json, and `export` is its only writer).
+- `assets/cue/CuePieces.py` @ 73fc00ae: `export` writes `"Upright": true` into piece.json when the
+  builder set `kit.upright` (three lines, additive; `tools/cue_skins_data.py` passes it to the
+  row and `src/client/CuePiece.luau`, both mine, read it).
+- `assets/cue/skins/firework.json` @ d267d8e7: `Pocket.Sound.Volume` 0.7 -> 0.33 (the value the
+  live generated row already had by hand since 10-07; no behaviour change).
+- `src/shared/CueSkins/Skins/FireworkCue.luau` @ d267d8e7: regenerated (the hand comment gone,
+  the value the same).
 
 ## Requests
 
+- 10:59 **To Cues B:** (a) your 10:55 CueAssets request is already done: `c17cabbf` (09:59, on
+  `origin/hw-cues-a`) makes `collect` skip a skin's `Sound` key, so no pocket sound is warmed
+  as a texture; it reaches your window with the merge. The `203785492` lines are not a skin
+  row's: they appear in a fresh session before any cue is given. (b) The skinned Aim-fade fix
+  above (ed8b7ca3) needs nothing from your rows: `Aim = "fade"` on `Crown` and `Charm` now
+  clears their skinned parts too. (c) Your rows @ 831ba508 and my branch build and run
+  together cleanly (the preview above); the merge's only conflict is the manifest, union.
+
+- 10:45 **Coordinator requests in full (brief 3.6), standing:**
+  1. Merges on request: drop 1 7bef0153, drop 2 eb98e2ef, drop 3 37573b2c (the body path,
+     `Bodies.Enabled = true`), CuePreview bodies 5078ac33, Candy Corn 1bd06f55, Jack-o'-Lantern
+     ba50947d (with the `Upright` flag 73fc00ae), analytics d6dccb21, the skinned Aim-fade
+     fix ed8b7ca3 (10:59): all on `hw-cues-a`, pushed; `hw-cues-a` already contains `halloween` @ f32c3d1b, so the merge is clean.
+  2. After both cue lanes are merged: run `python3 tools/cue_skins_data.py` in the `halloween`
+     checkout and commit. On a `tools/upload_manifest.json` conflict take the union (an `"ok"`
+     row wins, keys sorted, `indent=2, sort_keys=True`, never drop a row); on a
+     `src/shared/CueSkins/*` conflict re-run `python3 tools/cue_skins_data.py`, never fix the
+     generated files by hand. The generator must run clean (no `--allow-missing`) for the
+     rows to be ready; a draft row stays out of the Index by design.
+  3. Team Create place, Edit mode, once all five are final: `tools/build_cue_templates.luau`
+     with `ONLY = { "CandyCornCue", "JackOLanternCue", "BlackCatCue", "SpiderCue",
+     "WitchBroomCue" }` and `ALL = false`; expect "5 skins, N pieces rebuilt, 60 other
+     templates untouched" (my two: 2 skins, 3 pieces incl. `jack_o_lantern_pocket`); then the
+     lab check. Without this run the five show as Classic sticks with auras (StandIn).
+  4. Publish with "Restart Servers for Updates" (an old server meets a new id and resets the
+     equipped cue to Classic; SaveSchema). What could break live: nothing for shipped cues
+     (every switch keeps the old path: `Config.CueSkins.Bodies.Enabled`, `Catalog.ready`,
+     `Upright` unset on shipped pieces); check by hand: equip Candy Corn and Jack-o'-Lantern
+     from My Cues, one pot each (the finisher, the laugh), the Index's Exclusive row.
+- 10:33 **MERGE Jack-o'-Lantern Cue** (`hw-cues-a` @ ba50947d: the Jack content db1a9fdb, the
+  `Upright` flag 73fc00ae, out of draft ba50947d; `assets/cue/CuePieces.py` gets three
+  additive lines). Runtime change: the Index gains the row; CuePiece reads `row.Upright`,
+  unset on every shipped piece.
+- 10:33 **MERGE Candy Corn Cue** (`hw-cues-a` @ 1bd06f55: the content e78636a4, out of draft
+  1bd06f55 with both cards' manifest rows). Runtime change: the Index gains the row.
+- 10:02 **MERGE CuePreview bodies** (`hw-cues-a` @ 5078ac33: `assets/cue/CuePreview.py` only plus
+  the Candy Corn card; Cues B needs it for its three cards).
+- 09:45 **MERGE NOW drop 3: Cues B needs it for gate 2 at 11:00** (`hw-cues-a` @ 37573b2c: the
+  body path, `Bodies.Enabled = true`, the two skin drafts and the manifest rows). Live
+  behaviour changes only for a skin row with a Body, and no shipped row has one; the switch is
+  `Config.CueSkins.Bodies.Enabled`.
+- 09:55 **MERGE drop 2** (`hw-cues-a` @ eb98e2ef, tooling only, no runtime change; includes
+  d267d8e7, the Firework volume data fix). Cues B generates rows only after it has this.
 - 09:05 **MERGE drop 1** (`hw-cues-a` @ 7bef0153): the five cue ids and names, `Catalog.ready`,
   `drawAs`. No runtime behaviour change for existing cues (every shipped cue draws its own
   template as before; only an id with a StandIn falls back).
 
 ## Assumptions
 
+- Every rigid piece part renders turned half about the up axis against its Blender design:
+  `tools/cue_pieces_glb.py` writes each part so the importer's half-turn lands it in the cue
+  frame already, then `CuePiece` turns it once more (FLIP). Beta's lattice, the Firework
+  ribbons and both new bodies measured so in hand (raycast from the tip). Every shipped decor
+  piece was approved looking that way, so decor keeps the turn; a body must wear its tip at
+  the tip, so a body's rigid parts skip it (`CuePiece.new(..., { body = true })`). Skinned
+  parts (`export_skin` writes the cue frame directly, the importer turns, FLIP undoes) are
+  right either way. Turning decor straight would visibly change shipped cues: the designer's
+  call, not today's.
+- A pocket creature with a face cannot live with the per-part half turn (the pocket jack rose
+  showing its back, its jaw cap, positioned at the front, turned inside out): piece.json may
+  carry `"Upright": true` (the builder's `k.upright = True`) and CuePiece skips the turn for
+  that piece alone, exactly as for a body. Only `jack_o_lantern_pocket` sets it; every shipped
+  piece renders as before. Turning every pocket piece straight stays the designer's call.
+- The finisher proof in Play fires `Effects.pocketBurst` from the MCP command context, which
+  gets its own copies of the client modules: its `CueAssets` had warmed nothing, so
+  `shotReady` was false and the piece was skipped until the command itself called
+  `CueAssets.holdShots({ id })` and waited. The game's own Effects never has this (Main holds
+  your cue's shot effects every second); the real pots in the fixture showed the piece.
 - The brief says the names go in `Strings.Progress.Cues`; the real table is
   `Strings.Items.Cues` (the only one the game reads), so they went there.
 - The five cues sit in the Index's existing Exclusive row and each pays the existing Exclusive
@@ -75,3 +390,77 @@ Planned (PLAN §7 shared files; own block or line only; add the sha to each as i
 - `Catalog.ready` returns false for an unknown id (never grant what the catalog lacks).
 
 ## Gate shots
+
+Gate 1 (09:35, `~/Desktop/8ball-refs/halloween/shots/hw-cues-a/gate1/`): drop 1 @ 7bef0153,
+drop 2 @ eb98e2ef (both pushed; `halloween` @ 14e2d157 merged in).
+
+- `candy_corn_body_preview.png`: the Candy Corn body alone, headless Blender: whole cue from
+  the side, three quarter from above-behind, the bulb (white, orange, yellow dome), the joint
+  (orange rings, white sleeve, the orange barber-pole ribbon, the three kernels on top), the
+  kernel tip, the other three quarter. Flat glossy plastic; the sparkle and glow come from the
+  aura and the Neon tip in game.
+- `jack_o_lantern_body_preview.png`: the Jack-o'-Lantern body: green stem tip with a brown
+  ring, ribbed orange shaft, the vine spiralling the whole length with five leaves on top, the
+  two wood collars with their slits (Neon in game), the carved pumpkin with its curly stem.
+- `jack_o_lantern_pocket_preview.png`: the pocket jack-o'-lantern (front, three quarter, the
+  grin close, the back): the face cut through the shell to the glowing core, the jaw's seam.
+
+Gate 2 (09:59, `gate2/`): Candy Corn complete @ e78636a4; Jack's body through the path (drop 3 @
+2c205868, `03-candy-hands`, `04-jack-hands` in the lane folder).
+
+- `candy_lab_stand.jpg`: the Candy Corn on its stand in the lobby light: cream shaft, orange
+  rings, the barber-pole wrap, orange forearm, yellow handle, the banded bulb; floating
+  kernels, sugar sparkles and the gold swirl round it.
+- `candy_lab_back.jpg`: on an avatar's back: the three kernels at the joint, the swirl's head,
+  kernels and sparkles at half rate.
+- `lab_row_candy_jack_eclipse_beta_firework_infernal_bloodmoon.jpg`: the whole row from the
+  stairs, Candy Corn and Jack at the left, the four reference cues beside them.
+- `firework_lab_stand_reference.jpg`: the Firework (Unique) stand from the same camera, the
+  density to judge Candy Corn's (Epic) against.
+- `candy_hands_aura_quiet.jpg`: in hand in the solo fixture, the aura at its quiet share.
+- `candy_finisher_break_pot.jpg`: the break pots the 5: the flash, the rings, the gold
+  fountain, kernels and glitter at the pocket, the cue ball's gold trail.
+- `candy_trail_kernels_after_scratch.jpg`: ball in hand after a scratch, the shed kernels
+  settling on the felt by the cue.
+- `candy_hands_streak2.jpg`: the second break in hand (streak x2).
+
+Gate 2 addition (10:28, `gate2/`): Jack-o'-Lantern complete @ db1a9fdb (+ 73fc00ae).
+
+- `jack_lab_stand.jpg`: the Jack-o'-Lantern on its stand in the lobby light: the ribbed orange
+  shaft, the vine and leaves, the slit collars, the carved pumpkin at the butt; dark smoke,
+  flame wisps, embers and the mini jacks drifting round it, the two flame heads circling.
+- `jack_lab_back.jpg`: on an avatar's back at half rate, the pumpkin glowing at the hip.
+- `jack_break_two_pots.jpg`: the break in the solo fixture pots two balls: the flash and the
+  rings at the pocket, the flame trail off the cue ball.
+- `jack_trail.jpg`: the flame ribbon and its embers behind the rolling cue ball.
+- `jack_pocket_piece_static_upright.jpg`: the pocket jack held still above the pocket with
+  `Upright` (the proof of the orientation fix): face to the camera, eyes and grin blazing, the
+  jaw in place.
+- `jack_finisher_rise.jpg`: the finisher in Play at its full rise: the jack face-on, mouth
+  open, seed embers round it, the laugh playing.
+- `index_exclusive_row_candy_jack.jpg`: the Index's Exclusive row, 3 / 4: VIP, Starter, Candy
+  Corn Cue and Jack-o'-Lantern Cue with their cards (both skins out of draft).
+- `my_cues_candy_jack_cards.jpg`: My Cues: the two new cards beside VIP and the equipped Classic.
+- `jack_power_bar_card_and_hands.jpg`: a solo fixture with Jack equipped: the power bar draws
+  its card, the body in hand.
+- `night_candy_stand.jpg`, `night_jack_stand.jpg`: both stands under Map's Night preset
+  (pushed into Lighting in my window): the warm lights on the lilac floor, the backs' pieces.
+- `jack_hands_lower_effects.jpg`: Jack in hand with Lower effects on: the body whole, the aura
+  thinned to faint smoke.
+- `tv_index_exclusive_row.jpg`, `tv_index_jack_detail.jpg`, `tv_my_cues.jpg`: the Index row,
+  its detail with the Jack chosen and My Cues in the TV (pad) layout.
+- `tv_you_got_jack.jpg`, `tv_you_got_candy.jpg`: the YOU GOT scene with each card.
+- `fresh_join_tutorial_arrow.jpg`, `fresh_game1_break_streak.jpg`: the fresh-player pre-run:
+  the tutorial's first screen, the first match's break.
+- `integ_row_five_candy_jack_broom_cat_spider.jpg`: the lab row of all five bodies on the
+  stand (the local scratch merge of B's rows @ 831ba508, drafts off locally).
+- `integ_broom_stand_back.jpg`, `integ_cat_stand_back.jpg`, `integ_spider_stand_back.jpg`:
+  each of B's bodies on the stand and on a back, close.
+- `integ_broom_hands_aim.jpg`: the Broom in hands while aiming (solo fixture): the bristles
+  cleared, the power bar card.
+- `integ_spider_hands_aim_crown_faded.jpg`: the Spider in hands while aiming after the
+  CuePiece fix @ ed8b7ca3: the crown cleared (before it, Webs and Blades stayed solid).
+- `phone_index_jack_detail_844x390.jpg`, `phone_index_exclusive_row_844x390.jpg`,
+  `phone_my_cues_jack_844x390.jpg`: the Index (Jack chosen; the Exclusive row) and My Cues at
+  phone size by Root-frame emulation, no clipped text.
+- `ipad_index_exclusive_row_1024x768.jpg`, `ipad_my_cues_jack_1024x768.jpg`: the same at iPad size.

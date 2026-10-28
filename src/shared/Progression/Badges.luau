@@ -332,4 +332,19 @@ function Badges.check(
 	return problems
 end
 
+--- Seconds from a lucky block's open until its card shows, for the slowest pull (Mythic or
+--- Secret: the big spin, then their scene), plus Config.Badges.RevealMarginSeconds. The award
+--- queue holds this long after every open, so no toast lands during a reel or a pull scene.
+function Badges.revealSeconds(): number
+	local R = Config.UI.Reel.Reel
+	local CS = Config.Cutscenes
+	local scene = math.max(CS.Mythic.FlashAt, CS.Secret.FlashAt)
+	return Config.LuckyBlocks.Rise.Seconds
+		+ R.BigSeconds
+		+ R.CentreSeconds
+		+ R.BigSettleHoldSeconds
+		+ scene
+		+ Config.Badges.RevealMarginSeconds
+end
+
 return Badges

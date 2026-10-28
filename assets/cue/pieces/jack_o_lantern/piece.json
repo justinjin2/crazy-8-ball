@@ -1,0 +1,251 @@
+{
+  "id": "jack_o_lantern",
+  "Frame": "cue",
+  "frame": "Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)",
+  "Triangles": 7040,
+  "Parts": [
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#FF7A1C",
+      "Transparency": 0.0,
+      "Reflectance": 0.1,
+      "Name": "Body_Orange",
+      "File": "pieces/jack_o_lantern/Body_Orange.obj",
+      "Joint": "Body",
+      "Offset": [
+        0.0,
+        0.0,
+        -0.2625
+      ],
+      "Size": [
+        0.6746,
+        0.6746,
+        6.805
+      ],
+      "Triangles": 3864
+    },
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#2F5A2A",
+      "Transparency": 0.0,
+      "Reflectance": 0.03,
+      "Name": "Body_Green",
+      "File": "pieces/jack_o_lantern/Body_Green.obj",
+      "Joint": "Body",
+      "Offset": [
+        0.0,
+        0.0639,
+        -0.1488
+      ],
+      "Size": [
+        0.1141,
+        0.2419,
+        7.2977
+      ],
+      "Triangles": 424
+    },
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#5A3A22",
+      "Transparency": 0.0,
+      "Reflectance": 0.03,
+      "Name": "Body_Brown",
+      "File": "pieces/jack_o_lantern/Body_Brown.obj",
+      "Joint": "Body",
+      "Offset": [
+        0.0,
+        0.0,
+        -0.2325
+      ],
+      "Size": [
+        0.3733,
+        0.3733,
+        6.865
+      ],
+      "Triangles": 576
+    },
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#3E8E3A",
+      "Transparency": 0.0,
+      "Reflectance": 0.03,
+      "Name": "Body_Vine",
+      "File": "pieces/jack_o_lantern/Body_Vine.obj",
+      "Joint": "Body",
+      "Offset": [
+        0.007,
+        0.0039,
+        -0.0639
+      ],
+      "Size": [
+        0.4165,
+        0.4269,
+        6.304
+      ],
+      "Triangles": 1900
+    },
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#4EA63C",
+      "Transparency": 0.0,
+      "Reflectance": 0.03,
+      "Name": "Leaves_Leaf",
+      "File": "pieces/jack_o_lantern/Leaves_Leaf.obj",
+      "Joint": "Leaves",
+      "Offset": [
+        -0.0085,
+        0.2465,
+        -1.1843
+      ],
+      "Size": [
+        0.2116,
+        0.2313,
+        4.5497
+      ],
+      "Triangles": 60
+    },
+    {
+      "Material": "Neon",
+      "Color": "#FF9A2E",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Slits_Slit",
+      "File": "pieces/jack_o_lantern/Slits_Slit.obj",
+      "Joint": "Slits",
+      "Offset": [
+        0.0,
+        0.0,
+        -0.23
+      ],
+      "Size": [
+        0.3821,
+        0.3469,
+        0.64
+      ],
+      "Triangles": 144
+    },
+    {
+      "Material": "Neon",
+      "Color": "#FFC34D",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Face_Face",
+      "File": "pieces/jack_o_lantern/Face_Face.obj",
+      "Joint": "Face",
+      "Offset": [
+        0.0,
+        0.1897,
+        -3.42
+      ],
+      "Size": [
+        0.44,
+        0.3594,
+        0.28
+      ],
+      "Triangles": 72
+    }
+  ],
+  "Joints": {
+    "Body": {
+      "Parent": null,
+      "Pivot": [
+        0,
+        -3.5,
+        0
+      ],
+      "PivotRoblox": [
+        0,
+        0,
+        0.0
+      ],
+      "Motion": []
+    },
+    "Leaves": {
+      "Parent": null,
+      "Pivot": [
+        0,
+        -3.5,
+        0
+      ],
+      "PivotRoblox": [
+        0,
+        0,
+        0.0
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0,
+            1,
+            0
+          ],
+          "Amp": 7.0,
+          "Period": 2.6
+        },
+        {
+          "Kind": "Bob",
+          "Dir": [
+            0,
+            0,
+            1
+          ],
+          "Amp": 0.012,
+          "Period": 1.7,
+          "Phase": 50
+        }
+      ]
+    },
+    "Slits": {
+      "Parent": null,
+      "Pivot": [
+        0,
+        -3.73,
+        0
+      ],
+      "PivotRoblox": [
+        0,
+        0,
+        -0.23
+      ],
+      "Motion": [],
+      "Visual": [
+        {
+          "Kind": "Glow",
+          "Min": 0.0,
+          "Max": 0.45,
+          "Period": 4.0
+        }
+      ]
+    },
+    "Face": {
+      "Parent": null,
+      "Pivot": [
+        0,
+        -6.96,
+        0
+      ],
+      "PivotRoblox": [
+        0,
+        0,
+        -3.46
+      ],
+      "Motion": [],
+      "Visual": [
+        {
+          "Kind": "Glow",
+          "Min": 0.0,
+          "Max": 0.55,
+          "Period": 1.3
+        },
+        {
+          "Kind": "Blink",
+          "Period": 2.7,
+          "Seconds": 0.37,
+          "Count": 3,
+          "Phase": 1.1
+        }
+      ]
+    }
+  }
+}

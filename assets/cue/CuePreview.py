@@ -191,7 +191,8 @@ def blender_main(args):
     # ---- the cue ---------------------------------------------------------------------------------
     cue = cc.load_cue_object()
     cue.name = 'CueSkin'
-    maps = {k: os.path.join(TEXTURES, '%s_%s.png' % (skin_id, k)) for k in
+    maps_id = skin.get('maps_from') or skin_id  # a body cue wears another skin's maps on its hidden mesh
+    maps = {k: os.path.join(TEXTURES, '%s_%s.png' % (maps_id, k)) for k in
             ('color', 'normal', 'roughness', 'metalness', 'emissive')}
     if not os.path.isfile(maps['emissive']):
         maps.pop('emissive')
@@ -209,6 +210,17 @@ def blender_main(args):
         pj = CuePieces.link_paths(json.load(open(os.path.join(HERE, 'pieces', skin['piece'], 'piece.json'))))
         piece_joints = pj['Joints']
         reach = max(0.0, max(3.5 - (p_['Offset'][2] - p_['Size'][2] / 2) for p_ in pj['Parts']) - 7.0)
+    # A body (Halloween 2026, skin['body']): the cue's own model, parented like a piece over the
+    # mesh, which the game hides; drawn whole, Aim overhangs included (the long variant), and
+    # framed to its reach past the butt.
+    body_anim, body_objs = None, set()
+    if skin.get('body'):
+        before = set(bpy.data.objects)
+        body_anim = CuePieces.attach(bpy, skin['body'], cue)
+        body_objs = set(bpy.data.objects) - before
+        cue.hide_render = True
+        bj = CuePieces.link_paths(json.load(open(os.path.join(HERE, 'pieces', skin['body'], 'piece.json'))))
+        reach = max(reach, max(0.0, max(3.5 - (p_['Offset'][2] - p_['Size'][2] / 2) for p_ in bj['Parts']) - 7.0))
     frames_spec = (V.get('Moving') or {}).get('Frames')
     frame_images = []
     if frames_spec:
@@ -529,6 +541,8 @@ def blender_main(args):
         clock[0] = t
         if piece_anim is not None:
             piece_anim(t)
+        if body_anim is not None:
+            body_anim(t)
         pulses = (surface.get('Pulse') or {})
         es = surface.get('EmissiveStrength', 1.0)
         if 'EmissiveStrength' in pulses:
@@ -643,7 +657,11 @@ def blender_main(args):
         # The game's card picture (CueThumb): a square on a clear background, the cue on the
         # diagonal with the tip top-right like the old icon, thickened THUMB_THICKEN times
         # across (the mesh only, so pieces keep their shape) so it reads on a phone card.
-        cue.data.transform(Matrix.Diagonal((THUMB_THICKEN, 1.0, THUMB_THICKEN, 1.0)))
+        if body_objs:
+            # the body is the cue: thicken it whole through the parent (its parts ride along)
+            cue.scale = Vector((THUMB_THICKEN, 1.0, THUMB_THICKEN))
+        else:
+            cue.data.transform(Matrix.Diagonal((THUMB_THICKEN, 1.0, THUMB_THICKEN, 1.0)))
         scene.render.film_transparent = True
         s = math.sqrt(0.5)
         yw, zw = Vector((s, 0, s)), Vector((-s, 0, s))  # local +Y (toward the tip), the cue's top
@@ -675,8 +693,9 @@ def blender_main(args):
         bg.inputs[0].default_value = (0, 0, 0, 1)
         shot('thumb_glow.png')
         scene.render.film_transparent = True
-        others = [o for o in scene.objects if o is not cue and o.type in ('MESH', 'CURVE', 'SURFACE', 'META', 'EMPTY')
-                  and not o.hide_render]
+        # (a body's parts are the stick here: the in-game Highlight adorns the body model)
+        others = [o for o in scene.objects if o is not cue and o not in body_objs
+                  and o.type in ('MESH', 'CURVE', 'SURFACE', 'META', 'EMPTY') and not o.hide_render]
         for o in others:
             o.hide_render = True
         add_bloom_off = scene.compositing_node_group

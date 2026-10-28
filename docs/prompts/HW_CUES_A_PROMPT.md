@@ -634,31 +634,31 @@ Justin's changes at a gate go straight into the work and into the lane file's St
   counted), the five Catalog rows (`eventCue`, Effects, `StandIn`, `Event`, `Catalog.ready`, the
   `ofRarity` hiding, `drawAs` in `paintStick`), the five Strings names, tests; lint, tests, a
   Studio check and a fresh-player run; push; `READY drop 1` and `MERGE drop 1` in the lane file.
-- [ ] 2. Drop 2 (by 08:45): the data tool keys and `--also-manifest` and budget stop, the builder
+- [x] 2. Drop 2 (by 08:45): the data tool keys and `--also-manifest` and budget stop, the builder
   `ONLY`/`ALL` filter with `row.Body`, the guarded Halloween imports in `CuePieces.py`, a valid
   `CuePiecesHalloween_A.py`; the ONLY run proven in your window; push; `MERGE drop 2` (the
   coordinator merges it about 08:45).
-- [ ] 3. Candy Corn and Jack bodies modelled in `CuePiecesHalloween_A.py` with the envelope
+- [x] 3. Candy Corn and Jack bodies modelled in `CuePiecesHalloween_A.py` with the envelope
   assert, GLBs, headless previews beside the concepts (side and three quarter). No uploads yet.
-- [ ] 4. Gate 1 shots and lines (09:00): the headless previews, the drop 1 and drop 2 shas.
-- [ ] 5. After gate 1 (Justin's gate 1 changes in first): both bodies uploaded (dry-run first),
+- [x] 4. Gate 1 shots and lines (09:00): the headless previews, the drop 1 and drop 2 shas.
+- [x] 5. After gate 1 (Justin's gate 1 changes in first): both bodies uploaded (dry-run first),
   image ids resolved, skin JSONs (`"draft": true`) with `body`, `maps_from`, `look`.
-- [ ] 6. Drop 3 (by 10:00): `CueSkins.bodyOf`, the CueStickBuilder hide, the CueSkinLook body
+- [x] 6. Drop 3 (by 10:00): `CueSkins.bodyOf`, the CueStickBuilder hide, the CueSkinLook body
   (visibility, own-distance fade, outline, no ink, clear/destroy), the `Aim` joint key (Cues
   B's request), CueAssets warm, `cue_body_test`; the §4.3 path checks with both bodies (3.3,
   from a local non-draft copy); `Bodies.Enabled = true`; push; `MERGE NOW drop 3`.
-- [ ] 7. Candy Corn complete: motion, aura and its kernel sprites, trail, finisher (it stays
+- [x] 7. Candy Corn complete: motion, aura and its kernel sprites, trail, finisher (it stays
   draft until its card, line 12); lab beside Eclipse, Beta, Firework and Blood Moon; a match
   (hands, trail, pocket).
-- [ ] 8. Gate 2 shots and lines (11:00).
-- [ ] 9. Body support in `CuePreview.py --thumb` (2.5) by 12:00, its own commit, pushed;
+- [x] 8. Gate 2 shots and lines (11:00).
+- [x] 9. Body support in `CuePreview.py --thumb` (2.5) by 12:00, its own commit, pushed;
   `MERGE CuePreview bodies` in Requests and a Status line for Cues B (it needs this for its
   cards).
-- [ ] 10. Jack: aura (smoke, flames, embers, mini jacks, orbiters, lights), face flicker, leaves
+- [x] 10. Jack: aura (smoke, flames, embers, mini jacks, orbiters, lights), face flicker, leaves
   sway, slit pulse; lab and hands.
-- [ ] 11. Jack: trail and finisher (`jack_o_lantern_pocket` with the laughing jaw, fire column,
+- [x] 11. Jack: trail and finisher (`jack_o_lantern_pocket` with the laughing jaw, fire column,
   seeds and embers, mini jacks), the library laugh proven to load; checked in a match.
-- [ ] 12. Both cards rendered with the body and their final aura (`cue_skin.py <sid> --thumb`)
+- [x] 12. Both cards rendered with the body and their final aura (`cue_skin.py <sid> --thumb`)
   and uploaded; both skins out of draft (2.2: the generator runs clean without
   `--allow-missing`; this is what lets core grant them); checked in the Index, My Cues and the
   power bar; push; a merge Request per cue. If line 11 is not done by 14:00, do Candy Corn's
@@ -668,13 +668,13 @@ Justin's changes at a gate go straight into the work and into the lane file's St
 - [ ] 14. Integration: after B's rows reach `halloween`, merge it (manifest and CueSkins
   conflicts by the 3.4 rules), build all five with ONLY in your window, check the path on the
   Broom, Spider and Cat (hands, back, fade, `Aim`); fix or answer each problem.
-- [ ] 15. Lower effects, quiet in the hands and the Night lighting for both cues; their cost
+- [x] 15. Lower effects, quiet in the hands and the Night lighting for both cues; their cost
   (parts, emitters, particles a second, lights) beside Eclipse's in the lane file.
-- [ ] 16. Analytics: `HalloweenCueEquipped` in `Items.luau`, seen in the Studio log.
-- [ ] 17. Devices: Index row and detail, My Cues, power bar and YOU GOT at phone, iPad, PC and
-  TV (pad), shots.
+- [x] 16. Analytics: `HalloweenCueEquipped` in `Items.luau`, seen in the Studio log.
+- [x] 17. Devices: Index row and detail, My Cues, power bar and YOU GOT at phone, iPad, PC and
+  TV (pad), shots. PC and TV done (lane file 10:43); phone and iPad done for the Index and My Cues by Root-frame emulation (lane file 11:04); BLOCKED for the power bar and YOU GOT at phone and iPad: the window resize helper sees no Studio window from this shell and those two size from the real screen.
 - [ ] 18. Fresh-player run on the final build, console clean.
-- [ ] 19. R2.1, R2.2, R2.8 and R2.9 checked row by row against the shots; coordinator Requests
+- [x] 19. R2.1, R2.2, R2.8 and R2.9 checked row by row against the shots; coordinator Requests
   3.6 written in full (merges, the manifest/CueSkins merge rules and regenerate, the Team
   Create ONLY build, the publish note).
 - [ ] 20. Lane file Status final + all screenshots.

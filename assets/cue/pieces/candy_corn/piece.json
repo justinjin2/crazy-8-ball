@@ -1,0 +1,237 @@
+{
+  "id": "candy_corn",
+  "Frame": "cue",
+  "frame": "Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)",
+  "Triangles": 5216,
+  "Parts": [
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#FFF4E2",
+      "Transparency": 0.0,
+      "Reflectance": 0.14,
+      "Name": "Body_Cream",
+      "File": "pieces/candy_corn/Body_Cream.obj",
+      "Joint": "Body",
+      "Offset": [
+        0.0,
+        0.0,
+        1.61
+      ],
+      "Size": [
+        0.2783,
+        0.2783,
+        3.06
+      ],
+      "Triangles": 1248
+    },
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#FF7A12",
+      "Transparency": 0.0,
+      "Reflectance": 0.14,
+      "Name": "Body_Orange",
+      "File": "pieces/candy_corn/Body_Orange.obj",
+      "Joint": "Body",
+      "Offset": [
+        0.0,
+        0.0,
+        -0.085
+      ],
+      "Size": [
+        0.66,
+        0.66,
+        7.03
+      ],
+      "Triangles": 1296
+    },
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#FFD21E",
+      "Transparency": 0.0,
+      "Reflectance": 0.14,
+      "Name": "Body_Yellow",
+      "File": "pieces/candy_corn/Body_Yellow.obj",
+      "Joint": "Body",
+      "Offset": [
+        0.0,
+        0.0,
+        -0.249
+      ],
+      "Size": [
+        0.66,
+        0.66,
+        7.082
+      ],
+      "Triangles": 1176
+    },
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#FFFFFF",
+      "Transparency": 0.0,
+      "Reflectance": 0.14,
+      "Name": "Body_White",
+      "File": "pieces/candy_corn/Body_White.obj",
+      "Joint": "Body",
+      "Offset": [
+        0.0,
+        0.0,
+        -1.72
+      ],
+      "Size": [
+        0.52,
+        0.52,
+        3.4
+      ],
+      "Triangles": 384
+    },
+    {
+      "Material": "Neon",
+      "Color": "#FFF6D8",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Tip_Glow",
+      "File": "pieces/candy_corn/Tip_Glow.obj",
+      "Joint": "Tip",
+      "Offset": [
+        0.0,
+        0.0,
+        3.4625
+      ],
+      "Size": [
+        0.1065,
+        0.1065,
+        0.075
+      ],
+      "Triangles": 96
+    },
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#FF7A12",
+      "Transparency": 0.0,
+      "Reflectance": 0.14,
+      "Name": "Wrap_Orange",
+      "File": "pieces/candy_corn/Wrap_Orange.obj",
+      "Joint": "Wrap",
+      "Offset": [
+        0.0013,
+        0.0008,
+        -0.24
+      ],
+      "Size": [
+        0.3425,
+        0.3448,
+        0.4489
+      ],
+      "Triangles": 716
+    },
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#FFFFFF",
+      "Transparency": 0.0,
+      "Reflectance": 0.1,
+      "SurfaceAppearance": {
+        "ColorMap": "vfx/candy_corn/kernel_palette.png"
+      },
+      "Name": "Kernels_Kernel",
+      "File": "pieces/candy_corn/Kernels_Kernel.obj",
+      "Joint": "Kernels",
+      "Offset": [
+        0.0,
+        0.2793,
+        -0.2188
+      ],
+      "Size": [
+        0.2272,
+        0.13,
+        0.2036
+      ],
+      "Triangles": 300
+    }
+  ],
+  "Joints": {
+    "Body": {
+      "Parent": null,
+      "Pivot": [
+        0,
+        -3.5,
+        0
+      ],
+      "PivotRoblox": [
+        0,
+        0,
+        0.0
+      ],
+      "Motion": []
+    },
+    "Tip": {
+      "Parent": null,
+      "Pivot": [
+        0,
+        0,
+        0
+      ],
+      "PivotRoblox": [
+        0,
+        0,
+        3.5
+      ],
+      "Motion": [],
+      "Visual": [
+        {
+          "Kind": "Glow",
+          "Min": 0.0,
+          "Max": 0.5,
+          "Period": 1.6
+        }
+      ]
+    },
+    "Wrap": {
+      "Parent": null,
+      "Pivot": [
+        0,
+        -3.74,
+        0
+      ],
+      "PivotRoblox": [
+        0,
+        0,
+        -0.24
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0,
+            1,
+            0
+          ],
+          "Rate": 90.0
+        }
+      ]
+    },
+    "Kernels": {
+      "Parent": null,
+      "Pivot": [
+        0,
+        -3.74,
+        0.27932733872767856
+      ],
+      "PivotRoblox": [
+        0,
+        0.2793,
+        -0.24
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0,
+            0,
+            1
+          ],
+          "Rate": 138.0
+        }
+      ]
+    }
+  }
+}
