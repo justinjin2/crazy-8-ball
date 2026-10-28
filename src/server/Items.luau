@@ -58,6 +58,7 @@ local MONEY = "Money" -- PlayerData's: the save's money
 local QUIET_OPS: { [string]: boolean } = {
 	addPlaySeconds = true,
 	setPlayMinutes = true,
+	hwActive = true, -- Halloween's 5 s active tick ("hwActiveGrant" when it gives a cue)
 	recordShot = true,
 	addMoney = true,
 	addDailyMoney = true,

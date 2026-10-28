@@ -3887,6 +3887,10 @@ Config.Halloween = {
 	TickSeconds = 5, -- the server adds active time and retries held grants this often
 	PushSeconds = 2, -- at most one event view pushed to a player this often
 	ActivePushSeconds = 30, -- active time alone re-sends the view this often (the menu shows minutes)
+	-- Requests from the client (the Halloween remote): a bucket of Burst requests refilled at
+	-- PerSecond, so two quick CLAIMs both count but a spamming client is held back.
+	Requests = { Burst = 4, PerSecond = 4 },
+	PackPromptGapSeconds = 30, -- HwMenu PackPrompt (a Get Candy press) logged at most this often
 	-- The two Candy packs (Config.Products.List Candy500 / Candy2000; flat, fill the whole track,
 	-- not quests).
 	Packs = { Enabled = true, Keys = { "Candy500", "Candy2000" } },
@@ -10450,6 +10454,8 @@ Config.UI.Menu = {
 			-- The rank roadmap draws in its own ScreenGui, made on its first open (2026-10-08:
 			-- without this the focus hid it and the roadmap opened blank).
 			Ranked = { "Roadmap", "RoadmapTopbar" },
+			-- A CLAIM's Candy chip flies into the event menu's Candy pill (hw-core).
+			Halloween = { "HalloweenToast" },
 		},
 	},
 	Lively = {
@@ -17359,7 +17365,7 @@ Config.UI.Halloween = {
 		FlySeconds = 0.6, -- then flies to the tile (or the menu's Candy pill) this long
 		StillSeconds = 1.6, -- with nowhere to fly it stays this long, then fades
 		ClaimFromSeconds = 3, -- a claim's Candy flies out of the CLAIM pressed this recently
-		MaxWaitSeconds = 300, -- a match's chip waits for the result screen at most this long
+		MaxWaitSeconds = 300, -- a chip or a prize's flight waits for a free lobby at most this long (a NEW CUE! card always waits)
 		PollSeconds = 0.25, -- how often a waiting chip or card checks the player is free
 		-- The NEW CUE! card.
 		CardWidthPx = 340,
