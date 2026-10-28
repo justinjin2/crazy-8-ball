@@ -10,6 +10,7 @@
 -- event's meshes (HalloweenMap/Assets); while they are not loaded, code-built shapes stand in. Real lights: his aura's one, the
 -- throne's two (Config.HalloweenMap.Props.Budget.Lights).
 
+local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerStorage = game:GetService("ServerStorage")
@@ -19,6 +20,7 @@ local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local Catalog = require(Shared:WaitForChild("Progression"):WaitForChild("Catalog"))
 local Once = require(Shared:WaitForChild("HalloweenMap"):WaitForChild("Once"))
+local Rules = require(Shared:WaitForChild("HalloweenMap"):WaitForChild("Rules"))
 local Assets = require(script.Parent:WaitForChild("Assets"))
 
 local HM = Config.HalloweenMap
@@ -407,6 +409,23 @@ function KingLook.dress(model: Model)
 	end
 end
 
+--- The King at a table (BotService's dress): his look, and in Timed mode Boss.Timed.TableScale
+--- times a normal avatar. The bot code places his body by its pivot for a normal one, so the
+--- pivot drops below his root by the extra hip height: his feet stay on the floor.
+function KingLook.dressTable(model: Model)
+	KingLook.dress(model)
+	local scale = if Rules.kingTimed() then HM.Boss.Timed.TableScale else 1
+	local hum = model:FindFirstChildOfClass("Humanoid")
+	local root = model:FindFirstChild("HumanoidRootPart")
+	if scale == 1 or hum == nil or root == nil or not root:IsA("BasePart") then
+		return
+	end
+	local rise = (hum.HipHeight + root.Size.Y / 2) * (scale - 1)
+	model:ScaleTo(scale)
+	model.PrimaryPart = root
+	root.PivotOffset = CFrame.new(0, -rise, 0)
+end
+
 -- A sceptre-like cue for the throne figure: black shaft, gold ferrule, a pumpkin at the butt.
 local function sceptre(hand: BasePart)
 	local shaft = piece(
@@ -448,9 +467,19 @@ local function storage(): Folder
 	return holder :: Folder
 end
 
+-- The throne's pivot: at the piano (Throne), or his stage in the roof's middle (Boss.Mode
+-- "Timed": Boss.Timed.Pivot, where the same throne fits the open cross between the tables).
 local function pivot(): CFrame
-	local p = T.Pivot
-	return CFrame.new(p[1], p[2], p[3]) * CFrame.Angles(0, math.rad(T.YawDegrees), 0)
+	local at = if Rules.kingTimed() then HM.Boss.Timed else T
+	local p = at.Pivot
+	return CFrame.new(p[1], p[2], p[3]) * CFrame.Angles(0, math.rad(at.YawDegrees), 0)
+end
+
+--- Where the King's prompt anchor stands (Throne.PromptAt, kept at its place on the throne
+--- when the throne stands elsewhere).
+function KingLook.promptPosition(): Vector3
+	local pa, tp = T.PromptAt, T.Pivot
+	return (pivot() * CFrame.new(pa[1] - tp[1], pa[2] - tp[2], pa[3] - tp[3])).Position
 end
 
 -- An anchored throne part at local CFrame `at`.
@@ -702,9 +731,8 @@ local function buildThrone(): Model
 	-- The prompt's anchor (MapClient puts the ProximityPrompt on it).
 	local prompt = piece("KingPrompt", nil, Vector3.new(1, 1, 1), black)
 	prompt.Transparency = 1
-	local pa = T.PromptAt
 	prompt.Anchored = true
-	prompt.CFrame = CFrame.new(pa[1], pa[2], pa[3])
+	prompt.CFrame = CFrame.new(KingLook.promptPosition())
 	prompt.Parent = model
 	return model
 end
@@ -742,8 +770,21 @@ local function buildFigure(model: Model)
 	end
 	local root = figure:FindFirstChild("HumanoidRootPart") :: BasePart
 	root.Anchored = true
+	-- On his stage he is Boss.Timed.Scale times a normal avatar (his hips stay on the cushion,
+	-- 3.2 studs up, and his back against the seat's).
+	local scale = if Rules.kingTimed() then HM.Boss.Timed.Scale else 1
+	if scale ~= 1 then
+		figure:ScaleTo(scale)
+	end
+	figure.PrimaryPart = root
+	-- The arrow core's timer points with (the Pumpkin King's figure, in workspace while shown).
+	CollectionService:AddTag(figure, "PumpkinKing")
 	-- Facing the aisle (the throne's front is +Z: half a turn, as the pumpkin back).
-	figure:PivotTo(pivot() * CFrame.new(0, 4.6, -2.3) * CFrame.Angles(0, math.pi, 0))
+	figure:PivotTo(
+		pivot()
+			* CFrame.new(0, 3.2 + 1.4 * scale, -2.3 - 0.4 * (scale - 1))
+			* CFrame.Angles(0, math.pi, 0)
+	)
 	-- His name over his head.
 	local head = figure:FindFirstChild("Head")
 	if head and head:IsA("BasePart") then
@@ -826,31 +867,41 @@ function KingLook.prepareThrone()
 	throneBuild:run()
 end
 
---- The throne as an EventMap part (on while Live, when Throne.Enabled).
+--- Put the throne up (yields for its build): at the piano, which goes away meanwhile, or on
+--- the King's stage while he visits (Timed: the piano stays).
+function KingLook.showThrone()
+	wanted = true
+	KingLook.prepareThrone()
+	if not wanted then
+		return
+	end
+	if not Rules.kingTimed() then
+		hidePiano()
+	end
+	if built then
+		built.Parent = workspace
+	end
+end
+
+--- Take the throne down (the piano back if it went).
+function KingLook.hideThrone()
+	wanted = false
+	if built then
+		built.Parent = storage()
+	end
+	showPiano()
+end
+
+--- The throne as an EventMap part (on while Live, when Throne.Enabled), in Throne mode only:
+--- in Timed mode BossService puts it up for each visit.
 function KingLook.thronePart(): any
 	return {
 		name = "Throne",
 		enabled = function(): boolean
-			return T.Enabled
+			return T.Enabled and not Rules.kingTimed()
 		end,
-		on = function()
-			wanted = true
-			KingLook.prepareThrone()
-			if not wanted then
-				return
-			end
-			hidePiano()
-			if built then
-				built.Parent = workspace
-			end
-		end,
-		off = function()
-			wanted = false
-			if built then
-				built.Parent = storage()
-			end
-			showPiano()
-		end,
+		on = KingLook.showThrone,
+		off = KingLook.hideThrone,
 	}
 end
 
