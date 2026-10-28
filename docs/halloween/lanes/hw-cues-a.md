@@ -59,6 +59,31 @@ From PLAN §4 (everything else is read-only; ask through Requests):
 
 ## Status (continued)
 
+- 12:40: **Progress 18 done: fresh-player run on 66af67b0 (halloween @f164d356 merged), my
+  window, a fresh mock save.** Join at the tutorial's Arrow (`final_fresh_join_arrow.jpg`: "Join
+  a table!", the chevrons to the reserved pad), step on the pad, the bot comes in 2.2 s, Game1
+  starts with Classic in hand and the power-bar hint (`final_fresh_game1_start.jpg`), the break
+  pots two (`final_fresh_game1_break.jpg`, STREAK x1 then x2), the skip keeps the match running
+  with the Candy Rush HUD (`final_fresh_after_skip_streak2.jpg`), leave to the result card
+  (`final_fresh_result_card.jpg`, $440). Console: no CueSkinLook, CuePiece, CueAssets or
+  Effects line, no script error; the known `203785492` bot-avatar ContentId lines, and one
+  `AssistantCommand:28: missing argument #1` from the Studio MCP plugin's own command script
+  (not game code). The funnel steps fired (Joined, ArrowShown, OnTable, Game1Started, Break,
+  TutorialSkipped, Halloween 1_Button).
+- 12:38: **`tools/cue_skins_data.py` made deterministic across checkouts @ 1d554e20
+  (coordinator 12:30: the main checkout rewrote shipped rows).** (1) `asset_id` ranked this
+  checkout's own manifest row first, so the main checkout's later uploads of the Dragon's and
+  Kitsune's maps and DragonBody.glb (rows under ~/Desktop/8ball/...) replaced the shipped
+  8ball-unique ids there; now every `ok` row for a file is ranked: the id the generated rows
+  already carry, then this checkout's, then the main checkout's, then the path. (2)
+  `sample_look` read a git-ignored local `textures/<skin>_color.png` when on disk (the main
+  checkout holds Oct-4 maps for beta, celestial_dragon and kitsune), so Beta's Shaft resampled;
+  now the recorded Look wins and a map is sampled only for a skin without one or with
+  `--resample-look <skin|all>`. Checked: a plain run leaves `src/shared/CueSkins` unchanged;
+  a fake `beta_color.png` plus `--also-manifest` rows under my path for `kitsune_color.png`
+  and `DragonBody.glb` still leave it unchanged; `--resample-look beta` with the fake map
+  changes Beta's Look. Shared file (tools): listed under Shared-file changes. The coordinator
+  was told it is safe to run after the merge.
 - 12:28: **READY hw-cues-a @ 66af67b0** (the two commits above merged with `halloween`
   @f164d356: lint OK, 1,460 tests pass, client_compiles included; the Candy Corn and Jack
   rows, pieces and maps only; no runtime change in this READY). The ONLY template build for
@@ -402,6 +427,7 @@ From PLAN §4 (everything else is read-only; ask through Requests):
 
 Planned (PLAN §7 shared files; own block or line only; add the sha to each as it lands):
 
+- 12:38 `tools/cue_skins_data.py` (shared tool): `asset_id` ranks a shipped id first in every checkout; `sample_look` keeps the recorded Look; new `--resample-look` switch (1d554e20).
 - `src/shared/Config.luau` @ 2c205868: own block `Config.CueSkins.Bodies` after `Config.CueSkins` (drop 3).
 - `src/shared/Strings.luau`: the 5 cue names in `Strings.Progress.Cues` (drop 1).
 - `src/client/Main.client.luau:134` @ 2c205868: `own = true` on your own stick's `attach` (drop 3, one line).
@@ -593,3 +619,6 @@ Gate 2 addition (10:28, `gate2/`): Jack-o'-Lantern complete @ db1a9fdb (+ 73fc00
   painted Candy close, wide and on a back. `rework_candy_stand_v1.jpg`, `rework_candy_close_v2.jpg`:
   the rounds before (the map upside down; the orbs thicker). `rework_firework_close_ref2.jpg`:
   the Firework on the same close camera, same light.
+- `final_fresh_join_arrow.jpg`, `final_fresh_game1_start.jpg`, `final_fresh_game1_break.jpg`,
+  `final_fresh_after_skip_streak2.jpg`, `final_fresh_result_card.jpg`: the Progress 18
+  fresh-player run on 66af67b0 (12:40).
