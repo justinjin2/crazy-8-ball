@@ -18,6 +18,9 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Net = require(Shared:WaitForChild("Net"))
 local Strings = require(Shared:WaitForChild("Strings"))
+-- Core's event clock: its times (the King's cooldown, the pickup hour) carry the Studio and
+-- test-place offset (HwTimeOffset; 0 in the live game).
+local Clock = require(Shared:WaitForChild("Halloween"):WaitForChild("Clock"))
 local Rules = require(Shared:WaitForChild("HalloweenMap"):WaitForChild("Rules"))
 local Engine = require(Shared:WaitForChild("Rules"):WaitForChild("MatchEngine"))
 
@@ -179,7 +182,7 @@ local function refusal(p: Player, qa: boolean): string?
 		end
 		local CandyService = candyService()
 		local ready = if CandyService then CandyService.bossCooldown(p) else 0
-		if type(ready) == "number" and ready > os.time() then
+		if type(ready) == "number" and ready > Clock.serverNow() then
 			p:SetAttribute(K.ReadyAttribute, ready)
 			return "KingCooldown"
 		end

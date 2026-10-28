@@ -21,6 +21,9 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Net = require(Shared:WaitForChild("Net"))
 local Placement = require(Shared:WaitForChild("Placement"))
+-- Core's event clock: its times (the King's cooldown, the pickup hour) carry the Studio and
+-- test-place offset (HwTimeOffset; 0 in the live game).
+local Clock = require(Shared:WaitForChild("Halloween"):WaitForChild("Clock"))
 local Rules = require(Shared:WaitForChild("HalloweenMap"):WaitForChild("Rules"))
 
 local Server = script.Parent.Parent
@@ -278,7 +281,7 @@ local function spawnTick()
 		if
 			ok
 			and now >= w.nextAt
-			and os.time() >= w.pausedUntil
+			and Clock.serverNow() >= w.pausedUntil
 			and w.own < C.MaxAlivePerPlayer
 			and #candies < C.MaxAlive
 		then
@@ -311,7 +314,7 @@ local function pickupTick()
 			w.graceUntil = now + C.TeleportGraceSeconds
 		end
 		w.last = here
-		if now < w.graceUntil or os.time() < w.pausedUntil then
+		if now < w.graceUntil or Clock.serverNow() < w.pausedUntil then
 			continue
 		end
 		for i = #candies, 1, -1 do
@@ -327,7 +330,7 @@ local function pickupTick()
 				warn("[HalloweenMap] pickup: " .. tostring(granted))
 				break
 			end
-			local outcome = Rules.pickupOutcome(granted == true, reason, os.time())
+			local outcome = Rules.pickupOutcome(granted == true, reason, Clock.serverNow())
 			if outcome.take then
 				w.pickups += 1
 				forget(c)

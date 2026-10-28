@@ -19,6 +19,9 @@ local Config = require(Shared:WaitForChild("Config"))
 local LightCycle = require(Shared:WaitForChild("LightCycle"))
 local Net = require(Shared:WaitForChild("Net"))
 local Strings = require(Shared:WaitForChild("Strings"))
+-- Core's event clock: its times (the King's cooldown, the pickup hour) carry the Studio and
+-- test-place offset (HwTimeOffset; 0 in the live game).
+local Clock = require(Shared:WaitForChild("Halloween"):WaitForChild("Clock"))
 local Rules = require(Shared:WaitForChild("HalloweenMap"):WaitForChild("Rules"))
 local MapFx = require(script.Parent:WaitForChild("MapFx"))
 
@@ -63,7 +66,7 @@ local function kingPrompt(busy: () -> boolean)
 	local shown = false
 	local function readyIn(): number
 		local at = player:GetAttribute(K.ReadyAttribute)
-		return if type(at) == "number" then at - workspace:GetServerTimeNow() else 0
+		return if type(at) == "number" then at - Clock.now() else 0
 	end
 	local function text()
 		local p = prompt
