@@ -9248,7 +9248,7 @@ Config.HalloweenMap = {
 		ByTeamSize = {
 			[1] = { Cloth = { 185, 90, 230 }, Kit = "Orchid" }, -- orchid purple
 			[2] = { Cloth = { 90, 94, 102 }, Kit = "Pumpkin" }, -- charcoal, glowing orange trim
-			[3] = { Cloth = { 110, 220, 40 }, Kit = "Toxic" }, -- toxic green
+			[3] = { Cloth = { 88, 176, 32 }, Kit = "Toxic" }, -- toxic green (80% of 110,220,40: ΔE 19.9)
 		},
 	},
 	-- The haunted kit on each table (TableBuilder.addDecor), in the table's own frame: studs
