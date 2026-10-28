@@ -22,6 +22,26 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
   `Index.luau`, `Textures.luau` (regenerate after every merge conflict there).
 
 ## Status
+- 12:25 Broom redo (designer, 11:55: the five cues look nothing like the Firework; the
+  Broom first, side-by-side before the other two). What changed, same ids and rows: the
+  aura piece `witch_broom_aura` rebuilt as the concept's glowing ribbons round the whole
+  handle the Firework's way (two narrow saturated Neon strips, violet and emerald, 0.2 off
+  the bark, a turn every 1.8 studs, turning like screws in opposite senses, breathing
+  toward a lighter tint of their own hue; a thin gold thread the other way, twinkling),
+  three gold crescent moons, five four-point stars and two flapping bats orbiting the
+  handle (19 parts, 4,600 triangles, uploaded as 124125704817567); the body's crystal tip
+  now Neon with a Glow pulse; the aura's haze darker behind brighter, more saturated glows,
+  a second beam (the emerald strip), three PointLights (the Secret cap), Firework-style spell pops (three
+  star pops in violet, emerald and gold, an expanding spell ring, sparks), 168 particles a
+  second (the Secret cap is 170), the Highlight violet. A first retune (wide pale Neon
+  bands with a Glow toward white) bloomed into a white sheet in daylight
+  (`gate2/broom_redo_stand_v2_white_lab.jpg`) and is gone: CuePiece's Glow pushes a part's
+  colour toward white each frame, so a ribbon's Glow needs its own `Color`. Side-by-side:
+  `gate2/broom_redo_side_by_side.jpg` (new vs before vs the Firework, same lab camera, day).
+  Lower effects keeps the ribbons, the moons and one bat; the stars, the gold thread and
+  the second bat hide. Lint OK; the budget test caught 172/s and the trim is in.
+- 12:15 coordinator: `halloween` @5dae747d adds map 7fd462cc + 39815514 (night rooftop, King, drops, /king), core d7120fac (the 11:30 review fixed, the Rush chip names what runs) and gui c9f01ea6 (the boost lines restyle, VIP perks in the Soft step). The contract test is now STRICT. Lint OK, 1,460 tests, Team Create play console clean (shots/coordinator/merge_5dae747d_boost_lines.jpg). Known blocker sent to map: the throne builds twice on a server that starts during Live. Run `git fetch && git merge origin/halloween` before your next READY.
+- 11:49 coordinator: `halloween` @64085ab2 adds core de236025 (the NEW CUE! card and end screen count in Progression.quiet) and cues-b a431419b (Witch Broom, Black Cat and Spider out of draft). cue_skins_data.py clean on halloween (66 skins, 28 pieces). Lint OK, 1,441 tests, Team Create play console clean. Map's READY 7fd462cc is next. Run `git fetch && git merge origin/halloween` before your next READY.
 - 11:36 coordinator: `halloween` @537270fd has cues-a 83e876db (drop 3 body path, CuePreview bodies, Candy Corn + Jack-o'-Lantern, Upright, analytics, Aim-fade fix), core 3c4b87aa (event menu, tile, quests, Spider, packs, art), sys c5b6b607 and gui 3438ea94 (review fixes). Lint OK, 1,436 tests, Team Create play console clean (only the known 203785492 ContentId lines), tile + 2x chip + pill +120% seen. Review of this merge is running; findings come back as Requests. Run `git fetch && git merge origin/halloween` before your next READY. Main.client still has 12 top-level locals to spare.
 
 - 11:33 coordinator (by session message, answering my 11:30 Request): the cues-a merge
@@ -274,6 +294,25 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
 
 ## Requests
 
+- 11:43 **READY WitchBroomCue @ a431419b** (skin `witch_broom`, Secret, the Candy Track's
+  7,000 reward). Piece ids: `witch_broom` (body, 6 parts), `witch_broom_aura` (ribbons),
+  `witch_broom_pocket` (finisher, 13 parts). Manifest paths: `assets/cue/pieces/witch_broom/`,
+  `assets/cue/pieces/witch_broom_aura/`, `assets/cue/pieces/witch_broom_pocket/`,
+  `assets/cue/vfx/witch_broom/` (bat_flap_4x4, crescent, straw, witch over the moon),
+  `assets/cue/thumbs/witch_broom.png`; shared sprites under `assets/cue/vfx/_shared/` and
+  `assets/cue/vfx/v2/`; pocket sound is the library id 9125646252 (no upload). All rows `ok`.
+  The Team Create template build includes it (Cues A's Request 3: ONLY with all five ids,
+  ALL = false).
+- 11:43 **READY BlackCatCue @ a431419b** (skin `black_cat`, Mythic, the track's 2,000 reward).
+  Piece id: `black_cat` (body, 4 parts; the leap and the pack are sprites, no pocket piece).
+  Manifest paths: `assets/cue/pieces/black_cat/`, `assets/cue/vfx/black_cat/` (cat_run_4x4,
+  cat_leap_4x4), `assets/cue/thumbs/black_cat.png`; pocket sound 9125645963 (library). All rows
+  `ok`. Same template build line as above.
+- 11:43 **READY SpiderCue @ a431419b** (skin `spider`, Mythic, the Play 3h reward). Piece ids:
+  `spider` (body, 4 parts), `spider_pocket` (web finisher, 3 parts). Manifest paths:
+  `assets/cue/pieces/spider/`, `assets/cue/pieces/spider_pocket/`, `assets/cue/vfx/spider/`
+  (web, silk, web_ring), `assets/cue/thumbs/spider.png`; pocket sound 9125647922 (library).
+  All rows `ok`. Same template build line as above.
 - 11:30 **REQUEST to the coordinator: merge Cues A's drop 3 into `halloween`** (`hw-cues-a`
   @ 37573b2c, Cues A's 09:45 "MERGE NOW"; their 10:45 list also names 5078ac33, 1bd06f55,
   ba50947d, 73fc00ae, d6dccb21 and ed8b7ca3, all on `hw-cues-a`, which already contains
@@ -509,6 +548,36 @@ for at 08:55 and 10:08).
   soft break toward the head rail fouled (ball in hand anywhere), the cue ball placed at the
   head rail, so the shooter stands behind the rail with the bark handle rising over it; the
   shooter is the near-camera ghost (the fade), the crystal tip at the ball.
+- `p19_my_cues_pc.jpg`: My Cues at PC size after the merge and the ONLY build: the Black
+  Cat, Spider and Witch's Broom cards (EXCLUSIVE, NEW) beside the VIP and Classic cues, each
+  with its aura drawn on the card.
+- `p19_index_exclusive_pc.jpg`: the Index's Exclusive rows at PC size: the three cards with
+  the CLAIM! overlay (owned, unclaimed), the Unique section below.
+- `p19_index_exclusive_header_pc.jpg`: the same with the "Exclusive 4/7" header: VIP, Starter,
+  Candy Corn and Jack-o'-Lantern on the first row, the three on the second.
+- `p19_event_track_pc.jpg`: the Halloween event menu at PC size: the Candy Track with the
+  Candy Corn (150), Jack-o'-Lantern (500), Black Cat (2,000) and Witch's Broom (7,000) tiles,
+  the Spider on the Play 3h 01m card.
+- `p19_event_track_phone.jpg`: the event menu with its Root at 844x390: the track scrolls,
+  the Black Cat tile in view, the Broom tile past the right edge (the track's own scroll).
+- `p19_my_cues_phone.jpg`: My Cues at 844x390: the five cards in one row, names and auras
+  readable.
+- `p19_index_phone.jpg`: the Index at 844x390 scrolled to Exclusive 4/7: all seven cards in
+  two rows, the three CLAIM! cards readable.
+- `broom_redo_side_by_side.jpg` (12:20, the Broom redo): three panels from the same lab
+  camera in daylight: NEW (the redo: bark body with the violet and emerald ribbons wrapping
+  it, the gold thread, crescents, stars, bats, a spell ring expanding), BEFORE (the stand
+  as merged at 11:49: a plain stick with a faint halo) and the Firework for the level.
+- `broom_redo_stand_v4_day_lab.jpg`, `broom_redo_stand_v4_dusk_lab.jpg`: the NEW panel's
+  full frames, day and dusk (the dusk one caught a gold star pop by the straw).
+- `broom_redo_back_v4_day_lab.jpg`, `broom_redo_back_v3_dusk_lab.jpg`: the redo on a lab
+  dummy's back (the view other players get): the ribbons and a crescent on the handle, the
+  violet outline, the stand with its bats behind.
+- `broom_redo_stand_v3_dusk_lab.jpg`: the redo before the spell pops went in.
+- `broom_redo_stand_v2_white_lab.jpg`: the first retune's white sheet (why the wide pale
+  bands and the Glow toward white are gone).
+- `firework_stand_day_lab.jpg`, `firework_stand_dusk_lab.jpg`, `firework_back_dusk_lab.jpg`:
+  the Firework from the same cameras, for the level.
 - Not yet shot: hands from a watcher's side (the match camera owns the camera on my turn);
   the long wind-up and the steep shot in the hands (fired through the real path at power 1
   and elevation 60, but the stroke lasts half a second and the capture lands after it; the

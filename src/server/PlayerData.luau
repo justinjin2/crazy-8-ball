@@ -3583,6 +3583,13 @@ function PlayerData.hwCandy(player: Player): number
 	return if type(hw) == "table" then HwLedger.total(hw) else 0
 end
 
+--- Whether the player has finished a real match this UTC day (Daily.Matches: PC practice never
+--- counts), for the Halloween active-play gate; false before the save loads.
+function PlayerData.playedToday(player: Player): boolean
+	local data = peek(player)
+	return data ~= nil and dailyOf(data, today()).Matches > 0
+end
+
 --- Adds Candy (`bucket` "Earned" from play, "Bought" from a pack) and counts quest events in the
 --- same commit (Live only for both). nil when the save is not loaded.
 function PlayerData.hwAddCandy(
