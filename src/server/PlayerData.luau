@@ -3499,8 +3499,9 @@ local function hwField(data: any): any
 end
 
 -- Grants every track step the save's Candy has reached (a cue only when ready: a held step
--- stays ungiven) and the Spider once earned, noting them in `result`.
-local function hwGrantDue(data: any, hw: any, result: HwResult)
+-- stays ungiven) and the Spider once earned, noting them in `result`. `bought`: reached by a
+-- Candy pack, so a money step is not earned money (Stats.MoneyEarned).
+local function hwGrantDue(data: any, hw: any, result: HwResult, bought: boolean?)
 	local steps = HwTrack.steps()
 	for _, index in HwTrack.due(HwLedger.total(hw), hw.Given) do
 		local step = steps[index]
@@ -3512,7 +3513,7 @@ local function hwGrantDue(data: any, hw: any, result: HwResult)
 		elseif step.Spins ~= nil then
 			addSpinsTo(data, step.Spins, nil)
 		elseif step.Money ~= nil then
-			addMoneyTo(data, step.Money, true, "Halloween")
+			addMoneyTo(data, step.Money, bought ~= true, "Halloween")
 		end
 		hw.Given[HwTrack.key(index)] = true
 		table.insert(result.steps, index)
@@ -3803,7 +3804,14 @@ function PlayerData.hwConvert(player: Player, ctx: HwCtx): HwResult?
 	end
 	local money = HwLedger.convertMoney(hw)
 	if money > 0 then
-		addMoneyTo(data, money, true, "HalloweenCandy")
+		-- Bought Candy's share is money but not earned money (never money bought with Robux).
+		local earnedMoney, boughtMoney = HwLedger.convertSplit(hw)
+		if earnedMoney > 0 then
+			addMoneyTo(data, earnedMoney, true, "HalloweenCandy")
+		end
+		if boughtMoney > 0 then
+			addMoneyTo(data, boughtMoney, false, "HalloweenCandy")
+		end
 	else
 		hw.EndSeen = true -- nothing to show
 	end
@@ -4022,7 +4030,7 @@ function PlayerData.applyPurchase(
 		local hw = hwField(data)
 		local result: HwResult = { candy = 0, steps = {}, spider = false, quests = {}, money = 0 }
 		result.candy = HwLedger.addCandy(hw, grant.candy, "Bought")
-		hwGrantDue(data, hw, result)
+		hwGrantDue(data, hw, result, true)
 		pack = result
 	end
 	Shop.markGrant(shop, grant)
