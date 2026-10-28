@@ -79,15 +79,12 @@ function CuePreviewMath.panel(screen: { w: number, h: number }): Panel
 	local tabW = (inner - 2 * L.TabGapPx) / 3
 	local tabs = {}
 	for i = 1, 3 do
-		table.insert(
-			tabs,
-			{
-				x = round(sx + (i - 1) * (tabW + L.TabGapPx)),
-				y = tabsY,
-				w = math.floor(tabW),
-				h = hitH,
-			}
-		)
+		table.insert(tabs, {
+			x = round(sx + (i - 1) * (tabW + L.TabGapPx)),
+			y = tabsY,
+			w = math.floor(tabW),
+			h = hitH,
+		})
 	end
 	local hintH = if short then L.ShortHintPx else L.HintPx
 	local hint =
