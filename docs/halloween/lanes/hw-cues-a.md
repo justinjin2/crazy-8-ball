@@ -53,6 +53,30 @@ From PLAN §4 (everything else is read-only; ask through Requests):
 - 08:50 coordinator: lanes started 08:43 (73 min behind the plan). New times: interface commits as soon as they pass (target 09:30, merged by 09:45); gate 1 at 10:00 (shots + captions by 09:55); gate 2 at 11:15 with whatever is ready (Justin sleeps after it); merges on request all day; 16:00 done/cut and the 17:00 freeze stay for now (re-timed at 13:00 if needed). Rojo: a watchdog restarts any crashed server by itself (log ~/Desktop/8ball-refs/halloween/shots/coordinator/rojo-watchdog.log; Rojo 7.7 can panic on an editor temp file); if MCP shows your window no longer syncs (append a comment, read it back), write `ROJO RECONNECT` in your Requests and keep working on files. Resize helper: not yet (Studio windows were full screen; Justin is un-fullscreening them); use your layout tests until the outer sizes are posted here.
 ## Status (continued)
 
+- 2026-10-28 10:05: **READY drop 3 @ 2c205868** (skins and uploads @ 37573b2c; pushed once the
+  full test run is green; lint green, `client_compiles_test` green). `CueSkins.bodyOf` is the
+  one decision; CueStickBuilder hides the mesh (Transparency 1, no shadow, still the root) and
+  writes `Body`/`Mesh` attributes; CueSkinLook builds the body as a CuePiece that follows
+  Visible and never AuraOff, wears the outline (adornee = the body model) and skips the ink;
+  CuePiece fades each part on the owner's near camera and eases `"Aim": "fade"` joints clear
+  while aiming (`own = true` on your own stick's attach); CueAssets warms bodies;
+  `Config.CueSkins.Bodies` (`Enabled = true`, the switch). `tests/cue_body_test.luau`: the 2.6
+  envelope rules on every Index body and on both piece.json files, the pocket piece's frame
+  and jaw, `bodyOf`, the Aim key through `Motion.rig`. Studio (my window, a local non-draft
+  copy, templates built with `ONLY`): both bodies in hand in a solo fixture (`03-candy-hands`,
+  `04-jack-hands`: the tip at the ball, Jack's pumpkin at the butt measured by raycast), AuraOff
+  keeps the body, Visible hides and shows it, the per-part fade probe (eye on the shaft: shaft
+  gone, butt 0.18), Candy to Jack to Beta to Firework to Jack swaps, Lower effects keeps the
+  body, a back cue wears it, console clean of CueSkinLook/CuePiece/CueAssets lines. Found and
+  fixed on the way: both bodies first showed end for end (the rigid-part half-turn, see
+  Assumptions). Uploads: `candy_corn_parts.glb` 123970008672363, `jack_o_lantern_parts.glb`
+  110253384942835, `jack_o_lantern_pocket_parts.glb` 133027458090786, `kernel_palette.png`
+  decal 120865108870850 / image 119521496210859; the skin JSONs carry `"draft": true`.
+- **To Cues B (10:05):** a body renders in your Blender design orientation (tip at the tip,
+  +X side on the +X side); an aura or pocket decor piece renders turned half about the up axis,
+  as every shipped decor piece does (see Assumptions): a pocket face modelled looking toward
+  +Z shows looking toward -Z, and left and right swap. Check `<sid>_pocket` and `<sid>_aura`
+  in the lab with that in mind, or ask me to give them the body's un-turned rest.
 - 2026-10-28 09:55: **READY drop 2 @ eb98e2ef** (pushed; `halloween` @ 14e2d157 merged in, the
   new `client_compiles_test` green, 1346 tests, lint green). The data tool: `body`,
   `maps_from`, `look`, `--also-manifest`, the budget stop (body cues' pieces only: the shipped
@@ -83,9 +107,9 @@ From PLAN §4 (everything else is read-only; ask through Requests):
 
 Planned (PLAN §7 shared files; own block or line only; add the sha to each as it lands):
 
-- `src/shared/Config.luau`: own block `Config.CueSkins.Bodies` after `Config.CueSkins` (drop 3).
+- `src/shared/Config.luau` @ 2c205868: own block `Config.CueSkins.Bodies` after `Config.CueSkins` (drop 3).
 - `src/shared/Strings.luau`: the 5 cue names in `Strings.Progress.Cues` (drop 1).
-- `src/client/Main.client.luau:134`: `own = true` on your own stick's `attach` (drop 3, one line).
+- `src/client/Main.client.luau:134` @ 2c205868: `own = true` on your own stick's `attach` (drop 3, one line).
 - `tools/upload_manifest.json`: own rows and B's backup rows (union on conflict).
 - `src/shared/CueSkins/*` (generated): regenerated, never hand-edited.
 - `src/server/Items.luau` `HANDLERS.EquipCue`: one `Funnel.event` line (analytics).
@@ -100,6 +124,10 @@ Planned (PLAN §7 shared files; own block or line only; add the sha to each as i
 
 ## Requests
 
+- 10:05 **MERGE NOW drop 3: Cues B needs it for gate 2 at 11:00** (`hw-cues-a` @ 37573b2c: the
+  body path, `Bodies.Enabled = true`, the two skin drafts and the manifest rows). Live
+  behaviour changes only for a skin row with a Body, and no shipped row has one; the switch is
+  `Config.CueSkins.Bodies.Enabled`.
 - 09:55 **MERGE drop 2** (`hw-cues-a` @ eb98e2ef, tooling only, no runtime change; includes
   d267d8e7, the Firework volume data fix). Cues B generates rows only after it has this.
 - 09:05 **MERGE drop 1** (`hw-cues-a` @ 7bef0153): the five cue ids and names, `Catalog.ready`,
@@ -108,6 +136,15 @@ Planned (PLAN §7 shared files; own block or line only; add the sha to each as i
 
 ## Assumptions
 
+- Every rigid piece part renders turned half about the up axis against its Blender design:
+  `tools/cue_pieces_glb.py` writes each part so the importer's half-turn lands it in the cue
+  frame already, then `CuePiece` turns it once more (FLIP). Beta's lattice, the Firework
+  ribbons and both new bodies measured so in hand (raycast from the tip). Every shipped decor
+  piece was approved looking that way, so decor keeps the turn; a body must wear its tip at
+  the tip, so a body's rigid parts skip it (`CuePiece.new(..., { body = true })`). Skinned
+  parts (`export_skin` writes the cue frame directly, the importer turns, FLIP undoes) are
+  right either way. Turning decor straight would visibly change shipped cues: the designer's
+  call, not today's.
 - The brief says the names go in `Strings.Progress.Cues`; the real table is
   `Strings.Items.Cues` (the only one the game reads), so they went there.
 - The five cues sit in the Index's existing Exclusive row and each pays the existing Exclusive

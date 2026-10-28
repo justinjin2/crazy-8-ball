@@ -641,9 +641,9 @@ Justin's changes at a gate go straight into the work and into the lane file's St
 - [x] 3. Candy Corn and Jack bodies modelled in `CuePiecesHalloween_A.py` with the envelope
   assert, GLBs, headless previews beside the concepts (side and three quarter). No uploads yet.
 - [x] 4. Gate 1 shots and lines (09:00): the headless previews, the drop 1 and drop 2 shas.
-- [ ] 5. After gate 1 (Justin's gate 1 changes in first): both bodies uploaded (dry-run first),
+- [x] 5. After gate 1 (Justin's gate 1 changes in first): both bodies uploaded (dry-run first),
   image ids resolved, skin JSONs (`"draft": true`) with `body`, `maps_from`, `look`.
-- [ ] 6. Drop 3 (by 10:00): `CueSkins.bodyOf`, the CueStickBuilder hide, the CueSkinLook body
+- [x] 6. Drop 3 (by 10:00): `CueSkins.bodyOf`, the CueStickBuilder hide, the CueSkinLook body
   (visibility, own-distance fade, outline, no ink, clear/destroy), the `Aim` joint key (Cues
   B's request), CueAssets warm, `cue_body_test`; the §4.3 path checks with both bodies (3.3,
   from a local non-draft copy); `Bodies.Enabled = true`; push; `MERGE NOW drop 3`.
