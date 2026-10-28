@@ -29,6 +29,7 @@ From PLAN §4 (everything else is read-only; ask below under Requests):
 
 ## Status
 
+- 09:36 hw-core: merged halloween @f246f0a7 (Badges/HalloweenMapFx conflicts kept both); lint OK, 1,396 tests. Coordinator's 09:12 requests done: `Event.nextRushAt` returns nil with no Rush to come (5ef20d06; the strip says "No more Rushes this event"), `Event.clock/short` read `Strings.Halloween.Time`, distinct Alts (board 2 King -> Matches 4, board 3 Ult -> Matches 5, dacaaf55; a test checks no board shows a quest twice under any hook mix), solo practice ults ignored (b0ed8e2e). Main.client untouched (client_compiles_test passes). Quests are ON (`Quests.Enabled = true`, fda219c9, incl. the `Quests.claimable` infinite-loop fix that would have hung the end conversion). Event menu committed (f6b25a41, fit fix 76ac2339); art uploaded to the group (afb239f8). Studio: CLAIM 950 -> 1,010 Candy, the 1,000 step (2 spins) given, HwQuest/HwMenu/HwCandy/HwTrack logged, console clean. Next: the Spider active clock + Active quests, then the toast and reveal.
 - 09:22 coordinator: halloween @403da7da has cues-a drop 2 (skin keys, --also-manifest, budget stop, the builder ONLY filter, Aim joint; Firework row unchanged but a comment); lint OK, 1370 tests, Studio synced. Run `git fetch && git merge origin/halloween`. Cues B: you can generate rows now.
 - 09:12 coordinator: halloween @792bbb35 has every lane's interfaces (sys 1c9f99b7, core 1c9945a0, cues-a drop 1 1039f19b, gui b2c51102, map 6d45e218); lint OK, 1370 tests, Studio boot clean. Run `git fetch && git merge origin/halloween` now. Gate 1 is at 10:00: shots + one caption line each in your Gate shots by 09:55.
 - 09:12 coordinator REQUEST (minor, before the menu uses them): `Event.nextRushAt` returns EndsAt in the last hour and a time while Rush is off: return nil then (number?) or document it; `Event.short`/`Event.clock` unit letters ('%dd %dh', '%dh %dm', '%dm', m:ss) belong in Strings (Strings.luau:719-721/811-813 have templates); quest Alts on boards 2 and 3 duplicate an existing row ('Win 2'/'Win 3') when the King or UltService.Used is off: pick distinct Alts; `UltService.Used` also fires for free solo practice: ignore it when `TableService.get(id).engine.solo`.
@@ -68,7 +69,13 @@ Planned, each to be confirmed here with its commit when it lands:
 - `Net.luau`: the `Halloween` remote (map adds its remotes, GUI a comment line).
 - `DevCommands.luau`: the `/hw` block (`/hw kingwin`, not map's `/king`) after `/funnel` (1bf0e34f); `Config.Debug.Commands.Halloween = "/hw"` after `Funnel`.
 - `Bootstrap.server.luau`: one `Clock.boot()` line after `Net.build()` (4f63cb79) and one `CandyService.start()` line after `Rewards.start()` (06a05a85); client `Progression.luau`, `Shop.luau`, `SkyDropService.luau` (one getter).
-- `tests/save_schema_test.luau`, `tests/config_test.luau`: core's own cases only (sys and map add theirs).
+- `tests/save_schema_test.luau`, `tests/config_test.luau`: core's own cases only (sys and map add theirs; merged with sys's Badges at 7e838a11).
+- `Config.UI.Menu.LivelyMenus`: `"Halloween"` added last (f6b25a41).
+- `Progression.luau` (client): `Halloween.State.start()` after `SettingsState.start()` (0ba8e9f1) and `Halloween.EventMenu.new(screen, deps)` after `DailyRewardsMenu.new` (f6b25a41).
+- `HubCorners.luau`: `EventButton` require, `self.eventTile` after the offer rays, its `layout` call in `layout()`, first `padStops` entry (a8cd46a0).
+- `Net.luau`: `Halloween = "RemoteEvent"` before map's `HalloweenMapFx` (0ba8e9f1).
+- `Ranking.luau`: the `CandyService` require and one guarded `matchSettled` call after the disguised count (12a60faa).
+- `tools/upload_manifest.json`: 10 rows for `assets/ui/halloween/*.png` (afb239f8).
 
 ## Requests
 
@@ -77,6 +84,7 @@ Planned, each to be confirmed here with its commit when it lands:
 - hw-gui: core reads friends and group only through `Money.friendBoost` / `Money.boostParts` (guarded fallback to the same `Config.Economy` keys), so `Config.Halloween` has no friend switch and `FriendBoostEnabled` turns the friend part off for money and Candy together. Core's event tile is the first `padStops` entry; the pill goes right after Plus. Core's track cards call `CuePreview.open(id, { from = "Track", note = ... })` through a guarded require when `CuePreview.enabled()`. The Candy icon is `Config.Halloween.CandyIcon`.
 - hw-map: the Alts read `HM.Enabled and HM.Boss.Enabled` and `HM.Enabled and HM.Candy.Enabled`; `CandyService.pickup` returns `(ok, reason)` with `"Cap"|"NotLive"|"NotLoaded"|nil` (show the bag-full note only on `"Cap"`; the cap is only `Config.Halloween.Pickup.HourCap`); `CandyService.bossCooldown(player) -> number` (unix time, 0 if none); the Candy icon is `Config.Halloween.CandyIcon`.
 - hw-cues-a: core grants and shows a track cue only when `Catalog.ready(id)` is true and retries held grants on load and every tick.
+- Coordinator: phone 844x390 (and iPad) shots of the tile and the event menu in your device sweep, please. This lane cannot resize its Studio window (`studio_size.sh`: System Events sees 0 windows for every RobloxStudio process from this shell; no scriptable device emulator). PC shots are in gate1/ and gate2/.
 
 ## Assumptions
 
@@ -88,3 +96,6 @@ Planned, each to be confirmed here with its commit when it lands:
 - gate1/tile_pc_under_offer.jpg: PC (Studio 1920x1026), event Live by `/hw time live`, tutorial skipped: the HALLOWEEN tile (pumpkin art, "ENDS IN 6d 0h" pill, NEW badge) right under the Starter Pack offer's price, clear of the Players list. The "Invite a friend?" card in the middle is the game's own join popup.
 - gate1/tile_pc_no_offer.jpg: the same after the offer's X: the tile moves up into the Daily Challenge's spot.
 - Phone size: no shot. `tools/halloween/studio_size.sh` cannot see Studio's windows from this shell (System Events lists 0 windows for every RobloxStudio process; it needs Accessibility for the shell). Phone, iPad and PC placements are proven by `tests/halloween_layout_test.luau` (844x390 and 1024x768 with 36/58 px insets, offer shown and hidden: touch puts the tile above the offer, clear of the jump button; a computer puts it below). Please include the tile in the device sweep.
+- gate2/menu_pc_before_claim.jpg: PC, the event menu on REAL data (`/hw candy 950`, `/hw quest done`, `/hw active 4300`): Candy pill, ENDS IN pill, the 11-step track (gifts, money, the cue cards from the approved concept art; steps 50-500 reached with gold frames and checks), the DAY 1-6 quest tabs with unlock times, four quests with CLAIM, the Spider panel (1h 11m / 3h 01m on a bar), the Rush strip ("2x CANDY starts in 44:49"). Body scrolls to the 4th quest at this window height.
+- gate2/menu_pc_after_claim_step.jpg: after CLAIM on "Win 1 match": +60 Candy (950 -> 1,010), the row says CLAIMED, the 1,000 step (2 SPINS) turns gold with a check; the server gave the spins (save `Given` 1, 3, 5; the two cue steps are held until cues-a's `Catalog.ready`).
+- Phone 844x390: no shot from this lane (see Requests); the menu's phone layout is the one scrolling column with the track scrolling sideways.
