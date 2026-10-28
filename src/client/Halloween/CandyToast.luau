@@ -338,8 +338,10 @@ function CandyToast.chip(self: any, candy: number, x2: boolean, from: Vector2?)
 	end)
 end
 
---- A line of words in an Ink pill over the chips' start (gold when `gold`): pops in, holds
---- LineSeconds, fades. Shrinks its text to fit a narrow screen.
+--- A line of words in an Ink pill over the chips' start (gold when `gold`): pops in and stays
+--- while a match's result is on screen (Progression.resultUp: the card says $0 and no XP for a
+--- Pc match, so the line names what was earned until Continue), else LineSeconds; never past
+--- LineMaxSeconds; then fades. Drawn over the result card. Shrinks to fit a narrow screen.
 function CandyToast.line(self: any, words: string, gold: boolean)
 	local size = self.layer.AbsoluteSize
 	local short = size.Y < SHORT
@@ -372,7 +374,23 @@ function CandyToast.line(self: any, words: string, gold: boolean)
 	if gold then
 		UIAnim.slam(text, HudParts.tone("Gold"), { burst = true })
 	end
-	task.delay(T.LineSeconds, function()
+	task.spawn(function()
+		local shown = os.clock()
+		local sawResult = false
+		while pill.Parent ~= nil do
+			local P = progression()
+			local resultUp = P ~= nil and type(P.resultUp) == "function" and P.resultUp() == true
+			sawResult = sawResult or resultUp
+			local held = os.clock() - shown
+			if
+				held >= T.LineMaxSeconds
+				or (sawResult and not resultUp)
+				or (not sawResult and held >= T.LineSeconds)
+			then
+				break
+			end
+			task.wait(T.PollSeconds)
+		end
 		if pill.Parent == nil then
 			return
 		end
