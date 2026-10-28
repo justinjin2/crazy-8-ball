@@ -3884,6 +3884,12 @@ Config.Halloween = {
 	-- The playtime cue: Seconds of ACTIVE play while the event is Live (any server; idle time
 	-- does not count: SkyDropService.isActive), 3 h 01 m.
 	Spider = { Enabled = true, Cue = "SpiderCue", Seconds = 10860 },
+	-- Active play (the Spider and the "Play N min" quests) counts in a match and in the lobby
+	-- alike, idle time never (SkyDropService.isActive), and only once the player has finished a
+	-- real match that UTC day, like the Sky clock: before it the time is held (in memory, at most
+	-- HoldCapSeconds) and credited when that match is done, so no real play is lost and standing
+	-- in the lobby with an auto-clicker earns nothing. Off: every active second counts at once.
+	ActiveGate = { Enabled = true, HoldCapSeconds = 1800 },
 	TickSeconds = 5, -- the server adds active time and retries held grants this often
 	PushSeconds = 2, -- at most one event view pushed to a player this often
 	ActivePushSeconds = 30, -- active time alone re-sends the view this often (the menu shows minutes)

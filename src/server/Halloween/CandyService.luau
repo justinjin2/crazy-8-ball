@@ -24,6 +24,7 @@ local Clock = require(Shared.Halloween.Clock)
 local Event = require(Shared.Halloween.Event)
 local CandyMath = require(Shared.Halloween.CandyMath)
 local Quests = require(Shared.Halloween.Quests)
+local Ledger = require(Shared.Halloween.Ledger)
 local PlayerData = require(script.Parent.Parent.PlayerData)
 local Funnel = require(script.Parent.Parent.Funnel)
 
@@ -476,6 +477,8 @@ end
 
 -- Whether the funnel's 1_Button step was tried this session.
 local buttonTried: { [Player]: boolean } = setmetatable({}, { __mode = "k" }) :: any
+-- Active seconds waiting for the player's first real match today (Ledger.gateActive).
+local heldActive: { [Player]: number } = setmetatable({}, { __mode = "k" }) :: any
 
 -- The tick for one player: held grants (a cue that became ready) and the end's conversion.
 local function tickPlayer(player: Player): any
@@ -503,9 +506,18 @@ local function tickPlayer(player: Player): any
 		buttonTried[player] = true
 		Funnel.once(player, "Halloween", "1_Button")
 	end
-	-- The Spider's clock (and the Active quests): this tick's seconds while the player is active.
+	-- The Spider's clock (and the Active quests): this tick's seconds while the player is active,
+	-- held until they have finished a real match today (Ledger.gateActive, C.ActiveGate).
+	local credit = 0
 	if Event.isLive(ctx.now) and PlayerData.isLoaded(player) and activeNow(player) then
-		after(player, PlayerData.hwActive(player, C.TickSeconds, ctx), "Active")
+		credit, heldActive[player] = Ledger.gateActive(
+			heldActive[player] or 0,
+			C.TickSeconds,
+			PlayerData.playedToday(player)
+		)
+	end
+	if credit > 0 then
+		after(player, PlayerData.hwActive(player, credit, ctx), "Active")
 	else
 		after(player, PlayerData.hwRetry(player), "Retry")
 	end
@@ -731,6 +743,12 @@ local function startQA()
 			return if at > 0 then at - Clock.serverNow() else 0
 		elseif op == "save" then
 			return PlayerData.halloween(player)
+		elseif op == "played" then
+			-- A finished real match today (the active-play gate's test), then whether it counts.
+			if a == true then
+				PlayerData.recordRealMatch(player, false, {})
+			end
+			return PlayerData.playedToday(player)
 		end
 		error("HwQA: unknown op " .. tostring(op))
 	end
