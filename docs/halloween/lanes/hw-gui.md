@@ -33,6 +33,34 @@ From PLAN §4 (everything else is read-only; ask below under Requests):
 
 ## Status
 
+- **10:05 step 17 (preview checks) and 18 (requirements).** **Switch decision: the Cue Preview
+  ships OFF** (`Config.UI.CuePreview.Enabled = false`; the brief: ON only if phone and controller
+  pass, and neither is reachable from this lane). Everything reachable passes:
+  - Sizes: `tests/cue_preview_math_test.luau` at phone 844x390 and 844x332, iPad, PC (window
+    374x222 on the small phone, buttons 44 px, nothing overlapping, focus within 4 px of the
+    window's centre); diagram `gate2/preview-layout-phone-ipad-from-test.png`. The sheet's card
+    picture hides when under 60 px (a phone), the 3D window keeps the cue.
+  - Pad: LB/RB and the right stick bound at priority 3025 while open, unbound after; the stick's
+    turn through its own code; EQUIP selected on open when owned, else MODEL. A real A/B press is
+    for the sweep (Studio's simulated pad reaches no button).
+  - Cues: Classic, Eclipse, Beta, Firework and the five Halloween rows (Candy Corn, Jack, Black
+    Cat, Spider, Broom; Classic look until Cues A's bodies land) each open, play all three tabs,
+    close with camera Custom, 0 connections, stage, gui and fold gone. Beta and Firework load in
+    a second or two on first open (spinner meanwhile).
+  - Reduce Motion: fades only, nothing rocks or scrolls. **Found and fixed (d300b2be):** with
+    Reduce Motion the solid panel stayed over the window (Stage's fader undid its fade); it is
+    hidden by Visible now. Lower effects: no sparkle, open and close clean.
+  - Also fixed: the boost card's grey "Friends here: +10% each" repeated the friend rule
+    right above it (b25ba103, dropped).
+  - **R1.10** chip shell built, positioned over the pill, polls core's `RushChip.content`
+    (seen with a faked "2x CANDY 8:12"; core's module not in `halloween` yet). **R5.1/R5.2**
+    +10% a friend, max 4, money (and Candy through core, same switch). **R5.3** one format
+    (percentages) on the pill and card, VIP shows +100%, parts add up to the total. **R5.4**
+    Group +10% permanent (existing `GroupBoost`), its own card row. **R5.5** the pill replaces the
+    VIP tag above money; phone sizes pass the layout test (Invite stays). **R5.6** tap, click or A
+    opens YOUR BOOSTS with each source. **R5.7** built to the approved mock H1. **R7.1** MODEL,
+    TRAIL and FINISHER for any cue, from My Cues and the Index. **R7.2** one public API
+    (`CuePreview.open`) that core's track and later limited cues reuse; items stay data rows.
 - **10:00 Cue Preview steps 12, 14-16 done (switch still OFF, `Config.UI.CuePreview.Enabled =
   false`).** Checked in Studio at 1523x814 with it switched on locally:
   - **Core (12):** the stage at Origin (stripped clone of a lobby table, lights, backdrop), MODEL
@@ -225,8 +253,11 @@ PLAN §7 shared files: your own block or line only; the coordinator resolves ove
   in the device sweep (a player holding blocks on an iPad).
 - **To the coordinator:** the device sweep must cover the pill, its card and the Rush chip at
   844x390 and 1024x768 (this lane could not resize Studio: no Accessibility for window control).
-- **To the coordinator:** a touch sweep of the Cue Preview in the device emulator (not scriptable
-  from a lane).
+- **To the coordinator (10:05): the Cue Preview sweep, then the switch.** In the device
+  emulator at 844x390: open a cue's Preview from My Cues, drag the window (it turns), tap the
+  three tabs, the X; with a real pad: open it, LB/RB switch tabs, the right stick turns, A on
+  EQUIP equips, B closes and you are back on the big card. If both pass, set
+  `Config.UI.CuePreview.Enabled = true` (one line: it also shows the Preview buttons).
 - **To the coordinator (09:09): please merge `hw-gui` for the pill** (BoostPill ON, friend boost
   ON, HudLayout, pad stop, events). After the merge core's `RushChip.content` and
   `CandyIcon` light the chip up by themselves; nothing else to wire.
@@ -255,3 +286,25 @@ size could not be reached, see Status):
   friend in your server +10% (max 4)", grey "Friends here: +10% each"). The open card covers
   the chip (a popup).
 - **Question for Justin (one):** at zero boosts, show "+0%" dimmed (now) or hide the pill?
+
+Gate 2 (`~/Desktop/8ball-refs/halloween/shots/hw-gui/gate2/`, Studio window 1523x814, the
+preview switched on locally for the shots; phone: the layout diagram from the tests):
+- `pill-1523x814-pad-selected-vip-group-plus-2friends.jpg`: the pill "+140%" with the crown,
+  selected from the pad (D-pad left, then onto the pill): the corners' gold ring round it.
+- `card-1523x814-vip-group-plus-2friends.jpg`: YOUR BOOSTS with VIP +100%, Group +10%, Roblox
+  Plus +10%, Friends (2) +20%, Total +140%, the friend rule and the Candy line (the repeated
+  "Friends here" line has since been dropped).
+- `preview-1523x814-model-eclipse.jpg`: the lively panel: scrolling 8-ball header with the cue
+  icon, the 3D window (Eclipse in its aura over the cloned table), the dotted sheet with the
+  name, rarity pill, card picture, MODEL lit, EQUIP hidden (not owned), the 8-ball flair.
+- `preview-1523x814-trail-firework.jpg`: TRAIL, the ball rolling to the pocket with Firework's
+  trail. `preview-1523x814-finisher-eclipse.jpg`: FINISHER, Eclipse's finisher whole in the
+  window. `preview-1523x814-model-firework.jpg`: Firework on MODEL.
+- `preview-1523x814-spider-notowned-note.jpg`, `preview-1523x814-notowned-note-loading.jpg`:
+  a cue not owned: the note in EQUIP's place; the second while its look loads (spinner).
+- `entry-1523x814-mycues-preview.jpg`: My Cues' big card, Preview beside Equipped.
+  `entry-1523x814-index-preview.jpg`: the Index detail, Preview under the name, after coming
+  back from the preview.
+- `preview-layout-phone-ipad-from-test.png`: the panel at 844x390, 844x332 and the iPad from
+  `CuePreviewMath.panel` (rectangles, not a render).
+- `preview-1523x814-trail-eclipse-oldchrome.jpg`: the first TRAIL look, before the lively chrome.
