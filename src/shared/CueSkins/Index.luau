@@ -61,23 +61,6 @@ return {
 		},
 		Piece = "beta",
 	},
-	BlackCatCue = {
-		Id = "black_cat",
-		Name = "Black Cat Cue",
-		Tier = "Mythic",
-		Thumb = "rbxassetid://139545705429939",
-		Look = {
-			Shaft = { 11, 11, 13 },
-			Forearm = { 11, 11, 13 },
-			Wrap = { 20, 20, 22 },
-			Ring = { 226, 176, 74 },
-			Tip = { 226, 176, 74 },
-			Cap = { 11, 11, 13 },
-			Accent = { 255, 200, 90 },
-		},
-		Piece = "black_cat_aura",
-		Body = "black_cat",
-	},
 	BlazeCue = {
 		Id = "blaze",
 		Name = "Blaze",
@@ -798,7 +781,7 @@ return {
 		Id = "spider",
 		Name = "Spider Cue",
 		Tier = "Mythic",
-		Thumb = "rbxassetid://80551345054710",
+		Thumb = "rbxassetid://75625207590037",
 		Look = {
 			Shaft = { 16, 16, 20 },
 			Forearm = { 16, 16, 20 },
@@ -941,7 +924,7 @@ return {
 		Id = "witch_broom",
 		Name = "Witch's Broom",
 		Tier = "Secret",
-		Thumb = "rbxassetid://121330247838904",
+		Thumb = "rbxassetid://109752689782479",
 		Look = {
 			Shaft = { 107, 74, 46 },
 			Forearm = { 107, 74, 46 },

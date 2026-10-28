@@ -11,7 +11,6 @@ local REQUIRE_ALL = true
 
 local CUES = {
 	{ id = "WitchBroomCue", tier = "Secret", particles = 170, lights = 3, pocketPiece = true },
-	{ id = "BlackCatCue", tier = "Mythic", particles = 120, lights = 2, pocketPiece = false },
 	{ id = "SpiderCue", tier = "Mythic", particles = 120, lights = 2, pocketPiece = false },
 }
 

@@ -730,9 +730,9 @@ return {
 			-- Halloween 2026 (docs/halloween/PLAN.md §3)
 			CandyCornCue = "Candy Corn Cue",
 			JackOLanternCue = "Jack-o'-Lantern Cue",
-			BlackCatCue = "Black Cat Cue",
 			SpiderCue = "Spider Cue",
 			WitchBroomCue = "Witch's Broom",
+			HalloweenSwordCue = "Halloween Sword",
 		},
 		Rarities = {
 			Common = "Common",
@@ -1943,9 +1943,9 @@ return {
 		CueShort = {
 			CandyCornCue = "Candy Corn",
 			JackOLanternCue = "Jack-o'-Lantern",
-			BlackCatCue = "Black Cat",
 			SpiderCue = "Spider",
 			WitchBroomCue = "Witch's Broom",
+			HalloweenSwordCue = "Halloween Sword",
 		},
 		GrandPrize = "GRAND PRIZE",
 		Spins = { One = "1 SPIN", Many = "%d SPINS" }, -- ability spins on a track gift
