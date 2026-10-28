@@ -14,7 +14,8 @@
 -- column never has to lift for it. Its width is fixed by WidestText. The chip sits right over
 -- the pill at the same left x; if it would touch another piece it becomes the compact chip
 -- ("2x 8:12"), then its words shrink (never under MinTextPx), and as a last resort it rises
--- over the piece it touches. The card sits over the pill, inside the screen. Text widths are
+-- over the piece it touches. The card sits over the pill; when it is too tall for the room
+-- there its foot lines go (the last first), then it scales down (`cardFit`). Text widths are
 -- the CharWidthShare estimate, in the test and the game alike.
 local Config = require(script.Parent.Config)
 
@@ -43,7 +44,8 @@ export type Scene = {
 	winTrackShown: boolean?, -- nil = shown
 	columnTiles: number?, -- the left column's tiles (default 4)
 	chipText: string?, -- core's chip words; nil = no chip
-	cardSize: { w: number, h: number }?, -- the card's size; nil = Config's width and a typical height
+	cardRows: number?, -- the card's part rows (default 6, every part)
+	cardFeet: number?, -- its foot lines before any go (default 4: the rule, Candy, two "get")
 }
 
 export type Others = {
@@ -64,6 +66,8 @@ export type Boost = {
 	chipCompact: boolean,
 	chipLifted: boolean, -- it had to rise over something
 	card: Rect,
+	cardFeet: number, -- the foot lines kept
+	cardScale: number,
 }
 
 local HudLayout = {}
@@ -310,14 +314,13 @@ function HudLayout.boost(screen: Screen, s: Scene, others: Others): Boost
 		end
 	end
 
-	-- The card over the pill, kept inside the screen.
-	local cardW = if short then P.Card.ShortWidthPx else P.Card.WidthPx
-	local cardH = 200
-	if s.cardSize then
-		cardW, cardH = s.cardSize.w, s.cardSize.h
-	end
+	-- The card over the pill: what fits the room up to the screen's top, kept inside its width.
+	local rows = s.cardRows or 6
+	local feet, scale = HudLayout.cardFit(pill.y - P.Card.AbovePx, rows, s.cardFeet or 4)
+	local cardW = (if short then P.Card.ShortWidthPx else P.Card.WidthPx) * scale
+	local cardH = HudLayout.cardHeight(rows, feet) * scale
 	local cx = math.clamp(pill.x, 0, math.max(0, screen.w - cardW))
-	local cy = math.clamp(pill.y - P.Card.AbovePx - cardH, 0, math.max(0, screen.h - cardH))
+	local cy = pill.y - P.Card.AbovePx - cardH
 	return {
 		pill = pill,
 		pillTextPx = pillTextPx,
@@ -327,7 +330,40 @@ function HudLayout.boost(screen: Screen, s: Scene, others: Others): Boost
 		chipCompact = compact,
 		chipLifted = lifted,
 		card = { x = cx, y = cy, w = cardW, h = cardH },
+		cardFeet = feet,
+		cardScale = scale,
 	}
+end
+
+--- The YOUR BOOSTS card's height for `rows` part rows and `feet` foot lines (BoostPill.fillCard
+--- lays it out the same way): the title, the rows, the rule, the total, the foot lines.
+function HudLayout.cardHeight(rows: number, feet: number): number
+	local K = P.Card
+	return K.PadPx
+		+ K.TitlePx
+		+ 4
+		+ K.GapPx
+		+ rows * K.RowPx
+		+ K.GapPx
+		+ K.RulePx
+		+ K.GapPx
+		+ K.TotalPx
+		+ 4
+		+ feet * (K.NotePx + 4)
+		+ K.PadPx
+end
+
+--- How the card fits `room` px over the pill: the foot lines it keeps (the last go first: the
+--- grey "get" lines, then the Candy line, then the friend rule) and its scale (1, or smaller when
+--- even its rows alone are too tall; never under Card.MinScale).
+function HudLayout.cardFit(room: number, rows: number, feet: number): (number, number)
+	local keep = feet
+	while keep > 0 and HudLayout.cardHeight(rows, keep) > room do
+		keep -= 1
+	end
+	local height = HudLayout.cardHeight(rows, keep)
+	local scale = if height > room then math.max(P.Card.MinScale, room / height) else 1
+	return keep, scale
 end
 
 --- The left column once the pill and chip are up: MenuColumn keeps above every piece over the

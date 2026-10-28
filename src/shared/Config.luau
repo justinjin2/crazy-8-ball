@@ -9849,6 +9849,8 @@ Config.UI.BoostPill = {
 		Grey = { 120, 128, 140 }, -- the footer and the rows you could still get
 		ValueGreen = { 36, 166, 78 }, -- a part's "+N%" and the total, on the white card
 		Gold = { 255, 196, 40 }, -- the VIP row's flash after buying VIP
+		MinScale = 0.6, -- too tall for the room over the pill even without its foot lines: it
+		-- scales down to fit, never under this (HudLayout.cardFit)
 	},
 	-- The Rush chip's shell (R1.10), right over the pill at its left x: core's words
 	-- (RushChip.content), the candy icon from Config.Halloween.CandyIcon.

@@ -4,7 +4,7 @@
 -- (code-hud-boosts §1): 844x390 -> 750x311 (and 844x332 with no side insets), 1334x750 ->
 -- 1334x692, 1024x768 -> 1024x700, 1920x1080 -> 1920x1022. Every case: the pill and the chip
 -- inside the screen and at least ClearPx clear of the money HUD, Invite, Plus, the hotbar, the
--- WinTrack and the left column; the card inside the screen. Overlaps among the pieces already
+-- WinTrack and the left column; the card inside the screen with every part and foot line. Overlaps among the pieces already
 -- there today are printed once (a Request to the coordinator), never failed.
 
 local H = require("./harness")
@@ -176,6 +176,35 @@ return {
 		local bp = HudLayout.boost(phone, sp, op)
 		H.expect(bp.chipTextPx >= C.MinTextPx, "never under MinTextPx")
 		H.expect(bp.chipCompact, "a phone with the WinTrack open: compact")
+	end,
+
+	["the card fits over the pill at every size: foot lines go first, then it scales"] = function()
+		local HudLayout = H.require("HudLayout")
+		local Config = H.require("Config")
+		local K = Config.UI.BoostPill.Card
+		for _, screen in SCREENS do
+			for rows = 1, 6 do
+				local s = { moneyText = "$125,000", cardRows = rows, cardFeet = 4 }
+				local b = HudLayout.boost(screen, s, HudLayout.others(screen, s))
+				local where = ("%s, %d rows"):format(screen.name, rows)
+				H.expect(inside(b.card, screen), "card inside: " .. where)
+				H.expect(
+					b.card.y + b.card.h <= b.pill.y - K.AbovePx + 0.001,
+					"over the pill: " .. where
+				)
+				H.expect(b.cardScale >= K.MinScale and b.cardScale <= 1, "scale: " .. where)
+				H.expect(b.cardScale == 1 or b.cardFeet == 0, "feet go before it scales: " .. where)
+			end
+		end
+		-- A computer has room for every line; a phone on its side drops lines first.
+		local pc = { w = 1920, h = 1022 }
+		local s = { moneyText = "$125,000", cardRows = 6, cardFeet = 4 }
+		local b = HudLayout.boost(pc, s, HudLayout.others(pc, s))
+		H.expect(b.cardFeet == 4 and b.cardScale == 1, "a PC keeps everything")
+		local feet, scale = HudLayout.cardFit(HudLayout.cardHeight(3, 2), 3, 4)
+		H.expect(feet == 2 and scale == 1, "the last two foot lines go")
+		feet, scale = HudLayout.cardFit(HudLayout.cardHeight(6, 0) / 2, 6, 4)
+		H.expect(feet == 0 and scale == K.MinScale, "never under MinScale")
 	end,
 
 	["no chip words, no chip; the overlap check is symmetric and honours the gap"] = function()

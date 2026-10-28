@@ -173,8 +173,20 @@ function BoostPill.new(money: any): any
 	word.ZIndex = P.ZIndex + 1
 	self.word = word
 
-	-- The card over the pill.
-	local card = HudParts.popupCard(tag, "Boosts", K.CornerPx)
+	-- The card over the pill, in a holder whose UIScale shrinks it on a short screen
+	-- (HudLayout.cardFit; the card's own UIScale is its pop's).
+	local holder = Instance.new("Frame")
+	holder.Name = "BoostsHolder"
+	holder.BackgroundTransparency = 1
+	holder.Size = UDim2.fromOffset(0, 0)
+	holder.ZIndex = P.ZIndex + 2
+	holder.Parent = tag
+	self.holder = holder
+	local fit = Instance.new("UIScale")
+	fit.Name = "FitScale"
+	fit.Parent = holder
+	self.fit = fit
+	local card = HudParts.popupCard(holder, "Boosts", K.CornerPx)
 	card.AnchorPoint = Vector2.new(0, 1)
 	card.Visible = false
 	card.ZIndex = P.ZIndex + 2
@@ -492,10 +504,10 @@ function BoostPill.layout(self: any)
 	end
 
 	-- The card over the pill, inside the screen (its rows were laid out by fillCard).
-	local cardW = self.cardW or (if short then K.ShortWidthPx else K.WidthPx)
+	local cardW = (self.cardW or (if short then K.ShortWidthPx else K.WidthPx)) * self.fit.Scale
 	local maxX = math.max(0, size.w - cardW)
 	local dx = math.clamp(pill.x, 0, maxX) - pill.x
-	self.card.Position = UDim2.fromOffset(dx, -K.AbovePx)
+	self.holder.Position = UDim2.fromOffset(dx, -K.AbovePx)
 end
 
 --------------------------------------------------------------------------------------------
@@ -569,8 +581,8 @@ function BoostPill.cardLines(self: any): { any }
 end
 
 -- The lines under the total: the friend rule (it also says how to get more), the Candy line,
--- the boosts still to get.
-function BoostPill.footLines(self: any, room: boolean): { string }
+-- the boosts still to get. fillCard drops them from the end when the card would not fit.
+function BoostPill.footLines(self: any): { string }
 	local flags = self:flags()
 	local lines = {}
 	if E.FriendBoostEnabled == true then
@@ -585,13 +597,11 @@ function BoostPill.footLines(self: any, room: boolean): { string }
 			table.insert(lines, COPY.CandyToo)
 		end
 	end
-	if room then
-		if flags.group ~= true then
-			table.insert(lines, COPY.Get.Group:format(math.floor(E.GroupBoost * 100 + 0.5)))
-		end
-		if flags.vip ~= true then
-			table.insert(lines, COPY.Get.Vip:format(math.floor(E.VipBoost * 100 + 0.5)))
-		end
+	if flags.group ~= true then
+		table.insert(lines, COPY.Get.Group:format(math.floor(E.GroupBoost * 100 + 0.5)))
+	end
+	if flags.vip ~= true then
+		table.insert(lines, COPY.Get.Vip:format(math.floor(E.VipBoost * 100 + 0.5)))
 	end
 	return lines
 end
@@ -602,29 +612,18 @@ function BoostPill.fillCard(self: any)
 	local screen = self.screen
 	local short = screen ~= nil
 		and HudLayout.short({ w = screen.AbsoluteSize.X, h = screen.AbsoluteSize.Y })
-	-- The room over the pill: the grey "could get" rows go when the card would not fit.
+	-- The room over the pill up to the screen's top: the foot lines go from the end, then the
+	-- card scales down, until it fits (HudLayout.cardFit).
 	local room = math.huge
 	if self.tag.AbsoluteSize.Y > 0 and screen then
 		room = self.tag.AbsolutePosition.Y - screen.AbsolutePosition.Y - K.AbovePx
 	end
-	local function heightFor(feet: number): number
-		return K.PadPx
-			+ K.TitlePx
-			+ 4
-			+ K.GapPx
-			+ #lines * K.RowPx
-			+ K.GapPx
-			+ K.RulePx
-			+ K.GapPx
-			+ K.TotalPx
-			+ 4
-			+ feet * (K.NotePx + 4)
-			+ K.PadPx
+	local feet = self:footLines()
+	local keep, scale = HudLayout.cardFit(room, #lines, #feet)
+	for index = #feet, keep + 1, -1 do
+		table.remove(feet, index)
 	end
-	local feet = self:footLines(true)
-	if heightFor(#feet) > room then
-		feet = self:footLines(false)
-	end
+	self.fit.Scale = scale
 	-- Width: the widest row, at least the card's width for this screen.
 	local widest = ShopParts.textWidth(COPY.Title, K.TitlePx)
 	for _, line in lines do
