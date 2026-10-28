@@ -579,9 +579,9 @@ and card, the chip shell, the layout test, pad access to the pill.
 ## Progress
 
 - [ ] 1. Setup: §0 read, the mocks studied; `lane-hw-gui.rbxl` found, Rojo 34888 connected, Play clean; `git log -1` on `halloween`; the §3 Requests written in the lane file.
-- [ ] 2. INTERFACE: `Money.friendBoost`, `Money.boostParts`, `friends` in `Money.Boosts`, `Money.boost` as their sum, the `Config.Economy` friend lines (switch false), money_test cases; lint, tests, commit, push.
-- [ ] 3. INTERFACE: `FriendsHere` count, `Friends.count`, one retry, Studio `FriendsQA`; checked in Studio; pushed by 08:15; lane file "Interfaces ready: <sha>" plus the chip contract and the `CuePreview` signatures.
-- [ ] 4. `BoostFlags.of` and `Economy.boost` through it; Studio pay check (x1.2, x2.2, switch off = today); the `FriendBoost` event; the R5.2 money note; switch true; push.
+- [x] 2. INTERFACE: `Money.friendBoost`, `Money.boostParts`, `friends` in `Money.Boosts`, `Money.boost` as their sum, the `Config.Economy` friend lines (switch false), money_test cases; lint, tests, commit, push.
+- [x] 3. INTERFACE: `FriendsHere` count, `Friends.count`, one retry, Studio `FriendsQA`; checked in Studio; pushed by 08:15; lane file "Interfaces ready: <sha>" plus the chip contract and the `CuePreview` signatures.
+- [x] 4. `BoostFlags.of` and `Economy.boost` through it; Studio pay check (x1.2, x2.2, switch off = today); the `FriendBoost` event; the R5.2 money note; switch true; push.
 - [ ] 5. `HudLayout` pure module and `tests/hud_layout_test.luau` at the four sizes, every case; the others' existing overlaps written as a Request.
 - [ ] 6. BoostPill: pill (crown or arrow, "+N%", count-up pop), YOUR BOOSTS card, hover/tap/pin, tutorial gate, `setInMatch`, the VipTag shape and `deps.vipTag`, LuckClover beside it, Config and Strings blocks, GuiQA hooks.
 - [ ] 7. Rush chip shell (before gate 1, which shows it): polls core's `RushChip.content` each second (guarded, hidden when missing or nil), pop then pulse, compact form, the icon from `Config.Halloween.CandyIcon` (guarded, slot collapses when missing or ""), GuiQA `rushChip`.
