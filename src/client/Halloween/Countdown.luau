@@ -63,11 +63,25 @@ local function rules(): any?
 	return if mapRules then mapRules else nil
 end
 
--- The King's timer at `now` (nil outside Timed mode, or when his next visit would start after
--- the event's end), and whether he is here.
+-- Whether the map lane's King visits (its Rules.kingVisits: Timed and every King switch on;
+-- before that lands, Timed with HalloweenMap.Enabled and Boss.Enabled, as BossService starts).
+local function kingVisits(R: any): boolean
+	if type(R.kingVisits) == "function" then
+		return R.kingVisits() == true
+	end
+	local HM = (Config :: any).HalloweenMap
+	return type(HM) == "table"
+		and HM.Enabled == true
+		and type(HM.Boss) == "table"
+		and HM.Boss.Enabled == true
+		and R.kingTimed() == true
+end
+
+-- The King's timer at `now` (nil outside Timed mode, with the King switched off, or when his
+-- next visit would start after the event's end), and whether he is here.
 local function kingLine(now: number): (string?, boolean)
 	local R = rules()
-	if R == nil or not R.kingTimed() then
+	if R == nil or not kingVisits(R) then
 		return nil, false
 	end
 	local start, finish = R.kingWindow(now)
@@ -441,12 +455,14 @@ function Countdown.new(screen: ScreenGui)
 		stepGuide(kingUp, free)
 	end
 	task.spawn(function()
+		local warned = false -- a failing tick warns once; the loop goes on
 		while screen.Parent ~= nil do
 			local ok, err = pcall(function(): any
 				tick()
 				return nil
 			end)
-			if not ok then
+			if not ok and not warned then
+				warned = true
 				warn("[8ball] Halloween countdown: " .. tostring(err))
 			end
 			task.wait(1)

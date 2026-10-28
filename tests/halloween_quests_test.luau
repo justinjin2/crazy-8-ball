@@ -142,6 +142,60 @@ return {
 		H.expect(Quests.find("x", 6, ALL_ON) == nil and Quests.find("9.9", 6, ALL_ON) == nil, "")
 	end,
 
+	["the end claims a King or Pickups quest finished while the map ran, even with it off"] = function()
+		local Quests = load()
+		-- Finished while the King and the pickups ran (the event as it went)...
+		local q = {}
+		for _ = 1, 50 do
+			Quests.route(q, 6, ALL_ON, "King", 1)
+			Quests.route(q, 6, ALL_ON, "Pickups", 1)
+		end
+		local king, pickups
+		for n = 1, 6 do
+			king = king or keyOf(Quests, n, "King", ALL_ON)
+			pickups = pickups or keyOf(Quests, n, "Pickups", ALL_ON)
+		end
+		H.expect(king ~= nil and pickups ~= nil, "the boards have both")
+		local kingKey, pickupsKey = king :: string, pickups :: string
+		-- Without the end's own claim, the map's switches off would lose both (the bug).
+		local lost = true
+		for _, quest in Quests.claimable(q, {}, 6, { king = false, pickups = false, ult = true }) do
+			lost = lost and quest.key ~= kingKey and quest.key ~= pickupsKey
+		end
+		H.expect(lost, "claimable alone misses them")
+		-- ...converted on a first join after the map lane switched its King and pickups off: the
+		-- quests read as their Alts (higher needs), yet what was finished still pays.
+		local mapOff = { king = false, pickups = false, ult = true }
+		local keys: { [string]: boolean } = {}
+		for _, quest in Quests.endClaimable(q, {}, 6, mapOff) do
+			H.expect(keys[quest.key] == nil, "each quest once: " .. quest.key)
+			keys[quest.key] = true
+		end
+		H.expect(keys[kingKey] == true, "the King quest " .. kingKey)
+		H.expect(keys[pickupsKey] == true, "the Pickups quest " .. pickupsKey)
+		-- A quest claimed already is not claimed again; with every hook on it is claimable as ever.
+		local all = #Quests.endClaimable(q, {}, 6, mapOff)
+		H.expect(
+			#Quests.endClaimable(q, { [kingKey] = true }, 6, mapOff) == all - 1,
+			"claimed once"
+		)
+		H.expect(
+			#Quests.endClaimable(q, {}, 6, ALL_ON) == #Quests.claimable(q, {}, 6, ALL_ON),
+			"same as claimable when on"
+		)
+		H.expect(#Quests.endClaimable({}, {}, 6, ALL_OFF) == 0, "nothing finished, nothing claimed")
+	end,
+
+	["find takes only a quest's own key, never another spelling of it"] = function()
+		local Quests = load()
+		-- A claim is recorded under the key the client sent: "01.4" or "1.04" finding quest
+		-- 1.4 would let one finished quest be claimed once per spelling.
+		H.expect(Quests.find("1.4", 1, ALL_ON) ~= nil, "the real key")
+		for _, spelling in { "01.4", "001.4", "1.04", "01.04", "1.4 ", " 1.4", "+1.4", "1.4.0" } do
+			H.expect(Quests.find(spelling, 1, ALL_ON) == nil, "refused: " .. spelling)
+		end
+	end,
+
 	["each board's four go easiest first (by expected minutes)"] = function()
 		local Quests = load()
 		-- A rough clock: 6.3 min a match, half of them won, 5.75 balls a match, a King win in

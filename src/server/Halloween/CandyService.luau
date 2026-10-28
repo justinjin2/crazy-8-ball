@@ -32,6 +32,22 @@ local C = Config.Halloween
 
 local CandyService = {}
 
+-- The failures already warned: a repeated one (every tick, every player) warns once a server,
+-- and at most WARN_CAP different ones, so a broken event cannot flood the live console.
+local WARN_CAP = 50
+local warned: { [string]: boolean } = {}
+local warnedCount = 0
+
+local function warnOnce(what: string, err: any)
+	local text = ("[8ball] CandyService: %s: %s"):format(what, tostring(err))
+	if warned[text] or warnedCount >= WARN_CAP then
+		return
+	end
+	warned[text] = true
+	warnedCount += 1
+	warn(text)
+end
+
 local function isPlayer(x: any): boolean
 	return typeof(x) == "Instance" and x:IsA("Player") and x.Parent == Players
 end
@@ -217,7 +233,7 @@ function CandyService.changed(player: Player)
 			return nil
 		end)
 		if not ok then
-			warn("[8ball] CandyService: push failed: " .. tostring(err))
+			warnOnce("push failed", err)
 		end
 	end)
 end
@@ -378,7 +394,7 @@ function CandyService.bossWon(player: Player, visitStart: number?): BossWon
 				return nil
 			end)
 			if not ok then
-				warn("[8ball] CandyService: the King's XP failed: " .. tostring(err))
+				warnOnce("the King's XP failed", err)
 			end
 		end
 		-- The win's line on screen (CandyToast): what it paid, or that this visit already paid
@@ -574,6 +590,20 @@ end
 
 -- Whether the funnel's 1_Button step was tried this session.
 local buttonTried: { [Player]: boolean } = setmetatable({}, { __mode = "k" }) :: any
+-- Active seconds credited and not yet in the save, and when they last went in: one save change
+-- every ActiveCommitSeconds a player, not one a tick (each change wakes the save's listeners).
+local pendingActive: { [Player]: number } = setmetatable({}, { __mode = "k" }) :: any
+local activeCommitAt: { [Player]: number } = setmetatable({}, { __mode = "k" }) :: any
+
+-- Puts the player's pending active seconds into the save (Live only, as the tick credits).
+local function commitActive(player: Player, ctx: PlayerData.HwCtx)
+	local pending = pendingActive[player] or 0
+	pendingActive[player] = nil
+	activeCommitAt[player] = os.clock()
+	if pending > 0 then
+		after(player, PlayerData.hwActive(player, pending, ctx), "Active")
+	end
+end
 -- Active seconds waiting for the player's first real match today (Ledger.gateActive).
 local heldActive: { [Player]: number } = setmetatable({}, { __mode = "k" }) :: any
 
@@ -614,7 +644,13 @@ local function tickPlayer(player: Player): any
 		)
 	end
 	if credit > 0 then
-		after(player, PlayerData.hwActive(player, credit, ctx), "Active")
+		pendingActive[player] = (pendingActive[player] or 0) + credit
+	end
+	if
+		(pendingActive[player] or 0) > 0
+		and os.clock() - (activeCommitAt[player] or -math.huge) >= C.ActiveCommitSeconds
+	then
+		commitActive(player, ctx)
 	else
 		after(player, PlayerData.hwRetry(player), "Retry")
 	end
@@ -869,7 +905,7 @@ function CandyService.start()
 			return nil
 		end)
 		if not ok then
-			warn("[8ball] CandyService: request failed: " .. tostring(err))
+			warnOnce("request failed", err)
 		end
 	end)
 	PlayerData.Loaded:Connect(function(player: Player)
@@ -879,7 +915,7 @@ function CandyService.start()
 			return nil
 		end)
 		if not ok then
-			warn("[8ball] CandyService: on load: " .. tostring(err))
+			warnOnce("on load", err)
 		end
 	end)
 	-- A Candy pack landed (PlayerData.applyPurchase, the receipt's one change): HwPack (value: the
@@ -893,7 +929,21 @@ function CandyService.start()
 			return nil
 		end)
 		if not ok then
-			warn("[8ball] CandyService: pack: " .. tostring(err))
+			warnOnce("pack", err)
+		end
+	end)
+	-- A leaving player's active seconds not yet in the save go in (PlayerData releases the save
+	-- a moment later, so it is still theirs here).
+	Players.PlayerRemoving:Connect(function(player: Player)
+		if (pendingActive[player] or 0) <= 0 then
+			return
+		end
+		local ok, err = pcall(function(): any
+			commitActive(player, CandyService.ctx())
+			return nil
+		end)
+		if not ok then
+			warnOnce("leave", err)
 		end
 	end)
 	-- The tutorial's end (its save flag) turns the event on for the player.
@@ -904,7 +954,7 @@ function CandyService.start()
 				return nil
 			end)
 			if not ok then
-				warn("[8ball] CandyService: HwOn: " .. tostring(err))
+				warnOnce("HwOn", err)
 			end
 		end
 	end)
@@ -921,7 +971,7 @@ function CandyService.start()
 			for _, player in Players:GetPlayers() do
 				local ok, err = pcall(tickPlayer, player)
 				if not ok then
-					warn("[8ball] CandyService: tick: " .. tostring(err))
+					warnOnce("tick", err)
 				end
 				if everyone then
 					CandyService.changed(player)

@@ -3906,6 +3906,7 @@ Config.Halloween = {
 	-- in the lobby with an auto-clicker earns nothing. Off: every active second counts at once.
 	ActiveGate = { Enabled = true, HoldCapSeconds = 1800 },
 	TickSeconds = 5, -- the server adds active time and retries held grants this often
+	ActiveCommitSeconds = 30, -- the active time credited goes into the save this often (and on leave)
 	PushSeconds = 2, -- at most one event view pushed to a player this often
 	ActivePushSeconds = 30, -- active time alone re-sends the view this often (the menu shows minutes)
 	-- Requests from the client (the Halloween remote): a bucket of Burst requests refilled at

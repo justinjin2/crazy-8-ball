@@ -881,8 +881,16 @@ function EventMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		tickGen += 1
 		local gen = tickGen
 		task.spawn(function()
+			local warned = false -- a failing redraw warns once; the loop goes on
 			while gen == tickGen do
-				draw()
+				local ok, err = pcall(function(): any
+					draw()
+					return nil
+				end)
+				if not ok and not warned then
+					warned = true
+					warn("[8ball] Halloween menu: " .. tostring(err))
+				end
 				task.wait(1)
 			end
 		end)

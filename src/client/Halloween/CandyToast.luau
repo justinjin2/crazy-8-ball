@@ -414,6 +414,30 @@ end
 --- The NEW CUE! card for `cueId` (a small Slam popup: thumbnail, name, tier tag, `note`, OK).
 --- Laid out at its natural size from its width, then scaled down to fit a short screen.
 function CandyToast.showCard(self: any, cueId: string, note: string)
+	local holder: { screen: ScreenGui? } = {}
+	local ok, err = pcall(function(): any
+		self:buildCard(cueId, note, holder)
+		return nil
+	end)
+	if not ok then
+		-- Half built: its dim must not stay over the game, nor its state hold the popups.
+		local screen = holder.screen
+		if screen then
+			screen:Destroy()
+		end
+		self.card = nil
+		cardShownAt = nil
+		ContextActionService:UnbindAction(CLOSE_ACTION)
+		warn("[8ball] CandyToast: the NEW CUE! card: " .. tostring(err))
+	end
+end
+
+function CandyToast.buildCard(
+	self: any,
+	cueId: string,
+	note: string,
+	holder: { screen: ScreenGui? }
+)
 	local size = self.layer.AbsoluteSize
 	local short = size.Y < SHORT
 	local width = if short then T.ShortCardWidthPx else T.CardWidthPx
@@ -432,6 +456,7 @@ function CandyToast.showCard(self: any, cueId: string, note: string)
 	screen.ScreenInsets = Enum.ScreenInsets.None
 	screen.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 	screen.DisplayOrder = T.CardDisplayOrder
+	holder.screen = screen -- (parented below, once the card is whole)
 	local dim = Instance.new("TextButton")
 	dim.Name = "CueCard"
 	dim.Text = ""

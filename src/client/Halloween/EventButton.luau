@@ -158,8 +158,16 @@ function EventButton.new(root: Frame, corners: any): any
 	-- The pill's time and the event's start and end: once a second, from after HubCorners.new
 	-- (a refresh lays the corners out).
 	task.defer(function()
+		local warned = false -- a failing refresh warns once; the loop goes on
 		while button.Parent ~= nil do
-			self:refresh()
+			local ok, err = pcall(function(): any
+				self:refresh()
+				return nil
+			end)
+			if not ok and not warned then
+				warned = true
+				warn("[8ball] Halloween tile: " .. tostring(err))
+			end
 			task.wait(1)
 		end
 	end)
