@@ -9111,11 +9111,11 @@ Config.Lighting = {
 	-- Day's slot of the cycle). Tuned in Play captures, never Edit's preview. (tune)
 	Night = {
 		Brightness = 3, -- a moonlit roof as bright as the day's floor (Night.MinBrightnessShare)
-		ExposureCompensation = 0.15,
+		ExposureCompensation = 0.45,
 		EnvironmentDiffuseScale = 0.25, -- as Sunset: the violet sky's fill would tint the roof
 		EnvironmentSpecularScale = 0.6,
 		Ambient = "#000000",
-		OutdoorAmbient = "#A898C8", -- a light lilac shade, so shadows read violet, not black
+		OutdoorAmbient = "#B8A8D8", -- a light lilac shade, so shadows read violet, not black (Play: floor L* 0.91 of Day)
 		ColorShift_Top = "#E8D4FF", -- the moon's pale lilac on lit faces
 		ColorShift_Bottom = "#000000",
 		Atmosphere = {
