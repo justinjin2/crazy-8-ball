@@ -23,6 +23,11 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
 
 ## Status
 
+- 11:27 P7 hands: the Broom over the head rail in the own view
+  (`broom_own_view_over_rail_lab.jpg`, ball in hand after a soft fouled break). The wind-up
+  and steep shot were fired through the real path (power 1, elevation 60) but not caught as a
+  still: see the Gate shots' "Not yet shot" line for why. Nothing wrong seen in the frames
+  around it. P7 stays unticked (the real merge).
 - 11:23 P7 backs widened: R6 and tall R15 carriers (HumanoidDescription rigs in my window,
   carried through the BackCue pool) with all three bodies, plus my own avatar walking and
   seated with each cue through the real BackCue path (`*_back_r6_tall_lab.jpg`,
@@ -489,6 +494,13 @@ for at 08:55 and 10:08).
   the seat; the gold claw tip at the left.
 - `spider_back_sitting_lab.jpg`: seated with the Spider: the crown past the right hip, the
   spear tip at the left.
+- `broom_own_view_over_rail_lab.jpg`: the Broom raised over the head rail in the own view: a
+  soft break toward the head rail fouled (ball in hand anywhere), the cue ball placed at the
+  head rail, so the shooter stands behind the rail with the bark handle rising over it; the
+  shooter is the near-camera ghost (the fade), the crystal tip at the ball.
 - Not yet shot: hands from a watcher's side (the match camera owns the camera on my turn);
-  the long wind-up and a steep shot in the hands; the cue raised over a rail; the aim view at
-  phone size.
+  the long wind-up and the steep shot in the hands (fired through the real path at power 1
+  and elevation 60, but the stroke lasts half a second and the capture lands after it; the
+  held aim pose at a set elevation needs the live Input instance, which the MCP cannot reach:
+  its requires are fresh module copies); the aim view at phone size (the window cannot be
+  resized).
