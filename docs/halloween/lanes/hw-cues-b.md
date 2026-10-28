@@ -23,6 +23,14 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
 
 ## Status
 
+- 11:23 P7 backs widened: R6 and tall R15 carriers (HumanoidDescription rigs in my window,
+  carried through the BackCue pool) with all three bodies, plus my own avatar walking and
+  seated with each cue through the real BackCue path (`*_back_r6_tall_lab.jpg`,
+  `broom_back_walking_lab.jpg`, `*_back_sitting_lab.jpg`): no body sinks into a torso, the
+  seated tilt keeps every butt end clear of the seat, the Broom's straw head swings near the
+  knee when walking. Own-back repaint after an equip takes about 3 s (the pool's cadence,
+  not mine). Still open on P7: the real drop-3 merge, the long wind-up and steep shot in the
+  hands, the cue raised over a rail, the aim view at phone size; P7 stays unticked.
 - 11:14 P11 and P14 cloths: the Broom's trail on the red and charcoal cloths and the Cat's on
   charcoal, in the solo match (`broom_trail_red_cloth_lab.jpg`,
   `broom_trail_charcoal_cloth_lab.jpg`, `cat_trail_charcoal_cloth_lab.jpg`). Method: `/solo`
@@ -459,5 +467,28 @@ for at 08:55 and 10:08).
 - `cat_trail_charcoal_cloth_lab.jpg`: the Cat's trail on the charcoal tint: a dark ribbon with
   a gold-white core from the cue ball's run along the rail, smoke and a shadow cat behind;
   every ball readable (the 8-ball's white ring keeps it apart from the cloth).
+- `broom_back_r6_tall_lab.jpg`: the Broom on an R6 rig (left) and a tall R15 rig (right,
+  HeightScale 1.3, tall body type), both made in my window from a HumanoidDescription and
+  carried through the BackCue pool: the crystal tip above the left shoulder, the bark handle
+  with its ribbons across the back, the straw head and charm at the right hip. The cue does
+  not scale with the body, so on the R6 it reaches past both shoulder and hip, on the tall rig
+  it spans shoulder to hip; nothing sinks into either torso. The stand row behind.
+- `cat_back_r6_tall_lab.jpg`: the Cat on the same two rigs: the gold claw tip above the left
+  shoulder, the gold rings and claw inlays, the tail curl at the right hip. Against these
+  black default bodies the black shaft reads only by its gold and outline (a lab artefact of
+  the plain rigs, real avatars vary).
+- `spider_back_r6_tall_lab.jpg`: the Spider on the same two rigs: the segmented chrome shaft
+  with its crimson outline, the spear ferrule up, the crimson crown at the hip.
+- `broom_back_walking_lab.jpg`: my own avatar walking away from the camera with the Broom
+  equipped (the real BackCue path): mid-stride, the straw head and charm swing near the back
+  of the knee, the tip above the left shoulder; the two lab rigs behind.
+- `broom_back_sitting_lab.jpg`: my avatar seated on a lab seat with the Broom: the seated
+  extra tilt lays the cue almost flat across the back, the straw head past the right hip and
+  clear of the seat.
+- `cat_back_sitting_lab.jpg`: seated with the Cat: the tail curl past the right hip, clear of
+  the seat; the gold claw tip at the left.
+- `spider_back_sitting_lab.jpg`: seated with the Spider: the crown past the right hip, the
+  spear tip at the left.
 - Not yet shot: hands from a watcher's side (the match camera owns the camera on my turn);
-  tall R15, R6, walking and sitting carriers need other avatars (not in this window).
+  the long wind-up and a steep shot in the hands; the cue raised over a rail; the aim view at
+  phone size.
