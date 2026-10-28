@@ -17,6 +17,7 @@ local ServerStorage = game:GetService("ServerStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Rules = require(Shared:WaitForChild("HalloweenMap"):WaitForChild("Rules"))
+local Once = require(Shared:WaitForChild("HalloweenMap"):WaitForChild("Once"))
 local Assets = require(script.Parent:WaitForChild("Assets"))
 
 local P = Config.HalloweenMap.Props
@@ -220,11 +221,9 @@ local function addPlaced(into: Folder, row: any, index: number)
 	end
 end
 
---- Build the props once (yields for the meshes, up to Assets.WaitSeconds). True when built.
-function MapProps.prepare(): boolean
-	if built then
-		return true
-	end
+-- The one build (Once): a second caller during the mesh wait waits for this build; a build
+-- that found no meshes or no map is tried again at the next call.
+local propsBuild = Once.new(function(): boolean
 	if not Assets.wait() then
 		warnOnce(
 			"assets",
@@ -284,6 +283,15 @@ function MapProps.prepare(): boolean
 	folder.Parent = ServerStorage
 	built = folder
 	return true
+end)
+
+-- Whether the props should show: on sets it, off clears it, so an off during the build's wait
+-- wins over the on still waiting.
+local wanted = false
+
+--- Build the props once (yields for the meshes, up to Assets.WaitSeconds). True when built.
+function MapProps.prepare(): boolean
+	return propsBuild:run()
 end
 
 local function hideMap()
@@ -323,13 +331,15 @@ function MapProps.part(): any
 			return P.Enabled
 		end,
 		on = function()
-			if MapProps.prepare() then
+			wanted = true
+			if MapProps.prepare() and wanted then
 				hideMap()
 				local folder = built :: Folder
 				folder.Parent = workspace
 			end
 		end,
 		off = function()
+			wanted = false
 			if built then
 				built.Parent = ServerStorage
 			end

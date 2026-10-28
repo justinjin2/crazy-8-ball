@@ -9,7 +9,8 @@
 -- and their decor kit, the props and the hides, the throne. Leaving Live undoes them in
 -- reverse. Every step is pcall-wrapped and idempotent (on twice changes nothing). Off (does
 -- nothing at all) while Config.HalloweenMap.Enabled is. Other modules add their parts with
--- EventMap.addPart before start (the throne: BossService).
+-- EventMap.addPart (the throne: BossService, after start; addPart turns it on by itself when it
+-- comes while Live, and each part's build runs once however often it is asked: HalloweenMap.Once).
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -55,11 +56,12 @@ local function run(name: string, step: string, fn: () -> ())
 end
 
 --- Add a part turned on while Live and off after (in reverse order of adding). Added while
---- already Live, it turns on at once.
+--- already Live, it turns on at once in its own thread (an on may wait for meshes, and the
+--- caller, Bootstrap, must not wait with it).
 function EventMap.addPart(part: Part)
 	table.insert(parts, part)
 	if current == "Live" and (part.arena or not isArenaServer) and part.enabled() then
-		run(part.name, "on", part.on)
+		task.spawn(run, part.name, "on", part.on)
 	end
 end
 
@@ -98,8 +100,10 @@ local function eventState(): string?
 	return result
 end
 
+-- The parts as they are now: a part added while this pass waits on a mesh load is turned on
+-- by addPart, never a second time by this pass.
 local function turnOn()
-	for _, part in parts do
+	for _, part in table.clone(parts) do
 		if (part.arena or not isArenaServer) and part.enabled() then
 			run(part.name, "on", part.on)
 		end

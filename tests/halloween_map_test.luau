@@ -391,6 +391,53 @@ return {
 		H.near(R.spawnDelay(0.5), Config.HalloweenMap.Candy.SpawnEverySeconds, 1e-9, "pace")
 	end,
 
+	["two ons at once build the throne once (a server starting while Live)"] = function()
+		-- Bootstrap's thread and EventMap's pass both turn the throne on while the first build
+		-- waits on the meshes (the coordinator's 12:16 blocker: two thrones). Once parks the
+		-- second caller until the first build ends.
+		local Once = H.require("HalloweenMap.Once")
+		local builds = 0
+		local once = Once.new(function(): boolean
+			builds += 1
+			coroutine.yield() -- the mesh wait
+			return true
+		end)
+		local answers = {}
+		local a = coroutine.create(function()
+			answers.a = once:run()
+		end)
+		local b = coroutine.create(function()
+			answers.b = once:run()
+		end)
+		coroutine.resume(a) -- starts the build, waits on the meshes
+		coroutine.resume(b) -- finds it building: waits for it
+		H.expect(builds == 1, "the second on does not build")
+		H.expect(coroutine.status(b) == "suspended", "the second on waits for the build")
+		coroutine.resume(a) -- the meshes are in: the build ends and wakes the waiting on
+		H.expect(coroutine.status(a) == "dead" and coroutine.status(b) == "dead", "both ons end")
+		H.expect(answers.a == true and answers.b == true, "both see it built")
+		H.expect(once:run() == true and builds == 1, "a later on builds nothing")
+	end,
+
+	["a build that found no meshes is tried again, and an error reaches its caller"] = function()
+		local Once = H.require("HalloweenMap.Once")
+		local tries = 0
+		local once = Once.new(function(): boolean
+			tries += 1
+			return tries >= 2
+		end)
+		H.expect(once:run() == false, "no meshes: not built")
+		H.expect(once:run() == true and tries == 2, "the next on builds it")
+		local failing = Once.new(function(): boolean
+			error("boom", 0)
+		end)
+		local ok, err = pcall(function()
+			failing:run()
+		end)
+		H.expect(not ok and err == "boom", "the error is passed on")
+		H.expect(failing.building == false, "a failed build does not block the next")
+	end,
+
 	["the King's queue notices stay short enough for the queue card"] = function()
 		-- The card is UI.Queue.StatusWidth px at every screen size (no UIScale), 20 px of it padding.
 		-- Measured in Studio (TextService, FredokaOne 18 px): 43 characters is the longest King

@@ -18,6 +18,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local Catalog = require(Shared:WaitForChild("Progression"):WaitForChild("Catalog"))
+local Once = require(Shared:WaitForChild("HalloweenMap"):WaitForChild("Once"))
 local Assets = require(script.Parent:WaitForChild("Assets"))
 
 local HM = Config.HalloweenMap
@@ -806,15 +807,23 @@ local function showPiano()
 	table.clear(hidden)
 end
 
+-- The one build (Once): a second caller during the mesh wait waits for this build.
+local throneBuild = Once.new(function(): boolean
+	Assets.wait() -- the meshes (a fallback shape for any that never come)
+	local model = buildThrone()
+	buildFigure(model)
+	model.Parent = storage()
+	built = model
+	return true
+end)
+
+-- Whether the throne should show: on sets it, off clears it, so an off during the build's
+-- wait wins over the on still waiting.
+local wanted = false
+
 --- Build the throne and its figure once (yields for the body), kept in ServerStorage.
 function KingLook.prepareThrone()
-	if built == nil then
-		Assets.wait() -- the meshes (a fallback shape for any that never come)
-		local model = buildThrone()
-		buildFigure(model)
-		model.Parent = storage()
-		built = model
-	end
+	throneBuild:run()
 end
 
 --- The throne as an EventMap part (on while Live, when Throne.Enabled).
@@ -825,13 +834,18 @@ function KingLook.thronePart(): any
 			return T.Enabled
 		end,
 		on = function()
+			wanted = true
 			KingLook.prepareThrone()
+			if not wanted then
+				return
+			end
 			hidePiano()
 			if built then
 				built.Parent = workspace
 			end
 		end,
 		off = function()
+			wanted = false
 			if built then
 				built.Parent = storage()
 			end
