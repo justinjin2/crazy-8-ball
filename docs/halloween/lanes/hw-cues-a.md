@@ -34,6 +34,7 @@ From PLAN §4 (everything else is read-only; ask through Requests):
   holds and retries otherwise), so a skin leaves draft only when the cue is complete.
 
 ## Status
+- 11:55 coordinator: 11:30 review of 83e876db: one should-fix for the rework. Toggling Lower effects makes a hidden body stick reappear as a ghost: CuePiece's Quality.Changed handler calls applyHidden() with no args (base 0), CueSkinLook.step skips invisible looks, so the body shows where the cue was last drawn until it is next shown. Fix: keep the last modifier/eye/studs and reuse them in the Quality handler (and setAura). Minor: gate CueAssets' body warm on Config.CueSkins.Bodies.Enabled; HalloweenCueEquipped also fires on re-equipping the same cue.
 - 11:49 coordinator: `halloween` @64085ab2 adds core de236025 (the NEW CUE! card and end screen count in Progression.quiet) and cues-b a431419b (Witch Broom, Black Cat and Spider out of draft). cue_skins_data.py clean on halloween (66 skins, 28 pieces). Lint OK, 1,441 tests, Team Create play console clean. Map's READY 7fd462cc is next. Run `git fetch && git merge origin/halloween` before your next READY.
 - 11:36 coordinator: `halloween` @537270fd has cues-a 83e876db (drop 3 body path, CuePreview bodies, Candy Corn + Jack-o'-Lantern, Upright, analytics, Aim-fade fix), core 3c4b87aa (event menu, tile, quests, Spider, packs, art), sys c5b6b607 and gui 3438ea94 (review fixes). Lint OK, 1,436 tests, Team Create play console clean (only the known 203785492 ContentId lines), tile + 2x chip + pill +120% seen. Review of this merge is running; findings come back as Requests. Run `git fetch && git merge origin/halloween` before your next READY. Main.client still has 12 top-level locals to spare.
 
@@ -56,6 +57,25 @@ From PLAN §4 (everything else is read-only; ask through Requests):
 - 09:55 coordinator: `halloween` @82ab885c (+ docs f8566968) has core interface 2 (7f01d27b: Halloween save field, CandyService, /hw; switches off), sys 4cdf5620 (roam off, badges off) and gui f2562efb (boost pill ON, friend boost ON, Cue Preview core off). Lint OK, 1,404 tests, Studio play console clean, pill shows +120%. Run `git fetch && git merge origin/halloween` before your next READY. Main.client still has 12 top-level locals to spare: hooks stay inside `do ... end`.
 
 ## Status (continued)
+
+- 12:02: **Jack-o'-Lantern rework, round 1 @ 65df9aea (pushed), for the designer's look.** Body
+  kept. New decor piece `jack_o_lantern_aura` (11 parts, 5,528 tris, asset 101189446369887):
+  two Neon flame ribbons spiralling the whole cue 0.18 and 0.24 studs off the body (a turn
+  every 1.4 studs, opposite senses, wavy tongues, screwing along at 42 and -34 deg/s, breathing
+  Glow 1.6 / 2.6 s) and three little carved pumpkins (radius 0.15, 0.62 off the surface at
+  1.7, 3.7 and 5.6 studs) circling the cue on their own Spin + Bob with glowing faces; aura
+  joints, so they clear on the shooter's own turn; Lower effects keeps one ribbon and one
+  pumpkin. Aura rebuilt to CUE_VFX_TECHNIQUES §5: dark smoke body, a new additive FireGlow
+  volume layer, flame tongues bigger and brighter (rate 38), embers 30, mini-jack flipbook 9
+  and larger, a pulsing orange halo beam (FireHalo), the two flame-head orbiters, three
+  flickering lights, outline #FF8A1C. Budget 117 particles/s + 2 orbiter heads, 1 beam, 3
+  lights (Firework: 214/s, 1 beam, 2 lights). Lint green; client_compiles, cue_body/looks/
+  motion tests pass; ONLY build in my window: 1 skin, 3 pieces, no problems. **Side-by-side
+  for Justin:** `~/Desktop/8ball-refs/halloween/shots/hw-cues-a/gate2/side_by_side_jack_new_before_firework.jpg`
+  (new / before / Firework, the same lab stand camera) and the close-up
+  `rework_jack_stand_close.jpg`. The review's should-fix (a hidden body reappearing as a ghost
+  on a Lower-effects toggle) is fixed in the commit before it (CuePiece keeps the last
+  modifier/eye/studs for the Quality and aura toggles); the two minors wait for the rework.
 
 - 11:53: **Top priority from the designer (coordinator 11:55): the five Halloween cues "look
   terrible" next to Beta and Firework and must be brought up to their concept cards by 16:00.**
@@ -527,3 +547,8 @@ Gate 2 addition (10:28, `gate2/`): Jack-o'-Lantern complete @ db1a9fdb (+ 73fc00
   own back in the lobby, on the merge of B's READY tip a431419b.
 - `final_broom_hands.jpg`, `final_cat_hands.jpg`, `final_spider_hands.jpg`: the same three in
   hands while aiming (solo fixture), the Aim joints cleared, each PULL card drawn.
+- `side_by_side_jack_new_before_firework.jpg`: the Jack rework @ 65df9aea on the lab stand (top),
+  the gate-2 Jack before it (middle) and the Firework on the same stand camera now (bottom).
+- `rework_jack_stand_v2.jpg`, `rework_jack_stand_close.jpg`, `rework_jack_back_v1.jpg`,
+  `rework_jack_stand_v1.jpg`, `rework_firework_stand_ref.jpg`: the rework's stand (wide and
+  close), its back, the first round before the glow was toned, and the Firework reference.
