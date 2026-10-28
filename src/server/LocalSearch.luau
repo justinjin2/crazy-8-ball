@@ -330,6 +330,12 @@ local function tick()
 	end
 end
 
+--- Whether a match being made here has promised table `t` (read-only; the Pumpkin King's table
+--- search skips these, hw-map lane).
+function LocalSearch.isPromised(t: any): boolean
+	return promised[t] == true
+end
+
 --- Starts the search's loop (a lobby server; never an arena).
 function LocalSearch.start()
 	if started then
