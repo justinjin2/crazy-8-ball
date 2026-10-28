@@ -3889,7 +3889,7 @@ Config.Halloween = {
 	ActivePushSeconds = 30, -- active time alone re-sends the view this often (the menu shows minutes)
 	-- The two Candy packs (Config.Products.List Candy500 / Candy2000; flat, fill the whole track,
 	-- not quests).
-	Packs = { Enabled = false, Keys = { "Candy500", "Candy2000" } },
+	Packs = { Enabled = true, Keys = { "Candy500", "Candy2000" } },
 	-- Once per save, once the event has ended: all Candy (earned + bought) becomes money.
 	Convert = { Enabled = true, MoneyPerCandy = 10 },
 	-- Test time (Halloween/Clock): the workspace attribute HwTimeOffset (seconds added to the
