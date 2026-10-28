@@ -246,6 +246,11 @@ return {
 			KingNoTable = "No free table for the King. Try again soon!",
 			KingCooldown = "The King is resting. Come back soon!",
 			KingNotNow = "You can't challenge the King right now.",
+			-- The timed King (Boss.Mode "Timed"): his line when the tables are full, his visits.
+			KingLined = "You're in the King's line. Stay close!",
+			KingLineLeft = "You walked away from the King's line.",
+			KingLeft = "The King has left. Back at :15 and :45!",
+			KingAway = "The King visits at :15 and :45. Come back!",
 			CandyBagFull = "Your candy bag is full until :00", -- the lobby candy's hour cap (CandyDrop)
 		},
 	},
@@ -279,6 +284,8 @@ return {
 		Resting = "The Pumpkin King is resting. Ready in %s.", -- the note on a press while he rests
 		CandyWon = "+%d CANDY", -- the billboard over the table on a win
 		CandyPickup = "+%d", -- the billboard on a picked-up candy
+		LinePlace = "You're #%d in the King's line", -- the prompt while in his line (Timed)
+		Beaten = "You beat him! Next visit %s", -- the prompt's small line after a paid win (":45")
 		KingDevStarted = "The Pumpkin King is on his way to a table.", -- /king (designer only)
 		KingDevFailed = "No King match: %s.", -- /king: why (Busy, NoTable, Throttle...)
 		-- What he says (BotService.say): short, kind, never an insult.
@@ -2004,6 +2011,10 @@ return {
 	},
 	-- The banner at the top middle (Banner). Names are players' usernames.
 	Banner = {
+		-- The timed Pumpkin King's visits (Halloween 2026, hw-map lane; Banner kind "King"):
+		-- he arrived in the roof's middle, or he left (the next visit's minute, ":45").
+		KingArrived = "The Pumpkin King has arrived! Challenge him in the middle!",
+		KingLeft = "The Pumpkin King has left. He returns at %s!",
 		-- "Painicane unboxed a Legendary Cue!" (username), by rarity; never the cue's name
 		-- (designer 2026-10-05).
 		Unbox = {

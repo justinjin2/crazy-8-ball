@@ -9,6 +9,14 @@
 -- grants the Pumpkin Slayer badge (hw-sys) and sends the candy explosion. The throne and its
 -- figure are an EventMap part (on only while Live). Off (does nothing at all) while
 -- Config.HalloweenMap.Enabled or Boss.Enabled is, and in an arena.
+--
+-- Boss.Mode "Timed" (designer, 2026-10-28): he visits the roof's middle on the shared schedule
+-- (Rules.kingWindow: UTC :15 and :45 for 12 minutes), arriving and leaving in a candy burst and
+-- a puff with a banner for everyone. While he is here a challenge with no free table (or with
+-- MaxAtOnce matches running) joins his line ("You're #2 in the King's line" on his prompt); the
+-- first in line is seated as soon as a table frees, and walking LineStuds away or leaving the
+-- server drops a place. When he leaves the line clears. A win pays once per visit (core's
+-- CandyService.bossWon(player, visitStart)); losing means trying again at once.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -49,12 +57,15 @@ type King = {
 	lastTaunt: number,
 	lastSeq: number?,
 	ended: boolean?,
+	visit: number?, -- the visit (its start) the challenge was seated in (Timed)
 }
 
 local kings: { [number]: King } = {} -- by bot id
 local promised: { [any]: boolean } = {} -- tables a challenge is being seated at
 local lastTry: { [Player]: number } = {}
 local warned: { [string]: boolean } = {}
+local line: { number } = {} -- the King's line this visit (user ids, first first; Timed)
+local visit: number? = nil -- the start of the visit running (Timed), nil while he is away
 
 local function warnOnce(key: string, message: string)
 	if not warned[key] then
@@ -112,6 +123,11 @@ local function log(p: Player, step: string, value: number?, tiers: string?)
 	pcall(Funnel.event, p, "PumpkinKing", value or 1, step, tiers or "", Funnel.device(p))
 end
 
+-- KingChallenge's outcome: Seated, Lined (Timed: no free table) or NoTable (Throne).
+local function logChallenge(p: Player, outcome: string, tiers: string)
+	pcall(Funnel.event, p, "KingChallenge", 1, outcome, tiers, Funnel.device(p))
+end
+
 -- The tables a local search has promised (LocalSearch.isPromised) and ours, as freeTable's skip.
 local function skipSet(): { [any]: boolean }
 	local skip: { [any]: boolean } = {}
@@ -154,10 +170,14 @@ local function ownTable(p: Player): any?
 end
 
 --- Why `p` may not challenge now (a Strings.GlobalQueue.Failed key), or nil when they may.
---- `qa`: the designer's /king and BotsQA (no distance, throttle or cooldown).
-local function refusal(p: Player, qa: boolean): string?
+--- `qa`: the designer's /king and BotsQA (no distance, throttle or cooldown). `fromLine`: the
+--- first in the King's line, seated from anywhere within Timed.LineStuds.
+local function refusal(p: Player, qa: boolean, fromLine: boolean?): string?
 	if not EventMap.isLive() then
 		return "KingNotNow"
+	end
+	if Rules.kingTimed() and visit == nil and not qa then
+		return "KingAway"
 	end
 	if not PlayerData.isLoaded(p) or PlayerData.isHandedOff(p) then
 		return "KingNotNow"
@@ -176,8 +196,11 @@ local function refusal(p: Player, qa: boolean): string?
 		return "KingNotNow"
 	end
 	if not qa then
-		local at = Vector3.new(HM.Throne.PromptAt[1], HM.Throne.PromptAt[2], HM.Throne.PromptAt[3])
-		if (root.Position - at).Magnitude > K.ServerStuds then
+		local reach = if not Rules.kingTimed()
+			then K.ServerStuds
+			elseif fromLine then K.Timed.LineStuds
+			else K.Timed.ServerStuds
+		if (root.Position - KingLook.promptPosition()).Magnitude > reach then
 			return "KingNotNow"
 		end
 		local CandyService = candyService()
@@ -187,24 +210,43 @@ local function refusal(p: Player, qa: boolean): string?
 			return "KingCooldown"
 		end
 	end
-	if aliveKings() >= K.MaxAtOnce then
-		return "KingBusy"
+	if aliveKings() >= K.MaxAtOnce and not Rules.kingTimed() then
+		return "KingBusy" -- (Timed: his line)
 	end
 	return nil
 end
 
--- Seats `p` against the King. The step logged ("Challenge", or the refusal's).
-local function challenge(p: Player, qa: boolean, tierOverride: string?): (boolean, string?)
+-- `p` joins (or keeps their place in) the King's line; their place on their prompt.
+local function joinLine(p: Player, tiers: string)
+	local fresh = table.find(line, p.UserId) == nil
+	p:SetAttribute(K.LineAttribute, Rules.lineJoin(line, p.UserId))
+	notify(p, "KingLined")
+	if fresh then
+		logChallenge(p, "Lined", tiers)
+	end
+end
+
+-- Seats `p` against the King. The step logged ("Challenge", or the refusal's). `fromLine`:
+-- the first in his line, tried each second (no throttle, no notice while no table frees).
+local function challenge(
+	p: Player,
+	qa: boolean,
+	tierOverride: string?,
+	fromLine: boolean?
+): (boolean, string?)
 	local now = os.clock()
-	if not qa and lastTry[p] and now - lastTry[p] < K.ThrottleSeconds then
+	if not qa and not fromLine and lastTry[p] and now - lastTry[p] < K.ThrottleSeconds then
 		return false, "Throttle"
 	end
 	lastTry[p] = now
 	local playerTier = tierOf(p)
 	local kingTier = tierOverride or Rules.kingTier(playerTier)
 	local tiers = playerTier .. ">" .. kingTier
-	local why = refusal(p, qa)
+	local why = refusal(p, qa, fromLine)
 	if why then
+		if fromLine and Rules.lineDrop(line, p.UserId) then
+			p:SetAttribute(K.LineAttribute, nil) -- (told once, not every second)
+		end
 		notify(p, why)
 		if why == "KingBusy" then
 			log(p, "Busy", 1, tiers)
@@ -218,13 +260,26 @@ local function challenge(p: Player, qa: boolean, tierOverride: string?): (boolea
 		pcall(SoloSearch.cancel, p)
 	end
 	local root = rootOf(p) :: BasePart
-	local t = ownTable(p)
-	if not t then
+	local timed = Rules.kingTimed() and visit ~= nil
+	-- In his line someone else is first: wait your turn (the line seats the first).
+	if timed and not fromLine and line[1] ~= nil and line[1] ~= p.UserId then
+		joinLine(p, tiers)
+		return false, "KingLined"
+	end
+	local t = if aliveKings() < K.MaxAtOnce then ownTable(p) else nil
+	if not t and aliveKings() < K.MaxAtOnce then
 		t = Tables.freeTable(1, root.Position, skipSet(), K.SpareTables)
 	end
 	if not t then
+		if fromLine then
+			return false, "KingLined" -- still first; tried again next second
+		elseif timed then
+			joinLine(p, tiers)
+			return false, "KingLined"
+		end
 		notify(p, "KingNoTable")
 		log(p, "NoTable", 1, tiers)
+		logChallenge(p, "NoTable", tiers)
 		return false, "KingNoTable"
 	end
 	promised[t] = true
@@ -240,7 +295,7 @@ local function challenge(p: Player, qa: boolean, tierOverride: string?): (boolea
 			description = KingLook.description(),
 			icon = KingLook.icon(),
 			animations = KingLook.animations(),
-			dress = KingLook.dress,
+			dress = KingLook.dressTable,
 		})
 	end)
 	promised[t] = nil
@@ -258,8 +313,13 @@ local function challenge(p: Player, qa: boolean, tierOverride: string?): (boolea
 		playerTier = playerTier,
 		kingTier = kingTier,
 		lastTaunt = 0,
+		visit = if Rules.kingTimed() then visit or (Rules.kingWindow(Clock.now())) else nil,
 	}
+	if Rules.lineDrop(line, p.UserId) then
+		p:SetAttribute(K.LineAttribute, nil)
+	end
 	log(p, "Challenge", 1, tiers)
+	logChallenge(p, "Seated", tiers)
 	return true, nil
 end
 
@@ -330,11 +390,15 @@ local function reward(p: Player, king: King)
 	local amount, granted = 0, false
 	local CandyService = candyService()
 	if CandyService and CandyService.isLive() then
-		local ok, r = pcall(CandyService.bossWon, p)
+		-- Timed: core pays once per visit (the one the challenge was seated in).
+		local ok, r = pcall(CandyService.bossWon, p, king.visit)
 		if ok and type(r) == "table" then
 			granted, amount = r.granted == true, tonumber(r.amount) or 0
 			if type(r.cooldownEndsAt) == "number" then
 				p:SetAttribute(K.ReadyAttribute, r.cooldownEndsAt)
+			end
+			if granted and king.visit then
+				p:SetAttribute(K.BeatAttribute, king.visit)
 			end
 		elseif not ok then
 			warn("[HalloweenMap] bossWon failed: " .. tostring(r))
@@ -342,6 +406,16 @@ local function reward(p: Player, king: King)
 	elseif RunService:IsStudio() then
 		warnOnce("candy", "core's CandyService is missing or not Live: a King win grants nothing")
 	end
+	local tiers = king.playerTier .. ">" .. king.kingTier
+	pcall(
+		Funnel.event,
+		p,
+		"KingWin",
+		amount,
+		tiers,
+		if granted then "Paid" else "Free",
+		Funnel.device(p)
+	)
 	local Badges = optional({ "Badges" })
 	if Badges and Badges.grant then
 		pcall(Badges.grant, p, "PumpkinSlayer", "Boss")
@@ -399,6 +473,94 @@ local function copyCooldown(p: Player)
 	end
 end
 
+-- Timed: he arrives in a candy burst and a puff, with a banner for everyone. KingSpawn is
+-- logged for each player here then (his reach; KingChallenge's Seated over it, the uptake).
+local function arrive(start: number)
+	visit = start
+	table.clear(line)
+	KingLook.showThrone() -- (waits for the meshes the first time)
+	local at = KingLook.promptPosition()
+	local fx = Net.get("HalloweenMapFx")
+	fx:FireAllClients({ kind = "Puff", at = at + Vector3.new(0, 3, 0) })
+	fx:FireAllClients({ kind = "Burst", at = at + Vector3.new(0, 6, 0), amount = 0, full = true })
+	Net.get("Banner"):FireAllClients({ kind = "King", here = true })
+	for _, p in Players:GetPlayers() do
+		if p:GetAttribute("HwOn") == true then
+			pcall(Funnel.event, p, "KingSpawn", 1, Rules.minuteText(start), "", Funnel.device(p))
+		end
+	end
+end
+
+-- Timed: he leaves the same way; his line clears (each in it told). The banner names his next
+-- visit while the event still runs.
+local function leave()
+	visit = nil
+	for _, id in line do
+		local p = Players:GetPlayerByUserId(id)
+		if p then
+			p:SetAttribute(K.LineAttribute, nil)
+			notify(p, "KingLeft")
+		end
+	end
+	table.clear(line)
+	Net.get("HalloweenMapFx")
+		:FireAllClients({ kind = "Puff", at = KingLook.promptPosition() + Vector3.new(0, 3, 0) })
+	KingLook.hideThrone()
+	if EventMap.isLive() then
+		local next = Rules.minuteText(Rules.kingNext(Clock.now()))
+		Net.get("Banner"):FireAllClients({ kind = "King", here = false, next = next })
+	end
+end
+
+-- The King's line, each second of a visit: the gone and the far lose their place, the rest see
+-- their number, and the first one free (not in another match) is seated once a table frees.
+local function tickLine()
+	local here = KingLook.promptPosition()
+	for i = #line, 1, -1 do
+		local p = Players:GetPlayerByUserId(line[i])
+		local root = p and rootOf(p)
+		if p == nil then
+			table.remove(line, i)
+		elseif root == nil or (root.Position - here).Magnitude > K.Timed.LineStuds then
+			table.remove(line, i)
+			p:SetAttribute(K.LineAttribute, nil)
+			notify(p, "KingLineLeft")
+		end
+	end
+	local nextUp: Player? = nil
+	for i, id in line do
+		local p = Players:GetPlayerByUserId(id) :: Player
+		if p:GetAttribute(K.LineAttribute) ~= i then
+			p:SetAttribute(K.LineAttribute, i)
+		end
+		if nextUp == nil and ownTable(p) ~= false then
+			nextUp = p
+		end
+	end
+	if nextUp == nil or aliveKings() >= K.MaxAtOnce then
+		return
+	end
+	local root = rootOf(nextUp) :: BasePart
+	if ownTable(nextUp) or Tables.freeTable(1, root.Position, skipSet(), K.SpareTables) then
+		challenge(nextUp, false, nil, true)
+	end
+end
+
+-- Timed, each second: he comes and goes on the shared schedule (only while the event is Live).
+local function tickVisit()
+	local now = Clock.now()
+	local start = if EventMap.isLive() and Rules.kingHere(now) then (Rules.kingWindow(now)) else nil
+	if visit ~= nil and start ~= visit then
+		leave()
+	end
+	if start ~= nil and visit == nil then
+		arrive(start)
+	end
+	if visit ~= nil and #line > 0 then
+		tickLine()
+	end
+end
+
 --- The designer's /king and BotsQA "boss": a real King match for `p` now, from anywhere, the
 --- cooldown ignored. True, or false and why.
 function BossService.qa(p: Player, tier: string?): (boolean, string?)
@@ -450,6 +612,7 @@ function BossService.start(isLobby: boolean)
 	end)
 	Players.PlayerRemoving:Connect(function(p: Player)
 		lastTry[p] = nil
+		Rules.lineDrop(line, p.UserId)
 	end)
 	workspace:GetAttributeChangedSignal(HM.StateAttribute):Connect(function()
 		if EventMap.isLive() then
@@ -458,7 +621,21 @@ function BossService.start(isLobby: boolean)
 			end
 		end
 	end)
-	EventMap.addPart(KingLook.thronePart())
+	if Rules.kingTimed() then
+		task.spawn(function()
+			while true do
+				local ok, err = pcall(function()
+					tickVisit()
+				end)
+				if not ok then
+					warn("[HalloweenMap] the King's visit: " .. tostring(err))
+				end
+				task.wait(1)
+			end
+		end)
+	else
+		EventMap.addPart(KingLook.thronePart())
+	end
 end
 
 return BossService
