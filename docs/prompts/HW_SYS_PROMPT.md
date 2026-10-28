@@ -351,8 +351,11 @@ Contact sheet at 150 px circle crop (how the game page shows them) for gate 1. L
 - Rows come from `lune run tools/export_badges.luau` (JSON: key, name, description, badgeId,
   icon path; the export pattern of `tools/export_ult_config.luau`), so Config and Strings stay
   the single source.
-- Key: `read_api_key()` from `tools/roblox_upload.py` (Keychain `ROBLOX_API_KEY`), sent only as
-  the `x-api-key` header; never print headers, the key or a raw request.
+- Key: Keychain `ROBLOX_USER_KEY` (Painicane's user key: Creator Hub offers the legacy badge
+  scopes only on user keys; `ROBLOX_API_KEY` is the group key and has no badge scopes), read
+  like `read_api_key()` in `tools/roblox_upload.py` with that service name
+  (`security find-generic-password -s ROBLOX_USER_KEY -w`); `python3
+  tools/halloween/key_scopes.py ROBLOX_USER_KEY` shows its scopes. Sent only as the `x-api-key` header; never print headers, the key or a raw request.
 - `--probe` (write and run it first, at Progress 1, within the first 30 minutes: create
   `tools/roblox_badges.py` with just `read_api_key` and this flag; the rest of the tool comes at
   Progress 9): GET

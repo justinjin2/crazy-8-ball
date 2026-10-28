@@ -1,10 +1,14 @@
 """Print the scopes of each Roblox API key in the macOS Keychain, never the key itself.
 
-    python3 tools/halloween/key_scopes.py [SERVICE ...]   (default: ROBLOX_API_KEY)
+    python3 tools/halloween/key_scopes.py [SERVICE ...]   (default: ROBLOX_API_KEY ROBLOX_USER_KEY)
 
 Calls Roblox's own POST https://apis.roblox.com/api-keys/v1/introspect and lists the key's
 name, owner, enabled/expired and every scope with its operations and targets, then says which
-of the Halloween build's scopes are still missing.
+of the Halloween build's scopes are still missing on that key.
+
+Two keys (2026-10-28): ROBLOX_API_KEY is the group key (uploads, products, passes, the icon);
+ROBLOX_USER_KEY is Painicane's user key (badges, the title, the Experience Event, thumbnails),
+because Creator Hub offers the legacy badge scopes only on user keys.
 """
 
 import json
@@ -13,17 +17,24 @@ import sys
 import urllib.error
 import urllib.request
 
-# scope name -> operations the Halloween build calls (docs/prompts/HW_COORDINATOR_PROMPT.md, HW_SYS)
+# service -> (scope name -> operations the Halloween build calls), see HW_COORDINATOR §2.5 and HW_SYS
 NEEDED = {
-    "asset": {"read", "write"},  # uploads, the icon test
-    "developer-product": {"read", "write"},  # Candy packs
-    "legacy-universe.badge": {"manage-and-spend-robux"},  # create the 52 badges
-    "universe.place": {"write"},  # the title countdown (PATCH cloud/v2 .../places/{id})
-    "universe.event": {"read", "write"},  # the Experience Event
+    "ROBLOX_API_KEY": {
+        "asset": {"read", "write"},  # uploads, the icon test
+        "developer-product": {"read", "write"},  # Candy packs
+    },
+    "ROBLOX_USER_KEY": {
+        "legacy-universe.badge": {"manage-and-spend-robux"},  # create the 52 badges
+        "universe.event": {"read", "write"},  # the Experience Event
+    },
 }
 OPTIONAL = {
-    "legacy-badge": {"manage"},  # change a badge icon later
-    "universe.thumbnail": {"read", "write"},  # the Halloween thumbnail
+    "ROBLOX_API_KEY": {"game-pass": {"read", "write"}},
+    "ROBLOX_USER_KEY": {
+        "universe.place": {"write"},  # the title countdown (PATCH cloud/v2 .../places/{id}); else by hand
+        "legacy-badge": {"manage"},  # change a badge icon later
+        "universe.thumbnail": {"read", "write"},  # the Halloween thumbnail
+    },
 }
 
 
@@ -51,7 +62,7 @@ def missing(scopes, wanted):
 
 
 def main():
-    for service in sys.argv[1:] or ["ROBLOX_API_KEY"]:
+    for service in sys.argv[1:] or list(NEEDED):
         key = read_key(service)
         if not key:
             print(f"{service}: not in the Keychain")
@@ -68,7 +79,7 @@ def main():
         for s in scopes:
             targets = s.get("universeIds") or s.get("groupIds") or ["all"]
             print(f"  {s.get('name')}: {', '.join(s.get('operations', []))}  (targets {', '.join(targets)})")
-        need, extra = missing(scopes, NEEDED), missing(scopes, OPTIONAL)
+        need, extra = missing(scopes, NEEDED.get(service, {})), missing(scopes, OPTIONAL.get(service, {}))
         print("  needed for Halloween: " + ("all there" if not need else "MISSING " + ", ".join(need)))
         print("  optional: " + ("all there" if not extra else "missing " + ", ".join(extra)))
 

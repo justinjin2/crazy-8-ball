@@ -59,8 +59,10 @@ Lines may be ticked out of order when their time has come and an earlier one is 
 - **Store-page changes are public.** The Experience Event, the title, the icon and the
   thumbnail change only after Justin's yes at gate 1 for the exact texts, images and schedule
   you showed him; anything not shown asks again.
-- **Keys** live in the Keychain (`ROBLOX_API_KEY`, `ROBLOX_ANALYTICS_KEY`, `ROBLOX_PUBLISH_KEY`,
-  `OPENAI_API_KEY`). Never print, echo, log or write one; check one exists as True/False only.
+- **Keys** live in the Keychain (`ROBLOX_API_KEY` = the group key: uploads, products, passes,
+  the icon; `ROBLOX_USER_KEY` = Painicane's user key: badges, title, Experience Event,
+  thumbnails; `ROBLOX_ANALYTICS_KEY`, `ROBLOX_PUBLISH_KEY`, `OPENAI_API_KEY`).
+  `python3 tools/halloween/key_scopes.py` lists both keys' scopes and what is missing. Never print, echo, log or write one; check one exists as True/False only.
 - **Uploads:** images, meshes, the skybox and badge icons go to group 675425213 without asking
   (dry-run first). No audio uploads. No spending except the badges Justin approved.
 - **Blender only headless** (`/Applications/Blender.app/Contents/MacOS/Blender -b -P ...`); the
@@ -282,18 +284,23 @@ File > Save to File As works through System Events. Prefer what travels with a b
 ### 2.5 The store page
 
 Tools: `tools/halloween/store_page.py` (yours) with subcommands `event`, `title`, `icon-upload`,
-`icon-set`, `icon-check`, `icon-schedule` and `selftest`; it reads `ROBLOX_API_KEY` from the
-Keychain, dry-runs by default (prints the request without the key), and logs every real call
+`icon-set`, `icon-check`, `icon-schedule` and `selftest`; it reads `ROBLOX_USER_KEY` from the
+Keychain for `event` and `title` (and a thumbnail) and `ROBLOX_API_KEY` (the group key, asset
+scopes on group 675425213) for the `icon-*` asset calls, dry-runs by default (prints the request without the key), and logs every real call
 to `~/Desktop/8ball-refs/halloween/shots/coordinator/store/log.txt`. For the unofficial icon
 route, read the community updater named in research B2 as text for its request shape; never
 run downloaded code. Universe 10767330648, root place 107430170196919.
 
-- **API key scopes (07:30 message).** Justin edits the existing key in Creator Hub (Open Cloud >
-  API Keys > the key > Edit; the secret does not change): add Places write for Crazy 8 Ball
-  (`universe.place:write`, the title), Experience Events read and write (`universe.event:read`,
-  `universe.event:write`), the badge scopes Sys needs (`legacy-universe.badge:manage-and-spend-robux`,
-  `legacy-badge:manage`), and Thumbnails write (`universe.thumbnail:write`) if listed. Assets
-  read/write is already on it.
+- **API key scopes (settled 07:55 in the desktop chat).** Creator Hub offers the legacy badge
+  scopes only on user keys, so Justin made a user key ('badge-event-place-thumbnail', stored as
+  `ROBLOX_USER_KEY`): `legacy-universe.badge` write + manage-and-spend-robux, `legacy-badge`
+  manage, `universe.event` read/write, `universe.thumbnail` read/write. Its "universe-places"
+  entry gave only `universe-places:write` (publishing), NOT `universe.place:write` (the title);
+  run `key_scopes.py` first: if `universe.place:write` is still missing, the title changes go on
+  Justin's list as clicks (Creator Hub > Configure > Basic Settings > Name) and you never use the
+  publish scope. The group key `ROBLOX_API_KEY` ("8ball uploader": asset read/write on group
+  675425213, asset-permissions write, developer-product and game-pass read/write on 10767330648)
+  keeps uploads, products and the icon calls.
 - **Experience Event** (create right after gate 1's yes, so Notify me collects RSVPs all day):
   title `Haunted Rooftop`; subtitle `5 Halloween cues · Pumpkin King · Candy`; description
   (kid-simple, nothing a cut could make untrue): "The rooftop turns haunted for 6 days! Play
