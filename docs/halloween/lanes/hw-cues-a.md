@@ -59,7 +59,13 @@ From PLAN §4 (everything else is read-only; ask through Requests):
 
 ## Status (continued)
 
-- 12:36: **Jack round 2 and the Candy Corn rework @ 35d80e33, both painted bodies (coordinator
+- 12:28: **READY hw-cues-a @ 66af67b0** (the two commits above merged with `halloween`
+  @f164d356: lint OK, 1,460 tests pass, client_compiles included; the Candy Corn and Jack
+  rows, pieces and maps only; no runtime change in this READY). The ONLY template build for
+  the Team Create place: `{ "CandyCornCue", "JackOLanternCue" }` rebuilds 2 skins and 5
+  pieces (candy_corn, candy_corn_aura, jack_o_lantern, jack_o_lantern_aura,
+  jack_o_lantern_pocket), all rows `ok`.
+- 12:25: **Jack round 2 and the Candy Corn rework @ 35d80e33, both painted bodies (coordinator
   12:05).** Jack (38caf81d): the body lathe now wears a rind colour map (`vfx/jack_o_lantern/
   rind_512.png`: pumpkin ribs shaded bright on the crests and deep in the grooves with a
   speckle, dark wood collars with grain at the joint and butt, a green stem, the butt pumpkin
@@ -577,7 +583,7 @@ Gate 2 addition (10:28, `gate2/`): Jack-o'-Lantern complete @ db1a9fdb (+ 73fc00
 - `rework_jack_stand_v2.jpg`, `rework_jack_stand_close.jpg`, `rework_jack_back_v1.jpg`,
   `rework_jack_stand_v1.jpg`, `rework_firework_stand_ref.jpg`: the rework's stand (wide and
   close), its back, the first round before the glow was toned, and the Firework reference.
-- `side_by_side_jack_round3.jpg`, `side_by_side_candy_round1.jpg`: 12:30, the painted Jack and
+- `side_by_side_jack_round3.jpg`, `side_by_side_candy_round1.jpg`: 12:20, the painted Jack and
   Candy on the lab stand (top), the gate-2 cue before the rework (middle), the Firework on the
   same close camera (bottom).
 - `rework_jack_close_v5.jpg`, `rework_jack_stand_v5.jpg`, `rework_jack_back_v5.jpg`: the painted
