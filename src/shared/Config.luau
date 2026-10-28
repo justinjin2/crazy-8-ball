@@ -17854,7 +17854,10 @@ Config.EmoteMenu = {
 	-- Studio, 2026-10-27). The designer's own uploads (Lucky 8, 2026-10-27) are the clips cut
 	-- in step for each dance (tools: emote-music-upload), from 0, normalised; Volume evens them
 	-- out with Rat Dance at MusicVolume. Prop (optional): a key of Props, held while it plays.
-	-- Speed (optional): the dance's playback speed (1). WalkSpeed (optional): your walking
+	-- Parts (optional): a dance longer than one emote (Roblox's limit is 10 s), these
+	-- animations in turn, each Length / #Parts long; Animation is the first. Music.Every
+	-- (optional): the song plays its Loop once every Every seconds, then is quiet (a dance
+	-- longer than its song). Speed (optional): the dance's playback speed (1). WalkSpeed (optional): your walking
 	-- speed while you dance it (else WalkSpeed below). Duo (optional): the dance's partner: a
 	-- player who syncs with it dances the Duo instead, and only one may (Gojo and Geto).
 	List = {
@@ -17991,7 +17994,15 @@ Config.EmoteMenu = {
 			Length: number,
 			Speed: number?,
 			Prop: string?,
-			Music: { Id: string, Start: number, Loop: number, Volume: number?, Speed: number? }?,
+			Music: {
+				Id: string,
+				Start: number,
+				Loop: number,
+				Volume: number?,
+				Speed: number?,
+				Every: number?,
+			}?,
+			Parts: { number }?,
 			Intro: number?,
 			Once: boolean?,
 			Scene: string?,
@@ -18307,6 +18318,11 @@ Config.EmoteMenu = {
 	-- own walk is 20.8).
 	WalkSpeed = 8,
 	FadeSeconds = 0.2, -- a dance blends in and out
+	-- A dance in Parts (one emote is at most 10 s: Bird Brain is three): each part blends into
+	-- the next this fast, started this far before its turn (about a frame, under Align's
+	-- tolerance) so the one before never loops back to its first frame.
+	PartFadeSeconds = 0.1,
+	PartLeadSeconds = 0.03,
 	-- A dance whose animation has not loaded after this long is hidden from the menu (a
 	-- creator may delete or change their item).
 	LoadSeconds = 3,

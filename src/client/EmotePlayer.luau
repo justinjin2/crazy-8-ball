@@ -15,6 +15,9 @@
 -- - The favourites: the server's list, for the menu (Changed fires when it changes).
 -- - Our own emotes (Config.EmoteMenu.Custom): Popcorn plays its intro once, then its loop;
 --   Bullseye plays once and ends. Their props and effects round every dancer: EmoteScene.
+-- - A dance in Parts (Bird Brain: three 10 s emotes): each part plays its share of the loop
+--   on the server clock, the next started PartLeadSeconds before its turn by one small task
+--   that sleeps between turns (EmoteSync.partAt).
 local ContentProvider = game:GetService("ContentProvider")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -47,7 +50,8 @@ local favorites: { [string]: boolean } = {}
 type Mine = {
 	id: string,
 	at: number,
-	track: AnimationTrack,
+	track: AnimationTrack, -- the one playing (a dance in parts: its part now)
+	part: number, -- which part (1 for a dance in one piece)
 	intro: AnimationTrack?,
 	since: number,
 	links: { RBXScriptConnection },
@@ -77,18 +81,22 @@ local function animator(): Animator?
 	return humanoid and humanoid:FindFirstChildOfClass("Animator")
 end
 
--- Your character's track for a dance (or its intro: `intro`), loaded once per character (a
--- track per press would pile up past Roblox's 64-track limit). It loops unless it plays once.
-local function trackFor(row: EmoteSync.Row, intro: boolean?): AnimationTrack?
+-- Your character's track for a dance (or its intro: `intro`; or its `part`), loaded once per
+-- character (a track per press would pile up past Roblox's 64-track limit). It loops unless it
+-- plays once.
+local function trackFor(row: EmoteSync.Row, intro: boolean?, part: number?): AnimationTrack?
 	local a = animator()
-	local id = if intro then row.Intro else row.Animation
+	local id = if intro then row.Intro else EmoteSync.animations(row)[part or 1]
 	if a == nil or id == nil then
 		return nil
 	end
 	if a ~= tracksOf then
 		tracks, tracksOf = {}, a
 	end
-	local key = if intro then row.Id .. "/Intro" else row.Id
+	local key = if intro
+		then row.Id .. "/Intro"
+		elseif part and part > 1 then row.Id .. "/" .. part
+		else row.Id
 	local track = tracks[key]
 	if not track then
 		local animation = Instance.new("Animation")
@@ -250,12 +258,47 @@ local function free(): boolean
 	return root ~= nil and root:IsA("BasePart") and not root.Anchored
 end
 
+-- Which part of `row` the clock says now, `ahead` seconds from now, and how far into it.
+local function partNow(row: EmoteSync.Row, at: number, ahead: number): (number, number)
+	local _, want = EmoteSync.phase(workspace:GetServerTimeNow() + ahead, at, row.Speed, row.Length)
+	return EmoteSync.partAt(row, want)
+end
+
+-- A dance in parts: each next part starts PartLeadSeconds before its turn, blending in, and
+-- the one before stops; the task sleeps between turns (one wake every part).
+local function runParts(current: Mine, row: EmoteSync.Row, parts: { AnimationTrack })
+	local speed = row.Speed or 1
+	local share = row.Length / #parts
+	while mine == current do
+		local index, into = partNow(row, current.at, E.PartLeadSeconds / speed)
+		if index ~= current.part then
+			local old = current.track
+			local new = parts[index]
+			current.track, current.part = new, index
+			new:Play(E.PartFadeSeconds, 1, speed)
+			new.TimePosition = into
+			old:Stop(E.PartFadeSeconds)
+		end
+		task.wait(math.max(0.05, (share - into) / speed))
+	end
+end
+
 -- Dance `row` with its loop from server time `at`, at once (the server is asked after).
 -- `partner`: the duo dancer you joined. Answers your dance, or nil and why.
 local function begin(row: EmoteSync.Row, at: number, partner: number?): (Mine?, string?)
 	local character = Players.LocalPlayer.Character
 	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
-	local track = trackFor(row)
+	-- Every part is loaded up front, so a turn never waits for one.
+	local parts: { AnimationTrack } = {}
+	for index in EmoteSync.animations(row) do
+		local loaded = trackFor(row, nil, index)
+		if loaded == nil then
+			return nil, "Busy"
+		end
+		parts[index] = loaded
+	end
+	local part = if #parts > 1 then partNow(row, at, 0) else 1
+	local track: AnimationTrack? = parts[part]
 	local intro = if row.Intro then trackFor(row, true) else nil
 	if humanoid == nil or track == nil or (row.Intro ~= nil and intro == nil) then
 		return nil, "Busy"
@@ -267,6 +310,7 @@ local function begin(row: EmoteSync.Row, at: number, partner: number?): (Mine?, 
 		id = row.Id,
 		at = at,
 		track = track,
+		part = part,
 		intro = intro,
 		since = os.clock(),
 		links = links,
@@ -320,16 +364,21 @@ local function begin(row: EmoteSync.Row, at: number, partner: number?): (Mine?, 
 			end
 		end)
 	)
-	table.insert(
-		links,
-		track.Stopped:Connect(function()
-			-- Something else stopped it (a turn's pose stops every track), or a one-shot is
-			-- done: tell the server.
-			if mine == current then
-				EmotePlayer.stop("Other")
-			end
-		end)
-	)
+	for _, each in parts do
+		table.insert(
+			links,
+			each.Stopped:Connect(function()
+				-- Something else stopped it (a turn's pose stops every track), or a one-shot
+				-- is done: tell the server. A part handing over to the next is not that.
+				if mine == current and current.track == each then
+					EmotePlayer.stop("Other")
+				end
+			end)
+		)
+	end
+	if #parts > 1 then
+		task.spawn(runParts, current, row, parts)
+	end
 	-- Your music and your place on the clock now, not after the server's echo.
 	onDance(Players.LocalPlayer.UserId, row.Id, at, partner)
 	EmoteSyncPrompt.mine(row.Id, at, dances)
@@ -487,7 +536,9 @@ function EmotePlayer.start()
 	task.delay(E.Align.PreloadSeconds, function()
 		local ids = {}
 		for _, row in E.List do
-			table.insert(ids, "rbxassetid://" .. row.Animation)
+			for _, animation in EmoteSync.animations(row :: any) do
+				table.insert(ids, "rbxassetid://" .. animation)
+			end
 			if row.Intro then
 				table.insert(ids, "rbxassetid://" .. row.Intro)
 			end

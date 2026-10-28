@@ -25,11 +25,19 @@ local E = Config.EmoteMenu
 
 local EmoteMusic = {}
 
-type Music = { Id: string, Start: number, Loop: number, Volume: number?, Speed: number? }
+type Music = {
+	Id: string,
+	Start: number,
+	Loop: number,
+	Volume: number?,
+	Speed: number?,
+	Every: number?,
+}
 type Group = {
 	music: Music,
 	gain: number, -- turned down for the voices you hear at once
 	once: boolean,
+	every: number?, -- a song shorter than its dance: once every this many seconds
 	at: number,
 	player: AudioPlayer,
 	members: { [number]: boolean },
@@ -72,6 +80,9 @@ local function positionOf(g: Group): number?
 	local m = g.music
 	if g.once then
 		return EmoteSync.musicOncePosition(now, g.at, m.Start, m.Loop, m.Speed)
+	end
+	if g.every then
+		return EmoteSync.musicCyclePosition(now, g.at, m.Start, m.Loop, g.every, m.Speed)
 	end
 	return EmoteSync.musicPosition(now, g.at, m.Start, m.Loop, m.Speed)
 end
@@ -145,8 +156,12 @@ local function resync(g: Group)
 		return
 	end
 	local m = g.music
-	local drift =
-		EmoteSync.drift(g.player.TimePosition - m.Start, want - m.Start, m.Loop, not g.once)
+	local drift = EmoteSync.drift(
+		g.player.TimePosition - m.Start,
+		want - m.Start,
+		m.Loop,
+		not g.once and g.every == nil
+	)
 	if math.abs(drift) > E.MusicToleranceSeconds then
 		g.player.TimePosition = want
 	end
@@ -178,8 +193,10 @@ function EmoteMusic.join(userId: number, id: string, at: number)
 		pickVoices(found)
 		return
 	end
-	-- A dance that plays once (Money) plays its song once too: it never loops.
+	-- A dance that plays once (Money) plays its song once too: it never loops. A song shorter
+	-- than its dance (Every) plays once a loop of the dance, then waits for the next.
 	local once = row.Once == true
+	local every = if not once and music.Every and music.Every > 0 then music.Every else nil
 	local player = Instance.new("AudioPlayer")
 	player.Name = id
 	local untyped: any = player -- (AssetId is missing from the type definitions)
@@ -188,7 +205,7 @@ function EmoteMusic.join(userId: number, id: string, at: number)
 		* E.Loudness
 		* SoundGroups.get("EmoteMusic").Volume
 	player.PlaybackSpeed = music.Speed or 1
-	player.Looping = not once
+	player.Looping = not once and every == nil
 	player.PlaybackRegion = NumberRange.new(music.Start, music.Start + music.Loop)
 	player.LoopRegion = NumberRange.new(music.Start, music.Start + music.Loop)
 	player.Parent = holder()
@@ -196,6 +213,7 @@ function EmoteMusic.join(userId: number, id: string, at: number)
 		music = music,
 		gain = 1,
 		once = once,
+		every = every,
 		at = at,
 		player = player,
 		members = { [userId] = true },
@@ -212,11 +230,22 @@ function EmoteMusic.join(userId: number, id: string, at: number)
 			return -- stopped meanwhile, or the track is gone: the dance goes on silent
 		end
 		local position = positionOf(g)
-		if position == nil then
+		if position ~= nil then
+			player.TimePosition = position
+			player:Play()
+		elseif every == nil then
 			return -- a play-once song is over: not again
 		end
-		player.TimePosition = position
-		player:Play()
+		-- Once a cycle: from Start again as each loop of the dance begins (asleep between).
+		while every and groups[key] == g do
+			local into = math.max(0, workspace:GetServerTimeNow() - g.at) % every
+			task.wait(every - into)
+			if groups[key] ~= g then
+				break
+			end
+			player.TimePosition = music.Start
+			player:Play()
+		end
 	end)
 	if not running then
 		task.spawn(pass)
