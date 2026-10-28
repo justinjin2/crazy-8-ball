@@ -229,10 +229,14 @@ function Rules.kingTimed(): boolean
 	return HM.Boss.Mode == "Timed"
 end
 
---- Whether the timed King's visits run: Boss.Mode "Timed" with his stage (the Throne switch) on.
---- Throne off means no throne anywhere, so no visits either (the old roof).
+--- Whether the timed King's visits run: Boss.Mode "Timed" with the map, his challenge (Boss)
+--- and his stage (Throne) all switched on. Throne off means no throne anywhere, so no visits
+--- either (the old roof). Anything that shows or points at his visits (core's timer) asks this.
 function Rules.kingVisits(): boolean
-	return Rules.kingTimed() and HM.Throne.Enabled == true
+	return Rules.kingTimed()
+		and HM.Enabled == true
+		and HM.Boss.Enabled == true
+		and HM.Throne.Enabled == true
 end
 
 --- The King's visit (Boss.Timed) running at `now`, or else the next one: (start, end), unix

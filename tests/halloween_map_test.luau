@@ -498,6 +498,20 @@ return {
 		H.expect(not throneMode, "Throne mode never runs the visits")
 	end,
 
+	["any King switch off stops his visits (the map, the Boss)"] = function()
+		local R = H.require("HalloweenMap.Rules")
+		local HM = H.require("Config").HalloweenMap
+		local mode, master, boss = HM.Boss.Mode, HM.Enabled, HM.Boss.Enabled
+		HM.Boss.Mode = "Timed"
+		HM.Enabled = false
+		local masterOff = R.kingVisits()
+		HM.Enabled, HM.Boss.Enabled = true, false
+		local bossOff = R.kingVisits()
+		HM.Boss.Mode, HM.Enabled, HM.Boss.Enabled = mode, master, boss
+		H.expect(not masterOff, "the map's master switch off: no visits")
+		H.expect(not bossOff, "the Boss switch off: no visits")
+	end,
+
 	["a winner of this visit waits behind everyone who hasn't won"] = function()
 		local R = H.require("HalloweenMap.Rules")
 		local beaten = { [11] = true, [44] = true } -- 11 and 44 already won this visit
