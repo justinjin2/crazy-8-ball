@@ -18011,6 +18011,9 @@ Config.Badges = {
 	RevealMarginSeconds = 2,
 	Retries = { 5, 20, 60 }, -- seconds before each retry of a failed call; then wait for the next join
 	Paused = {} :: { [string]: boolean }, -- [Key] = true: cut or misbehaving; the row never awards (a one-line publish)
+	-- The designer cut Tycoon (Money10M, out of reach) and Part of the Crew (Crew) on 2026-10-28:
+	-- their rows are gone and the two badges are disabled on Roblox (they cannot be deleted;
+	-- tools/badges_manifest.json keeps their ids). 50 rows.
 	List = {
 		{ Key = "Welcome", BadgeId = 3774850189892880, Rule = { always = true } },
 		{ Key = "FirstWin", BadgeId = 3575671673255502, Rule = { stat = "Wins", atLeast = 1 } },
@@ -18094,11 +18097,6 @@ Config.Badges = {
 			BadgeId = 2699082964518478,
 			Rule = { stat = "MoneyEarned", atLeast = 1000000 },
 		},
-		{
-			Key = "Money10M",
-			BadgeId = 217838342274579,
-			Rule = { stat = "MoneyEarned", atLeast = 10000000 },
-		},
 		{ Key = "Squad", BadgeId = 432657693674846, Rule = { event = "TeamMatch" } },
 		{ Key = "Ability1", BadgeId = 97386214196697, Rule = { event = "UltUsed" } },
 		{
@@ -18106,7 +18104,6 @@ Config.Badges = {
 			BadgeId = 2989268570496762,
 			Rule = { stat = "UltMatches", atLeast = 100 },
 		},
-		{ Key = "Crew", BadgeId = 2950008037199385, Rule = { event = "InGroup" } },
 		{ Key = "MetOwner", BadgeId = 3300678702313834, Rule = { event = "OwnerHere" } },
 		{ Key = "BeatOwner", BadgeId = 4060031209370529, Rule = { event = "BeatOwner" } },
 		{
