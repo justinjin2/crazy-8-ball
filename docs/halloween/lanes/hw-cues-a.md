@@ -57,6 +57,15 @@ From PLAN §4 (everything else is read-only; ask through Requests):
 
 ## Status (continued)
 
+- 11:53: **Top priority from the designer (coordinator 11:55): the five Halloween cues "look
+  terrible" next to Beta and Firework and must be brought up to their concept cards by 16:00.**
+  Cues A reworks the Jack first, then Candy Corn, bodies kept: a decor piece round the whole
+  cue (flame ribbons like Firework's helices, mini-pumpkin mesh orbiters), emissive pulsing,
+  full-length volume aura, a halo beam, lights and a Highlight, per docs/CUE_VFX_TECHNIQUES.md
+  §1/§4/§5. One cue first with a side-by-side (new vs before vs Firework) under Gate shots.
+  The fresh-player run on the 11:50 build was cut at Game1 (join at Arrow clean, the pad to
+  Game1 in 5 s, console clean); Progress 18, 20 and 21 run again on the reworked build.
+
 - 11:50: **Progress 14 done.** `git merge origin/halloween` @64085ab2 (B's READY a431419b and
   core de236025) into `hw-cues-a` -> 8db5f068, no conflict; `cue_skins_data.py` rewrites
   nothing (66 skins, 28 pieces); against the 11:45 rehearsal tree the only differences under
