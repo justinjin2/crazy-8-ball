@@ -654,7 +654,7 @@ function BossService.start(isLobby: boolean)
 			end
 		end
 	end)
-	if Rules.kingTimed() then
+	if Rules.kingVisits() then
 		task.spawn(function()
 			while true do
 				local ok, err = pcall(function()
@@ -666,7 +666,7 @@ function BossService.start(isLobby: boolean)
 				task.wait(1)
 			end
 		end)
-	else
+	elseif not Rules.kingTimed() then
 		EventMap.addPart(KingLook.thronePart())
 	end
 end

@@ -229,6 +229,12 @@ function Rules.kingTimed(): boolean
 	return HM.Boss.Mode == "Timed"
 end
 
+--- Whether the timed King's visits run: Boss.Mode "Timed" with his stage (the Throne switch) on.
+--- Throne off means no throne anywhere, so no visits either (the old roof).
+function Rules.kingVisits(): boolean
+	return Rules.kingTimed() and HM.Throne.Enabled == true
+end
+
 --- The King's visit (Boss.Timed) running at `now`, or else the next one: (start, end), unix
 --- seconds on the server clock. Pure, so every server and client agree; he is here while
 --- start <= now < end. The event's Live check is the caller's.

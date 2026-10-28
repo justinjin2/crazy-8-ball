@@ -483,6 +483,21 @@ return {
 		H.expect(line[1] == 11, "the first in line is next")
 	end,
 
+	["the Throne switch off stops the timed King's visits (no throne anywhere)"] = function()
+		local R = H.require("HalloweenMap.Rules")
+		local HM = H.require("Config").HalloweenMap
+		local mode, throne = HM.Boss.Mode, HM.Throne.Enabled
+		HM.Boss.Mode, HM.Throne.Enabled = "Timed", true
+		H.expect(R.kingVisits(), "Timed with the throne on: he visits")
+		HM.Throne.Enabled = false
+		local off = R.kingVisits()
+		HM.Boss.Mode = "Throne"
+		local throneMode = R.kingVisits()
+		HM.Boss.Mode, HM.Throne.Enabled = mode, throne
+		H.expect(not off, "Timed with the Throne switch off: no visits, no stage")
+		H.expect(not throneMode, "Throne mode never runs the visits")
+	end,
+
 	["a winner of this visit waits behind everyone who hasn't won"] = function()
 		local R = H.require("HalloweenMap.Rules")
 		local beaten = { [11] = true, [44] = true } -- 11 and 44 already won this visit
