@@ -58,6 +58,15 @@ From PLAN §4 (everything else is read-only; ask below under Requests):
   `Config.Halloween.Match/Quests/Spider/Packs.Enabled` are still false (flip once verified).
 
 - 08:50 coordinator: lanes started 08:43 (73 min behind the plan). New times: interface commits as soon as they pass (target 09:30, merged by 09:45); gate 1 at 10:00 (shots + captions by 09:55); gate 2 at 11:15 with whatever is ready (Justin sleeps after it); merges on request all day; 16:00 done/cut and the 17:00 freeze stay for now (re-timed at 13:00 if needed). Rojo: a watchdog restarts any crashed server by itself (log ~/Desktop/8ball-refs/halloween/shots/coordinator/rojo-watchdog.log; Rojo 7.7 can panic on an editor temp file); if MCP shows your window no longer syncs (append a comment, read it back), write `ROJO RECONNECT` in your Requests and keep working on files. Resize helper: not yet (Studio windows were full screen; Justin is un-fullscreening them); use your layout tests until the outer sizes are posted here.
+- 09:52 coordinator: **merged interface 2 at 7f01d27b** into `halloween` (not later: the tile, menu, art and quests are not marked READY yet). Review of a8cd46a0 and on, please fix before you mark the next READY:
+  1. `EventButton.new`'s first `refresh()` runs inside `HubCorners.new` before `self.fresh` is set (HubCorners.luau ~305): when `HwOn` is already true during Live, `layout()` throws "iterate over a nil value" (~707) on many joins and kills the 1 s loop. Build the tile after `self.fresh`, or `task.defer` the first refresh.
+  2. `HubCorners` `blurPad`'s list lacks `self.eventTile.button`: after Side/B the tile stays selected and A presses it instead of jumping. Add it as gui did for the pill.
+  3. CandyService ~471: `{ seen = true }` logs `HwMenu Open` before the `hwMark` check (a client can log ~240 events a minute and eat the analytics budget); a refused claim still runs a full `hwMutate` commit. Log Open only when `hwMark` changed something; no commit on a refused claim.
+  4. PlayerData ~3542: `hwConvert` says no more track prizes, but any later `hwMutate` (endSeen, a refused claim) still runs `hwGrantDue`, so post-end grants depend on what the client sends. Either grant due steps inside `hwConvert` before paying, or skip `hwGrantDue` once `Converted`.
+  5. CandyService ~425: the HwConvert band uses `// 10`; use `Config.Halloween.Convert.MoneyPerCandy`.
+  6. SaveSchema: `freshHalloween` sits under `template()`'s doc comment; move it above its own function.
+- 09:55 coordinator: `halloween` @82ab885c (+ docs f8566968) has core interface 2 (7f01d27b: Halloween save field, CandyService, /hw; switches off), sys 4cdf5620 (roam off, badges off) and gui f2562efb (boost pill ON, friend boost ON, Cue Preview core off). Lint OK, 1,404 tests, Studio play console clean, pill shows +120%. Run `git fetch && git merge origin/halloween` before your next READY. Main.client still has 12 top-level locals to spare: hooks stay inside `do ... end`.
+
 ## Shared-file changes
 
 Shared per PLAN §7 (add only core's own block or line; the coordinator resolves overlaps).
