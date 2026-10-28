@@ -28,6 +28,10 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
   launch came late), so the first push lands about 09:10 instead of 08:15; the rest of the
   time plan slides about 45 minutes and the gate-1 look is the blockout plus the first bark
   renders.
+- 09:12 P1 pushed @ 7426eca8: `CuePiecesHalloween_B.py` (entry point, `AIM`, `check_envelope`,
+  `check_budget`, a Broom blockout body: 4 parts, 3,500 triangles, hand zones within 0.001 of
+  the envelope), draft stubs `witch_broom`/`black_cat`/`spider`, `tests/halloween_cues_b_test.luau`
+  (5 checks, skip drafts). Lint and 1,350 tests green.
 
 - 08:50 coordinator: lanes started 08:43 (73 min behind the plan). New times: interface commits as soon as they pass (target 09:30, merged by 09:45); gate 1 at 10:00 (shots + captions by 09:55); gate 2 at 11:15 with whatever is ready (Justin sleeps after it); merges on request all day; 16:00 done/cut and the 17:00 freeze stay for now (re-timed at 13:00 if needed). Rojo: a watchdog restarts any crashed server by itself (log ~/Desktop/8ball-refs/halloween/shots/coordinator/rojo-watchdog.log; Rojo 7.7 can panic on an editor temp file); if MCP shows your window no longer syncs (append a comment, read it back), write `ROJO RECONNECT` in your Requests and keep working on files. Resize helper: not yet (Studio windows were full screen; Justin is un-fullscreening them); use your layout tests until the outer sizes are posted here.
 ## Shared-file changes

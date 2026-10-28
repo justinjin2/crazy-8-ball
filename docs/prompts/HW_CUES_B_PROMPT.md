@@ -603,7 +603,7 @@ floor by **15:00**, write a Request to the coordinator at once (Cues A may take 
 
 ## Progress
 
-- [ ] 1. First push by 08:15: lane file Requests (section 3), three draft skin stubs,
+- [x] 1. First push by 08:15: lane file Requests (section 3), three draft skin stubs,
   `CuePiecesHalloween_B.py` (entry point, `AIM` table, `check_envelope`, a Broom blockout body
   that passes), `tests/halloween_cues_b_test.luau` (skips drafts); compile, lint and tests
   green, pushed, Status line.
