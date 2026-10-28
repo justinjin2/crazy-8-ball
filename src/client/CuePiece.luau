@@ -229,6 +229,9 @@ end
 export type Opts = {
 	body: boolean?, -- a cue body (Halloween 2026): its rigid parts keep the design's orientation
 }
+-- A piece row's Upright = true (piece.json, the builder's k.upright) asks the same for a decor or
+-- pocket piece: a creature with a face, built after the half turn was understood (the
+-- Jack-o'-Lantern's pocket jack, 2026-10-28). Older pieces leave it unset and keep their look.
 
 function CuePiece.new(
 	id: string,
@@ -247,7 +250,7 @@ function CuePiece.new(
 	-- A rigid part's GLB (tools/cue_pieces_glb.py) is written so the importer's half turn lands
 	-- it in the cue frame already; FLIP then turns it once more, end for end. Every shipped decor
 	-- piece was approved looking that way, so it keeps it; a body must wear its tip at the tip.
-	local turn = if opts and opts.body then CFrame.identity else FLIP
+	local turn = if (opts and opts.body) or row.Upright == true then CFrame.identity else FLIP
 	local rig = Motion.rig(row)
 	local auraJoints: { [string]: boolean } = {}
 	local lowJoints: { [string]: boolean } = {}

@@ -880,6 +880,10 @@ def export(kit):
             'Triangles': tris_total, 'Parts': parts, 'Joints': joints}
     if kit.paths:
         spec['Paths'] = kit.paths
+    if getattr(kit, 'upright', False):
+        # the runtime keeps the rigid parts as designed (no end-for-end turn; CuePiece): a
+        # creature with a face built after the half turn was understood (hw-cues-a, 2026-10-28)
+        spec['Upright'] = True
     with open(os.path.join(out, 'piece.json'), 'w') as fh:
         json.dump(spec, fh, indent=2)
         fh.write('\n')
