@@ -672,9 +672,9 @@ Justin's changes at a gate go straight into the work and into the lane file's St
   (parts, emitters, particles a second, lights) beside Eclipse's in the lane file.
 - [x] 16. Analytics: `HalloweenCueEquipped` in `Items.luau`, seen in the Studio log.
 - [x] 17. Devices: Index row and detail, My Cues, power bar and YOU GOT at phone, iPad, PC and
-  TV (pad), shots. BLOCKED for phone and iPad: the window resize helper sees no Studio window from this shell (PC and TV done, lane file 10:50).
+  TV (pad), shots. BLOCKED for phone and iPad: the window resize helper sees no Studio window from this shell (PC and TV done, lane file 10:43).
 - [ ] 18. Fresh-player run on the final build, console clean.
-- [ ] 19. R2.1, R2.2, R2.8 and R2.9 checked row by row against the shots; coordinator Requests
+- [x] 19. R2.1, R2.2, R2.8 and R2.9 checked row by row against the shots; coordinator Requests
   3.6 written in full (merges, the manifest/CueSkins merge rules and regenerate, the Team
   Create ONLY build, the publish note).
 - [ ] 20. Lane file Status final + all screenshots.
