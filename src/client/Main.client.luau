@@ -1275,6 +1275,10 @@ local function holdShots(dt: number)
 	end
 	shotsClock = 0
 	local ids = { CueStickBuilder.equippedCue(player) }
+	local previewCue = player:GetAttribute("CuePreviewId") -- the open Cue Preview's cue (hw-gui lane)
+	if type(previewCue) == "string" then
+		table.insert(ids, previewCue)
+	end
 	local tables: { number } = {}
 	if hub.mySeat then
 		table.insert(tables, hub.mySeat)

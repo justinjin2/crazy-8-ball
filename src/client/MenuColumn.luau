@@ -214,9 +214,9 @@ function MenuColumn.new(screen: ScreenGui, opts: Options): any
 	if moneyRoot then
 		connect(moneyRoot:GetPropertyChangedSignal("AbsoluteSize"), queueLayout)
 		connect(moneyRoot:GetPropertyChangedSignal("AbsolutePosition"), queueLayout)
-		-- The VIP tag and the luck's clover over the money pill (VipTag, LuckClover): the
-		-- column keeps above them too.
-		for _, name in { "VipTag", "LuckClover" } do
+		-- The VIP tag and the luck's clover over the money pill (VipTag, LuckClover), or the
+		-- boost pill and the Rush chip in the tag's place (BoostPill): the column keeps above them too.
+		for _, name in { "VipTag", "LuckClover", "BoostPill", "RushChip" } do
 			local tag = moneyRoot:FindFirstChild(name)
 			if tag and tag:IsA("GuiObject") then
 				connect(tag:GetPropertyChangedSignal("Visible"), queueLayout)
@@ -565,9 +565,19 @@ function MenuColumn.moneyTop(self: any, origin: Vector2, size: Vector2, short: b
 	local root = self:moneyRoot()
 	if root and root.AbsoluteSize.Y > 0 then
 		local top = root.AbsolutePosition.Y
-		for _, name in { "VipTag", "LuckClover" } do
+		-- A piece wholly right of the column (a phone's boost pill and Rush chip) needs no room.
+		local right = if self.root.AbsoluteSize.X > 0
+			then self.root.AbsolutePosition.X + self.root.AbsoluteSize.X
+			else math.huge -- not laid out yet: keep above everything
+		for _, name in { "VipTag", "LuckClover", "BoostPill", "RushChip" } do
 			local tag = root:FindFirstChild(name)
-			if tag and tag:IsA("GuiObject") and tag.Visible and tag.AbsoluteSize.Y > 0 then
+			if
+				tag
+				and tag:IsA("GuiObject")
+				and tag.Visible
+				and tag.AbsoluteSize.Y > 0
+				and tag.AbsolutePosition.X < right
+			then
 				top = math.min(top, tag.AbsolutePosition.Y)
 			end
 		end

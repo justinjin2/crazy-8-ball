@@ -578,17 +578,17 @@ and card, the chip shell, the layout test, pad access to the pill.
 
 ## Progress
 
-- [ ] 1. Setup: §0 read, the mocks studied; `lane-hw-gui.rbxl` found, Rojo 34888 connected, Play clean; `git log -1` on `halloween`; the §3 Requests written in the lane file.
-- [ ] 2. INTERFACE: `Money.friendBoost`, `Money.boostParts`, `friends` in `Money.Boosts`, `Money.boost` as their sum, the `Config.Economy` friend lines (switch false), money_test cases; lint, tests, commit, push.
-- [ ] 3. INTERFACE: `FriendsHere` count, `Friends.count`, one retry, Studio `FriendsQA`; checked in Studio; pushed by 08:15; lane file "Interfaces ready: <sha>" plus the chip contract and the `CuePreview` signatures.
-- [ ] 4. `BoostFlags.of` and `Economy.boost` through it; Studio pay check (x1.2, x2.2, switch off = today); the `FriendBoost` event; the R5.2 money note; switch true; push.
-- [ ] 5. `HudLayout` pure module and `tests/hud_layout_test.luau` at the four sizes, every case; the others' existing overlaps written as a Request.
-- [ ] 6. BoostPill: pill (crown or arrow, "+N%", count-up pop), YOUR BOOSTS card, hover/tap/pin, tutorial gate, `setInMatch`, the VipTag shape and `deps.vipTag`, LuckClover beside it, Config and Strings blocks, GuiQA hooks.
-- [ ] 7. Rush chip shell (before gate 1, which shows it): polls core's `RushChip.content` each second (guarded, hidden when missing or nil), pop then pulse, compact form, the icon from `Config.Halloween.CandyIcon` (guarded, slot collapses when missing or ""), GuiQA `rushChip`.
-- [ ] 8. Gate 1 (09:00): phone and PC shots in `gate1/` (pill, card, the chip shell through GuiQA `rushChip`), lines in the lane file, the one question if needed.
-- [ ] 9. Pad and lists: the pill as one `HubCorners.padStops` entry right after Plus (core's event tile stays first), your `blurPad` and `padFocusedOn` lines, each listed under Shared-file changes; MenuColumn and PadGuide names; the `BoostCardOpened` event; GuiQA `hudRects` and `hudOverlap`.
-- [ ] 10. Studio sweep of the pill: four sizes and pad, `hudOverlap` empty, a match at phone size, the fresh-player run (tutorial and skip); `BoostPill.Enabled = true`; push; lane file asks the coordinator to merge it (the pill merge, about 10:00-10:20).
-- [ ] 11. `CuePreviewMath` (panel rects, window framing, loop timeline) and `tests/cue_preview_math_test.luau`.
+- [x] 1. Setup: §0 read, the mocks studied; `lane-hw-gui.rbxl` found, Rojo 34888 connected, Play clean; `git log -1` on `halloween`; the §3 Requests written in the lane file.
+- [x] 2. INTERFACE: `Money.friendBoost`, `Money.boostParts`, `friends` in `Money.Boosts`, `Money.boost` as their sum, the `Config.Economy` friend lines (switch false), money_test cases; lint, tests, commit, push.
+- [x] 3. INTERFACE: `FriendsHere` count, `Friends.count`, one retry, Studio `FriendsQA`; checked in Studio; pushed by 08:15; lane file "Interfaces ready: <sha>" plus the chip contract and the `CuePreview` signatures.
+- [x] 4. `BoostFlags.of` and `Economy.boost` through it; Studio pay check (x1.2, x2.2, switch off = today); the `FriendBoost` event; the R5.2 money note; switch true; push.
+- [x] 5. `HudLayout` pure module and `tests/hud_layout_test.luau` at the four sizes, every case; the others' existing overlaps written as a Request.
+- [x] 6. BoostPill: pill (crown or arrow, "+N%", count-up pop), YOUR BOOSTS card, hover/tap/pin, tutorial gate, `setInMatch`, the VipTag shape and `deps.vipTag`, LuckClover beside it, Config and Strings blocks, GuiQA hooks.
+- [x] 7. Rush chip shell (before gate 1, which shows it): polls core's `RushChip.content` each second (guarded, hidden when missing or nil), pop then pulse, compact form, the icon from `Config.Halloween.CandyIcon` (guarded, slot collapses when missing or ""), GuiQA `rushChip`.
+- [x] 8. Gate 1 (09:00; PC-window shots only, the phone size is not reachable from this lane: lane file Status) : phone and PC shots in `gate1/` (pill, card, the chip shell through GuiQA `rushChip`), lines in the lane file, the one question if needed.
+- [x] 9. Pad and lists: the pill as one `HubCorners.padStops` entry right after Plus (core's event tile stays first), your `blurPad` and `padFocusedOn` lines, each listed under Shared-file changes; MenuColumn and PadGuide names; the `BoostCardOpened` event; GuiQA `hudRects` and `hudOverlap`.
+- [x] 10. (sizes by the layout test only, see lane Status) Studio sweep of the pill: four sizes and pad, `hudOverlap` empty, a match at phone size, the fresh-player run (tutorial and skip); `BoostPill.Enabled = true`; push; lane file asks the coordinator to merge it (the pill merge, about 10:00-10:20).
+- [x] 11. `CuePreviewMath` (panel rects, window framing, loop timeline) and `tests/cue_preview_math_test.luau`.
 - [ ] 12. CuePreview core: registered menu and `CuePreviewMenu` gui, the stage at Origin (stripped table clone or slab, lights, backdrop), camera taken and restored, walking and touch controls held, MODEL tab with auto-turn and drag by mouse, touch and right stick, every close path; switch off.
 - [ ] 13. Gate 2 (11:00): the pill at the four sizes and on the pad, the card with VIP/Group/Friends (2), the preview's first look at phone and PC in `gate2/`.
 - [ ] 14. TRAIL and FINISHER: stroke, trail, pocket, finisher loop through Effects; the preview's cue in Main's holdShots; spinner and timeout.

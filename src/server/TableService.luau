@@ -23,6 +23,8 @@ local Funnel = require(script.Parent.Funnel)
 local GlobalQueue = require(script.Parent.GlobalQueue)
 local PadBar = require(Shared.Matchmaking.PadBar)
 local PadExits = require(Shared.Matchmaking.PadExits)
+local Roam = require(Shared.Matchmaking.Roam)
+local Settle = require(Shared.Progression.Settle)
 local Ranks = require(Shared.Progression.Ranks)
 local M = Config.Multiplayer
 local Q = M.QueueVisual
@@ -59,6 +61,9 @@ local SHOT_SPOT = "ShotSpot"
 -- anchored: in once it is held, out before it is let go.
 local PARTICIPANTS = "PoolParticipants"
 local HELD = "PoolShooter"
+-- A seated player who roams while waiting (Config.Multiplayer.Roam, designer 2026-10-28): the
+-- floor and the table barrier as everyone, but never the fences, and through the others.
+local ROAMER = "PoolRoamer"
 
 local function rgb(c: { number }): Color3
 	return Color3.fromRGB(c[1], c[2], c[3])
@@ -778,6 +783,50 @@ local function followStance(t: any, p: Player, root: BasePart, character: Model)
 	end
 end
 
+-- Whether a root stands more than `extra` studs outside table `t`'s match walls.
+local function outsideArea(t: any, root: BasePart, extra: number): boolean
+	local scale = Config.Table.StudsPerInch
+	local fx, fy, fcx, fcy = Placement.matchWalls(t.engine.teamSize)
+	local x, y = Placement.toTable(t.placement, root.Position.X, root.Position.Z)
+	return Roam.needsHome(x * scale, y * scale, fx, fy, fcx, fcy, extra)
+end
+
+-- Whether seated player `p` walks free of table `t`'s walls while waiting (Roam.allowed): never
+-- in the arena, the guided tutorial match, while their tutorial runs, or in freecam.
+local function roams(p: Player, t: any): boolean
+	return Roam.allowed({
+		enabled = M.Roam.Enabled,
+		arena = arena,
+		engineTutorial = t.engine.tutorial,
+		botKind = Settle.botKind(t.engine),
+		tutorialActive = p:GetAttribute("TutorialActive") :: any,
+		freecam = p:GetAttribute(Config.Freecam.Attribute) :: any,
+	})
+end
+
+-- A roaming shooter far from their table when their turn starts goes to its queue pad
+-- (Service.padSpot); followStance then refines the spot on the first aim packet. Only an
+-- anchored root (placeRoot). Logged as RoamHome: the studs moved and the mode.
+local function sendHome(p: Player, t: any, root: BasePart)
+	local spot = Service.padSpot(t)
+	local from = root.Position
+	-- StreamingEnabled: ask for the area round the table first, without holding the poll.
+	task.spawn(function()
+		pcall(function()
+			p:RequestStreamAroundAsync(spot.Position)
+		end)
+	end)
+	if placeRoot(t, root, spot) then
+		Funnel.event(
+			p,
+			"RoamHome",
+			math.round((spot.Position - from).Magnitude),
+			Strings.Match.Mode:format(t.engine.teamSize, t.engine.teamSize),
+			Funnel.device(p)
+		)
+	end
+end
+
 local function constrain(p: Player, t: any)
 	local e = t.engine
 	if e.phase == "Waiting" or e.phase == "Result" then
@@ -825,12 +874,27 @@ local function constrain(p: Player, t: any)
 	local since = if t.shotAt then now() - t.shotAt else nil
 	local locked = e.shooter == p.UserId and Engine.shooterHeld(e.phase, e.solo, since)
 	if locked then
+		local wasFree = not root.Anchored
+		-- Sitting on a lobby seat (anchored): a root welded to one cannot be moved, so the
+		-- turn stands them up first.
+		local seat = hum.SeatPart
+		if seat then
+			local weld = seat:FindFirstChild("SeatWeld")
+			if weld then
+				weld:Destroy()
+			end
+			hum.Sit = false
+		end
 		hum.WalkSpeed = 0
 		hum.AutoRotate = false
 		hum.JumpPower = 0
 		hum.JumpHeight = 0
 		root.Anchored = true
 		setGroup(saved, HELD) -- only now it is anchored, before followStance can move it
+		-- Their turn: a roamer far away (or mid-jump, or respawned off the pad) is brought home.
+		if wasFree and roams(p, t) and outsideArea(t, root, M.Roam.HomeExtraStuds) then
+			sendHome(p, t, root)
+		end
 		followStance(t, p, root, character)
 		return
 	end
@@ -839,19 +903,21 @@ local function constrain(p: Player, t: any)
 	hum.JumpPower = saved.jump
 	hum.JumpHeight = saved.jumpHeight
 	-- Back on the floor first, then let go where it stands, the shot spot included: no
-	-- teleport when the turn passes.
-	setGroup(saved, PARTICIPANTS)
+	-- teleport when the turn passes. A roamer walks through the fences (ROAMER).
+	local roaming = roams(p, t)
+	setGroup(saved, if roaming then ROAMER else PARTICIPANTS)
 	release(root, saved.anchored)
 	-- Everyone else walks normally: the fence and the table's own barrier are physical walls,
 	-- so nothing here moves a character that is walking about. A teleport only rescues a body
 	-- that fell through the floor or ended up well outside its fence (spawned there, clipped
 	-- through); the client owns its character, so moving it every poll would rubber-band.
+	-- A roamer is never put back for being away, only for falling (off the roof: they land
+	-- at their table, not at the spawn).
 	local scale = Config.Table.StudsPerInch
 	local fx, fy, fcx, fcy = Placement.matchWalls(t.engine.teamSize)
 	local x, y = Placement.toTable(t.placement, root.Position.X, root.Position.Z)
 	x, y = x * scale, y * scale -- studs along the table's axes
-	local escape = M.Fence.EscapeStuds
-	local outside = math.abs(x - fcx) > fx + escape or math.abs(y - fcy) > fy + escape
+	local outside = not roaming and outsideArea(t, root, M.Fence.EscapeStuds)
 	if outside or root.Position.Y < t.placement.y - Q.FallTolerance then
 		local inset = M.Fence.ThicknessStuds + Q.RespawnBoundaryInset
 		local cx = math.clamp(x, fcx - (fx - inset), fcx + fx - inset)
@@ -955,15 +1021,6 @@ local function onPad(t: any, root: BasePart, margin: number): boolean
 		and math.abs(d.Y) < Q.VerticalTolerance
 end
 
--- Whether a root stands more than `extra` studs outside table `t`'s match walls.
-local function outsideArea(t: any, root: BasePart, extra: number): boolean
-	local scale = Config.Table.StudsPerInch
-	local fx, fy, fcx, fcy = Placement.matchWalls(t.engine.teamSize)
-	local x, y = Placement.toTable(t.placement, root.Position.X, root.Position.Z)
-	x, y = x * scale, y * scale
-	return math.abs(x - fcx) > fx + extra or math.abs(y - fcy) > fy + extra
-end
-
 -- Which half of a split team pad (Engine.sidesOn) a root stands over: 1 on the pad's -x half
 -- in table studs, where the arena stands team 1, 2 on the other; nil within
 -- Sides.DeadZoneStuds of the line, where a player keeps the side they have.
@@ -1024,14 +1081,24 @@ local function poll(t: any, time: number)
 				end
 			else
 				constrain(p, t)
-				-- Walking away from a finished lobby game says no to the rematch.
+				-- Walking away from a finished lobby game says no to the rematch, except for a
+				-- roamer already away when it ended (noted on their first Result poll).
+				local away = root ~= nil and outsideArea(t, root, M.Fence.EscapeStuds)
+				if e.phase == "Result" then
+					if t.farResultAt ~= e.phaseStartedAt then
+						t.farResultAt, t.farAtResult = e.phaseStartedAt, {}
+					end
+					if t.farAtResult[p.UserId] == nil then
+						t.farAtResult[p.UserId] = away
+					end
+				end
 				if
 					not arena
 					and e.phase == "Result"
 					and e.rematch
 					and not e.rematch.declined
-					and root
-					and outsideArea(t, root, M.Fence.EscapeStuds)
+					and away
+					and not Roam.walkOffExempt(t.farAtResult[p.UserId] == true, away)
 				then
 					if
 						Engine.action(
@@ -1915,6 +1982,13 @@ function Service.start(parent: Instance, mode: string?)
 		PhysicsService:RegisterCollisionGroup(PARTICIPANTS)
 	end)
 	PhysicsService:CollisionGroupSetCollidable(PARTICIPANTS, PARTICIPANTS, false)
+	-- Roamers (ROAMER): the floor and the table barrier (Default), through everyone at a table.
+	-- Registered before the fence loop below, so the fences ignore them too.
+	pcall(function()
+		PhysicsService:RegisterCollisionGroup(ROAMER)
+	end)
+	PhysicsService:CollisionGroupSetCollidable(ROAMER, PARTICIPANTS, false)
+	PhysicsService:CollisionGroupSetCollidable(ROAMER, ROAMER, false)
 	-- Match fences stop only the people in a match; everyone else walks through them.
 	pcall(function()
 		PhysicsService:RegisterCollisionGroup("PoolFence")
