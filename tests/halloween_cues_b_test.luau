@@ -1,7 +1,7 @@
 --!strict
 -- The Halloween 2026 cues of lane Cues B (docs/prompts/HW_CUES_B_PROMPT.md §4): the Witch's
--- Broom and the Spider Cue, and lane hw-map's Bone Cue (in the Black Cat's place since
--- 2026-10-28). Cues A's cue_body_test checks every body's parts, tip and overhang; this one checks each of the three skins that has a row (a skin
+-- Broom, the Black Cat Cue and the Spider Cue. Cues A's cue_body_test checks every body's
+-- parts, tip and overhang; this one checks each of the three skins that has a row (a skin
 -- still in draft has none and is skipped): its tier, its pocket piece, its aura budget, its
 -- sounds and its card. REQUIRE_ALL turns the skip into a failure once all three ship (P20).
 
@@ -11,7 +11,6 @@ local REQUIRE_ALL = true
 
 local CUES = {
 	{ id = "WitchBroomCue", tier = "Secret", particles = 170, lights = 3, pocketPiece = true },
-	{ id = "BoneCue", tier = "Mythic", particles = 120, lights = 2, pocketPiece = true },
 	{ id = "SpiderCue", tier = "Mythic", particles = 120, lights = 2, pocketPiece = false },
 }
 

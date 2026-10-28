@@ -1,8 +1,9 @@
 # Halloween 2026: release checklist
 
-For Justin, tonight (Wed Oct 28 2026). The event goes live at **19:00 EDT** by itself (the
-code reads the clock); the publish only has to be out before then. DRAFT 12:00, final at 16:45
-(the cue rework and the boost pill restyle land until 16:00; line numbers are re-read then).
+For Justin, tonight (Wed Oct 28 2026). The code reads the clock: from **19:00 EDT** a server
+with this update is Live. Justin, 17:46: the publish no longer has to beat 19:00; it goes out
+tonight once the robustness pass is done (target about 20:30). A server that starts after 19:00
+boots straight into Live. Line numbers re-read 17:50.
 
 ## 1. Check by hand (test place or Studio Play, then on the live game after the publish)
 
@@ -24,7 +25,7 @@ On a phone, a PC and a controller where you can:
    Index, in hand, one pot).
 10. Settings > **Lower effects** on and off with a Halloween cue.
 
-## 2. Publishing (about 18:30)
+## 2. Publishing (tonight, after the robustness pass; target about 20:30)
 
 1. Use the **Team Create** Studio window ("[EMOTES] CRAZY 8 Ball"). Rojo must say connected,
    and the coordinator says which commit it is synced at. The folder must be clean (nothing
@@ -32,53 +33,59 @@ On a phone, a PC and a controller where you can:
 2. **File > Publish to Roblox.**
 3. Creator Hub > the game > **Configure > Server management > Restart Servers**, choose
    **"Restart only servers with outdated versions"**, with no delay longer than 10 minutes.
-   Old servers have to be gone before 19:00: old code resets an equipped new cue to Classic
-   (`SaveSchema.luau` refuses newer saves) and pays no Candy. Servers also restart by
+   Old servers have to go: old code resets an equipped new cue to Classic (`SaveSchema.luau`
+   refuses newer saves) and pays no Candy. Servers also restart by
    themselves after 5-6 h (`Config.ServerRestart`).
-4. Rename the game by hand at 19:00: add the pumpkin (your words: "[🎃] … nothing else").
+4. Rename the game by hand once it is out: add the pumpkin (your words: "[🎃] … nothing else").
+5. Tell the coordinator it is out: the LIVE icon goes up then (`store_page.py icon-set LIVE --go`).
 
 ## 3. What you should see
 
-- **Before 18:30:** nothing new except the boost text.
-- **18:30:** the countdown banner only.
-- **19:00:** night falls on the rooftop; the event tables, trees, pumpkins and lights; the
-  HALLOWEEN button; the King's timer pill (his first visit is 19:15); Candy in matches and
-  lobby pickups; and a **2x CANDY** chip at once (19:00 EDT is UTC minute 0, the start of a
-  Candy Rush).
-- **The store page (automatic):** the icon counts down 5H at 14:00, 4H, 3H, 2H, 1H, then LIVE
-  at 19:00 and the plain icon at 19:00 Oct 29 (`tools/halloween/store_page.py icon-schedule`,
-  log in `~/Desktop/8ball-refs/halloween/shots/coordinator/store/log.txt`). Your Experience
-  Event runs 19:00 Oct 28 to 19:00 Nov 3 (times fixed by API at 11:54; nothing else changed).
+- **Published after 19:00 (the plan now):** a new server is Live at once (no countdown pill):
+  night falls on the rooftop; the event tables, trees, pumpkins and lights; the
+  HALLOWEEN button; the King's timer pill (he visits at :15 and :45); Candy in matches and
+  lobby pickups; the **2x CANDY** chip in the first 10 minutes of every hour (UTC minutes 0-9).
+- **(Only if published before 19:00:** the boost text first, the "HALLOWEEN EVENT IN" pill
+  from 18:30, then all of the above at 19:00.)
+- **The store page:** the countdown icons ran 5H (14:00) and 2H (17:42; the Mac slept through
+  4H and 3H); at Justin's word (17:46) the "STARTS IN" badge is gone: the plain Halloween icon
+  is up (121071839544374) and the countdown job is stopped. The LIVE icon (91272722538693) goes
+  up when the publish is out, the plain one again a day later (log:
+  `~/Desktop/8ball-refs/halloween/shots/coordinator/store/log.txt`). Your Experience Event runs
+  19:00 Oct 28 to 19:00 Nov 3 (times fixed by API at 11:54; nothing else changed).
 
 ## 4. Every switch (Config, `src/shared/Config.luau`)
 
 Off = the old behaviour; one line, then publish with the outdated-only restart.
 
-| Switch | Line (12:00) | Off does |
+| Switch | Line (17:50) | Off does |
 |---|---|---|
 | `Config.Halloween.Enabled` | 3763 | no Candy, no event UI; saved Candy still converts after the end |
 | `Config.Halloween.Rush.Enabled` | 3772 | no 2x Candy minutes |
 | `Config.Halloween.Match.Enabled` | 3783 | no match Candy |
-| `Config.Halloween.Quests.Enabled` | 3797 | no quest boards |
-| `Config.Halloween.Spider.Enabled` | 3886 | no Spider active-time cue |
-| `Config.Halloween.Packs.Enabled` | 3892 | Candy packs not sold |
-| `Config.Halloween.Convert.Enabled` | 3894 | Candy does not turn into money after the end |
-| `Config.HalloweenMap.Enabled` | 9219 | the master map switch: no night, tables, decor, props, throne, King, drops |
-| `Config.HalloweenMap` Night / Tables / Decor / Props / Throne / Boss / Candy | 9230-9517 | each part alone (Throne and Boss go off together) |
-| `Config.HalloweenMap.Boss.Mode` | 9422 | `"Throne"`: the King sits on his throne at the piano all event (the old way) instead of visiting |
 | `Config.Halloween.Boss.Visit` | 3796 | the King's visit reward (Candy 150, Money 2500, Xp 100): one line to change |
-| `Config.CueSkins.Bodies.Enabled` | 6560 | the body cues draw the normal stick |
-| `Config.Multiplayer.Roam.Enabled` | 8287 | in-match players stay at their table, as before |
-| `Config.Badges.Enabled` | 17986 | no badge is awarded |
+| `Config.Halloween.Boss.CountsForQuests` | 3800 | King matches stop counting for the Matches/Balls quests |
+| `Config.Halloween.Quests.Enabled` | 3812 | no quest boards |
+| `Config.Halloween.Spider.Enabled` | 3901 | no Spider active-time cue |
+| `Config.Halloween.Packs.Enabled` | 3917 | Candy packs not sold |
+| `Config.Halloween.Convert.Enabled` | 3919 | Candy does not turn into money after the end |
+| `Config.HalloweenMap.Enabled` | 9244 | the master map switch: no night, tables, decor, props, throne, King, drops |
+| `Config.HalloweenMap` Night / Tables / Decor / Props / Throne / Boss / Candy | 9254-9564 | each part alone (Throne and Boss go off together) |
+| `Config.HalloweenMap.Boss.Mode` | 9426 | `"Throne"`: the King sits on his throne at the piano all event (the old way) instead of visiting |
+| `Config.CueSkins.Bodies.Enabled` | 6585 | the body cues draw the normal stick |
+| `Config.Multiplayer.Roam.Enabled` | 8312 | in-match players stay at their table, as before |
+| `Config.Badges.Enabled` | 18067 | no badge is awarded |
 | `Config.Economy.FriendBoostEnabled` | 2037 | no +10% per friend |
-| `Config.UI.BoostPill.Enabled` | 10016 | the old VIP tag instead of the boost text |
-| `Config.UI.CuePreview.Enabled` | 10083 | already off |
+| `Config.UI.BoostPill.Enabled` | 10064 | the old VIP tag instead of the boost text |
+| `Config.UI.CuePreview.Enabled` | 10132 | already off |
 
 ## 5. If something breaks
 
 Tell the coordinator what you see. The coordinator flips the switch, commits and pushes;
-you publish with the outdated-only restart. Cut order for a bad night (PLAN): the King, then
-the lobby drops, then roaming, then the badge queue, then the whole event (`Halloween.Enabled`).
+you publish with the outdated-only restart. Cut order for a bad night (PLAN): the King
+(`HalloweenMap.Boss.Enabled`, or `Boss.Mode = "Throne"` to keep him seated), then the lobby drops
+(`HalloweenMap.Candy`), then roaming, then the badge queue, then the whole event
+(`Halloween.Enabled`).
 
 ## 6. Nov 3, 19:00 EST
 
@@ -89,13 +96,17 @@ original back (asset 123614794049673): `python3 tools/halloween/store_page.py ic
 ## 7. What to read after launch (custom events and funnels)
 
 - Core: the `Halloween` funnel (1_Button, 2_Opened, 3_FirstCandy, 4_Cue150, 5_Cue500,
-  6_Cue2000, 7_Broom) and `HwCandy`, `HwMatch`, `HwQuest`, `HwTrack`, `HwSpider`, `HwPack`,
+  6_Cue2000, 7_Cue7000; named by Candy step, so a cue swap keeps them) and `HwCandy`, `HwMatch`, `HwQuest`, `HwTrack`, `HwSpider`, `HwPack`,
   `HwConvert`, `HwMenu`.
 - Cues A: `HalloweenCueEquipped` (counts every Equip press, not distinct players).
 - Sys: `RoamHome` (how far players roam), `BadgeAwarded` (Retro back-pay on day one).
 - GUI: `FriendBoost` (friends at leave), `BoostCard` (card opens).
-- Creator Hub: server FPS P10/P50, memory, concurrent users, the error report. Baselines:
-  server FPS P10 about 37-47; DAU 24,887 and 23.1 min per DAU (Oct 26).
+- Creator Hub: server FPS P10/P50, memory, concurrent users, the error report. Baselines
+  before the publish (analytics API, hourly, Oct 27 10:00 to Oct 28 20:00 UTC; query and result
+  in `~/Desktop/8ball-refs/halloween/analytics/watch/base_*.json`): peak concurrent players
+  690-2,270; server FPS P10 swings 27-59 through the day (P50 60); `MemoryUsageP50` 156-168 (one
+  hour 194); DAU 24,887 and 23.1 min per DAU (Oct 26). Alarms: P10 under 20 for an hour, or
+  memory P50 over about 200 two hours running.
 
 ## 8. Discord announcement (draft; you post it)
 

@@ -5,39 +5,9 @@
 return {
 	Id = "spider_aura",
 	Frame = "cue",
-	Rigid = "112575234442239",
+	Rigid = "110112671613639",
 	Models = {},
 	Parts = {
-		{
-			Material = "Neon",
-			Color = "#F2F5FA",
-			Transparency = 0,
-			Reflectance = 0,
-			Name = "Web1_Web",
-			Joint = "Web1",
-			Offset = { -0.88, 0, 1.9 },
-			Size = { 0.016, 0.88, 0.88 },
-		},
-		{
-			Material = "Neon",
-			Color = "#F2F5FA",
-			Transparency = 0,
-			Reflectance = 0,
-			Name = "Web2_Web",
-			Joint = "Web2",
-			Offset = { -0.92, 0, -0.1 },
-			Size = { 0.016, 0.88, 0.88 },
-		},
-		{
-			Material = "Neon",
-			Color = "#F2F5FA",
-			Transparency = 0,
-			Reflectance = 0,
-			Name = "Web3_Web",
-			Joint = "Web3",
-			Offset = { -0.88, 0, -1.9 },
-			Size = { 0.016, 0.88, 0.88 },
-		},
 		{
 			Material = "Neon",
 			Color = "#F2F5FA",
@@ -45,8 +15,8 @@ return {
 			Reflectance = 0,
 			Name = "Drop1_SilkSoft",
 			Joint = "Drop1",
-			Offset = { 0, -0.376, 2.3 },
-			Size = { 0.036, 0.62, 0.036 },
+			Offset = { 0, -0.28, 0.6 },
+			Size = { 0.036, 0.34, 0.036 },
 		},
 		{
 			Material = "Neon",
@@ -55,7 +25,7 @@ return {
 			Reflectance = 0,
 			Name = "Drop1_Silk",
 			Joint = "Drop1",
-			Offset = { 0, -0.746, 2.3 },
+			Offset = { 0, -0.51, 0.6 },
 			Size = { 0.11, 0.154, 0.0953 },
 		},
 		{
@@ -65,8 +35,8 @@ return {
 			Reflectance = 0,
 			Name = "Drop2_SilkSoft",
 			Joint = "Drop2",
-			Offset = { 0, -0.4995, 0.9 },
-			Size = { 0.036, 0.8, 0.036 },
+			Offset = { 0, -0.357, -0.6 },
+			Size = { 0.036, 0.42, 0.036 },
 		},
 		{
 			Material = "Neon",
@@ -75,7 +45,7 @@ return {
 			Reflectance = 0,
 			Name = "Drop2_Silk",
 			Joint = "Drop2",
-			Offset = { 0, -0.9595, 0.9 },
+			Offset = { 0, -0.627, -0.6 },
 			Size = { 0.11, 0.154, 0.0953 },
 		},
 		{
@@ -85,8 +55,8 @@ return {
 			Reflectance = 0,
 			Name = "Drop3_SilkSoft",
 			Joint = "Drop3",
-			Offset = { 0, -0.4854, -0.5 },
-			Size = { 0.036, 0.68, 0.036 },
+			Offset = { 0, -0.3656, -1.7 },
+			Size = { 0.036, 0.4, 0.036 },
 		},
 		{
 			Material = "Neon",
@@ -95,7 +65,7 @@ return {
 			Reflectance = 0,
 			Name = "Drop3_Silk",
 			Joint = "Drop3",
-			Offset = { 0, -0.8854, -0.5 },
+			Offset = { 0, -0.6256, -1.7 },
 			Size = { 0.11, 0.154, 0.0953 },
 		},
 		{
@@ -105,8 +75,8 @@ return {
 			Reflectance = 0,
 			Name = "Drop4_SilkSoft",
 			Joint = "Drop4",
-			Offset = { 0, -0.595, -2.1 },
-			Size = { 0.036, 0.85, 0.036 },
+			Offset = { 0, -0.4, -2.8 },
+			Size = { 0.036, 0.46, 0.036 },
 		},
 		{
 			Material = "Neon",
@@ -115,122 +85,14 @@ return {
 			Reflectance = 0,
 			Name = "Drop4_Silk",
 			Joint = "Drop4",
-			Offset = { 0, -1.08, -2.1 },
+			Offset = { 0, -0.69, -2.8 },
 			Size = { 0.11, 0.154, 0.0953 },
-		},
-		{
-			Material = "Neon",
-			Color = "#C0142C",
-			Transparency = 0,
-			Reflectance = 0,
-			Name = "Hourglass1_Crimson",
-			Joint = "Hourglass1",
-			Offset = { -0.58, 0, 1.1 },
-			Size = { 0.02, 0.14, 0.24 },
-		},
-		{
-			Material = "Neon",
-			Color = "#C0142C",
-			Transparency = 0,
-			Reflectance = 0,
-			Name = "Hourglass2_Crimson",
-			Joint = "Hourglass2",
-			Offset = { -0.58, 0, -1.1 },
-			Size = { 0.02, 0.14, 0.24 },
 		},
 	},
 	Joints = {
-		Web1 = {
-			Parent = nil,
-			PivotRoblox = { 0, 0, 1.9 },
-			Motion = {
-				{
-					Kind = "Spin",
-					Axis = { 0, 1, 0 },
-					Rate = 20,
-				},
-				{
-					Kind = "Bob",
-					Dir = { 0, 1, 0 },
-					Amp = 0.12,
-					Period = 2.6,
-					Phase = 0,
-				},
-			},
-			Aura = true,
-			Visual = {
-				{
-					Kind = "Fade",
-					Min = 0,
-					Max = 1,
-					Period = 5,
-					Shape = "life",
-					Phase = 0,
-				},
-			},
-		},
-		Web2 = {
-			Parent = nil,
-			PivotRoblox = { 0, 0, -0.1 },
-			Motion = {
-				{
-					Kind = "Spin",
-					Axis = { 0, 1, 0 },
-					Rate = -16,
-				},
-				{
-					Kind = "Bob",
-					Dir = { 0, 1, 0 },
-					Amp = 0.12,
-					Period = 3.3,
-					Phase = 60,
-				},
-			},
-			Aura = true,
-			Visual = {
-				{
-					Kind = "Fade",
-					Min = 0,
-					Max = 1,
-					Period = 6.5,
-					Shape = "life",
-					Phase = 130,
-				},
-			},
-		},
-		Web3 = {
-			Parent = nil,
-			PivotRoblox = { 0, 0, -1.9 },
-			Motion = {
-				{
-					Kind = "Spin",
-					Axis = { 0, 1, 0 },
-					Rate = 24,
-				},
-				{
-					Kind = "Bob",
-					Dir = { 0, 1, 0 },
-					Amp = 0.12,
-					Period = 2.9,
-					Phase = 120,
-				},
-			},
-			Aura = true,
-			Visual = {
-				{
-					Kind = "Fade",
-					Min = 0,
-					Max = 1,
-					Period = 8,
-					Shape = "life",
-					Phase = 260,
-				},
-			},
-			Low = "hide",
-		},
 		Drop1 = {
 			Parent = nil,
-			PivotRoblox = { -0, -0.066, 2.3 },
+			PivotRoblox = { -0, -0.11, 0.6 },
 			Motion = {
 				{
 					Kind = "Sway",
@@ -260,7 +122,7 @@ return {
 		},
 		Drop2 = {
 			Parent = nil,
-			PivotRoblox = { -0, -0.0995, 0.9 },
+			PivotRoblox = { -0, -0.147, -0.6 },
 			Motion = {
 				{
 					Kind = "Sway",
@@ -290,7 +152,7 @@ return {
 		},
 		Drop3 = {
 			Parent = nil,
-			PivotRoblox = { -0, -0.1454, -0.5 },
+			PivotRoblox = { -0, -0.1656, -1.7 },
 			Motion = {
 				{
 					Kind = "Sway",
@@ -321,7 +183,7 @@ return {
 		},
 		Drop4 = {
 			Parent = nil,
-			PivotRoblox = { -0, -0.17, -2.1 },
+			PivotRoblox = { -0, -0.17, -2.8 },
 			Motion = {
 				{
 					Kind = "Sway",
@@ -346,68 +208,6 @@ return {
 					Max = 0.5,
 					Period = 1.9000000000000001,
 					Phase = 270,
-				},
-			},
-			Low = "hide",
-		},
-		Hourglass1 = {
-			Parent = nil,
-			PivotRoblox = { 0, 0, 1.1 },
-			Motion = {
-				{
-					Kind = "Spin",
-					Axis = { 0, 1, 0 },
-					Rate = 30,
-					Phase = 0,
-				},
-				{
-					Kind = "Bob",
-					Dir = { 0, 1, 0 },
-					Amp = 0.1,
-					Period = 1.5,
-					Phase = 0,
-				},
-			},
-			Aura = true,
-			Visual = {
-				{
-					Kind = "Glow",
-					Min = 0,
-					Max = 0.5,
-					Period = 1.6,
-					Phase = 0,
-					Color = "#FF6A7A",
-				},
-			},
-			Low = "hide",
-		},
-		Hourglass2 = {
-			Parent = nil,
-			PivotRoblox = { 0, 0, -1.1 },
-			Motion = {
-				{
-					Kind = "Spin",
-					Axis = { 0, 1, 0 },
-					Rate = -26,
-					Phase = 180,
-				},
-				{
-					Kind = "Bob",
-					Dir = { 0, 1, 0 },
-					Amp = 0.1,
-					Period = 1.5,
-					Phase = 90,
-				},
-			},
-			Aura = true,
-			Visual = {
-				{
-					Kind = "Glow",
-					Min = 0,
-					Max = 0.5,
-					Period = 1.6,
-					Phase = 90,
-					Color = "#FF6A7A",
 				},
 			},
 			Low = "hide",

@@ -5,7 +5,7 @@
 return {
 	Id = "witch_broom_aura",
 	Frame = "cue",
-	Rigid = "95270734621489",
+	Rigid = "118538981575979",
 	Models = {},
 	Parts = {
 		{
@@ -173,30 +173,30 @@ return {
 			Color = "#8B30FF",
 			Transparency = 0.05,
 			Reflectance = 0,
-			Name = "Sigil1_Violet",
-			Joint = "Sigil1",
-			Offset = { -0.62, 0, 2.4 },
-			Size = { 0.02, 0.6278, 0.6278 },
+			Name = "Spell1_Violet",
+			Joint = "Spell1",
+			Offset = { -0.62, 0.0272, 2.4 },
+			Size = { 0.02, 0.5959, 0.6266 },
 		},
 		{
 			Material = "Neon",
 			Color = "#19E088",
 			Transparency = 0.05,
 			Reflectance = 0,
-			Name = "Sigil2_Emerald",
-			Joint = "Sigil2",
-			Offset = { -0.62, 0, 0.5 },
-			Size = { 0.02, 0.6278, 0.6278 },
+			Name = "Spell2_Emerald",
+			Joint = "Spell2",
+			Offset = { -0.62, 0.0272, 0.5 },
+			Size = { 0.02, 0.5959, 0.6266 },
 		},
 		{
 			Material = "Neon",
 			Color = "#FFD36A",
 			Transparency = 0,
 			Reflectance = 0,
-			Name = "Sigil3_Gold",
-			Joint = "Sigil3",
-			Offset = { -0.62, 0, -1.4 },
-			Size = { 0.02, 0.6278, 0.6278 },
+			Name = "Spell3_Gold",
+			Joint = "Spell3",
+			Offset = { -0.62, 0.0272, -1.4 },
+			Size = { 0.02, 0.5959, 0.6266 },
 		},
 	},
 	Joints = {
@@ -492,7 +492,7 @@ return {
 			},
 			Aura = true,
 		},
-		Sigil1 = {
+		Spell1 = {
 			Parent = nil,
 			PivotRoblox = { 0, 0, 2.4 },
 			Motion = {
@@ -529,7 +529,7 @@ return {
 				},
 			},
 		},
-		Sigil2 = {
+		Spell2 = {
 			Parent = nil,
 			PivotRoblox = { 0, 0, 0.5 },
 			Motion = {
@@ -566,7 +566,7 @@ return {
 				},
 			},
 		},
-		Sigil3 = {
+		Spell3 = {
 			Parent = nil,
 			PivotRoblox = { 0, 0, -1.4 },
 			Motion = {

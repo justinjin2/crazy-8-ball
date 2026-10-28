@@ -245,7 +245,7 @@ return {
 				H.expect(hw.Given[Track.key(index)] == true, "step " .. index .. " given")
 			end
 			H.expect(hw.Given["5"] == nil, "1,000 not reached")
-			-- The 2,000 pack carries the rest of the way past 2,000 (the Bone Cue).
+			-- The 2,000 pack carries the rest of the way past 2,000 (the Black Cat Cue).
 			local big = Config.Products.List.Candy2000.Id
 			H.expect(Shop.processReceipt(server.deps, receipt(big, "r2")) == "Granted", "bought")
 			H.expect(Ledger.total(hw) == 2620, "2,620")

@@ -9,22 +9,22 @@ local function load()
 end
 
 return {
-	["PLAN's eleven steps, ascending, the five cues where PLAN puts them"] = function()
+	["eleven steps, ascending, the cues where the designer put them (2026-10-28)"] = function()
 		local Track = load()
 		local steps = Track.steps()
 		H.expect(#steps == 11, "eleven")
 		local want = {
 			{ 50, "Spins", 1 },
-			{ 150, "Cue", "CandyCornCue" },
+			{ 150, "Cue", "JackOLanternCue" },
 			{ 300, "Money", 2500 },
-			{ 500, "Cue", "JackOLanternCue" },
+			{ 500, "Cue", "CandyCornCue" }, -- holds slot 2 until the designer's pick
 			{ 1000, "Spins", 2 },
 			{ 1500, "Money", 5000 },
-			{ 2000, "Cue", "BoneCue" },
+			{ 2000, "Cue", "WitchBroomCue" },
 			{ 3000, "Spins", 3 },
 			{ 4500, "Money", 10000 },
 			{ 5500, "Spins", 5 },
-			{ 7000, "Cue", "WitchBroomCue" },
+			{ 7000, "Cue", "HalloweenSwordCue" },
 		}
 		for i, w in want do
 			local step: any = steps[i]

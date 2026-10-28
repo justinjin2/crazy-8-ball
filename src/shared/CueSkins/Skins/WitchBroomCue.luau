@@ -681,8 +681,8 @@ return {
 				Brightness = 6,
 			},
 			{
-				Name = "SpellRing",
-				Texture = "rbxassetid://119134400645079",
+				Name = "SpellBurst",
+				Texture = "rbxassetid://118250274152711",
 				Host = {
 					Kind = "Part",
 					FromStuds = 0.8,
@@ -1413,7 +1413,7 @@ return {
 	},
 	Piece = "witch_broom_aura",
 	Body = "witch_broom",
-	Thumb = "rbxassetid://121330247838904",
+	Thumb = "rbxassetid://109752689782479",
 	Look = {
 		Shaft = { 107, 74, 46 },
 		Forearm = { 107, 74, 46 },

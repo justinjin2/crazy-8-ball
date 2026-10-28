@@ -151,11 +151,11 @@ return {
 		local CueSkins = H.require("CueSkins")
 		-- PLAN §3: id, Effect (the visual ladder level).
 		local EVENT = {
-			{ "CandyCornCue", "Epic" },
 			{ "JackOLanternCue", "Legendary" },
-			{ "BoneCue", "Mythic" },
-			{ "SpiderCue", "Mythic" },
+			{ "CandyCornCue", "Epic" }, -- holds track slot 2 until the designer's pick
 			{ "WitchBroomCue", "Secret" },
+			{ "SpiderCue", "Mythic" },
+			{ "HalloweenSwordCue", "Secret" },
 		}
 		local ready = 0
 		for _, pair in EVENT do
@@ -221,15 +221,15 @@ return {
 			end
 		end
 		H.expect(
-			Catalog.drawAs("CandyCornCue", has({ CandyCornCue = true, Classic = true }))
-				== "CandyCornCue",
+			Catalog.drawAs("JackOLanternCue", has({ JackOLanternCue = true, Classic = true }))
+				== "JackOLanternCue",
 			"drawAs: its own template"
 		)
 		H.expect(
-			Catalog.drawAs("CandyCornCue", has({ Classic = true })) == "Classic",
+			Catalog.drawAs("JackOLanternCue", has({ Classic = true })) == "Classic",
 			"drawAs: the stand-in"
 		)
-		H.expect(Catalog.drawAs("CandyCornCue", has({})) == nil, "drawAs: none, so bands")
+		H.expect(Catalog.drawAs("JackOLanternCue", has({})) == nil, "drawAs: none, so bands")
 		H.expect(
 			Catalog.drawAs("EclipseCue", has({ Classic = true })) == nil,
 			"drawAs: no stand-in for an ordinary cue"

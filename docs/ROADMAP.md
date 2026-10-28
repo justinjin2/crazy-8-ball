@@ -583,6 +583,23 @@ closed and all emote work is in `~/Desktop/8ball` (`Config.EmoteMenu.Enabled`).
 - [ ] **Read the numbers.** `Emote` and `EmoteMenu` custom events after a few days: share of
   players who open the tray, dances per session, the favourite dances.
 
+### The Halloween update (designer, 2026-10-28; `docs/halloween/PLAN.md`)
+
+Built in one day by six lanes on branch `halloween`; checklist and switches in
+`docs/halloween/RELEASE.md`, every requirement's status in `docs/halloween/REQUIREMENTS.md`.
+
+- [x] **Built and merged:** Candy and its boosts, daily quests, the Candy track, five Halloween
+  cues (each its own effect, the Witch's Broom a new model), the Spider play-time cue, Candy
+  packs, the timed Pumpkin King, the night rooftop and lobby drops, roaming, the friend boost
+  and boost text, badges v2. Lint, 1,469 tests, the fresh-player run, Team Create synced.
+- [ ] **Robustness pass** (designer, 2026-10-28 17:46): every lane's own area and two
+  independent reviews of the existing files it changes; fixes merged and re-checked.
+- [ ] **Published** by the designer (outdated-only restart), the LIVE icon, the first watch
+  readings (errors, server FPS, memory, Candy, King and pack events).
+- [ ] **A real phone, iPad and controller check** (only emulated sizes so far).
+- [ ] **Nov 3 19:00 EST:** the end and the Candy convert seen working; the store icon and title
+  back.
+
 ### About one to two weeks after release
 
 - [ ] **6.3 Pro lobby.** Separate place with a teleport door, Diamond I and above, Difficult

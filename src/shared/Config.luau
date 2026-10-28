@@ -3884,16 +3884,19 @@ Config.Halloween = {
 	Track = {
 		Steps = {
 			{ At = 50, Spins = 1 },
-			{ At = 150, Cue = "CandyCornCue" },
+			{ At = 150, Cue = "JackOLanternCue" },
 			{ At = 300, Money = 2500 },
-			{ At = 500, Cue = "JackOLanternCue" },
+			-- TODO(slot 2, designer 2026-10-28 19:2x): Bone or a red / hellfire cue, his pick.
+			-- CandyCornCue only holds the slot until then and leaves with it (catalog, skin,
+			-- strings, Art); it was never published.
+			{ At = 500, Cue = "CandyCornCue" },
 			{ At = 1000, Spins = 2 },
 			{ At = 1500, Money = 5000 },
-			{ At = 2000, Cue = "BoneCue" },
+			{ At = 2000, Cue = "WitchBroomCue" },
 			{ At = 3000, Spins = 3 },
 			{ At = 4500, Money = 10000 },
 			{ At = 5500, Spins = 5 },
-			{ At = 7000, Cue = "WitchBroomCue" },
+			{ At = 7000, Cue = "HalloweenSwordCue" }, -- the top prize (cues-a builds its body)
 		} :: { { At: number, Cue: string?, Spins: number?, Money: number? } },
 	},
 	-- The playtime cue: Seconds of ACTIVE play while the event is Live (any server; idle time
@@ -3906,6 +3909,7 @@ Config.Halloween = {
 	-- in the lobby with an auto-clicker earns nothing. Off: every active second counts at once.
 	ActiveGate = { Enabled = true, HoldCapSeconds = 1800 },
 	TickSeconds = 5, -- the server adds active time and retries held grants this often
+	ActiveCommitSeconds = 30, -- the active time credited goes into the save this often (and on leave)
 	PushSeconds = 2, -- at most one event view pushed to a player this often
 	ActivePushSeconds = 30, -- active time alone re-sends the view this often (the menu shows minutes)
 	-- Requests from the client (the Halloween remote): a bucket of Burst requests refilled at
@@ -17385,11 +17389,11 @@ Config.UI.Halloween = {
 	-- Pictures (image ids; "" = the fallback named): the cue cards until the cue lanes' thumbnails
 	-- exist (the approved concept art), the gift boxes, the end screen's candy pile and cash.
 	Art = {
-		CandyCornCue = "rbxassetid://99907004080834",
+		CandyCornCue = "rbxassetid://99907004080834", -- holds slot 2 until the designer's pick
 		JackOLanternCue = "rbxassetid://114487013205177",
-		BoneCue = "rbxassetid://131967740072541", -- its own card (assets/cue/thumbs/bone.png)
 		SpiderCue = "rbxassetid://134067061693157",
 		WitchBroomCue = "rbxassetid://83442214439619",
+		HalloweenSwordCue = "", -- TODO: its card art (cues-a's thumbnail); "" = a blank card
 		Header = "rbxassetid://100823591958466", -- the menu header's jack-o'-lantern ("" = the Candy icon)
 		Gift = "rbxassetid://130940237317316", -- "" = Kit icon Gift
 		CandyPile = "rbxassetid://100770056241444",

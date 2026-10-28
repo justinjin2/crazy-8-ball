@@ -67,7 +67,9 @@ function CueSkins.bodyOf(id: any, hasPiece: (string) -> boolean, enabled: boolea
 	if not enabled or type(body) ~= "string" then
 		return nil
 	end
-	return if hasPiece(body) then body else nil
+	-- Both the template (hasPiece) and the data row: a template without its row would hide
+	-- the shared mesh under a body that never builds (robustness pass, 2026-10-28).
+	return if hasPiece(body) and CueSkins.piece(body) ~= nil then body else nil
 end
 
 --- Every catalog id with a skin, sorted.

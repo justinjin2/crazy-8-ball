@@ -77,7 +77,16 @@ local function ask(player: Player, other: Player)
 	local ok, result = pcall(player.IsFriendsWithAsync, player, other.UserId)
 	asking[key] = nil
 	if player.Parent ~= Players or other.Parent ~= Players then
-		return -- one left while asking (their entries are cleared): a rejoin asks afresh
+		-- One left while asking (their entries are cleared). One who rejoined meanwhile found
+		-- this pair in flight and skipped it: asked afresh for the new session.
+		local a = Players:GetPlayerByUserId(player.UserId)
+		local b = Players:GetPlayerByUserId(other.UserId)
+		if a and b and (a ~= player or b ~= other) then
+			ask(a, b)
+			refresh(a)
+			refresh(b)
+		end
+		return
 	end
 	if ok then
 		known[key] = result == true

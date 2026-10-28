@@ -797,7 +797,7 @@ return {
 		Id = "spider",
 		Name = "Spider Cue",
 		Tier = "Mythic",
-		Thumb = "rbxassetid://80551345054710",
+		Thumb = "rbxassetid://75625207590037",
 		Look = {
 			Shaft = { 16, 16, 20 },
 			Forearm = { 16, 16, 20 },
@@ -940,7 +940,7 @@ return {
 		Id = "witch_broom",
 		Name = "Witch's Broom",
 		Tier = "Secret",
-		Thumb = "rbxassetid://121330247838904",
+		Thumb = "rbxassetid://109752689782479",
 		Look = {
 			Shaft = { 107, 74, 46 },
 			Forearm = { 107, 74, 46 },

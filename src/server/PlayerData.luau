@@ -3499,8 +3499,9 @@ local function hwField(data: any): any
 end
 
 -- Grants every track step the save's Candy has reached (a cue only when ready: a held step
--- stays ungiven) and the Spider once earned, noting them in `result`.
-local function hwGrantDue(data: any, hw: any, result: HwResult)
+-- stays ungiven) and the Spider once earned, noting them in `result`. `bought`: reached by a
+-- Candy pack, so a money step is not earned money (Stats.MoneyEarned).
+local function hwGrantDue(data: any, hw: any, result: HwResult, bought: boolean?)
 	local steps = HwTrack.steps()
 	for _, index in HwTrack.due(HwLedger.total(hw), hw.Given) do
 		local step = steps[index]
@@ -3512,7 +3513,7 @@ local function hwGrantDue(data: any, hw: any, result: HwResult)
 		elseif step.Spins ~= nil then
 			addSpinsTo(data, step.Spins, nil)
 		elseif step.Money ~= nil then
-			addMoneyTo(data, step.Money, true, "Halloween")
+			addMoneyTo(data, step.Money, bought ~= true, "Halloween")
 		end
 		hw.Given[HwTrack.key(index)] = true
 		table.insert(result.steps, index)
@@ -3537,6 +3538,12 @@ local function hwMutate(
 		return nil
 	end
 	local hw = hwField(data)
+	-- Once converted (the end) the save's Candy became money: no more Candy, quests, King pay or
+	-- active time lands in it (a server whose clock runs a few seconds behind, or an EndsAt
+	-- moved later); only its marks (hwMark: the end screen seen).
+	if hw.Converted == true and (op :: string) ~= "hwMark" then
+		return nil
+	end
 	local result: HwResult = { candy = 0, steps = {}, spider = false, quests = {}, money = 0 }
 	fn(data, hw, result)
 	-- Once converted (the end) no prize is given any more, whatever the client sends.
@@ -3744,7 +3751,7 @@ function PlayerData.hwClaim(player: Player, key: string, ctx: HwCtx): (number, H
 		or found == nil
 		or type(saved.Q) ~= "table"
 		or type(saved.Claimed) ~= "table"
-		or saved.Claimed[key] == true
+		or saved.Claimed[found.key] == true
 		or not Quests.done(saved.Q, found)
 	then
 		return 0, nil
@@ -3755,10 +3762,10 @@ function PlayerData.hwClaim(player: Player, key: string, ctx: HwCtx): (number, H
 			return
 		end
 		local quest = Quests.find(key, ctx.open, ctx.hooks)
-		if quest == nil or hw.Claimed[key] == true or not Quests.done(hw.Q, quest) then
+		if quest == nil or hw.Claimed[quest.key] == true or not Quests.done(hw.Q, quest) then
 			return
 		end
-		hw.Claimed[key] = true
+		hw.Claimed[quest.key] = true -- the quest's own key, whatever the client sent
 		claimed = HwLedger.addCandy(hw, quest.reward, "Earned")
 		result.candy = claimed
 	end)
@@ -3796,13 +3803,21 @@ function PlayerData.hwConvert(player: Player, ctx: HwCtx): HwResult?
 	end
 	local hw = hwField(data)
 	local result: HwResult = { candy = 0, steps = {}, spider = false, quests = {}, money = 0 }
-	for _, quest in Quests.claimable(hw.Q, hw.Claimed, ctx.open, ctx.hooks) do
+	-- Finished quests as the event ran (Quests.endClaimable: even with the map switched off since).
+	for _, quest in Quests.endClaimable(hw.Q, hw.Claimed, ctx.open, ctx.hooks) do
 		hw.Claimed[quest.key] = true
 		result.candy += HwLedger.addCandy(hw, quest.reward, "Earned")
 	end
 	local money = HwLedger.convertMoney(hw)
 	if money > 0 then
-		addMoneyTo(data, money, true, "HalloweenCandy")
+		-- Bought Candy's share is money but not earned money (never money bought with Robux).
+		local earnedMoney, boughtMoney = HwLedger.convertSplit(hw)
+		if earnedMoney > 0 then
+			addMoneyTo(data, earnedMoney, true, "HalloweenCandy")
+		end
+		if boughtMoney > 0 then
+			addMoneyTo(data, boughtMoney, false, "HalloweenCandy")
+		end
 	else
 		hw.EndSeen = true -- nothing to show
 	end
@@ -4021,7 +4036,7 @@ function PlayerData.applyPurchase(
 		local hw = hwField(data)
 		local result: HwResult = { candy = 0, steps = {}, spider = false, quests = {}, money = 0 }
 		result.candy = HwLedger.addCandy(hw, grant.candy, "Bought")
-		hwGrantDue(data, hw, result)
+		hwGrantDue(data, hw, result, true)
 		pack = result
 	end
 	Shop.markGrant(shop, grant)

@@ -2,7 +2,7 @@
   "id": "witch_broom_aura",
   "Frame": "cue",
   "frame": "Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)",
-  "Triangles": 2392,
+  "Triangles": 1228,
   "Parts": [
     {
       "Material": "Neon",
@@ -329,60 +329,60 @@
       "Color": "#8B30FF",
       "Transparency": 0.05,
       "Reflectance": 0.0,
-      "Name": "Sigil1_Violet",
-      "File": "pieces/witch_broom_aura/Sigil1_Violet.obj",
-      "Joint": "Sigil1",
+      "Name": "Spell1_Violet",
+      "File": "pieces/witch_broom_aura/Spell1_Violet.obj",
+      "Joint": "Spell1",
       "Offset": [
         -0.62,
-        0.0,
+        0.0272,
         2.4
       ],
       "Size": [
         0.02,
-        0.6278,
-        0.6278
+        0.5959,
+        0.6266
       ],
-      "Triangles": 540
+      "Triangles": 152
     },
     {
       "Material": "Neon",
       "Color": "#19E088",
       "Transparency": 0.05,
       "Reflectance": 0.0,
-      "Name": "Sigil2_Emerald",
-      "File": "pieces/witch_broom_aura/Sigil2_Emerald.obj",
-      "Joint": "Sigil2",
+      "Name": "Spell2_Emerald",
+      "File": "pieces/witch_broom_aura/Spell2_Emerald.obj",
+      "Joint": "Spell2",
       "Offset": [
         -0.62,
-        0.0,
+        0.0272,
         0.5
       ],
       "Size": [
         0.02,
-        0.6278,
-        0.6278
+        0.5959,
+        0.6266
       ],
-      "Triangles": 540
+      "Triangles": 152
     },
     {
       "Material": "Neon",
       "Color": "#FFD36A",
       "Transparency": 0.0,
       "Reflectance": 0.0,
-      "Name": "Sigil3_Gold",
-      "File": "pieces/witch_broom_aura/Sigil3_Gold.obj",
-      "Joint": "Sigil3",
+      "Name": "Spell3_Gold",
+      "File": "pieces/witch_broom_aura/Spell3_Gold.obj",
+      "Joint": "Spell3",
       "Offset": [
         -0.62,
-        0.0,
+        0.0272,
         -1.4
       ],
       "Size": [
         0.02,
-        0.6278,
-        0.6278
+        0.5959,
+        0.6266
       ],
-      "Triangles": 540
+      "Triangles": 152
     }
   ],
   "Joints": {
@@ -880,7 +880,7 @@
       ],
       "Aura": true
     },
-    "Sigil1": {
+    "Spell1": {
       "Parent": null,
       "Pivot": [
         0,
@@ -934,7 +934,7 @@
         }
       ]
     },
-    "Sigil2": {
+    "Spell2": {
       "Parent": null,
       "Pivot": [
         0,
@@ -988,7 +988,7 @@
         }
       ]
     },
-    "Sigil3": {
+    "Spell3": {
       "Parent": null,
       "Pivot": [
         0,

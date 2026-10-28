@@ -255,11 +255,11 @@ local CUES: { Cue } = {
 	}),
 	-- Halloween 2026 (Exclusive; the track and the playtime cue, PLAN §2 and §3). The ids
 	-- CandyCue (the Candy Cane invite cue) and PhantomCue are taken: never reused.
-	eventCue("CandyCornCue", "Epic"), -- track 150
-	eventCue("JackOLanternCue", "Legendary"), -- track 500
-	eventCue("BoneCue", "Mythic"), -- track 2,000 (the Black Cat's place since 2026-10-28)
+	eventCue("JackOLanternCue", "Legendary"), -- track 150
+	eventCue("CandyCornCue", "Epic"), -- track 500 until the designer's slot-2 pick (then removed)
+	eventCue("WitchBroomCue", "Secret"), -- track 2,000
 	eventCue("SpiderCue", "Mythic"), -- 3 h 01 m of active event play
-	eventCue("WitchBroomCue", "Secret"), -- track 7,000
+	eventCue("HalloweenSwordCue", "Secret"), -- track 7,000, the top prize (tier: designer's call)
 }
 
 local byId: { [string]: Cue } = {}

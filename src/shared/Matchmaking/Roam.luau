@@ -43,9 +43,11 @@ end
 
 --- Whether walking off a finished game must NOT decline its rematch: a player who was already
 --- far away (roaming) when the result came, and is still away, keeps their rematch offer.
---- One who was by the table and then walked off still declines, as before.
-function Roam.walkOffExempt(wasFarAtResult: boolean, outsideNow: boolean): boolean
-	return wasFarAtResult and outsideNow
+--- One who was by the table and then walked off still declines, as before. Only for a player
+--- who may roam (Roam.allowed): with the switch off, away at the result (a respawn at the
+--- spawn) declines as it did before the roam.
+function Roam.walkOffExempt(wasFarAtResult: boolean, outsideNow: boolean, roaming: boolean): boolean
+	return roaming and wasFarAtResult and outsideNow
 end
 
 return Roam

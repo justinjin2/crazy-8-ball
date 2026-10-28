@@ -73,6 +73,7 @@ export type CuePiece = typeof(setmetatable(
 		id: string,
 		model: Model,
 		noInk: Model?, -- parts with Outline = false: a sibling Model the cue's Highlights never adorn
+		missing: number, -- parts the row names that the template did not hold (skipped)
 		rig: Motion.Rig,
 		rigid: { Rigid },
 		skinned: { Skinned },
@@ -271,6 +272,21 @@ function CuePiece.new(
 	-- A part row with Outline = false (a Broom's two hundred straws, 2026-10-28) goes under a
 	-- sibling Model, so the body's inked Highlight (CueSkinLook adorns the piece Model) skips it;
 	-- its weld, motion and fades are the same.
+	-- Parts the row names that the template does not hold (a re-upload that renamed or dropped
+	-- a part): the loop below skips them; a body short of a part falls back to the shared mesh
+	-- in CueSkinLook (robustness pass, 2026-10-28).
+	local missing = 0
+	local checked: { [string]: boolean } = {}
+	for _, p in row.Parts do
+		local name = p.Model or p.Name
+		if not checked[name] then
+			checked[name] = true
+			local src = source:FindFirstChild(name)
+			if not (src and (if p.Model then src:IsA("Model") else src:IsA("BasePart"))) then
+				missing += 1
+			end
+		end
+	end
 	local noInk: Model? = nil
 	for _, p in row.Parts do
 		if p.Model then
@@ -368,6 +384,7 @@ function CuePiece.new(
 		id = id,
 		model = model,
 		noInk = noInk,
+		missing = missing,
 		rig = rig,
 		rigid = rigid,
 		skinned = skinned,
@@ -444,6 +461,17 @@ end
 -- 1 as built), Blink (gone on alternate sub-steps of a short window once a period) and Glow
 -- (the colour pushed toward white, or the row's Color, by an effect wave). The part's
 -- Transparency composes the share with its dressed base and the piece's fade.
+-- A Glow row's Color3, parsed once per hex string (it was parsed every frame, review 2026-10-28).
+local glowColors: { [string]: Color3 } = {}
+local function glowColor(hex: string): Color3
+	local c: Color3? = glowColors[hex]
+	if not c then
+		c = Color3.fromHex(hex)
+		glowColors[hex] = c
+	end
+	return c :: Color3
+end
+
 local function applyVisuals(r: Rigid, t: number, fade: number)
 	local shown = 1
 	local glow = 0
@@ -460,7 +488,7 @@ local function applyVisuals(r: Rigid, t: number, fade: number)
 			local k = Motion.vfxWave(t, v)
 			if k > glow then
 				glow = k
-				glowTo = if v.Color then Color3.fromHex(v.Color) else nil
+				glowTo = if v.Color then glowColor(v.Color) else nil
 			end
 		end
 	end
@@ -539,9 +567,9 @@ function CuePiece.step(self: CuePiece, t: number)
 				then r.offset
 				else CFrame.new(r.offset.Position * s) * self.turn
 			r.weld.C0 = self.lift * (if x then cframe(x, s) else CFrame.identity) * offset
-		end
-		if #r.visuals > 0 then
-			applyVisuals(r, t, self.fade)
+			if #r.visuals > 0 then
+				applyVisuals(r, t, self.fade)
+			end
 		end
 	end
 	for _, r in self.riders do
