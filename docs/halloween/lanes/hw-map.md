@@ -79,6 +79,8 @@ From PLAN §4 (everything else is read-only to this lane; ask through Requests):
   CandyDrop, MapClient prompt + MapFx. bot_duel for the 10 TierFor rows running in the background.
   Night sky preview: `~/Desktop/8ball-refs/halloween/shots/hw-map/gate1/night-sky-cross.png`.
 - 08:50 coordinator: lanes started 08:43 (73 min behind the plan). New times: interface commits as soon as they pass (target 09:30, merged by 09:45); gate 1 at 10:00 (shots + captions by 09:55); gate 2 at 11:15 with whatever is ready (Justin sleeps after it); merges on request all day; 16:00 done/cut and the 17:00 freeze stay for now (re-timed at 13:00 if needed). Rojo: a watchdog restarts any crashed server by itself (log ~/Desktop/8ball-refs/halloween/shots/coordinator/rojo-watchdog.log; Rojo 7.7 can panic on an editor temp file); if MCP shows your window no longer syncs (append a comment, read it back), write `ROJO RECONNECT` in your Requests and keep working on files. Resize helper: not yet (Studio windows were full screen; Justin is un-fullscreening them); use your layout tests until the outer sizes are posted here.
+- 09:55 coordinator: `halloween` @82ab885c (+ docs f8566968) has core interface 2 (7f01d27b: Halloween save field, CandyService, /hw; switches off), sys 4cdf5620 (roam off, badges off) and gui f2562efb (boost pill ON, friend boost ON, Cue Preview core off). Lint OK, 1,404 tests, Studio play console clean, pill shows +120%. Run `git fetch && git merge origin/halloween` before your next READY. Main.client still has 12 top-level locals to spare: hooks stay inside `do ... end`.
+
 ## Shared-file changes
 
 Landed (only my own blocks unless said):
@@ -159,3 +161,22 @@ coordinator resolves overlaps. Planned (add the commit sha when each lands):
 | Reyes | Grandmaster | 36.0% | Reyes King: 14.0% |
 
 ## Gate shots
+
+Gate 1 (`~/Desktop/8ball-refs/halloween/shots/hw-map/gate1/`, Play captures, lane window):
+
+- `01-night-spawn.jpg`: Live (Studio force), from the spawn: the Night light (purple sky,
+  violet haze-free light), the 1v1 tables orchid on black frames, the throne at the aisle's end.
+- `02-day-spawn.jpg`: the same camera after forcing Before: Day, blue cloths and wood frames,
+  the piano back (the off path restores everything).
+- `03-three-looks-night.jpg`: the table looks under Night (Live): 2v2 charcoal (left, front
+  and back), 1v1 orchid (front right), 3v3 toxic green (back right), all on the black frame.
+  Server check: all 16 tables carry `HalloweenLook`, cloth tints exactly 185,90,230 / 90,94,102
+  / 110,220,40; forcing Before clears them and restores Blue. Note for gate 2: the lobby boards
+  stand in front of the throne, which half-hides it from the spawn.
+- ΔE (CIEDE2000, closest ball), raw tints: 1v1 23.2 (ball 4), 2v2 20.4 (ball 2), 3v3 29.4
+  (cue ball); all >= 17. Rendered under Night and Sunset: next (needs racked top-down shots).
+- Brightness, Night vs Day, same camera (01 vs 02): perceived lightness L* 0.81 whole frame,
+  0.84 floor, 0.83 lobby band; linear luminance 0.66. **Under the 0.9 target**: step 4 tunes
+  Night up (Brightness/Exposure, the purple kept).
+- `night-sky-cross.png`: the Night sky's six faces (gen_sky night: moon, stars, violet
+  gradient), uploaded as the six ids in `Config.Lighting.Night.Sky`.
