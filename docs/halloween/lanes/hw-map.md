@@ -50,6 +50,12 @@ From PLAN §4 (everything else is read-only to this lane; ask through Requests):
 - `Config.HalloweenMap.Props.Budget.Lights = 6` (throne 2 + the throne King's aura 1 + 3 table Kings).
 
 ## Status
+- 13:02 hw-map: **READY @092ab2c9** (the coordinator's go): the King's result card shows his
+  pumpkin portrait, not the PC robot. `Ranking.teamList` carries the seat's bot icon (nil for
+  every other bot) and `ResultScreen` shows it first. Studio: /king, Surrender, the card shows
+  rbxassetid://85794616941921 (`timed/08`). Lint OK, 1,466 tests. ee17dc24 (Mode = "Timed")
+  stays held for core's per-visit reward (a775fd51, 52c1f23c on hw-core; interface confirmed:
+  BossService always passes a visitStart in Timed).
 - 12:54 hw-map: **READY @6e02fb32**: the timed Pumpkin King (12:40 job). 656825bf builds it
   behind `Boss.Mode`; ee17dc24 flips Mode to "Timed" (one line: back to "Throne" brings the
   old throne back, checked); halloween @e9b90417 merged in (clean). Lint OK, 1,466 tests.
@@ -66,8 +72,7 @@ From PLAN §4 (everything else is read-only to this lane; ask through Requests):
   Console clean (Studio store lines, the known 203785492, cues-a's CuePieces note). Not
   checked: a paid win (my branch's CandyService.bossWon ignores the visit and still starts the
   old cooldown; core's bossWon(player, visitStart) and bossCooldown 0 in Timed make it right).
-  Seen, not mine: the result card shows the King as a robot (the PC portrait), though his
-  match-bar portrait is the pumpkin.
+  The result card's robot King: fixed in 092ab2c9.
 - 12:37 coordinator: `halloween` @7be001ed adds map 88e9cceb (throne builds once; Studio: 1 throne, 1 King) + 623d0051 (timed King schedule, Mode Throne), core 1361de6d (ActiveGate, pacing), sys 57bc2b91 (50 badges, v2 icons), cues-a 66af67b0 (painted Jack, Candy rework) + fec0cb91 (deterministic generator; a main-checkout regen is now clean), cues-b 0e3569b6 (Broom redo). Lint OK, 1,465 tests, Team Create play console clean. JUSTIN (12:35): the Pumpkin King becomes a timed visitor (UTC :15 and :45, 12 min, middle of the map, 1.5x size, a top timer, the King's line when tables are full, one paid win a visit: +150 Candy, +$2,500, +100 XP). Map and core build it by 15:00; Throne mode stays the fallback. Run `git fetch && git merge origin/halloween` before your next READY.
 - 12:24 hw-map: **READY @88e9cceb**: the 12:16 BLOCKER fixed (c1e75749), halloween @5dae747d
   merged in (clean), lint OK, 1,462 tests. Cause as the review found: EventMap's first Live pass
@@ -295,6 +300,8 @@ Landed (only my own blocks unless said):
   `KingLineLeft`, `KingLeft`, `KingAway`; `HalloweenMap.LinePlace`, `Beaten`; `Banner.KingArrived`,
   `KingLeft`); `Banner.luau` (no lane's file: one `kind == "King"` branch at the end of
   onBanner).
+- `Ranking.luau` (`teamList`: one `icon` field) and `ResultScreen.luau` (makePlayer: `player.icon`
+  first): the King's result-card portrait, on the coordinator's go — 092ab2c9.
 
 Shared files (PLAN §7 plus `HubCorners.luau`, `Net.luau`, `DevCommands.luau`,
 `tests/save_schema_test.luau`, `tests/config_test.luau`): only your own block or line; the
