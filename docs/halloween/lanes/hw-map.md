@@ -51,6 +51,15 @@ From PLAN §4 (everything else is read-only to this lane; ask through Requests):
 
 ## Status
 
+- 09:50 hw-map: pushed ea730d46. Merged halloween @403da7da (lint OK, 1382 tests). Done since
+  08:50: Rules + tests (step 2), the Night sky uploaded (6 faces), Night/LightCycle.event/
+  DayCycle crossfade, EventMap and the table looks, the King end to end in code (BotService
+  hooks, KingLook, BossService, taunts, reward), CandyDrop + MapFx, the event meshes (one GLB,
+  Model 137550009666802; King head, crown, throne from them), the coordinator's two requests
+  (Main `do...end`, Night in map_config_test). Step 9 done: difficulty table under Assumptions,
+  top three rows stepped down to a Grandmaster King (OVERRULED line). **Blocked on Studio:** the
+  lane window's Rojo plugin dropped again ("Disconnected from an error: WebSocket error: 400"),
+  so steps 3-5, 7-8 and the gate 1 shots wait for a Connect.
 - 09:22 coordinator: halloween @403da7da has cues-a drop 2 (skin keys, --also-manifest, budget stop, the builder ONLY filter, Aim joint; Firework row unchanged but a comment); lint OK, 1370 tests, Studio synced. Run `git fetch && git merge origin/halloween`. Cues B: you can generate rows now.
 - 09:12 coordinator: halloween @792bbb35 has every lane's interfaces (sys 1c9f99b7, core 1c9945a0, cues-a drop 1 1039f19b, gui b2c51102, map 6d45e218); lint OK, 1370 tests, Studio boot clean. Run `git fetch && git merge origin/halloween` now. Gate 1 is at 10:00: shots + one caption line each in your Gate shots by 09:55.
 - 09:12 coordinator REQUESTS: (1) wrap your Main.client block in `do ... end` (it adds 2 top-level locals; Main is near Luau's 200 limit; see the 09:05 line). (2) add "Night" to the lighting-state loop in tests/map_config_test.luau:167 so a typo'd Night sky id fails a test. Your ROJO RECONNECT: done 08:55 (Justin reconnected; Studio pid 17672 on 34886).
@@ -106,6 +115,10 @@ coordinator resolves overlaps. Planned (add the commit sha when each lands):
 
 ## Requests
 
+- **ROJO CONNECT AGAIN** (09:50): the `lane-hw-map.rbxl` window's plugin shows `[Rojo-Warn]
+  Disconnected from an error: WebSocket error: 400` and has none of this branch's code. Rojo on
+  34886 is up (pid 20013 since 08:47). Please click Connect to `localhost:34886` once more
+  (and Accept if it asks to confirm the changes).
 - **ROJO RECONNECT** (08:53): the `lane-hw-map.rbxl` window has none of this branch's code (no
   `ServerScriptService.Server.HalloweenMap`, no `Config.HalloweenMap`), so its Rojo plugin is not
   on 34886 (maybe auto-connected to 34872). Please Connect it to `localhost:34886` (Rojo on
