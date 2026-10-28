@@ -201,6 +201,12 @@ local function award(player: Player, st: State, item: Item)
 	end
 	local ok, awarded =
 		pcall(BadgeService.AwardBadgeAsync, BadgeService, player.UserId, row.BadgeId)
+	-- Left while Roblox answered: no mark (their save is closed) and no Funnel event (its log
+	-- line, added after Funnel's PlayerRemoving, would keep the Player for the server's life).
+	-- The next join's save check finds the badge held (UserHasBadgeAsync) and marks it.
+	if player.Parent ~= Players then
+		return
+	end
 	if ok and awarded == true then
 		mark(player, item.key)
 		st.done[item.key] = true
@@ -211,6 +217,9 @@ local function award(player: Player, st: State, item: Item)
 	local hasOk, has = false, false
 	if takeToken() then
 		hasOk, has = pcall(BadgeService.UserHasBadgeAsync, BadgeService, player.UserId, row.BadgeId)
+	end
+	if player.Parent ~= Players then
+		return
 	end
 	if hasOk and has == true then
 		mark(player, item.key)
