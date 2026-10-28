@@ -76,6 +76,9 @@ local function ask(player: Player, other: Player)
 	asking[key] = true
 	local ok, result = pcall(player.IsFriendsWithAsync, player, other.UserId)
 	asking[key] = nil
+	if player.Parent ~= Players or other.Parent ~= Players then
+		return -- one left while asking (their entries are cleared): a rejoin asks afresh
+	end
 	if ok then
 		known[key] = result == true
 		failures[key] = nil
