@@ -452,6 +452,24 @@
     "assetType": "Model",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/thumbs/black_cat.png": {
+    "assetId": "115496115118704",
+    "assetType": "Decal",
+    "imageId": "139545705429939",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/thumbs/spider.png": {
+    "assetId": "123638860690562",
+    "assetType": "Decal",
+    "imageId": "80551345054710",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/thumbs/witch_broom.png": {
+    "assetId": "140099377083301",
+    "assetType": "Decal",
+    "imageId": "114319101783547",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/vfx/black_cat/cat_leap_4x4.png": {
     "assetId": "98170765493066",
     "assetType": "Decal",

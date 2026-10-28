@@ -68,6 +68,14 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
   neighbours), compact = a closed bud 0.3 past the butt; `spider_parts.glb` 134241355070040,
   `Crown.glb` 88297987618252, atlas decals with image ids). Preview beside the concept:
   `gate2/spider_body_vs_C1b.png`. No spider bodies, legs or creatures anywhere.
+- 10:12 P19 cards: the three card pictures drawn with Cues A's body-aware `cue_skin.py --thumb`
+  (their `CuePreview.py` @ 5078ac33 used locally, not committed; it lands through `halloween`):
+  `assets/cue/thumbs/witch_broom.png`, `black_cat.png`, `spider.png`, uploaded with image ids
+  (140099377083301, 115496115118704, 123638860690562). `python3 tools/cue_skins_data.py` now
+  runs clean without `--allow-missing` for all three (every asset has an id). Drafts stay on
+  for the moment: with them off, `tests/catalog_test.luau` on `halloween` fails (it expects
+  exactly 2 Exclusive cues; Cues A's drop 3 makes it count ready event cues). Drafts come off
+  and the READY lines go up the moment drop 3 is in `halloween`.
 - 10:00 P17 piece: `spider_pocket` built headless (a silver Neon orb web of eight spokes and four
   rings turning 24 deg/s, a ForceField funnel of six silk threads to an apex 1.3 up turning the
   other way, a crimson Neon hourglass bead glowing at the apex; 3 parts, 2,208 triangles; no
