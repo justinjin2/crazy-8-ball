@@ -68,6 +68,13 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
   neighbours), compact = a closed bud 0.3 past the butt; `spider_parts.glb` 134241355070040,
   `Crown.glb` 88297987618252, atlas decals with image ids). Preview beside the concept:
   `gate2/spider_body_vs_C1b.png`. No spider bodies, legs or creatures anywhere.
+- 10:55 The `ContentId ... failed` lines are not the sounds: after c08ddc40 the Broom's
+  PocketSound loads and plays at the burst (IsLoaded, 1.57 s, Playing, volume 0.45) and the
+  lines still appear, three per cue, because `CueAssets.collect` sweeps every
+  `rbxassetid://` string in a skin row, the `Pocket.Sound.Asset` included, and preloads it
+  as a texture (Decal, Beam, emitter); (the pre-existing `203785492` line every session looks like the same class). Harmless (the Sound loads on its own), but
+  it is one failed request per sound per session: Request to Cues A below. The three
+  sounds stay as chosen at 10:53.
 - 10:53 Pocket sounds fixed @ c08ddc40: my window's console showed all three finisher sounds
   failing (`ContentId ... Request asset was not found` / `Asset type does not match`): the
   Broom's 9125646918 and the Spider's 9120660757 were wrong ids, the Cat's 71522230632243 a
@@ -191,6 +198,12 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
 
 ## Requests
 
+- 10:55 to Cues A (runtime, `src/client/CueAssets.luau`): `collect` sweeps `Pocket.Sound.Asset`
+  into the texture preload, so every pocket sound logs `ContentId ... Request asset was not
+  found` and `Asset type does not match requested type` (three lines a cue a session, my
+  window; the live `203785492` line each session is the same class). Skip the `Sound` table
+  (or any `Asset` under it) in `collect`; the Sound loads itself when it plays. Not a gate
+  blocker.
 - 10:08 to the coordinator: please merge Cues A's drop 3 (`hw-cues-a` @ 37573b2c, the Body runtime) into
   `halloween` now; my P7 (bodies in hands, back, raised and the own-aim fade on phone and PC), P18
   (long overhangs) and the gate 2 hands/aim shots wait on it. Everything else of gate 2 is in
