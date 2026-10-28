@@ -37,6 +37,8 @@ PIECES_DIR = os.path.join(HERE, 'pieces')
 # The joints that may reach past the butt: on the stick owner's own screen they ease to clear
 # while the stick is drawn for a shot (`"Aim": "fade"`, Cues A's drop 3), so a long overhang
 # never blocks the aim. Static, never recorded at build time (the file is loaded twice).
+# The Aim joints, also passed as k.joint(aim='fade') so the plain kit CLI writes the same key;
+# patch_aim is now a check that both agree (10:40).
 AIM = {
     'witch_broom': ['Bristles', 'Charm'],
     'black_cat': ['Tail'],
@@ -664,7 +666,8 @@ def witch_broom(k):
     # --- the bristles (joint Bristles: Aim fade) ----------------------------------------------
     k.joint('Bristles', pivot=(0, -7.0, 0), parent='Body',
             motion=[{'Kind': 'Hinge', 'Axis': (1, 0, 0), 'Amp': 1.2, 'Period': 2.6},
-                    {'Kind': 'Hinge', 'Axis': (0, 0, 1), 'Amp': 0.8, 'Period': 4.0, 'Phase': 90}])
+                    {'Kind': 'Hinge', 'Axis': (0, 0, 1), 'Amp': 0.8, 'Period': 4.0, 'Phase': 90}],
+            aim='fade')
     tip_d = 8.2 if long else 7.45
     tip_r = 0.44 if long else 0.38
     # the dense root: an opaque straw flare from the binding's end closed by a dome of
@@ -733,7 +736,7 @@ def witch_broom(k):
     period = 1.8
     k.joint('Charm', pivot=tuple(P0), parent='Body', motion=[
         {'Kind': 'Sway', 'Axis': (0, 1, 0), 'Amp': 7.0, 'Period': period},
-        {'Kind': 'Sway', 'Axis': (1, 0, 0), 'Amp': 4.0, 'Period': period * 1.45, 'Phase': 40}])
+        {'Kind': 'Sway', 'Axis': (1, 0, 0), 'Amp': 4.0, 'Period': period * 1.45, 'Phase': 40}], aim='fade')
     k.joint('Chain2', pivot=tuple(P1), parent='Charm', motion=[
         {'Kind': 'Sway', 'Axis': (0, 1, 0), 'Amp': 6.0, 'Period': period, 'Phase': 55}])
     k.joint('Hat', pivot=tuple(P2), parent='Chain2', motion=[
@@ -1121,7 +1124,8 @@ def black_cat(k):
             motion.append({'Kind': 'Hinge', 'Axis': (0, 0, 1), 'Amp': 6.0, 'Period': 4.0, 'Phase': 20})
         if i == 2:
             motion.append({'Kind': 'Hinge', 'Axis': (0, 0, 1), 'Amp': 4.0, 'Period': 4.0, 'Phase': 120})
-        k.joint(name, pivot=tuple(piv), parent=('Body' if i == 0 else bones[i - 1]), motion=motion)
+        k.joint(name, pivot=tuple(piv), parent=('Body' if i == 0 else bones[i - 1]), motion=motion,
+                aim=('fade' if name == 'Tail' else None))
     bm = bmesh.new()
     uvl = bm.loops.layers.uv.new('UVMap')
     _sweep_uv(bm, uvl, path, radii, 14, lambda u, v: A.uv('FUR', u, v * 0.98),
@@ -1324,7 +1328,7 @@ def spider(k):
     k.add('Hourglass', ob)
 
     # --- the crown: eight skinned blades and the webs between them ----------------------------------
-    k.joint('Crown', pivot=(0, -6.95, 0), parent='Body')
+    k.joint('Crown', pivot=(0, -6.95, 0), parent='Body', aim='fade')
     thetas = [math.pi - SPIDER_FAN / 2 + SPIDER_FAN * i / (SPIDER_BLADES - 1) for i in range(SPIDER_BLADES)]
     curves = []
     bm = bmesh.new()
