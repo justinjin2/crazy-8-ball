@@ -88,9 +88,19 @@ return {
 	end,
 
 	["the walk-off truth table"] = function()
-		expect(Roam.walkOffExempt(true, true), "far at the result and still away: keeps the offer")
-		expect(not Roam.walkOffExempt(false, true), "walked off after the result: declines")
-		expect(not Roam.walkOffExempt(true, false), "came back: nothing to exempt")
-		expect(not Roam.walkOffExempt(false, false), "by the table: nothing to exempt")
+		expect(
+			Roam.walkOffExempt(true, true, true),
+			"far at the result and still away: keeps the offer"
+		)
+		expect(not Roam.walkOffExempt(false, true, true), "walked off after the result: declines")
+		expect(not Roam.walkOffExempt(true, false, true), "came back: nothing to exempt")
+		expect(not Roam.walkOffExempt(false, false, true), "by the table: nothing to exempt")
+	end,
+
+	["roam off: away at the result still declines, as before the roam"] = function()
+		expect(
+			not Roam.walkOffExempt(true, true, false),
+			"a player who may not roam (switch off, tutorial, arena) keeps the old walk-off rule"
+		)
 	end,
 }

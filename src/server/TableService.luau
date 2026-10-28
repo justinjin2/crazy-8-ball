@@ -1098,7 +1098,7 @@ local function poll(t: any, time: number)
 					and e.rematch
 					and not e.rematch.declined
 					and away
-					and not Roam.walkOffExempt(t.farAtResult[p.UserId] == true, away)
+					and not Roam.walkOffExempt(t.farAtResult[p.UserId] == true, away, roams(p, t))
 				then
 					if
 						Engine.action(
