@@ -68,6 +68,30 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
   neighbours), compact = a closed bud 0.3 past the butt; `spider_parts.glb` 134241355070040,
   `Crown.glb` 88297987618252, atlas decals with image ids). Preview beside the concept:
   `gate2/spider_body_vs_C1b.png`. No spider bodies, legs or creatures anywhere.
+- 11:02 P7 bodies in the game, through a local preview of drop 3: `origin/halloween` still
+  lacks it at 11:00, so Cues A's fifteen pushed runtime and tool files (`hw-cues-a` @
+  c75fbe56, which contains `halloween` @ f32c3d1b) are checked out into my tree UNSTAGED and
+  never committed (the list is in my scratchpad; `git checkout HEAD -- <files>` removes them;
+  nothing of theirs goes into a commit of mine). Rows regenerated (Body on all three), lint
+  OK, the ONLY build in my window (3 skins, 6 pieces, no problems), `Bodies.Enabled` true,
+  `CuePiece.available` true for the three bodies. In a real solo game (table 3), each equipped
+  in turn, the shooter's own aim view at PC size (`broom_own_aim_body_lab.jpg` placement,
+  `broom_own_aim_body_aiming_lab.jpg`, `cat_own_aim_body_lab.jpg`, `spider_own_aim_body_lab.jpg`):
+  the Broom's crystal tip, bark handle and ribbons read, the straw head and charm fade to a
+  ghost at the bottom of the frame (the Aim fade works); the Cat's black shaft, gold tip and
+  claw glint read, the tail is faded away; the Spider's segmented chrome shaft and spear
+  ferrule read, the crown faded away. The PULL card draws each body. Console: only the known
+  `ContentId` lines. The watcher's side view of the hands could not be captured (the match
+  camera owns the camera on my turn in every mode); backs follow from the lab. Lune on this
+  preview tree: 1 failure, Cues A's own `cue_body_test` on their drop-2 piece files in my
+  tree (their later pieces are not here), nothing of mine.
+- 11:02 P18 decided: the compact overhangs ship. In the own aim view every overhang (straw
+  head, tail, crown) fades to a ghost at the frame's bottom edge on PC, so a long variant
+  would gain nothing there and would only add triangles and a bigger silhouette on a back;
+  the compact ones already read on a stand and a back. The long variants are not built,
+  uploaded or carded; the cut is this line. Phone size not watched (no device emulation from
+  this window): the fade is screen-independent (CuePiece eases the joint by the aim camera,
+  not by viewport), logged as an Assumption.
 - 10:56 **Gate 2 package ready except the bodies in game** (`gate2/`, 30 shots, a caption each
   under Gate shots). Done since gate 1: the three bodies rebuilt and uploaded (the Broom
   reworked to the 09:20 request), all three auras, trails and finishers built, lab-checked on
@@ -229,6 +253,11 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
 
 ## Assumptions
 
+- 11:02 Phone-size own-aim check skipped: CuePiece's Aim fade eases a joint by the aim camera's
+  distance and angle, not by the viewport, so what PC shows holds on a phone; a device
+  emulator cannot be driven from this window.
+- 11:02 Drop 3 previewed locally (unstaged checkout of Cues A's pushed files) to finish P7 and
+  P18 before the gate; not a merge, not committed; the real merge still gates P19.
 - 10:53 Pocket sounds are magic whooshes, not animal voices: no Pro Sound Effects cat or silk
   sound fits (the "cat hiss" results are user uploads, which do not load in our universe,
   and a spider hiss would add the creature the Spider concept rules out); a growly gust for
@@ -364,4 +393,13 @@ for at 08:55 and 10:08).
 - `spider_trail_match_lab.jpg`: the same game with the Spider equipped, from the far side:
   the cue ball's silver silk trail mid-table as it rolls, the cue in hand below with the
   silver-crimson outline and silk motes (Classic wood before drop 3).
-- Not yet shot: hands and own-aim views with the bodies (need drop 3).
+- `broom_own_aim_body_lab.jpg`, `broom_own_aim_body_aiming_lab.jpg`: the Broom body in the
+  shooter's own aim view at PC size (placement, then aiming after the break): crystal tip at
+  the cue ball, the crooked bark handle, the violet and emerald ribbons, a bat; the straw head
+  and hat charm faded to a ghost at the bottom edge (the Aim fade). The PULL card draws it.
+- `cat_own_aim_body_lab.jpg`: the Cat body in the own aim view: black shaft, gold claw tip
+  glint, the dark smoke and a gold glint on the felt by the cue; the tail is faded away.
+- `spider_own_aim_body_lab.jpg`: the Spider body in the own aim view: the segmented chrome
+  shaft with its spear ferrule, a silk glint; the crown faded away.
+- Not yet shot: the three bodies on a back and in hands from a watcher's side (lab backs
+  next); tall R15, R6, walking and sitting carriers need other avatars (not in this window).
