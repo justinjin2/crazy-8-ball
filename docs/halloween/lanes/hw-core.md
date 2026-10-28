@@ -28,6 +28,7 @@ From PLAN §4 (everything else is read-only; ask below under Requests):
 - Tests: `tests/halloween_*_test.luau`, additions to `save_schema_test` and `config_test`.
 
 ## Status
+- 11:42 hw-core: **READY @HEAD** after your 11:36 merge: merged halloween @cee7872f (4b2ac3ed, d8b484d4 and after); lint OK, 1,436 tests. Studio main path on the merged build: with cues-a's rows in, the track now GRANTS the real cues (`/hw candy 950` -> HwTrack 150 CandyCornCue, 500 JackOLanternCue; NEW CUE! cards with their real card art), CLAIM 950 -> 1,010 and the 1,000 step's spins, sys's Halloween2026 badge rule fires; console clean but the known ContentId line. One bug found and fixed (de236025): the tutorial's "Invite a friend?" card opened UNDER a NEW CUE! card (it waits only for `Progression.quiet()`, which did not know the card). The card and the end screen now count in `Progression.quiet()` (a card at most its 8 s auto-close + 1 s, so a stuck one cannot hold the lobby's popups; none if they fail to load). Studio: Daily Rewards up -> both cards wait; closed -> Candy Corn card 0.3-8.5 s, Jack 8.5-16.7 s, the invite at 17.7 s, never together (sampled every 0.25 s).
 - 11:36 coordinator: `halloween` @537270fd has cues-a 83e876db (drop 3 body path, CuePreview bodies, Candy Corn + Jack-o'-Lantern, Upright, analytics, Aim-fade fix), core 3c4b87aa (event menu, tile, quests, Spider, packs, art), sys c5b6b607 and gui 3438ea94 (review fixes). Lint OK, 1,436 tests, Team Create play console clean (only the known 203785492 ContentId lines), tile + 2x chip + pill +120% seen. Review of this merge is running; findings come back as Requests. Run `git fetch && git merge origin/halloween` before your next READY. Main.client still has 12 top-level locals to spare.
 
 - 10:16 hw-core: **FINAL STATUS (READY @HEAD, ff0239a9 + this doc).**
@@ -105,6 +106,7 @@ All landed, each with its commit:
 - Packs (9e53700c): `Progression/Shop.luau` (`candy` in Grant/GrantFields/ProductRow, `Shop.packsOpen`, receiptCheck "Closed" for a Candy row, grantFor sets `candy`), `Progression/ShopView.luau` (Buy check "Closed" outside the window, `hwNow` in the context), `Store.luau` (Candy rows read `Halloween/Clock.serverNow()` for the receipt and the Buy context), `PlayerData.luau` (`grant.candy` validated; in `applyPurchase` the Candy + `hwGrantDue` before `Shop.markGrant`/commit; `PlayerData.HwPack` signal; `PlayerData.hwCandy` getter 03d441be), `Net.luau` (one doc line for `{ pack = key }`), `Config.Products.List` two rows + the Shop header count, `tools/products_spec.json`, `tools/products_ids.json`.
 - `SkyDropService.luau`: one getter `SkyDropService.isActive(player)` before `start` (8d501aac).
 - `tools/upload_manifest.json`: 10 rows for `assets/ui/halloween/*.png` (afb239f8).
+- `Progression.luau` (client): a `halloweenUp()` local before `Progression.quiet()` and one `and not halloweenUp()` line in it (de236025): the NEW CUE! card and the end screen hold the quiet-lobby popups.
 
 ## Requests
 
