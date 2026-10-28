@@ -1156,7 +1156,8 @@ def black_cat(k):
     collar at 6.6-6.75 (flush), the cap ring; three Neon gold claw slashes raked across the top
     of the forearm (Glow breath 0.1-0.5 over 3 s); the butt cap 6.75-7.0 a touch wider. The
     tail (joint Tail, Aim fade): one skinned fur tube on five bones out of the cap, a Sway
-    travelling down it over 2.4 s (8-14 degrees a joint) over a slower sideways Hinge, with a
+    travelling down it over 2.4 s (8-14 degrees a joint) over a slower sideways Hinge, a sharp flick every 4.2 s (a pulse
+    travelling down the bones: it curls up, then drops straight), with a
     slightly larger gold ForceField shell for the thin rim light. Compact: curls up within 0.3
     past the butt; long: 0.8 back and 0.9 up. No head, no face, no eyes anywhere."""
     import bmesh
@@ -1165,7 +1166,6 @@ def black_cat(k):
     R = _radius()
     A = _cat_atlas(k)
     k.material('Ring', 'Foil', CAT['gold'])
-    k.material('Claw', 'Neon', CAT['claw'])
     k.material('TailShell', 'ForceField', CAT['rim'], Transparency=0.3)
     long = LONG['black_cat']
 
@@ -1192,28 +1192,10 @@ def black_cat(k):
         _torus(bm, (0, -rd, 0), (0, 1, 0), cap_r(rd) + rr * 0.45, rr, segs=22, minor=7)
     k.add('Body', k.mesh_object('Rings', bm, ['Ring']))
 
-    # --- the claw slashes: three Neon strips raked diagonally across the top of the forearm -------
-    k.joint('Claws', pivot=(0, -4.0, 0), parent='Body',
-            visual=[{'Kind': 'Glow', 'Min': 0.1, 'Max': 0.5, 'Period': 3.0}])
-    bm = bmesh.new()
-    uvl = bm.loops.layers.uv.new('UVMap')
-    for i in range(3):
-        d_start = CAT_FOREARM[0] + 0.12 + 0.18 * i
-        left, right = [], []
-        for s in range(7):
-            t = s / 6
-            d = d_start + 0.38 * t
-            ang = math.pi + (0.55 - 1.1 * t) + (i - 1) * 0.12      # across the top, from +X side to -X side
-            r = R(d) + 0.012
-            p = Vector((r * math.sin(ang), -d, -r * math.cos(ang)))
-            along = Vector((math.cos(ang) * 0.6, -0.8, math.sin(ang) * 0.6)).normalized()
-            w = 0.022 * (0.4 + 0.6 * math.sin(math.pi * t) ** 0.5)
-            left.append(p - along * (w / 2))
-            right.append(p + along * (w / 2))
-        _strip_uv(bm, uvl, left, right, lambda u, v: (u, v))
-    ob = k.mesh_object('ClawSlashes', bm, ['Claw'], smooth=False)
-    apply_modifier(k.bpy, ob, 'SOLIDIFY', thickness=0.012, offset=0.0)
-    k.add('Claws', ob)
+    # The claw slashes (three Neon strips raked across the forearm) are gone (2026-10-28): the
+    # cue's Highlight outline merges round a part that thin into one solid gold slab, even
+    # with the part transparent; the atlas scratches carry the claw marks. The uploaded body
+    # model still holds the ClawSlashes part; the Parts list below no longer dresses it.
 
     # --- the tail: a skinned fur tube on five bones, a gold ForceField shell ----------------------
     path = _cat_tail_path(long)
@@ -1229,7 +1211,10 @@ def black_cat(k):
         pivots.append(path[j])
     period = 2.4
     for i, (name, piv) in enumerate(zip(bones, pivots)):
-        motion = [{'Kind': 'Sway', 'Axis': (1, 0, 0), 'Amp': 8.0 + 1.5 * i, 'Period': period, 'Phase': 55 * i}]
+        motion = [{'Kind': 'Sway', 'Axis': (1, 0, 0), 'Amp': 8.0 + 1.5 * i, 'Period': period, 'Phase': 55 * i},
+                  # the flick (2026-10-28 signature): every 4.2 s the tail curls up sharply from the
+                  # base to the tip (a pulse travelling down the bones) and drops straight again
+                  {'Kind': 'Hinge', 'Axis': (1, 0, 0), 'Amp': 12.0 + 3.0 * i, 'Period': 4.2, 'Phase': -14 * i, 'Shape': 'pulse'}]
         if i == 0:
             motion.append({'Kind': 'Hinge', 'Axis': (0, 0, 1), 'Amp': 6.0, 'Period': 4.0, 'Phase': 20})
         if i == 2:
@@ -1263,6 +1248,194 @@ def black_cat(k):
         name: (lambda frac: (lambda V: ramp(arc(V), (frac - 0.07) * L, (frac + 0.07) * L)))(frac)
         for name, frac in zip(bones[1:], at[1:])}}
     print('CUE cat tail: %d samples, %.2f studs long, long=%s, pivots %s' % (len(path), L, long, [[round(x, 2) for x in p] for p in pivots]))
+
+
+# =============================================================================================
+# Black Cat (Mythic): the aura piece (the Cat moved to lane Cues A on 2026-10-28 13:08; the
+# body builder above and this block are Cues A's; the Broom and the Spider stay Cues B's)
+# =============================================================================================
+
+def _cat_flat(k, bm, ob_name, mat, thickness):
+    ob = k.mesh_object(ob_name, bm, [mat])
+    apply_modifier(k.bpy, ob, 'SOLIDIFY', thickness=thickness, offset=0.0)
+    return ob
+
+
+def _cat_polygon(bm, origin, u, v, pts, scale=1.0, about=(0.0, 0.0)):
+    """One n-gon (concave allowed, ear-clipped) from 2D points in the plane (origin, u, v)."""
+    import bmesh
+    verts = []
+    for (x, y) in pts:
+        x = about[0] + (x - about[0]) * scale
+        y = about[1] + (y - about[1]) * scale
+        verts.append(bm.verts.new(origin + u * x + v * y))
+    bm.faces.new(verts)
+    bmesh.ops.triangulate(bm, faces=bm.faces[:], ngon_method='EAR_CLIP')
+    return bm
+
+
+def _cat_band(bm, origin, u, v, pts, s_out, s_in, about):
+    """A band following a polygon's outline in the plane (origin, u, v): quads between the
+    polygon scaled `s_out` and `s_in` about `about` (the thin gold rim round a shadow cat)."""
+    def at(x, y, sc):
+        return origin + u * (about[0] + (x - about[0]) * sc) + v * (about[1] + (y - about[1]) * sc)
+    outer = [bm.verts.new(at(x, y, s_out)) for (x, y) in pts]
+    inner = [bm.verts.new(at(x, y, s_in)) for (x, y) in pts]
+    n = len(pts)
+    for i in range(n):
+        j = (i + 1) % n
+        bm.faces.new((outer[i], outer[j], inner[j], inner[i]))
+    return bm
+
+
+# A running cat seen from the side, nose toward +x, standing on y = 0 (the concept's shadow
+# cats: no face, no eyes; a silhouette).
+CAT_SIL = [
+    (0.50, 0.30), (0.44, 0.40), (0.47, 0.50), (0.40, 0.42), (0.34, 0.50), (0.30, 0.40),
+    (0.20, 0.36), (0.00, 0.34), (-0.20, 0.32), (-0.36, 0.30),
+    (-0.40, 0.33), (-0.50, 0.42), (-0.60, 0.54), (-0.70, 0.58), (-0.68, 0.50), (-0.58, 0.44),
+    (-0.49, 0.34), (-0.44, 0.24),
+    (-0.48, 0.16), (-0.64, 0.06), (-0.60, 0.00), (-0.44, 0.08), (-0.34, 0.14),
+    (-0.16, 0.16), (0.04, 0.16),
+    (0.12, 0.08), (0.30, -0.02), (0.36, 0.04), (0.24, 0.12), (0.34, 0.18), (0.44, 0.22),
+]
+
+
+def _cat_track(R, d0=0.8, d1=6.5, lift=0.2, step=0.1):
+    """The shadow cats' racetrack: along the TOP of the shaft from the butt toward the tip
+    (the way a strike goes), half a turn round the cue at the tip end, back along the belly,
+    half a turn round at the butt end. Frames (columns side, tangent, normal away from the
+    cue, point) every `step` studs; returns (frames, step, length)."""
+    import numpy as np
+
+    def at(d, a):
+        return np.array([math.sin(a) * (R(d) + lift), -d, math.cos(a) * (R(d) + lift)])
+
+    samples = []
+    N = 400
+    for i in range(N):                       # the top leg: d1 -> d0 at a = 0 (+Z, up)
+        d = d1 - (d1 - d0) * i / (N - 1)
+        samples.append((at(d, 0.0), 0.0))
+    for i in range(1, 40):                   # round the tip end to the belly
+        a = math.pi * i / 40
+        samples.append((at(d0, a), a))
+    for i in range(N):                       # the belly leg: d0 -> d1 at a = pi
+        d = d0 + (d1 - d0) * i / (N - 1)
+        samples.append((at(d, math.pi), math.pi))
+    for i in range(1, 40):                   # round the butt end back to the top
+        a = math.pi + math.pi * i / 40
+        samples.append((at(d1, a), a))
+    P = np.array([s[0] for s in samples])
+    A = np.array([s[1] for s in samples])
+    seg = np.linalg.norm(np.diff(np.vstack([P, P[:1]]), axis=0), axis=1)
+    cum = np.concatenate([[0.0], np.cumsum(seg)])
+    L = float(cum[-1])
+    nF = max(int(round(L / step)), 8)
+    frames = []
+    Pc = np.vstack([P, P[:1]])
+    Ac = np.concatenate([A, A[:1]])
+    for j in range(nF):
+        sj = j * L / nF
+        p = np.array([np.interp(sj, cum, Pc[:, c]) for c in range(3)])
+        a = float(np.interp(sj, cum, Ac))
+        s2 = (sj + 0.05) % L
+        s1 = (sj - 0.05) % L
+        p2 = np.array([np.interp(s2, cum, Pc[:, c]) for c in range(3)])
+        p1 = np.array([np.interp(s1, cum, Pc[:, c]) for c in range(3)])
+        t = p2 - p1
+        t /= max(np.linalg.norm(t), 1e-6)
+        n = np.array([math.sin(a), 0.0, math.cos(a)])
+        n = n - t * float(np.dot(t, n))
+        n /= max(np.linalg.norm(n), 1e-6)
+        side = np.cross(t, n)
+        M = np.eye(4)
+        M[:3, 0], M[:3, 1], M[:3, 2], M[:3, 3] = side, t, n, p
+        frames.append(M)
+    return frames, L / nF, L
+
+
+def _claw_blade(bm, origin, along, up, length, width, bend, n=14):
+    """One claw slash in the plane (origin, along, up): a crescent `length` long bowing `bend`
+    toward `up`, `width` at its middle, tapering to points at both ends (a hooked claw's
+    tear through the air)."""
+    from mathutils import Vector
+    left, right = [], []
+    for i in range(n):
+        u = i / (n - 1)
+        c = origin + along * ((u - 0.5) * length) + up * (bend * math.sin(math.pi * u))
+        # the in-plane normal of the arc (perpendicular to its tangent)
+        du = along * length + up * (bend * math.pi * math.cos(math.pi * u))
+        nrm = (up * du.dot(along) - along * du.dot(up)).normalized()
+        w = width * math.sin(math.pi * u) ** 0.7
+        left.append(bm.verts.new(c - nrm * (w / 2)))
+        right.append(bm.verts.new(c + nrm * (w / 2)))
+    for i in range(n - 1):
+        bm.faces.new((left[i], right[i], right[i + 1], left[i + 1]))
+    return bm
+
+
+@piece
+def black_cat_aura(k):
+    """Aura-only decoration of the Black Cat (hides with the aura): the cue's own hand-made
+    signature (designer, 2026-10-28 12:55: no ribbons; the coordinator's 13:08 rule: no head,
+    no face, no eyes, no paw prints). Three shadow cats (black silhouettes with a thin gold
+    Neon rim, two crossed planes each so they read from every side) race along the top of the
+    shaft toward the tip and back under its belly, a lap in 7 s, a third of a lap apart,
+    galloping (a quick Bob); three gold claw swipes (three crescent Neon blades each, a claw's
+    rake) hang beside the shaft at 1.9, 3.7 and 5.4 studs and every 3.6 s one of them tears
+    through the air (a Hinge pulse of 55 degrees) flashing in with a Fade beat and fading out,
+    its embers (the skin's ClawEmbers rows ride these joints) left behind. The tail flick lives
+    in the body. Lower effects keeps two cats and two swipes."""
+    import bmesh
+    from mathutils import Vector
+    R = _radius()
+    k.material('Shadow', 'SmoothPlastic', CAT['black'])
+    k.material('Rim', 'Neon', '#E8A830', Transparency=0.0)     # deeper golds: Neon blooms, and a
+    k.material('Claw', 'Neon', '#E09A20', Transparency=0.0)    # bright one turned three blades into a plate
+
+    frames, step, length = _cat_track(R)
+    k.path('Race', frames, step)
+    speed = length / 7.0
+    for i in range(3):
+        name = 'Cat%d' % (i + 1)
+        rest = length * i / 3.0
+        idx = int(round(rest / step)) % len(frames)
+        F = frames[idx]
+        side, tang, nrm, pt = Vector(F[:3, 0]), Vector(F[:3, 1]), Vector(F[:3, 2]), Vector(F[:3, 3])
+        k.joint(name, pivot=tuple(pt), aura=True, low=('hide' if i == 2 else None),
+                motion=[{'Kind': 'Path', 'Path': 'Race', 'Rest': rest, 'Speed': speed},
+                        {'Kind': 'Bob', 'Dir': (0, 0, 1), 'Amp': 0.035, 'Period': 0.42, 'Phase': 90 * i, 'Shape': 'snap'}],
+                visual=[{'Kind': 'Glow', 'Min': 0.0, 'Max': 0.2, 'Period': 2.2 + 0.4 * i, 'Phase': 70 * i, 'Color': '#FFE2A0'}])
+        # One silhouette a cat, standing on the cue but leaning 40 degrees outward (crossed
+        # planes were tried: the pair read as a black lump from most angles), so it reads from
+        # the side and from above alike; a black plane with a gold Neon band round its outline
+        # (a full gold plate under the black one showed through as a yellow cat in the lab).
+        lean = nrm * math.cos(math.radians(40)) + side * (math.sin(math.radians(40)) * (1 if i % 2 == 0 else -1))
+        bm = bmesh.new()
+        _cat_polygon(bm, pt, tang, lean, CAT_SIL, scale=0.9)
+        k.add(name, _cat_flat(k, bm, name + 'Shadow', 'Shadow', 0.04))
+        bm = bmesh.new()
+        _cat_band(bm, pt, tang, lean, CAT_SIL, 0.96, 0.9, (-0.1 * 0.9, 0.3 * 0.9))
+        k.add(name, _cat_flat(k, bm, name + 'Rim', 'Rim', 0.02))
+
+    # The claw swipes: three crescent blades in the plane of the cue axis and the radial, hung
+    # 0.42 off the surface; the Hinge about the side axis rakes them within that plane.
+    for i, (d, ang, phase) in enumerate(((1.9, math.radians(35), 0), (3.7, math.radians(-110), 120), (5.4, math.radians(150), 240))):
+        name = 'Swipe%d' % (i + 1)
+        radial = Vector((math.sin(ang), 0, math.cos(ang)))
+        along = Vector((0, -1, 0))
+        side = along.cross(radial).normalized()
+        base = Vector((0, -d, 0)) + radial * (R(d) + 0.42)
+        k.joint(name, pivot=tuple(base), aura=True, low=('hide' if i == 2 else None),
+                motion=[{'Kind': 'Hinge', 'Axis': tuple(side), 'Amp': 55.0, 'Period': 3.6, 'Phase': phase + 18, 'Shape': 'pulse'}],
+                visual=[{'Kind': 'Fade', 'Min': 0.0, 'Max': 1.0, 'Period': 3.6, 'Phase': phase / 360.0, 'Shape': 'beat'}])
+        # Three distinct slashes well apart (0.27; closer, their Neon bloom merged them into one
+        # plate in the lab), staggered 0.1 along the cue like a raking paw.
+        bm = bmesh.new()
+        for j in range(3):
+            o = base + radial * (0.27 * (j - 1)) + along * (0.1 * (j - 1))
+            _claw_blade(bm, o, along, radial, 0.8, 0.06, 0.16)
+        k.add(name, _cat_flat(k, bm, name + 'Claws', 'Claw', 0.03))
 
 
 # =============================================================================================
