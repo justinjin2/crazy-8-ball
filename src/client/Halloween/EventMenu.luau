@@ -772,9 +772,11 @@ function EventMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 				W.RushNow:format(Event.clock(chip.endsAt - now))
 			)
 		else
+			-- No next Rush: switched off, or the event's last hour.
+			local nextAt = Event.nextRushAt(now)
 			stripText.Text = ("%s  %s"):format(
 				W.Rush,
-				W.RushSoon:format(Event.clock(Event.nextRushAt(now) - now))
+				if nextAt then W.RushSoon:format(Event.clock(nextAt - now)) else W.RushDone
 			)
 		end
 	end

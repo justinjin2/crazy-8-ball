@@ -1868,6 +1868,14 @@ return {
 			Rush = "2x CANDY %s", -- "2x CANDY 8:12" (mm:ss)
 			Double = "2x CANDY %s", -- Oct 31: "2x CANDY 9:12:44" (h:mm:ss)
 		},
+		-- Durations (Halloween.Event): a clock ("8:12", "9:12:44") and a pill's short form.
+		Time = {
+			Hours = "%d:%02d:%02d",
+			Minutes = "%d:%02d",
+			ShortDays = "%dd %dh",
+			ShortHours = "%dh %dm",
+			ShortMinutes = "%dm",
+		},
 		Countdown = "HALLOWEEN EVENT IN %s", -- 18:30-19:00, "HALLOWEEN EVENT IN 29:59"
 		Started = "THE HALLOWEEN EVENT HAS STARTED!",
 		Ended = "THE HALLOWEEN EVENT HAS ENDED!",
@@ -1918,6 +1926,7 @@ return {
 		Rush = "CANDY RUSH",
 		RushSoon = "2x CANDY starts in %s",
 		RushNow = "2x CANDY ends in %s",
+		RushDone = "No more Rushes this event", -- Rush off, or the event's last hour
 		Night = "HALLOWEEN NIGHT",
 		NightNow = "2x CANDY ALL DAY %s",
 		Yours = "YOURS!",
