@@ -583,8 +583,16 @@ function CuePiece.applyHidden(self: CuePiece, modifier: number?, eye: Vector3?, 
 	for _, sk in self.skinned do
 		local root = skinnedRoot(sk)
 		local hidden = root ~= nil and self:hidden(root)
+		local m = if hidden then 1 else base
+		-- A skinned Aim joint (the Broom's hat charm, the Spider's crown) clears with the rigid
+		-- ones; no near fade, its box is the bind pose (hw-cues-a, 2026-10-28).
+		if m < 1 and root ~= nil and self.aimJoints[root] and self.aim > 0 then
+			m = math.max(m, self.aim)
+		end
 		for _, part in sk.parts do
-			part.LocalTransparencyModifier = if hidden then 1 else base
+			if part.LocalTransparencyModifier ~= m then
+				part.LocalTransparencyModifier = m
+			end
 		end
 	end
 	self:showTypers(modifier)
