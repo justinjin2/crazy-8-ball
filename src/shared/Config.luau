@@ -2029,6 +2029,15 @@ Config.Economy = {
 	-- A Roblox Plus (Premium) subscriber (designer, 2026-10-03, C14; the GUI lane): +10% if the
 	-- economy model allows it (tools/economy_model.py), else 0.05. The RobloxPlus attribute.
 	PlusBoost = 0.1,
+	-- The friend boost (Halloween 2026, PLAN §2, designer 2026-10-28; hw-gui lane): +FriendBoost
+	-- per Roblox friend in your server, at most FriendBoostMaxFriends, added to the other boosts
+	-- (never multiplied), permanent, on match money (Money.boost) and on Candy (core reads these
+	-- same lines through Money.friendBoost; Config.Halloween has no copy). A friend check still
+	-- waiting or failed counts 0 (research A4).
+	FriendBoostEnabled = false, -- own switch: true once the Studio pay check passes; false = no friend part in money or Candy
+	FriendBoost = 0.1,
+	FriendBoostMaxFriends = 4, -- +40% at most (24-player servers: no cap would allow +230%)
+	FriendRetrySeconds = 30, -- a failed IsFriendsWithAsync is asked once more after this, then 0
 	-- Anti-farm (3.6): the same opponent in one UTC day. Each row covers matches up to UpTo
 	-- (the last row has no UpTo: every match after). Xp, Bonus and Balls multiply the match's
 	-- XP, its win/loss bonus and its ball pay; Drop says whether the winner's lucky block
