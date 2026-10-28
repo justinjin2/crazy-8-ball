@@ -243,7 +243,7 @@ local lastActivePush: { [Player]: number } = setmetatable({}, { __mode = "k" }) 
 -- The Halloween funnel (Funnel.once; Steps.Funnels.Halloween): the Candy of each track cue.
 local FUNNEL_CUES: { { at: number, name: string } } = {}
 do
-	local names = { "4_Cue150", "5_Cue500", "6_Cue2000", "7_Broom" }
+	local names = { "4_Cue150", "5_Cue500", "6_Cue2000", "7_Cue7000" }
 	for _, step in C.Track.Steps do
 		if step.Cue ~= nil and #FUNNEL_CUES < #names then
 			table.insert(FUNNEL_CUES, { at = step.At, name = names[#FUNNEL_CUES + 1] })

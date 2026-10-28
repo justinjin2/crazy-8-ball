@@ -61,23 +61,6 @@ return {
 		},
 		Piece = "beta",
 	},
-	BlackCatCue = {
-		Id = "black_cat",
-		Name = "Black Cat Cue",
-		Tier = "Mythic",
-		Thumb = "rbxassetid://139545705429939",
-		Look = {
-			Shaft = { 11, 11, 13 },
-			Forearm = { 11, 11, 13 },
-			Wrap = { 20, 20, 22 },
-			Ring = { 226, 176, 74 },
-			Tip = { 226, 176, 74 },
-			Cap = { 11, 11, 13 },
-			Accent = { 255, 200, 90 },
-		},
-		Piece = "black_cat_aura",
-		Body = "black_cat",
-	},
 	BlazeCue = {
 		Id = "blaze",
 		Name = "Blaze",

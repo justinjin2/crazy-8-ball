@@ -96,7 +96,7 @@ original back (asset 123614794049673): `python3 tools/halloween/store_page.py ic
 ## 7. What to read after launch (custom events and funnels)
 
 - Core: the `Halloween` funnel (1_Button, 2_Opened, 3_FirstCandy, 4_Cue150, 5_Cue500,
-  6_Cue2000, 7_Broom) and `HwCandy`, `HwMatch`, `HwQuest`, `HwTrack`, `HwSpider`, `HwPack`,
+  6_Cue2000, 7_Cue7000; named by Candy step, so a cue swap keeps them) and `HwCandy`, `HwMatch`, `HwQuest`, `HwTrack`, `HwSpider`, `HwPack`,
   `HwConvert`, `HwMenu`.
 - Cues A: `HalloweenCueEquipped` (counts every Equip press, not distinct players).
 - Sys: `RoamHome` (how far players roam), `BadgeAwarded` (Retro back-pay on day one).

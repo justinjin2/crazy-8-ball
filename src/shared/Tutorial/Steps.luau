@@ -422,7 +422,7 @@ Steps.Funnels = {
 		"LikeClicked",
 	},
 	-- The Halloween event (hw-core; CandyService): the tile shown, the menu opened, the first
-	-- Candy, then the Candy of each track cue reached (150, 500, 2,000, the Broom's 7,000).
+	-- Candy, then the Candy of each track cue reached, named by slot (150, 500, 2,000, 7,000).
 	Halloween = {
 		"1_Button",
 		"2_Opened",
@@ -430,7 +430,7 @@ Steps.Funnels = {
 		"4_Cue150",
 		"5_Cue500",
 		"6_Cue2000",
-		"7_Broom",
+		"7_Cue7000",
 	},
 }
 
