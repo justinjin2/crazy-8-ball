@@ -718,13 +718,6 @@ function BoostPill.showCard(self: any, big: boolean)
 	elseif not self.card.Visible then
 		UIAnim.popIn(self.card)
 	end
-	if not self.reportedCard then
-		-- The BoostCard custom event (TutorialService's FUNNEL_EVENTS), once a session.
-		self.reportedCard = true
-		pcall(function()
-			Net.get("TutorialEvent"):FireServer("BoostCardOpened")
-		end)
-	end
 end
 
 function BoostPill.hideCard(self: any)
@@ -760,6 +753,14 @@ function BoostPill.press(self: any)
 		self:hideCard()
 	else
 		self:pin(P.PinSeconds)
+		if not self.reportedCard then
+			-- The BoostCard custom event (TutorialService's FUNNEL_EVENTS), once a session and
+			-- only for a press (a hover or the card a VIP purchase opens is not a choice).
+			self.reportedCard = true
+			pcall(function()
+				Net.get("TutorialEvent"):FireServer("BoostCardOpened")
+			end)
+		end
 	end
 end
 
