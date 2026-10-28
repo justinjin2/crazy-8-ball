@@ -50,6 +50,16 @@ local function visitNow(): number?
 	return if ok and type(start) == "number" then start else nil
 end
 
+-- The minute of the King's next visit, ":45" (the map lane's Rules.kingNext and minuteText),
+-- or "" without them.
+local function nextVisitText(): string
+	local ok, text = pcall(function(): any
+		local Rules = require(Shared:WaitForChild("HalloweenMap"):WaitForChild("Rules")) :: any
+		return Rules.minuteText(Rules.kingNext(Clock.serverNow()))
+	end)
+	return if ok and type(text) == "string" then text else ""
+end
+
 -- Whether the King visits on a schedule (the map lane's Config.HalloweenMap.Boss.Mode "Timed")
 -- rather than sitting on his throne; a missing key is the throne.
 local function kingTimed(): boolean
@@ -371,6 +381,17 @@ function CandyService.bossWon(player: Player, visitStart: number?): BossWon
 				warn("[8ball] CandyService: the King's XP failed: " .. tostring(err))
 			end
 		end
+		-- The win's line on screen (CandyToast): what it paid, or that this visit already paid
+		-- and when he is back (the result card shows a Pc match's $0 and no XP).
+		Net.get("Halloween"):FireClient(player, {
+			king = {
+				paid = boss.granted,
+				candy = boss.amount,
+				money = boss.money or 0,
+				xp = xp,
+				back = nextVisitText(),
+			},
+		})
 	end
 	after(player, result, "Boss")
 	return { granted = boss.granted, amount = boss.amount, cooldownEndsAt = boss.cooldownEndsAt }
@@ -417,6 +438,35 @@ export type MatchFacts = {
 -- The last match each player used an ability in ("tableId:epoch", from UltService.Used).
 local ultMatch: { [Player]: string } = setmetatable({}, { __mode = "k" }) :: any
 
+-- Whether the match `matchKey` ("tableId:epoch") is a Pumpkin King match: a bot with a boss's
+-- own look (BotService.playBoss sets `icon` only for the King, hw-map lane) in a seat at that
+-- table, in that game. Read late (TableService and BotService require Ranking, which requires
+-- this module); false on any doubt.
+local function kingTable(matchKey: string): boolean
+	local tableId, epoch = string.match(matchKey or "", "^(%d+):(%d+)$")
+	if tableId == nil then
+		return false
+	end
+	local ok, found = pcall(function(): any
+		local t = require(script.Parent.Parent.TableService).get(tonumber(tableId) :: number) :: any
+		local e = t and t.engine
+		if e == nil or tostring(e.epoch) ~= epoch then
+			return false
+		end
+		local BotService = require(script.Parent.Parent.Bots.BotService) :: any
+		for _, seat in e.seats do
+			local bot = if type(seat.userId) == "number" and seat.userId < 0
+				then BotService.get(seat.userId)
+				else nil
+			if bot and bot.icon ~= nil then
+				return true
+			end
+		end
+		return false
+	end)
+	return ok and found == true
+end
+
 --- A settled match's Candy and quest events (Ranking.settleOne, in a pcall): real matches
 --- against people only (the tutorial's bot counts; a disguised bot, PC and solo never do), all
 --- in one commit. Returns the Candy added (0 when the match pays none: never a "+0").
@@ -436,6 +486,13 @@ function CandyService.matchSettled(player: Player, f: MatchFacts): number
 		if group then "Group" else "NoGroup"
 	)
 	if how ~= "Paid" then
+		if how == "PC" and kingTable(f.matchKey) then
+			-- A Pumpkin King match: the Matches and Balls quests only (Boss.CountsForQuests).
+			local events = CandyMath.kingEvents(f.balls, f.forfeited)
+			if #events > 0 then
+				after(player, PlayerData.hwQuest(player, events, CandyService.ctx()), "King")
+			end
+		end
 		return 0
 	end
 	local farm = f.farm or { Balls = 1, Bonus = 1 }
