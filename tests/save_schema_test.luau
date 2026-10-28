@@ -364,6 +364,7 @@ local FIELDS = {
 	"LuckyBlocks",
 	"EmoteFavorites",
 	"Badges",
+	"Halloween",
 }
 
 -- Sub-fields the fuzz breaks, by table.
@@ -1812,5 +1813,54 @@ return {
 			"smallest kept"
 		)
 		H.expect(#capNotes == 1, "one note: " .. table.concat(capNotes, "; "))
+	end,
+
+	["an older save without the Halloween field loads clean, and a broken one is mended"] = function()
+		local Config, SaveSchema = setup()
+		-- A save from before the Halloween event (2026-10-28): no Halloween at all.
+		local old = SaveSchema.template()
+		old.Halloween = nil
+		local out, notes = SaveSchema.migrate(old)
+		H.expect(#notes == 0, "no migration needed")
+		reconcile(out, SaveSchema.template())
+		local hw = out.Halloween
+		H.expect(type(hw) == "table" and hw.Earned == 0 and hw.Bought == 0, "added fresh")
+		H.expect(hw.Converted == false and next(hw.Given) == nil and next(hw.Q) == nil, "empty")
+		local _, fixes = SaveSchema.validate(out)
+		H.expect(#fixes == 0, "clean: " .. table.concat(fixes, "; "))
+		assertClean(Config, SaveSchema, out)
+		-- A first-day shape missing later keys: Reconcile adds them, nothing else changes.
+		local partial = SaveSchema.template()
+		partial.Halloween = { Earned = 120, Given = { ["1"] = true }, Q = { ["1.1"] = 1 } }
+		reconcile(partial, SaveSchema.template())
+		local fixedPartial, why0 = SaveSchema.validate(partial)
+		H.expect(#why0 == 0, "reconciled clean: " .. table.concat(why0, "; "))
+		H.expect(fixedPartial.Halloween.Earned == 120, "Candy kept")
+		H.expect(fixedPartial.Halloween.Given["1"] == true, "step kept")
+		H.expect(
+			fixedPartial.Halloween.KingReadyAt == 0 and fixedPartial.Halloween.Seen == false,
+			""
+		)
+		-- Junk values: clamped, dropped or reset; unknown keys kept.
+		local save = SaveSchema.template()
+		save.Halloween.Earned = -5
+		save.Halloween.Bought = 2.5
+		save.Halloween.Spider = "yes"
+		save.Halloween.Given = { ["2"] = true, ["3"] = 1, [4] = true }
+		save.Halloween.Q = { ["1.1"] = 3, ["1.2"] = -1, ["1.3"] = "x" }
+		save.Halloween.Claimed = 7
+		save.Halloween.Later = 1
+		local fixed, why = SaveSchema.validate(save)
+		local f = fixed.Halloween
+		H.expect(f.Earned == 0 and f.Bought == 2 and f.Spider == false, "counters and marks")
+		H.expect(f.Given["2"] == true and f.Given["3"] == nil and f.Given[4] == nil, "Given")
+		H.expect(f.Q["1.1"] == 3 and f.Q["1.2"] == nil and f.Q["1.3"] == nil, "Q")
+		H.expect(type(f.Claimed) == "table" and f.Later == 1, "Claimed mended, unknown kept")
+		H.expect(#why >= 5, "reported")
+		-- Not a table at all: replaced by a fresh one.
+		local broken = SaveSchema.template()
+		broken.Halloween = 7
+		local mended = SaveSchema.validate(broken)
+		H.expect(type(mended.Halloween) == "table" and mended.Halloween.Earned == 0, "mended")
 	end,
 }

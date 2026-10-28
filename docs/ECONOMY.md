@@ -39,6 +39,7 @@ Where that file and this one disagree, **this one wins**.
 | **Solo and practice against PC** | **$30 a ball** (SoloShare 0.3) until **$3,000 a day, the two together**, then $10 a ball. No nice shots, no ball streak, no match bonus, no XP, no lucky blocks, no win-track steps, no login/Sky/trade-gate credit |
 | A disguised bot past 20 wins a day | pays the practice rows (hidden) |
 | Win-track money steps | rising: $500, $750, $1,000, then $1,000, $1,250, $1,500, $2,000 (section 3.1; $250 each until 2026-10-12) |
+| **Friend boost** (2026-10-28, the Halloween update; permanent) | **+10% for each friend in your server, at most 4 (+40%)**, added to the other boosts (VIP, Group, Plus, Starter, Party; archive 3.5), so it reaches what they reach: match money (every ball, nice shots, the ball streak, the match bonus). Never rewards, the win track, packs or sell-back. A failed or slow friend check counts 0. Off switch `Config.Economy.FriendBoostEnabled`; numbers `FriendBoost`, `FriendBoostMaxFriends` |
 
 Practice is reachable only through the developer commands until the Solo and Practice portals
 are built (planned with the designer, 2026-10-10).

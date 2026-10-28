@@ -510,20 +510,20 @@ validation, the no-award guard outside the live experience, the spend guard.
 
 ## Progress
 
-- [ ] 1. Interface push 1 (by 08:15): `Config.Multiplayer.Roam` (off), `Config.Badges` with 52 inert rows, `Strings.Badges`, the `Badges` save field + `Stats.UltMatches` + `Config.Save.MaxBadgeEntries` + old-save test; first, write `tools/roblox_badges.py` with only `read_api_key` and `--probe`, and run the probe (section 2.4; a missing scope goes to Justin now).
-- [ ] 2. Interface push 2 (by 08:15): `src/server/Badges.luau` public API honouring the switch, the Bootstrap line, the `UltService.Used` signal (this lane adds it; the build's only UltService edit); lane file Status says both pushed; Requests to map (grant call, King prompt refuses seated players) and core (subscribe to `UltService.Used` through a guarded require, no UltService edit of its own; keep `Halloween.KingWins`, `Earned`, `Bought` names stable); every shared-file line listed in the lane file.
-- [ ] 3. Icons: 4-icon style test, then the batch of 52 in the background (`tools/gen_badge_icons.py`, `assets/ui/badges/`), contact sheet.
-- [ ] 4. `src/shared/Matchmaking/Roam.luau` + `tests/roam_test.luau`.
-- [ ] 5. TableService roam: PoolRoamer group, `roams`, `outsideArea` moved up, waiting branch, fall rescue kept, turn-start seat-weld release + home move, `RoamHome` event.
-- [ ] 6. Guards: `Portals.setBlocked` + the Progression call; LuckyBlockService `Busy` during a match.
-- [ ] 7. First Studio roam pass (checks 1, 3, 4, 8) and gate 1 shots; merge `halloween` after 08:30.
+- [x] 1. Interface push 1 (by 08:15): `Config.Multiplayer.Roam` (off), `Config.Badges` with 52 inert rows, `Strings.Badges`, the `Badges` save field + `Stats.UltMatches` + `Config.Save.MaxBadgeEntries` + old-save test; first, write `tools/roblox_badges.py` with only `read_api_key` and `--probe`, and run the probe (section 2.4; a missing scope goes to Justin now).
+- [x] 2. Interface push 2 (by 08:15): `src/server/Badges.luau` public API honouring the switch, the Bootstrap line, the `UltService.Used` signal (this lane adds it; the build's only UltService edit); lane file Status says both pushed; Requests to map (grant call, King prompt refuses seated players) and core (subscribe to `UltService.Used` through a guarded require, no UltService edit of its own; keep `Halloween.KingWins`, `Earned`, `Bought` names stable); every shared-file line listed in the lane file.
+- [x] 3. Icons: 4-icon style test, then the batch of 52 in the background (`tools/gen_badge_icons.py`, `assets/ui/badges/`), contact sheet.
+- [x] 4. `src/shared/Matchmaking/Roam.luau` + `tests/roam_test.luau`.
+- [x] 5. TableService roam: PoolRoamer group, `roams`, `outsideArea` moved up, waiting branch, fall rescue kept, turn-start seat-weld release + home move, `RoamHome` event.
+- [x] 6. Guards: `Portals.setBlocked` + the Progression call; LuckyBlockService `Busy` during a match.
+- [x] 7. First Studio roam pass (checks 1, 3, 4, 8) and gate 1 shots; merge `halloween` after 08:30.
 - [ ] 8. Gate 1 (09:00): shots in `gate1/`, one line each in the lane file.
-- [ ] 9. `tools/export_badges.luau` + the rest of `tools/roblox_badges.py` around the step-1 probe (dry run, duplicate skip, manifest, cost guard, write-back, `--self-test`); dry-run plan in the lane file.
+- [x] 9. `tools/export_badges.luau` + the rest of `tools/roblox_badges.py` around the step-1 probe (dry run, duplicate skip, manifest, cost guard, write-back, `--self-test`); dry-run plan in the lane file.
 - [ ] 10. Create the 5 free badges and ONE paid one; Justin confirms group funds (waiting file); create the other 46; `--write-config`; manifest + ids committed (by 10:45).
 - [ ] 11. Gate 2 (11:00): shots in `gate2/`, one line each in the lane file.
 - [ ] 12. Pure `src/shared/Progression/Badges.luau` + `tests/badges_test.luau` + config_test and save_schema_test lines; `Inventory.everOwned`; the `halloween` rule kind (Pumpkin Slayer, Halloween 2026) and its tests; the BroomRider rule after the Cues A merge.
-- [ ] 13. Server queue in `src/server/Badges.luau`: load pass, Changed debounce, holds (tutorial, reel), budget, stagger, award/has/retry, Studio and test-place logging, `BadgeAwarded`, `BadgesQA`.
-- [ ] 14. Hooks: Ranking settle (Squad, BeatOwner), `UltService.Used` (Ability1, `countUltMatch`), OwnerHere, InGroup, PumpkinSlayer grant (map's call; the `KingWins` rule back-pays).
+- [x] 13. Server queue in `src/server/Badges.luau`: load pass, Changed debounce, holds (tutorial, reel), budget, stagger, award/has/retry, Studio and test-place logging, `BadgeAwarded`, `BadgesQA`.
+- [x] 14. Hooks: Ranking settle (Squad, BeatOwner), `UltService.Used` (Ability1, `countUltMatch`), OwnerHere, InGroup, PumpkinSlayer grant (map's call; the `KingWins` rule back-pays).
 - [ ] 15. Result walk-off exemption; roam checks 2, 5, 6, 7, 9, 10; `Roam.Enabled = true` once all pass.
 - [ ] 16. Badge Studio checks (tutorial hold, veteran stagger and budget, reel hold, settle cases, console clean); `Badges.Enabled = true` once they pass.
 - [ ] 17. Fresh-player run with both switches on (join, tutorial or skip, first match, popups).

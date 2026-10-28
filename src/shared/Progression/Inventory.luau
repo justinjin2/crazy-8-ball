@@ -190,6 +190,8 @@ end
 local function everOwned(save: any, id: string): boolean
 	return readMap(save, "Index", "Seen")[id] == true or Inventory.owns(save, id)
 end
+--- The same, public (the badges' cue rules, Progression/Badges).
+Inventory.everOwned = everOwned
 
 --- True when the cue is in the save's Index: owned now or ever (sold ones stay).
 function Inventory.found(save: any, id: any): boolean
