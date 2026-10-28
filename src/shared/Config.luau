@@ -18218,10 +18218,11 @@ Config.EmoteMenu = {
 		MaxStuds = 42,
 		Sounds = {
 			-- Popcorn makes only the munch (designer, 2026-10-27: the rest was annoying): the
-			-- designer's crunch, only its first crunch (0.1 to 0.38 s, then quiet), very quiet
-			-- (designer, 2026-10-27: 0.025 was inaudible; was "Crunch" 9113138343 at 0.6, 0.2).
+			-- designer's crunch, only its first crunch (0.1 to 0.38 s, then quiet), quiet
+			-- (designer, 2026-10-27: 0.025 was inaudible; was "Crunch" 9113138343 at 0.6, 0.2;
+			-- 2026-10-28: hard to hear at 0.07, about twice as loud as heard now, 0.17).
 			Puff = { Id = "rbxassetid://9116406899", Volume = 0.5 }, -- Bullseye's props pop in and out
-			Munch = { Id = "rbxassetid://120048375176233", Volume = 0.07, Seconds = 0.5 },
+			Munch = { Id = "rbxassetid://120048375176233", Volume = 0.17, Seconds = 0.5 },
 			Draw = { Id = "rbxassetid://9125405388", Volume = 0.5 }, -- the string pulled
 			Release = { Id = "rbxassetid://9113166206", Volume = 0.6 }, -- the arrow looses
 			Thunk = { Id = "rbxassetid://9113161146", Volume = 0.8 }, -- it sticks
@@ -18233,9 +18234,10 @@ Config.EmoteMenu = {
 	-- nearby"), in the Music group so Settings' Music switch mutes it.
 	MusicVolume = 0.5, -- a track's volume when its row gives none
 	-- Every emote's sound (the songs and Popcorn's and Bullseye's) at this share of the volumes
-	-- here (designer, 2026-10-27, live: one dancer was too loud; 45% quieter). Dancers in step
-	-- still get louder together (MusicTwoTogether).
-	Loudness = 0.55,
+	-- here (designer, 2026-10-27, live: one dancer was too loud; 45% quieter; 2026-10-28:
+	-- another 18% quieter to be safe over gameplay, was 0.55). Dancers in step still get louder
+	-- together (MusicTwoTogether).
+	Loudness = 0.45,
 	-- 30% nearer (designer, 2026-10-27, live: heard too far; were 12 and 70). A table is about
 	-- 18 studs long with its rails: half volume about a table away, silent at under three.
 	MusicHearStuds = 8.4, -- full volume up to here

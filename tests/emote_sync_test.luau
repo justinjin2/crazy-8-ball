@@ -293,10 +293,10 @@ return {
 		H.expect(bullseye ~= nil and bullseye.WalkSpeed == 0, "no walking while shooting")
 	end,
 
-	["every emote sound is 40 to 50% quieter than its listed volume"] = function()
+	["every emote sound is about 55% quieter than its listed volume"] = function()
 		local _, Config = load()
 		local E = Config.EmoteMenu
-		H.expect(E.Loudness >= 0.5 and E.Loudness <= 0.6, "a dancer alone, 40 to 50% quieter")
+		H.expect(E.Loudness >= 0.4 and E.Loudness <= 0.5, "a dancer alone, 50 to 60% quieter")
 		H.expect(E.MusicTwoTogether > 1, "still louder together")
 	end,
 
