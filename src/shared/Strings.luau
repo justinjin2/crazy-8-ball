@@ -1286,6 +1286,11 @@ return {
 	BoostPill = {
 		Title = "YOUR BOOSTS",
 		Percent = "+%d%%",
+		-- The HUD lines over the money pill (no background): Money green, Candy orange.
+		Lines = {
+			Money = "Money Boost: +%d%%",
+			Candy = "Candy Boost: +%d%%", -- while the event is live
+		},
 		Parts = {
 			Vip = "VIP",
 			Group = "Group",
@@ -1294,7 +1299,7 @@ return {
 			Starter = "Starter Pack",
 			Party = "Money Party",
 		},
-		TimeLeft = "%s left", -- after a timed part: "Starter Pack · 42m left"
+		TimeLeft = "%s · %s left", -- a timed part and its time: "Starter Pack · 42m left"
 		Total = "Total",
 		None = "No boosts yet",
 		FriendRule = "Each friend in your server +%d%% (max %d)",

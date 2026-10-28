@@ -5,22 +5,26 @@
 -- shape (`tag`, `on`, `top`, `setInMatch`, `showPerks`, `layout`), so Purchased and LuckClover
 -- work with it unchanged.
 --
--- The pill: a white pill with the ink outline, as the money pill; a crown (rocking, as the VIP
--- tag's) for VIP, else a green up-arrow; then "+N%", N = Money.boost of the player's flags
--- (BoostFlags.of, the reader the server pays from, so the pill shows what is paid). "+0%" shows
--- dimmed (ShowAtZero). A higher total counts up, then pops; a lower one just changes.
+-- The pill has no background (designer, 2026-10-28): outlined text in the HUD font, "Money
+-- Boost: +N%" in green, N = Money.boost of the player's flags (BoostFlags.of, the reader the
+-- server pays from, so it shows what is paid); over it while the event is live "Candy Boost:
+-- +N%" in orange, N from CandyMath.multiplier (the event's Rush or double day x (1 + friends +
+-- group), what CandyService pays). A line at +0% shows dimmed (ShowAtZero). A higher number
+-- counts up, then its line pops; a lower one just changes.
 -- Hovering shows "YOUR BOOSTS" over it (a row per Money.boostParts part, the total, the friend
 -- rule, the Candy line while the event is live, then grey the boosts still to get); a click,
 -- tap or A pins it open for PinSeconds, a second press or B closes it. In a match it still
--- shows (money does) but takes no input and its card shuts. Hidden while the tutorial runs.
+-- shows (money does) but takes no input and its card shuts. Hidden while the tutorial runs
+-- (a VIP's shows, as the VIP tag did).
 --
 -- The Rush chip (R1.10): its shell and place are this module's, its words core's. Once a second
 -- it asks src/client/Halloween/RushChip.luau `RushChip.content(now) -> { text, endsAt }?`
 -- (guarded: missing, an error or nil hides it); its icon is Config.Halloween.CandyIcon (guarded;
 -- missing or "" collapses the slot). It pops in the first time, then its colour breathes gently
--- (never its scale: text never pulses). HudLayout places the pill and the chip from the live
--- rects of the pieces around them. Studio only: GuiQA `boosts`, `boostCard`, `boostPerks`,
--- `rushChip`, `hudRects`, `hudOverlap`. Sizes in Config.UI.BoostPill, words in Strings.BoostPill.
+-- (never its scale: text never pulses); it says what runs and for how long, the Candy line how
+-- much. HudLayout places the lines and the chip from the live rects of the pieces around them.
+-- Studio only: GuiQA `boosts`, `candyLine`, `boostCard`, `boostPress`, `boostPerks`, `rushChip`,
+-- `hudRects`, `hudOverlap`. Sizes in Config.UI.BoostPill, words in Strings.BoostPill.
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
@@ -76,6 +80,11 @@ local EventModule: any = optional(function()
 	local module = folder and folder:FindFirstChild("Event")
 	return if module then (require :: any)(module) else nil
 end)
+local CandyMathModule: any = optional(function()
+	local folder = Shared:FindFirstChild("Halloween")
+	local module = folder and folder:FindFirstChild("CandyMath")
+	return if module then (require :: any)(module) else nil
+end)
 local ClockModule: any = optional(function()
 	local folder = Shared:FindFirstChild("Halloween")
 	local module = folder and folder:FindFirstChild("Clock")
@@ -90,6 +99,25 @@ local function now(): number
 		end
 	end
 	return workspace:GetServerTimeNow()
+end
+
+-- Core's client State (State.on(): the event may show for this player), read guarded.
+local StateModule: any = nil
+local stateLooked = false
+local function eventShows(): boolean
+	if not stateLooked then
+		stateLooked = true
+		StateModule = optional(function()
+			local folder = script.Parent:FindFirstChild("Halloween")
+			local module = folder and folder:FindFirstChild("State")
+			return if module then (require :: any)(module) else nil
+		end)
+	end
+	if not StateModule or type(StateModule.on) ~= "function" then
+		return false
+	end
+	local ok, on = pcall(StateModule.on)
+	return ok and on == true
 end
 
 local function candyIcon(): string?
@@ -127,16 +155,16 @@ function BoostPill.new(money: any): any
 	self.hovered = false
 	self.pinned = false
 	self.pinToken = 0
-	self.total = nil :: number?
 	self.fake = nil :: any -- GuiQA `boosts`
+	self.candyFake = nil :: (number | false)? -- GuiQA `candyLine`
+	self.candyOn = false -- the Candy line shows
 	self.chipFake = nil :: string? -- GuiQA `rushChip`
 	self.chipOn = false
 	self.chipWords = ""
-	self.loops = {} :: { UIAnim.Handle }
-	self.count = nil :: UIAnim.Handle?
 	self.chipBreath = nil :: Tween?
 	self.reportedCard = false
 	self.rushWarned = false
+	self.perks = false -- VIP was just bought (showPerks): it shows even while the tutorial runs
 
 	local tag = Instance.new("TextButton")
 	tag.Name = "BoostPill"
@@ -149,30 +177,34 @@ function BoostPill.new(money: any): any
 	tag.ZIndex = P.ZIndex
 	tag.Parent = money.root
 	self.tag = tag
-	local face = HudParts.pill(tag, "Face")
-	face.Size = UDim2.fromScale(1, 1)
-	face.ZIndex = P.ZIndex
-	self.face = face
-	local crown = HudParts.icon(face, "Crown", "Crown")
-	crown.AnchorPoint = Vector2.new(0.5, 0.5)
-	crown.ZIndex = P.ZIndex + 1
-	self.crown = crown
-	local arrow = HudParts.icon(face, "ArrowWhite", "Arrow")
-	arrow.AnchorPoint = Vector2.new(0.5, 0.5)
-	arrow.Rotation = -90 -- the kit's arrow points right
-	arrow.ImageColor3 = rgb(P.Green)
-	arrow.ZIndex = P.ZIndex + 1
-	self.arrow = arrow
-	local word = HudParts.text(face, "Word", P.TextPx, percent(0))
-	word.AutoLocalize = false
-	word.TextWrapped = false
-	word.TextXAlignment = Enum.TextXAlignment.Left
-	word.AnchorPoint = Vector2.new(0, 0.5)
-	word.ZIndex = P.ZIndex + 1
-	self.word = word
+	-- The lines, no background: Money right over the money pill, Candy over it (HudLayout).
+	self.lines = {} :: { [string]: any }
+	for _, kind in { "Money", "Candy" } do
+		local tint = if kind == "Money" then P.MoneyGreen else P.CandyOrange
+		local label = HudParts.text(tag, kind, P.TextPx, "", rgb(tint))
+		label.AutoLocalize = false -- a number in it
+		label.TextWrapped = false
+		label.TextXAlignment = Enum.TextXAlignment.Left
+		label.AnchorPoint = Vector2.new(0, 0.5) -- its pop grows from its left end
+		label.Visible = kind == "Money"
+		label.ZIndex = P.ZIndex + 1
+		self.lines[kind] = { label = label, pattern = COPY.Lines[kind], value = nil, count = nil }
+	end
 
-	-- The card over the pill.
-	local card = HudParts.popupCard(tag, "Boosts", K.CornerPx)
+	-- The card over the pill, in a holder whose UIScale shrinks it on a short screen
+	-- (HudLayout.cardFit; the card's own UIScale is its pop's).
+	local holder = Instance.new("Frame")
+	holder.Name = "BoostsHolder"
+	holder.BackgroundTransparency = 1
+	holder.Size = UDim2.fromOffset(0, 0)
+	holder.ZIndex = P.ZIndex + 2
+	holder.Parent = tag
+	self.holder = holder
+	local fit = Instance.new("UIScale")
+	fit.Name = "FitScale"
+	fit.Parent = holder
+	self.fit = fit
+	local card = HudParts.popupCard(holder, "Boosts", K.CornerPx)
 	card.AnchorPoint = Vector2.new(0, 1)
 	card.Visible = false
 	card.ZIndex = P.ZIndex + 2
@@ -287,53 +319,62 @@ function BoostPill.flags(self: any): Money.Boosts
 	return BoostFlags.of(player, workspace:GetServerTimeNow())
 end
 
--- Whether the pill may show: the save is in, the money HUD shows, the tutorial is over.
-function BoostPill.allowed(self: any): boolean
+-- Whether the pill may show: the save is in, the money HUD shows, the tutorial is over. A VIP's
+-- shows while the tutorial runs too (the VIP tag did), and so does one VIP was just bought on
+-- (the Vip attribute may land a moment after the purchase's message).
+function BoostPill.allowed(self: any, vip: boolean): boolean
 	local player = Players.LocalPlayer
 	if not player then
 		return true
 	end
-	if Steps.active(player:GetAttribute("TutorialStep")) then
+	if Steps.active(player:GetAttribute("TutorialStep")) and not (vip or self.perks) then
 		return false
 	end
 	return self.money.root.Visible
 end
 
---- Recompute the total and the pill's look; show or hide it.
-function BoostPill.refresh(self: any)
-	local flags = self:flags()
-	local total = math.floor(Money.boost(flags) * 100 + 0.5)
-	local vip = flags.vip == true
-	self.crown.Visible = vip
-	self.arrow.Visible = not vip
-	local show = self:allowed() and (total > 0 or P.ShowAtZero)
-	if vip ~= self.vipShown then
-		self.vipShown = vip
-		self:stopLoops()
-		if vip then
-			local R = P.CrownRock
-			table.insert(self.loops, UIAnim.turn(self.crown, 0, R[1], R[2]))
-		end
+-- The Candy line's number while the event is live and shows for this player (nil otherwise):
+-- CandyMath.multiplier's boost over 1, the Rush or double day included (what CandyService pays).
+function BoostPill.candyPercent(self: any, flags: Money.Boosts): number?
+	if self.candyFake ~= nil then
+		return if self.candyFake == false then nil else self.candyFake
 	end
-	local old = self.total
-	self.total = total
-	if old == nil or total <= old or not self.on then
-		if self.count then
-			self.count.stop()
-			self.count = nil
+	if not (EventModule and CandyMathModule) or not eventShows() then
+		return nil
+	end
+	local ok, value = pcall(function(): number?
+		local at = now()
+		if not EventModule.isLive(at) then
+			return nil
 		end
-		self.word.Text = COPY.Percent:format(total)
-	elseif total > old then
-		-- A higher total counts up, then pops.
-		if self.count then
-			self.count.stop()
-		end
-		self.count = UIAnim.countUp(old, total, function(value: number)
-			self.word.Text = COPY.Percent:format(math.floor(value + 0.5))
+		local friends = if type(flags.friends) == "number" then flags.friends else 0
+		local m =
+			CandyMathModule.multiplier(EventModule.multiplier(at), friends, flags.group == true)
+		return math.floor((m - 1) * 100 + 0.5)
+	end)
+	return if ok and type(value) == "number" then math.max(0, value) else nil
+end
+
+-- One line's number: a higher one counts up, then the line pops; a lower one just changes. At
+-- +0% the line dims (its outline too).
+function BoostPill.setLine(self: any, kind: string, value: number)
+	local line = self.lines[kind]
+	local label: TextLabel = line.label
+	local old = line.value
+	line.value = value
+	if line.count then
+		line.count.stop()
+		line.count = nil
+	end
+	if old == nil or value <= old or not self.on or not label.Visible then
+		label.Text = line.pattern:format(value)
+	else
+		line.count = UIAnim.countUp(old, value, function(at: number)
+			label.Text = line.pattern:format(math.floor(at + 0.5))
 		end, P.CountSeconds)
 		task.delay(P.CountSeconds, function()
-			if self.total == total and self.on then
-				local scale = UIAnim.scaleOf(self.tag)
+			if line.value == value and self.on then
+				local scale = UIAnim.scaleOf(label)
 				scale.Scale = P.PopScale
 				TweenService:Create(
 					scale,
@@ -347,9 +388,31 @@ function BoostPill.refresh(self: any)
 			end
 		end)
 	end
-	local dim = total == 0
-	self.word.TextTransparency = if dim then P.ZeroTransparency else 0
-	self.arrow.ImageTransparency = if dim then P.ZeroTransparency else 0
+	local fade = if value == 0 then P.ZeroTransparency else 0
+	label.TextTransparency = fade
+	local stroke = label:FindFirstChildOfClass("UIStroke")
+	if stroke then
+		stroke.Transparency = fade
+	end
+end
+
+--- Recompute the numbers and the lines; show or hide them.
+function BoostPill.refresh(self: any)
+	local flags = self:flags()
+	local total = math.floor(Money.boost(flags) * 100 + 0.5)
+	local candy = self:candyPercent(flags)
+	local show = self:allowed(flags.vip == true)
+		and (total > 0 or (candy ~= nil and candy > 0) or P.ShowAtZero)
+	local candyOn = candy ~= nil
+	if candyOn ~= self.candyOn then
+		self.candyOn = candyOn
+		self.lines.Candy.label.Visible = candyOn
+		self.lines.Candy.value = nil -- it appears with its number, no count
+	end
+	self:setLine("Money", total)
+	if candy then
+		self:setLine("Candy", candy)
+	end
 	if show ~= self.on then
 		self.on = show
 		if show then
@@ -359,6 +422,7 @@ function BoostPill.refresh(self: any)
 				task.delay(Config.UI.Motion.Stagger, function()
 					if self.on and self.chipOn then
 						UIAnim.popIn(self.chip)
+						self:breathe(true)
 					end
 				end)
 			end
@@ -367,20 +431,13 @@ function BoostPill.refresh(self: any)
 			self.card.Visible = false
 			UIAnim.popOut(self.tag)
 			self.chip.Visible = false
+			self:breathe(false)
 		end
 	end
 	if self.card.Visible then
 		self:fillCard()
 	end
 	self:layout()
-end
-
-function BoostPill.stopLoops(self: any)
-	for _, handle in self.loops :: { UIAnim.Handle } do
-		handle.stop()
-	end
-	table.clear(self.loops)
-	self.crown.Rotation = 0
 end
 
 -- The live rect of a GuiObject in the screen's pixels, or nil when it does not show.
@@ -438,7 +495,7 @@ function BoostPill.others(self: any, screenSize: HudLayout.Screen): HudLayout.Ot
 	}
 end
 
---- Size and place the pill, the chip and the card (HudLayout, from the live rects).
+--- Size and place the lines, the chip and the card (HudLayout, from the live rects).
 function BoostPill.layout(self: any)
 	local screen = self.screen
 	if not screen or screen.AbsoluteSize.X <= 0 then
@@ -446,25 +503,26 @@ function BoostPill.layout(self: any)
 	end
 	local size = { w = screen.AbsoluteSize.X, h = screen.AbsoluteSize.Y }
 	local short = HudLayout.short(size)
-	local scene: HudLayout.Scene = { chipText = if self.chipOn then self.chipWords else nil }
+	local scene: HudLayout.Scene = {
+		chipText = if self.chipOn then self.chipWords else nil,
+		candy = self.candyOn,
+	}
 	local others = self:others(size)
 	local b = HudLayout.boost(size, scene, others)
 	self.lastLayout = { others = others, boost = b, size = size }
 	local root: GuiObject = self.money.root
 	local origin = root.AbsolutePosition - screen.AbsolutePosition
 
-	-- The pill.
+	-- The lines: Money at the bottom, Candy over it.
 	local pill = b.pill
 	self.tag.Position = UDim2.fromOffset(pill.x - origin.X, pill.y - origin.Y)
 	self.tag.Size = UDim2.fromOffset(pill.w, pill.h)
-	local iconPx = math.floor(pill.h * P.IconShare)
-	for _, icon in { self.crown, self.arrow } do
-		icon.Position = UDim2.new(0, P.PadPx + iconPx / 2, 0.5, 0)
-		icon.Size = UDim2.fromOffset(iconPx, iconPx)
+	for kind, line in self.lines :: { [string]: any } do
+		local fromBottom = if kind == "Money" then 0 else 1
+		HudParts.setTextSize(line.label, b.pillTextPx)
+		line.label.Position = UDim2.fromOffset(0, pill.h - (fromBottom + 0.5) * b.lineH)
+		line.label.Size = UDim2.fromOffset(pill.w, b.lineH)
 	end
-	HudParts.setTextSize(self.word, b.pillTextPx)
-	self.word.Position = UDim2.new(0, P.PadPx + iconPx + P.InnerGapPx, 0.5, 0)
-	self.word.Size = UDim2.fromOffset(pill.w - 2 * P.PadPx - iconPx - P.InnerGapPx, pill.h)
 
 	-- The chip.
 	local chip = b.chip
@@ -488,10 +546,10 @@ function BoostPill.layout(self: any)
 	end
 
 	-- The card over the pill, inside the screen (its rows were laid out by fillCard).
-	local cardW = self.cardW or (if short then K.ShortWidthPx else K.WidthPx)
+	local cardW = (self.cardW or (if short then K.ShortWidthPx else K.WidthPx)) * self.fit.Scale
 	local maxX = math.max(0, size.w - cardW)
 	local dx = math.clamp(pill.x, 0, maxX) - pill.x
-	self.card.Position = UDim2.fromOffset(dx, -K.AbovePx)
+	self.holder.Position = UDim2.fromOffset(dx, -K.AbovePx)
 end
 
 --------------------------------------------------------------------------------------------
@@ -547,7 +605,7 @@ function BoostPill.cardLines(self: any): { any }
 		end
 		local left = timeLeft(part.kind, at)
 		if left then
-			words ..= " · " .. COPY.TimeLeft:format(left)
+			words = COPY.TimeLeft:format(words, left)
 		end
 		table.insert(lines, {
 			icon = ICONS[part.kind],
@@ -565,8 +623,8 @@ function BoostPill.cardLines(self: any): { any }
 end
 
 -- The lines under the total: the friend rule (it also says how to get more), the Candy line,
--- the boosts still to get.
-function BoostPill.footLines(self: any, room: boolean): { string }
+-- the boosts still to get. fillCard drops them from the end when the card would not fit.
+function BoostPill.footLines(self: any): { string }
 	local flags = self:flags()
 	local lines = {}
 	if E.FriendBoostEnabled == true then
@@ -581,13 +639,11 @@ function BoostPill.footLines(self: any, room: boolean): { string }
 			table.insert(lines, COPY.CandyToo)
 		end
 	end
-	if room then
-		if flags.group ~= true then
-			table.insert(lines, COPY.Get.Group:format(math.floor(E.GroupBoost * 100 + 0.5)))
-		end
-		if flags.vip ~= true then
-			table.insert(lines, COPY.Get.Vip:format(math.floor(E.VipBoost * 100 + 0.5)))
-		end
+	if flags.group ~= true then
+		table.insert(lines, COPY.Get.Group:format(math.floor(E.GroupBoost * 100 + 0.5)))
+	end
+	if flags.vip ~= true then
+		table.insert(lines, COPY.Get.Vip:format(math.floor(E.VipBoost * 100 + 0.5)))
 	end
 	return lines
 end
@@ -598,29 +654,18 @@ function BoostPill.fillCard(self: any)
 	local screen = self.screen
 	local short = screen ~= nil
 		and HudLayout.short({ w = screen.AbsoluteSize.X, h = screen.AbsoluteSize.Y })
-	-- The room over the pill: the grey "could get" rows go when the card would not fit.
+	-- The room over the pill up to the screen's top: the foot lines go from the end, then the
+	-- card scales down, until it fits (HudLayout.cardFit).
 	local room = math.huge
 	if self.tag.AbsoluteSize.Y > 0 and screen then
 		room = self.tag.AbsolutePosition.Y - screen.AbsolutePosition.Y - K.AbovePx
 	end
-	local function heightFor(feet: number): number
-		return K.PadPx
-			+ K.TitlePx
-			+ 4
-			+ K.GapPx
-			+ #lines * K.RowPx
-			+ K.GapPx
-			+ K.RulePx
-			+ K.GapPx
-			+ K.TotalPx
-			+ 4
-			+ feet * (K.NotePx + 4)
-			+ K.PadPx
+	local feet = self:footLines()
+	local keep, scale = HudLayout.cardFit(room, #lines, #feet)
+	for index = #feet, keep + 1, -1 do
+		table.remove(feet, index)
 	end
-	local feet = self:footLines(true)
-	if heightFor(#feet) > room then
-		feet = self:footLines(false)
-	end
+	self.fit.Scale = scale
 	-- Width: the widest row, at least the card's width for this screen.
 	local widest = ShopParts.textWidth(COPY.Title, K.TitlePx)
 	for _, line in lines do
@@ -718,13 +763,6 @@ function BoostPill.showCard(self: any, big: boolean)
 	elseif not self.card.Visible then
 		UIAnim.popIn(self.card)
 	end
-	if not self.reportedCard then
-		-- The BoostCard custom event (TutorialService's FUNNEL_EVENTS), once a session.
-		self.reportedCard = true
-		pcall(function()
-			Net.get("TutorialEvent"):FireServer("BoostCardOpened")
-		end)
-	end
 end
 
 function BoostPill.hideCard(self: any)
@@ -760,6 +798,14 @@ function BoostPill.press(self: any)
 		self:hideCard()
 	else
 		self:pin(P.PinSeconds)
+		if not self.reportedCard then
+			-- The BoostCard custom event (TutorialService's FUNNEL_EVENTS), once a session and
+			-- only for a press (a hover or the card a VIP purchase opens is not a choice).
+			self.reportedCard = true
+			pcall(function()
+				Net.get("TutorialEvent"):FireServer("BoostCardOpened")
+			end)
+		end
 	end
 end
 
@@ -808,6 +854,7 @@ end
 --- VIP was just bought: the pill shows its new total and the card slams in, the VIP row
 --- flashing gold.
 function BoostPill.showPerks(self: any)
+	self.perks = true
 	self:refresh()
 	if not self.on then
 		return
@@ -885,10 +932,14 @@ function BoostPill.tick(self: any)
 	elseif on then
 		self:layout() -- the words tick (never re-pops)
 	end
-	-- A timed part (Starter, Party) runs: its end and countdown.
+	-- A timed part (Starter, Party) runs: its end and countdown. The Candy line follows the
+	-- event (Live, a Rush starting or ending).
 	local flags = self:flags()
 	local timed = flags.starter == true or flags.party == true
-	if timed or self.timed then
+	local candy = self:candyPercent(flags)
+	local candyMoved = (candy ~= nil) ~= self.candyOn
+		or (candy ~= nil and candy ~= self.lines.Candy.value)
+	if timed or self.timed or candyMoved then
 		self.timed = timed
 		self:refresh()
 	elseif self.on then
@@ -931,7 +982,15 @@ function BoostPill.addQA(self: any)
 	GuiQA.add("boosts", function(flags: any)
 		self.fake = if type(flags) == "table" then flags else nil
 		self:refresh()
-		return self.word.Text
+		return self.lines.Money.label.Text
+	end)
+	-- ("candyLine", n | false | nil): the Candy line's number instead of the event's (false hides
+	-- it; nil: the event's again).
+	GuiQA.add("candyLine", function(value: (number | false)?)
+		self.candyFake = value
+		self:refresh()
+		local candy = self.lines.Candy.label
+		return candy.Visible, candy.Text
 	end)
 	-- ("boostCard", open?): pin the card open (false: close).
 	GuiQA.add("boostCard", function(open: boolean?)
@@ -940,6 +999,11 @@ function BoostPill.addQA(self: any)
 		else
 			self:pin(P.PinSeconds * 10)
 		end
+		return self.card.Visible
+	end)
+	-- A click, tap or A on the pill (MCP cannot click it).
+	GuiQA.add("boostPress", function()
+		self:press()
 		return self.card.Visible
 	end)
 	GuiQA.add("boostPerks", function()
