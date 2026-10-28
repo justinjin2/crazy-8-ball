@@ -216,6 +216,35 @@ return {
 		S.Enabled = saved
 	end,
 
+	["active play counts only after a real match today, the time before it credited"] = function()
+		local _, Ledger, Config = load()
+		local G = Config.Halloween.ActiveGate
+		local saved = G.Enabled
+		G.Enabled = true
+		-- Before the day's first real match: nothing counts, the time waits.
+		local credit, held = Ledger.gateActive(0, 5, false)
+		H.expect(credit == 0 and held == 5, "held, not counted")
+		credit, held = Ledger.gateActive(held, 5, false)
+		H.expect(credit == 0 and held == 10, "still held")
+		-- The match is done: the held time and this tick count together.
+		credit, held = Ledger.gateActive(held, 5, true)
+		H.expect(credit == 15 and held == 0, "credited at once")
+		credit, held = Ledger.gateActive(held, 5, true)
+		H.expect(credit == 5 and held == 0, "then every tick counts")
+		-- An idle lobby never earns: the held time stops at the cap and is never credited alone.
+		held = 0
+		for _ = 1, 1000 do
+			credit, held = Ledger.gateActive(held, 5, false)
+			H.expect(credit == 0, "no credit without a match")
+		end
+		H.expect(held == G.HoldCapSeconds, "held stops at the cap")
+		-- Switched off: every active second counts at once.
+		G.Enabled = false
+		credit, held = Ledger.gateActive(20, 5, false)
+		H.expect(credit == 25 and held == 0, "gate off")
+		G.Enabled = saved
+	end,
+
 	["the end: all Candy at $10, once, only after EndsAt"] = function()
 		local _, Ledger, _, SaveSchema = load()
 		local hw = SaveSchema.freshHalloween()

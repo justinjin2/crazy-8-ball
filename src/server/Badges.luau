@@ -53,8 +53,9 @@ local B = Config.Badges
 local IS_STUDIO = RunService:IsStudio()
 -- Only the live experience calls Roblox; Studio and the test place log instead.
 local LIVE = not IS_STUDIO and game.GameId == B.UniverseId
--- PlayerData ops that never change what a badge reads (the playtime tick, our own marks).
-local SKIP_OPS = { addPlaySeconds = true, markBadges = true }
+-- PlayerData ops that never change what a badge reads (the playtime tick, our own marks,
+-- Halloween's 5 s active tick: a prize it gives commits as "hwActiveGrant", which is checked).
+local SKIP_OPS = { addPlaySeconds = true, markBadges = true, hwActive = true }
 local TICK_SECONDS = 0.5 -- the queue loop's step while it has work
 local REVEAL_SECONDS = Rules.revealSeconds()
 
@@ -341,15 +342,6 @@ local function onLoaded(player: Player)
 			end
 		elseif ownerHere() then
 			Badges.grant(player, "MetOwner", "Owner")
-		end
-		-- Part of the Crew: in the group now (Social sets InGroup after the load) or later.
-		if player:GetAttribute("InGroup") == true then
-			Badges.grant(player, "Crew", "Group")
-		end
-	end)
-	player:GetAttributeChangedSignal("InGroup"):Connect(function()
-		if player:GetAttribute("InGroup") == true and states[player] then
-			Badges.grant(player, "Crew", "Group")
 		end
 	end)
 end

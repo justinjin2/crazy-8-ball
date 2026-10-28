@@ -6,23 +6,26 @@
   "Parts": [
     {
       "Material": "SmoothPlastic",
-      "Color": "#FF7A1C",
+      "Color": "#FFFFFF",
       "Transparency": 0.0,
-      "Reflectance": 0.1,
-      "Name": "Body_Orange",
-      "File": "pieces/jack_o_lantern/Body_Orange.obj",
+      "Reflectance": 0.06,
+      "SurfaceAppearance": {
+        "ColorMap": "vfx/jack_o_lantern/rind_512.png"
+      },
+      "Name": "Body_Rind",
+      "File": "pieces/jack_o_lantern/Body_Rind.obj",
       "Joint": "Body",
       "Offset": [
         0.0,
         0.0,
-        -0.2625
+        -0.0825
       ],
       "Size": [
         0.6746,
         0.6746,
-        6.805
+        7.165
       ],
-      "Triangles": 3864
+      "Triangles": 4752
     },
     {
       "Material": "SmoothPlastic",
@@ -34,35 +37,15 @@
       "Joint": "Body",
       "Offset": [
         0.0,
-        0.0639,
-        -0.1488
+        0.0732,
+        -3.7033
       ],
       "Size": [
-        0.1141,
-        0.2419,
-        7.2977
+        0.08,
+        0.2233,
+        0.1886
       ],
-      "Triangles": 424
-    },
-    {
-      "Material": "SmoothPlastic",
-      "Color": "#5A3A22",
-      "Transparency": 0.0,
-      "Reflectance": 0.03,
-      "Name": "Body_Brown",
-      "File": "pieces/jack_o_lantern/Body_Brown.obj",
-      "Joint": "Body",
-      "Offset": [
-        0.0,
-        0.0,
-        -0.2325
-      ],
-      "Size": [
-        0.3733,
-        0.3733,
-        6.865
-      ],
-      "Triangles": 576
+      "Triangles": 112
     },
     {
       "Material": "SmoothPlastic",
@@ -134,13 +117,13 @@
       "Joint": "Face",
       "Offset": [
         0.0,
-        0.1897,
-        -3.42
+        0.1937,
+        -3.4325
       ],
       "Size": [
-        0.44,
-        0.3594,
-        0.28
+        0.5,
+        0.3674,
+        0.305
       ],
       "Triangles": 72
     }
@@ -234,8 +217,8 @@
       "Visual": [
         {
           "Kind": "Glow",
-          "Min": 0.0,
-          "Max": 0.55,
+          "Min": 0.1,
+          "Max": 0.75,
           "Period": 1.3
         },
         {

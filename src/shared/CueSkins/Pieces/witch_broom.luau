@@ -32,9 +32,9 @@ return {
 			Model = "HatCharm",
 		},
 		{
-			Material = "Glass",
+			Material = "Neon",
 			Color = "#A86BFF",
-			Transparency = 0.2,
+			Transparency = 0.3,
 			Reflectance = 0,
 			Name = "Tip_Crystal",
 			Joint = "Tip",
@@ -112,8 +112,8 @@ return {
 			Visual = {
 				{
 					Kind = "Glow",
-					Min = 0.2,
-					Max = 0.7,
+					Min = 0.25,
+					Max = 1,
 					Period = 2.4,
 				},
 			},

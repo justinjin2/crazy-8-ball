@@ -19,10 +19,10 @@
   "vfx": {
     "Moving": {
       "Kind": "Body motion",
-      "Note": "All on the body piece: the barber-pole wrap turns (Spin 90 deg/s, 4 s a turn), the three kernels orbit the joint (Spin 138 deg/s, 2.6 s), the kernel tip glows (Glow 1.6 s)."
+      "Note": "Body motion plus the decor: the gold swirl screws along the cue, the sugar swirl the other way, four kernels float round it at four rates, the barber-pole wrap turns, the carousel kernels orbit the joint, the tip glow and the halo pulse."
     },
     "Aura": {
-      "Note": "A candy-shop sparkle: a dim warm haze behind, floating candy corns tumbling slowly round the cue (the kernel flipbook rendered from the body kernel), sugar sparkles white-hot to orange to yellow, crackle sparks falling, one gold swirl riding round the shaft with a glowing head, one warm light. Epic: about 70 particles a second, 1 light, 1 orbiter, no beam.",
+      "Note": "A candy-shop sparkle the whole length of the cue: a dim warm haze behind, an additive sugar glow, floating candy corns tumbling round the cue (the kernel flipbook), sugar sparkles white-hot to orange to yellow, crackle sparks falling, a soft cream-gold halo beam, the gold swirl orbiter with a glowing head and two warm lights, an orange outline. Epic: under the Jack's budget.",
       "BackRateScale": 0.5,
       "Emitters": [
         {
@@ -103,6 +103,90 @@
           "LightEmission": 0
         },
         {
+          "Name": "SugarGlowVolume",
+          "Texture": "vfx/_shared/glow_soft.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.3,
+            "ToStuds": 7.0,
+            "Width": 0.9,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Volume"
+          },
+          "Rate": 3,
+          "Lifetime": [
+            0.9,
+            1.4
+          ],
+          "Speed": [
+            0.1,
+            0.25
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Drag": 1.0,
+          "Size": [
+            [
+              0,
+              0.3
+            ],
+            [
+              0.5,
+              0.55
+            ],
+            [
+              1,
+              0.2
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.2,
+              0.6
+            ],
+            [
+              0.7,
+              0.72
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Rotation": [
+            0,
+            360
+          ],
+          "RotSpeed": [
+            -20,
+            20
+          ],
+          "Color": [
+            [
+              0,
+              "#FFF6D8"
+            ],
+            [
+              0.5,
+              "#FFB030"
+            ],
+            [
+              1,
+              "#FF7A12"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": true,
+          "Brightness": 0.6
+        },
+        {
           "Name": "SugarGlow",
           "Texture": "vfx/v2/dust.png",
           "Host": {
@@ -113,7 +197,7 @@
             "Shape": "Cylinder",
             "ShapeStyle": "Surface"
           },
-          "Rate": 12,
+          "Rate": 8,
           "Lifetime": [
             0.8,
             1.3
@@ -130,11 +214,11 @@
           "Size": [
             [
               0,
-              0.25
+              0.18
             ],
             [
               1,
-              0.5
+              0.35
             ]
           ],
           "Rotation": [
@@ -185,11 +269,11 @@
             "Kind": "Part",
             "FromStuds": 0.3,
             "ToStuds": 7.0,
-            "Width": 0.95,
+            "Width": 1.2,
             "Shape": "Cylinder",
             "ShapeStyle": "Volume"
           },
-          "Rate": 14,
+          "Rate": 8,
           "Lifetime": [
             1.6,
             2.4
@@ -211,11 +295,11 @@
           "Size": [
             [
               0,
-              0.2
+              0.24
             ],
             [
               1,
-              0.26
+              0.34
             ]
           ],
           "Rotation": [
@@ -260,7 +344,7 @@
             "Shape": "Cylinder",
             "ShapeStyle": "Surface"
           },
-          "Rate": 20,
+          "Rate": 24,
           "Lifetime": [
             0.3,
             0.6
@@ -432,9 +516,65 @@
       ],
       "Lights": [
         {
+          "AtStuds": 2.2,
           "Color": "#FFB347",
           "Brightness": 0.45,
           "Range": 7
+        },
+        {
+          "AtStuds": 5.6,
+          "Color": "#FFD060",
+          "Brightness": 0.4,
+          "Range": 7
+        }
+      ],
+      "Outline": "#FFB030",
+      "Beams": [
+        {
+          "Name": "SugarHalo",
+          "FromStuds": 0.0,
+          "ToStuds": 7.1,
+          "Width0": 0.45,
+          "Width1": 0.95,
+          "Segments": 20,
+          "Texture": "vfx/_shared/halo_strip.png",
+          "TextureMode": "Stretch",
+          "Color": [
+            [
+              0,
+              "#FFF6D8"
+            ],
+            [
+              1,
+              "#FFB030"
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.06,
+              0.74
+            ],
+            [
+              0.9,
+              0.68
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 1,
+          "FaceCamera": true,
+          "Pulse": {
+            "Min": 0.6,
+            "Max": 1.0,
+            "Period": 2.4
+          },
+          "Brightness": 1.0
         }
       ]
     },
@@ -948,12 +1088,16 @@
       }
     },
     "Budget": {
-      "ParticlesPerSecond": 72,
-      "Back": 36,
-      "Beams": 0,
-      "Lights": 1,
+      "ParticlesPerSecond": 65,
+      "Back": 32.5,
+      "Beams": 1,
+      "Lights": 2,
       "Orbiters": 1,
-      "Note": "Trail 28/s while the ball moves; the finisher bursts 106 once."
+      "Note": "Plus the orbiter head and the decor piece (two swirls + 4 kernels); trail 28/s while the ball moves; the finisher bursts 106 once. Under the Jack (87/s, 3 lights). Soft orbs thinned 12:20 (coordinator 12:05: dark behind light, the ribbons and kernels carry it)."
+    },
+    "Piece": {
+      "Note": "pieces/candy_corn_aura: a thin Neon gold swirl ribbon (Swirl) winding along the whole cue 0.17 studs off the body (a turn every 1.8 studs, screwing along at 40 deg/s, breathing Glow 2.6 s) with a thinner white sugar swirl the other way (SugarSwirl, 0.21 off, -30 deg/s, hidden under Lower effects), and four little candy-corn kernels (Kernel1-4, aura joints) floating round the cue at four heights on their own Spin + Bob, each wearing the tri-colour palette. Lower effects keeps the gold swirl and two kernels (designer 2026-10-28 11:55: the Beta/Firework level)."
     }
-  }
+  },
+  "piece": "candy_corn_aura"
 }

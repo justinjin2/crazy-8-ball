@@ -414,12 +414,22 @@
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/candy_corn/candy_corn_parts.glb": {
-    "assetId": "123970008672363",
+    "assetId": "135070490205166",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/candy_corn_aura/candy_corn_aura_parts.glb": {
+    "assetId": "140599343589600",
     "assetType": "Model",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/jack_o_lantern/jack_o_lantern_parts.glb": {
-    "assetId": "110253384942835",
+    "assetId": "120351810341434",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/jack_o_lantern_aura/jack_o_lantern_aura_parts.glb": {
+    "assetId": "101189446369887",
     "assetType": "Model",
     "status": "ok"
   },
@@ -438,6 +448,12 @@
     "assetId": "107861865998214",
     "assetType": "Decal",
     "imageId": "110159550393453",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/vfx/candy_corn/bands_512.png": {
+    "assetId": "134639070931625",
+    "assetType": "Decal",
+    "imageId": "91314085676266",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/vfx/candy_corn/kernel_4x4.png": {
@@ -462,6 +478,12 @@
     "assetId": "118106652557059",
     "assetType": "Decal",
     "imageId": "108632142265177",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/vfx/jack_o_lantern/rind_512.png": {
+    "assetId": "87025522416082",
+    "assetType": "Decal",
+    "imageId": "100529744606848",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/pieces/black_cat/Tail.glb": {
@@ -554,7 +576,7 @@
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/pieces/witch_broom_aura/witch_broom_aura_parts.glb": {
-    "assetId": "123761019110800",
+    "assetId": "124125704817567",
     "assetType": "Model",
     "status": "ok"
   },

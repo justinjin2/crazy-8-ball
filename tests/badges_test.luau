@@ -208,8 +208,8 @@ return {
 		expect(table.concat(got, ",") == "Welcome", "got " .. table.concat(got, ","))
 	end,
 
-	["the registry is sound and has 52 rows"] = function()
-		local problems = Badges.check(Config.Badges.List, Strings.Badges, Catalog, 52)
+	["the registry is sound and has 50 rows (the designer cut Tycoon and Part of the Crew)"] = function()
+		local problems = Badges.check(Config.Badges.List, Strings.Badges, Catalog, 50)
 		expect(#problems == 0, table.concat(problems, "; "))
 	end,
 
@@ -265,7 +265,7 @@ return {
 			table.insert(many, { Key = "K" .. i, BadgeId = 0 })
 		end
 		expect(#problemsOf(many) > 0, "more rows than a save holds")
-		expect(#Badges.check({}, {}, Catalog, 52) > 0, "not 52 rows")
+		expect(#Badges.check({}, {}, Catalog, 50) > 0, "not 50 rows")
 	end,
 
 	["the reel hold lasts until the slowest pull's card"] = function()

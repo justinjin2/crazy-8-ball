@@ -34,6 +34,11 @@ From PLAN §4 (everything else is read-only; ask through Requests):
   holds and retries otherwise), so a skin leaves draft only when the cue is complete.
 
 ## Status
+- 12:37 coordinator: `halloween` @7be001ed adds map 88e9cceb (throne builds once; Studio: 1 throne, 1 King) + 623d0051 (timed King schedule, Mode Throne), core 1361de6d (ActiveGate, pacing), sys 57bc2b91 (50 badges, v2 icons), cues-a 66af67b0 (painted Jack, Candy rework) + fec0cb91 (deterministic generator; a main-checkout regen is now clean), cues-b 0e3569b6 (Broom redo). Lint OK, 1,465 tests, Team Create play console clean. JUSTIN (12:35): the Pumpkin King becomes a timed visitor (UTC :15 and :45, 12 min, middle of the map, 1.5x size, a top timer, the King's line when tables are full, one paid win a visit: +150 Candy, +$2,500, +100 XP). Map and core build it by 15:00; Throne mode stays the fallback. Run `git fetch && git merge origin/halloween` before your next READY.
+- 12:15 coordinator: `halloween` @5dae747d adds map 7fd462cc + 39815514 (night rooftop, King, drops, /king), core d7120fac (the 11:30 review fixed, the Rush chip names what runs) and gui c9f01ea6 (the boost lines restyle, VIP perks in the Soft step). The contract test is now STRICT. Lint OK, 1,460 tests, Team Create play console clean (shots/coordinator/merge_5dae747d_boost_lines.jpg). Known blocker sent to map: the throne builds twice on a server that starts during Live. Run `git fetch && git merge origin/halloween` before your next READY.
+- 11:55 coordinator: 11:30 review of 83e876db: one should-fix for the rework. Toggling Lower effects makes a hidden body stick reappear as a ghost: CuePiece's Quality.Changed handler calls applyHidden() with no args (base 0), CueSkinLook.step skips invisible looks, so the body shows where the cue was last drawn until it is next shown. Fix: keep the last modifier/eye/studs and reuse them in the Quality handler (and setAura). Minor: gate CueAssets' body warm on Config.CueSkins.Bodies.Enabled; HalloweenCueEquipped also fires on re-equipping the same cue.
+- 11:49 coordinator: `halloween` @64085ab2 adds core de236025 (the NEW CUE! card and end screen count in Progression.quiet) and cues-b a431419b (Witch Broom, Black Cat and Spider out of draft). cue_skins_data.py clean on halloween (66 skins, 28 pieces). Lint OK, 1,441 tests, Team Create play console clean. Map's READY 7fd462cc is next. Run `git fetch && git merge origin/halloween` before your next READY.
+- 11:36 coordinator: `halloween` @537270fd has cues-a 83e876db (drop 3 body path, CuePreview bodies, Candy Corn + Jack-o'-Lantern, Upright, analytics, Aim-fade fix), core 3c4b87aa (event menu, tile, quests, Spider, packs, art), sys c5b6b607 and gui 3438ea94 (review fixes). Lint OK, 1,436 tests, Team Create play console clean (only the known 203785492 ContentId lines), tile + 2x chip + pill +120% seen. Review of this merge is running; findings come back as Requests. Run `git fetch && git merge origin/halloween` before your next READY. Main.client still has 12 top-level locals to spare.
 
 - 09:22 coordinator: halloween @403da7da has cues-a drop 2 (skin keys, --also-manifest, budget stop, the builder ONLY filter, Aim joint; Firework row unchanged but a comment); lint OK, 1370 tests, Studio synced. Run `git fetch && git merge origin/halloween`. Cues B: you can generate rows now.
 - 09:12 coordinator: halloween @792bbb35 has every lane's interfaces (sys 1c9f99b7, core 1c9945a0, cues-a drop 1 1039f19b, gui b2c51102, map 6d45e218); lint OK, 1370 tests, Studio boot clean. Run `git fetch && git merge origin/halloween` now. Gate 1 is at 10:00: shots + one caption line each in your Gate shots by 09:55.
@@ -54,6 +59,155 @@ From PLAN §4 (everything else is read-only; ask through Requests):
 - 09:55 coordinator: `halloween` @82ab885c (+ docs f8566968) has core interface 2 (7f01d27b: Halloween save field, CandyService, /hw; switches off), sys 4cdf5620 (roam off, badges off) and gui f2562efb (boost pill ON, friend boost ON, Cue Preview core off). Lint OK, 1,404 tests, Studio play console clean, pill shows +120%. Run `git fetch && git merge origin/halloween` before your next READY. Main.client still has 12 top-level locals to spare: hooks stay inside `do ... end`.
 
 ## Status (continued)
+
+- 12:43: **STATUS FINAL (Progress 20, 21). READY hw-cues-a @ 1a17820e** = `halloween`
+  @e9b90417 merged (map 88e9cceb + 623d0051, core 1361de6d, sys 57bc2b91, cues-b 0e3569b6 the
+  Broom redo, the coordinator's first Team Create ONLY build), lint OK, 1,465 tests pass, the
+  generator a no-op on the merged tree. Studio on the merged build (my window): the ONLY build
+  of all five (5 skins, 11 pieces, no problems), the five on the lab row with their backs
+  (`final_merged_1a17820e_row_five.jpg`), console clean for cue code (the badge "would award"
+  lines are hw-sys's Studio stand-ins; the `203785492` ContentId lines are the tutorial bot's
+  avatar, pre-existing). **Shipped by this lane:** Candy Corn (Epic, track 150) and
+  Jack-o'-Lantern (Legendary, track 500): body cues (pieces `candy_corn`, `jack_o_lantern`),
+  painted maps, decor pieces (`candy_corn_aura`, `jack_o_lantern_aura`), auras, trails,
+  finishers (`jack_o_lantern_pocket`), cards, the `Config.CueSkins.Bodies` switch (off = the
+  old mesh skins), `HalloweenCueEquipped`, the CuePiece Aim-fade and ghost fixes, the
+  deterministic generator. **Open after this lane:** (a) the designer's look at the painted
+  Jack and Candy (`side_by_side_jack_round3.jpg`, `side_by_side_candy_round1.jpg`); a further
+  orb cut is one json line a layer; (b) the two review minors from 11:55 (gate the CueAssets
+  body warm on `Config.CueSkins.Bodies.Enabled`; `HalloweenCueEquipped` fires again on a
+  re-equip), both harmless, not done; (c) Progress 17's phone/iPad power bar and YOU GOT
+  (BLOCKED: window resize); (d) Cues B's requests watched until 15:00 (line 13). **Publish
+  note (coordinator Requests 3.6):** the Team Create ONLY build with all five ids, then
+  publish; `Config.CueSkins.Bodies.Enabled = false` is the one-line fallback.
+- 12:40: **Progress 18 done: fresh-player run on 66af67b0 (halloween @f164d356 merged), my
+  window, a fresh mock save.** Join at the tutorial's Arrow (`final_fresh_join_arrow.jpg`: "Join
+  a table!", the chevrons to the reserved pad), step on the pad, the bot comes in 2.2 s, Game1
+  starts with Classic in hand and the power-bar hint (`final_fresh_game1_start.jpg`), the break
+  pots two (`final_fresh_game1_break.jpg`, STREAK x1 then x2), the skip keeps the match running
+  with the Candy Rush HUD (`final_fresh_after_skip_streak2.jpg`), leave to the result card
+  (`final_fresh_result_card.jpg`, $440). Console: no CueSkinLook, CuePiece, CueAssets or
+  Effects line, no script error; the known `203785492` bot-avatar ContentId lines, and one
+  `AssistantCommand:28: missing argument #1` from the Studio MCP plugin's own command script
+  (not game code). The funnel steps fired (Joined, ArrowShown, OnTable, Game1Started, Break,
+  TutorialSkipped, Halloween 1_Button).
+- 12:38: **`tools/cue_skins_data.py` made deterministic across checkouts @ 1d554e20
+  (coordinator 12:30: the main checkout rewrote shipped rows).** (1) `asset_id` ranked this
+  checkout's own manifest row first, so the main checkout's later uploads of the Dragon's and
+  Kitsune's maps and DragonBody.glb (rows under ~/Desktop/8ball/...) replaced the shipped
+  8ball-unique ids there; now every `ok` row for a file is ranked: the id the generated rows
+  already carry, then this checkout's, then the main checkout's, then the path. (2)
+  `sample_look` read a git-ignored local `textures/<skin>_color.png` when on disk (the main
+  checkout holds Oct-4 maps for beta, celestial_dragon and kitsune), so Beta's Shaft resampled;
+  now the recorded Look wins and a map is sampled only for a skin without one or with
+  `--resample-look <skin|all>`. Checked: a plain run leaves `src/shared/CueSkins` unchanged;
+  a fake `beta_color.png` plus `--also-manifest` rows under my path for `kitsune_color.png`
+  and `DragonBody.glb` still leave it unchanged; `--resample-look beta` with the fake map
+  changes Beta's Look. Shared file (tools): listed under Shared-file changes. The coordinator
+  was told it is safe to run after the merge.
+- 12:28: **READY hw-cues-a @ 66af67b0** (the two commits above merged with `halloween`
+  @f164d356: lint OK, 1,460 tests pass, client_compiles included; the Candy Corn and Jack
+  rows, pieces and maps only; no runtime change in this READY). The ONLY template build for
+  the Team Create place: `{ "CandyCornCue", "JackOLanternCue" }` rebuilds 2 skins and 5
+  pieces (candy_corn, candy_corn_aura, jack_o_lantern, jack_o_lantern_aura,
+  jack_o_lantern_pocket), all rows `ok`.
+- 12:25: **Jack round 2 and the Candy Corn rework @ 35d80e33, both painted bodies (coordinator
+  12:05).** Jack (38caf81d): the body lathe now wears a rind colour map (`vfx/jack_o_lantern/
+  rind_512.png`: pumpkin ribs shaded bright on the crests and deep in the grooves with a
+  speckle, dark wood collars with grain at the joint and butt, a green stem, the butt pumpkin
+  burnt toward its end), the face brighter (Glow 0.1-0.75) and the eyes 1.25x; the soft orbs
+  thinned: glow volume 3/s, flame wisps 14/s and smaller, mini-jack sprites 3/s, a thicker dark
+  smoke behind them (Aura 87/s, was 117). Candy (35d80e33): the body lathe wears
+  `vfx/candy_corn/bands_512.png` (crisp cream/white/orange/yellow bands, a pearly sheen, glitter,
+  a hairline dark edge at every band; Reflectance 0.08 so the colours hold in the lobby's light)
+  and the new decor piece `candy_corn_aura` (6 parts, 4,872 tris, asset 140599343589600): a
+  Neon gold swirl and a thinner white sugar swirl spiralling the whole cue (0.17 and 0.21 off,
+  a turn every 1.8 studs, 40 and -30 deg/s, breathing) and four candy-corn kernels circling it
+  at 1.3/2.8/4.3/5.9 studs (aura joints, Spin + Bob, the palette map); Lower effects keeps the
+  gold swirl and two kernels; rows: Outline #FFB030, SugarHalo beam, the soft orbs thinned
+  (Aura 65/s, 1 beam, 2 lights, 1 orbiter). Both maps were first written upside down along
+  the cue (PNG row 0 is UV v = 1): fixed, re-uploaded (rind 87025522416082 / image
+  100529744606848; bands 134639070931625 / 91314085676266; candy body GLB 135070490205166,
+  aura GLB 140599343589600; Jack body GLB 120351810341434). Same ids, switches and catalog rows.
+  Lint green, 1,441 tests pass on the tree before the merge below. ONLY build in my window:
+  2 skins, 5 pieces, no problems. **Side-by-sides for the designer:**
+  `shots/hw-cues-a/gate2/side_by_side_jack_round3.jpg` and `side_by_side_candy_round1.jpg`
+  (new on the lab stand, the gate-2 cue before, the Firework on the same camera). Still open
+  after this round: the orbs read as sprites at the stand's distance; a further cut is one
+  json line each if the designer wants fewer.
+- 12:02: **Jack-o'-Lantern rework, round 1 @ 65df9aea (pushed), for the designer's look.** Body
+  kept. New decor piece `jack_o_lantern_aura` (11 parts, 5,528 tris, asset 101189446369887):
+  two Neon flame ribbons spiralling the whole cue 0.18 and 0.24 studs off the body (a turn
+  every 1.4 studs, opposite senses, wavy tongues, screwing along at 42 and -34 deg/s, breathing
+  Glow 1.6 / 2.6 s) and three little carved pumpkins (radius 0.15, 0.62 off the surface at
+  1.7, 3.7 and 5.6 studs) circling the cue on their own Spin + Bob with glowing faces; aura
+  joints, so they clear on the shooter's own turn; Lower effects keeps one ribbon and one
+  pumpkin. Aura rebuilt to CUE_VFX_TECHNIQUES §5: dark smoke body, a new additive FireGlow
+  volume layer, flame tongues bigger and brighter (rate 38), embers 30, mini-jack flipbook 9
+  and larger, a pulsing orange halo beam (FireHalo), the two flame-head orbiters, three
+  flickering lights, outline #FF8A1C. Budget 117 particles/s + 2 orbiter heads, 1 beam, 3
+  lights (Firework: 214/s, 1 beam, 2 lights). Lint green; client_compiles, cue_body/looks/
+  motion tests pass; ONLY build in my window: 1 skin, 3 pieces, no problems. **Side-by-side
+  for Justin:** `~/Desktop/8ball-refs/halloween/shots/hw-cues-a/gate2/side_by_side_jack_new_before_firework.jpg`
+  (new / before / Firework, the same lab stand camera) and the close-up
+  `rework_jack_stand_close.jpg`. The review's should-fix (a hidden body reappearing as a ghost
+  on a Lower-effects toggle) is fixed in the commit before it (CuePiece keeps the last
+  modifier/eye/studs for the Quality and aura toggles); the two minors wait for the rework.
+
+- 11:53: **Top priority from the designer (coordinator 11:55): the five Halloween cues "look
+  terrible" next to Beta and Firework and must be brought up to their concept cards by 16:00.**
+  Cues A reworks the Jack first, then Candy Corn, bodies kept: a decor piece round the whole
+  cue (flame ribbons like Firework's helices, mini-pumpkin mesh orbiters), emissive pulsing,
+  full-length volume aura, a halo beam, lights and a Highlight, per docs/CUE_VFX_TECHNIQUES.md
+  §1/§4/§5. One cue first with a side-by-side (new vs before vs Firework) under Gate shots.
+  The fresh-player run on the 11:50 build was cut at Game1 (join at Arrow clean, the pad to
+  Game1 in 5 s, console clean); Progress 18, 20 and 21 run again on the reworked build.
+
+- 11:50: **Progress 14 done.** `git merge origin/halloween` @64085ab2 (B's READY a431419b and
+  core de236025) into `hw-cues-a` -> 8db5f068, no conflict; `cue_skins_data.py` rewrites
+  nothing (66 skins, 28 pieces); against the 11:45 rehearsal tree the only differences under
+  `src/`, `assets/` and `tools/` are core's EndScreen and Progression lines, every cue row and
+  tool identical, so the 11:45-11:48 path checks (backs, hands, Aim fade, PULL cards, console)
+  stand for this build. Lint green; client_compiles, cue_body/looks/mesh/motion, catalog and
+  halloween_cues_b tests pass. My window, Edit, ONLY build on the merged tree: 5 skins
+  rebuilt, 61 other templates untouched, the same 9 pieces, no problems. Nothing to fix or
+  answer for B. Next: the fresh-player run on this build (Progress 18).
+
+- 11:48: **Progress 14 run on Cues B's READY tip (a431419b, their 11:43 READY lines; the real
+  tick waits only for that tip to reach `halloween`):** local scratch branch `integ-scratch2`
+  = `hw-cues-a` @e30b90ec + `origin/hw-cues-b` @01c43189 (B's tip already contains `halloween`
+  @537270fd, so the merge is clean: no conflict, the manifest already the union, the Index
+  with all five). `cue_skins_data.py` rewrites nothing (66 skins, 28 pieces), lint green,
+  client_compiles + cue_body/looks/mesh/motion + catalog + B's halloween_cues_b tests pass. My
+  window, Edit: ONLY build of the five: 5 skins rebuilt, 61 other templates untouched, 9
+  pieces (black_cat 4, candy_corn 7, jack_o_lantern 7 + pocket 4, spider 4 + pocket 3,
+  witch_broom 6 + aura 2 + pocket 13), no problems. Play: all four event cues given, each of
+  B's bodies on my own back in the lobby (`final_broom_back.jpg`, `final_cat_back.jpg`,
+  `final_spider_back.jpg`) and in hands in a solo fixture while aiming with the PULL card
+  (`final_broom_hands.jpg`, `final_cat_hands.jpg`, `final_spider_hands.jpg`); the Aim fade
+  measured on the owner's screen: Broom HatCharm 1.00, Bristles 1.00, tip/bark/ribbons 0; Cat
+  Tail + TailShell 1.00, body/ring/claws 0; Spider Webs + Blades 1.00, body/ring/hourglass 0.
+  `HalloweenCueEquipped` logged for all three. Console: no CueSkinLook, CuePiece or CueAssets
+  line; the known `203785492` lines; the "not approved" ContentId line is the tutorial bot's
+  avatar (a different id with each bot: 1591779, then 24797508), not a lane's. Tree back on
+  `hw-cues-a`; the five Edit templates stay in my window.
+
+- 11:38: Studio check of the merged build (`halloween` @537270fd in my window): boot clean, a
+  tutorial skip, both cues given, a solo fixture, the Jack equipped and aimed: the body in
+  hands (7 parts, no fade needed), the PULL card draws it, core's 2x CANDY chip and the +120%
+  pill beside it, `HalloweenCueEquipped` logged (`merged_537270fd_jack_hands.jpg`). Console:
+  no CueSkinLook, CuePiece or CueAssets line; the known `203785492` lines; one new line
+  `ContentId: rbxassetid://1591779 failed due to: Asset is not approved for the requester`,
+  right before the tutorial bot joined. That id is in no file under `src/`, `assets/` or
+  `tools/` (grep), so it is not a cue row's; it looks like the bot's avatar wearing an asset
+  this universe may not load. Not mine; noted for the coordinator's sweep.
+
+- 11:37: `git merge origin/halloween` @537270fd: a fast-forward (it holds `hw-cues-a` @83e876db
+  whole, 72fd7358), no conflict. On the merged tree `cue_skins_data.py` rewrites nothing
+  (63 skins, 22 pieces), lint green, client_compiles + cue_body/looks/mesh + catalog tests
+  pass. Progress 14 still waits on B's rows (48 B commits not in `halloween` at 11:37; the
+  coordinator told B at 11:33 that B's sequence follows now). Studio check of the merged
+  build in my window follows.
 
 - 11:04: **Progress 17, phone and iPad, done for the menus by emulation (the resize helper still
   sees no window):** in Play the Cues menu's `Root` frame set to 844x390 (phone) and 1024x768
@@ -294,6 +448,7 @@ From PLAN §4 (everything else is read-only; ask through Requests):
 
 Planned (PLAN §7 shared files; own block or line only; add the sha to each as it lands):
 
+- 12:38 `tools/cue_skins_data.py` (shared tool): `asset_id` ranks a shipped id first in every checkout; `sample_look` keeps the recorded Look; new `--resample-look` switch (1d554e20).
 - `src/shared/Config.luau` @ 2c205868: own block `Config.CueSkins.Bodies` after `Config.CueSkins` (drop 3).
 - `src/shared/Strings.luau`: the 5 cue names in `Strings.Progress.Cues` (drop 1).
 - `src/client/Main.client.luau:134` @ 2c205868: `own = true` on your own stick's `attach` (drop 3, one line).
@@ -464,3 +619,29 @@ Gate 2 addition (10:28, `gate2/`): Jack-o'-Lantern complete @ db1a9fdb (+ 73fc00
   `phone_my_cues_jack_844x390.jpg`: the Index (Jack chosen; the Exclusive row) and My Cues at
   phone size by Root-frame emulation, no clipped text.
 - `ipad_index_exclusive_row_1024x768.jpg`, `ipad_my_cues_jack_1024x768.jpg`: the same at iPad size.
+- `merged_537270fd_jack_hands.jpg`: the Jack in hands on the merged `halloween` build (core's
+  CANDY chip and the pill beside the PULL card).
+- `final_broom_back.jpg`, `final_cat_back.jpg`, `final_spider_back.jpg`: B's three bodies on my
+  own back in the lobby, on the merge of B's READY tip a431419b.
+- `final_broom_hands.jpg`, `final_cat_hands.jpg`, `final_spider_hands.jpg`: the same three in
+  hands while aiming (solo fixture), the Aim joints cleared, each PULL card drawn.
+- `side_by_side_jack_new_before_firework.jpg`: the Jack rework @ 65df9aea on the lab stand (top),
+  the gate-2 Jack before it (middle) and the Firework on the same stand camera now (bottom).
+- `rework_jack_stand_v2.jpg`, `rework_jack_stand_close.jpg`, `rework_jack_back_v1.jpg`,
+  `rework_jack_stand_v1.jpg`, `rework_firework_stand_ref.jpg`: the rework's stand (wide and
+  close), its back, the first round before the glow was toned, and the Firework reference.
+- `side_by_side_jack_round3.jpg`, `side_by_side_candy_round1.jpg`: 12:20, the painted Jack and
+  Candy on the lab stand (top), the gate-2 cue before the rework (middle), the Firework on the
+  same close camera (bottom).
+- `rework_jack_close_v5.jpg`, `rework_jack_stand_v5.jpg`, `rework_jack_back_v5.jpg`: the painted
+  Jack close, wide and on a back. `rework_jack_close_v3.jpg`, `rework_jack_close_v4.jpg`,
+  `rework_jack_stand_v3.jpg`: the rounds before (the map upside down, the orbs thicker).
+- `rework_candy_close_v3.jpg`, `rework_candy_stand_v3.jpg`, `rework_candy_back_v3.jpg`: the
+  painted Candy close, wide and on a back. `rework_candy_stand_v1.jpg`, `rework_candy_close_v2.jpg`:
+  the rounds before (the map upside down; the orbs thicker). `rework_firework_close_ref2.jpg`:
+  the Firework on the same close camera, same light.
+- `final_fresh_join_arrow.jpg`, `final_fresh_game1_start.jpg`, `final_fresh_game1_break.jpg`,
+  `final_fresh_after_skip_streak2.jpg`, `final_fresh_result_card.jpg`: the Progress 18
+  fresh-player run on 66af67b0 (12:40).
+- `final_merged_1a17820e_row_five.jpg`: 12:42, the five cues on the lab row on the merged build
+  (Candy, Jack, the Broom redo, Cat, Spider), backs and stands.
