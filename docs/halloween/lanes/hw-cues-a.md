@@ -60,6 +60,19 @@ From PLAN §4 (everything else is read-only; ask through Requests):
 
 ## Status (continued)
 
+- 12:49: **READY hw-cues-a @ e128e475: the two 11:55 review minors (coordinator 13:02: do them).**
+  c699fb22 `src/server/Items.luau` (my EquipCue lines): `HalloweenCueEquipped` fires only when
+  the equipped cue changes (the attribute before the equip is compared; a card tapped twice is
+  not a pick-up). e128e475 `src/client/CueAssets.luau`: the body piece warms only with
+  `Config.CueSkins.Bodies.Enabled` (switch off: the model and maps are never fetched). Neither
+  module loads in Lune (Players, PlayerData, ContentProvider), so no Lune test; Studio check in
+  my window instead: Jack equipped twice and Candy twice gave exactly one
+  `Funnel: event HalloweenCueEquipped` line each, the own stick drew its body
+  (`Body=candy_corn`), no error. Lint OK, 1,465 tests. **Spider rework:** offered to Cues B
+  (coordinator 13:02); B keeps it (their redo is built and in their lab, READY within the
+  hour), so I touch no spider file. B's finding, noted: a mesh of strips under about 0.03
+  studs wide (the Cat's 0.022 claw slashes) loads as a solid block of its bounding box; my
+  ribbons are 0.04 to 0.12 wide and render as ribbons.
 - 12:43: **STATUS FINAL (Progress 20, 21). READY hw-cues-a @ 1a17820e** = `halloween`
   @e9b90417 merged (map 88e9cceb + 623d0051, core 1361de6d, sys 57bc2b91, cues-b 0e3569b6 the
   Broom redo, the coordinator's first Team Create ONLY build), lint OK, 1,465 tests pass, the
@@ -448,6 +461,7 @@ From PLAN §4 (everything else is read-only; ask through Requests):
 
 Planned (PLAN §7 shared files; own block or line only; add the sha to each as it lands):
 
+- 12:49 `src/server/Items.luau` (my EquipCue lines only): the re-equip guard on `HalloweenCueEquipped` (c699fb22).
 - 12:38 `tools/cue_skins_data.py` (shared tool): `asset_id` ranks a shipped id first in every checkout; `sample_look` keeps the recorded Look; new `--resample-look` switch (1d554e20).
 - `src/shared/Config.luau` @ 2c205868: own block `Config.CueSkins.Bodies` after `Config.CueSkins` (drop 3).
 - `src/shared/Strings.luau`: the 5 cue names in `Strings.Progress.Cues` (drop 1).
