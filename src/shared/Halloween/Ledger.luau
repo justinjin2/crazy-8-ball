@@ -91,6 +91,20 @@ function Ledger.addActive(hw: any, seconds: number): number
 	return hw.Active
 end
 
+-- The active-play gate (Config.Halloween.ActiveGate): a tick's `seconds` count only once the
+-- player has finished a real match today (`played`); until then they wait in `held` (at most
+-- the gate's HoldCapSeconds) and are credited with the first tick after that match. Returns
+-- the seconds to add now and the new held amount. Gate off: everything counts at once.
+function Ledger.gateActive(held: number, seconds: number, played: boolean): (number, number)
+	local G = C.ActiveGate
+	local wait = math.max(0, whole(held))
+	local now = math.max(0, whole(seconds))
+	if G.Enabled ~= true or played then
+		return wait + now, 0
+	end
+	return 0, math.min(wait + now, G.HoldCapSeconds)
+end
+
 -- Whether the Spider Cue is earned and not yet given.
 function Ledger.spiderDue(hw: any): boolean
 	local S = C.Spider
