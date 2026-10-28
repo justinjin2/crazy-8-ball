@@ -371,17 +371,15 @@ local function onEnded(botId: number, info: any)
 	local p = king.player
 	local seconds = math.floor(os.clock() - king.startedAt + 0.5)
 	local tiers = king.playerTier .. ">" .. king.kingTier
-	local here = p.Parent == Players
-	local playerWon = type(info) == "table" and not info.won and info.reason ~= "EmptyTeam"
-	if here and playerWon and Tables.tableOf(p) == king.tableId then
+	local outcome = Rules.kingOutcome(info, p.Parent == Players)
+	if outcome == "Won" then
 		taunt(botId, S.Taunts.HisLoss, true)
 		reward(p, king)
-		log(p, "Won", seconds, tiers)
-	elseif here and type(info) == "table" and info.won then
+	elseif outcome == "Lost" then
 		taunt(botId, S.Taunts.HisWin, true)
-		log(p, "Lost", seconds, tiers)
-	elseif here then
-		log(p, "Left", seconds, tiers)
+	end
+	if outcome ~= "Gone" then
+		log(p, outcome, seconds, tiers)
 	end
 	puffWhenGone(botId)
 end

@@ -143,6 +143,29 @@ return {
 		H.expect(R.kingTier("Unranked") == R.kingTier("Bronze"), "Unranked counts as Bronze")
 	end,
 
+	["a King match pays on the King's real loss, whatever the table says"] = function()
+		local R = H.require("HalloweenMap.Rules")
+		-- Studio 2026-10-28: the table lets the player go as the result lands, so a win must
+		-- not depend on them still being seated (it logged "Left" and paid nothing).
+		H.expect(R.kingOutcome({ won = false, reason = "LegalEight" }, true) == "Won", "his loss")
+		H.expect(
+			R.kingOutcome({ won = false, reason = "EarlyEight" }, true) == "Won",
+			"his foul on 8"
+		)
+		H.expect(R.kingOutcome({ won = true, reason = "LegalEight" }, true) == "Lost", "his win")
+		H.expect(R.kingOutcome({ won = true, reason = "Forfeit" }, true) == "Lost", "walked away")
+		H.expect(
+			R.kingOutcome({ won = false, reason = "EmptyTeam" }, true) == "Left",
+			"he vanished"
+		)
+		H.expect(R.kingOutcome({ won = false }, true) == "Left", "no result: never paid")
+		H.expect(R.kingOutcome(nil, true) == "Left", "no info: never paid")
+		H.expect(
+			R.kingOutcome({ won = false, reason = "LegalEight" }, false) == "Gone",
+			"left the server"
+		)
+	end,
+
 	["candy goes only to a free, active lobby player with HwOn"] = function()
 		local R = H.require("HalloweenMap.Rules")
 		H.expect(R.eligible(who()) == true, "an active lobby player")

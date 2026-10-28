@@ -183,6 +183,22 @@ function Rules.tableLook(tableId: number): (number, { Cloth: { number }, Kit: st
 	return size, look
 end
 
+--- A King match's end for its challenger, from BotService.matchEnded's info (won: the King's
+--- side won; reason: the result's). "Won": the King lost a real game (a player who walks away
+--- forfeits, so the King wins that one); "Lost": the King won; "Left": no real result (the
+--- King's side emptied, or no info); "Gone": the player left the server. The table is not
+--- asked: it lets the player go as the result lands, before the bot sees it.
+function Rules.kingOutcome(info: any, here: boolean): "Won" | "Lost" | "Left" | "Gone"
+	if not here then
+		return "Gone"
+	elseif type(info) ~= "table" or info.reason == nil or info.reason == "EmptyTeam" then
+		return "Left"
+	elseif info.won then
+		return "Lost"
+	end
+	return "Won"
+end
+
 --- "m:ss" for a countdown (the King's prompt while he rests); never negative.
 function Rules.clock(seconds: number): string
 	local s = math.max(0, math.ceil(seconds))
