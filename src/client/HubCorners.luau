@@ -297,9 +297,6 @@ function HubCorners.new(screen: ScreenGui, deps: any): any
 		rays.Rotation = (clock * K.Motion.RaysDegreesPerSecond) % 360
 	end)
 	self.offerRays = rays
-	-- The Halloween event's tile (hw-core): the challenge's spot, or next to the offer tile.
-	self.eventTile = EventButton.new(root, self)
-
 	-- The soft part's click-once "!" (setFresh): a red dot on the challenge's top-right corner.
 	-- The offer tile has none (designer, 2026-10-10: busy enough with its timer and X).
 	self.fresh = {} :: { [string]: Frame }
@@ -408,6 +405,9 @@ function HubCorners.new(screen: ScreenGui, deps: any): any
 			task.wait(1)
 		end
 	end)
+	-- The Halloween event's tile (hw-core): the challenge's spot, or next to the offer tile. Built
+	-- last, once everything its layout reads exists.
+	self.eventTile = EventButton.new(root, self)
 	self:refreshPlus()
 	self:refreshOffers()
 	self:layout()
@@ -857,6 +857,7 @@ function HubCorners.blurPad(self: any)
 			self.gearTile.button,
 			self.inviteTile.button,
 			self.plusTile.button,
+			self.eventTile.button, -- the Halloween tile (hw-core)
 		}
 	do
 		button.Selectable = false

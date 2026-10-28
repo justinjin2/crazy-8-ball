@@ -155,8 +155,9 @@ function EventButton.new(root: Frame, corners: any): any
 			end
 		end)
 	)
-	-- The pill's time and the event's start and end: once a second.
-	task.spawn(function()
+	-- The pill's time and the event's start and end: once a second, from after HubCorners.new
+	-- (a refresh lays the corners out).
+	task.defer(function()
 		while button.Parent ~= nil do
 			self:refresh()
 			task.wait(1)
