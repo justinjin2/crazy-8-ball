@@ -96,8 +96,11 @@ local function collect(value: any, out: { string }, seen: { [string]: boolean })
 			table.insert(out, value)
 		end
 	elseif type(value) == "table" then
-		for _, v in value do
-			collect(v, out, seen)
+		for k, v in value do
+			-- A Sound row's Asset is audio: warming it as a Decal only logs "not found".
+			if k ~= "Sound" then
+				collect(v, out, seen)
+			end
 		end
 	end
 end
