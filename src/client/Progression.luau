@@ -340,26 +340,10 @@ function Progression.start(screen: ScreenGui, hooks: Hooks)
 	TradeMenu.new(screen, deps)
 	FreeRewardMenu.new(screen, deps)
 	DailyRewardsMenu.new(screen, deps)
-	-- The Halloween event's screens (hw-core): one that fails to build warns and is left out, so
-	-- the HUD after them still starts.
-	local function halloween(name: string, build: () -> ...any)
-		local ok, err = pcall(build)
-		if not ok then
-			warn(("[8ball] Halloween %s failed to build: %s"):format(name, tostring(err)))
-		end
-	end
-	halloween("EventMenu", function() -- the Halloween event (hw-core)
-		require(script.Parent.Halloween.EventMenu).new(screen, deps)
-	end)
-	halloween("CandyToast", function() -- its Candy chips and cue cards
-		require(script.Parent.Halloween.CandyToast).new(screen, deps)
-	end)
-	halloween("Countdown", function() -- 18:30-19:00 and the start
-		require(script.Parent.Halloween.Countdown).new(screen)
-	end)
-	halloween("EndScreen", function() -- the end: Candy became money
-		require(script.Parent.Halloween.EndScreen).start(screen)
-	end)
+	require(script.Parent.Halloween.EventMenu).new(screen, deps) -- the Halloween event (hw-core)
+	require(script.Parent.Halloween.CandyToast).new(screen, deps) -- its Candy chips and cue cards
+	require(script.Parent.Halloween.Countdown).new(screen) -- 18:30-19:00 and the start
+	require(script.Parent.Halloween.EndScreen).start(screen) -- the end: Candy became money
 	SettingsMenu.new(screen, deps)
 	-- Held rank rewards: the claim block over the roadmap (the tutorial lane).
 	RankClaimBlock.new(screen, deps, function(): boolean
