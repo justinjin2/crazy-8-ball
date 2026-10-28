@@ -505,6 +505,7 @@ return {
 			Cap = { 255, 138, 28 },
 			Accent = { 62, 142, 58 },
 		},
+		Piece = "jack_o_lantern_aura",
 		Body = "jack_o_lantern",
 	},
 	KitsuneCue = {

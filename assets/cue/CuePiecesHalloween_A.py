@@ -596,6 +596,148 @@ def jack_o_lantern(k):
 
 
 # =============================================================================================
+# Jack-o'-Lantern aura decor: `jack_o_lantern_aura` (designer 2026-10-28 11:55: bring the cue up to
+# the Beta/Firework level: a real 3D piece round the whole cue, glowing and moving)
+# =============================================================================================
+
+FLAME = {'FlameA': '#FF6A10', 'FlameB': '#FFB030', 'MiniPumpkin': '#FF7A1C', 'MiniFace': '#FFD24D', 'MiniStem': '#3E8E3A'}
+
+
+def _mini_pumpkin(bm, centre, radius, segs=14):
+    """A ribbed little pumpkin (a sphere squashed a hair along the cue) centred at `centre`
+    (cue frame), its stem along +Z. Returns nothing; faces go into bm."""
+    from mathutils import Vector
+    import bmesh
+    c = Vector(centre)
+    rows = []
+    n = 10
+    for i in range(n + 1):
+        u = -1 + 2 * i / n
+        r = radius * math.sqrt(max(0.0, 1 - u * u)) * 1.0
+        rows.append((u * radius * 0.86, r))
+    rings = []
+    for off, r in rows:
+        if r <= 1e-6:
+            rings.append([bm.verts.new(c + Vector((0, 0, off)))])
+            continue
+        ring = []
+        for k_ in range(segs):
+            a = 2 * math.pi * k_ / segs
+            sc = 1.0 - 0.12 * (0.5 + 0.5 * math.cos(8 * a))
+            ring.append(bm.verts.new(c + Vector((r * sc * math.cos(a), r * sc * math.sin(a), off))))
+        rings.append(ring)
+    for i in range(len(rings) - 1):
+        a, b = rings[i], rings[i + 1]
+        if len(a) == 1:
+            for k_ in range(segs):
+                bm.faces.new((a[0], b[k_], b[(k_ + 1) % segs]))
+        elif len(b) == 1:
+            for k_ in range(segs):
+                bm.faces.new((a[k_], b[0], a[(k_ + 1) % segs]))
+        else:
+            for k_ in range(segs):
+                bm.faces.new((a[k_], b[k_], b[(k_ + 1) % segs], a[(k_ + 1) % segs]))
+
+
+def _mini_face(bm, centre, radius, out):
+    """Glowing triangle eyes and a jagged grin as thin plates on the pumpkin's side facing `out`
+    (a unit Vector in the XY plane, away from the cue's axis)."""
+    from mathutils import Vector
+    out = Vector(out).normalized()
+    up = Vector((0, 0, 1))
+    side = up.cross(out).normalized()
+    base = Vector(centre) + out * (radius * 0.97)
+    lift = out * 0.02
+
+    def plate(poly):
+        top = [bm.verts.new(base + side * x + up * z + lift) for x, z in poly]
+        bot = [bm.verts.new(base + side * x + up * z - out * 0.03) for x, z in poly]
+        bm.faces.new(top)
+        bm.faces.new(bot[::-1])
+        m = len(poly)
+        for i in range(m):
+            bm.faces.new((top[i], bot[i], bot[(i + 1) % m], top[(i + 1) % m]))
+    s = radius / 0.36
+    for sx in (-1, 1):
+        plate([(sx * 0.07 * s, 0.02 * s), (sx * 0.20 * s, 0.02 * s), (sx * 0.135 * s, 0.14 * s)])
+    plate([(-0.20 * s, -0.04 * s), (-0.12 * s, 0.01 * s), (-0.04 * s, -0.04 * s), (0.04 * s, 0.01 * s), (0.12 * s, -0.04 * s), (0.20 * s, -0.04 * s),
+           (0.16 * s, -0.12 * s), (0.06 * s, -0.08 * s), (-0.06 * s, -0.13 * s), (-0.16 * s, -0.09 * s)])
+
+
+@piece
+def jack_o_lantern_aura(k):
+    """The Jack-o'-Lantern Cue's decor round the body: two Neon flame ribbons spiralling the
+    whole cue (0.18 and 0.24 studs off the surface, a turn every 1.4 studs, opposite senses,
+    wavy edges like licking tongues), each turning about the cue's axis so the fire streams
+    along it, breathing with a Glow; and three little carved pumpkins circling the cue at
+    three heights on their own paths (Spin round the axis at three rates with a Bob), their
+    faces glowing. The pumpkins are aura joints (gone on the shooter's own turn); the second
+    ribbon and two pumpkins hide under Lower effects."""
+    import bmesh
+    from mathutils import Vector
+    R = envelope()
+    k.material('FlameA', 'Neon', FLAME['FlameA'], Transparency=0.08)
+    k.material('FlameB', 'Neon', FLAME['FlameB'], Transparency=0.15)
+    k.material('MiniPumpkin', 'SmoothPlastic', FLAME['MiniPumpkin'], Reflectance=0.08)
+    k.material('MiniFace', 'Neon', FLAME['MiniFace'])
+    k.material('MiniStem', 'SmoothPlastic', FLAME['MiniStem'])
+
+    # --- the flame ribbons ---------------------------------------------------------------------
+    for name, sense, phase, rate, lift, period, low in (('FlameA', 1, 0.0, 42.0, 0.18, 1.6, None),
+                                                        ('FlameB', -1, math.pi, -34.0, 0.24, 2.6, 'hide')):
+        k.joint(name, pivot=(0, -3.5, 0), motion=[{'Kind': 'Spin', 'Axis': (0, 1, 0), 'Rate': rate}],
+                visual=[{'Kind': 'Glow', 'Min': 0.0, 'Max': 0.5, 'Period': period}], low=low)
+        bm = bmesh.new()
+        n = 280
+        left, right = [], []
+        for i in range(n):
+            d = 0.35 + (6.9 - 0.35) * i / (n - 1)
+            a = sense * 2 * math.pi * d / 1.4 + phase
+            radial = Vector((math.sin(a), 0, math.cos(a)))
+            p = Vector((0, -d, 0)) + radial * (R(d) + lift)
+            d2 = min(d + 0.01, 6.9)
+            a2 = sense * 2 * math.pi * d2 / 1.4 + phase
+            p2 = Vector((0, -d2, 0)) + Vector((math.sin(a2), 0, math.cos(a2))) * (R(d2) + lift)
+            tang = (p2 - p).normalized()
+            across = tang.cross(radial).normalized()
+            # licking tongues: the width swells and shrinks along the ribbon, more toward the butt
+            half = 0.03 + 0.03 * (0.5 + 0.5 * math.sin(d * 7.0 + phase)) * (0.6 + 0.4 * d / 6.9)
+            left.append(bm.verts.new(p - across * half))
+            right.append(bm.verts.new(p + across * half))
+        for i in range(n - 1):
+            bm.faces.new((left[i], right[i], right[i + 1], left[i + 1]))
+        ob = k.mesh_object(name + 'Strip', bm, [name])
+        apply_modifier(k.bpy, ob, 'SOLIDIFY', thickness=0.014, offset=0.0)
+        k.add(name, ob)
+
+    # --- three little pumpkins circling the cue -------------------------------------------------
+    for i, (d, rate, ang, bob_period, low) in enumerate(((1.7, 58.0, 0.0, 2.6, None), (3.7, -46.0, 2.1, 1.9, 'hide'), (5.6, 70.0, 4.2, 3.3, 'hide'))):
+        name = 'Pumpkin%d' % (i + 1)
+        k.joint(name, pivot=(0, -d, 0), aura=True, low=low,
+                motion=[{'Kind': 'Spin', 'Axis': (0, 1, 0), 'Rate': rate},
+                        {'Kind': 'Bob', 'Dir': (0, 1, 0), 'Amp': 0.12, 'Period': bob_period, 'Phase': 40 * i}],
+                visual=[{'Kind': 'Glow', 'Min': 0.0, 'Max': 0.5, 'Period': 1.3, 'Phase': 0.4 * i}])
+        radius = 0.15
+        orbit = R(d) + 0.62
+        radial = Vector((math.sin(ang), 0, math.cos(ang)))
+        centre = Vector((0, -d, 0)) + radial * orbit
+        bm = bmesh.new()
+        _mini_pumpkin(bm, centre, radius)
+        _finish(bm)
+        k.add(name, k.mesh_object(name + 'Body', bm, ['MiniPumpkin']))
+        # the stem on top (+Z)
+        bm = bmesh.new()
+        top = centre + Vector((0, 0, radius * 0.8))
+        _curl(bm, [top, top + Vector((0, 0, 0.03)), top + Vector((0.012, 0, 0.055)), top + Vector((0.03, 0, 0.07))], [0.022, 0.02, 0.016, 0.012], segs=6)
+        _finish(bm)
+        k.add(name, k.mesh_object(name + 'Stem', bm, ['MiniStem']))
+        # the face, looking away from the cue
+        bm = bmesh.new()
+        _mini_face(bm, centre, radius, (radial.x, 0, radial.z))
+        _finish(bm)
+        k.add(name, k.mesh_object(name + 'Face', bm, ['MiniFace']))
+
+# =============================================================================================
 # Jack-o'-Lantern pocket finisher: `jack_o_lantern_pocket` (the laughing jack)
 # =============================================================================================
 
