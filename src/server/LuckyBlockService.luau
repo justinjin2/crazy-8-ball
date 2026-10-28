@@ -53,6 +53,7 @@ local Counters = require(script.Parent.Counters)
 local Funnel = require(script.Parent.Funnel)
 local PlayerData = require(script.Parent.PlayerData)
 local Store = require(script.Parent.Store)
+local Tables = require(script.Parent.TableService) -- its requires never reach this module
 
 local L = Config.LuckyBlocks
 local AB = Config.Admin.Blocks
@@ -914,6 +915,16 @@ local function handle(player: Player, action: any, a: any, b: any): Reply
 	end
 	if busy[player] then
 		return refuse("Busy")
+	end
+	-- A roaming player (Config.Multiplayer.Roam) can reach a landed block mid-match: no reel
+	-- while their game is on, so it never covers the table when their turn starts.
+	if request.action == "Open" then
+		local tableId = Tables.tableOf(player)
+		local state = if tableId then Tables.get(tableId) else nil
+		local phase = state and state.engine.phase
+		if phase ~= nil and phase ~= "Waiting" and phase ~= "Result" then
+			return refuse("Busy")
+		end
 	end
 	busy[player] = true
 	local ok, reply = pcall(HANDLERS[request.action], player, request, data)
