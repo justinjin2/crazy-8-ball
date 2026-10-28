@@ -191,6 +191,18 @@ One line each; the long form is the 2026-10-12 (evening) entry at the top of
   the listener's camera. Checked in Studio (the song's emitter carries the new curve, console
   clean). Check live: dance at one table, a friend at the next table hears it about half as
   loud, three tables away nothing.
+- **Emote update, pushed 2026-10-28, not published:** **Bird Brain** last in the menu (catalog
+  120486252224195, the designer's song uploaded to Lucky 8 as 75387278867392: its first 16 bars
+  at 160 BPM, 24 s, Volume 0.87 against Rat Dance; the cut is
+  `~/Desktop/8ball-refs/emotes/birdbrain_loop.flac`, not in git); Passinho 4th and Sega Walk
+  8th; every emote sound 18% quieter (`Loudness` 0.45, was 0.55) and Popcorn's crunch about
+  twice as loud as heard (Munch 0.17). **The Avatar Shop link was blocked by Roblox**
+  ("AllowThirdPartySales has blocked the purchase prompt": every emote is another creator's):
+  Allow Third Party Sales turned on in the place (Workspace, Game Settings > Security) on
+  2026-10-28, live with the next publish; Studio play tests still show the block (a known
+  Studio quirk), so check it live. Checked in Studio: 14 cards in the new order, Bird Brain's
+  song at 0.39 and its animation, console clean. Check live: Avatar Shop on any emote opens
+  Roblox's buy popup; Bird Brain's song loops without a seam; the songs quieter, the crunch heard.
 - **The abilities:** the one-by-one review goes on (unreviewed ones are provisional); phone,
   controller, sounds by ear, the sneak with two players, the designer's voice lines.
 - **Tutorial v2 leftovers** (`docs/prompts/TUTORIAL_V2_REPORT.md`, last section): the first
