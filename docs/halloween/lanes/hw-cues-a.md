@@ -55,6 +55,28 @@ From PLAN §4 (everything else is read-only; ask through Requests):
 
 ## Status (continued)
 
+- 2026-10-28 10:28: **Jack-o'-Lantern complete @ db1a9fdb** (Progress 10 and 11; the `Upright`
+  flag it needed @ 73fc00ae, its own commit; both pushed). Aura: dark smoke, flame wisps,
+  rising embers, crackle, the mini-jack flipbook (16 frames of the pocket jack laughing,
+  rendered headless with its real materials: `CuePiecesHalloween_A.py -- --sprites jack`, then
+  `--sheets`), the face glow at the pumpkin, two flame-head orbiters, three flickering lights:
+  93 particles a second, back 46. The face flicker, the leaves' sway and the slit pulse are
+  the body's own joints (drop 3). Trail: a flame ribbon with a white core, embers and jack
+  flecks riding the ball. Finisher (1.7 s): flash, a dark and an orange ring, a dim fire
+  column, the jack rising out of the pocket face-on wrapped in flame, its jaw snapping, four
+  mini jacks popping, a seed-and-ember burst, a dissolve, the Roblox library laugh 9116239118
+  ("Laugh Evil Male", Pro Sound Effects, 3.7 s; PreloadAsync Success, played at the pocket,
+  no load error in the console). Lab (stand and back), a solo fixture (in hand, a break with
+  two pots, the trail), the finisher fired at the pocket in Play (`jack_finisher_rise.jpg`).
+  Found on the way: the pocket jack came up showing its back, its jaw cap inside out at the
+  front, from the per-part half turn in CuePiece (Assumptions); fixed with `Upright` on this
+  piece alone, no shipped piece changes. The two fire layers were then dimmed so the grin and
+  jaw read through the flames. Jack stays `"draft": true` until its card (Progress 12, next).
+- **To Cues B (10:28):** if a pocket creature of yours has a face and comes up showing its
+  back (or a part of it sits turned), set `k.upright = True` in its builder (after `k.frame`)
+  and regenerate: piece.json gets `"Upright": true` and CuePiece skips the half turn for that
+  piece only (@ 73fc00ae, in `hw-cues-a`; ask for the merge if you need it). A plain decor
+  piece with no face does not need it.
 - 2026-10-28 10:02: **CuePreview bodies @ 5078ac33** (Progress 9, pushed): `python3 tools/cue_skin.py
   <sid> --thumb` draws a skin with `body`: the body parented over the mesh (hidden, as in the
   game), every part whole with its Aim overhang (the long variant), the square framed to the
@@ -146,6 +168,9 @@ Planned (PLAN §7 shared files; own block or line only; add the sha to each as i
 - `assets/cue/CuePieces.py` @ eb98e2ef: the two guarded Halloween imports (planned) plus
   `Kit.joint(aim=)` and the `Aim` key in `export` (one kwarg, two lines: the joint key both cue
   lanes' briefs name has to reach piece.json, and `export` is its only writer).
+- `assets/cue/CuePieces.py` @ 73fc00ae: `export` writes `"Upright": true` into piece.json when the
+  builder set `kit.upright` (three lines, additive; `tools/cue_skins_data.py` passes it to the
+  row and `src/client/CuePiece.luau`, both mine, read it).
 - `assets/cue/skins/firework.json` @ d267d8e7: `Pocket.Sound.Volume` 0.7 -> 0.33 (the value the
   live generated row already had by hand since 10-07; no behaviour change).
 - `src/shared/CueSkins/Skins/FireworkCue.luau` @ d267d8e7: regenerated (the hand comment gone,
@@ -176,6 +201,16 @@ Planned (PLAN §7 shared files; own block or line only; add the sha to each as i
   parts (`export_skin` writes the cue frame directly, the importer turns, FLIP undoes) are
   right either way. Turning decor straight would visibly change shipped cues: the designer's
   call, not today's.
+- A pocket creature with a face cannot live with the per-part half turn (the pocket jack rose
+  showing its back, its jaw cap, positioned at the front, turned inside out): piece.json may
+  carry `"Upright": true` (the builder's `k.upright = True`) and CuePiece skips the turn for
+  that piece alone, exactly as for a body. Only `jack_o_lantern_pocket` sets it; every shipped
+  piece renders as before. Turning every pocket piece straight stays the designer's call.
+- The finisher proof in Play fires `Effects.pocketBurst` from the MCP command context, which
+  gets its own copies of the client modules: its `CueAssets` had warmed nothing, so
+  `shotReady` was false and the piece was skipped until the command itself called
+  `CueAssets.holdShots({ id })` and waited. The game's own Effects never has this (Main holds
+  your cue's shot effects every second); the real pots in the fixture showed the piece.
 - The brief says the names go in `Strings.Progress.Cues`; the real table is
   `Strings.Items.Cues` (the only one the game reads), so they went there.
 - The five cues sit in the Index's existing Exclusive row and each pays the existing Exclusive
@@ -217,3 +252,18 @@ Gate 2 (09:59, `gate2/`): Candy Corn complete @ e78636a4; Jack's body through th
 - `candy_trail_kernels_after_scratch.jpg`: ball in hand after a scratch, the shed kernels
   settling on the felt by the cue.
 - `candy_hands_streak2.jpg`: the second break in hand (streak x2).
+
+Gate 2 addition (10:28, `gate2/`): Jack-o'-Lantern complete @ db1a9fdb (+ 73fc00ae).
+
+- `jack_lab_stand.jpg`: the Jack-o'-Lantern on its stand in the lobby light: the ribbed orange
+  shaft, the vine and leaves, the slit collars, the carved pumpkin at the butt; dark smoke,
+  flame wisps, embers and the mini jacks drifting round it, the two flame heads circling.
+- `jack_lab_back.jpg`: on an avatar's back at half rate, the pumpkin glowing at the hip.
+- `jack_break_two_pots.jpg`: the break in the solo fixture pots two balls: the flash and the
+  rings at the pocket, the flame trail off the cue ball.
+- `jack_trail.jpg`: the flame ribbon and its embers behind the rolling cue ball.
+- `jack_pocket_piece_static_upright.jpg`: the pocket jack held still above the pocket with
+  `Upright` (the proof of the orientation fix): face to the camera, eyes and grin blazing, the
+  jaw in place.
+- `jack_finisher_rise.jpg`: the finisher in Play at its full rise: the jack face-on, mouth
+  open, seed embers round it, the laugh playing.

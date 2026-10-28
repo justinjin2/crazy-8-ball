@@ -654,9 +654,9 @@ Justin's changes at a gate go straight into the work and into the lane file's St
 - [x] 9. Body support in `CuePreview.py --thumb` (2.5) by 12:00, its own commit, pushed;
   `MERGE CuePreview bodies` in Requests and a Status line for Cues B (it needs this for its
   cards).
-- [ ] 10. Jack: aura (smoke, flames, embers, mini jacks, orbiters, lights), face flicker, leaves
+- [x] 10. Jack: aura (smoke, flames, embers, mini jacks, orbiters, lights), face flicker, leaves
   sway, slit pulse; lab and hands.
-- [ ] 11. Jack: trail and finisher (`jack_o_lantern_pocket` with the laughing jaw, fire column,
+- [x] 11. Jack: trail and finisher (`jack_o_lantern_pocket` with the laughing jaw, fire column,
   seeds and embers, mini jacks), the library laugh proven to load; checked in a match.
 - [ ] 12. Both cards rendered with the body and their final aura (`cue_skin.py <sid> --thumb`)
   and uploaded; both skins out of draft (2.2: the generator runs clean without
