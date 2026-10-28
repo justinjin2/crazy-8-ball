@@ -306,6 +306,7 @@ function EventMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		bar: Frame,
 		count: TextLabel,
 		chip: Frame,
+		chipIcon: ImageLabel,
 		chipText: TextLabel,
 		claim: TextButton,
 		key: string?,
@@ -351,6 +352,7 @@ function EventMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 			bar = bar,
 			count = count,
 			chip = chip,
+			chipIcon = chipIcon,
 			chipText = chipText,
 			claim = nil :: any,
 			key = nil,
@@ -735,6 +737,10 @@ function EventMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 				row.claim.Visible = claimable
 				row.chip.Visible = not claimable
 				row.chipText.Text = if q.claimed then W.Claimed else W.Reward:format(q.reward)
+				-- CLAIMED takes the whole chip (beside the icon it was cut to "CLAIME" on a phone).
+				row.chipIcon.Visible = not q.claimed
+				row.chipText.Size = UDim2.fromScale(if q.claimed then 0.92 else 0.62, 1)
+				row.chipText.Position = UDim2.fromScale(if q.claimed then 0.04 else 0.36, 0)
 				row.chip.BackgroundColor3 = if q.claimed
 					then HudParts.tone("Green")
 					else HudParts.tone("Gold")
