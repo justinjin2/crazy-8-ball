@@ -9914,6 +9914,7 @@ Config.UI.CuePreview = {
 	FlairDownShare = 0.85,
 	BackingFadeSeconds = 0.12, -- once unrolled, the solid panel fades off the window's hole
 	FoldTimeoutSeconds = 1, -- a close's fold is gone by then whatever happens
+	EntryShare = 0.42, -- My Cues' Preview button: this share of the Equip row (Equip the rest)
 	-- The open (Stage, Config.UI.Motion tokens): the veil fades, the panel unrolls, then its
 	-- pieces pop in; the flair drops on last. About 0.7 s; a close folds it back (0.15 s).
 	Open = {
