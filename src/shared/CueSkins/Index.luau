@@ -475,6 +475,22 @@ return {
 		},
 		Piece = "infernal",
 	},
+	JackOLanternCue = {
+		Id = "jack_o_lantern",
+		Name = "Jack-o'-Lantern",
+		Tier = "Legendary",
+		Thumb = "rbxassetid://110159550393453",
+		Look = {
+			Shaft = { 255, 122, 28 },
+			Forearm = { 255, 122, 28 },
+			Wrap = { 255, 122, 28 },
+			Ring = { 90, 58, 34 },
+			Tip = { 47, 90, 42 },
+			Cap = { 255, 138, 28 },
+			Accent = { 62, 142, 58 },
+		},
+		Body = "jack_o_lantern",
+	},
 	KitsuneCue = {
 		Id = "kitsune",
 		Name = "Kitsune",
