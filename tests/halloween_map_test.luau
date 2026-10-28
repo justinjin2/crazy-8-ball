@@ -484,6 +484,10 @@ return {
 			return alive[id]
 		end)
 		H.expect(n == 1, "only the King still playing counts, got " .. n)
+		local withSeating = R.kingsPlaying(kings, function(id: number): boolean
+			return alive[id]
+		end, 2)
+		H.expect(withSeating == 3, "two Kings being seated count too (his body is still building)")
 	end,
 
 	["the King's line keeps its order, joins once and drops"] = function()

@@ -64,6 +64,7 @@ type King = {
 
 local kings: { [number]: King } = {} -- by bot id
 local promised: { [any]: boolean } = {} -- tables a challenge is being seated at
+local seating = 0 -- challenges being seated now (playBoss waits while his body is built)
 local lastTry: { [Player]: number } = {}
 local warned: { [string]: boolean } = {}
 local line: { number } = {} -- the King's line this visit (user ids, first first; Timed)
@@ -115,7 +116,7 @@ local function playing(botId: number): boolean
 end
 
 local function aliveKings(): number
-	return Rules.kingsPlaying(kings, playing)
+	return Rules.kingsPlaying(kings, playing, seating)
 end
 
 local function rootOf(p: Player): BasePart?
@@ -330,6 +331,7 @@ local function challenge(
 		return false, "KingNoTable"
 	end
 	promised[t] = true
+	seating += 1 -- (a press at the same moment sees this seat taken)
 	local ok, bot = pcall(function(): any
 		if Tables.tableOf(p) ~= t.engine.id and not Tables.placeOnPad(t, p) then
 			return nil
@@ -346,6 +348,7 @@ local function challenge(
 		})
 	end)
 	promised[t] = nil
+	seating -= 1
 	if not ok or bot == nil then
 		if not ok then
 			warn("[HalloweenMap] the King's challenge failed: " .. tostring(bot))
