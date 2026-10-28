@@ -39,7 +39,7 @@ if [ "$ATTENDED" = "1" ]; then
 Not finished: $open_steps step(s) in the Progress list of ${BRIEF#"$ROOT"/} are still unticked.
 The designer is awake and watching. Keep going on your own wherever you can do it at full
 quality. If you truly need them (access you can't get yourself, a click only they can make, or a
-call where guessing would lower the quality), run \`touch .git/overnight-waiting\`, then ask one
+call where guessing would lower the quality), run \`touch "$WAITING_FILE"\`, then ask one
 short, clear question and stop; this hook lets that stop through so they can answer. Otherwise
 re-read the brief (the rules, the Progress list and your Notes), run \`git log --oneline -15\`,
 and carry on with the first unticked step:
