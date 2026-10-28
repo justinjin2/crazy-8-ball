@@ -113,6 +113,6 @@ original back (asset 123614794049673): `python3 tools/halloween/store_page.py ic
 > 🎃 **The HALLOWEEN UPDATE is live!** 🎃
 > The rooftop has gone haunted. Play matches to collect **Candy**, finish daily quests and
 > unlock **5 Halloween cues** that never come back: the Jack-o'-Lantern, the Pitchfork, the
-> Witch's Broom, the legendary **Halloween Sword** and the Spider. The **Pumpkin King** visits the middle of the roof at :15 and
+> Witch's Broom, the **Halloween Sword** and the Spider. The **Pumpkin King** visits the middle of the roof at :15 and
 > :45 every hour: beat him for Candy, money and XP! Grab Candy around the lobby, and play in the
 > first 10 minutes of every hour for **2x Candy**. Ends Nov 3!
