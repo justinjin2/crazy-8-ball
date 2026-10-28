@@ -324,6 +324,20 @@
    "name": "10 Grand Opening Lucky Blocks",
    "robux": 299,
    "description": "10 Grand Opening Lucky Blocks: each rolls Rare to Secret, with a chance at the numbered Firework Cue (1,000 made) or Beta Cue (100 made). Every outcome's odds are shown in the shop before buying."
+  },
+  {
+   "key": "Candy500",
+   "kind": "Product",
+   "name": "500 Halloween Candy",
+   "robux": 49,
+   "description": "500 Halloween Candy. It counts toward every prize on the Halloween track, including the Witch's Broom. Leftover Candy becomes $10 each when the event ends."
+  },
+  {
+   "key": "Candy2000",
+   "kind": "Product",
+   "name": "2,000 Halloween Candy",
+   "robux": 149,
+   "description": "2,000 Halloween Candy. It counts toward every prize on the Halloween track, including the Witch's Broom. Leftover Candy becomes $10 each when the event ends."
   }
  ]
 }

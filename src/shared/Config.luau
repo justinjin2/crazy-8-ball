@@ -4102,8 +4102,8 @@ Config.Shop = {
 ---------------------------------------------------------------------------------------------
 Config.Products = {
 	-- Everything Robux buys (economy v4, 2026-10-08; tools/products_spec.json holds the names,
-	-- prices and descriptions): 3 game passes and 40 developer products (8 retired; Claim All's
-	-- 6 not made yet), made
+	-- prices and descriptions): 3 game passes and 44 developer products (9 retired; the two
+	-- Halloween Candy packs made 2026-10-28), made
 	-- through Open Cloud by tools/roblox_products.py (managed pricing off; --sync updates them). Id 0 would show "Coming soon" and prompt
 	-- nothing. Robux is the fallback price; the live price
 	-- is read from Roblox. Random = true: a paid random item, refused where PolicyService
@@ -4383,6 +4383,12 @@ Config.Products = {
 			SaleOf = "Mystery10",
 			Retired = true,
 		},
+		-- The Halloween 2026 Candy packs (Config.Halloween.Packs; made 2026-10-28): Candy is the
+		-- Halloween Candy one purchase adds to the save's Halloween.Bought, flat (no Rush, double
+		-- day, friends or group; no quest). Sold only while Packs.Enabled and the event is Live;
+		-- a receipt outside that pays Shop.fallbackMoney.
+		Candy500 = { Kind = "Product", Id = 3723285204, Robux = 49, Candy = 500 },
+		Candy2000 = { Kind = "Product", Id = 3723285208, Robux = 149, Candy = 2000 },
 	},
 }
 

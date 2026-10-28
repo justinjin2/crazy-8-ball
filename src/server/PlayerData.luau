@@ -3804,6 +3804,11 @@ function PlayerData.hwReset(player: Player): boolean
 	return true
 end
 
+local hwPackEvent = Instance.new("BindableEvent")
+--- (player, key, result: HwResult) A Candy pack landed (applyPurchase, after its commit): the
+--- Candy, the track steps it reached and the Spider, for CandyService's moments and the view.
+PlayerData.HwPack = hwPackEvent.Event
+
 ---------------------------------------------------------------------------------------------
 -- Mutations: purchases (the Store service)
 ---------------------------------------------------------------------------------------------
@@ -3837,6 +3842,12 @@ local function badGrant(grant: any, copy: any): string?
 	end
 	if grant.luckySkip == true and LuckyBlocks.skipTierOf(grant.key) == nil then
 		return "grant.luckySkip names no skip product"
+	end
+	if grant.candy ~= nil and not intIn(grant.candy, 1, S.StatCap) then
+		return ("grant.candy %s is not a whole number in 1..%d"):format(
+			tostring(grant.candy),
+			S.StatCap
+		)
 	end
 	local rowDays = math.max(#Config.Daily.FirstWeek, #Config.Daily.Streak)
 	if grant.claimAll ~= nil and not intIn(grant.claimAll, 1, rowDays) then
@@ -3903,9 +3914,11 @@ end
 --- while Shop.VipCueGiven is false; an Exclusive cue already owned is not given twice), its
 --- Limited cue with copy number `copy` (required with grant.limited: the caller's Limited
 --- counter handed it out; refused, logged, when the player already owns that cue, so the
---- Store must not prompt then) and its Shop flags (Shop.markGrant). grant.party is the
---- caller's (this server's Money Party). A purchase id already recorded grants nothing and
---- answers true (it was granted before). The caller then waits for saveNow.
+--- Store must not prompt then), its Halloween Candy (grant.candy into Halloween.Bought with the
+--- track's prizes it reaches; PlayerData.HwPack fires after the commit) and its Shop flags
+--- (Shop.markGrant). grant.party is the caller's (this server's Money Party). A purchase id
+--- already recorded grants nothing and answers true (it was granted before). The caller then
+--- waits for saveNow.
 function PlayerData.applyPurchase(
 	player: Player,
 	purchaseId: string,
@@ -3977,8 +3990,23 @@ function PlayerData.applyPurchase(
 			addMoneyTo(data, Shop.fallbackMoney(grant.key), false, "Purchase:" .. grant.key)
 		end
 	end
+	-- A Candy pack (Shop.grantFor gives grant.candy only while the packs are sold): flat into
+	-- Halloween.Bought (no Rush, double day, friends or group; no quest), and every track step
+	-- and the Spider it reaches, in this same change, so the receipt id, the Candy and the
+	-- prizes land together and a replayed receipt gives none of them again.
+	local pack: HwResult? = nil
+	if grant.candy ~= nil then
+		local hw = hwField(data)
+		local result: HwResult = { candy = 0, steps = {}, spider = false, quests = {}, money = 0 }
+		result.candy = HwLedger.addCandy(hw, grant.candy, "Bought")
+		hwGrantDue(data, hw, result)
+		pack = result
+	end
 	Shop.markGrant(shop, grant)
 	commit(player, data, op)
+	if pack ~= nil then
+		hwPackEvent:Fire(player, grant.key, pack)
+	end
 	return true
 end
 

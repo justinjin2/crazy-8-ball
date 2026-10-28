@@ -550,6 +550,9 @@ local function onRequest(player: Player, msg: any)
 		if PlayerData.hwMark(player, "EndSeen") then
 			CandyService.changed(player)
 		end
+	elseif type(msg.pack) == "string" and table.find(C.Packs.Keys, msg.pack) ~= nil then
+		-- A Get Candy button (its Buy goes to the Store): the start of the pack funnel (HwPack).
+		Funnel.event(player, "HwMenu", 1, "PackPrompt", msg.pack)
 	end
 end
 
@@ -733,6 +736,20 @@ function CandyService.start()
 		end)
 		if not ok then
 			warn("[8ball] CandyService: on load: " .. tostring(err))
+		end
+	end)
+	-- A Candy pack landed (PlayerData.applyPurchase, the receipt's one change): HwPack (value: the
+	-- Robux; a: the product key), HwCandy, and its moments, track prizes and view like any Candy.
+	PlayerData.HwPack:Connect(function(player: Player, key: string, result: PlayerData.HwResult)
+		local ok, err = pcall(function(): any
+			local row = (Config.Products.List :: any)[key]
+			Funnel.event(player, "HwPack", if row then row.Robux else 0, key)
+			logCandy(player, result.candy, "Pack")
+			after(player, result, "Pack")
+			return nil
+		end)
+		if not ok then
+			warn("[8ball] CandyService: pack: " .. tostring(err))
 		end
 	end)
 	-- The tutorial's end (its save flag) turns the event on for the player.

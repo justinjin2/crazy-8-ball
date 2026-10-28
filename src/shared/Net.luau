@@ -448,7 +448,8 @@ local REMOTES: { [string]: string } = {
 	-- on = { quests, packs, spider } } } (at most one every Config.Halloween.PushSeconds), or a
 	-- moment: { toast = { candy, source, x2 } } (Candy landed), { step = index } (a track prize),
 	-- { spider = true }. client -> server, rate limited: { claim = "<board>.<slot>" },
-	-- { seen = true } (the menu opened), { endSeen = true } (the end screen shown).
+	-- { seen = true } (the menu opened), { endSeen = true } (the end screen shown),
+	-- { pack = key } (a Get Candy button pressed: analytics only; the Buy is a StoreRequest).
 	Halloween = "RemoteEvent",
 	-- The Haunted Rooftop (Halloween 2026; src/server/HalloweenMap, src/client/HalloweenMap).
 	-- server -> clients: { kind = "Burst", tableId, at, amount, winner } (the King's candy
