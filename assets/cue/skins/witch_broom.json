@@ -4,7 +4,7 @@
   "tier": "Secret",
   "catalog_id": "WitchBroomCue",
   "draft": false,
-  "note": "Halloween 2026 (lane Cues B, docs/prompts/HW_CUES_B_PROMPT.md 2.4, concept C3b_broom.png), remade 2026-10-28 (Justin 12:55): a real broom, a gnarled twisted branch with knots and a broken stub, a violet crystal tip with a silver coil, a thick purple binding with a silver buckle and gold crescent, a big full head of golden straw (3.3x), a swaying witch-hat charm; moons, stars, bats and spell sigils round it, potion smoke and bats out of the bristles, sparks from the crystal. No ribbons.",
+  "note": "Halloween 2026 (lane Cues B, docs/prompts/HW_CUES_B_PROMPT.md 2.4, concept C3b_broom.png), remade 2026-10-28 (Justin 12:55): a real broom, a gnarled twisted branch with knots and a broken stub, a violet crystal tip with a silver coil, a thick purple binding with a silver buckle and gold crescent, a big full head of golden straw (3.3x), a swaying witch-hat charm; moons, stars, bats and spell stars round it, potion smoke and bats out of the bristles, sparks from the crystal. No ribbons.",
   "body": "witch_broom",
   "maps_from": "classic",
   "look": {
@@ -58,10 +58,10 @@
   "vfx": {
     "Piece": "pieces/witch_broom_aura: the concept's glowing ribbons as a 3D decor piece round the whole handle, the Firework's way: two narrow saturated Neon strips (violet #8B30FF, emerald #19E088, 0.09 wide, 0.2 off the bark, a turn every 1.8 studs) turning like screws in opposite senses with a Glow breath toward a lighter tint of their own hue; a thin gold sparkle thread the other way, twinkling; three gold crescent moons, five four-point stars and two flapping bats orbiting the handle. Second build (designer, 2026-10-28 11:55); the wide pale bands and the Glow toward white of the first retune bloomed into a white sheet in daylight and are gone.",
     "Moving": {
-      "Note": "The moons, stars, bats and spell sigils (the aura piece), the two orbiters and the halo beam move; the crystal glows 0.25-1.0 over 2.4 s; the charm swings over 1.8 s; the bristle head flexes over 2.6 and 4 s."
+      "Note": "The moons, stars, bats and spell stars (the aura piece), the two orbiters and the halo beam move; the crystal glows 0.25-1.0 over 2.4 s; the charm swings over 1.8 s; the bristle head flexes over 2.6 and 4 s."
     },
     "Aura": {
-      "Note": "Secret (brief 2.4), third build (Justin 12:55: no ribbons, the Broom's own effects), inside out: a deep violet haze body, a violet additive glow, emerald wisps, violet motes, star and gold glints, crescent flecks along the handle; at the bristle head potion smoke curling up out of the straw (teal to violet), potion bubbles rising, straw leaves flying off and bats bursting out of it; sparks and a flare spraying from the crystal; a sparkle trickle from the hat charm; spell pops (three star pops, a ring, sparks); one violet halo beam; a violet PointLight at the crystal, an emerald one mid-handle and a gold one at the binding; two sparkle heads riding the cue; violet outline. About 169 particles a second before BackRateScale (budget 170).",
+      "Note": "Secret (brief 2.4), third build (Justin 12:55: no ribbons, the Broom's own effects), inside out: a deep violet haze body, a violet additive glow, emerald wisps, violet motes, star and gold glints, crescent flecks along the handle; at the bristle head potion smoke curling up out of the straw (teal to violet), potion bubbles rising, straw leaves flying off and bats bursting out of it; sparks and a flare spraying from the crystal; a sparkle trickle from the hat charm; spell pops (four star pops, sparks; no rings); one violet halo beam; a violet PointLight at the crystal, an emerald one mid-handle and a gold one at the binding; two sparkle heads riding the cue; violet outline. About 169 particles a second before BackRateScale (budget 170).",
       "Emitters": [
         {
           "Name": "Haze",
@@ -1454,8 +1454,8 @@
           "Brightness": 6
         },
         {
-          "Name": "SpellRing",
-          "Texture": "vfx/_shared/ring.png",
+          "Name": "SpellBurst",
+          "Texture": "vfx/_shared/star4.png",
           "Host": {
             "Kind": "Part",
             "FromStuds": 0.8,
@@ -2838,7 +2838,7 @@
       "BodyTriangles": 9600,
       "PieceTriangles": 2392,
       "PocketPieceTriangles": 4928,
-      "Note": "Third build (2026-10-28, 13:15): the remade broom body (6 parts, 9,600 triangles: gnarled handle, 3.3x straw head) and the aura piece without ribbons (19 parts, 2,392 triangles: moons, stars, bats, three spell sigils)."
+      "Note": "Third build (2026-10-28, 13:15): the remade broom body (6 parts, 9,600 triangles: gnarled handle, 3.3x straw head) and the aura piece without ribbons (19 parts, 2,392 triangles: moons, stars, bats, three spell stars)."
     }
   }
 }

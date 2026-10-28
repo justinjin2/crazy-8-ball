@@ -884,12 +884,12 @@ def witch_broom_aura(k):
     ribbons on any cue, each cue its own hand-made effect): the Broom's are the things a witch
     keeps round her broom. Three gold crescent moons, five four-point stars and two bats as
     meshes orbiting the handle (Spin and Bob, the bats flapping on Sway hinges), the stars
-    twinkling (Fade); three spell sigils (a Neon ring with a pentagram and an inner circle,
-    violet, emerald and gold) hovering beside the handle facing out, each on a `life` cycle of
-    its own length (it writes itself in, holds, dissolves), turning slowly. The smoke, bats
+    twinkling (Fade); three spell stars (a five-point Neon star outline with a small solid star
+    at its heart, violet, emerald and gold; no rings, nothing occult: Justin 18:45) hovering
+    beside the handle facing out, each on a `life` cycle of its own length, turning slowly. The smoke, bats
     bursting from the bristles, the crystal's sparks and the potion bubbles are the skin's
-    emitters. Lower effects keeps the moons, two sigils and one bat; the stars, the third
-    sigil and the second bat hide."""
+    emitters. Lower effects keeps the moons, two spell stars and one bat; the small stars,
+    the third spell star and the second bat hide."""
     import bmesh
     from mathutils import Vector
     R = _radius()
@@ -986,13 +986,14 @@ def witch_broom_aura(k):
                 bm.faces.new((root, vs[j], vs[j + 1]))
             k.add(wname, flat(bm, wname, 'Bat', 0.02))
 
-    # Three spell sigils hovering beside the handle, facing out: a ring, a pentagram and an inner
-    # circle of thin Neon quads (0.028 wide, like the web lines that read in the lab), each on a
-    # life cycle of its own length and turning slowly round the handle.
+    # Three spell stars hovering beside the handle, facing out (Justin 18:45: no circled
+    # pentagrams, nothing occult; plain stars): a five-point star outline of thin Neon quads
+    # (0.028 wide, like the web lines that read in the lab) with a small solid four-point star
+    # at its heart, each on a life cycle of its own length, turning slowly round the handle.
     for i, (d, mat, tint, rate, period, phase, low) in enumerate((
             (1.1, 'Violet', '#C9A0FF', 14.0, 6.0, 0, None), (3.0, 'Emerald', '#9CFFD8', -11.0, 7.5, 120, None),
             (4.9, 'Gold', '#FFF0C0', 16.0, 6.8, 240, 'hide'))):
-        name = 'Sigil%d' % (i + 1)
+        name = 'Spell%d' % (i + 1)
         k.joint(name, pivot=(0, -d, 0), aura=True, low=low,
                 motion=[{'Kind': 'Spin', 'Axis': (0, 1, 0), 'Rate': rate},
                         {'Kind': 'Bob', 'Dir': (0, 1, 0), 'Amp': 0.12, 'Period': 2.9 + 0.4 * i, 'Phase': 50 * i}],
@@ -1000,26 +1001,29 @@ def witch_broom_aura(k):
                         {'Kind': 'Glow', 'Min': 0.0, 'Max': 0.35, 'Period': 1.7, 'Phase': 30 * i, 'Color': tint}])
         bm = bmesh.new()
         c = Vector((0.62, -d, 0))
-        u, v = Vector((0, 1, 0)), Vector((0, 0, 1))   # the sigil's plane faces out from the handle
+        u, v = Vector((0, 1, 0)), Vector((0, 0, 1))   # the star's plane faces out from the handle
         w = 0.028
 
         def line(p, q):
             along = (q - p).normalized()
-            across = Vector((0, along.z, -along.y)) * (w / 2)   # in the plane, across the line
+            across = Vector((0, along.z, -along.y)) * (w / 2)
             bm.faces.new((bm.verts.new(p - across), bm.verts.new(q - across), bm.verts.new(q + across), bm.verts.new(p + across)))
-        n = 28
-        ring = [c + u * (0.3 * math.cos(2 * math.pi * j / n)) + v * (0.3 * math.sin(2 * math.pi * j / n)) for j in range(n)]
-        for j in range(n):
-            line(ring[j], ring[(j + 1) % n])
-        pts = [c + u * (0.26 * math.cos(math.pi / 2 + 2 * math.pi * j / 5)) + v * (0.26 * math.sin(math.pi / 2 + 2 * math.pi * j / 5)) for j in range(5)]
-        for j in range(5):
-            line(pts[j], pts[(j + 2) % 5])
-        m = 12
-        for j in range(m):
-            line(c + u * (0.1 * math.cos(2 * math.pi * j / m)) + v * (0.1 * math.sin(2 * math.pi * j / m)),
-                 c + u * (0.1 * math.cos(2 * math.pi * (j + 1) / m)) + v * (0.1 * math.sin(2 * math.pi * (j + 1) / m)))
-        k.add(name, flat(bm, name + 'Glyph', mat, 0.02))
-
+        pts = []
+        for j in range(10):
+            r = 0.32 if j % 2 == 0 else 0.14
+            a = math.pi / 2 + 2 * math.pi * j / 10
+            pts.append(c + u * (r * math.cos(a)) + v * (r * math.sin(a)))
+        for j in range(10):
+            line(pts[j], pts[(j + 1) % 10])
+        centre = bm.verts.new(c)
+        inner = []
+        for j in range(8):
+            r = 0.09 if j % 2 == 0 else 0.035
+            a = math.pi / 4 + 2 * math.pi * j / 8
+            inner.append(bm.verts.new(c + u * (r * math.cos(a)) + v * (r * math.sin(a))))
+        for j in range(8):
+            bm.faces.new((centre, inner[j], inner[(j + 1) % 8]))
+        k.add(name, flat(bm, name + 'Star', mat, 0.02))
 
 @piece
 def witch_broom_pocket(k):
