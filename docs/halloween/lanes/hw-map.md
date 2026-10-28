@@ -50,6 +50,12 @@ From PLAN §4 (everything else is read-only to this lane; ask through Requests):
 - `Config.HalloweenMap.Props.Budget.Lights = 6` (throne 2 + the throne King's aura 1 + 3 table Kings).
 
 ## Status
+- 12:03 hw-map: **READY @39815514** (step 21): halloween @02e046e1 merged in (clean), lint OK,
+  1,459 tests, Studio boot on the merged tree: Live, 16 tables with the look, 44 decor pieces,
+  51 props, the throne; console clean but for the Studio store lines, the known 203785492 ones
+  and `1621084` (the tutorial bot's random avatar, not in src). New since READY 7fd462cc:
+  aaaffdbe and 9af68c6a (King notices fit the card, a test), 10489ad6 (`LocalSearch.isPromised`),
+  b86b9142 (the designer's `/king [tier]`), lane-file updates. All 21 steps ticked.
 - 11:59 hw-map: **Status final** (step 20). Everything below is on (`Config.HalloweenMap`, all
   eight switches true), follows core's Event.state and was checked in my Studio window:
   - **Night**: while Live the event light takes Day's slot of the cycle (Countdown preloads the
