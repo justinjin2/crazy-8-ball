@@ -54,6 +54,10 @@ local UltCatalog = require(Shared.Ults.Catalog)
 local UltSlots = require(Shared.Ults.Slots)
 local SpinView = require(Shared.Ults.SpinView)
 local RankClaim = require(Shared.Tutorial.RankClaim)
+local HwEvent = require(Shared.Halloween.Event)
+local HwLedger = require(Shared.Halloween.Ledger)
+local HwTrack = require(Shared.Halloween.Track)
+local Quests = require(Shared.Halloween.Quests)
 local ProfileStore = require(script.Parent.Vendor.ProfileStore)
 
 type Profile = ProfileStore.Profile<any>
@@ -3448,6 +3452,318 @@ end
 function PlayerData.actingRegular(player: Player): boolean
 	local data = PlayerData.read(player)
 	return data ~= nil and data.Flags.ActingRegular == true
+end
+
+---------------------------------------------------------------------------------------------
+-- Mutations: the Halloween 2026 event (hw-core; src/server/Halloween/CandyService.luau).
+-- Every change to the save's Halloween field is ONE commit: the Candy, the quest progress, the
+-- track's prizes (Halloween/Track) and the Spider land together. The rules are Halloween/Ledger
+-- and Halloween/Quests (pure); `ctx` comes from CandyService: the server's now, the newest open
+-- board and the quest hooks.
+---------------------------------------------------------------------------------------------
+
+--- CandyService's context for a Halloween mutation.
+export type HwCtx = {
+	now: number, -- Halloween/Clock.serverNow()
+	open: number, -- Event.boardIndex(now): the newest open quest board
+	hooks: Quests.Hooks,
+}
+
+--- What a Halloween mutation did: Candy added, track steps granted (indices), the Spider given,
+--- quest progress that changed, and money paid (the conversion).
+export type HwResult = {
+	candy: number,
+	steps: { number },
+	spider: boolean,
+	quests: { Quests.Routed },
+	money: number,
+}
+
+-- Whether a Halloween cue may be granted: in the catalog and built (Catalog.ready, the Cues A
+-- lane's; missing = not ready). A cue not ready is held and granted on a later try.
+local function hwCueReady(id: string): boolean
+	local ready = (Catalog :: any).ready
+	if type(ready) ~= "function" or Catalog.get(id) == nil then
+		return false
+	end
+	local ok, yes = pcall(ready, id)
+	return ok and yes == true
+end
+
+-- The save's Halloween field, made whole for an old save that has none yet.
+local function hwField(data: any): any
+	if type(data.Halloween) ~= "table" then
+		data.Halloween = SaveSchema.freshHalloween()
+	end
+	return data.Halloween
+end
+
+-- Grants every track step the save's Candy has reached (a cue only when ready: a held step
+-- stays ungiven) and the Spider once earned, noting them in `result`.
+local function hwGrantDue(data: any, hw: any, result: HwResult)
+	local steps = HwTrack.steps()
+	for _, index in HwTrack.due(HwLedger.total(hw), hw.Given) do
+		local step = steps[index]
+		if step.Cue ~= nil then
+			if not hwCueReady(step.Cue) then
+				continue
+			end
+			giveReward(data, { cues = { step.Cue } }, "Halloween")
+		elseif step.Spins ~= nil then
+			addSpinsTo(data, step.Spins, nil)
+		elseif step.Money ~= nil then
+			addMoneyTo(data, step.Money, true, "Halloween")
+		end
+		hw.Given[HwTrack.key(index)] = true
+		table.insert(result.steps, index)
+	end
+	local spider = Config.Halloween.Spider
+	if HwLedger.spiderDue(hw) and hwCueReady(spider.Cue) then
+		giveReward(data, { cues = { spider.Cue } }, "Halloween")
+		hw.Spider = true
+		result.spider = true
+	end
+end
+
+-- Runs `fn` on the live save's Halloween field, grants what came due, commits once. nil when
+-- the save is not loaded.
+local function hwMutate(
+	op: string,
+	player: Player,
+	fn: (data: any, hw: any, result: HwResult) -> ()
+): HwResult?
+	local data = liveData(op, player)
+	if data == nil then
+		return nil
+	end
+	local hw = hwField(data)
+	local result: HwResult = { candy = 0, steps = {}, spider = false, quests = {}, money = 0 }
+	fn(data, hw, result)
+	hwGrantDue(data, hw, result)
+	commit(player, data, op)
+	return result
+end
+
+-- Counts quest events (`{ { kind, amount } }`) on the open boards (Live only).
+local function hwRoute(
+	hw: any,
+	ctx: HwCtx,
+	events: { { kind: string, amount: number } },
+	result: HwResult
+)
+	if not HwEvent.isLive(ctx.now) or Config.Halloween.Quests.Enabled ~= true then
+		return
+	end
+	for _, e in events do
+		for _, routed in Quests.route(hw.Q, ctx.open, ctx.hooks, e.kind, e.amount) do
+			table.insert(result.quests, routed)
+		end
+	end
+end
+
+--- A read-only copy of the save's Halloween field (nil before the save loads).
+function PlayerData.halloween(player: Player): any?
+	local data = peek(player)
+	if data == nil or type(data.Halloween) ~= "table" then
+		return nil
+	end
+	return copyOf(data.Halloween, true)
+end
+
+--- Adds Candy (`bucket` "Earned" from play, "Bought" from a pack) and counts quest events in the
+--- same commit (Live only for both). nil when the save is not loaded.
+function PlayerData.hwAddCandy(
+	player: Player,
+	amount: number,
+	bucket: "Earned" | "Bought",
+	ctx: HwCtx,
+	events: { { kind: string, amount: number } }?
+): HwResult?
+	if not isPlayer(player) or (bucket ~= "Earned" and bucket ~= "Bought") then
+		refuse("hwAddCandy", player, "bad player or bucket")
+		return nil
+	end
+	return hwMutate("hwAddCandy", player, function(_, hw, result)
+		if HwEvent.isLive(ctx.now) then
+			result.candy = HwLedger.addCandy(hw, amount, bucket)
+		end
+		if events ~= nil then
+			hwRoute(hw, ctx, events, result)
+		end
+	end)
+end
+
+--- Counts quest events without Candy (Live only).
+function PlayerData.hwQuest(
+	player: Player,
+	events: { { kind: string, amount: number } },
+	ctx: HwCtx
+): HwResult?
+	return hwMutate("hwQuest", player, function(_, hw, result)
+		hwRoute(hw, ctx, events, result)
+	end)
+end
+
+--- A Pumpkin King win (Halloween/Ledger.bossWin): the paid Candy, the cooldown and the King
+--- quests together. (boss result or nil when not Live, the mutation's result or nil.)
+function PlayerData.hwBoss(player: Player, ctx: HwCtx): (HwLedger.BossResult?, HwResult?)
+	local boss: HwLedger.BossResult? = nil
+	local result = hwMutate("hwBoss", player, function(_, hw, result)
+		boss = HwLedger.bossWin(hw, ctx.now)
+		if boss ~= nil then
+			result.candy = boss.amount
+			hwRoute(hw, ctx, { { kind = "King", amount = 1 } }, result)
+		end
+	end)
+	return boss, result
+end
+
+--- The player's King cooldown end (unix seconds; 0 when none or the save is not loaded).
+function PlayerData.hwBossCooldown(player: Player, now: number): number
+	local data = peek(player)
+	if data == nil or type(data.Halloween) ~= "table" then
+		return 0
+	end
+	return HwLedger.bossCooldown(data.Halloween, now)
+end
+
+--- A lobby Candy pickup (Halloween/Ledger.pickup) and its quest, in one commit. (ok, reason,
+--- result): reason "NotLoaded", "NotLive" or "Cap" when refused.
+function PlayerData.hwPickup(player: Player, ctx: HwCtx): (boolean, string?, HwResult?)
+	if peek(player) == nil then
+		return false, "NotLoaded", nil
+	end
+	local ok, reason = false, nil :: string?
+	local result = hwMutate("hwPickup", player, function(_, hw, result)
+		ok, reason = HwLedger.pickup(hw, ctx.now)
+		if ok then
+			result.candy = Config.Halloween.Pickup.Candy
+			hwRoute(hw, ctx, { { kind = "Pickups", amount = 1 } }, result)
+		end
+	end)
+	if result == nil then
+		return false, "NotLoaded", nil
+	end
+	return ok, reason, result
+end
+
+--- Adds active seconds (Live only): the Spider's clock and the "Play N min" quests.
+function PlayerData.hwActive(player: Player, seconds: number, ctx: HwCtx): HwResult?
+	return hwMutate("hwActive", player, function(_, hw, result)
+		if HwEvent.isLive(ctx.now) then
+			HwLedger.addActive(hw, seconds)
+			hwRoute(hw, ctx, { { kind = "Active", amount = seconds } }, result)
+		end
+	end)
+end
+
+--- Tries the held track and Spider grants again (a cue that became ready). nil when nothing
+--- was held or the save is not loaded; never commits for nothing.
+function PlayerData.hwRetry(player: Player): HwResult?
+	local data = peek(player)
+	if data == nil or type(data.Halloween) ~= "table" then
+		return nil
+	end
+	local hw = data.Halloween
+	local held = HwLedger.spiderDue(hw) and hwCueReady(Config.Halloween.Spider.Cue)
+	if not held then
+		local steps = HwTrack.steps()
+		for _, index in HwTrack.due(HwLedger.total(hw), hw.Given) do
+			local cue = steps[index].Cue
+			if cue == nil or hwCueReady(cue) then
+				held = true
+				break
+			end
+		end
+	end
+	if not held then
+		return nil
+	end
+	return hwMutate("hwRetry", player, function() end)
+end
+
+--- Claims a finished quest (Live only): its reward into Earned, flat, and the track's prizes.
+--- The Candy claimed (0 when refused).
+function PlayerData.hwClaim(player: Player, key: string, ctx: HwCtx): (number, HwResult?)
+	if type(key) ~= "string" or #key > 8 then
+		refuse("hwClaim", player, "bad key")
+		return 0, nil
+	end
+	local claimed = 0
+	local result = hwMutate("hwClaim", player, function(_, hw, result)
+		if not HwEvent.isLive(ctx.now) then
+			return
+		end
+		local quest = Quests.find(key, ctx.open, ctx.hooks)
+		if quest == nil or hw.Claimed[key] == true or not Quests.done(hw.Q, quest) then
+			return
+		end
+		hw.Claimed[key] = true
+		claimed = HwLedger.addCandy(hw, quest.reward, "Earned")
+		result.candy = claimed
+	end)
+	return claimed, result
+end
+
+--- Sets one of the save's Halloween marks ("Seen": the menu was opened; "EndSeen": the end
+--- screen was shown). True when it changed.
+function PlayerData.hwMark(player: Player, mark: "Seen" | "EndSeen"): boolean
+	if mark ~= "Seen" and mark ~= "EndSeen" then
+		return refuse("hwMark", player, "bad mark")
+	end
+	local data = peek(player)
+	if data == nil or (type(data.Halloween) == "table" and data.Halloween[mark] == true) then
+		return false
+	end
+	return hwMutate("hwMark", player, function(_, hw)
+		hw[mark] = true
+	end) ~= nil
+end
+
+--- The end (once per save, after EndsAt): finished unclaimed quests are claimed, then all the
+--- Candy becomes money (Convert.MoneyPerCandy each, reason "HalloweenCandy"), and the save is
+--- marked converted. No track prizes are granted any more. A save with no Candy is only marked
+--- (no end screen). The result's money (nil when not due or not loaded).
+function PlayerData.hwConvert(player: Player, ctx: HwCtx): HwResult?
+	local data = peek(player)
+	if data == nil or not HwLedger.convertDue(hwField(data), ctx.now) then
+		return nil
+	end
+	local op = "hwConvert"
+	data = liveData(op, player)
+	if data == nil then
+		return nil
+	end
+	local hw = hwField(data)
+	local result: HwResult = { candy = 0, steps = {}, spider = false, quests = {}, money = 0 }
+	for _, quest in Quests.claimable(hw.Q, hw.Claimed, ctx.open, ctx.hooks) do
+		hw.Claimed[quest.key] = true
+		result.candy += HwLedger.addCandy(hw, quest.reward, "Earned")
+	end
+	local money = HwLedger.convertMoney(hw)
+	if money > 0 then
+		addMoneyTo(data, money, true, "HalloweenCandy")
+	else
+		hw.EndSeen = true -- nothing to show
+	end
+	hw.Converted = true
+	hw.ConvertedMoney = money
+	hw.ConvertedAt = ctx.now
+	result.money = money
+	commit(player, data, op)
+	return result
+end
+
+--- Studio and the test place only (/hw reset): the save's Halloween field starts over.
+function PlayerData.hwReset(player: Player): boolean
+	local op = "hwReset"
+	local data = liveData(op, player)
+	if data == nil then
+		return false
+	end
+	data.Halloween = SaveSchema.freshHalloween()
+	commit(player, data, op)
+	return true
 end
 
 ---------------------------------------------------------------------------------------------
