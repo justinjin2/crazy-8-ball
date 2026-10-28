@@ -240,11 +240,12 @@ return {
 			Store = "The global queue isn't answering. Try again.",
 			Party = "Your party changed, so the search stopped.",
 			Refresh = "Couldn't move to a fresh server. Playing on here.", -- the server refresh
-			-- The Pumpkin King's challenge (Halloween 2026; BossService).
-			KingBusy = "The Pumpkin King is busy. Try again in a moment!",
-			KingNoTable = "No free table for the Pumpkin King right now. Try again soon!",
-			KingCooldown = "The Pumpkin King is resting. Come back when he's ready!",
-			KingNotNow = "You can't challenge the Pumpkin King right now.",
+			-- The Pumpkin King's challenge (Halloween 2026; BossService). Each fits the queue card's
+			-- 300 px at about its full 18 px (measured in Studio; longer lines shrink to fit).
+			KingBusy = "The King is busy. Try again in a moment!",
+			KingNoTable = "No free table for the King. Try again soon!",
+			KingCooldown = "The King is resting. Come back soon!",
+			KingNotNow = "You can't challenge the King right now.",
 			CandyBagFull = "Your candy bag is full until :00", -- the lobby candy's hour cap (CandyDrop)
 		},
 	},
