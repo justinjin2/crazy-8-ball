@@ -22,6 +22,21 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
   `Index.luau`, `Textures.luau` (regenerate after every merge conflict there).
 
 ## Status
+- 18:42 **Broom: nothing occult** (Justin 18:45 through the coordinator: the circled pentagrams
+  read as satanic). The three spell sigils (a Neon ring, a pentagram, an inner circle) are gone
+  from the aura piece; in their place three plain five-point star outlines with a small solid
+  four-point star at the heart (violet, emerald, gold; the same life cycles and Lower-effects
+  rule: the gold one hides). The skin's SpellRing pop (a bare ring) is now SpellBurst on
+  star4.png; no ring texture is left in the aura. Checked the rest of the set: the trail (stars,
+  crescents, straw, bats), the pocket finisher (two flat portal rings, crescents, four-point
+  stars, the witch-over-the-moon flipbook; no pentagram anywhere) and the card, which showed the
+  sigils and is regenerated (`cue_skin.py witch_broom --thumb --noaura`) and re-uploaded. Aura
+  piece 19 parts, 1,228 tris (was 2,392). Lab (my window, Play): stand, hand at aim (a real
+  /solo game) and back on the bright floor: plain stars, a crescent, bats; nothing over the aim
+  line. Captures: gate2/broom_stars_stand_lab.jpg, broom_stars_hand_lab.jpg,
+  broom_stars_back_lab.jpg, broom_stars_side_by_side.jpg. Lint OK, 1,477 tests,
+  cue_skins_data.py clean. One stale upload, unused: thumb 132001289703674 (rendered with the
+  particle aura by mistake, dropped from the manifest).
 - 18:05 **Robustness pass** (coordinator 17:52, Justin 17:46: publish tonight after it; base
   `halloween` @cb89ebcc, merged clean, cue_skins_data.py a no-op at the tip). Checked, for
   WitchBroomCue, SpiderCue and (read-only, Cues A's now) BlackCatCue:
@@ -368,6 +383,10 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
 
 ## Requests
 
+- 18:42 **READY WitchBroomCue, nothing occult @ e1ce7b99** (skin `witch_broom`: new aura piece
+  118538981575979, new card 101208766181525 / image 109752689782479; base `halloween`
+  @e3ddfde4; lint OK, 1,477 tests, cue_skins_data.py clean). Template build in Team Create:
+  `ONLY = { "WitchBroomCue" }` (new witch_broom_aura id).
 - 18:10 **READY robustness pass @ e4032dc0** (SpiderCue droplines fix; everything else checked, nothing
   else changed; lint OK, 1,469 tests, cue_skins_data.py clean). Template build in Team Create:
   `ONLY = { "SpiderCue" }` (new spider_aura id).
