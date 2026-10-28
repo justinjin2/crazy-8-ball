@@ -26,8 +26,8 @@
     },
     {
       "Material": "Neon",
-      "Color": "#F2F4F8",
-      "Transparency": 0.3,
+      "Color": "#FF2A44",
+      "Transparency": 0.12,
       "Reflectance": 0.0,
       "Name": "Funnel_Thread",
       "File": "pieces/spider_pocket/Funnel_Thread.obj",

@@ -798,7 +798,7 @@ return {
 		Id = "spider",
 		Name = "Spider Cue",
 		Tier = "Mythic",
-		Thumb = "rbxassetid://80551345054710",
+		Thumb = "rbxassetid://75625207590037",
 		Look = {
 			Shaft = { 16, 16, 20 },
 			Forearm = { 16, 16, 20 },

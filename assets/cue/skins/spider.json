@@ -4,7 +4,7 @@
   "tier": "Mythic",
   "catalog_id": "SpiderCue",
   "draft": false,
-  "note": "Halloween 2026 (lane Cues B, brief 2.6, concept C1b_spider.png rev 2): a black chrome segmented shaft with silver-edged chevrons, a spear ferrule, one small crimson hourglass on the collar and a crown of eight huge silver-edged blades laced with silk sweeping past the butt; black smoke with silver silk and webs. No spider bodies, legs or crawling creatures anywhere. Draft until complete.",
+  "note": "Halloween 2026 (lane Cues B, brief 2.6, concept C1_spider.jpg / C1b_spider.png), fourth build 2026-10-28 (Justin 18:45: redone to the concept): a glossy black shaft with red angular chevron bands spiralling up it and silk strung along it, a red crystal spear tip, a red hourglass gem at the collar, eight curved black leg-blades with red edges rooted at the end and sweeping forward round the butt behind the grip hand with silver silk between them, a rounded butt cap studded with glowing red eyes; red smoke and embers, silk webs. The silhouette is the crown of eight leg-blades (the reference itself); no crawling creatures.",
   "body": "spider",
   "maps_from": "classic",
   "look": {
@@ -53,13 +53,13 @@
   },
   "vfx": {
     "Piece": {
-      "Note": "spider_aura: three web wheels spinning themselves, four silk droplines with dew beads, two crimson hourglasses; no ribbons since the 12:55 verdict."
+      "Note": "spider_aura: four silk droplines with dew beads (the web wheels and hourglass charms are gone: no flat discs, the gem is on the body)."
     },
     "Moving": {
-      "Note": "The web wheels spin themselves on life cycles, the droplines swing, the hourglasses orbit (the aura piece); the crown turns; the halo and the Silk strands pulse."
+      "Note": "The droplines swing (the aura piece); the eight leg-blades breathe on their own bones; the gem and the twelve eyes pulse; the halo and the Silk strands pulse."
     },
     "Aura": {
-      "Note": "Mythic (brief 2.6), third build (Justin 12:55: no ribbons, the Spider's own effects): a chrome-dark smoke body, silk motes and web flecks drifting, silver glints, sparks, a crimson glint at the hourglasses, crown glints, dew drips falling from the silk; silk pops (a silk star pop, a crimson pop, a web ring, silk sparks); one silver halo beam and four live-spun Silk strands between the cue's points; two lights; crimson outline. About 89 particles a second before BackRateScale (budget 120).",
+      "Note": "Mythic (brief 2.6), fifth build (coordinator 19:08: red atmosphere, no web sprites): a dense crimson smoke haze and an additive crimson glow round the butt and the crown, red embers off the blades, silk motes, silver glints, sparks, a crimson glint at the gem, red-white glints over the blades, dew drips falling from the silk; silk pops (a silk star pop, a crimson pop, silk sparks); one crimson halo beam and four live-spun Silk strands between the cue's points; two crimson lights (the crown, the gem); crimson outline. About 113.15 particles a second before BackRateScale (budget 120).",
       "Emitters": [
         {
           "Name": "Smoke",
@@ -74,7 +74,7 @@
             "Shape": "Cylinder",
             "ShapeStyle": "Volume"
           },
-          "Rate": 18,
+          "Rate": 22,
           "Lifetime": [
             1.4,
             2.0
@@ -91,15 +91,15 @@
           "Size": [
             [
               0,
-              0.7
+              0.8
             ],
             [
               0.5,
-              1.5
+              1.7
             ],
             [
               1,
-              2.0
+              2.3
             ]
           ],
           "Transparency": [
@@ -109,11 +109,11 @@
             ],
             [
               0.1,
-              0.5
+              0.48
             ],
             [
               0.6,
-              0.65
+              0.64
             ],
             [
               1,
@@ -131,18 +131,103 @@
           "Color": [
             [
               0,
-              "#1C1C24"
+              "#8A1020"
             ],
             [
               0.5,
-              "#101014"
+              "#5A0C18"
             ],
             [
               1,
-              "#08080A"
+              "#30060C"
             ]
           ],
-          "LightEmission": 0,
+          "LightEmission": 0.35,
+          "LightInfluence": 0,
+          "LockedToPart": true
+        },
+        {
+          "Name": "CrimsonHaze",
+          "Texture": "vfx/v2/smoke_8x8.png",
+          "FlipbookLayout": "Grid8x8",
+          "FlipbookMode": "OneShot",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 5.0,
+            "ToStuds": 8.4,
+            "Width": 2.4,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Volume"
+          },
+          "Rate": 9,
+          "Lifetime": [
+            1.2,
+            1.8
+          ],
+          "Speed": [
+            0.05,
+            0.2
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Drag": 1.2,
+          "Size": [
+            [
+              0,
+              1.0
+            ],
+            [
+              0.5,
+              1.9
+            ],
+            [
+              1,
+              2.4
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.2,
+              0.8
+            ],
+            [
+              0.7,
+              0.86
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Rotation": [
+            0,
+            360
+          ],
+          "RotSpeed": [
+            -20,
+            20
+          ],
+          "Color": [
+            [
+              0,
+              "#FF2A44"
+            ],
+            [
+              0.5,
+              "#D0122E"
+            ],
+            [
+              1,
+              "#8A0A1E"
+            ]
+          ],
+          "LightEmission": 1,
           "LightInfluence": 0,
           "LockedToPart": true
         },
@@ -305,85 +390,6 @@
           "Brightness": 2.6
         },
         {
-          "Name": "WebFlecks",
-          "Texture": "vfx/spider/web.png",
-          "Host": {
-            "Kind": "Part",
-            "FromStuds": 0.3,
-            "ToStuds": 7.0,
-            "Width": 1.4,
-            "Shape": "Cylinder",
-            "ShapeStyle": "Volume"
-          },
-          "Rate": 5,
-          "Lifetime": [
-            1.2,
-            1.8
-          ],
-          "Speed": [
-            0.05,
-            0.25
-          ],
-          "SpreadAngle": [
-            180,
-            180
-          ],
-          "Drag": 1,
-          "Size": [
-            [
-              0,
-              0
-            ],
-            [
-              0.2,
-              0.34
-            ],
-            [
-              0.8,
-              0.34
-            ],
-            [
-              1,
-              0
-            ]
-          ],
-          "Transparency": [
-            [
-              0,
-              0.3
-            ],
-            [
-              0.8,
-              0.3
-            ],
-            [
-              1,
-              1
-            ]
-          ],
-          "Rotation": [
-            0,
-            360
-          ],
-          "RotSpeed": [
-            -25,
-            25
-          ],
-          "Color": [
-            [
-              0,
-              "#F2F4F8"
-            ],
-            [
-              1,
-              "#D8DCE6"
-            ]
-          ],
-          "LightEmission": 0.6,
-          "LightInfluence": 0,
-          "LockedToPart": false
-        },
-        {
           "Name": "Glints",
           "Texture": "vfx/v2/glint.png",
           "Host": {
@@ -501,11 +507,74 @@
           "Brightness": 3
         },
         {
-          "Name": "HourglassGlint",
+          "Name": "Embers",
+          "Texture": "vfx/v2/flare.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 5.2,
+            "ToStuds": 8.5,
+            "Width": 2.2,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Volume"
+          },
+          "Rate": 16,
+          "Lifetime": [
+            0.7,
+            1.2
+          ],
+          "Speed": [
+            0.25,
+            0.8
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Drag": 0.8,
+          "Size": [
+            [
+              0,
+              0
+            ],
+            [
+              0.3,
+              0.15
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Transparency": 0,
+          "Rotation": [
+            0,
+            45
+          ],
+          "Color": [
+            [
+              0,
+              "#FFB0B8"
+            ],
+            [
+              0.4,
+              "#FF3A50"
+            ],
+            [
+              1,
+              "#A00A1E"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": false,
+          "Brightness": 3.2
+        },
+        {
+          "Name": "GemGlint",
           "Texture": "vfx/v2/flare.png",
           "Host": {
             "Kind": "Attachment",
-            "AtStuds": 6.55
+            "AtStuds": 6.47
           },
           "Rate": 3,
           "Lifetime": [
@@ -559,9 +628,9 @@
           "Texture": "vfx/v2/flare.png",
           "Host": {
             "Kind": "Part",
-            "FromStuds": 6.8,
-            "ToStuds": 7.3,
-            "Width": 1.0,
+            "FromStuds": 6.3,
+            "ToStuds": 8.4,
+            "Width": 1.9,
             "Shape": "Cylinder",
             "ShapeStyle": "Volume"
           },
@@ -604,7 +673,7 @@
             ],
             [
               1,
-              "#D8DCE6"
+              "#FF8090"
             ]
           ],
           "LightEmission": 1,
@@ -837,74 +906,6 @@
           "Brightness": 6
         },
         {
-          "Name": "WebRing",
-          "Texture": "vfx/_shared/ring.png",
-          "Host": {
-            "Kind": "Part",
-            "FromStuds": 0.8,
-            "ToStuds": 7.0,
-            "Width": 3.0,
-            "Shape": "Cylinder",
-            "ShapeStyle": "Volume"
-          },
-          "LightInfluence": 0,
-          "LockedToPart": true,
-          "Rate": 0.35,
-          "Lifetime": [
-            0.9,
-            1.1
-          ],
-          "Speed": 0,
-          "Size": [
-            [
-              0,
-              0.4
-            ],
-            [
-              1,
-              3.2
-            ]
-          ],
-          "Transparency": [
-            [
-              0,
-              0.1
-            ],
-            [
-              0.5,
-              0.3
-            ],
-            [
-              1,
-              1
-            ]
-          ],
-          "Rotation": [
-            0,
-            360
-          ],
-          "Color": [
-            [
-              0,
-              "#FFFFFF"
-            ],
-            [
-              0.4,
-              "#DDE3F0"
-            ],
-            [
-              0.75,
-              "#C0142C"
-            ],
-            [
-              1,
-              "#30343E"
-            ]
-          ],
-          "LightEmission": 1,
-          "Brightness": 5
-        },
-        {
           "Name": "SilkSparks",
           "Texture": "vfx/_shared/spark.png",
           "Host": {
@@ -967,7 +968,7 @@
       ],
       "Beams": [
         {
-          "Name": "SilverHalo",
+          "Name": "CrimsonHalo",
           "FromStuds": 0.0,
           "ToStuds": 7.3,
           "Width0": 0.4,
@@ -978,11 +979,11 @@
           "Color": [
             [
               0,
-              "#F2F4F8"
+              "#FF3A50"
             ],
             [
               1,
-              "#D8DCE6"
+              "#C0142C"
             ]
           ],
           "Transparency": [
@@ -1249,10 +1250,10 @@
       ],
       "Lights": [
         {
-          "AtStuds": 0.3,
-          "Color": "#E6ECFF",
-          "Brightness": 0.5,
-          "Range": 7,
+          "AtStuds": 7.8,
+          "Color": "#FF2A44",
+          "Brightness": 0.6,
+          "Range": 8,
           "Flicker": {
             "Min": 0.75,
             "Max": 1.05,
@@ -1260,7 +1261,7 @@
           }
         },
         {
-          "AtStuds": 6.55,
+          "AtStuds": 6.47,
           "Color": "#C8102E",
           "Brightness": 0.35,
           "Range": 6,
@@ -1389,7 +1390,7 @@
       }
     },
     "Trail": {
-      "Note": "A silver silk ribbon (own texture, wrapping) with a white core; silk threads, web flecks, motes and sparks behind the ball.",
+      "Note": "A silver silk ribbon (own texture, wrapping) with a white core; silk threads, motes and sparks behind the ball.",
       "Emitters": [
         {
           "Name": "Threads",
@@ -1449,53 +1450,6 @@
           "LightEmission": 1,
           "LightInfluence": 0,
           "Brightness": 1.8
-        },
-        {
-          "Name": "WebFlecks",
-          "Texture": "vfx/spider/web.png",
-          "Host": {
-            "Kind": "Point"
-          },
-          "Rate": 3,
-          "Lifetime": [
-            0.8,
-            1.2
-          ],
-          "Speed": [
-            0.2,
-            0.6
-          ],
-          "SpreadAngle": [
-            180,
-            180
-          ],
-          "Drag": 1.5,
-          "Size": 0.3,
-          "Transparency": [
-            [
-              0,
-              0.3
-            ],
-            [
-              0.8,
-              0.3
-            ],
-            [
-              1,
-              1
-            ]
-          ],
-          "Rotation": [
-            0,
-            360
-          ],
-          "RotSpeed": [
-            -60,
-            60
-          ],
-          "Color": "#F2F4F8",
-          "LightEmission": 0.6,
-          "LightInfluence": 0
         },
         {
           "Name": "Motes",
@@ -2108,13 +2062,13 @@
       }
     },
     "Budget": {
-      "ParticlesPerSecond": 89.5,
+      "ParticlesPerSecond": 113.15,
       "Beams": 5,
       "Lights": 2,
       "Orbiters": 1,
-      "BodyTriangles": 5764,
+      "BodyTriangles": 8472,
       "PocketPieceTriangles": 2208,
-      "Note": "Third build (2026-10-28, 13:15): the aura piece without ribbons (web wheels on life cycles, four droplines with dew beads, two hourglasses). Readability pass 13:40: opaque silk and web Neon, web wheels 0.44 (lines 0.017), longer and thicker droplines, bigger dew beads, Silk strands 0.18 wide at 0.2 transparency, brighter drips/motes/glints."
+      "Note": "Fifth build (2026-10-28, 19:15, coordinator's review of v7): the crown turned forward (blades rooted at the dome's base sweeping toward the tip to d 6.24, the eye dome the exposed end at 7.55-8.21 on a neck, the blades 1.3 studs long, every other one short), no silk threads on the shaft (the Silk beams), 8 parts; the aura piece down to the four droplines; the skin red: denser crimson smoke, an additive crimson haze, 16 embers/s, crimson halo and lights; the web sprites (WebFlecks, WebRing) gone."
     }
   },
   "piece": "spider_aura"
