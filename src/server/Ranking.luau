@@ -328,6 +328,8 @@ local function teamList(e: any, team: number): { any }
 				left = not s.connected or (p == nil and bot == nil),
 				avatarUserId = if bot then bot.avatarUserId else nil,
 				bot = if bot then bot.kind else nil,
+				-- A boss's own portrait (the Pumpkin King; BotService.seatInfo's icon).
+				icon = if bot and type(bot.icon) == "string" then bot.icon else nil,
 			})
 		end
 	end
