@@ -61,6 +61,14 @@ From PLAN §4 (everything else is read-only; ask through Requests):
 
 ## Status (continued)
 
+- 18:29 PHANTOM (coordinator 18:45, Justin's verdict: the Candy slot is replaced). Concept card done:
+  `~/Desktop/8ball-refs/halloween/mocks/v2/C6_phantom.png` (from M3's Phantom and the C3 layout):
+  a translucent cyan glass shaft lit from inside, a dark iron chain spiralling the lower half, a
+  ghost-lantern butt cap (an iron cage with a little ghost glowing inside), cute round ghosts
+  drifting off the shaft, cyan mist; TRAIL a cyan-white ghost ribbon with two ghosts tumbling
+  behind the ball; FINISHER ghosts swirling up out of the pocket in a mist column. Nothing from
+  the tip. Next: the ghost model (an OpenAI front view -> Meshy image-to-3D -> `Kit.model`),
+  the chain, shaft and lantern in Blender headless, then the VFX and the 150 slot swap.
 - 18:14 ROBUSTNESS PASS (coordinator 17:52, Justin's word 17:46) on halloween @cb89ebcc, then
   origin/halloween c2e5fcdb merged (d0427312). Checked and found, by the brief's items:
   1. FALLBACK: found and fixed (2864e55d). A body cue hid the shared mesh as soon as a
