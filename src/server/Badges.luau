@@ -76,6 +76,7 @@ type State = {
 local started = false
 local states: { [Player]: State } = {}
 local byKey: { [string]: Rules.Row } = {}
+local Tables: any -- TableService, required in start() (it reaches Ranking, which calls us)
 local looping = false
 local tokens = 0 -- the call budget (a token bucket refilled each tick)
 local lastRefill = 0
@@ -342,10 +343,15 @@ local function onLoaded(player: Player)
 	end)
 end
 
--- UltService.Used: Power Up, and one Ability Master count per match.
+-- UltService.Used: Power Up, and one Ability Master count per match. Solo practice fires it
+-- too (free abilities there): skipped, or practice would farm the saved Stats.UltMatches.
 local function onUltUsed(player: Player, tableId: any, epoch: any)
 	local st = stateOf(player)
 	if not st then
+		return
+	end
+	local t = if type(tableId) == "number" then Tables.get(tableId) else nil
+	if t == nil or t.engine.solo ~= nil then
 		return
 	end
 	Badges.grant(player, "Ability1", "Ult")
@@ -472,6 +478,7 @@ function Badges.start()
 		end
 	end
 	-- Required here, not at the top: UltService reaches TableService and Ranking, which call us.
+	Tables = require(script.Parent.TableService) :: any
 	local UltService = require(script.Parent.UltService) :: any
 	UltService.Used:Connect(function(player: Player, tableId: any, epoch: any)
 		local ok, err = pcall(function()
