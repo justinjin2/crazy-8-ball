@@ -88,7 +88,7 @@ return {
 		local t = GO_LIVE
 		while t < ENDS do
 			for _, offset in { 0, 5 * 60, 9 * 60 + 59, 10 * 60 } do
-				local now = t + offset
+				local now = math.min(t + offset, ENDS - 1)
 				local m = Event.multiplier(now)
 				local minute = (now // 60) % 60
 				local double = now >= DOUBLE_FROM and now < DOUBLE_TO
