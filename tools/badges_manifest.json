@@ -1,10 +1,304 @@
 {
+  "Ability1": {
+    "cost": 100,
+    "iconImageId": 78440682355913,
+    "id": 97386214196697,
+    "name": "Power Up",
+    "time": "2026-10-28T09:50:47-0400"
+  },
+  "Ability100": {
+    "cost": 100,
+    "iconImageId": 89700183831117,
+    "id": 2989268570496762,
+    "name": "Ability Master",
+    "time": "2026-10-28T09:50:49-0400"
+  },
+  "Balls100": {
+    "cost": 100,
+    "iconImageId": 135610958728348,
+    "id": 2473617397250925,
+    "name": "Sharpshooter",
+    "time": "2026-10-28T09:50:22-0400"
+  },
+  "Balls1000": {
+    "cost": 100,
+    "iconImageId": 96709028254909,
+    "id": 1277347348028555,
+    "name": "Pocket Pro",
+    "time": "2026-10-28T09:50:25-0400"
+  },
+  "Balls10000": {
+    "cost": 100,
+    "iconImageId": 118322930429806,
+    "id": 7174693576307,
+    "name": "Pocket Machine",
+    "time": "2026-10-28T09:50:27-0400"
+  },
+  "BeatOwner": {
+    "cost": 100,
+    "iconImageId": 99943476994414,
+    "id": 4060031209370529,
+    "name": "Beat the Owner!",
+    "time": "2026-10-28T09:50:56-0400"
+  },
+  "BroomRider": {
+    "cost": 100,
+    "iconImageId": 99623447878183,
+    "id": 89437091380909,
+    "name": "Broom Rider",
+    "time": "2026-10-28T09:51:03-0400"
+  },
+  "Crew": {
+    "cost": 100,
+    "iconImageId": 124685259489920,
+    "id": 2950008037199385,
+    "name": "Part of the Crew",
+    "time": "2026-10-28T09:50:52-0400"
+  },
+  "CueEpic": {
+    "cost": 100,
+    "iconImageId": 82305605994529,
+    "id": 2207389274593671,
+    "name": "Epic Find",
+    "time": "2026-10-28T09:50:02-0400"
+  },
+  "CueLegendary": {
+    "cost": 100,
+    "iconImageId": 139703792281116,
+    "id": 494978037344337,
+    "name": "Legendary Pull",
+    "time": "2026-10-28T09:50:04-0400"
+  },
+  "CueMythic": {
+    "cost": 100,
+    "iconImageId": 134862981568249,
+    "id": 832024187830975,
+    "name": "Mythic Moment",
+    "time": "2026-10-28T09:50:07-0400"
+  },
+  "CueRare": {
+    "cost": 100,
+    "iconImageId": 79077305734906,
+    "id": 207940625235143,
+    "name": "Shiny!",
+    "time": "2026-10-28T09:50:00-0400"
+  },
+  "CueSecret": {
+    "cost": 100,
+    "iconImageId": 121154596295437,
+    "id": 1923791243743351,
+    "name": "Secret Keeper",
+    "time": "2026-10-28T09:50:09-0400"
+  },
+  "CueUnique": {
+    "cost": 100,
+    "iconImageId": 95968308348408,
+    "id": 1800047869806584,
+    "name": "One of a Kind",
+    "time": "2026-10-28T09:50:11-0400"
+  },
+  "Cues10": {
+    "cost": 100,
+    "iconImageId": 99641036694994,
+    "id": 3048335140968827,
+    "name": "Curator",
+    "time": "2026-10-28T09:50:16-0400"
+  },
+  "Cues25": {
+    "cost": 100,
+    "iconImageId": 82954589879426,
+    "id": 1158904462514818,
+    "name": "Cue Rack",
+    "time": "2026-10-28T09:50:18-0400"
+  },
+  "Cues5": {
+    "cost": 100,
+    "iconImageId": 92925479956213,
+    "id": 2409084780202428,
+    "name": "Collector",
+    "time": "2026-10-28T09:50:13-0400"
+  },
+  "Cues50": {
+    "cost": 100,
+    "iconImageId": 95738348508042,
+    "id": 112973040839564,
+    "name": "Museum",
+    "time": "2026-10-28T09:50:20-0400"
+  },
   "FirstWin": {
     "cost": 0,
     "iconImageId": 79213541571558,
     "id": 3575671673255502,
     "name": "First Win!",
     "time": "2026-10-28T09:14:24-0400"
+  },
+  "Halloween2026": {
+    "cost": 100,
+    "iconImageId": 103672223515802,
+    "id": 919572845897837,
+    "name": "Halloween 2026",
+    "time": "2026-10-28T09:50:58-0400"
+  },
+  "Matches10": {
+    "cost": 100,
+    "iconImageId": 88100710371808,
+    "id": 823038805053890,
+    "name": "Regular",
+    "time": "2026-10-28T09:50:29-0400"
+  },
+  "Matches100": {
+    "cost": 100,
+    "iconImageId": 113238249311972,
+    "id": 729958242555812,
+    "name": "Dedicated",
+    "time": "2026-10-28T09:50:31-0400"
+  },
+  "Matches1000": {
+    "cost": 100,
+    "iconImageId": 124809173480484,
+    "id": 2829128822759859,
+    "name": "Lives Here",
+    "time": "2026-10-28T09:50:34-0400"
+  },
+  "MetOwner": {
+    "cost": 100,
+    "iconImageId": 76827600423816,
+    "id": 3300678702313834,
+    "name": "Met the Owner",
+    "time": "2026-10-28T09:50:54-0400"
+  },
+  "Money10M": {
+    "cost": 100,
+    "iconImageId": 138311998961873,
+    "id": 217838342274579,
+    "name": "Tycoon",
+    "time": "2026-10-28T09:50:42-0400"
+  },
+  "Money1M": {
+    "cost": 100,
+    "iconImageId": 73628342632893,
+    "id": 2699082964518478,
+    "name": "Millionaire",
+    "time": "2026-10-28T09:50:40-0400"
+  },
+  "Nice10": {
+    "cost": 100,
+    "iconImageId": 83626309946773,
+    "id": 4410726107997015,
+    "name": "Nice Shot!",
+    "time": "2026-10-28T09:50:36-0400"
+  },
+  "Nice100": {
+    "cost": 100,
+    "iconImageId": 79933150947932,
+    "id": 2851523231108112,
+    "name": "Trick Shot Artist",
+    "time": "2026-10-28T09:50:38-0400"
+  },
+  "PumpkinSlayer": {
+    "cost": 100,
+    "iconImageId": 87009935556339,
+    "id": 3371654715960934,
+    "name": "Pumpkin Slayer",
+    "time": "2026-10-28T09:51:01-0400"
+  },
+  "RankBronze": {
+    "cost": 100,
+    "iconImageId": 89207678638147,
+    "id": 2329095724540517,
+    "name": "Bronze",
+    "time": "2026-10-28T09:49:30-0400"
+  },
+  "RankDiamond": {
+    "cost": 100,
+    "iconImageId": 112516584954928,
+    "id": 4229037065586405,
+    "name": "Diamond",
+    "time": "2026-10-28T09:49:39-0400"
+  },
+  "RankExpert": {
+    "cost": 100,
+    "iconImageId": 136030375948901,
+    "id": 3574464846773739,
+    "name": "Expert",
+    "time": "2026-10-28T09:49:42-0400"
+  },
+  "RankGold": {
+    "cost": 100,
+    "iconImageId": 106648732919678,
+    "id": 155480003848566,
+    "name": "Gold",
+    "time": "2026-10-28T09:49:35-0400"
+  },
+  "RankGrandmaster": {
+    "cost": 100,
+    "iconImageId": 72260091824074,
+    "id": 1393315583078416,
+    "name": "Grandmaster",
+    "time": "2026-10-28T09:49:48-0400"
+  },
+  "RankMaster": {
+    "cost": 100,
+    "iconImageId": 138497016012858,
+    "id": 1165688399912031,
+    "name": "Master",
+    "time": "2026-10-28T09:49:46-0400"
+  },
+  "RankPlatinum": {
+    "cost": 100,
+    "iconImageId": 113626658242103,
+    "id": 2829693839225343,
+    "name": "Platinum",
+    "time": "2026-10-28T09:49:37-0400"
+  },
+  "RankReyes": {
+    "cost": 100,
+    "iconImageId": 97089289357813,
+    "id": 4069284758940460,
+    "name": "Reyes",
+    "time": "2026-10-28T09:49:51-0400"
+  },
+  "RankSilver": {
+    "cost": 100,
+    "iconImageId": 131563540608707,
+    "id": 4398852937714373,
+    "name": "Silver",
+    "time": "2026-10-28T09:49:32-0400"
+  },
+  "RankVeteran": {
+    "cost": 100,
+    "iconImageId": 76552416041832,
+    "id": 53445696872777,
+    "name": "Veteran",
+    "time": "2026-10-28T09:49:44-0400"
+  },
+  "Squad": {
+    "cost": 100,
+    "iconImageId": 89184329896261,
+    "id": 432657693674846,
+    "name": "Squad Goals",
+    "time": "2026-10-28T09:50:45-0400"
+  },
+  "Streak10": {
+    "cost": 100,
+    "iconImageId": 132241256718028,
+    "id": 2179885669728373,
+    "name": "Unstoppable",
+    "time": "2026-10-28T09:49:57-0400"
+  },
+  "Streak3": {
+    "cost": 100,
+    "iconImageId": 74033444432854,
+    "id": 1928096058793175,
+    "name": "Hot Streak",
+    "time": "2026-10-28T09:49:53-0400"
+  },
+  "Streak5": {
+    "cost": 100,
+    "iconImageId": 82943004103955,
+    "id": 3859711772126671,
+    "name": "On Fire",
+    "time": "2026-10-28T09:49:55-0400"
   },
   "Welcome": {
     "cost": 0,
@@ -20,12 +314,33 @@
     "name": "Contender",
     "time": "2026-10-28T09:14:28-0400"
   },
+  "Wins100": {
+    "cost": 100,
+    "iconImageId": 132490547072529,
+    "id": 831874640123472,
+    "name": "Pro",
+    "time": "2026-10-28T09:49:06-0400"
+  },
+  "Wins1000": {
+    "cost": 100,
+    "iconImageId": 70923284871546,
+    "id": 4209400550247267,
+    "name": "8 Ball God",
+    "time": "2026-10-28T09:49:28-0400"
+  },
   "Wins25": {
     "cost": 0,
     "iconImageId": 100599140022871,
     "id": 4233206622630547,
     "name": "Hustler",
     "time": "2026-10-28T09:14:30-0400"
+  },
+  "Wins250": {
+    "cost": 100,
+    "iconImageId": 84200667179454,
+    "id": 3973719596541883,
+    "name": "Cue Master",
+    "time": "2026-10-28T09:49:23-0400"
   },
   "Wins5": {
     "cost": 0,
@@ -40,5 +355,12 @@
     "id": 376201506130396,
     "name": "Pool Shark",
     "time": "2026-10-28T09:14:32-0400"
+  },
+  "Wins500": {
+    "cost": 100,
+    "iconImageId": 72260891219442,
+    "id": 4153607260909108,
+    "name": "Legend",
+    "time": "2026-10-28T09:49:25-0400"
   }
 }
