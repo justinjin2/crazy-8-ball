@@ -50,6 +50,25 @@ From PLAN §4 (everything else is read-only to this lane; ask through Requests):
 - `Config.HalloweenMap.Props.Budget.Lights = 6` (throne 2 + the throne King's aura 1 + 3 table Kings).
 
 ## Status
+- 12:54 hw-map: **READY @6e02fb32**: the timed Pumpkin King (12:40 job). 656825bf builds it
+  behind `Boss.Mode`; ee17dc24 flips Mode to "Timed" (one line: back to "Throne" brings the
+  old throne back, checked); halloween @e9b90417 merged in (clean). Lint OK, 1,466 tests.
+  Studio (lane window, shots in `timed/`): he arrives at :15:00 (`01` from the spawn: his name
+  and banners over the middle; `02` the stage between tables 6 and 7, King 1.5x, the prompt);
+  with eight 1v1 tables taken by bots a challenge joins his line (`03` "You're #1 in the King's
+  line", notice "You're in the King's line. Stay close!"); freeing a table seated me from the
+  line within a second (table 7); the King at the table is 1.5x, feet on the floor (lowest part
+  -0.19), and the shooter's view is clear (`04`); a loss (Surrender) retries at once; the
+  "You beat him! Next visit :45" line (attribute set by hand: `05`); at :27:00 he leaves (`06`:
+  throne gone, piano stays, line cleared with "The King has left. Back at :15 and :45!", banner
+  "The Pumpkin King has left. He returns at :45!"); :45:00 arrival puff and burst (`07`).
+  KingSpawn (:15, :45), KingChallenge (Lined, Seated) and PumpkinKing (Challenge, Lost) logged.
+  Console clean (Studio store lines, the known 203785492, cues-a's CuePieces note). Not
+  checked: a paid win (my branch's CandyService.bossWon ignores the visit and still starts the
+  old cooldown; core's bossWon(player, visitStart) and bossCooldown 0 in Timed make it right).
+  Seen, not mine: the result card shows the King as a robot (the PC portrait), though his
+  match-bar portrait is the pumpkin.
+- 12:37 coordinator: `halloween` @7be001ed adds map 88e9cceb (throne builds once; Studio: 1 throne, 1 King) + 623d0051 (timed King schedule, Mode Throne), core 1361de6d (ActiveGate, pacing), sys 57bc2b91 (50 badges, v2 icons), cues-a 66af67b0 (painted Jack, Candy rework) + fec0cb91 (deterministic generator; a main-checkout regen is now clean), cues-b 0e3569b6 (Broom redo). Lint OK, 1,465 tests, Team Create play console clean. JUSTIN (12:35): the Pumpkin King becomes a timed visitor (UTC :15 and :45, 12 min, middle of the map, 1.5x size, a top timer, the King's line when tables are full, one paid win a visit: +150 Candy, +$2,500, +100 XP). Map and core build it by 15:00; Throne mode stays the fallback. Run `git fetch && git merge origin/halloween` before your next READY.
 - 12:24 hw-map: **READY @88e9cceb**: the 12:16 BLOCKER fixed (c1e75749), halloween @5dae747d
   merged in (clean), lint OK, 1,462 tests. Cause as the review found: EventMap's first Live pass
   waited on the meshes in the props, BossService's addPart turned the throne on on Bootstrap's
@@ -271,6 +290,11 @@ Landed (only my own blocks unless said):
   `KingDevStarted`, `KingDevFailed` in `Strings.HalloweenMap` — b86b9142.
 - `DevCommands.luau`: the designer-only `/king [tier]` block after core's `/hw` — b86b9142.
 - `LocalSearch.luau`: `isPromised(t)`, read-only (one new function) — 10489ad6.
+- The timed King — 656825bf (Mode flip ee17dc24): `Config.luau` (my `Boss.Timed` lines,
+  `LineAttribute`, `BeatAttribute`); `Strings.luau` (4 `GlobalQueue.Failed` keys `KingLined`,
+  `KingLineLeft`, `KingLeft`, `KingAway`; `HalloweenMap.LinePlace`, `Beaten`; `Banner.KingArrived`,
+  `KingLeft`); `Banner.luau` (no lane's file: one `kind == "King"` branch at the end of
+  onBanner).
 
 Shared files (PLAN §7 plus `HubCorners.luau`, `Net.luau`, `DevCommands.luau`,
 `tests/save_schema_test.luau`, `tests/config_test.luau`): only your own block or line; the
@@ -326,6 +350,15 @@ coordinator resolves overlaps. Planned (add the commit sha when each lands):
   (`gate2/05`): from the spawn it reads as a glow between the two lobby boards, and the prompt
   and the glow lead players there. Option (a) is a two-line change (`Throne.Pivot` z about -66
   and `PromptAt` with it), to be checked in Studio against the boards and the last table row.
+
+- The timed King (12:40 job), decided here: his stage reuses the whole approved throne (same
+  96 parts, 3 lights, no new meshes) at `Boss.Timed.Pivot` (0,0,4), the open cross between
+  tables 6/7 and 10/11, front to the spawn; only the King on it is 1.5x. His line is per server
+  and first come first served; someone in another match keeps their place but is skipped until
+  free; 40 studs (`LineStuds`) from his prompt drops a place. `MaxAtOnce` stays 3 in Timed (not
+  4: no perf numbers yet). KingSpawn is logged once per HwOn player present when he arrives
+  (a = ":15"/":45"); KingChallenge a = Seated/Lined/NoTable; KingWin value = Candy paid, b =
+  Paid/Free. The designer's `/king` still works while he is away.
 
 - OVERRULED (Justin: yes, 12:16 via the coordinator): the top three TierFor rows play a Grandmaster King, not Reyes (PLAN: two ranks
   above, at most Reyes). Measured: a Reyes King left the model player 11.5% (Master), 13.5%
