@@ -213,4 +213,36 @@ function LightCycle.state(blend: number, lighting: any): { [string]: any }
 	return out
 end
 
+--- Two whole light states (LightCycle.state's) mixed a share w of the way from a to b: numbers
+--- and colours straight, the sky's images a's until half way, then b's. A client crossfades
+--- with it when the lighting it follows changes (the Halloween event's flip, hw-map).
+function LightCycle.mixStates(
+	a: { [string]: any },
+	b: { [string]: any },
+	w: number
+): { [string]: any }
+	return mix(a, b, w, w >= 0.5)
+end
+
+--- An event's lighting (Halloween 2026, hw-map lane): Config.Lighting with `night` in Day's slot
+--- of the cycle (Day's hold and the fades unchanged), its sky also the in-between sky (so the
+--- only sky change is night to Sunset's, at the last swap, under SwapHaze), and the sun held on
+--- sunPath (by default Sunset's sun all the way: the light from the moon's side). Generic, so a
+--- Night could become permanent later with one switch.
+function LightCycle.event(lighting: any, night: { [string]: any }, sunPath: { SunKey }?): any
+	local out: { [string]: any } = table.clone(lighting)
+	out.Day = night
+	out.DuskSky = night.Sky
+	if sunPath then
+		out.SunPath = sunPath
+	else
+		local last = lighting.SunPath[#lighting.SunPath]
+		out.SunPath = {
+			{ Blend = 0, GeographicLatitude = last.GeographicLatitude, ClockTime = last.ClockTime },
+			{ Blend = 1, GeographicLatitude = last.GeographicLatitude, ClockTime = last.ClockTime },
+		}
+	end
+	return out
+end
+
 return LightCycle

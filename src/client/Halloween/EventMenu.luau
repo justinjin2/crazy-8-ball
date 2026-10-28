@@ -855,20 +855,21 @@ function EventMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 	frame.fitHeight = function(_width: number): number
 		return math.floor(screen.AbsoluteSize.Y * M.MaxHeightShare)
 	end
-	local ticking = false
+	-- The 1 s redraw loop: each open starts one and bumps the generation, so a loop left from a
+	-- close and quick reopen stops on its next wake (never two loops).
+	local tickGen = 0
 	frame.onOpen = function()
 		State.send({ seen = true })
 		layout()
 		draw()
-		if not ticking then
-			ticking = true
-			task.spawn(function()
-				while ticking do
-					draw()
-					task.wait(1)
-				end
-			end)
-		end
+		tickGen += 1
+		local gen = tickGen
+		task.spawn(function()
+			while gen == tickGen do
+				draw()
+				task.wait(1)
+			end
+		end)
 		-- Waiting CLAIMs bounce.
 		for _, row in rows do
 			table.insert(
@@ -895,7 +896,7 @@ function EventMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		end)
 	end
 	frame.onClose = function()
-		ticking = false
+		tickGen += 1
 		for _, handle in idles do
 			handle.stop()
 		end

@@ -6,7 +6,7 @@
 
 local H = require("./harness")
 
-local STRICT = false
+local STRICT = true
 
 local GO_LIVE = 1793228400 -- Wed Oct 28 19:00 EDT
 local COUNTDOWN = 1793226600 -- 18:30 EDT
@@ -249,7 +249,7 @@ return {
 		end
 		H.expect(rgb(by[1].Cloth, 185, 90, 230), "1v1 orchid purple")
 		H.expect(rgb(by[2].Cloth, 90, 94, 102), "2v2 charcoal")
-		H.expect(rgb(by[3].Cloth, 110, 220, 40), "3v3 toxic green")
+		H.expect(rgb(by[3].Cloth, 88, 176, 32), "3v3 toxic green")
 		H.expect(
 			M.Boss.Kind == "Pc" and M.Boss.Rematch == "Never",
 			"King is kind Pc, rematch Never"

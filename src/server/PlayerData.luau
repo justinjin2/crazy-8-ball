@@ -3543,7 +3543,10 @@ local function hwMutate(
 	if hw.Converted ~= true then
 		hwGrantDue(data, hw, result)
 	end
-	commit(player, data, op)
+	-- The 5 s active tick is quiet (Items.QUIET_OPS, Badges.SKIP_OPS) unless it gave a prize
+	-- (the Spider, a held cue): then the inventory and the badges must see it.
+	local given = #result.steps > 0 or result.spider
+	commit(player, data, if op == "hwActive" and given then "hwActiveGrant" else op)
 	return result
 end
 

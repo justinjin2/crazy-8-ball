@@ -140,6 +140,9 @@ end
 --- robot: the robot's picture. `bot` is the seat's bot record from the snapshot, if any.
 function People.portrait(userId: number, bot: any?): (number?, string?)
 	if type(bot) == "table" then
+		if type(bot.icon) == "string" then
+			return nil, bot.icon -- a boss's own portrait (the Pumpkin King)
+		end
 		if bot.kind == "Pc" then
 			return nil, Config.Bots.Robot.Icon
 		end
@@ -147,6 +150,10 @@ function People.portrait(userId: number, bot: any?): (number?, string?)
 	end
 	local proxy = proxies[userId]
 	if proxy then
+		local icon = proxy:GetAttribute("BotIcon")
+		if type(icon) == "string" then
+			return nil, icon
+		end
 		local account = proxy:GetAttribute("AvatarUserId")
 		if type(account) == "number" then
 			return account, nil
