@@ -78,9 +78,11 @@ setup() {
 }
 
 studio() {
+	# Plain `open <file>` lets the running Studio (the Team Create window) spawn an EditFile window;
+	# `open -a RobloxStudio <file>` 4 s apart left every window on the home page (2026-10-28).
 	for lane in "${LANES[@]}"; do
-		open -a RobloxStudio "$(dir_of "$lane")/place/lane-$lane.rbxl"
-		sleep 4
+		open "$(dir_of "$lane")/place/lane-$lane.rbxl"
+		sleep 20
 	done
 }
 
