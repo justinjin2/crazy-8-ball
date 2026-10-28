@@ -1,0 +1,331 @@
+{
+  "id": "black_cat",
+  "Frame": "cue",
+  "frame": "Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)",
+  "Triangles": 7652,
+  "Parts": [
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#FFFFFF",
+      "Transparency": 0.0,
+      "Reflectance": 0.12,
+      "SurfaceAppearance": {
+        "ColorMap": "pieces/black_cat/atlas_color.png",
+        "NormalMap": "pieces/black_cat/atlas_normal.png",
+        "EmissiveMask": "pieces/black_cat/atlas_emissive.png",
+        "EmissiveTint": "#FFC85A",
+        "EmissiveStrength": 1.8
+      },
+      "Name": "Tail",
+      "File": "pieces/black_cat/Tail.glb",
+      "Mesh": "TailSkin",
+      "Joint": "Tail",
+      "Skinned": true,
+      "Bones": [
+        "Tail",
+        "Tail2",
+        "Tail3",
+        "Tail4",
+        "Tail5"
+      ],
+      "Triangles": 336,
+      "Offset": [
+        0.0,
+        0.1443,
+        -3.6694
+      ],
+      "Size": [
+        0.1357,
+        0.4506,
+        0.3423
+      ]
+    },
+    {
+      "Material": "ForceField",
+      "Color": "#E8B04A",
+      "Transparency": 0.3,
+      "Reflectance": 0.0,
+      "Name": "TailShell",
+      "File": "pieces/black_cat/Tail.glb",
+      "Mesh": "TailShellSkin",
+      "Joint": "Tail",
+      "Skinned": true,
+      "Bones": [
+        "Tail",
+        "Tail2",
+        "Tail3",
+        "Tail4",
+        "Tail5"
+      ],
+      "Triangles": 336,
+      "Offset": [
+        -0.0,
+        0.1453,
+        -3.6701
+      ],
+      "Size": [
+        0.1531,
+        0.4695,
+        0.3622
+      ]
+    },
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#FFFFFF",
+      "Transparency": 0.0,
+      "Reflectance": 0.12,
+      "SurfaceAppearance": {
+        "ColorMap": "pieces/black_cat/atlas_color.png",
+        "NormalMap": "pieces/black_cat/atlas_normal.png",
+        "EmissiveMask": "pieces/black_cat/atlas_emissive.png",
+        "EmissiveTint": "#FFC85A",
+        "EmissiveStrength": 1.8
+      },
+      "Name": "Body_Body",
+      "File": "pieces/black_cat/Body_Body.obj",
+      "Joint": "Body",
+      "Offset": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "Size": [
+        0.4,
+        0.4,
+        7.0
+      ],
+      "Triangles": 4360
+    },
+    {
+      "Material": "Foil",
+      "Color": "#E2B04A",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Body_Ring",
+      "File": "pieces/black_cat/Body_Ring.obj",
+      "Joint": "Body",
+      "Offset": [
+        0.0,
+        0.0,
+        -1.59
+      ],
+      "Size": [
+        0.458,
+        0.4533,
+        3.699
+      ],
+      "Triangles": 2464
+    },
+    {
+      "Material": "Neon",
+      "Color": "#FFC85A",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Claws_Claw",
+      "File": "pieces/black_cat/Claws_Claw.obj",
+      "Joint": "Claws",
+      "Offset": [
+        -0.0,
+        0.1523,
+        -0.5899
+      ],
+      "Size": [
+        0.2202,
+        0.0535,
+        0.7472
+      ],
+      "Triangles": 156
+    }
+  ],
+  "Joints": {
+    "Body": {
+      "Parent": null,
+      "Pivot": [
+        0,
+        -3.5,
+        0
+      ],
+      "PivotRoblox": [
+        0,
+        0,
+        0.0
+      ],
+      "Motion": []
+    },
+    "Claws": {
+      "Parent": "Body",
+      "Pivot": [
+        0,
+        -4.0,
+        0
+      ],
+      "PivotRoblox": [
+        0,
+        0,
+        -0.5
+      ],
+      "Motion": [],
+      "Visual": [
+        {
+          "Kind": "Glow",
+          "Min": 0.1,
+          "Max": 0.5,
+          "Period": 3.0
+        }
+      ]
+    },
+    "Tail": {
+      "Parent": "Body",
+      "Pivot": [
+        0.0,
+        -7.0,
+        0.0
+      ],
+      "PivotRoblox": [
+        -0.0,
+        0.0,
+        -3.5
+      ],
+      "Motion": [
+        {
+          "Kind": "Sway",
+          "Axis": [
+            1,
+            0,
+            0
+          ],
+          "Amp": 8.0,
+          "Period": 2.4,
+          "Phase": 0
+        },
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0,
+            0,
+            1
+          ],
+          "Amp": 6.0,
+          "Period": 4.0,
+          "Phase": 20
+        }
+      ],
+      "Aim": "fade"
+    },
+    "Tail2": {
+      "Parent": "Tail",
+      "Pivot": [
+        0.0,
+        -7.109391212463379,
+        0.0071750544011592865
+      ],
+      "PivotRoblox": [
+        -0.0,
+        0.0072,
+        -3.6094
+      ],
+      "Motion": [
+        {
+          "Kind": "Sway",
+          "Axis": [
+            1,
+            0,
+            0
+          ],
+          "Amp": 9.5,
+          "Period": 2.4,
+          "Phase": 55
+        }
+      ]
+    },
+    "Tail3": {
+      "Parent": "Tail2",
+      "Pivot": [
+        0.002276483690366149,
+        -7.241682529449463,
+        0.09411720931529999
+      ],
+      "PivotRoblox": [
+        -0.0023,
+        0.0941,
+        -3.7417
+      ],
+      "Motion": [
+        {
+          "Kind": "Sway",
+          "Axis": [
+            1,
+            0,
+            0
+          ],
+          "Amp": 11.0,
+          "Period": 2.4,
+          "Phase": 110
+        },
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0,
+            0,
+            1
+          ],
+          "Amp": 4.0,
+          "Period": 4.0,
+          "Phase": 120
+        }
+      ]
+    },
+    "Tail4": {
+      "Parent": "Tail3",
+      "Pivot": [
+        0.010743801482021809,
+        -7.280969619750977,
+        0.18993237614631653
+      ],
+      "PivotRoblox": [
+        -0.0107,
+        0.1899,
+        -3.781
+      ],
+      "Motion": [
+        {
+          "Kind": "Sway",
+          "Axis": [
+            1,
+            0,
+            0
+          ],
+          "Amp": 12.5,
+          "Period": 2.4,
+          "Phase": 165
+        }
+      ]
+    },
+    "Tail5": {
+      "Parent": "Tail4",
+      "Pivot": [
+        0.00942900124937296,
+        -7.243163108825684,
+        0.28812921047210693
+      ],
+      "PivotRoblox": [
+        -0.0094,
+        0.2881,
+        -3.7432
+      ],
+      "Motion": [
+        {
+          "Kind": "Sway",
+          "Axis": [
+            1,
+            0,
+            0
+          ],
+          "Amp": 14.0,
+          "Period": 2.4,
+          "Phase": 220
+        }
+      ]
+    }
+  }
+}
