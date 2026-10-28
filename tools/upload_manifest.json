@@ -492,6 +492,11 @@
     "assetType": "Model",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/pieces/black_cat_aura/black_cat_aura_parts.glb": {
+    "assetId": "108664970112629",
+    "assetType": "Model",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/pieces/spider/Crown.glb": {
     "assetId": "88297987618252",
     "assetType": "Model",
@@ -517,6 +522,11 @@
   },
   "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/pieces/spider/spider_parts.glb": {
     "assetId": "134241355070040",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/pieces/spider_aura/spider_aura_parts.glb": {
+    "assetId": "93169036171548",
     "assetType": "Model",
     "status": "ok"
   },

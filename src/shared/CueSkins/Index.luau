@@ -75,6 +75,7 @@ return {
 			Cap = { 11, 11, 13 },
 			Accent = { 255, 200, 90 },
 		},
+		Piece = "black_cat_aura",
 		Body = "black_cat",
 	},
 	BlazeCue = {
@@ -805,6 +806,7 @@ return {
 			Cap = { 16, 16, 20 },
 			Accent = { 192, 20, 44 },
 		},
+		Piece = "spider_aura",
 		Body = "spider",
 	},
 	SpliceCue = {

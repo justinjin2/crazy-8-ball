@@ -53,7 +53,7 @@
   },
   "vfx": {
     "Piece": {
-      "Note": "No aura piece: the body (pieces/spider) carries the skinned eight-blade crown (Hinge flex, Aim fade), the Neon hourglass (Glow) and the silk webs between the blades."
+      "Note": "pieces/spider_aura (2026-10-28 rework): two silk Neon threads spiralling round the whole cue in opposite senses (one over a dark chrome shadow band, one thinner and faster, twinkling), three silk web wheels standing beside the cue turning round it and bobbing, two crimson Neon hourglass charms orbiting the forearm with a Glow pulse. No spiders or creatures. The body (pieces/spider) keeps the eight-blade crown, the hourglass and the silk webs between the blades."
     },
     "Moving": {
       "Note": "The crown blades flex 2-4 degrees over 3-4 s; the hourglass glows over 1.6 s; the silk beams pulse out of phase; one silk orbiter."
@@ -74,7 +74,7 @@
             "Shape": "Cylinder",
             "ShapeStyle": "Volume"
           },
-          "Rate": 14,
+          "Rate": 18,
           "Lifetime": [
             1.4,
             2.0
@@ -91,15 +91,15 @@
           "Size": [
             [
               0,
-              0.6
+              0.7
             ],
             [
               0.5,
-              1.3
+              1.5
             ],
             [
               1,
-              1.7
+              2.0
             ]
           ],
           "Transparency": [
@@ -157,7 +157,7 @@
             "Shape": "Cylinder",
             "ShapeStyle": "Volume"
           },
-          "Rate": 12,
+          "Rate": 16,
           "Lifetime": [
             1.2,
             2.0
@@ -316,7 +316,7 @@
             "Shape": "Cylinder",
             "ShapeStyle": "Volume"
           },
-          "Rate": 6,
+          "Rate": 8,
           "Lifetime": [
             0.5,
             0.9
@@ -533,6 +533,358 @@
           "LightInfluence": 0,
           "LockedToPart": true,
           "Brightness": 3
+        },
+        {
+          "Name": "SilkGlow",
+          "Texture": "vfx/_shared/glow_soft.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.3,
+            "ToStuds": 7.0,
+            "Width": 1.3,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Volume"
+          },
+          "LightInfluence": 0,
+          "LockedToPart": true,
+          "Rate": 12,
+          "Lifetime": [
+            1.2,
+            1.8
+          ],
+          "Speed": [
+            0.05,
+            0.2
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Drag": 1.2,
+          "Size": [
+            [
+              0,
+              0.7
+            ],
+            [
+              0.5,
+              1.3
+            ],
+            [
+              1,
+              1.6
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.15,
+              0.55
+            ],
+            [
+              0.7,
+              0.75
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Rotation": [
+            0,
+            360
+          ],
+          "Color": [
+            [
+              0,
+              "#F2F4F8"
+            ],
+            [
+              0.5,
+              "#9AA3B5"
+            ],
+            [
+              1,
+              "#30343E"
+            ]
+          ],
+          "LightEmission": 1,
+          "Brightness": 1.0
+        },
+        {
+          "Name": "SilkPop",
+          "Texture": "vfx/_shared/star4.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.4,
+            "ToStuds": 7.0,
+            "Width": 2.6,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Volume"
+          },
+          "LightInfluence": 0,
+          "LockedToPart": true,
+          "Rate": 0.7,
+          "Lifetime": [
+            0.7,
+            0.9
+          ],
+          "Speed": 0,
+          "Size": [
+            [
+              0,
+              0.3
+            ],
+            [
+              0.25,
+              1.5
+            ],
+            [
+              1,
+              1.1
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0
+            ],
+            [
+              0.6,
+              0.1
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Rotation": [
+            0,
+            360
+          ],
+          "RotSpeed": [
+            -90,
+            90
+          ],
+          "Color": [
+            [
+              0,
+              "#FFFFFF"
+            ],
+            [
+              0.2,
+              "#E6EAF2"
+            ],
+            [
+              1,
+              "#E6EAF2"
+            ]
+          ],
+          "LightEmission": 1,
+          "Brightness": 6
+        },
+        {
+          "Name": "CrimsonPop",
+          "Texture": "vfx/_shared/star4.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.4,
+            "ToStuds": 7.0,
+            "Width": 2.6,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Volume"
+          },
+          "LightInfluence": 0,
+          "LockedToPart": true,
+          "Rate": 0.45,
+          "Lifetime": [
+            0.7,
+            0.9
+          ],
+          "Speed": 0,
+          "Size": [
+            [
+              0,
+              0.3
+            ],
+            [
+              0.25,
+              1.5
+            ],
+            [
+              1,
+              1.1
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0
+            ],
+            [
+              0.6,
+              0.1
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Rotation": [
+            0,
+            360
+          ],
+          "RotSpeed": [
+            -90,
+            90
+          ],
+          "Color": [
+            [
+              0,
+              "#FFFFFF"
+            ],
+            [
+              0.2,
+              "#E0203A"
+            ],
+            [
+              1,
+              "#E0203A"
+            ]
+          ],
+          "LightEmission": 1,
+          "Brightness": 6
+        },
+        {
+          "Name": "WebRing",
+          "Texture": "vfx/_shared/ring.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.8,
+            "ToStuds": 7.0,
+            "Width": 3.0,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Volume"
+          },
+          "LightInfluence": 0,
+          "LockedToPart": true,
+          "Rate": 0.35,
+          "Lifetime": [
+            0.9,
+            1.1
+          ],
+          "Speed": 0,
+          "Size": [
+            [
+              0,
+              0.4
+            ],
+            [
+              1,
+              3.2
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0.1
+            ],
+            [
+              0.5,
+              0.3
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Rotation": [
+            0,
+            360
+          ],
+          "Color": [
+            [
+              0,
+              "#FFFFFF"
+            ],
+            [
+              0.4,
+              "#DDE3F0"
+            ],
+            [
+              0.75,
+              "#C0142C"
+            ],
+            [
+              1,
+              "#30343E"
+            ]
+          ],
+          "LightEmission": 1,
+          "Brightness": 5
+        },
+        {
+          "Name": "SilkSparks",
+          "Texture": "vfx/_shared/spark.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.8,
+            "ToStuds": 7.0,
+            "Width": 2.4,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Volume"
+          },
+          "LightInfluence": 0,
+          "LockedToPart": false,
+          "Rate": 8,
+          "Lifetime": [
+            0.5,
+            1.0
+          ],
+          "Speed": [
+            1.5,
+            3.5
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Drag": 2.5,
+          "Acceleration": [
+            0,
+            -3,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.1
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Transparency": 0,
+          "Color": [
+            [
+              0,
+              "#FFFFFF"
+            ],
+            [
+              0.5,
+              "#DDE3F0"
+            ],
+            [
+              1,
+              "#C0142C"
+            ]
+          ],
+          "LightEmission": 1,
+          "Brightness": 2
         }
       ],
       "Beams": [
@@ -580,7 +932,7 @@
             "Max": 1.0,
             "Period": 4.0
           },
-          "Brightness": 1.4
+          "Brightness": 1.8
         },
         {
           "Name": "Silk1",
@@ -767,6 +1119,58 @@
             "Min": 0.5,
             "Max": 1.0,
             "Period": 3.4
+          },
+          "Brightness": 1.4
+        },
+        {
+          "Name": "SilkStrip",
+          "FromStuds": 7.0,
+          "ToStuds": 0.3,
+          "Width0": 0.42,
+          "Width1": 0.28,
+          "Segments": 20,
+          "Texture": "vfx/_shared/neon_strip.png",
+          "TextureMode": "Wrap",
+          "TextureLength": 1.4,
+          "TextureSpeed": -0.7,
+          "Color": [
+            [
+              0,
+              "#DDE3F0"
+            ],
+            [
+              0.5,
+              "#FFFFFF"
+            ],
+            [
+              1,
+              "#DDE3F0"
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.08,
+              0.55
+            ],
+            [
+              0.92,
+              0.55
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 1,
+          "FaceCamera": true,
+          "Pulse": {
+            "Min": 0.7,
+            "Max": 1.0,
+            "Period": 2.6
           },
           "Brightness": 1.4
         }
@@ -1678,12 +2082,14 @@
       }
     },
     "Budget": {
-      "ParticlesPerSecond": 53,
-      "Beams": 5,
+      "ParticlesPerSecond": 84,
+      "Beams": 6,
       "Lights": 2,
       "Orbiters": 1,
       "BodyTriangles": 5764,
-      "PocketPieceTriangles": 2208
+      "PocketPieceTriangles": 2208,
+      "Note": "2026-10-28 rework: the aura piece, pops, a sixth beam, more motes (Mythic caps 120/s, 2 lights)."
     }
-  }
+  },
+  "piece": "spider_aura"
 }
