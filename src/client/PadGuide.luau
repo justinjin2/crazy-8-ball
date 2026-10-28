@@ -309,7 +309,7 @@ local function moneyTop(screen: ScreenGui, margin: number, icon: number): number
 	local root = screen:FindFirstChild("MoneyHud")
 	if root and root:IsA("GuiObject") and root.AbsoluteSize.Y > 0 then
 		local top = root.AbsolutePosition.Y
-		for _, name in { "VipTag", "LuckClover" } do
+		for _, name in { "VipTag", "LuckClover", "BoostPill", "RushChip" } do
 			local tag = root:FindFirstChild(name)
 			if tag and tag:IsA("GuiObject") and tag.Visible and tag.AbsoluteSize.Y > 0 then
 				top = math.min(top, tag.AbsolutePosition.Y)
