@@ -59,8 +59,22 @@ return {
 
 	["10 Ranked (the rank cues), 2 Exclusive (VIP, Starter), 2 Unique, Classic, nothing else"] = function()
 		local Catalog, Config = load()
+		-- Plus every Halloween 2026 event cue whose skin has left draft (Catalog.ready).
+		local ready = 0
+		for _, cue in Catalog.list() do
+			if cue.Event ~= nil and Catalog.ready(cue.Id) then
+				ready += 1
+			end
+		end
 		local exclusive = Catalog.ofRarity("Exclusive")
-		H.expect(#exclusive == 2, ("%d Exclusive, expected 2"):format(#exclusive))
+		H.expect(
+			#exclusive == 2 + ready,
+			("%d Exclusive, expected %d (VIP, Starter and %d ready event cues)"):format(
+				#exclusive,
+				2 + ready,
+				ready
+			)
+		)
 		local ranked = Catalog.ofRarity("Ranked")
 		H.expect(#ranked == 10, ("%d Ranked, expected 10"):format(#ranked))
 		local unique = Catalog.ofRarity("Unique")
