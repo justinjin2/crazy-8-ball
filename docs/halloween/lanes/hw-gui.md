@@ -33,6 +33,7 @@ From PLAN §4 (everything else is read-only; ask below under Requests):
 
 ## Status
 
+- 09:05 coordinator REQUEST (all lanes, blocks a merge): `src/client/Main.client.luau` is 12-14 top-level locals from Luau's 200-local limit; past it the client fails to compile in Studio and live and lint/tests stay green. Put every Main.client addition inside `do ... end` (zero new top-level locals), e.g. `do local ok, err = pcall(...) ... end`. New test `tests/client_compiles_test.luau` (on halloween @HEAD) compiles every src script and fails if Main.client has fewer than 8 locals left; run it before you push.
 - **Interfaces ready: 0119a786** (pushed 08:58 EDT, late against 08:15: the lane started 08:43).
   - `37d80752` `Money.friendBoost(count) -> number`, `Money.boostParts(flags) -> { { kind, add } }`
     (order Vip, Group, Plus, Friends, Starter, Party; active parts only; fresh table),
@@ -77,11 +78,40 @@ From PLAN §4 (everything else is read-only; ask below under Requests):
   (a VIP in that party: x2.4 instead of x2.0, +20%). The `FriendBoost` event (session peak
   0..4 and device, logged on leaving) gives the real share after publishing.
 
+- **Steps 5-7 (HUD layout, BoostPill, Rush chip shell):** `src/shared/HudLayout.luau` +
+  `tests/hud_layout_test.luau` (5 HUD areas x 288 cases: pill and chip inside and >= 2 px clear
+  of money, Invite, Plus, hotbar, WinTrack, column; card inside). `src/client/BoostPill.luau`
+  (pill, card, chip shell, GuiQA `boosts`, `boostCard`, `boostPerks`, `rushChip`, `hudRects`,
+  `hudOverlap`); `Config.UI.BoostPill` (still `Enabled = false` until step 10), `Strings.BoostPill`.
+  Seen in Studio at 1523x814 (PC-sized window): "+20%" with the green arrow, VIP "+130%" with
+  the rocking crown, the card as H1, the chip "2x CANDY 8:12" over the pill, `hudOverlap` empty,
+  console clean. On a phone the layout test puts the pill right of the left column (x 94 on
+  750x311) and the chip compact ("2x 8:12") when the WinTrack is open; on Oct 31's long clock
+  with the WinTrack open on a phone the chip rises over the WinTrack (last resort).
+- **Device sizes: the Studio resize helper cannot run from this lane.** System Events lists the
+  Studio processes but no windows (Terminal lacks Accessibility for window control), so
+  `tools/halloween/studio_size.sh` finds nothing. Phone (844x390, 844x332, 1334x750), iPad and
+  TV sizes are covered by `tests/hud_layout_test.luau` with the real Config numbers; Studio shots
+  are at this window's 1523x814. The coordinator's device sweep must cover the pill, card and
+  chip at phone and iPad sizes (Request below).
+
 ## Shared-file changes
 
 PLAN §7 shared files: your own block or line only; the coordinator resolves overlaps. Planned
 (add the commit sha as each lands, plus any other existing line you had to change):
 
+- `Progression.luau` (shared): `local BoostPill = require(...)` beside LuckClover's; the
+  `vipTag = if Config.UI.BoostPill.Enabled then BoostPill.new(money) else VipTag.new(money)`
+  line (was `VipTag.new(money)`); `boostPill = ...` in `deps`. `vipTag:setInMatch` untouched (the
+  pill has the same method).
+- `MenuColumn.luau` (not in PLAN's shared list; brief 2.7): the keep-above name lists at the
+  constructor and `moneyTop` gain `"BoostPill", "RushChip"`; `moneyTop` now skips a tag lying
+  wholly right of the column (a phone's pill and chip), so the column never lifts for them.
+  VipTag and LuckClover sit over the column's x, so their behaviour is unchanged.
+- `PadGuide.luau`: its keep-above list gains `"BoostPill", "RushChip"`.
+- `TutorialService.luau` `FUNNEL_EVENTS`: `BoostCardOpened`, `CuePreviewCues`,
+  `CuePreviewIndex`, `CuePreviewTrack`, `CuePreviewEquip` (custom events `BoostCard` and
+  `CuePreview`).
 - `HubCorners.luau` (core edits it too): the pill as ONE `padStops` entry right after
   `self.plusTile.button` (core's event tile is the first entry, its line); own lines in
   `blurPad` and `padFocusedOn`.
@@ -109,8 +139,13 @@ PLAN §7 shared files: your own block or line only; the coordinator resolves ove
 - **To the coordinator:** the `docs/ECONOMY.md` 3.5 and `DECISIONS.md` lines for the friend boost
   (+10% a friend in the server, max 4, added, permanent, money and Candy, own switch
   `Config.Economy.FriendBoostEnabled`).
-- **To the coordinator:** HUD overlaps among the existing pieces that `tests/hud_layout_test.luau`
-  prints (filled in at step 5).
+- **To the coordinator:** HUD overlaps among the pieces there TODAY (not the pill or chip), as
+  `tests/hud_layout_test.luau` prints them from Config (not fixed by this lane):
+  iPad 1024x768: the 9-slot hotbar overlaps the money HUD, Invite and the Plus tile;
+  phones 844x390 and 1334x750: the hotbar (3 or 9 slots) touches the Plus tile. Worth a look
+  in the device sweep (a player holding blocks on an iPad).
+- **To the coordinator:** the device sweep must cover the pill, its card and the Rush chip at
+  844x390 and 1024x768 (this lane could not resize Studio: no Accessibility for window control).
 - **To the coordinator:** a touch sweep of the Cue Preview in the device emulator (not scriptable
   from a lane).
 - **To the coordinator:** the HubCorners and Net overlaps with core at merge (my lines are listed
@@ -118,4 +153,23 @@ PLAN §7 shared files: your own block or line only; the coordinator resolves ove
 
 ## Assumptions
 
+- 09:55 "+0%" at zero boosts: **shown, dimmed** (`ShowAtZero = true`, the brief's default) so a
+  player with no boost still finds the card and its "Join the group: +10%" / "Friends here" /
+  "VIP" lines. One switch to hide it (`Config.UI.BoostPill.ShowAtZero = false`). Asked as the
+  gate-1 question below rather than stopping the lane on it.
+- The chip's idle is a gentle colour breathe, not a scale pulse (UI taste rule: text never
+  pulses its scale endlessly); `PulseSeconds` is the breathe's period.
+
 ## Gate shots
+
+Gate 1 (`~/Desktop/8ball-refs/halloween/shots/hw-gui/gate1/`, Studio window 1523x814; the phone
+size could not be reached, see Status):
+- `pill-1523x814-novip-2friends-chip.jpg`: no VIP, 2 faked friends: green arrow "+20%" in the
+  white pill over the money pill (VIP tag's place), the orange "2x CANDY 8:12" chip over it
+  (no candy icon yet: core's `Config.Halloween.CandyIcon` not merged, the text centres).
+  Compare H1: same look, the pill in the row above money as PLAN §2 says.
+- `pill-1523x814-vip-group-2friends-card.jpg`: VIP + Group + 2 friends: crown "+130%", the
+  "YOUR BOOSTS" card open (VIP +100%, Group +10%, Friends (2) +20%, rule, Total +130%, "Each
+  friend in your server +10% (max 4)", grey "Friends here: +10% each"). The open card covers
+  the chip (a popup).
+- **Question for Justin (one):** at zero boosts, show "+0%" dimmed (now) or hide the pill?
