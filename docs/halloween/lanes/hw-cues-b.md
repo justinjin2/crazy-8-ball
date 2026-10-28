@@ -68,6 +68,15 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
   neighbours), compact = a closed bud 0.3 past the butt; `spider_parts.glb` 134241355070040,
   `Crown.glb` 88297987618252, atlas decals with image ids). Preview beside the concept:
   `gate2/spider_body_vs_C1b.png`. No spider bodies, legs or creatures anywhere.
+- 10:53 Pocket sounds fixed @ c08ddc40: my window's console showed all three finisher sounds
+  failing (`ContentId ... Request asset was not found` / `Asset type does not match`): the
+  Broom's 9125646918 and the Spider's 9120660757 were wrong ids, the Cat's 71522230632243 a
+  user upload (not playable in our universe). Now Pro Sound Effects whooshes from the Creator
+  Store, each PreloadAsync Success in my window: Broom 9125646252 ("Growly Magic Whooshes
+  Airy Gusts 7", 1.6 s, 0.45), Cat 9125645963 ("Airy Gusts 5", 2.2 s, 0.45), Spider
+  9125647922 ("Sharp Tubular Whoosh Fast Hiss 6", 1.2 s, 0.4). On the way, 5f091738 flipped
+  the three draft flags to false by mistake (a failed edit, committed and pushed before I
+  read the diff); 3398a986 put them back two minutes later, nothing else was in either.
 - 10:51 P17 in the same solo game, the Spider equipped: the silk trail rides the cue ball
   (`spider_trail_match_lab.jpg`); the pot attempt missed, so its finisher in a real pocket is
   not captured (it fired clean in the lab strip after the 10:29 retune); no console errors.
@@ -197,6 +206,10 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
 
 ## Assumptions
 
+- 10:53 Pocket sounds are magic whooshes, not animal voices: no Pro Sound Effects cat or silk
+  sound fits (the "cat hiss" results are user uploads, which do not load in our universe,
+  and a spider hiss would add the creature the Spider concept rules out); a growly gust for
+  the shadow cat's leap, a sharp hiss-whoosh for the web.
 - 10:29 No `Upright` flag on my pocket pieces (Cues A's 10:28 note): the Broom's portal rings
   and crescents and the Spider's web, funnel and bead have no face and are symmetric about
   the up axis, so the per-part half turn changes nothing visible.
