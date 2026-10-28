@@ -40,7 +40,7 @@
           },
           "LightInfluence": 0,
           "LockedToPart": true,
-          "Rate": 16,
+          "Rate": 22,
           "Lifetime": [
             1.2,
             1.8
@@ -57,11 +57,11 @@
           "Size": [
             [
               0,
-              0.7
+              0.8
             ],
             [
               1,
-              1.7
+              2.0
             ]
           ],
           "Transparency": [
@@ -71,11 +71,11 @@
             ],
             [
               0.2,
-              0.6
+              0.5
             ],
             [
               0.7,
-              0.8
+              0.72
             ],
             [
               1,
@@ -113,7 +113,7 @@
             "Shape": "Cylinder",
             "ShapeStyle": "Volume"
           },
-          "Rate": 9,
+          "Rate": 3,
           "Lifetime": [
             0.9,
             1.4
@@ -130,15 +130,15 @@
           "Size": [
             [
               0,
-              0.4
+              0.25
             ],
             [
               0.5,
-              0.9
+              0.5
             ],
             [
               1,
-              0.3
+              0.2
             ]
           ],
           "Transparency": [
@@ -199,7 +199,7 @@
             "Shape": "Cylinder",
             "ShapeStyle": "Volume"
           },
-          "Rate": 38,
+          "Rate": 14,
           "Lifetime": [
             0.5,
             0.8
@@ -221,15 +221,15 @@
           "Size": [
             [
               0,
-              0.45
+              0.2
             ],
             [
               0.4,
-              0.95
+              0.45
             ],
             [
               1,
-              0.3
+              0.15
             ]
           ],
           "Transparency": [
@@ -263,7 +263,7 @@
           "LightEmission": 1,
           "LightInfluence": 0,
           "LockedToPart": false,
-          "Brightness": 1.4
+          "Brightness": 1.0
         },
         {
           "Name": "Embers",
@@ -399,7 +399,7 @@
             "Shape": "Cylinder",
             "ShapeStyle": "Volume"
           },
-          "Rate": 9,
+          "Rate": 3,
           "Lifetime": [
             2.0,
             3.0
@@ -421,11 +421,11 @@
           "Size": [
             [
               0,
-              0.26
+              0.2
             ],
             [
               1,
-              0.36
+              0.28
             ]
           ],
           "Rotation": [
@@ -1429,12 +1429,12 @@
       }
     },
     "Budget": {
-      "ParticlesPerSecond": 117,
-      "Back": 58.5,
+      "ParticlesPerSecond": 87,
+      "Back": 43.5,
       "Beams": 1,
       "Lights": 3,
       "Orbiters": 2,
-      "Note": "Plus the two orbiter heads and the decor piece (ribbons + 3 mini pumpkins); trail 34/s while the ball moves; the finisher bursts 140 once. Firework is 214/s, 1 beam, 2 lights."
+      "Note": "Plus the two orbiter heads and the decor piece (ribbons + 3 mini pumpkins); trail 34/s while the ball moves; the finisher bursts 140 once. Firework is 214/s, 1 beam, 2 lights. Soft orbs thinned 12:20 (coordinator 12:05: dark behind light, the ribbons and carved pumpkins carry it)."
     },
     "Piece": {
       "Note": "pieces/jack_o_lantern_aura: two Neon flame ribbons (FlameA, FlameB) spiralling the whole cue 0.18 and 0.24 studs off the body, a turn every 1.4 studs, opposite senses, wavy tongues, each turning about the axis (42 and -34 degrees a second) and breathing (Glow 1.6 / 2.6 s); three little carved pumpkins (Pumpkin1-3, aura joints) circling the cue at 1.7, 3.7 and 5.6 studs on their own Spin + Bob, faces glowing. Lower effects hides FlameB and two pumpkins (designer 2026-10-28 11:55: the Beta/Firework level)."

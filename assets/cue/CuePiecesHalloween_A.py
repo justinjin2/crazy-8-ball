@@ -448,6 +448,53 @@ def _vine_offset(d):
     return -0.003
 
 
+def jack_rind_map(size=512):
+    """vfx/jack_o_lantern/rind_512.png: the painted body (coordinator 2026-10-28 12:05: a flat
+    orange cylinder reads cheap next to Firework's painted navy and gold). u runs round the cue
+    (the eight rib grooves of _revolve's rib carve fall where cos(8 * 2 pi u) = 1), v runs from the
+    tip (0) to 7.3 studs (1): a dark green stem, dark wood collars with grain, pumpkin orange
+    shaded deep in the grooves and bright on the crests with a sugar of speckle, the butt pumpkin
+    deeper and burnt toward its end, a near-black band at the pumpkin's base."""
+    import numpy as np
+    import cue_common as cc
+    rel = 'vfx/jack_o_lantern/rind_512.png'
+    path = os.path.join(os.path.dirname(PIECES_DIR), rel)
+    rng = np.random.default_rng(7)
+    u = (np.arange(size) + 0.5) / size
+    v = (np.arange(size) + 0.5) / size
+    U, V = np.meshgrid(u, v)                     # rows = v (along), cols = u (round)
+    d = (1.0 - V) * 7.3  # PNG row 0 is UV v = 1: the butt is the top row, the tip the bottom
+    groove = 0.5 + 0.5 * np.cos(8 * 2 * np.pi * U)   # 1 in a groove, 0 on a crest
+    crest = 1.0 - groove
+    noise = rng.random((size, size)).astype(np.float32)
+    fine = (noise > 0.93).astype(np.float32)
+    def lerp(a, b, t):
+        return np.array(a)[None, None, :] * (1 - t[..., None]) + np.array(b)[None, None, :] * t[..., None]
+    orange_c, orange_g = (255, 142, 40), (168, 62, 10)
+    img = lerp(orange_c, orange_g, groove ** 0.8)
+    img = img * (0.94 + 0.06 * noise[..., None]) + fine[..., None] * 26
+    # the pumpkin: deeper, burnt toward the end, the ribs stronger
+    pump = (d >= 6.76)
+    deep = lerp((240, 112, 24), (150, 44, 6), np.clip(groove * 1.1, 0, 1) ** 0.7)
+    burnt = np.clip((d - 6.76) / 0.42, 0, 1)
+    deep = deep * (1 - 0.25 * burnt[..., None])
+    img = np.where(pump[..., None], deep, img)
+    # dark wood collars with grain and the band at the pumpkin's base
+    grain = 0.5 + 0.5 * np.sin(2 * np.pi * (U * 9 + 0.6 * np.sin(2 * np.pi * V * 40)))
+    wood = lerp((58, 36, 20), (30, 18, 10), grain)
+    for lo, hi in ((0.30, 0.36), (3.38, 3.58), (3.88, 4.08), (6.70, 6.80)):
+        band = (d >= lo) & (d < hi)
+        edge = ((d - lo) < 0.02) | ((hi - d) < 0.02)
+        img = np.where(band[..., None], np.where(edge[..., None], wood * 0.55, wood), img)
+    # the stem tip: dark green with lighter streaks
+    stem = d < 0.30
+    streak = 0.5 + 0.5 * np.sin(2 * np.pi * U * 6)
+    green = lerp((40, 86, 36), (24, 54, 22), streak)
+    img = np.where(stem[..., None], green, img)
+    cc.write_png(path, np.clip(img, 0, 255).astype(np.uint8))
+    return rel
+
+
 @piece
 def jack_o_lantern(k):
     """The Jack-o'-Lantern Cue's body (brief 2.8): a dark green stem tip with a brown ring; a
@@ -462,6 +509,8 @@ def jack_o_lantern(k):
     for name, hexc in JACK.items():
         neon = name in ('Slit', 'Face')
         k.material(name, 'Neon' if neon else 'SmoothPlastic', hexc, Reflectance=0.0 if neon else (0.1 if name == 'Orange' else 0.03))
+    # the painted body (coordinator 12:05): one colour map over the whole lathe
+    k.material('Rind', 'SmoothPlastic', '#FFFFFF', Reflectance=0.06, SurfaceAppearance={'ColorMap': jack_rind_map()})
 
     # --- the body lathe: tip stem, ring, ribbed shaft, collars, pumpkin ----------------------
     k.joint('Body', pivot=(0, -3.5, 0))
@@ -486,19 +535,9 @@ def jack_o_lantern(k):
             return (8, 0.12)
         return (0, 0.0)
     bm = bmesh.new()
-    _revolve(bm, rows, 24, rib=rib)
+    _revolve(bm, rows, 24, rib=rib, uv=lambda d, share: (share, d / 7.3))
     _finish(bm)
-    mats = ['Orange', 'Green', 'Brown']
-
-    def region(c, n):
-        d = -c[1]
-        if d < 0.30:
-            return 1
-        if d < 0.36 or 3.38 <= d < 3.58 or 3.88 <= d < 4.08:
-            return 2
-        return 0
-    ob = k.mesh_object('JackBody', bm, mats)
-    assign_by_region(ob, region)
+    ob = k.mesh_object('JackBody', bm, ['Rind'])
     k.add('Body', ob)
 
     # --- the curly stem out of the pumpkin's end ---------------------------------------------
@@ -568,7 +607,7 @@ def jack_o_lantern(k):
 
     # --- the carved face on top of the pumpkin (flickers like a candle) ----------------------
     k.joint('Face', pivot=(0, -PUMPKIN_C, 0), visual=[
-        {'Kind': 'Glow', 'Min': 0.0, 'Max': 0.55, 'Period': 1.3},
+        {'Kind': 'Glow', 'Min': 0.1, 'Max': 0.75, 'Period': 1.3},
         {'Kind': 'Blink', 'Period': 2.7, 'Seconds': 0.37, 'Count': 3, 'Phase': 1.1}])
     bm = bmesh.new()
 
@@ -576,8 +615,11 @@ def jack_o_lantern(k):
         r = _pumpkin_r(d) + lift
         return Vector((x, -d, math.sqrt(max(1e-4, r * r - x * x))))
 
-    def prism(poly):
-        top = [bm.verts.new(surf(x, d, 0.012)) for x, d in poly]
+    def prism(poly, scale=1.0):
+        # lifted, the eyes 1.25x, so the face reads from the table (12:05); the mouth keeps its
+        # size: its wide corners sit where the pumpkin narrows toward the grip zone
+        poly = [(x * scale, PUMPKIN_C + (d - PUMPKIN_C) * scale) for x, d in poly]
+        top = [bm.verts.new(surf(x, d, 0.02)) for x, d in poly]
         bot = [bm.verts.new(surf(x, d, -0.06)) for x, d in poly]
         bm.faces.new(top)
         bm.faces.new(bot[::-1])
@@ -586,7 +628,7 @@ def jack_o_lantern(k):
             bm.faces.new((top[i], bot[i], bot[(i + 1) % m], top[(i + 1) % m]))
     # eyes: triangles pointing toward the stem, mouth: a jagged grin toward the handle
     for sx in (-1, 1):
-        prism([(sx * 0.07, 7.06), (sx * 0.20, 7.06), (sx * 0.135, 6.94)])
+        prism([(sx * 0.07, 7.06), (sx * 0.20, 7.06), (sx * 0.135, 6.94)], 1.25)
     mouth = [(-0.22, 6.90), (-0.16, 6.95), (-0.10, 6.90), (-0.04, 6.95), (0.03, 6.90), (0.10, 6.95), (0.17, 6.90), (0.22, 6.90),
              (0.20, 6.82), (0.12, 6.78), (0.05, 6.82), (-0.03, 6.78), (-0.11, 6.82), (-0.18, 6.78), (-0.22, 6.84)]
     prism(mouth)
