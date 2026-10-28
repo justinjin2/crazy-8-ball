@@ -17968,20 +17968,26 @@ Config.EmoteMenu = {
 		},
 		{
 			Id = "Birdbrain", -- designer, 2026-10-28: last in the menu
-			Catalog = 120486252224195,
-			Animation = 123471454475978,
-			Creator = "C4rpye's Group",
-			Length = 10.0,
+			-- The whole dance in three parts (one emote is at most 10 s: designer, 2026-10-28),
+			-- "Teto Birdbrain Dance" Part 1, 2 and 3 of 3, each 10.0 s (read in Studio); the
+			-- Avatar Shop link opens Part 1 (104263317795993; Part 2 128135666727125, Part 3
+			-- 124779972604242).
+			Catalog = 104263317795993,
+			Animation = 116285097455313,
+			Parts = { 116285097455313, 83720203081687, 116066620364814 },
+			Creator = "nameswapped3",
+			Length = 30.0,
 			-- The designer's song, uploaded 2026-10-28 (Lucky 8; the song's 0.08 to 24.08 s, 160
-			-- BPM). It starts on "but I falter on the forethought", the full beat at 0.527 s of the
-			-- upload, past the ticking lead-in (designer: the dance starts on that line), and
-			-- loops 15 bars (22.5 s) so each loop lands on the beat. A re-cut without the lead-in
-			-- (94466746495096) was removed by Roblox, so this one plays from an offset instead.
-			-- Volume evens it with Rat Dance (RMS 0.157 against 0.275, measured in Studio).
+			-- BPM): from "but I falter on the forethought", the full beat at 0.527 s of the
+			-- upload, past the ticking lead-in (designer: the dance starts on that line), to the
+			-- upload's end, once every loop of the dance; quiet for its last 6.5 s (designer: keep
+			-- this upload; a re-cut, 94466746495096, was removed by Roblox). Volume evens it with
+			-- Rat Dance (RMS 0.157 against 0.275, measured in Studio).
 			Music = {
 				Id = "rbxassetid://75387278867392",
 				Start = 0.527,
-				Loop = 22.5,
+				Loop = 23.473,
+				Every = 30.0,
 				Volume = 0.87,
 			},
 		},

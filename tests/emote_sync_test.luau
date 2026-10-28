@@ -70,6 +70,17 @@ return {
 		H.expect(near(S.musicCyclePosition(99, 100, 0.5, 23, 30) :: number, 0.5), "not yet: Start")
 	end,
 
+	["Bird Brain is three 10 s parts, its song once a 30 s loop"] = function()
+		local S, Config = load()
+		local row: any = S.find(Config.EmoteMenu.List, "Birdbrain")
+		H.expect(row ~= nil and row.Parts ~= nil and #row.Parts == 3, "three parts")
+		H.expect(row.Length == 30 and row.Animation == row.Parts[1], "30 s, Part 1 first")
+		H.expect(row.Catalog == 104263317795993, "the link opens Part 1 (designer)")
+		local m = row.Music
+		H.expect(m.Every == row.Length and m.Loop <= m.Every, "the song once a loop")
+		H.expect(m.Start + m.Loop <= 24.0 + 1e-6, "within the 24 s upload")
+	end,
+
 	["a dance joins the nearest dancer doing it within reach, else starts now"] = function()
 		local S = load()
 		local nearby = {
