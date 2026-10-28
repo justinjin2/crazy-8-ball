@@ -634,7 +634,7 @@ Justin's changes at a gate go straight into the work and into the lane file's St
   counted), the five Catalog rows (`eventCue`, Effects, `StandIn`, `Event`, `Catalog.ready`, the
   `ofRarity` hiding, `drawAs` in `paintStick`), the five Strings names, tests; lint, tests, a
   Studio check and a fresh-player run; push; `READY drop 1` and `MERGE drop 1` in the lane file.
-- [ ] 2. Drop 2 (by 08:45): the data tool keys and `--also-manifest` and budget stop, the builder
+- [x] 2. Drop 2 (by 08:45): the data tool keys and `--also-manifest` and budget stop, the builder
   `ONLY`/`ALL` filter with `row.Body`, the guarded Halloween imports in `CuePieces.py`, a valid
   `CuePiecesHalloween_A.py`; the ONLY run proven in your window; push; `MERGE drop 2` (the
   coordinator merges it about 08:45).

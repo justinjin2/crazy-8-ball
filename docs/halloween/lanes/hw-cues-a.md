@@ -35,6 +35,7 @@ From PLAN §4 (everything else is read-only; ask through Requests):
 
 ## Status
 
+- 09:05 coordinator REQUEST (all lanes, blocks a merge): `src/client/Main.client.luau` is 12-14 top-level locals from Luau's 200-local limit; past it the client fails to compile in Studio and live and lint/tests stay green. Put every Main.client addition inside `do ... end` (zero new top-level locals), e.g. `do local ok, err = pcall(...) ... end`. New test `tests/client_compiles_test.luau` (on halloween @HEAD) compiles every src script and fails if Main.client has fewer than 8 locals left; run it before you push.
 - 2026-10-28 09:05: **READY drop 1 @ 7bef0153** (pushed). The five Catalog rows (`eventCue`:
   Exclusive, `Event = "Halloween2026"`, `StandIn = "Classic"`, Effects Epic / Legendary /
   Mythic / Mythic / Secret), `Catalog.ready`, the `ofRarity` hiding, `Catalog.drawAs` and its
@@ -47,6 +48,25 @@ From PLAN §4 (everything else is read-only; ask through Requests):
   come with the final build's run, line 18).
 
 - 08:50 coordinator: lanes started 08:43 (73 min behind the plan). New times: interface commits as soon as they pass (target 09:30, merged by 09:45); gate 1 at 10:00 (shots + captions by 09:55); gate 2 at 11:15 with whatever is ready (Justin sleeps after it); merges on request all day; 16:00 done/cut and the 17:00 freeze stay for now (re-timed at 13:00 if needed). Rojo: a watchdog restarts any crashed server by itself (log ~/Desktop/8ball-refs/halloween/shots/coordinator/rojo-watchdog.log; Rojo 7.7 can panic on an editor temp file); if MCP shows your window no longer syncs (append a comment, read it back), write `ROJO RECONNECT` in your Requests and keep working on files. Resize helper: not yet (Studio windows were full screen; Justin is un-fullscreening them); use your layout tests until the outer sizes are posted here.
+## Status (continued)
+
+- 2026-10-28 09:55: **READY drop 2 @ eb98e2ef** (pushed; `halloween` @ 14e2d157 merged in, the
+  new `client_compiles_test` green, 1346 tests, lint green). The data tool: `body`,
+  `maps_from`, `look`, `--also-manifest`, the budget stop (body cues' pieces only: the shipped
+  Mythic pieces predate it, the Dragon's aura alone is 36,790 triangles); the builder
+  `ONLY`/`ALL` filter with `row.Body`, proven in my window (`ONLY = { "BetaCue" }`: 1 skin and
+  2 pieces rebuilt, 60 templates and 17 pieces the same instances, nothing gone); the guarded
+  imports and the `Aim` joint key in `CuePieces.py`; `CuePiecesHalloween_A.py` with
+  `check_body`. Found and fixed on the way: a plain regenerate from a lane worktree swapped the
+  Kitsune, Celestial Dragon and Firework ids (two "ok" uploads of the same files, the
+  generator preferred the one the live rows do not use) and lost the Firework pocket volume
+  (hand-edited in the generated row on 10-07): now the id the shipped rows carry wins and the
+  volume lives in `firework.json`, so `git diff src/shared/CueSkins` after a regenerate is empty.
+- **To Cues B (09:55):** the names and keys stay exactly as your 08:55 note (`body`,
+  `maps_from`, `look`, `"Aim": "fade"` through `k.joint(..., aim='fade')` in `CuePieces.Kit`,
+  `<sid>`, `<sid>_aura`, `<sid>_pocket`). `CuePreview.py --thumb` with bodies and their `Aim`
+  overhangs comes by 12:00 (Progress 9).
+
 ## Shared-file changes
 
 Planned (PLAN §7 shared files; own block or line only; add the sha to each as it lands):
@@ -58,9 +78,18 @@ Planned (PLAN §7 shared files; own block or line only; add the sha to each as i
 - `src/shared/CueSkins/*` (generated): regenerated, never hand-edited.
 - `src/server/Items.luau` `HANDLERS.EquipCue`: one `Funnel.event` line (analytics).
 - `tests/config_test.luau`: only if a `Config.CueSkins.Bodies` check is added (own line).
+- `assets/cue/CuePieces.py` @ eb98e2ef: the two guarded Halloween imports (planned) plus
+  `Kit.joint(aim=)` and the `Aim` key in `export` (one kwarg, two lines: the joint key both cue
+  lanes' briefs name has to reach piece.json, and `export` is its only writer).
+- `assets/cue/skins/firework.json` @ d267d8e7: `Pocket.Sound.Volume` 0.7 -> 0.33 (the value the
+  live generated row already had by hand since 10-07; no behaviour change).
+- `src/shared/CueSkins/Skins/FireworkCue.luau` @ d267d8e7: regenerated (the hand comment gone,
+  the value the same).
 
 ## Requests
 
+- 09:55 **MERGE drop 2** (`hw-cues-a` @ eb98e2ef, tooling only, no runtime change; includes
+  d267d8e7, the Firework volume data fix). Cues B generates rows only after it has this.
 - 09:05 **MERGE drop 1** (`hw-cues-a` @ 7bef0153): the five cue ids and names, `Catalog.ready`,
   `drawAs`. No runtime behaviour change for existing cues (every shipped cue draws its own
   template as before; only an id with a StandIn falls back).
