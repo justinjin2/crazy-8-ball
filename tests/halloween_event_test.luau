@@ -127,13 +127,13 @@ return {
 	["the Rush chip's text"] = function()
 		local Event = load()
 		local chip = Event.rushChip(START + 108) -- 1:48 into a Rush: 8:12 left
-		H.expect(chip ~= nil and chip.text == "2x CANDY 8:12", "Rush text")
+		H.expect(chip ~= nil and chip.text == "CANDY RUSH 8:12", "Rush text")
 		H.expect(chip ~= nil and chip.endsAt == START + 600 and chip.kind == "Rush", "Rush end")
 		H.expect(Event.rushChip(START + 600) == nil, "no chip between Rushes")
 		H.expect(Event.rushChip(START - 1) == nil, "no chip before")
 		local t = DOUBLE_TO - (9 * 3600 + 12 * 60 + 44) -- 9:12:44 left of Oct 31
 		local double = Event.rushChip(t)
-		H.expect(double ~= nil and double.text == "2x CANDY 9:12:44", "double text")
+		H.expect(double ~= nil and double.text == "HALLOWEEN NIGHT 9:12:44", "double text")
 		H.expect(double ~= nil and double.endsAt == DOUBLE_TO and double.kind == "Double", "double")
 		H.expect(Event.rushChip(DOUBLE_TO + 600) == nil, "Nov 1, between Rushes")
 	end,
