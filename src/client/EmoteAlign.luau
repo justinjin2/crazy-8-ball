@@ -6,9 +6,7 @@
 -- So this client seeks each dancer's track itself, on its own screen only: as Roblox's copy
 -- arrives (Animator.AnimationPlayed), then every Align.Seconds a track that drifted more than
 -- Align.ToleranceSeconds. Two players in step are in step on every screen, whatever their pings.
--- Your own dance goes through the same seek (with the switch off: only yours, as before). A
--- dance in Parts seeks only the part the clock is in, to its place in that part (the dancer's
--- client hands each part to the next; EmotePlayer).
+-- Your own dance goes through the same seek (with the switch off: only yours, as before).
 -- Nothing runs every frame; the pass stops when nobody dances.
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -27,7 +25,7 @@ type Watch = {
 	at: number,
 	animator: Animator?,
 	link: RBXScriptConnection?,
-	parts: { [string]: number }, -- the loop's animation numbers (its parts), each part's index
+	loop: string, -- the loop's animation number
 	intro: string?, -- the intro's
 }
 
@@ -59,8 +57,7 @@ end
 local function fix(w: Watch, track: AnimationTrack, force: boolean)
 	local animation = track.Animation
 	local number = animation and EmoteSync.assetNumber(animation.AnimationId)
-	local part = if number then w.parts[number] else nil
-	local kind = if part ~= nil
+	local kind = if number == w.loop
 		then "Loop"
 		elseif number ~= nil and number == w.intro then "Intro"
 		else nil
@@ -80,17 +77,9 @@ local function fix(w: Watch, track: AnimationTrack, force: boolean)
 	if which ~= kind then
 		return -- the intro fading out under the loop, or a one-shot that is over
 	end
-	local loopLength = row.Length
-	if kind == "Loop" and row.Parts then
-		local now, into = EmoteSync.partAt(row, want)
-		if now ~= part then
-			return -- the part before, fading out, or the next, just started early
-		end
-		want, loopLength = into, row.Length / #row.Parts
-	end
 	local length = if track.Length > 0
 		then track.Length
-		elseif kind == "Loop" then loopLength
+		elseif kind == "Loop" then row.Length
 		else row.IntroLength or 0
 	local looped = kind == "Loop" and row.Once ~= true
 	if looped and length > 0 then
@@ -170,12 +159,9 @@ function EmoteAlign.set(userId: number, id: string?, at: number?)
 		at = at,
 		animator = nil,
 		link = nil,
-		parts = {},
+		loop = tostring(row.Animation),
 		intro = if row.Intro then tostring(row.Intro) else nil,
 	}
-	for index, animation in EmoteSync.animations(row) do
-		w.parts[tostring(animation)] = index
-	end
 	watched[userId] = w
 	hook(userId, w, true)
 	if not running then

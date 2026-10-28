@@ -16,15 +16,7 @@ export type Row = {
 	Length: number,
 	Speed: number?,
 	Prop: string?,
-	Music: {
-		Id: string,
-		Start: number,
-		Loop: number,
-		Volume: number?,
-		Speed: number?,
-		Every: number?, -- plays once every this many seconds (a dance longer than its song)
-	}?,
-	Parts: { number }?, -- a dance longer than one emote: these animations in turn, equal shares
+	Music: { Id: string, Start: number, Loop: number, Volume: number?, Speed: number? }?,
 	Intro: number?, -- an animation played once before the loop
 	IntroLength: number?, -- its length in seconds
 	Once: boolean?, -- plays one time, then the dance ends
@@ -88,45 +80,6 @@ function EmoteSync.musicOncePosition(
 		return nil
 	end
 	return start + played
-end
-
---- Where the music of a dance longer than its song is at `now`: it plays its Loop seconds
---- from Start at the beginning of every `every` seconds (the dance's loop), then is quiet
---- (nil) until the next.
-function EmoteSync.musicCyclePosition(
-	now: number,
-	at: number,
-	start: number,
-	loop: number,
-	every: number,
-	speed: number?
-): number?
-	if every <= 0 then
-		return start
-	end
-	local played = (math.max(0, now - at) % every) * (speed or 1)
-	if played >= loop then
-		return nil
-	end
-	return start + played
-end
-
---- Which part of a dance in parts plays at `loopSeconds` into its loop, and how far into that
---- part (each part is an equal share of Length). A dance without parts is one part.
-function EmoteSync.partAt(row: Row, loopSeconds: number): (number, number)
-	local parts = row.Parts
-	local count = if parts then #parts else 1
-	if count <= 1 or row.Length <= 0 then
-		return 1, loopSeconds
-	end
-	local share = row.Length / count
-	local index = math.clamp(math.floor(loopSeconds / share) + 1, 1, count)
-	return index, loopSeconds - (index - 1) * share
-end
-
---- Every animation a dance plays in its loop, in order: its parts, or its one animation.
-function EmoteSync.animations(row: Row): { number }
-	return if row.Parts and #row.Parts > 0 then row.Parts else { row.Animation }
 end
 
 --- What syncing with a dancer of `theirs` gives you: their row, or its Duo partner's while

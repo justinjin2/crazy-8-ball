@@ -17854,10 +17854,7 @@ Config.EmoteMenu = {
 	-- Studio, 2026-10-27). The designer's own uploads (Lucky 8, 2026-10-27) are the clips cut
 	-- in step for each dance (tools: emote-music-upload), from 0, normalised; Volume evens them
 	-- out with Rat Dance at MusicVolume. Prop (optional): a key of Props, held while it plays.
-	-- Parts (optional): a dance longer than one emote (Roblox's limit is 10 s), these
-	-- animations in turn, each Length / #Parts long; Animation is the first. Music.Every
-	-- (optional): the song plays its Loop once every Every seconds, then is quiet (a dance
-	-- longer than its song). Speed (optional): the dance's playback speed (1). WalkSpeed (optional): your walking
+	-- Speed (optional): the dance's playback speed (1). WalkSpeed (optional): your walking
 	-- speed while you dance it (else WalkSpeed below). Duo (optional): the dance's partner: a
 	-- player who syncs with it dances the Duo instead, and only one may (Gojo and Geto).
 	List = {
@@ -17966,31 +17963,6 @@ Config.EmoteMenu = {
 			-- "Low Cortisol" (DistrokidOfficial), from 31 s (designer): 64 beats at 129.2 BPM.
 			Music = { Id = "rbxassetid://110919391228823", Start = 31.184, Loop = 29.722 },
 		},
-		{
-			Id = "Birdbrain", -- designer, 2026-10-28: last in the menu
-			-- The whole dance in three parts (one emote is at most 10 s: designer, 2026-10-28),
-			-- "Teto Birdbrain Dance" Part 1, 2 and 3 of 3, each 10.0 s (read in Studio); the
-			-- Avatar Shop link opens Part 1 (104263317795993; Part 2 128135666727125, Part 3
-			-- 124779972604242).
-			Catalog = 104263317795993,
-			Animation = 116285097455313,
-			Parts = { 116285097455313, 83720203081687, 116066620364814 },
-			Creator = "nameswapped3",
-			Length = 30.0,
-			-- The designer's song, uploaded 2026-10-28 (Lucky 8; the song's 0.08 to 24.08 s, 160
-			-- BPM): from "but I falter on the forethought", the full beat at 0.527 s of the
-			-- upload, past the ticking lead-in (designer: the dance starts on that line), to the
-			-- upload's end, once every loop of the dance; quiet for its last 6.5 s (designer: keep
-			-- this upload; a re-cut, 94466746495096, was removed by Roblox). Volume evens it with
-			-- Rat Dance (RMS 0.157 against 0.275, measured in Studio).
-			Music = {
-				Id = "rbxassetid://75387278867392",
-				Start = 0.527,
-				Loop = 23.473,
-				Every = 30.0,
-				Volume = 0.87,
-			},
-		},
 	} :: {
 		{
 			Id: string,
@@ -18000,15 +17972,7 @@ Config.EmoteMenu = {
 			Length: number,
 			Speed: number?,
 			Prop: string?,
-			Music: {
-				Id: string,
-				Start: number,
-				Loop: number,
-				Volume: number?,
-				Speed: number?,
-				Every: number?,
-			}?,
-			Parts: { number }?,
+			Music: { Id: string, Start: number, Loop: number, Volume: number?, Speed: number? }?,
 			Intro: number?,
 			Once: boolean?,
 			Scene: string?,
@@ -18324,11 +18288,6 @@ Config.EmoteMenu = {
 	-- own walk is 20.8).
 	WalkSpeed = 8,
 	FadeSeconds = 0.2, -- a dance blends in and out
-	-- A dance in Parts (one emote is at most 10 s: Bird Brain is three): each part blends into
-	-- the next this fast, started this far before its turn (about a frame, under Align's
-	-- tolerance) so the one before never loops back to its first frame.
-	PartFadeSeconds = 0.1,
-	PartLeadSeconds = 0.03,
 	-- A dance whose animation has not loaded after this long is hidden from the menu (a
 	-- creator may delete or change their item).
 	LoadSeconds = 3,
