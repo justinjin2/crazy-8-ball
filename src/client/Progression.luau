@@ -33,6 +33,8 @@ local MoneyRainFx = require(script.Parent.MoneyRainFx)
 local OwnerMessage = require(script.Parent.OwnerMessage)
 local InventoryMenu = require(script.Parent.InventoryMenu)
 local ItemState = require(script.Parent.ItemState)
+local BoostPill = require(script.Parent.BoostPill)
+local CuePreview = require(script.Parent.CuePreview)
 local LuckClover = require(script.Parent.LuckClover)
 local MenuColumn = require(script.Parent.MenuColumn)
 local Menus = require(script.Parent.Menus)
@@ -184,6 +186,7 @@ end
 local function closeScreens()
 	LuckyClient.close()
 	Menus.close()
+	CuePreview.close() -- even when a popup took the menus over (hw-gui lane)
 end
 
 -- Whether reaching division `index` came from a ladder change's catch-up as the save loaded
@@ -263,7 +266,9 @@ function Progression.start(screen: ScreenGui, hooks: Hooks)
 	SettingsState.start() -- the switches (sound groups, Lower effects) and the seen moments
 	Music.start() -- the background music (its Settings row: the Music group)
 	money = MoneyHud.new(screen)
-	vipTag = VipTag.new(money) -- VIP's tag over the money pill (a VIP only)
+	-- The boost pill over the money pill in the VIP tag's place (Halloween 2026, hw-gui lane;
+	-- off: VIP's tag, a VIP only). Both have the tag's shape (Purchased, LuckClover).
+	vipTag = if Config.UI.BoostPill.Enabled then BoostPill.new(money) else VipTag.new(money)
 	LuckClover.new(money, vipTag) -- the Grand Opening Luck's clover beside it (while it runs)
 	flyer = CashFlyer.new(screen, money, hooks.pocketToScreen)
 	newRank = NewRankPopup.new(screen, flyer, money)
@@ -306,6 +311,7 @@ function Progression.start(screen: ScreenGui, hooks: Hooks)
 		flyer = flyer,
 		rankHud = rankHud,
 		vipTag = vipTag,
+		boostPill = if Config.UI.BoostPill.Enabled then vipTag else nil, -- HubCorners' pad stop
 		hotbarCenter = LuckyClient.hotbarCenter,
 		bumpHotbar = LuckyClient.bumpHotbar,
 	}

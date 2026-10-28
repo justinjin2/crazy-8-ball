@@ -57,7 +57,7 @@ local function refresh(player: Player)
 	if player:GetAttribute(COUNT_ATTRIBUTE) ~= shown then
 		player:SetAttribute(COUNT_ATTRIBUTE, shown)
 	end
-	local cap = Config.Economy.FriendBoostMaxFriends or 4
+	local cap = Config.Economy.FriendBoostMaxFriends
 	peak[player] = math.max(peak[player] or 0, math.min(shown, cap))
 end
 
@@ -76,6 +76,9 @@ local function ask(player: Player, other: Player)
 	asking[key] = true
 	local ok, result = pcall(player.IsFriendsWithAsync, player, other.UserId)
 	asking[key] = nil
+	if player.Parent ~= Players or other.Parent ~= Players then
+		return -- one left while asking (their entries are cleared): a rejoin asks afresh
+	end
 	if ok then
 		known[key] = result == true
 		failures[key] = nil
@@ -91,7 +94,7 @@ local function ask(player: Player, other: Player)
 		known[key] = false -- 0 for the rest of the session
 		return
 	end
-	task.delay(Config.Economy.FriendRetrySeconds or 30, function()
+	task.delay(Config.Economy.FriendRetrySeconds, function()
 		if player.Parent == Players and other.Parent == Players and failures[key] == tries then
 			ask(player, other)
 			refresh(player)
@@ -160,6 +163,9 @@ function Friends.start()
 	end)
 	Players.PlayerRemoving:Connect(function(player)
 		Funnel.event(player, "FriendBoost", peak[player] or 0, Funnel.device(player))
+		-- Funnel's own PlayerRemoving may have run first: the event's log line would keep the
+		-- Player for the server's life.
+		Funnel.clearLog(player)
 		peak[player] = nil
 		forced[player] = nil
 		task.defer(refreshAll)
