@@ -68,6 +68,9 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
   neighbours), compact = a closed bud 0.3 past the butt; `spider_parts.glb` 134241355070040,
   `Crown.glb` 88297987618252, atlas decals with image ids). Preview beside the concept:
   `gate2/spider_body_vs_C1b.png`. No spider bodies, legs or creatures anywhere.
+- 10:41 P13/P16 Lower effects: the Cat and Spider stands with `Quality.set(true)` on the day
+  floor (`*_lower_lab.jpg`): both drop to an outline and a few motes with no errors; fine for
+  a low-end phone. Switched back after the shots.
 - 10:40 P13/P16 Night: the Cat and Spider stands under Night (`cat_aura_stand_night_lab.jpg`,
   `spider_aura_stand_night_lab.jpg`): the Cat's shadow cats, wisps and glints read; the
   Spider's flecks, motes and outline read but the look is quiet without its body (the silk
@@ -283,4 +286,8 @@ drop 3):
   glints and the silver-crimson outline; the silk beams anchor to the blade tips, which are
   the body, so they barely show here; quiet for a Mythic without its chrome body, to be
   judged again in hands after drop 3.
+- `cat_aura_stand_lower_lab.jpg`, `spider_aura_stand_lower_lab.jpg`: the same two stands on
+  the day floor with Lower effects on (`Quality.set(true)`, rate 0.35): the Cat keeps its
+  outline, a shadow cat and a wisp or two; the Spider its outline, a web fleck and a glint;
+  nothing breaks, nothing fills the screen; the bodies carry the read at this setting.
 - Not yet shot: hands and own-aim views (need drop 3).
