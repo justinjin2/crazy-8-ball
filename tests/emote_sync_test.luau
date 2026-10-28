@@ -34,6 +34,42 @@ return {
 		H.expect(near(S.musicPosition(120, 100, 0, 3, 0.17), 0.4), "looped once at its speed")
 	end,
 
+	["a dance in parts plays each part for its share of the loop"] = function()
+		local S = load()
+		local row: any = { Id = "X", Animation = 1, Parts = { 1, 2, 3 }, Length = 30 }
+		local function at(t: number): (number, number)
+			return S.partAt(row, t)
+		end
+		local i, t = at(0)
+		H.expect(i == 1 and near(t, 0), "part 1 from 0")
+		i, t = at(9.99)
+		H.expect(i == 1 and near(t, 9.99), "still part 1")
+		i, t = at(10)
+		H.expect(i == 2 and near(t, 0), "part 2 at 10 s")
+		i, t = at(25)
+		H.expect(i == 3 and near(t, 5), "part 3, 5 s in")
+		i, t = at(29.99)
+		H.expect(i == 3 and near(t, 9.99), "part 3's end")
+		i, t = at(30)
+		H.expect(i == 3 and near(t, 10), "never past the last part")
+		local one: any = { Id = "Y", Animation = 7, Length = 4 }
+		i, t = S.partAt(one, 2.5)
+		H.expect(i == 1 and near(t, 2.5), "a dance without parts is one part")
+		local all = S.animations(row)
+		H.expect(#all == 3 and all[1] == 1 and all[3] == 3, "its parts' animations")
+		local single = S.animations(one)
+		H.expect(#single == 1 and single[1] == 7, "else its one animation")
+	end,
+
+	["a song shorter than its dance plays once a cycle, then is quiet"] = function()
+		local S = load()
+		H.expect(near(S.musicCyclePosition(100, 100, 0.5, 23, 30) :: number, 0.5), "from Start")
+		H.expect(near(S.musicCyclePosition(110, 100, 0.5, 23, 30) :: number, 10.5), "10 s in")
+		H.expect(S.musicCyclePosition(125, 100, 0.5, 23, 30) == nil, "quiet after its Loop")
+		H.expect(near(S.musicCyclePosition(131, 100, 0.5, 23, 30) :: number, 1.5), "again")
+		H.expect(near(S.musicCyclePosition(99, 100, 0.5, 23, 30) :: number, 0.5), "not yet: Start")
+	end,
+
 	["a dance joins the nearest dancer doing it within reach, else starts now"] = function()
 		local S = load()
 		local nearby = {
