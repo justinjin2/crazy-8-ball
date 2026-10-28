@@ -144,6 +144,15 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
 
 ## Assumptions
 
+- 10:14 (lane decisions, no question asked; the brief lets the lane decide after 11:00 and these
+  were inside the brief's own limits): the Broom's hat charm is an Aim joint like the bristles
+  (at 2x it hangs past the butt at 0.57 from the axis, so it fades for the aiming owner); the
+  bats and the shadow cats never travel (bats drift up in world space, cats run in place), so
+  no flipbook moonwalks; the finisher sounds are Creator Store library audio (two Pro Sound
+  Effects clips and one free user upload for the cat hiss, all under Volume 0.5), no uploads;
+  the Spider's pocket piece was built (cut candidate #4 stays unused); for the lab before drop 3
+  each skin's `piece` was pointed at its body in a local-only row, never committed.
+
 - The silhouette flipbooks are drawn as 2D jointed capsule rigs in Pillow (posed per frame,
   4x supersampled, deterministic) instead of a Blender rig: the same black-on-transparent
   frames with the rim added from the alpha edge, faster to iterate, no Blender run per sheet.
