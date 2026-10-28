@@ -1181,7 +1181,10 @@ local mapAmbience = MapAmbience.new() -- the map's drifting sailboats
 local dayCycle = DayCycle.new() -- the map's day and sunset light (an arena starts at day)
 -- The Haunted Rooftop (Halloween 2026, hw-map): the event's Night, the King's prompt, the candy.
 local hwMapOk, hwMapErr = pcall(function()
-	require(script.Parent:WaitForChild("HalloweenMap"):WaitForChild("MapClient")).start(dayCycle)
+	require(script.Parent:WaitForChild("HalloweenMap"):WaitForChild("MapClient")).start(
+		dayCycle,
+		hub
+	)
 end)
 if not hwMapOk then
 	warn("[HalloweenMap] MapClient failed to start: " .. tostring(hwMapErr))

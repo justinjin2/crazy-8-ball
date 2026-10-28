@@ -9094,6 +9094,9 @@ Config.HalloweenMap = {
 		YawDegrees = 0, -- facing the spawn (+Z)
 		MaxHeightStuds = 18, -- under the pergola's beam and the globe lights
 		PromptAt = { 0, 3, -79 }, -- the challenge prompt's anchor
+		-- The piano under workspace.Map, put away while the throne stands (GrayBox names: the
+		-- piano and its bench, their collision boxes, the bench's seat).
+		Hide = { "^Piano_", "^PianoBench_", "^piano_%d+$", "^piano_bench_%d+$", "^Seat_11$" },
 	},
 	Boss = {
 		Enabled = false, -- the Pumpkin King's challenge
@@ -9129,6 +9132,34 @@ Config.HalloweenMap = {
 		Aura = { Rate = 12, LightRange = 10 }, -- flame wisps a second (halved on low quality); studs
 		-- The candy explosion over the table on a win: sprites, sparkles, seconds, drawn this close.
 		Burst = { Candies = 50, Sparkles = 30, Seconds = 2, ShowStuds = 120 },
+	},
+	-- The Pumpkin King's look (KingLook; the approved mocks/v2/P1_pumpkin_king.png): a blocky
+	-- R15 body in a black suit, a glowing carved pumpkin head with a tilted gold crown, a purple
+	-- cape lined orange, an orange bow tie, a gold chain, pumpkin epaulettes, a purple and orange
+	-- flame aura. Colours RGB 0-255. Meshes: uploaded MeshPart ids by piece name (empty: the
+	-- code-built shapes).
+	King = {
+		Body = {
+			Head = { 20, 20, 24 },
+			Torso = { 24, 24, 28 },
+			Arms = { 24, 24, 28 },
+			Legs = { 34, 34, 40 },
+		},
+		Shirt = 0, -- a catalog Shirt id (0: body colours alone)
+		Pants = 0,
+		Pumpkin = { 255, 122, 26 }, -- the head's skin
+		Glow = { 255, 196, 64 }, -- the carved face's light (Neon)
+		Gold = { 255, 196, 60 },
+		Gem = { 170, 70, 255 }, -- the crown's gems (Neon)
+		Cape = { 92, 34, 150 },
+		Lining = { 255, 122, 26 },
+		Vest = { 255, 122, 26 },
+		Meshes = {} :: { [string]: { Mesh: string, Texture: string?, Size: { number } } },
+		Icon = "", -- his 256x256 portrait (rbxassetid; empty: the PC robot's)
+		-- His idle and walk (Body.build's keys; nil: Config.Bots.Animations); the throne figure
+		-- sits (Sit).
+		Animations = nil :: { [string]: string }?,
+		CrownTiltDegrees = 14,
 	},
 	Candy = {
 		Enabled = false, -- the lobby's candy drops (the hour cap is core's Halloween.Pickup.HourCap)

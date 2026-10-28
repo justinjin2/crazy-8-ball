@@ -245,6 +245,7 @@ return {
 			KingNoTable = "No free table for the Pumpkin King right now. Try again soon!",
 			KingCooldown = "The Pumpkin King is resting. Come back when he's ready!",
 			KingNotNow = "You can't challenge the Pumpkin King right now.",
+			CandyBagFull = "Your candy bag is full until :00", -- the lobby candy's hour cap (CandyDrop)
 		},
 	},
 	-- The arena's card while players arrive (ArenaStatus).
@@ -277,7 +278,6 @@ return {
 		Resting = "The Pumpkin King is resting. Ready in %s.", -- the note on a press while he rests
 		CandyWon = "+%d CANDY", -- the billboard over the table on a win
 		CandyPickup = "+%d", -- the billboard on a picked-up candy
-		BagFull = "Your candy bag is full until :00", -- a pickup over core's hour cap
 		-- What he says (BotService.say): short, kind, never an insult.
 		Taunts = {
 			Seated = {
