@@ -390,4 +390,17 @@ return {
 		H.expect(R.clock(872) == "14:32" and R.clock(-3) == "0:00", "the prompt's clock")
 		H.near(R.spawnDelay(0.5), Config.HalloweenMap.Candy.SpawnEverySeconds, 1e-9, "pace")
 	end,
+
+	["the King's queue notices stay short enough for the queue card"] = function()
+		-- The card is UI.Queue.StatusWidth px at every screen size (no UIScale), 20 px of it padding.
+		-- Measured in Studio (TextService, FredokaOne 18 px): 43 characters is the longest King
+		-- line, 311 px, which shows at about 17 px; longer ones shrink further.
+		local Strings = H.require("Strings")
+		local Config = H.require("Config")
+		H.expect(Config.UI.Queue.StatusWidth == 320, "the card these lengths were measured for")
+		for _, key in { "KingBusy", "KingNoTable", "KingCooldown", "KingNotNow" } do
+			local text = Strings.GlobalQueue.Failed[key]
+			H.expect(type(text) == "string" and utf8.len(text) <= 43, key .. " fits the card")
+		end
+	end,
 }
