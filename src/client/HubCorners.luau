@@ -199,6 +199,10 @@ function HubCorners.new(screen: ScreenGui, deps: any): any
 	root.ZIndex = Config.UI.Menu.Column.ZIndex
 	root.Visible = false
 	self.root = root
+	-- The boost pill over the money pill is a corner stop too (BoostPill; hw-gui lane).
+	if deps.boostPill then
+		deps.boostPill.tag.SelectionImageObject = padRing()
+	end
 
 	self.challenge = corner(root, "Challenge", "Challenge", W.Challenge, function()
 		TutorialAnchors.notePress("Challenge") -- the soft part's click-once "!" goes
@@ -815,7 +819,8 @@ function HubCorners.padStops(self: any): { GuiObject }
 			self.gearTile.button,
 			self.inviteTile.button,
 			self.plusTile.button,
-		}
+			self.deps.boostPill and self.deps.boostPill.tag, -- the boost pill (hw-gui lane)
+		} :: { GuiObject }
 	do
 		if button.Visible then
 			table.insert(stops, button)
@@ -857,19 +862,29 @@ function HubCorners.blurPad(self: any)
 			self.gearTile.button,
 			self.inviteTile.button,
 			self.plusTile.button,
+			self.deps.boostPill and self.deps.boostPill.tag, -- the boost pill (hw-gui lane)
 			self.eventTile.button, -- the Halloween tile (hw-core)
-		}
+		} :: { GuiObject }
 	do
 		button.Selectable = false
 		if selected == button then
 			GuiService.SelectedObject = nil
 		end
 	end
+	if self.deps.boostPill then
+		self.deps.boostPill:closeCard() -- B: its card shuts with the corners (hw-gui lane)
+	end
 end
 
 --- Whether the controller is on the corner buttons now (focusPad).
 function HubCorners.padFocusedOn(self: any, object: Instance?): boolean
-	return self.padFocused and object ~= nil and object:IsDescendantOf(self.root)
+	local pill = self.deps.boostPill and self.deps.boostPill.tag -- in money's root (hw-gui lane)
+	return self.padFocused
+		and object ~= nil
+		and (
+			object:IsDescendantOf(self.root)
+			or (pill ~= nil and (object == pill or object:IsDescendantOf(pill)))
+		)
 end
 
 --- The Daily Challenge: a "Soon" bubble beside it (a press, or the D-pad's down).

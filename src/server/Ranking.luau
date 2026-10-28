@@ -39,6 +39,7 @@ local Counters = require(script.Parent.Counters)
 local Announce = require(script.Parent.Announce)
 local TutorialHints = require(script.Parent.TutorialHints)
 local CandyService = require(script.Parent.Halloween.CandyService) -- Halloween 2026 (hw-core)
+local Badges = require(script.Parent.Badges) -- Roblox badges (hw-sys lane, 2026-10-28)
 
 local E = Config.Economy
 local IS_STUDIO = RunService:IsStudio()
@@ -608,6 +609,15 @@ local function settle(e: any)
 		-- A finished match (saved once): the Daily Rewards and invite popups' gate for anyone
 		-- whose tutorial is over (TutorialSoft).
 		TutorialHints.markSeen(p, "Played")
+		-- The badges' match rules (Squad Goals, Beat the Owner!), never in the summary's way.
+		pcall(Badges.matchSettled, p, {
+			outcome = entry.outcome,
+			real = m.real,
+			teamSize = e.teamSize,
+			opponents = entry.opponents,
+			forfeitTeam = forfeitTeam,
+			userId = p.UserId,
+		})
 		Net.get("MatchSummary"):FireClient(p, {
 			key = key,
 			tableId = e.id,

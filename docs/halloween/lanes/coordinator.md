@@ -60,6 +60,7 @@ From PLAN §4 (lanes ask for these through their own lane file's Requests):
   `halloween`, the six worktrees fast-forwarded to it, the six lane Studio windows opened.
   Verify it at the 07:30 Progress line; do not redo it.
 - 09:21 Gate 1 page published (private): "Halloween Gates" https://claude.ai/artifact/R2zt2CDfJeU5wuJp7VvMXA (slug c2a2bdc0-a441-4a0c-8479-0585a4bd07ad, v 1793193675-635a); builder `~/Desktop/8ball-refs/halloween/shots/coordinator/gate/build.py gate1|gate2`. Five asks to Justin: icons, event text, title, store schedule yes, gui's +0% pill.
+- 09:55 Merged core interface 2 (7f01d27b), sys 4cdf5620, gui f2562efb -> 82ab885c; review workflow wf_209d4f07-82b (9 agents): 18 confirmed findings, none blocking with switches as they are; posted to each lane (core 6, sys 5, gui 5). Hand-resolved additive conflicts: SaveSchema/save_schema_test (core vs sys Badges), Ranking requires. Lint OK, 1,404 tests, Studio play clean (pill +120%). Pushed before the Studio check (order slip; check passed). Release checklist must carry: gui's Soft-step VIP confirmation fix; core's EventButton boot error and pad blur before Halloween.Enabled tiles show at 19:00.
 
 ## Shared-file changes
 

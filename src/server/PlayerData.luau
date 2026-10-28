@@ -4642,6 +4642,64 @@ end
 ---------------------------------------------------------------------------------------------
 -- Start
 ---------------------------------------------------------------------------------------------
+-- Badges (hw-sys lane, 2026-10-28; Config.Badges, src/server/Badges.luau)
+---------------------------------------------------------------------------------------------
+
+--- Notes Roblox badges the player now holds: each key of `keys` must be a Config.Badges row.
+--- Already-noted keys are left as they are. False when refused or not loaded.
+function PlayerData.markBadges(player: Player, keys: { string }): boolean
+	local op = "markBadges"
+	if not isPlayer(player) then
+		return refuse(op, player, "not a player")
+	elseif type(keys) ~= "table" or #keys == 0 then
+		return refuse(op, player, "no keys")
+	end
+	for _, key in keys do
+		local known = false
+		for _, row in Config.Badges.List do
+			if row.Key == key then
+				known = true
+				break
+			end
+		end
+		if not known then
+			return refuse(op, player, ("%s is not a badge"):format(tostring(key)))
+		end
+	end
+	local data = liveData(op, player)
+	if data == nil then
+		return false
+	end
+	local changed = false
+	for _, key in keys do
+		if data.Badges[key] ~= true then
+			data.Badges[key] = true
+			changed = true
+		end
+	end
+	if changed then
+		commit(player, data, op)
+	end
+	return true
+end
+
+--- Counts one more match in which the player fired an ability (Stats.UltMatches, the Ability
+--- Master badge). The caller counts a match once (Badges: per table and epoch).
+function PlayerData.countUltMatch(player: Player): boolean
+	local op = "countUltMatch"
+	if not isPlayer(player) then
+		return refuse(op, player, "not a player")
+	end
+	local data = liveData(op, player)
+	if data == nil then
+		return false
+	end
+	data.Stats.UltMatches = math.min((data.Stats.UltMatches or 0) + 1, S.StatCap)
+	commit(player, data, op)
+	return true
+end
+
+---------------------------------------------------------------------------------------------
 
 --- Opens the store and loads every player's save as they join (and anyone already here).
 --- Safe to call more than once.
