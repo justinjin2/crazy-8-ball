@@ -35,6 +35,18 @@ From PLAN §4 (everything else is read-only; ask through Requests):
 
 ## Status
 
+- 2026-10-28 09:05: **READY drop 1 @ 7bef0153** (pushed). The five Catalog rows (`eventCue`:
+  Exclusive, `Event = "Halloween2026"`, `StandIn = "Classic"`, Effects Epic / Legendary /
+  Mythic / Mythic / Secret), `Catalog.ready`, the `ofRarity` hiding, `Catalog.drawAs` and its
+  call in `paintStick`, the five names, tests (lint green, 1346 tests). Studio (my window:
+  61 templates, 19 pieces in Edit): gave and equipped `CandyCornCue` in Play; the stick wears
+  `CueId = CandyCornCue` with `Mesh = true` and Classic's SurfaceAppearance (the stand-in);
+  `ofRarity("Exclusive")` shows VIP and Starter only; `list()` 66; console clean of cue
+  warnings. Fresh-player: the session joined as a new save (mock store) into the tutorial's
+  first step, console clean; the tutorial and first match are not played through yet (they
+  come with the final build's run, line 18).
+
+- 08:50 coordinator: lanes started 08:43 (73 min behind the plan). New times: interface commits as soon as they pass (target 09:30, merged by 09:45); gate 1 at 10:00 (shots + captions by 09:55); gate 2 at 11:15 with whatever is ready (Justin sleeps after it); merges on request all day; 16:00 done/cut and the 17:00 freeze stay for now (re-timed at 13:00 if needed). Rojo: a watchdog restarts any crashed server by itself (log ~/Desktop/8ball-refs/halloween/shots/coordinator/rojo-watchdog.log; Rojo 7.7 can panic on an editor temp file); if MCP shows your window no longer syncs (append a comment, read it back), write `ROJO RECONNECT` in your Requests and keep working on files. Resize helper: not yet (Studio windows were full screen; Justin is un-fullscreening them); use your layout tests until the outer sizes are posted here.
 ## Shared-file changes
 
 Planned (PLAN §7 shared files; own block or line only; add the sha to each as it lands):
@@ -49,6 +61,17 @@ Planned (PLAN §7 shared files; own block or line only; add the sha to each as i
 
 ## Requests
 
+- 09:05 **MERGE drop 1** (`hw-cues-a` @ 7bef0153): the five cue ids and names, `Catalog.ready`,
+  `drawAs`. No runtime behaviour change for existing cues (every shipped cue draws its own
+  template as before; only an id with a StandIn falls back).
+
 ## Assumptions
+
+- The brief says the names go in `Strings.Progress.Cues`; the real table is
+  `Strings.Items.Cues` (the only one the game reads), so they went there.
+- The five cues sit in the Index's existing Exclusive row and each pays the existing Exclusive
+  find money (`Config.Index.FindMoney.Exclusive`, $1,000) the first time it is owned: an
+  existing rule, no new number.
+- `Catalog.ready` returns false for an unknown id (never grant what the catalog lacks).
 
 ## Gate shots

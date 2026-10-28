@@ -1766,6 +1766,7 @@ Config.Save = {
 	MaxTradeHistory = 50, -- Trades.History: the last trades kept (designer, 2026-10-03)
 	MaxAppliedTrades = 100, -- Trades.Applied: trade ids this save already applied
 	MaxTradeSideItems = 8, -- items on one side of a trade (history entries too)
+	MaxBadgeEntries = 500, -- Badges: Roblox badges this save already holds (Config.Badges keys)
 }
 
 ---------------------------------------------------------------------------------------------
@@ -3749,6 +3750,147 @@ Config.SkyBlock = {
 	TickSeconds = 5, -- the server adds active time this often
 	-- The client reports activity (any input) at most this often.
 	ActivityPingSeconds = 20,
+}
+
+---------------------------------------------------------------------------------------------
+-- The Halloween 2026 event (docs/halloween/PLAN.md; src/shared/Halloween, src/server/Halloween,
+-- src/client/Halloween; the hw-core lane). Candy is earned in real matches against people,
+-- quests, the Pumpkin King and lobby pickups (or bought in two packs), is never spent, fills the
+-- track to the Witch's Broom and turns into money once the event ends. Every time is unix
+-- seconds and runs from the server clock (Halloween/Clock): no publish at the start or the end.
+---------------------------------------------------------------------------------------------
+Config.Halloween = {
+	Enabled = true, -- false: no earning and no event UI; saved Candy still converts after EndsAt
+	CountdownAt = 1793226600, -- Wed Oct 28 18:30 EDT: the "HALLOWEEN EVENT IN 29:59" pill
+	StartsAt = 1793228400, -- Wed Oct 28 19:00 EDT (23:00 UTC); no publish at 19:00
+	EndsAt = 1793750400, -- Tue Nov 3 19:00 EST (Nov 4 00:00 UTC); ends by itself
+	-- A new quest board each day: board N opens at StartsAt + (N - 1) * BoardSeconds (19:00 EDT
+	-- Oct 28-31, 18:00 EST Nov 1-2); older boards stay open.
+	Boards = 6,
+	BoardSeconds = 86400,
+	Double = { From = 1793419200, To = 1793505600 }, -- Oct 31 in US Eastern time: 2x all day
+	Rush = { Enabled = true, Minutes = 10 }, -- Candy Rush: UTC minutes 0-9 of every hour
+	EventMultiplier = 2, -- in a Rush or on the double day; the two never stack (never 4x)
+	-- Friends and group: NO keys here. Config.Economy.FriendBoost / FriendBoostMaxFriends /
+	-- FriendBoostEnabled (the GUI lane) and the existing GroupBoost are the only source, read
+	-- through Money.friendBoost / Money.boostParts; added to each other, never multiplied.
+	-- The Candy icon (candy corn, 256 px): map's +1 / +50 billboards, the GUI lane's chip and the
+	-- event menu read it. "" = each uses its own fallback.
+	CandyIcon = "",
+	-- Match Candy at settle (Halloween/CandyMath; real matches against people only): PerBall a
+	-- ball pocketed, Finished for a match the player's side did not forfeit, Win on top for a
+	-- win; times the event multiplier and the friends + group boost.
+	Match = { Enabled = false, PerBall = 3, Finished = 10, Win = 25 },
+	-- Beating the Pumpkin King: the first PaidWinsPerDay wins of a UTC day pay Candy (flat);
+	-- every win starts a personal cooldown of CooldownSeconds (the King's prompt shows it).
+	Boss = { Candy = 50, PaidWinsPerDay = 2, CooldownSeconds = 900 },
+	-- Lobby pickups (map's CandyDrop spawns them): Candy each (flat), at most HourCap per player
+	-- per UTC hour. The ONLY pickup cap: CandyService.pickup enforces it.
+	Pickup = { Candy = 1, HourCap = 40 },
+	-- Quests: four a board, easiest first, paying Rewards[slot] Candy (flat) on CLAIM. Kind
+	-- (Halloween/Quests): Matches, Wins, Balls, NiceShots, TeamMatches, TeamWins (2v2 or 3v3),
+	-- UltMatches (an ability used in the match), King (Pumpkin King wins), Pickups (lobby Candy),
+	-- Active (seconds of active play). Alt replaces a quest while its hook is off (the King or
+	-- the pickups switched off in Config.HalloweenMap, or no ability signal). Icon: a key of
+	-- Config.UI.Halloween.QuestIcons. Order and needs: docs/halloween/lanes/hw-core.md.
+	Quests = {
+		Enabled = false,
+		Rewards = { 60, 100, 150, 250 },
+		Boards = {
+			{ -- 1, Wed Oct 28
+				{ Kind = "Wins", Need = 1, Icon = "Win" },
+				{ Kind = "Balls", Need = 15, Icon = "Ball" },
+				{ Kind = "Matches", Need = 3, Icon = "Match" },
+				{
+					Kind = "Pickups",
+					Need = 15,
+					Icon = "Candy",
+					Alt = { Kind = "Balls", Need = 30 },
+				},
+			},
+			{ -- 2, Thu Oct 29
+				{ Kind = "TeamMatches", Need = 1, Icon = "Team" },
+				{ Kind = "King", Need = 1, Icon = "King", Alt = { Kind = "Wins", Need = 2 } },
+				{ Kind = "Wins", Need = 2, Icon = "Win" },
+				{ Kind = "Balls", Need = 30, Icon = "Ball" },
+			},
+			{ -- 3, Fri Oct 30
+				{ Kind = "NiceShots", Need = 5, Icon = "Nice" },
+				{ Kind = "UltMatches", Need = 3, Icon = "Ult", Alt = { Kind = "Wins", Need = 3 } },
+				{ Kind = "Wins", Need = 3, Icon = "Win" },
+				{
+					Kind = "Pickups",
+					Need = 30,
+					Icon = "Candy",
+					Alt = { Kind = "Balls", Need = 60 },
+				},
+			},
+			{ -- 4, Sat Oct 31 (opens Halloween night)
+				{ Kind = "Active", Need = 30 * 60, Icon = "Clock" },
+				{ Kind = "King", Need = 2, Icon = "King", Alt = { Kind = "Wins", Need = 3 } },
+				{ Kind = "Balls", Need = 50, Icon = "Ball" },
+				{ Kind = "Wins", Need = 5, Icon = "Win" },
+			},
+			{ -- 5, Sun Nov 1
+				{ Kind = "TeamWins", Need = 1, Icon = "Team" },
+				{ Kind = "Wins", Need = 6, Icon = "Win" },
+				{ Kind = "Balls", Need = 75, Icon = "Ball" },
+				{
+					Kind = "Pickups",
+					Need = 50,
+					Icon = "Candy",
+					Alt = { Kind = "Balls", Need = 100 },
+				},
+			},
+			{ -- 6, Mon Nov 2
+				{ Kind = "Active", Need = 45 * 60, Icon = "Clock" },
+				{ Kind = "King", Need = 3, Icon = "King", Alt = { Kind = "Wins", Need = 4 } },
+				{ Kind = "Wins", Need = 8, Icon = "Win" },
+				{ Kind = "Balls", Need = 100, Icon = "Ball" },
+			},
+		} :: {
+			{
+				{
+					Kind: string,
+					Need: number,
+					Icon: string,
+					Alt: { Kind: string, Need: number }?,
+				}
+			}
+		},
+	},
+	-- The track (Earned + Bought Candy): each step is granted the moment the total reaches At,
+	-- once, never a claim. Cue (one copy, skipped if owned), Spins (ability spins) or Money.
+	Track = {
+		Steps = {
+			{ At = 50, Spins = 1 },
+			{ At = 150, Cue = "CandyCornCue" },
+			{ At = 300, Money = 2500 },
+			{ At = 500, Cue = "JackOLanternCue" },
+			{ At = 1000, Spins = 2 },
+			{ At = 1500, Money = 5000 },
+			{ At = 2000, Cue = "BlackCatCue" },
+			{ At = 3000, Spins = 3 },
+			{ At = 4500, Money = 10000 },
+			{ At = 5500, Spins = 5 },
+			{ At = 7000, Cue = "WitchBroomCue" },
+		} :: { { At: number, Cue: string?, Spins: number?, Money: number? } },
+	},
+	-- The playtime cue: Seconds of ACTIVE play while the event is Live (any server; idle time
+	-- does not count: SkyDropService.isActive), 3 h 01 m.
+	Spider = { Enabled = false, Cue = "SpiderCue", Seconds = 10860 },
+	TickSeconds = 5, -- the server adds active time and retries held grants this often
+	PushSeconds = 2, -- at most one event view pushed to a player this often
+	-- The two Candy packs (Config.Products.List Candy500 / Candy2000; flat, fill the whole track,
+	-- not quests).
+	Packs = { Enabled = false, Keys = { "Candy500", "Candy2000" } },
+	-- Once per save, once the event has ended: all Candy (earned + bought) becomes money.
+	Convert = { Enabled = true, MoneyPerCandy = 10 },
+	-- Test time (Halloween/Clock): the workspace attribute HwTimeOffset (seconds added to the
+	-- server clock) counts only in Studio and on the test place (Config.Save.TestPlace), never
+	-- in the live game. BootLive: at boot those servers move the clock to LiveAfter seconds past
+	-- StartsAt when it is earlier, so a playtest before 19:00 sees the event Live (/hw time).
+	Test = { BootLive = true, LiveAfter = 60 },
 }
 
 ---------------------------------------------------------------------------------------------
@@ -8114,6 +8256,10 @@ Config.Multiplayer = {
 		RoomStuds = 3,
 		EscapeStuds = 2, -- a participant this far outside (clipped through) is put back inside
 	},
+	Roam = { -- in-match players walk anywhere while they wait (designer, 2026-10-28)
+		Enabled = false, -- true once the roam checks in HW_SYS_PROMPT section 4 pass; false = the fence for all
+		HomeExtraStuds = 2, -- a shooter this far outside the match walls at turn start goes to the pad
+	},
 	-- The shooter's root on the server (TableService). While they aim, the anchored root
 	-- follows ShooterStance, so a late joiner or a far table sees the shooter at the table; at
 	-- the shot it goes exactly to the stance spot. Each client poses the body itself.
@@ -8956,6 +9102,206 @@ Config.Lighting = {
 		-- mid skyline's and the near world's buildings alike.
 		Windows = { EmissiveStrength = 0.9, EmissiveTint = "#FFD27A", Color = "#C9A0D2" }, -- 1.6 read all orange
 		Islands = { Color = "#6A5088" }, -- violet silhouettes, as the art's (#673E6D)
+	},
+	-- Night (Halloween 2026, R3.4; hw-map lane): the event's purple night, as readable as day.
+	-- Made from Sunset (the same keys as Day; a Lune test checks) with a violet light: the sun
+	-- stays Sunset's (Config.HalloweenMap.Night.SunPath holds it, the light from the moon's
+	-- side), the haze stays 0 (Sunset's lesson: haze fogs the city into one flat colour) and
+	-- Bloom is exactly Sunset's. Only used while the event is Live (LightCycle.event puts it in
+	-- Day's slot of the cycle). Tuned in Play captures, never Edit's preview. (tune)
+	Night = {
+		Brightness = 3, -- a moonlit roof as bright as the day's floor (Night.MinBrightnessShare)
+		ExposureCompensation = 0.15,
+		EnvironmentDiffuseScale = 0.25, -- as Sunset: the violet sky's fill would tint the roof
+		EnvironmentSpecularScale = 0.6,
+		Ambient = "#000000",
+		OutdoorAmbient = "#A898C8", -- a light lilac shade, so shadows read violet, not black
+		ColorShift_Top = "#E8D4FF", -- the moon's pale lilac on lit faces
+		ColorShift_Bottom = "#000000",
+		Atmosphere = {
+			Density = 0.08, -- as Day and Sunset: the far edge fades, the roof stays crisp
+			Offset = 0.2,
+			Haze = 0, -- never a haze (it fogged Sunset's city into one colour in Play)
+			Glare = 0,
+			Color = "#B48CFF", -- a violet tint
+			Decay = "#5B2A8C",
+		},
+		-- The night sky (gen_sky.py's night faces, hw-map step 12); Sunset's faces until they
+		-- are uploaded, so the event never shows a grey sky.
+		Sky = {
+			SkyboxBk = "rbxassetid://110051239637159",
+			SkyboxDn = "rbxassetid://88040117694749",
+			SkyboxFt = "rbxassetid://96378244528009",
+			SkyboxLf = "rbxassetid://94840130578947",
+			SkyboxRt = "rbxassetid://76832687371860",
+			SkyboxUp = "rbxassetid://139224542954081",
+			SunAngularSize = 0, -- the moon is painted on the sky, never Roblox's
+			MoonAngularSize = 0,
+			StarCount = 0, -- the stars are painted too
+			CelestialBodiesShown = true,
+		},
+		Water = {
+			WaterColor = "#4A3A9A", -- a purple sea
+			WaterTransparency = 0.85,
+			WaterReflectance = 0.2, -- as Sunset: the sea picks up the sky
+			WaterWaveSize = 0.25,
+			WaterWaveSpeed = 12,
+		},
+		ColorCorrection = {
+			Brightness = 0.02,
+			Contrast = 0.1,
+			Saturation = 0.05,
+			TintColor = "#F2EAFF", -- a faint lilac
+		},
+		Bloom = { Intensity = 0.8, Size = 24, Threshold = 2.6 }, -- exactly Sunset's (PLAN: unchanged)
+		SunRays = { Intensity = 0, Spread = 0.5 },
+		DepthOfField = {
+			FarIntensity = 0.5,
+			FocusDistance = 100,
+			InFocusRadius = 160,
+			NearIntensity = 0,
+		},
+		Glow = {
+			Lantern = "#FF7A1A", -- jack-o'-lantern orange
+			LanternTall = "#FF7A1A",
+			GlobeLight = "#FFC070",
+			FirePit = "#E06A20",
+		},
+		Lights = { Brightness = 0.8, Range = 12, Color = "#FFC99A" }, -- as Sunset's amber pools
+		TableGlow = { EmissiveStrength = 0.8, EmissiveTint = "#B26BFF" }, -- a purple rim at each table's foot
+		TableLights = { Brightness = 3 }, -- the lamps over the tables lit, as at sunset
+		Fire = { Intensity = 1 }, -- the fire pit burning
+		Windows = { EmissiveStrength = 0.9, EmissiveTint = "#FFD27A", Color = "#B090D8" }, -- lit windows, violet walls
+		Islands = { Color = "#5A3E88" }, -- violet silhouettes
+	},
+}
+
+---------------------------------------------------------------------------------------------
+-- The Haunted Rooftop (Halloween 2026; hw-map lane, docs/prompts/HW_MAP_PROMPT.md): the event's
+-- Night light, the tables' looks by mode and their decor kit, the props that replace the palms
+-- and planters, the Pumpkin King's throne and challenge, and the lobby's candy drops. On from
+-- the server clock while core's Event.state is "Live" (src/server/HalloweenMap/EventMap), off
+-- by itself at the end. Every part has its own switch under the master Enabled. Keep the keys
+-- Enabled, Boss.Enabled and Candy.Enabled exactly (always booleans): core's quests read them
+-- (HM.Enabled and HM.Boss.Enabled; HM.Enabled and HM.Candy.Enabled) and fall back to their Alt
+-- quest while either is off. The Candy amounts, the King's cooldown and the pickup hour cap are
+-- core's (Config.Halloween), never copied here. Studs, seconds.
+---------------------------------------------------------------------------------------------
+Config.HalloweenMap = {
+	Enabled = false, -- the master switch: off turns every part below off
+	PollSeconds = 1, -- the server reads Event.state this often
+	FlipSeconds = 4, -- a client crossfades the light this long when the state flips
+	-- Studio only: a workspace attribute holding a state name ("Before", "Countdown", "Live",
+	-- "Ended") overrides the clock, so every transition can be tested at once.
+	ForceAttribute = "HalloweenMapForce",
+	-- The server's workspace attributes every client follows (the state and the server time it
+	-- last changed), so server and clients always agree.
+	StateAttribute = "HalloweenMapState",
+	FlipAtAttribute = "HalloweenMapFlipAt",
+	Night = {
+		Enabled = false, -- the Night light while Live (Config.Lighting.Night in Day's slot)
+		-- In Play, Night held vs Day held from one camera: the floor and tables' mean luminance
+		-- at least this share of Day's ("as readable as day").
+		MinBrightnessShare = 0.9,
+		-- The sun all through the event cycle: Sunset's (the light from the moon's side).
+		SunPath = {
+			{ Blend = 0, GeographicLatitude = -30, ClockTime = 7.4 },
+			{ Blend = 0.5, GeographicLatitude = -30, ClockTime = 7.4 },
+		},
+	},
+	Tables = {
+		Enabled = false, -- every table's event look by its mode
+		Base = "Blue", -- the black-frame look (Config.TableModel.Looks; the arena's)
+		-- Every cloth keeps at least this CIEDE2000 from every ball, as rendered under Night and
+		-- Sunset (tools/halloween/hw_map_cloth_check.py).
+		MinDeltaE = 17,
+		-- By the table's team size (Config.Hub.Tables): the cloth's tint (RGB 0-255; never an
+		-- orange cloth: balls 5 and 13 vanish on it) and its decor kit (Decor.Kits).
+		ByTeamSize = {
+			[1] = { Cloth = { 185, 90, 230 }, Kit = "Orchid" }, -- orchid purple
+			[2] = { Cloth = { 90, 94, 102 }, Kit = "Pumpkin" }, -- charcoal, glowing orange trim
+			[3] = { Cloth = { 110, 220, 40 }, Kit = "Toxic" }, -- toxic green
+		},
+	},
+	Decor = {
+		Enabled = false, -- the haunted kit on each table (TableBuilder.addDecor)
+		MaxPartsPerTable = 10, -- the most parts a table's kit may add
+		MaxTrianglesPerTable = 1500, -- and triangles
+		Kits = {}, -- by name: filled at hw-map step 13
+	},
+	Props = {
+		Enabled = false, -- the dead trees, pumpkins, planters, string lights and cobwebs
+		Hide = {}, -- name patterns under workspace.Map put away while Live (step 14)
+		Place = {}, -- the props' placements (step 14)
+		-- The event's whole cost, counted in Studio.
+		Budget = {
+			Triangles = 60000,
+			MeshParts = 130,
+			UniqueMeshes = 8,
+			Textures = 6, -- new images (the sky's faces not counted)
+			Lights = 6, -- throne 2 + the throne King's aura 1 + 3 table Kings
+		},
+	},
+	Throne = {
+		Enabled = false, -- the Pumpkin King's throne where the piano stands
+		Pivot = { 0, 2, -86.05 }, -- the piano's spot at the end of the spawn aisle
+		YawDegrees = 0, -- facing the spawn (+Z)
+		MaxHeightStuds = 18, -- under the pergola's beam and the globe lights
+		PromptAt = { 0, 3, -79 }, -- the challenge prompt's anchor
+	},
+	Boss = {
+		Enabled = false, -- the Pumpkin King's challenge
+		-- A practice bot: Settle pays it as PC (no rank, practice money, the PC cap), so the
+		-- King can't be farmed. Never a new kind.
+		Kind = "Pc",
+		Rematch = "Never",
+		MinTier = "Gold", -- the King plays at least this tier...
+		TiersAbove = 2, -- ...and this many tiers above the player's (Unranked counts as Bronze)
+		-- The King's tier by the player's (Rules.kingTier; measured with tools/bot_duel.luau,
+		-- the win shares in docs/halloween/lanes/hw-map.md). (tune)
+		TierFor = {
+			Bronze = "Gold",
+			Silver = "Platinum",
+			Gold = "Diamond",
+			Platinum = "Expert",
+			Diamond = "Veteran",
+			Expert = "Master",
+			Veteran = "Grandmaster",
+			Master = "Reyes",
+			Grandmaster = "Reyes",
+			Reyes = "Reyes",
+		},
+		MaxAtOnce = 3, -- King matches at once on a server
+		SpareTables = 2, -- free 1v1 tables a King match never takes
+		PromptStuds = 10, -- the prompt shows this close
+		ServerStuds = 14, -- the server accepts a challenge this close to the anchor
+		HoldSeconds = 0.4, -- the prompt's hold
+		ThrottleSeconds = 5, -- one challenge per player this often
+		TauntEverySeconds = 6, -- the King speaks at most this often
+		Cue = "JackOLanternCue", -- his cue (Cues A's row; an existing cue until it lands)
+		ReadyAttribute = "PumpkinKingReadyAt", -- player attribute: unix seconds his cooldown ends
+		Aura = { Rate = 12, LightRange = 10 }, -- flame wisps a second (halved on low quality); studs
+		-- The candy explosion over the table on a win: sprites, sparkles, seconds, drawn this close.
+		Burst = { Candies = 50, Sparkles = 30, Seconds = 2, ShowStuds = 120 },
+	},
+	Candy = {
+		Enabled = false, -- the lobby's candy drops (the hour cap is core's Halloween.Pickup.HourCap)
+		TargetPerHour = 25, -- about this many an hour for an active player
+		SpawnEverySeconds = 30, -- one candy per eligible player this often...
+		JitterSeconds = 10, -- ...give or take this
+		NearStuds = { 10, 30 }, -- this far from them
+		PadClearStuds = 6, -- never this close to a queue or portal pad
+		LifeSeconds = 60, -- an unclaimed candy goes after this
+		MaxAlive = 40, -- on the server
+		MaxAlivePerPlayer = 3,
+		PickupStuds = 5, -- walked over within this
+		PickupTickSeconds = 0.2, -- the server checks pickups this often
+		TeleportStuds = 12.5, -- a root moving more in one tick teleported (20.8 x 0.2 x 3)...
+		TeleportGraceSeconds = 1, -- ...and picks up nothing for this long after
+		IdleSeconds = 60, -- a player who moved less than IdleStuds in this long is idle
+		IdleStuds = 4,
+		FloorWithinStuds = 1.5, -- a spot's floor within this of the player's feet
+		SpotTries = 20, -- random spots tried before skipping a turn
 	},
 }
 
@@ -17170,6 +17516,81 @@ Config.UI.PlayerList = {
 		Grandmaster = { 630, 2100 },
 		Reyes = { 1500, 3500 },
 	} :: { [string]: { number } },
+}
+
+-- Roblox badges (src/shared/Progression/Badges.luau decides, src/server/Badges.luau awards;
+-- designer, 2026-10-28; docs/halloween/BADGES.md). One row per line, exactly
+-- `{ Key = "<Key>", BadgeId = 0, Rule = {...} },`: tools/roblox_badges.py creates the badge on
+-- Roblox and writes its id over the 0. Keys never change (saves hold them). BadgeId 0 = inert.
+-- Rules: stat (Stats.<name> at least n), peak (PeakDivision reached that tier), seenRarity (a
+-- Block cue of that rarity ever owned), seenGroup (any cue of that Catalog group ever owned),
+-- seenCount (distinct cues ever owned, Classic excluded), seenCue (that cue ever owned), always,
+-- halloween (the Halloween save field: KingWins, or Candy = Earned + Bought), event (only from a
+-- live hook, never the save). Names and descriptions in Strings.Badges.
+Config.Badges = {
+	Enabled = false, -- the award queue; true once HW_SYS_PROMPT section 4's badge checks pass
+	UniverseId = 10767330648, -- awards run only in this experience; Studio and the test place log
+	OwnerUserId = 544959133, -- Painicane: Met the Owner, Beat the Owner
+	StaggerSeconds = 3, -- at most one award per player every 3 s (PLAN section 2)
+	Budget = { Base = 40, PerPlayer = 30 }, -- badge API calls a minute per server (Roblox: 50 + 35 x players)
+	DebounceSeconds = 2, -- re-check a save this long after its last change (PlayerData.read copies it)
+	RevealDelaySeconds = 8, -- no award this long after openLuckyBlock (the big reel is about 7.7 s)
+	Retries = { 5, 20, 60 }, -- seconds before each retry of a failed call; then wait for the next join
+	Paused = {} :: { [string]: boolean }, -- [Key] = true: cut or misbehaving; the row never awards (a one-line publish)
+	List = {
+		{ Key = "Welcome", BadgeId = 0, Rule = { always = true } },
+		{ Key = "FirstWin", BadgeId = 0, Rule = { stat = "Wins", atLeast = 1 } },
+		{ Key = "Wins5", BadgeId = 0, Rule = { stat = "Wins", atLeast = 5 } },
+		{ Key = "Wins10", BadgeId = 0, Rule = { stat = "Wins", atLeast = 10 } },
+		{ Key = "Wins25", BadgeId = 0, Rule = { stat = "Wins", atLeast = 25 } },
+		{ Key = "Wins50", BadgeId = 0, Rule = { stat = "Wins", atLeast = 50 } },
+		{ Key = "Wins100", BadgeId = 0, Rule = { stat = "Wins", atLeast = 100 } },
+		{ Key = "Wins250", BadgeId = 0, Rule = { stat = "Wins", atLeast = 250 } },
+		{ Key = "Wins500", BadgeId = 0, Rule = { stat = "Wins", atLeast = 500 } },
+		{ Key = "Wins1000", BadgeId = 0, Rule = { stat = "Wins", atLeast = 1000 } },
+		{ Key = "RankBronze", BadgeId = 0, Rule = { peak = "Bronze" } },
+		{ Key = "RankSilver", BadgeId = 0, Rule = { peak = "Silver" } },
+		{ Key = "RankGold", BadgeId = 0, Rule = { peak = "Gold" } },
+		{ Key = "RankPlatinum", BadgeId = 0, Rule = { peak = "Platinum" } },
+		{ Key = "RankDiamond", BadgeId = 0, Rule = { peak = "Diamond" } },
+		{ Key = "RankExpert", BadgeId = 0, Rule = { peak = "Expert" } },
+		{ Key = "RankVeteran", BadgeId = 0, Rule = { peak = "Veteran" } },
+		{ Key = "RankMaster", BadgeId = 0, Rule = { peak = "Master" } },
+		{ Key = "RankGrandmaster", BadgeId = 0, Rule = { peak = "Grandmaster" } },
+		{ Key = "RankReyes", BadgeId = 0, Rule = { peak = "Reyes" } },
+		{ Key = "Streak3", BadgeId = 0, Rule = { stat = "BestWinStreak", atLeast = 3 } },
+		{ Key = "Streak5", BadgeId = 0, Rule = { stat = "BestWinStreak", atLeast = 5 } },
+		{ Key = "Streak10", BadgeId = 0, Rule = { stat = "BestWinStreak", atLeast = 10 } },
+		{ Key = "CueRare", BadgeId = 0, Rule = { seenRarity = "Rare" } },
+		{ Key = "CueEpic", BadgeId = 0, Rule = { seenRarity = "Epic" } },
+		{ Key = "CueLegendary", BadgeId = 0, Rule = { seenRarity = "Legendary" } },
+		{ Key = "CueMythic", BadgeId = 0, Rule = { seenRarity = "Mythic" } },
+		{ Key = "CueSecret", BadgeId = 0, Rule = { seenRarity = "Secret" } },
+		{ Key = "CueUnique", BadgeId = 0, Rule = { seenGroup = "Unique" } },
+		{ Key = "Cues5", BadgeId = 0, Rule = { seenCount = 5 } },
+		{ Key = "Cues10", BadgeId = 0, Rule = { seenCount = 10 } },
+		{ Key = "Cues25", BadgeId = 0, Rule = { seenCount = 25 } },
+		{ Key = "Cues50", BadgeId = 0, Rule = { seenCount = 50 } },
+		{ Key = "Balls100", BadgeId = 0, Rule = { stat = "BallsPocketed", atLeast = 100 } },
+		{ Key = "Balls1000", BadgeId = 0, Rule = { stat = "BallsPocketed", atLeast = 1000 } },
+		{ Key = "Balls10000", BadgeId = 0, Rule = { stat = "BallsPocketed", atLeast = 10000 } },
+		{ Key = "Matches10", BadgeId = 0, Rule = { stat = "Matches", atLeast = 10 } },
+		{ Key = "Matches100", BadgeId = 0, Rule = { stat = "Matches", atLeast = 100 } },
+		{ Key = "Matches1000", BadgeId = 0, Rule = { stat = "Matches", atLeast = 1000 } },
+		{ Key = "Nice10", BadgeId = 0, Rule = { stat = "NiceShots", atLeast = 10 } },
+		{ Key = "Nice100", BadgeId = 0, Rule = { stat = "NiceShots", atLeast = 100 } },
+		{ Key = "Money1M", BadgeId = 0, Rule = { stat = "MoneyEarned", atLeast = 1000000 } },
+		{ Key = "Money10M", BadgeId = 0, Rule = { stat = "MoneyEarned", atLeast = 10000000 } },
+		{ Key = "Squad", BadgeId = 0, Rule = { event = "TeamMatch" } },
+		{ Key = "Ability1", BadgeId = 0, Rule = { event = "UltUsed" } },
+		{ Key = "Ability100", BadgeId = 0, Rule = { stat = "UltMatches", atLeast = 100 } },
+		{ Key = "Crew", BadgeId = 0, Rule = { event = "InGroup" } },
+		{ Key = "MetOwner", BadgeId = 0, Rule = { event = "OwnerHere" } },
+		{ Key = "BeatOwner", BadgeId = 0, Rule = { event = "BeatOwner" } },
+		{ Key = "Halloween2026", BadgeId = 0, Rule = { halloween = "Candy", atLeast = 1 } },
+		{ Key = "PumpkinSlayer", BadgeId = 0, Rule = { halloween = "KingWins", atLeast = 1 } },
+		{ Key = "BroomRider", BadgeId = 0 }, -- Rule { seenCue = "WitchBroomCue" } once Cues A's row is merged
+	} :: { { Key: string, BadgeId: number, Rule: { [string]: any }? } },
 }
 
 -- The rare-pull cutscenes (PullCutscene; GUI lane, designer 2026-10-03, C11d). After the reel

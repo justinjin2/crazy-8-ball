@@ -452,7 +452,7 @@ class Kit:
         return make_blender_material(bpy, key, self.mats[name])
 
     # ---- joints ---------------------------------------------------------------------------------
-    def joint(self, name, pivot=(0, 0, 0), parent=None, motion=None, aura=False, visual=None, low=None):
+    def joint(self, name, pivot=(0, 0, 0), parent=None, motion=None, aura=False, visual=None, low=None, aim=None):
         """aura: this joint and everything on it (and its child joints) is part of the aura, hidden
         on the player's turn to shoot with the rest of the aura (designer, 2026-09-30), not a fixed
         part of the cue (the Celestial Dragon's coiling spirit, the Kitsune's running fox).
@@ -463,9 +463,12 @@ class Kit:
         Period, Shape, Phase} (a Neon part's colour pushed toward white by the wave: a pulse).
         The Blender preview renders them at their Max.
         low: what the joint does under the Lower effects setting (Quality): 'hide' takes it and
-        its children away (the Beta Cue's farthest panels), None keeps it."""
+        its children away (the Beta Cue's farthest panels), None keeps it.
+        aim: 'fade' eases the joint (and its children) to clear on the stick owner's own screen
+        while that stick is drawn for a shot, and back after it (Halloween 2026 bodies that reach
+        past the butt: the Broom's bristles, the Spider's blades); everyone else sees it whole."""
         self.joints[name] = {'Parent': parent, 'Pivot': list(pivot), 'Motion': motion or [], 'objects': [],
-                             'Aura': aura, 'Visual': visual or [], 'Low': low}
+                             'Aura': aura, 'Visual': visual or [], 'Low': low, 'Aim': aim}
         for m in motion or []:
             if m.get('Kind') == 'Path':
                 m['_Path'] = self.paths[m['Path']]
@@ -870,6 +873,8 @@ def export(kit):
             joints[jname]['Visual'] = j['Visual']
         if j.get('Low'):
             joints[jname]['Low'] = j['Low']
+        if j.get('Aim'):
+            joints[jname]['Aim'] = j['Aim']
     spec = {'id': kit.pid, 'Frame': kit.frame, 'frame': 'Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; '
                                    'PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)',
             'Triangles': tris_total, 'Parts': parts, 'Joints': joints}
@@ -1118,6 +1123,14 @@ def build(pid, render_preview=True):
     import CuePiecesLegendary  # noqa: F401
     import CuePiecesPocket  # noqa: F401
     import CuePiecesUnique  # noqa: F401
+    try:
+        import CuePiecesHalloween_A  # noqa: F401  (the Halloween 2026 cue lanes' builders; absent on a branch without them)
+    except ImportError:
+        pass
+    try:
+        import CuePiecesHalloween_B  # noqa: F401
+    except ImportError:
+        pass
     import CuePieces
     kit = CuePieces.Kit(bpy, pid)
     CuePieces.BUILDERS[pid](kit)
@@ -1198,6 +1211,15 @@ def render_sprite(name):
     import CuePiecesMythic  # noqa: F401
     import CuePiecesLegendary  # noqa: F401
     import CuePiecesPocket  # noqa: F401
+    import CuePiecesUnique  # noqa: F401
+    try:
+        import CuePiecesHalloween_A  # noqa: F401  (the Halloween 2026 cue lanes' builders; absent on a branch without them)
+    except ImportError:
+        pass
+    try:
+        import CuePiecesHalloween_B  # noqa: F401
+    except ImportError:
+        pass
     import CuePieces
     spec = CuePieces.SPRITES[name]
     cc.clear_scene('Sprite')

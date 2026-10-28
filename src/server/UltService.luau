@@ -48,6 +48,12 @@ local ULTS_ALL = "UltDevAll"
 local UltService = {}
 local started = false
 
+local usedEvent = Instance.new("BindableEvent")
+--- (player, tableId, epoch) Fires after a player fires an ability at their table (the
+--- UltActivate success branch; solo practice too, the table id tells them apart). The badges
+--- (Power Up, Ability Master) and the Halloween quests listen; hw-sys lane, 2026-10-28.
+UltService.Used = usedEvent.Event
+
 local function now(): number
 	return workspace:GetServerTimeNow()
 end
@@ -317,6 +323,7 @@ function UltService.start()
 			refuse(player, reason)
 		else
 			Funnel.spins(player, "UsedInMatch") -- the ability spins funnel (the tutorial lane)
+			usedEvent:Fire(player, Tables.tableOf(player), t.engine.epoch)
 		end
 	end)
 	Tables.onFlush(UltService.flush)

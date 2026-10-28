@@ -240,6 +240,11 @@ return {
 			Store = "The global queue isn't answering. Try again.",
 			Party = "Your party changed, so the search stopped.",
 			Refresh = "Couldn't move to a fresh server. Playing on here.", -- the server refresh
+			-- The Pumpkin King's challenge (Halloween 2026; BossService).
+			KingBusy = "The Pumpkin King is busy. Try again in a moment!",
+			KingNoTable = "No free table for the Pumpkin King right now. Try again soon!",
+			KingCooldown = "The Pumpkin King is resting. Come back when he's ready!",
+			KingNotNow = "You can't challenge the Pumpkin King right now.",
 		},
 	},
 	-- The arena's card while players arrive (ArenaStatus).
@@ -262,6 +267,50 @@ return {
 		NotYours = "That match wasn't yours. Back to the lobby...",
 		Started = "Your match already started. Back to the lobby...",
 		Rejoin = "We couldn't take you back to the lobby. Please join the game again.",
+	},
+	-- The Haunted Rooftop (Halloween 2026; hw-map lane: BossService, CandyDrop, MapClient).
+	HalloweenMap = {
+		KingName = "Pumpkin King", -- the bot's name in the match and over his throne
+		Challenge = "Challenge the Pumpkin King", -- the throne's prompt
+		ChallengeObject = "Pumpkin King", -- the prompt's small line
+		ReadyIn = "Ready in %s", -- the prompt while he rests (a m:ss clock)
+		Resting = "The Pumpkin King is resting. Ready in %s.", -- the note on a press while he rests
+		CandyWon = "+%d CANDY", -- the billboard over the table on a win
+		CandyPickup = "+%d", -- the billboard on a picked-up candy
+		BagFull = "Your candy bag is full until :00", -- a pickup over core's hour cap
+		-- What he says (BotService.say): short, kind, never an insult.
+		Taunts = {
+			Seated = {
+				"Welcome to my table, mortal!",
+				"Ha! Another challenger for the King!",
+				"Let's see if you can beat royalty!",
+			},
+			HisPot = {
+				"Ha! Right in!",
+				"Pumpkin precision!",
+				"Smooth as candy!",
+			},
+			HisFoul = {
+				"Oops! My crown slipped.",
+				"That never happened!",
+				"Even kings miss sometimes.",
+			},
+			YourPot = {
+				"Not bad, mortal!",
+				"Ooh, nice one!",
+				"Lucky shot!",
+			},
+			HisWin = {
+				"The King wins again! Try once more!",
+				"Bow to the Pumpkin King! Come back anytime!",
+				"Good game! I'll be on my throne.",
+			},
+			HisLoss = {
+				"Nooo! You beat the King!",
+				"Well played! Take your candy!",
+				"You win this time, champion!",
+			},
+		},
 	},
 	-- The row under a finished two-sided game (PostMatch, on the result screen).
 	PostMatch = {
@@ -667,6 +716,12 @@ return {
 			StarterCue = "Starter Cue",
 			BetaCue = "Beta Cue",
 			FireworkCue = "Firework Cue",
+			-- Halloween 2026 (docs/halloween/PLAN.md §3)
+			CandyCornCue = "Candy Corn Cue",
+			JackOLanternCue = "Jack-o'-Lantern Cue",
+			BlackCatCue = "Black Cat Cue",
+			SpiderCue = "Spider Cue",
+			WitchBroomCue = "Witch's Broom",
 		},
 		Rarities = {
 			Common = "Common",
@@ -1836,6 +1891,22 @@ return {
 		Off = "%d%% OFF!", -- VIP's welcome offer against VIP's price
 		Only = 'ONLY <font color="#%s">%s</font>',
 	},
+	-- The Halloween 2026 event (src/client/Halloween; Config.Halloween). Candy is the event's
+	-- currency; the quests' text takes the need ("Win %d matches").
+	Halloween = {
+		Name = "HALLOWEEN", -- the right-side tile
+		Title = "HALLOWEEN EVENT", -- the event menu's header
+		Candy = "Candy",
+		EndsIn = "ENDS IN %s", -- the tile's and the menu's pill, a duration (Halloween.Event.short)
+		-- The Candy Rush chip above the boost pill (the GUI lane's shell): the time left.
+		Chip = {
+			Rush = "2x CANDY %s", -- "2x CANDY 8:12" (mm:ss)
+			Double = "2x CANDY %s", -- Oct 31: "2x CANDY 9:12:44" (h:mm:ss)
+		},
+		Countdown = "HALLOWEEN EVENT IN %s", -- 18:30-19:00, "HALLOWEEN EVENT IN 29:59"
+		Started = "THE HALLOWEEN EVENT HAS STARTED!",
+		Ended = "THE HALLOWEEN EVENT HAS ENDED!",
+	},
 	-- The banner at the top middle (Banner). Names are players' usernames.
 	Banner = {
 		-- "Painicane unboxed a Legendary Cue!" (username), by rarity; never the cue's name
@@ -2574,6 +2645,87 @@ return {
 			LowCortisol = "Low Cortisol",
 			Popcorn = "Popcorn", -- our own (Config.EmoteMenu.Custom)
 			Bullseye = "Bullseye",
+		},
+	},
+	-- Roblox badges (Config.Badges; designer, 2026-10-28; docs/halloween/BADGES.md): each key's
+	-- name and description, as the game page shows them. tools/roblox_badges.py sends this text to
+	-- Roblox when it creates a badge. Name at most 50 characters, description at most 1000.
+	Badges = {
+		Welcome = {
+			Name = "Welcome to Crazy 8 Ball!",
+			Description = "Join Crazy 8 Ball for the first time.",
+		},
+		FirstWin = {
+			Name = "First Win!",
+			Description = "Win your first match. The tutorial match counts!",
+		},
+		Wins5 = { Name = "Rookie", Description = "Win 5 matches." },
+		Wins10 = { Name = "Contender", Description = "Win 10 matches." },
+		Wins25 = { Name = "Hustler", Description = "Win 25 matches." },
+		Wins50 = { Name = "Pool Shark", Description = "Win 50 matches." },
+		Wins100 = { Name = "Pro", Description = "Win 100 matches." },
+		Wins250 = { Name = "Cue Master", Description = "Win 250 matches." },
+		Wins500 = { Name = "Legend", Description = "Win 500 matches." },
+		Wins1000 = { Name = "8 Ball God", Description = "Win 1,000 matches." },
+		RankBronze = { Name = "Bronze", Description = "Reach the Bronze rank." },
+		RankSilver = { Name = "Silver", Description = "Reach the Silver rank." },
+		RankGold = { Name = "Gold", Description = "Reach the Gold rank." },
+		RankPlatinum = { Name = "Platinum", Description = "Reach the Platinum rank." },
+		RankDiamond = { Name = "Diamond", Description = "Reach the Diamond rank." },
+		RankExpert = { Name = "Expert", Description = "Reach the Expert rank." },
+		RankVeteran = { Name = "Veteran", Description = "Reach the Veteran rank." },
+		RankMaster = { Name = "Master", Description = "Reach the Master rank." },
+		RankGrandmaster = { Name = "Grandmaster", Description = "Reach the Grandmaster rank." },
+		RankReyes = { Name = "Reyes", Description = "Reach Reyes, the top rank." },
+		Streak3 = { Name = "Hot Streak", Description = "Win 3 matches in a row." },
+		Streak5 = { Name = "On Fire", Description = "Win 5 matches in a row." },
+		Streak10 = { Name = "Unstoppable", Description = "Win 10 matches in a row." },
+		CueRare = { Name = "Shiny!", Description = "Own a Rare cue." },
+		CueEpic = { Name = "Epic Find", Description = "Own an Epic cue." },
+		CueLegendary = { Name = "Legendary Pull", Description = "Own a Legendary cue." },
+		CueMythic = { Name = "Mythic Moment", Description = "Own a Mythic cue." },
+		CueSecret = { Name = "Secret Keeper", Description = "Own a Secret cue." },
+		CueUnique = { Name = "One of a Kind", Description = "Own a Unique cue." },
+		Cues5 = { Name = "Collector", Description = "Own 5 different cues." },
+		Cues10 = { Name = "Curator", Description = "Own 10 different cues." },
+		Cues25 = { Name = "Cue Rack", Description = "Own 25 different cues." },
+		Cues50 = { Name = "Museum", Description = "Own 50 different cues." },
+		Balls100 = { Name = "Sharpshooter", Description = "Pocket 100 balls." },
+		Balls1000 = { Name = "Pocket Pro", Description = "Pocket 1,000 balls." },
+		Balls10000 = { Name = "Pocket Machine", Description = "Pocket 10,000 balls." },
+		Matches10 = { Name = "Regular", Description = "Play 10 matches." },
+		Matches100 = { Name = "Dedicated", Description = "Play 100 matches." },
+		Matches1000 = { Name = "Lives Here", Description = "Play 1,000 matches." },
+		Nice10 = { Name = "Nice Shot!", Description = "Make 10 nice shots." },
+		Nice100 = { Name = "Trick Shot Artist", Description = "Make 100 nice shots." },
+		Money1M = { Name = "Millionaire", Description = "Earn $1,000,000 in total." },
+		Money10M = { Name = "Tycoon", Description = "Earn $10,000,000 in total." },
+		Squad = { Name = "Squad Goals", Description = "Play a 2v2 or 3v3 match." },
+		Ability1 = { Name = "Power Up", Description = "Use an ability in a match." },
+		Ability100 = { Name = "Ability Master", Description = "Use abilities in 100 matches." },
+		Crew = {
+			Name = "Part of the Crew",
+			Description = "Play while you are in the Crazy 8 Ball group.",
+		},
+		MetOwner = {
+			Name = "Met the Owner",
+			Description = "Be in a server with Painicane, the game's creator.",
+		},
+		BeatOwner = {
+			Name = "Beat the Owner!",
+			Description = "Win a match against Painicane, the game's creator.",
+		},
+		Halloween2026 = {
+			Name = "Halloween 2026",
+			Description = "Play during the Crazy 8 Ball Halloween 2026 event.",
+		},
+		PumpkinSlayer = {
+			Name = "Pumpkin Slayer",
+			Description = "Beat the Pumpkin King at Halloween 2026.",
+		},
+		BroomRider = {
+			Name = "Broom Rider",
+			Description = "Earn the Witch's Broom at Halloween 2026.",
 		},
 	},
 }
