@@ -50,6 +50,29 @@ From PLAN §4 (everything else is read-only to this lane; ask through Requests):
 - `Config.HalloweenMap.Props.Budget.Lights = 6` (throne 2 + the throne King's aura 1 + 3 table Kings).
 
 ## Status
+- 11:45 hw-map: **READY @7fd462cc** for merge pass 1: steps 1-17 (5 now too; all Studio-checked), with
+  halloween @070893de merged in (clean, no conflicts). Lint OK, 1,453 tests. Step 18 (devices)
+  is partly done and left for later as asked; 19-21 follow.
+- 11:45 hw-map: step 5 done (7fd462cc): the CONTRACT CHANGE in one commit: the 3v3 cloth is
+  (88,176,32) in Config, `tests/config_test.luau`, `tests/halloween_contract_test.luau:252` and
+  `tools/halloween/hw_map_cloth_check.py` (`--raw`: 3v3's nearest ball 31.6; rendered under Night
+  19.9, gate1 `12`). Studio after the merge: Tables 15 and 16 wear (88,176,32) with the Toxic
+  kit while Live (gate1 `13-3v3-88-176-32-merged`), console clean (only the Studio store lines
+  and the known 203785492 ContentId ones). Brief §2.4 and its Config block updated to match.
+- 11:45 hw-map: step 18 so far (not ticked). aaaffdbe shortens the four King notices, so each
+  fits the queue card on one line (it is min(StatusWidth 320, screen - 20) px, so the same on
+  a phone). Shots at my window's size (devices/): `01` the prompt's "Ready in 11:11", `02`
+  "Challenge the Pumpkin King", `03` the KingNoTable notice, `04` the King's pumpkin portrait in
+  the match bar. Notes: the MCP capture leaves out AlwaysOnTop billboards (STUDIO_NOTES), so
+  the prompt shots set the prompt's AlwaysOnTop off on the client; the +1/+50 billboards are
+  sized in studs (TextScaled), so no screen size changes them. Left: the four sizes by Root-frame
+  emulation (the resize helper is blocked: the Studio windows are on another Space), and the pad:
+  the prompt is Roblox's default UI with GamepadKeyCode ButtonX, which follows the real last
+  input, not GuiQA "pad" (PadMode is our UI's flag only), so the X glyph needs a real controller
+  or the coordinator's sweep.
+- 11:41 coordinator: **CONTRACT CHANGE: go with (88,176,32)** (the same hue at 80% lightness, ΔE 19.9, the brief's §2.4 rule). PLAN §2 Tables updated (halloween @ the PLAN commit after 8a104005). In ONE commit change Config, your tests, the cloth tool **and** `tests/halloween_contract_test.luau` line 252 (`rgb(by[3].Cloth, 88, 176, 32)`), so `halloween` stays green when it merges. Include it in your READY for the 12:00 pass.
+- 11:42 coordinator: merge pass 1 is at 12:00. Post a `READY @<sha>` line (pushed, with halloween @537270fd merged in) for your Studio-checked steps through 17, and I'll merge it then. Leave the device step (18) for later; real window resizing is still blocked (the Studio windows are on another Space), so use Root-frame emulation like core and cues-a did.
+- 11:36 coordinator: `halloween` @537270fd has cues-a 83e876db (drop 3 body path, CuePreview bodies, Candy Corn + Jack-o'-Lantern, Upright, analytics, Aim-fade fix), core 3c4b87aa (event menu, tile, quests, Spider, packs, art), sys c5b6b607 and gui 3438ea94 (review fixes). Lint OK, 1,436 tests, Team Create play console clean (only the known 203785492 ContentId lines), tile + 2x chip + pill +120% seen. Review of this merge is running; findings come back as Requests. Run `git fetch && git merge origin/halloween` before your next READY. Main.client still has 12 top-level locals to spare.
 
 - 11:32 hw-map: step 17 done (f61bb19a). All eight `Config.HalloweenMap` switches are true
   (the map still follows core's Event.state: nothing before the event, all gone after). Each
@@ -191,7 +214,7 @@ coordinator resolves overlaps. Planned (add the commit sha when each lands):
 
 ## Requests
 
-- **CONTRACT CHANGE** (10:05, updated 10:50; coordinator): the 3v3 toxic green (110,220,40)
+- RESOLVED 11:41 (coordinator: go with (88,176,32); done as the step 5 commit). **CONTRACT CHANGE** (10:05, updated 10:50; coordinator): the 3v3 toxic green (110,220,40)
   renders (167,243,23) at the table and sits **ΔE 16.5** from the yellow balls (1 and 9) under
   Night and Sunset alike (they read the same up close), under PLAN's 17. The brief's rule (§2.4:
   "shift that tint's lightness within its hue and re-measure") gives **(88,176,32)**: the same
