@@ -2536,6 +2536,7 @@ return {
 			GojoWalk = "Gojo Walk",
 			GetoWalk = "Geto Walk",
 			LowCortisol = "Low Cortisol",
+			Birdbrain = "Bird Brain",
 			Popcorn = "Popcorn", -- our own (Config.EmoteMenu.Custom)
 			Bullseye = "Bullseye",
 		},

@@ -137,11 +137,11 @@ return {
 		H.expect(gone == nil and why2 == "Gone", "an unknown dance")
 	end,
 
-	["the menu has the designer's 13 dances, each named, with no time limit"] = function()
+	["the menu has the designer's 14 dances, each named, with no time limit"] = function()
 		local _, Config = load()
 		local E = Config.EmoteMenu
 		local Strings = H.require("Strings")
-		H.expect(#E.List == 13, "13 dances, got " .. #E.List)
+		H.expect(#E.List == 14, "14 dances, got " .. #E.List)
 		for _, row in E.List do
 			H.expect(type(Strings.Emotes.Names[row.Id]) == "string", "a name: " .. row.Id)
 			if row.Duo then
@@ -178,6 +178,7 @@ return {
 		H.expect(ids[4] == "Passinho" and ids[8] == "SegaWalk", "Passinho 4th, Sega Walk 8th")
 		local scenario, scuba = table.find(ids, "Scenario"), table.find(ids, "Scuba")
 		H.expect(scenario == n + 1 and scuba == n + 2, "the rest keep their order")
+		H.expect(ids[#ids] == "Birdbrain", "Bird Brain last (designer)")
 	end,
 
 	["our own emotes are in the menu while their switch is on"] = function()

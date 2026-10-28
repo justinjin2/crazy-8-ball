@@ -17963,6 +17963,17 @@ Config.EmoteMenu = {
 			-- "Low Cortisol" (DistrokidOfficial), from 31 s (designer): 64 beats at 129.2 BPM.
 			Music = { Id = "rbxassetid://110919391228823", Start = 31.184, Loop = 29.722 },
 		},
+		{
+			Id = "Birdbrain", -- designer, 2026-10-28: last in the menu
+			Catalog = 120486252224195,
+			Animation = 123471454475978,
+			Creator = "C4rpye's Group",
+			Length = 10.0,
+			-- The designer's song, uploaded 2026-10-28 (Lucky 8): its first 16 bars at 160 BPM
+			-- (0.08 to 24.08 s of the file), up to the break; Volume evens it with Rat Dance
+			-- (RMS 0.157 against 0.275, measured in Studio).
+			Music = { Id = "rbxassetid://75387278867392", Start = 0, Loop = 24.0, Volume = 0.87 },
+		},
 	} :: {
 		{
 			Id: string,
