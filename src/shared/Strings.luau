@@ -1291,7 +1291,7 @@ return {
 			Starter = "Starter Pack",
 			Party = "Money Party",
 		},
-		TimeLeft = "%s left", -- after a timed part: "Starter Pack · 42m left"
+		TimeLeft = "%s · %s left", -- a timed part and its time: "Starter Pack · 42m left"
 		Total = "Total",
 		None = "No boosts yet",
 		FriendRule = "Each friend in your server +%d%% (max %d)",

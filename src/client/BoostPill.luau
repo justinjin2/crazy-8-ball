@@ -547,7 +547,7 @@ function BoostPill.cardLines(self: any): { any }
 		end
 		local left = timeLeft(part.kind, at)
 		if left then
-			words ..= " · " .. COPY.TimeLeft:format(left)
+			words = COPY.TimeLeft:format(words, left)
 		end
 		table.insert(lines, {
 			icon = ICONS[part.kind],
