@@ -29,11 +29,11 @@ local function folder(): Folder
 	return made
 end
 
-local function animate(model: Model, hum: Humanoid)
+local function animate(model: Model, hum: Humanoid, animations: { [string]: string }?)
 	local animator = hum:FindFirstChildOfClass("Animator") or Instance.new("Animator")
 	animator.Parent = hum
 	local tracks: { [string]: AnimationTrack } = {}
-	for name, id in B.Animations :: any do
+	for name, id in (animations or B.Animations) :: any do
 		local a = Instance.new("Animation")
 		a.AnimationId = id
 		local ok, track = pcall(function()
@@ -77,12 +77,16 @@ local function animate(model: Model, hum: Humanoid)
 	local _ = model
 end
 
---- A new body from `description`, named `name`, standing at `at`, with `attributes`.
+--- A new body from `description`, named `name`, standing at `at`, with `attributes`; its
+--- animations Config.Bots.Animations' unless `animations` (same keys) is given, and `dress`
+--- (a boss's own pieces) run on it before it is shown.
 function Body.build(
 	description: HumanoidDescription,
 	name: string,
 	at: CFrame,
-	attributes: { [string]: any }
+	attributes: { [string]: any },
+	animations: { [string]: string }?,
+	dress: ((Model) -> ())?
 ): Model?
 	local ok, model = pcall(function()
 		return Players:CreateHumanoidModelFromDescription(description, Enum.HumanoidRigType.R15)
@@ -102,6 +106,14 @@ function Body.build(
 	for key, value in attributes do
 		model:SetAttribute(key, value)
 	end
+	if dress then
+		local dressed, err = pcall(function()
+			dress(model)
+		end)
+		if not dressed then
+			warn("[8ball] bot dress failed: " .. tostring(err))
+		end
+	end
 	model:PivotTo(at)
 	model.Parent = folder()
 	local root = model:FindFirstChild("HumanoidRootPart")
@@ -110,7 +122,7 @@ function Body.build(
 			root:SetNetworkOwner(nil)
 		end)
 	end
-	animate(model, hum)
+	animate(model, hum, animations)
 	return model
 end
 

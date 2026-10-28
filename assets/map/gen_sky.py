@@ -4,6 +4,7 @@ faces of a Roblox Sky (brief section 9, Stage 4; Spec section 2 for the colours)
     B=/Applications/Blender.app/Contents/MacOS/Blender
     $B -b --factory-startup --python-exit-code 1 --python assets/map/gen_sky.py            # Day
     $B -b --factory-startup --python-exit-code 1 --python assets/map/gen_sky.py -- sunset  # (Stage 7)
+    $B -b --factory-startup --python-exit-code 1 --python assets/map/gen_sky.py -- night   # Halloween 2026
 
 Writes textures/sky_<light>_<Face>.png (1024 square) and checkpoints/sky/<light>-cross.png, a
 preview with the faces unfolded round the front.
@@ -61,6 +62,13 @@ P = {
 # (latitude -30, clock 6.4: low over the sea, right of the lounge; Config.Lighting.SunPath).
 SUN = {'day': (0.465, 0.806, 0.367), 'sunset': (0.591, 0.062, -0.804)}
 SUN['dusk'] = SUN['sunset']  # the in-between sky: the sun is already down by its swap (SunPath)
+# Halloween 2026's Night (hw-map lane): a full moon painted over the sea where the sunset sun
+# stands, raised to MOON_ELEVATION so it shows over the railing; the clouds are lit from it.
+MOON_ELEVATION = 17.0  # degrees
+_flat = math.hypot(SUN['sunset'][0], SUN['sunset'][2])
+SUN['night'] = (SUN['sunset'][0] / _flat * math.cos(math.radians(MOON_ELEVATION)),
+                math.sin(math.radians(MOON_ELEVATION)),
+                SUN['sunset'][2] / _flat * math.cos(math.radians(MOON_ELEVATION)))
 
 COLOURS = {
     'day': {
@@ -112,6 +120,33 @@ COLOURS = {
         'light_tint_sun': (1.5, 0.85, 0.5),
         'windows': '#FFD47A',  # lit windows on the far city: a warm yellow (designer, 2026-09-26)
     },
+}
+
+# Halloween 2026's Night (hw-map lane, R3.4; mocks/v2/MAP2_lobby.png): a deep violet zenith to a
+# lilac-pink horizon (never black), a big soft cream full moon with a pink-lilac glow over the
+# sea, its path on the water, stars in the upper half, lavender-pink clouds lit from the moon,
+# the far city's windows lit.
+COLOURS['night'] = {
+    'top': '#3B1D7A',
+    'mid': '#7A3FA8',
+    'horizon': '#E08AD8',
+    'glow': '#FFE6F4',
+    'glow_from': 'night',  # the glow and the sea's path round the moon, not the sunset sun
+    'glow_lobes': ((3.0, 0.35, '#F0A0E0'), (20.0, 0.45, '#F8C8F0'), (160.0, 0.6, '#FFE6F4')),
+    'moon': (3.6, 0.5, '#FFF1D6'),  # (radius and soft edge in degrees, colour): the disc
+    'stars': (0.35, '#FFF6FF'),  # (share of the cells holding a star, colour)
+    'sea': '#3A2A82',
+    'sea_glow': '#D8B8F0',  # the moon's path on the sea
+    'sea_path': 30.0,
+    'sea_path_fade': 0.25,
+    'land': '#3E2E66',
+    'cloud_lit': '#F6D0F2',
+    'cloud_mid': '#C07ACC',
+    'cloud_shade': '#6A3E96',
+    'far_haze': '#9A5AB4',
+    'light_tint_ambient': (0.72, 0.62, 1.0),
+    'light_tint_sun': (1.0, 0.9, 1.15),
+    'windows': '#FFD27A',
 }
 
 # Face -> (forward, image up) in Blender axes (see the docstring).
@@ -188,6 +223,10 @@ def world(scene, c):
     sky_out = sky.outputs['Color']
     if 'glow' in c:
         sky_out = sun_glow(t, coord, c, sky_out)
+    if 'stars' in c:
+        sky_out = stars(t, coord, sep, c, sky_out)
+    if 'moon' in c:
+        sky_out = moon_disc(t, coord, c, sky_out)
     below = t.nodes.new('ShaderNodeMapRange')
     below.clamp = True
     below.inputs['From Min'].default_value = 0.0
@@ -227,7 +266,7 @@ def sun_glow(t, coord, c, colour):
     of the angle to the sun raised to the power."""
     dot = t.nodes.new('ShaderNodeVectorMath')
     dot.operation = 'DOT_PRODUCT'
-    dot.inputs[1].default_value = Vector(mc.rb(SUN['sunset'])).normalized()
+    dot.inputs[1].default_value = Vector(mc.rb(SUN[c.get('glow_from', 'sunset')])).normalized()
     t.links.new(coord.outputs['Generated'], dot.inputs[0])
     pos = math_node(t, 'MAXIMUM', b=0.0)
     t.links.new(dot.outputs['Value'], pos.inputs[0])
@@ -245,10 +284,93 @@ def sun_glow(t, coord, c, colour):
     return colour
 
 
+def moon_disc(t, coord, c, colour):
+    """The full moon (Night): c['moon'] = (radius, soft edge, colour) in degrees, a disc toward
+    SUN['night'] with a soft rim and faint darker maria, so it reads as a moon."""
+    radius, soft, hue = c['moon']
+    moon = Vector(mc.rb(SUN['night'])).normalized()
+    dot = t.nodes.new('ShaderNodeVectorMath')
+    dot.operation = 'DOT_PRODUCT'
+    dot.inputs[1].default_value = moon
+    t.links.new(coord.outputs['Generated'], dot.inputs[0])
+    disc = t.nodes.new('ShaderNodeMapRange')
+    disc.clamp = True
+    disc.inputs['From Min'].default_value = math.cos(math.radians(radius + soft))
+    disc.inputs['From Max'].default_value = math.cos(math.radians(radius))
+    t.links.new(dot.outputs['Value'], disc.inputs['Value'])
+    face = t.nodes.new('ShaderNodeMix')
+    face.data_type = 'RGBA'
+    face.inputs['A'].default_value = linear(hue)
+    face.inputs['B'].default_value = linear('#E2CCC0')
+    noise = t.nodes.new('ShaderNodeTexNoise')
+    noise.inputs['Scale'].default_value = 35.0
+    noise.inputs['Detail'].default_value = 1.0
+    t.links.new(coord.outputs['Generated'], noise.inputs['Vector'])
+    blotch = t.nodes.new('ShaderNodeMapRange')
+    blotch.clamp = True
+    blotch.inputs['From Min'].default_value = 0.52
+    blotch.inputs['From Max'].default_value = 0.62
+    blotch.inputs['To Max'].default_value = 0.3
+    t.links.new(noise.outputs['Fac'], blotch.inputs['Value'])
+    t.links.new(blotch.outputs['Result'], face.inputs['Factor'])
+    mix = t.nodes.new('ShaderNodeMix')
+    mix.data_type = 'RGBA'
+    t.links.new(face.outputs['Result'], mix.inputs['B'])
+    t.links.new(disc.outputs['Result'], mix.inputs['Factor'])
+    t.links.new(colour, mix.inputs['A'])
+    return mix.outputs['Result']
+
+
+def stars(t, coord, sep, c, colour):
+    """Stars (Night): small soft points from a Voronoi on the ray's direction, only in the upper
+    sky (fading in from 15 to 35 degrees up), each its own brightness."""
+    share, hue = c['stars']
+    vor = t.nodes.new('ShaderNodeTexVoronoi')
+    vor.feature = 'F1'
+    vor.inputs['Scale'].default_value = 38.0  # cells about 25 px apart on a 1024 face
+    t.links.new(coord.outputs['Generated'], vor.inputs['Vector'])
+    point = t.nodes.new('ShaderNodeMapRange')
+    point.clamp = True
+    point.inputs['From Min'].default_value = 0.075  # a dot about 2 px across
+    point.inputs['From Max'].default_value = 0.025
+    t.links.new(vor.outputs['Distance'], point.inputs['Value'])
+    cell = t.nodes.new('ShaderNodeSeparateColor')
+    t.links.new(vor.outputs['Color'], cell.inputs['Color'])
+    keep = t.nodes.new('ShaderNodeMapRange')
+    keep.clamp = True
+    keep.inputs['From Min'].default_value = share
+    keep.inputs['From Max'].default_value = share - 0.02
+    t.links.new(cell.outputs['Red'], keep.inputs['Value'])
+    bright = t.nodes.new('ShaderNodeMapRange')
+    bright.inputs['To Min'].default_value = 0.35
+    bright.inputs['To Max'].default_value = 1.0
+    t.links.new(cell.outputs['Green'], bright.inputs['Value'])
+    high = t.nodes.new('ShaderNodeMapRange')
+    high.clamp = True
+    high.inputs['From Min'].default_value = math.sin(math.radians(15))
+    high.inputs['From Max'].default_value = math.sin(math.radians(35))
+    t.links.new(sep.outputs['Z'], high.inputs['Value'])
+    amount = math_node(t, 'MULTIPLY')
+    t.links.new(point.outputs['Result'], amount.inputs[0])
+    t.links.new(keep.outputs['Result'], amount.inputs[1])
+    amount2 = math_node(t, 'MULTIPLY')
+    t.links.new(amount.outputs[0], amount2.inputs[0])
+    t.links.new(high.outputs['Result'], amount2.inputs[1])
+    amount3 = math_node(t, 'MULTIPLY')
+    t.links.new(amount2.outputs[0], amount3.inputs[0])
+    t.links.new(bright.outputs['Result'], amount3.inputs[1])
+    mix = t.nodes.new('ShaderNodeMix')
+    mix.data_type = 'RGBA'
+    mix.inputs['B'].default_value = linear(hue)
+    t.links.new(amount3.outputs[0], mix.inputs['Factor'])
+    t.links.new(colour, mix.inputs['A'])
+    return mix.outputs['Result']
+
+
 def sea_path(t, sep, c, colour):
     """The sun's path on the sea: toward c['sea_glow'] by how nearly a ray below the horizon
     points the sun's way across (a tight lobe), fading with depth under the horizon."""
-    sun = Vector(mc.rb(SUN['sunset']))
+    sun = Vector(mc.rb(SUN[c.get('glow_from', 'sunset')]))
     flat = Vector((sun.x, sun.y, 0.0)).normalized()
     comb = t.nodes.new('ShaderNodeCombineXYZ')
     t.links.new(sep.outputs['X'], comb.inputs['X'])
@@ -442,6 +564,8 @@ def build(scene, light):
             FAR_COLOURS[key] = mix_value(FAR_COLOURS[key], value, DUSK_FAR)
     elif light == 'sunset':
         FAR_COLOURS.update(FAR_COLOURS_SUNSET)
+    elif light == 'night':
+        FAR_COLOURS.update(FAR_COLOURS_NIGHT)
     c = COLOURS[light]
     sun = Vector(mc.rb(SUN[light])).normalized()
     world(scene, c)
@@ -526,6 +650,13 @@ FAR_COLOURS_SUNSET = {
     'roof': '#B494C0', 'land': '#5C5470', 'sand': '#C08E98', 'paving': '#8E7E9E', 'promenade': '#A48CA8',
     'jungle_dark': '#3A2C5A', 'jungle': '#4A3A6A', 'jungle_lit': '#5E4A7A', 'rock': '#44365E',
     'island_far': '#564175', 'hills': '#6A5A9E',
+}
+# At night (Halloween 2026): the sunset's dusk, a step deeper and more violet; windows lit.
+FAR_COLOURS_NIGHT = {
+    'glass': '#34407E', 'white': '#A884B8', 'stone': '#9478A6', 'terracotta': '#9C7AA0',
+    'roof': '#9A80B4', 'land': '#4A4066', 'sand': '#9E7E9E', 'paving': '#766A94', 'promenade': '#8A78A2',
+    'jungle_dark': '#2E2450', 'jungle': '#3C3060', 'jungle_lit': '#4E406E', 'rock': '#3A2E56',
+    'island_far': '#4A3A70', 'hills': '#5A4C90',
 }
 
 
@@ -941,7 +1072,8 @@ def preview(paths, light):
 
 def main():
     args = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else []
-    light = 'sunset' if 'sunset' in args else 'dusk' if 'dusk' in args else 'day'
+    light = ('sunset' if 'sunset' in args else 'dusk' if 'dusk' in args
+             else 'night' if 'night' in args else 'day')
     scene = mc.clear_scene()
     build(scene, light)
     paths = render_faces(scene, light)
