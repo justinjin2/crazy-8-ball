@@ -9224,11 +9224,60 @@ Config.HalloweenMap = {
 			[3] = { Cloth = { 110, 220, 40 }, Kit = "Toxic" }, -- toxic green
 		},
 	},
+	-- The haunted kit on each table (TableBuilder.addDecor), in the table's own frame: studs
+	-- from its pivot (the cloth's centre on the floor, +X to the foot). The Body's footprint is
+	-- X +-9.12, Z +-5.12; its apron's face stands at X +-9.096, Z +-5.096 from 1.75 to 2.72 up,
+	-- the cabinet's underside at 1.3, the legs' inner faces at X +-8.24 and Z +-4.24 there, the
+	-- rails from 2.74 to the rail top 3.233 (assets/table/TableModel.blend, read 2026-10-28).
 	Decor = {
 		Enabled = false, -- the haunted kit on each table (TableBuilder.addDecor)
 		MaxPartsPerTable = 10, -- the most parts a table's kit may add
 		MaxTrianglesPerTable = 1500, -- and triangles
-		Kits = {}, -- by name: filled at hw-map step 13
+		Folder = "HalloweenDecor", -- the kit's Folder under the table model
+		-- Each piece's triangles (gen_props.py's count; the plate is a box): the budget test.
+		Triangles = { Underglow = 12, Trim = 32, Bat = 92, PumpkinSmall = 182, Cobweb = 224 },
+		-- A Neon plate on the floor under the body: the glowing ring of light round its foot.
+		-- Transparency: see-through enough to read as a pool of light, not a slab (Studio).
+		Underglow = { Size = { 18.2, 0.04, 10.2 }, Y = 0.025, Transparency = 0.45 },
+		TrimY = 2.66, -- the trim ring's middle (Assets "Trim", the footprint's size, 0.08 tall)
+		-- The prop sets a kit may place: an Assets prop, where its origin goes (X, Y, Z), its
+		-- turn about Y (degrees; 0 faces -Z) and its scale. Glow: drawn Neon in the kit's colour.
+		Sets = {
+			-- On the two long aprons, 0.022 proud of the apron's face (under the footprint's edge).
+			Bats = {
+				{ Prop = "Bat", At = { 0, 2.17, 5.0955 }, Yaw = 0, Scale = 0.75, Glow = true },
+				{ Prop = "Bat", At = { 0, 2.17, -5.0955 }, Yaw = 180, Scale = 0.75, Glow = true },
+			},
+			-- On the floor inside each corner leg, under the apron, turned a little to the end.
+			Pumpkins = {
+				{ Prop = "PumpkinSmall", At = { 7.6, 0.37, 4.5 }, Yaw = 205, Scale = 0.45 },
+				{ Prop = "PumpkinSmall", At = { -7.6, 0.37, 4.5 }, Yaw = 155, Scale = 0.45 },
+				{ Prop = "PumpkinSmall", At = { 7.6, 0.37, -4.5 }, Yaw = -25, Scale = 0.45 },
+				{ Prop = "PumpkinSmall", At = { -7.6, 0.37, -4.5 }, Yaw = 25, Scale = 0.45 },
+			},
+			-- A cobweb card hung from the cabinet's underside in two opposite corners, against
+			-- the leg (the web's origin is its corner; it fans out and down).
+			Cobwebs = {
+				{ Prop = "Cobweb", At = { 8.24, 1.3, 5.0 }, Yaw = 0, Scale = 0.42 },
+				{ Prop = "Cobweb", At = { -8.24, 1.3, -5.0 }, Yaw = 180, Scale = 0.42 },
+			},
+		},
+		-- By name (Tables.ByTeamSize's Kit): the glow colour (RGB), and what goes on.
+		Kits = {
+			Orchid = { Color = { 175, 80, 255 }, Underglow = true, Trim = false, Sets = { "Bats" } },
+			Pumpkin = {
+				Color = { 255, 90, 10 }, -- Neon draws lighter: this shows as the pumpkins' orange
+				Underglow = true,
+				Trim = true,
+				Sets = { "Bats", "Pumpkins" },
+			},
+			Toxic = {
+				Color = { 110, 255, 50 },
+				Underglow = true,
+				Trim = true,
+				Sets = { "Bats", "Cobwebs" },
+			},
+		},
 	},
 	Props = {
 		Enabled = false, -- the dead trees, pumpkins, planters, string lights and cobwebs

@@ -92,9 +92,10 @@ export type Box = { cx: number, cy: number, cz: number, sx: number, sy: number, 
 
 --- A decor part (its box in the table's own space: centre and size, studs) may go on a table
 --- only inside the body's footprint (X and Z) with its top below the rail top (railTopY, the
---- same space). Touching the edge counts as inside.
+--- same space). Touching the edge counts as inside, give or take a thousandth of a stud (the
+--- boxes come from float32 world CFrames tens of studs from the origin).
 function Rules.decorInside(part: Box, body: Box, railTopY: number): boolean
-	local eps = 1e-6
+	local eps = 1e-3
 	local function within(c: number, s: number, bc: number, bs: number): boolean
 		return c - s / 2 >= bc - bs / 2 - eps and c + s / 2 <= bc + bs / 2 + eps
 	end

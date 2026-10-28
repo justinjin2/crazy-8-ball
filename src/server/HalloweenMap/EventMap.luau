@@ -193,6 +193,41 @@ EventMap.addPart({
 	end,
 })
 
+-- The haunted kit on every table by its mode (Config.HalloweenMap.Decor, TableBuilder.addDecor),
+-- once the event's meshes are in: it waits for them in the background, so no other part waits,
+-- and a kit whose wait outlives Live is never added. Off takes every kit away.
+local decorToken = 0
+EventMap.addPart({
+	name = "Decor",
+	arena = true,
+	enabled = function(): boolean
+		return HM.Decor.Enabled
+	end,
+	on = function()
+		decorToken += 1
+		local token = decorToken
+		task.spawn(function()
+			Assets.wait()
+			if token ~= decorToken or current ~= "Live" then
+				return
+			end
+			for _, model in tableModels() do
+				local row = HM.Tables.ByTeamSize[teamSize(model)]
+				local ok, err = pcall(TableBuilder.addDecor, model, row and row.Kit)
+				if not ok then
+					warnOnce("decor", "a table's decor kit failed: " .. tostring(err))
+				end
+			end
+		end)
+	end,
+	off = function()
+		decorToken += 1
+		for _, model in tableModels() do
+			TableBuilder.addDecor(model, nil)
+		end
+	end,
+})
+
 local function setState(state: Rules.State)
 	if state == current then
 		return

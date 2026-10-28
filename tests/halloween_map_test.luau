@@ -245,9 +245,60 @@ return {
 		end
 		H.expect(R.decorInside(box(0, 1, 0, 2, 0.5, 1), body, 3.4), "inside")
 		H.expect(R.decorInside(box(4, 1, 0, 2, 0.5, 1), body, 3.4), "touching the edge")
+		H.expect(
+			R.decorInside(box(4.0004, 1, 0, 2, 0.5, 1), body, 3.4),
+			"a float's hair past the edge"
+		)
+		H.expect(
+			not R.decorInside(box(4.003, 1, 0, 2, 0.5, 1), body, 3.4),
+			"a few thousandths past"
+		)
 		H.expect(not R.decorInside(box(4.5, 1, 0, 2, 0.5, 1), body, 3.4), "past the end")
 		H.expect(not R.decorInside(box(0, 1, 2.6, 1, 0.5, 0.2), body, 3.4), "past the side")
 		H.expect(not R.decorInside(box(0, 3.3, 0, 1, 0.5, 1), body, 3.4), "above the rail top")
+	end,
+
+	["every decor kit keeps to its part and triangle budget"] = function()
+		local HM = H.require("Config").HalloweenMap
+		local D = HM.Decor
+		for size, row in HM.Tables.ByTeamSize do
+			H.expect(
+				D.Kits[row.Kit] ~= nil,
+				("team size %d's kit %s is in Decor.Kits"):format(size, row.Kit)
+			)
+		end
+		for name, kit in D.Kits do
+			-- Every piece is one part (the plate, and each prop's one MeshPart).
+			local parts, tris = 0, 0
+			if kit.Underglow then
+				parts += 1
+				tris += D.Triangles.Underglow
+			end
+			if kit.Trim then
+				H.expect(
+					HM.Assets.Origins.Trim ~= nil,
+					"the trim ring is one of the event's meshes"
+				)
+				parts += 1
+				tris += D.Triangles.Trim
+			end
+			for _, setName in kit.Sets do
+				local set = D.Sets[setName]
+				H.expect(set ~= nil, ("kit %s's set %s is in Decor.Sets"):format(name, setName))
+				for _, row in set do
+					H.expect(
+						HM.Assets.Origins[row.Prop] ~= nil and D.Triangles[row.Prop] ~= nil,
+						("%s is one of the event's meshes, with its triangles counted"):format(
+							row.Prop
+						)
+					)
+					parts += 1
+					tris += D.Triangles[row.Prop]
+				end
+			end
+			H.expect(parts <= D.MaxPartsPerTable, ("kit %s: %d parts"):format(name, parts))
+			H.expect(tris <= D.MaxTrianglesPerTable, ("kit %s: %d triangles"):format(name, tris))
+		end
 	end,
 
 	["the cloths keep their raw contrast with every ball"] = function()
