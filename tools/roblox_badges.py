@@ -48,7 +48,7 @@ METADATA_URL = "https://badges.roblox.com/v1/badges/metadata"
 CREATE_URL = "https://apis.roblox.com/legacy-badges/v1/universes/{}/badges"
 LIST_URL = "https://badges.roblox.com/v1/universes/{}/badges?limit=100&sortOrder=Asc"
 UPDATE_URL = "https://apis.roblox.com/legacy-badges/v1/badges/{}"  # PATCH name, description, enabled
-ICON_URL = "https://apis.roblox.com/legacy-badges/v1/badges/{}/icon"  # POST a new icon (moderated)
+ICON_URL = "https://apis.roblox.com/legacy-publish/v1/badges/{}/icon"  # POST a new icon (moderated)
 INFO_URL = "https://badges.roblox.com/v1/badges/{}"
 ICON_VERSION = 2  # the hand-drawn pool balls (designer, 2026-10-28); the manifest notes what is up
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
