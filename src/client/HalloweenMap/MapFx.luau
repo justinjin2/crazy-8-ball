@@ -49,6 +49,21 @@ local function decor(p: BasePart)
 	p.CastShadow = false
 end
 
+-- The event's candy mesh for `kind` ("Orange" | "Purple": HalloweenMap.Assets' templates), or
+-- nil while they have not loaded (the code-built candy stands in).
+local function meshCandy(kind: string): BasePart?
+	local folder = ReplicatedStorage:FindFirstChild(HM.Assets.Folder)
+	local template = folder and folder:FindFirstChild("Candy" .. kind)
+	local sweet = template and template:FindFirstChildWhichIsA("BasePart")
+	if sweet == nil then
+		return nil
+	end
+	local part = sweet:Clone()
+	part.Name = "Sweet"
+	decor(part)
+	return part
+end
+
 -- A wrapped candy: a sweet with a twist of wrapper either side, in `colour`.
 local function candyModel(colour: Color3): Model
 	local model = Instance.new("Model")
@@ -103,8 +118,17 @@ local function track(part: Instance)
 	if not part:IsA("BasePart") or drawn[part] then
 		return
 	end
-	local kind = part:GetAttribute("Kind")
-	local model = candyModel(COLOURS[kind :: any] or COLOURS.Orange)
+	local kind = if part:GetAttribute("Kind") == "Purple" then "Purple" else "Orange"
+	local mesh = meshCandy(kind)
+	local model: Model
+	if mesh then
+		model = Instance.new("Model")
+		model.Name = "CandyLook"
+		mesh.Parent = model
+		model.PrimaryPart = mesh
+	else
+		model = candyModel(COLOURS[kind])
+	end
 	if not Quality.isLow() then
 		local sparkle = Instance.new("ParticleEmitter")
 		sparkle.Texture = SPARKLE
@@ -244,8 +268,30 @@ local function burstEmitter(
 	end
 end
 
--- The candy explosion: real little candies flung up over the table (they bounce and go), with
--- sparkles and a ring; half on low quality.
+-- The orange pop at the heart of the explosion: a glowing ball that swells and fades.
+local function flash(at: Vector3, studs: number)
+	local f = Instance.new("Part")
+	f.Name = "HalloweenFlash"
+	f.Shape = Enum.PartType.Ball
+	f.Material = Enum.Material.Neon
+	f.Color = COLOURS.Orange
+	f.Size = Vector3.one
+	f.Transparency = 0.15
+	decor(f)
+	f.CFrame = CFrame.new(at)
+	f.Parent = workspace
+	TweenService:Create(
+		f,
+		TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+		{ Size = Vector3.one * studs, Transparency = 1 }
+	):Play()
+	task.delay(0.4, function()
+		f:Destroy()
+	end)
+end
+
+-- The candy explosion: the event's candies flung up over the table (they bounce and go), with
+-- an orange pop and sparkles; half on low quality.
 local function burst(at: Vector3, amount: number, winner: number?)
 	local camera = workspace.CurrentCamera
 	if camera and (camera.CFrame.Position - at).Magnitude > K.Burst.ShowStuds then
@@ -256,42 +302,58 @@ local function burst(at: Vector3, amount: number, winner: number?)
 	local paid = amount > 0
 	local share = (if low then 0.5 else 1) * (if paid then 1 else 0.4)
 	local p = holder(at, B.Seconds + 1)
+	if paid then
+		flash(at, B.FlashStuds)
+	end
 	burstEmitter(
 		p,
 		SPARKLE,
 		{ COLOURS.Orange, COLOURS.Purple, COLOURS.Green, Color3.fromRGB(255, 220, 120) },
 		math.floor(B.Sparkles * share),
-		26,
-		0.8,
+		30,
+		1.3,
 		B.Seconds
 	)
 	burstEmitter(p, FIRE, { COLOURS.Purple }, math.floor(10 * share), 14, 2.2, 0.6)
-	local kinds = { COLOURS.Orange, COLOURS.Purple, COLOURS.Green, COLOURS.White }
+	local kinds = { "Orange", "Purple" }
 	for i = 1, math.floor(B.Candies * share) do
-		local c = Instance.new("Part")
-		c.Name = "CandyBit"
-		c.Shape = Enum.PartType.Ball
-		c.Size = Vector3.new(0.45, 0.45, 0.45)
-		c.Color = kinds[(i % #kinds) + 1]
-		c.Material = Enum.Material.SmoothPlastic
-		c.CanCollide = true
-		c.CanQuery = false
-		c.CanTouch = false
-		c.CastShadow = false
-		c.Massless = true
-		c.CFrame = CFrame.new(at + Vector3.new(math.random() - 0.5, 0, math.random() - 0.5))
-		c.AssemblyLinearVelocity = Vector3.new(
-			(math.random() - 0.5) * 30,
-			18 + math.random() * 14,
-			(math.random() - 0.5) * 30
+		local kind = kinds[(i % #kinds) + 1]
+		local c = meshCandy(kind)
+		if c then
+			c.Size *= B.CandyScale
+		else
+			local ball = Instance.new("Part")
+			ball.Shape = Enum.PartType.Ball
+			ball.Size = Vector3.new(0.6, 0.6, 0.6)
+			ball.Color = COLOURS[kind]
+			ball.Material = Enum.Material.SmoothPlastic
+			decor(ball)
+			c = ball
+		end
+		local candy = c :: BasePart
+		candy.Name = "CandyBit"
+		candy.Anchored = false
+		candy.CanCollide = true
+		candy.Massless = true
+		candy.CFrame = CFrame.new(at + Vector3.new(math.random() - 0.5, 0, math.random() - 0.5))
+			* CFrame.Angles(math.random() * 6.3, math.random() * 6.3, 0)
+		candy.AssemblyLinearVelocity = Vector3.new(
+			(math.random() - 0.5) * 36,
+			24 + math.random() * 16,
+			(math.random() - 0.5) * 36
 		)
-		c.Parent = workspace
+		candy.AssemblyAngularVelocity = Vector3.new(
+			(math.random() - 0.5) * 20,
+			(math.random() - 0.5) * 20,
+			(math.random() - 0.5) * 20
+		)
+		candy.Parent = workspace
 		task.delay(B.Seconds + math.random() * 0.5, function()
-			c:Destroy()
+			candy:Destroy()
 		end)
 	end
 	if paid then
-		riser(at + Vector3.new(0, 2, 0), S.CandyWon:format(amount), COLOURS.Orange, 3, 2.2)
+		riser(at + Vector3.new(0, 2, 0), S.CandyWon:format(amount), COLOURS.Orange, 4, 2.2)
 	end
 	if winner == Players.LocalPlayer.UserId then
 		pcall(UISound.play, if paid then "MysteryUpgrade" else "OwnerPop")

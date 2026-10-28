@@ -9287,7 +9287,16 @@ Config.HalloweenMap = {
 		ReadyAttribute = "PumpkinKingReadyAt", -- player attribute: unix seconds his cooldown ends
 		Aura = { Rate = 12, LightRange = 10 }, -- flame wisps a second (halved on low quality); studs
 		-- The candy explosion over the table on a win: sprites, sparkles, seconds, drawn this close.
-		Burst = { Candies = 50, Sparkles = 30, Seconds = 2, ShowStuds = 120 },
+		-- CandyScale: each flung candy's size against the lobby candy mesh; FlashStuds: the
+		-- orange pop's width at its widest.
+		Burst = {
+			Candies = 50,
+			Sparkles = 30,
+			Seconds = 2,
+			ShowStuds = 120,
+			CandyScale = 0.6,
+			FlashStuds = 9,
+		},
 	},
 	-- The event's meshes (assets/halloween/map/gen_props.py: one .glb, one palette texture),
 	-- uploaded as one Model and loaded on the server (HalloweenMap/Assets) into ReplicatedStorage
