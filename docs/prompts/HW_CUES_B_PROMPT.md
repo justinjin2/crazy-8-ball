@@ -663,6 +663,6 @@ floor by **15:00**, write a Request to the coordinator at once (Cues A may take 
   and Night), the aim view at the four sizes, a rejoin with each cue equipped; the Lune test
   requires all three rows; compile, lint and tests green.
 - [x] 21. Lane file Status final + all screenshots.
-- [ ] 22. Merge halloween, re-test, push.
+- [x] 22. Merge halloween, re-test, push.
 
 ## Notes
