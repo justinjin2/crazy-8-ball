@@ -548,9 +548,9 @@ conversion with an end screen, the tutorial gate, the tile, the menu.
 
 ## Progress
 
-- [ ] Interface 1: `Config.Halloween`, `Strings.Halloween` skeleton, `Event.luau`, `Clock.luau` (+ test-place offset at boot), `halloween_event_test.luau`; pushed, lane file says ready
-- [ ] Interface 2: `Halloween` save field (template, MAP_KEYS, validate, old-save test), the PlayerData block, real `CandyService` (add, bossWon, bossCooldown -> unix time or 0, pickup -> ok + reason "Cap"/"NotLive"/"NotLoaded", isLive) in Bootstrap, tests; pushed, lane file says ready
-- [ ] `/hw` dev command block (time offsets, candy, quest, active, kingwin, convert, reset), checked in Studio
+- [x] Interface 1: `Config.Halloween`, `Strings.Halloween` skeleton, `Event.luau`, `Clock.luau` (+ test-place offset at boot), `halloween_event_test.luau`; pushed, lane file says ready
+- [x] Interface 2: `Halloween` save field (template, MAP_KEYS, validate, old-save test), the PlayerData block, real `CandyService` (add, bossWon, bossCooldown -> unix time or 0, pickup -> ok + reason "Cap"/"NotLive"/"NotLoaded", isLive) in Bootstrap, tests; pushed, lane file says ready
+- [x] `/hw` dev command block (time offsets, candy, quest, active, kingwin, convert, reset), checked in Studio
 - [ ] Take the 08:30 interface merge (`git fetch && git merge halloween`), lint, tests, push; later merges on Request from 08:45 (cues-a drop 2, drop 3 + GUI pill about 10:00-10:20), merge `halloween` again after each
 - [ ] Match Candy at settle (Ranking hook, CandyMath with `finished`, Rush/double, friends/group through `Money.friendBoost`/`boostParts` with the guarded fallback, no "+0"), HwCandy/HwMatch events; tutorial game pays in Studio
 - [ ] Client state: `Halloween` remote, `Candy`/`HwOn` attributes, `State.luau`; nothing visible before the tutorial is Done/Skipped
