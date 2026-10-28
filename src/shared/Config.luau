@@ -17150,7 +17150,7 @@ Config.UI.Halloween = {
 		FlySeconds = 0.6, -- then flies to the tile (or the menu's Candy pill) this long
 		StillSeconds = 1.6, -- with nowhere to fly it stays this long, then fades
 		ClaimFromSeconds = 3, -- a claim's Candy flies out of the CLAIM pressed this recently
-		MaxWaitSeconds = 300, -- a match's chip waits for the result screen at most this long
+		MaxWaitSeconds = 300, -- a chip or a prize's flight waits for a free lobby at most this long (a NEW CUE! card always waits)
 		PollSeconds = 0.25, -- how often a waiting chip or card checks the player is free
 		-- The NEW CUE! card.
 		CardWidthPx = 340,
