@@ -2,7 +2,7 @@
   "id": "witch_broom",
   "Frame": "cue",
   "frame": "Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)",
-  "Triangles": 8104,
+  "Triangles": 9144,
   "Parts": [
     {
       "Material": "SmoothPlastic",
@@ -28,14 +28,14 @@
       ],
       "Triangles": 520,
       "Offset": [
-        -0.2917,
-        -0.2377,
-        -3.6201
+        -0.4901,
+        -0.3522,
+        -3.5534
       ],
       "Size": [
-        0.2391,
-        0.3345,
-        0.3883
+        0.2968,
+        0.498,
+        0.377
       ]
     },
     {
@@ -94,16 +94,16 @@
       "File": "pieces/witch_broom/Body_Bark.obj",
       "Joint": "Body",
       "Offset": [
-        -0.015,
-        0.0521,
-        -0.15
+        -0.0219,
+        0.0844,
+        -0.175
       ],
       "Size": [
-        0.48,
-        0.5542,
-        6.7
+        0.7662,
+        0.8986,
+        6.75
       ],
-      "Triangles": 5340
+      "Triangles": 5476
     },
     {
       "Material": "SmoothPlastic",
@@ -121,44 +121,16 @@
       "File": "pieces/witch_broom/Bristles_Bark.obj",
       "Joint": "Bristles",
       "Offset": [
-        -0.0057,
-        0.0128,
-        -3.6675
+        0.0014,
+        -0.0078,
+        -4.2384
       ],
       "Size": [
-        0.4788,
-        0.4821,
-        0.335
+        1.7545,
+        1.7372,
+        1.4768
       ],
-      "Triangles": 396
-    },
-    {
-      "Material": "SmoothPlastic",
-      "Color": "#FFFFFF",
-      "Transparency": 0.0,
-      "Reflectance": 0.0,
-      "SurfaceAppearance": {
-        "ColorMap": "pieces/witch_broom/atlas_color.png",
-        "NormalMap": "pieces/witch_broom/atlas_normal.png",
-        "EmissiveMask": "pieces/witch_broom/atlas_emissive.png",
-        "EmissiveTint": "#FFD36A",
-        "EmissiveStrength": 1.6,
-        "AlphaMode": "Transparency"
-      },
-      "Name": "Bristles_Straw",
-      "File": "pieces/witch_broom/Bristles_Straw.obj",
-      "Joint": "Bristles",
-      "Offset": [
-        0.0028,
-        0.0037,
-        -3.7454
-      ],
-      "Size": [
-        0.8139,
-        0.8117,
-        0.4543
-      ],
-      "Triangles": 1740
+      "Triangles": 3040
     }
   ],
   "Joints": {
@@ -218,7 +190,7 @@
             0,
             0
           ],
-          "Amp": 1.2,
+          "Amp": 1.0,
           "Period": 2.6
         },
         {
@@ -228,7 +200,7 @@
             0,
             1
           ],
-          "Amp": 0.8,
+          "Amp": 0.7,
           "Period": 4.0,
           "Phase": 90
         }
@@ -238,14 +210,14 @@
     "Charm": {
       "Parent": "Body",
       "Pivot": [
-        0.23499999940395355,
-        -6.934999942779541,
-        -0.08500000089406967
+        0.34993600845336914,
+        -6.889999866485596,
+        -0.10999999940395355
       ],
       "PivotRoblox": [
-        -0.235,
-        -0.085,
-        -3.435
+        -0.3499,
+        -0.11,
+        -3.39
       ],
       "Motion": [
         {
@@ -275,14 +247,14 @@
     "Chain2": {
       "Parent": "Charm",
       "Pivot": [
-        0.24400494992733002,
-        -6.983026504516602,
-        -0.11981915682554245
+        0.3737580180168152,
+        -6.9257330894470215,
+        -0.17749565839767456
       ],
       "PivotRoblox": [
-        -0.244,
-        -0.1198,
-        -3.483
+        -0.3738,
+        -0.1775,
+        -3.4257
       ],
       "Motion": [
         {
@@ -301,14 +273,14 @@
     "Hat": {
       "Parent": "Chain2",
       "Pivot": [
-        0.2530099153518677,
-        -7.031053066253662,
-        -0.15463832020759583
+        0.39758002758026123,
+        -6.961466312408447,
+        -0.24499133229255676
       ],
       "PivotRoblox": [
-        -0.253,
-        -0.1546,
-        -3.5311
+        -0.3976,
+        -0.245,
+        -3.4615
       ],
       "Motion": [
         {

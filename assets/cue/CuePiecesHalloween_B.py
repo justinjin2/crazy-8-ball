@@ -62,19 +62,20 @@ RULES = {
     'TipAcross': 0.12,         # the first 0.3 studs stay inside this width (the ball is 0.36 across)
     'TipLength': 0.3,
     'Bridge': (0.3, 2.1),      # the bridge hand zone
-    'Grip': (4.4, 6.75),       # the grip hand zone (rest 5.95, a wind-up slides 1.5 back)
+    'Grip': (4.4, 6.2),        # the grip hand zone (rest 5.95, a wind-up slides 1.5 back); the collar past it (remake, 13:10)
     'HandAxis': 0.02,          # centreline within this of the axis in a hand zone
-    'HandRadius': 0.02,        # radius within this of the envelope in a hand zone
-    'SideDown': 0.08,          # envelope + this sideways and downward up to 6.75
-    'UpMid': 0.25,             # +Z between 2.1 and 4.4 (twig stubs, rings, the claw)
+    'HandRadius': 0.04,        # radius within this of the envelope in a hand zone (+0.025 of bark; remake)
+    'SideDown': 0.08,          # envelope + this downward (the rails, a back's torso) up to the collar
+    'Side': 0.22,              # envelope + this sideways between the hands (remake: the knots and the stub)
+    'UpMid': 0.4,              # +Z between 2.1 and 4.4 (the crook, the knots, the branch stub; remake)
     'UpMidZone': (2.1, 4.4),
-    'ButtZone': (6.75, 7.0),   # binding, collar, cap: envelope + this all round
-    'ButtExtra': 0.2,
+    'ButtZone': (6.2, 7.0),    # the collar, binding and buckle: envelope + this all round
+    'ButtExtra': 0.25,
     'Length': 7.0,
     'PastButt': 0.3,           # a part that does not fade in the aim view (Bodies.PastButtStuds)
     'PastButtRadius': 0.45,    # ... and how far off the axis it may sit there (own number: the Broom's hat charm brim)
     'AimPastButt': 1.5,        # an Aim joint's cap (Bodies.MaxOverhangStuds)
-    'AimRadius': 1.0,          # ... and its radial room (the Cat's long tail curls 0.9 up; own number)
+    'AimRadius': 1.1,          # ... and its radial room (the Broom's splayed straw; own number)
 }
 
 
@@ -446,7 +447,7 @@ def _broom_atlas(k):
     A = Atlas('witch_broom')
     A.region('BARK', 0.0, 0.0, 0.5, 1.0)
     A.region('STRAW', 0.5, 0.0, 1.0, 0.5)
-    A.region('ROOT', 0.75, 0.5, 0.875, 0.75)
+    A.region('ROOT', 0.75, 0.5, 1.0, 0.75)
     A.region('BIND', 0.5, 0.5, 0.75, 0.75)
     A.region('SILVER', 0.5, 0.75, 0.625, 0.875)
     A.region('GOLD', 0.625, 0.75, 0.75, 0.875)
@@ -515,11 +516,16 @@ def _broom_atlas(k):
     scol = _lerp(scol, straw_dark, _smooth(V, 0.0, 0.12) * 0.5)
     A.paint('STRAW', scol, alpha=alpha, height=hgt * 0.6, bump=1.2)
 
-    # --- ROOT: dense straw, opaque, strands along v ---------------------------------------------
+    # --- ROOT: dense straw, opaque, strands along v (the bulb of the remade head wears it once
+    # round, so 64 strands across, darker where they leave the binding) --------------------------
     U, V = A.grid('ROOT')
     g = _fbm(U * 6, V * 0.5, 9.0, octaves=3, seed=31)
-    lines = 0.5 + 0.5 * np.sin(2 * np.pi * (U * 26 + 0.3 * g))
-    A.paint('ROOT', _lerp(_lerp(straw_dark, straw, lines), straw_light, (lines * g) * 0.5), height=lines * 0.5, bump=1.0)
+    tone = _fbm(U * 8, V, 5.0, octaves=2, seed=57)
+    lines = 0.5 + 0.5 * np.sin(2 * np.pi * (U * 64 + 0.25 * g))
+    rcol = _lerp(_lerp(straw_dark, straw, lines), straw_light, (lines * g) * 0.5)
+    rcol = _lerp(rcol, straw_dark, (1 - tone) * 0.35)
+    rcol = _lerp(rcol, straw_dark, _smooth(V, 0.1, 0.0) * 0.5)
+    A.paint('ROOT', rcol, height=lines * 0.5 + tone * 0.3, bump=1.0)
 
     # --- BIND: purple fabric wraps with ridges across (v), a weave ------------------------------
     U, V = A.grid('BIND')
@@ -575,34 +581,65 @@ def _crook(d):
     0.25), a shallow dip (-0.02, the down room is 0.08) and ±0.065 sideways, eased in and out."""
     w = float(_smooth(d, 2.1, 2.4)) * float(_smooth(d, 4.4, 4.1))
     t = min(1.0, max(0.0, (d - 2.1) / (4.4 - 2.1)))
-    x = 0.065 * w * math.sin(2 * math.pi * t * 1.5 + 0.4)
-    z = w * (0.12 * math.sin(math.pi * t) + 0.07 * math.sin(2 * math.pi * t * 2 + 0.3))
+    x = 0.1 * w * math.sin(2 * math.pi * t * 1.5 + 0.4)
+    z = w * (0.15 * math.sin(math.pi * t) + 0.07 * math.sin(2 * math.pi * t * 2 + 0.3))
     return (x, z)
 
 
 @piece
 def witch_broom(k):
-    """The Witch's Broom body (brief 2.4, concept C3b_broom.png). Tip (0-0.3): a six-sided
-    violet Glass crystal over a Neon core (Glow 0.2-0.7 over 2.4 s). Handle (0.3-6.75): one
-    bark lathe exactly on the envelope in both hand zones, a pulled branch's wave between them
-    (a hump of 0.185 up, a dip, ±0.065 sideways), two knot holes bulging at 2.6 and 3.95, three
-    twig stubs pointing up between 2.3 and 4.2, the silver spiral bands painted flush at
-    0.3-0.6. Binding (6.75-7.0): purple ridged wraps with a silver square buckle on the +X side
-    carrying a gold crescent (emissive). Bristles (joint Bristles, Aim fade): a dense straw
-    root flaring past the butt into a dome of strands (no end face) and two rings of straw
-    cards all round it with alpha-frayed uneven tips (compact to 7.45, 0.76 across; long to
-    8.2, 0.88 across). The hat charm (2x): two chain links and a purple hat with a gold band,
-    one skinned mesh on a 3-bone Sway chain hung from the buckle (15-20 degrees over 1.8 s),
-    hanging back past the butt beside the bristle root; an Aim joint, so it fades with them."""
+    """The Witch's Broom body, remade 2026-10-28 (Justin, 12:55: a real broom, not a dressed
+    cue; concept C3b_broom.png). Tip (0-0.3): a six-sided violet Neon crystal over a brighter
+    core (Glow), a silver coil wound round its base. Handle (0.3-6.75, joint Body): one bark
+    lathe that keeps the envelope (+0.025 of bark) only where the hands hold it; between the
+    hands it is a gnarled branch (three ridges spiralling along it, a crook, two knot holes,
+    bark lumps, a thick broken branch stub and two twigs) and before the binding it swells into
+    a twisted collar. Binding (6.55-7.05): thick purple cord wraps closed at both ends, a big
+    silver buckle on the +X side carrying the gold crescent (emissive). Bristles (joint
+    Bristles, Aim fade, 3.3x the first head): an opaque straw bulb from the binding to d 8.47
+    (1.2 across at its widest, fuller on top, flatter underneath), a purple cord round its
+    waist, three layers of opaque tapered straws (70, double-sided) splaying past it to pointed
+    tips up to 1.9 across, the lower ones drooping, and 130 thinner straws poking out of the
+    bulb, most near its end (opaque, never alpha cards: the outline inks each straw).
+    The hat charm (two chain links and a 0.3-tall hat, one skinned mesh on a 3-bone Sway
+    chain) hangs from the buckle below the head, clear of the straw; an Aim joint too."""
     import bmesh
     from mathutils import Vector, Matrix
     R = _radius()
     A = _broom_atlas(k)
-    k.material('Crystal', 'Neon', BROOM['crystal'], Transparency=0.3)   # Neon since the 11:55 redo: the Glass read matte
+    k.material('Crystal', 'Neon', BROOM['crystal'], Transparency=0.3)
     k.material('CrystalCore', 'Neon', BROOM['core'])
-    long = LONG['witch_broom']
 
-    # --- the crystal tip --------------------------------------------------------------------
+    def double_side(bm):
+        """Duplicate every face flipped: the cards and strands show from both sides without a
+        Solidify rim (Roblox culls back faces; the two layers never show together)."""
+        ret = bmesh.ops.duplicate(bm, geom=bm.faces[:])
+        bmesh.ops.reverse_faces(bm, faces=[g for g in ret['geom'] if isinstance(g, bmesh.types.BMFace)])
+
+    def tube(bm, uvl, pts, radii, minor, uv_fn):
+        """A tube along a polyline (the silver coil)."""
+        rings = []
+        n = len(pts)
+        for i, p in enumerate(pts):
+            t = (pts[min(i + 1, n - 1)] - pts[max(i - 1, 0)]).normalized()
+            u = Vector((0, 0, 1))
+            if abs(t.dot(u)) > 0.9:
+                u = Vector((1, 0, 0))
+            nrm = (u - t * t.dot(u)).normalized()
+            bi = t.cross(nrm)
+            ring = []
+            for j in range(minor + 1):
+                a = 2 * math.pi * j / minor
+                ring.append(bm.verts.new(p + (nrm * math.cos(a) + bi * math.sin(a)) * radii[i]))
+            rings.append(ring)
+        for i in range(n - 1):
+            for j in range(minor):
+                f = bm.faces.new((rings[i][j], rings[i + 1][j], rings[i + 1][j + 1], rings[i][j + 1]))
+                for lp, (uu, vv) in zip(f.loops, ((j / minor, i / (n - 1)), (j / minor, (i + 1) / (n - 1)),
+                                                 ((j + 1) / minor, (i + 1) / (n - 1)), ((j + 1) / minor, i / (n - 1)))):
+                    lp[uvl].uv = uv_fn(uu, vv)
+
+    # --- the crystal tip ---------------------------------------------------------------------
     k.joint('Tip', pivot=(0, 0, 0), visual=[{'Kind': 'Glow', 'Min': 0.25, 'Max': 1.0, 'Period': 2.4}])
     bm = bmesh.new()
     _lathe(bm, [0.0, 0.05, 0.13, 0.22, 0.3], [0.006, 0.038, 0.058, 0.052, R(0.3)], 6, close=True, twist_per_ring=0.0)
@@ -611,126 +648,189 @@ def witch_broom(k):
     _lathe(bm, [0.03, 0.1, 0.2, 0.29], [0.012, 0.03, 0.032, 0.03], 6, close=True)
     k.add('Tip', k.mesh_object('TipCore', bm, ['CrystalCore'], smooth=False))
 
-    # --- the handle --------------------------------------------------------------------------
+    # --- the handle: a gnarled branch ----------------------------------------------------------
     k.joint('Body', pivot=(0, -3.5, 0))
+
+    def mid_w(d):      # 1 between the hands
+        return float(_smooth(d, 2.1, 2.45)) * float(_smooth(d, 4.4, 4.05))
+
+    def collar_w(d):   # 1 at the binding
+        return float(_smooth(d, 6.15, 6.6))
+
+    def handle_r(d):
+        return R(d) + 0.025 + 0.055 * mid_w(d) + 0.1 * collar_w(d)
+
     bm = bmesh.new()
     uvl = bm.loops.layers.uv.new('UVMap')
     n = int(round((HANDLE[1] - HANDLE[0]) / 0.08)) + 1
     ds = [HANDLE[0] + (HANDLE[1] - HANDLE[0]) * i / (n - 1) for i in range(n)]
     centres = [_crook(d) for d in ds]
 
-    def knot_shape(a, i):
+    def bark_shape(a, i):
         d = ds[i]
+        w = max(mid_w(d), collar_w(d))
         s = 1.0
+        # three ridges winding along the branch (the twist), strongest between the hands and at the collar
+        ridge = (0.5 + 0.5 * math.cos(3 * a + d * 2.6)) ** 2
+        s += (0.02 + 0.14 * w) * ridge
         for kd, ka, kb in KNOTS:
             da = (a - ka + math.pi) % (2 * math.pi) - math.pi
-            s += kb * math.exp(-(da / 0.7) ** 2) * math.exp(-((d - kd) / 0.22) ** 2)
-        if 2.1 < d < 4.4:  # bark lumps on top only (+Z is up: angle pi), never below or sideways
-            s += 0.16 * max(0.0, math.cos(a - math.pi)) * (0.5 + 0.5 * math.sin(d * 7.0))
+            s += kb * math.exp(-(da / 0.75) ** 2) * math.exp(-((d - kd) / 0.24) ** 2)
+        if 2.1 < d < 4.4:  # bark lumps on top only (+Z is up: angle pi)
+            s += 0.08 * mid_w(d) * max(0.0, math.cos(a - math.pi)) * (0.5 + 0.5 * math.sin(d * 7.0))
+        # the collar's knob: a twisted swelling on the upper side just before the binding
+        s += 0.2 * collar_w(d) * (1 - float(_smooth(d, 6.62, 6.75))) * max(0.0, math.cos(a - math.pi * 0.8)) ** 2
+        s *= 1 - 0.1 * w * max(0.0, math.cos(a))   # flatter underneath (the rails, a back)
         return s
-    _lathe_uv(bm, uvl, ds, [R(d) for d in ds], 24, lambda u, v: A.uv('BARK', u, v), centres=centres,
-              shape=knot_shape, close=True, cap_uv=A.uv('BARK', 0.5, 0.98))
+    _lathe_uv(bm, uvl, ds, [handle_r(d) for d in ds], 24, lambda u, v: A.uv('BARK', u, v), centres=centres,
+              shape=bark_shape, close=True, cap_uv=A.uv('BARK', 0.5, 0.98))
     k.add('Body', k.mesh_object('Handle', bm, ['Bark']))
 
-    # the twig stubs: short tapering cones growing up (+Z) from the handle, leaning a little
-    for i, (d, length, lean) in enumerate(TWIGS):
+    # the branch stub (broken off, a jagged end) and two twigs, growing up from the handle
+    stubs = [(3.45, 0.27, (0.68, 0.25, 0.55), (0.075, 0.064, 0.052, 0.046), 10),
+             (2.35, 0.14, (0.5, -0.25, 0.85), (0.045, 0.034, 0.024, 0.008), 8),
+             (4.05, 0.17, (-0.35, -0.1, 0.9), (0.045, 0.034, 0.024, 0.008), 8)]
+    for i, (d, length, direction, radii, segs) in enumerate(stubs):
         bm = bmesh.new()
         uvl = bm.loops.layers.uv.new('UVMap')
         cx, cz = _crook(d)
-        base = Vector((cx, -d, cz + R(d) * 0.6))
-        direction = Vector((math.sin(lean) * 0.5, -0.25 + 0.15 * i, math.cos(lean) * 0.5 + 0.5)).normalized()
+        base = Vector((cx + 0.3 * handle_r(d) * direction[0], -d, cz + handle_r(d) * 0.55))
         ls = [0.0, 0.35, 0.7, 1.0]
-        rings = _lathe_uv(bm, uvl, [l * length for l in ls], [0.045, 0.034, 0.024, 0.008], 8,
-                          lambda u, v: A.uv('BARK', 0.15 + 0.3 * u, 0.55 + 0.1 * v), close=True)
-        _transform(bm, bm.verts[:], _basis(base, direction))
+        _lathe_uv(bm, uvl, [l * length for l in ls], list(radii), segs,
+                  lambda u, v: A.uv('BARK', 0.15 + 0.3 * u, 0.55 + 0.1 * v), close=True,
+                  shape=(lambda a, j: 1 + 0.12 * math.sin(a * 5 + j) * (j == 3)) if i == 0 else None)
+        _transform(bm, bm.verts[:], _basis(base, Vector(direction).normalized()))
         k.add('Body', k.mesh_object('Twig%d' % (i + 1), bm, ['Bark']))
 
-    # --- the binding and the buckle --------------------------------------------------------------
+    # the silver coil round the crystal's base (the concept's metal bands), 2.5 turns
     bm = bmesh.new()
     uvl = bm.loops.layers.uv.new('UVMap')
-    nb = 26
-    dsb = [BINDING[0] + (BINDING[1] - BINDING[0]) * i / (nb - 1) for i in range(nb)]
-    rsb = [R(d) + 0.025 + 0.02 * (0.5 + 0.5 * math.sin((d - BINDING[0]) / (BINDING[1] - BINDING[0]) * 2 * math.pi * 6)) for d in dsb]
-    rsb[0] = R(dsb[0]) + 0.004
-    rsb[-1] = R(dsb[-1]) + 0.01
-    _lathe_uv(bm, uvl, dsb, rsb, 24, lambda u, v: A.uv('BIND', u, v), close=False)
-    # the buckle: a flat silver square on the +X side of the binding, its outer face the crescent
-    bd = 0.5 * (BINDING[0] + BINDING[1])
+    pts = []
+    nc = 44
+    for i in range(nc + 1):
+        t = i / nc
+        d = 0.32 + 0.3 * t
+        th = 2 * math.pi * 2.5 * t
+        rho = R(d) + 0.009
+        pts.append(Vector((rho * math.sin(th), -d, -rho * math.cos(th))))
+    tube(bm, uvl, pts, [0.011] * (nc + 1), 6, lambda u, v: A.uv('SILVER', u, v))
+    k.add('Body', k.mesh_object('Coil', bm, ['Bark']))
+
+    # --- the binding and the buckle ---------------------------------------------------------------
+    bm = bmesh.new()
+    uvl = bm.loops.layers.uv.new('UVMap')
+    b0, b1 = 6.55, 7.05
+    nb = 18
+    dsb = [b0 + (b1 - b0) * i / (nb - 1) for i in range(nb)]
+    rsb = [handle_r(min(d, 6.75)) + 0.03 + 0.03 * (0.5 + 0.5 * math.sin((d - b0) / (b1 - b0) * 2 * math.pi * 7)) for d in dsb]
+    rsb[0] = handle_r(b0) + 0.004
+    rsb[-1] = rsb[-2] * 0.92
+    _lathe_uv(bm, uvl, dsb, rsb, 22, lambda u, v: A.uv('BIND', u, v), close=True, cap_uv=A.uv('BIND', 0.5, 0.5))
+    bd = 6.82
     bx = Vector((1, 0, 0))
-    bo = Vector((R(bd) + 0.045 + 0.015, -bd, 0.0))
-    _box_uv(bm, uvl, bo, (0.03, 0.17, 0.17), (bx, Vector((0, 1, 0)), Vector((0, 0, 1))),
+    bo = Vector((max(rsb) + 0.02, -bd, 0.0))
+    _box_uv(bm, uvl, bo, (0.04, 0.22, 0.22), (bx, Vector((0, 1, 0)), Vector((0, 0, 1))),
             lambda axis, sign: (lambda u, v: A.uv('BUCKLE', u, v)) if (axis == 0 and sign == 1)
             else (lambda u, v: A.uv('SILVER', u, v)))
     k.add('Body', k.mesh_object('Binding', bm, ['Bark']))
 
-    # --- the bristles (joint Bristles: Aim fade) ----------------------------------------------
+    # --- the bristle head (joint Bristles: Aim fade) ----------------------------------------------
     k.joint('Bristles', pivot=(0, -7.0, 0), parent='Body',
-            motion=[{'Kind': 'Hinge', 'Axis': (1, 0, 0), 'Amp': 1.2, 'Period': 2.6},
-                    {'Kind': 'Hinge', 'Axis': (0, 0, 1), 'Amp': 0.8, 'Period': 4.0, 'Phase': 90}],
+            motion=[{'Kind': 'Hinge', 'Axis': (1, 0, 0), 'Amp': 1.0, 'Period': 2.6},
+                    {'Kind': 'Hinge', 'Axis': (0, 0, 1), 'Amp': 0.7, 'Period': 4.0, 'Phase': 90}],
             aim='fade')
-    tip_d = 8.2 if long else 7.45
-    tip_r = 0.44 if long else 0.38
-    # the dense root: an opaque straw flare from the binding's end closed by a dome of
-    # converging strands (no flat end face: coordinator, 09:20); the cards fray past it
-    bm = bmesh.new()
-    uvl = bm.loops.layers.uv.new('UVMap')
-    root_end = 7.5 if long else 7.26
-    root_r = 0.32 if long else 0.26
-    nr = 8
-    dsr = [7.0 + (root_end - 7.0) * i / (nr - 1) for i in range(nr)]
-    rsr = [R(7.0) * 0.98 + (root_r - R(7.0) * 0.98) * ((i / (nr - 1)) ** 0.8) for i in range(nr)]
-    dsr += [root_end + a for a in (0.03, 0.06, 0.075)]
-    rsr += [root_r * b for b in (0.85, 0.55, 0.2)]
+    bulb_ds = [7.0, 7.12, 7.3, 7.55, 7.85, 8.1, 8.3, 8.42, 8.47]
+    bulb_rs = [0.3, 0.42, 0.5, 0.56, 0.58, 0.52, 0.38, 0.22, 0.1]
 
-    def root_shape(a, i):   # fuller on top and the sides, flatter underneath, a little ragged
-        return (0.85 + 0.15 * (0.5 - 0.5 * math.cos(a))) * (1 + 0.05 * math.sin(a * 5 + i))
-    _lathe_uv(bm, uvl, dsr, rsr, 18, lambda u, v: A.uv('ROOT', u, v), shape=root_shape, close=True,
-              cap_uv=A.uv('ROOT', 0.5, 0.5))
-    k.add('Bristles', k.mesh_object('BristleRoot', bm, ['Bark']))
-    # the straw cards: three rings of strips all round the root, flaring out past it to uneven
-    # tips (frayed by the STRAW alpha), fuller and splayed like C3b; first the bundle's end, a
-    # cone of straw converging past the root whose strands fray to the centre: a tangle of
-    # ends, never a face
+    def bulb_r(d):
+        for (d0, r0), (d1, r1) in zip(zip(bulb_ds, bulb_rs), zip(bulb_ds[1:], bulb_rs[1:])):
+            if d0 <= d <= d1:
+                t = (d - d0) / (d1 - d0)
+                return r0 + (r1 - r0) * t
+        return bulb_rs[-1]
+
+    def bulb_shape(a, i):   # fuller on top, flatter underneath, a little ragged
+        return (0.88 + 0.17 * (0.5 - 0.5 * math.cos(a))) * (1 + 0.06 * math.sin(a * 7 + i * 1.7))
     bm = bmesh.new()
     uvl = bm.loops.layers.uv.new('UVMap')
-    _lathe_uv(bm, uvl, [root_end - 0.02, root_end + 0.07, root_end + 0.15, root_end + 0.21],
-              [root_r * 1.02, root_r * 0.78, root_r * 0.45, root_r * 0.1], 18,
-              lambda u, v: A.uv('STRAW', u, 0.2 + 0.8 * v), close=False)
-    layers = (((7.02, 0.92, 0.95, 18), (7.1, 0.62, 1.05, 16), (7.18, 0.35, 1.0, 10)) if long
-              else ((7.02, 0.9, 0.9, 16), (7.1, 0.62, 1.0, 14), (7.16, 0.35, 0.95, 10)))
-    seg = 4
-    for li, (d0, r_share, t_scale, cards) in enumerate(layers):   # (start d, start radius share, tip scale, count)
+    _lathe_uv(bm, uvl, bulb_ds, bulb_rs, 24, lambda u, v: A.uv('ROOT', u, v), shape=bulb_shape, close=True,
+              cap_uv=A.uv('ROOT', 0.5, 0.95))
+    # the purple cord round the bulb's waist
+    cds = [7.28, 7.31, 7.36, 7.41, 7.44]
+    crs = [bulb_r(d) * 1.0 + (0.0, 0.03, 0.035, 0.03, 0.0)[i] for i, d in enumerate(cds)]
+    _lathe_uv(bm, uvl, cds, crs, 24, lambda u, v: A.uv('BIND', u, 0.3 + 0.4 * v), shape=bulb_shape, close=False)
+    k.add('Bristles', k.mesh_object('BristleRoot', bm, ['Bark']))
+
+    # The straws: opaque tapered strips, never alpha cards (the cue's inked outline Highlight
+    # draws every part's silhouette, so an alpha-cut card outlined as a rectangle and 220 hair-
+    # thin strands outlined one by one read as a violet fuzz in the lobby, 13:20). Three layers
+    # of wide straws all round, splaying past the bulb to pointed uneven tips, the lower ones
+    # drooping; then thinner straws poking out of the bulb, most near its end. Each straw's
+    # outline then inks it like a drawn straw, the game's cartoon line.
+    bm = bmesh.new()
+    uvl = bm.loops.layers.uv.new('UVMap')
+    layers = ((0.92, 0.78, 26), (0.72, 1.0, 24), (0.5, 1.18, 20))   # (start share of the binding's radius, tip scale, count)
+    tip_r0 = 0.68
+    seg = 5
+    for li, (share, tscale, cards) in enumerate(layers):
+        d0 = 7.02 + 0.05 * li
         for c in range(cards):
-            frac = (c + 0.5 + 0.5 * li) / cards
+            frac = (c + 0.5 + 0.37 * li) / cards
             ang = 2 * math.pi * frac
             rad = Vector((math.sin(ang), 0, -math.cos(ang)))
             tang = Vector((math.cos(ang), 0, math.sin(ang)))
             hc = c + 31 * li
-            width = 0.22 * (0.8 + 0.4 * _hash(hc, 7))
-            r0 = root_r * r_share * (0.85 + 0.15 * (0.5 - 0.5 * math.cos(ang)))
-            end = d0 + (tip_d - d0) * (0.72 + 0.28 * _hash(hc, 5))
-            tr = tip_r * t_scale * (0.85 + 0.3 * _hash(hc, 8))
+            width = 0.16 * (0.75 + 0.5 * _hash(hc, 7))
+            r0 = 0.34 * share * (0.85 + 0.15 * (0.5 - 0.5 * math.cos(ang)))
+            end = d0 + (8.48 - d0) * (0.78 + 0.22 * _hash(hc, 5))
+            tr = min(0.98, tip_r0 * tscale * (0.85 + 0.3 * _hash(hc, 8)))
+            under = max(0.0, math.cos(ang))
             left, right = [], []
             for s in range(seg + 1):
                 t = s / seg
                 d = d0 + (end - d0) * t
-                r = r0 + (tr - r0) * (t ** 0.8)
-                twist = 0.12 * math.sin(t * 3 + c) * (1 if long else 0.4)
-                p = Vector((0, -d, 0)) + rad * r + tang * (twist * r)
-                w = width * (0.7 + 0.5 * t)
+                r = r0 + (tr - r0) * (t ** 0.85)
+                twist = 0.1 * math.sin(t * 3 + c)
+                p = Vector((0, -d, -0.1 * t * t * under)) + rad * r + tang * (twist * r)
+                w = width * (1.0 - 0.85 * t * t)   # to a point
                 left.append(p - tang * (w / 2))
                 right.append(p + tang * (w / 2))
-            _strip_uv(bm, uvl, left, right, lambda u, v: A.uv('STRAW', (c % 3) / 3 + u / 3, v))
-    ob = k.mesh_object('BristleCards', bm, ['Straw'], smooth=False)
-    apply_modifier(k.bpy, ob, 'SOLIDIFY', thickness=0.006, offset=0.0)
-    k.add('Bristles', ob)
+            u0 = 0.05 + 0.85 * _hash(hc, 9)
+            _strip_uv(bm, uvl, left, right, lambda u, v, u0=u0: A.uv('ROOT', u0 + u * 0.06, 0.15 + 0.8 * v))
+    for i in range(130):
+        h = lambda j: _hash(i + 400, j)
+        d = 7.2 + 1.2 * (h(1) ** 0.7)   # more of them toward the end, where the bundle frays
+        ang = 2 * math.pi * h(2)
+        rad = Vector((math.sin(ang), 0, -math.cos(ang)))
+        tang = Vector((math.cos(ang), 0, math.sin(ang)))
+        rb = bulb_r(d) * (0.88 + 0.17 * (0.5 - 0.5 * math.cos(ang))) * 0.97
+        base = Vector((0, -d, 0)) + rad * rb
+        tilt = math.radians(25 + 45 * h(3))
+        yaw = math.radians(-25 + 50 * h(4))
+        dirv = (rad * math.cos(tilt) + Vector((0, -1, 0)) * math.sin(tilt) + tang * math.sin(yaw) * 0.5).normalized()
+        L = 0.22 + 0.25 * h(5)
+        if d - dirv.y * L > 8.46:
+            L = (8.46 - d) / max(1e-3, -dirv.y)
+        if L < 0.1:
+            continue
+        side = dirv.cross(rad).normalized() if abs(dirv.dot(rad)) < 0.98 else tang
+        left, right = [], []
+        for s, t in enumerate((0.0, 0.55, 1.0)):
+            p = base + dirv * (L * t) + Vector((0, 0, -0.05 * t * t))
+            w = 0.055 - 0.04 * t
+            left.append(p - side * (w / 2))
+            right.append(p + side * (w / 2))
+        u0 = 0.05 + 0.85 * h(6)
+        _strip_uv(bm, uvl, left, right, lambda u, v, u0=u0: A.uv('ROOT', u0 + u * 0.05, 0.2 + 0.7 * v))
+    double_side(bm)
+    k.add('Bristles', k.mesh_object('BristleStraws', bm, ['Bark'], smooth=False))
 
     # --- the hat charm: two chain links and the hat on a 3-bone Sway chain ----------------------
-    # Hung from the buckle's lower edge, back past the butt and down, so the hat (2x) swings
-    # beside the bristle root; an Aim joint like the bristles, so it fades for the aiming owner.
-    P0 = Vector((bo.x - 0.005, -bd - 0.06, -0.085))
-    hang = Vector((0.15, -0.8, -0.58)).normalized()
-    link = 0.06
+    # Hung from the buckle's lower edge, outward and down, so the hat swings below the head's
+    # root, clear of the straw; an Aim joint like the bristles, so it fades for the aiming owner.
+    P0 = Vector((bo.x - 0.035, -bd - 0.07, -0.11))
+    hang = Vector((0.3, -0.45, -0.85)).normalized()
+    link = 0.08
     P1 = P0 + hang * link
     P2 = P1 + hang * link
     period = 1.8
@@ -746,20 +846,17 @@ def witch_broom(k):
     uvl = bm.loops.layers.uv.new('UVMap')
     side = hang.cross(Vector((0, 1, 0))).normalized()
     for i, c in enumerate((P0 + hang * (link * 0.5), P1 + hang * (link * 0.5))):
-        _torus_uv(bm, uvl, c, side if i % 2 == 0 else side.cross(hang), link * 0.5 - 0.005, 0.008, A.uv('CHAIN', 0.5, 0.5), segs=12, minor=6)
-    # the hat: a bent cone hanging point-up from P2, its brim below; built along -Y then turned
-    hat_h, brim_r, crown_r = 0.24, 0.12, 0.072   # 2x (coordinator, 09:20): it reads at gameplay distance
+        _torus_uv(bm, uvl, c, side if i % 2 == 0 else side.cross(hang), link * 0.5 - 0.006, 0.009, A.uv('CHAIN', 0.5, 0.5), segs=12, minor=6)
+    hat_h, brim_r, crown_r = 0.3, 0.15, 0.09
     hb = bmesh.new()
     uvh = hb.loops.layers.uv.new('UVMap')
-    hs = [0.0, 0.04, 0.1, 0.16, 0.21, 0.24]
-    hr = [0.008, 0.024, 0.044, 0.06, crown_r, crown_r]
-    bend = [(0.06, 0.0), (0.044, 0.0), (0.024, 0.0), (0.008, 0.0), (0.0, 0.0), (0.0, 0.0)]
+    hs = [0.0, 0.05, 0.12, 0.2, 0.26, 0.3]
+    hr = [0.01, 0.03, 0.055, 0.075, crown_r, crown_r]
+    bend = [(0.075, 0.0), (0.055, 0.0), (0.03, 0.0), (0.01, 0.0), (0.0, 0.0), (0.0, 0.0)]
     _lathe_uv(hb, uvh, hs, hr, 12, lambda u, v: A.uv('HAT', u, 0.34 + 0.66 * (1 - v)), centres=bend, close=False)
-    _lathe_uv(hb, uvh, [hat_h, hat_h + 0.012, hat_h + 0.024, hat_h + 0.036], [crown_r, brim_r, brim_r, crown_r * 0.6], 14,
+    _lathe_uv(hb, uvh, [hat_h, hat_h + 0.014, hat_h + 0.028, hat_h + 0.042], [crown_r, brim_r, brim_r, crown_r * 0.6], 14,
               lambda u, v: A.uv('HAT', u, 0.12 + 0.22 * (1 - v)), close=True, cap_uv=A.uv('HAT', 0.5, 0.05))
-    # the hat's local -Y runs from the point (0) down to the brim: hang it along `hang`
-    _transform(hb, hb.verts[:], _basis(P2 + hang * 0.0, hang, up_hint=(1, 0, 0)))
-    # merge the hat into the charm mesh
+    _transform(hb, hb.verts[:], _basis(P2, hang, up_hint=(1, 0, 0)))
     hat_me = k.bpy.data.meshes.new('HatTmp')
     hb.to_mesh(hat_me)
     hb.free()
@@ -774,7 +871,7 @@ def witch_broom(k):
     k.skins['HatCharm'] = {'root': 'Charm', 'meshes': [ob], 'bones': {
         'Chain2': lambda V: ramp(along(V), link * 0.9, link * 1.1),
         'Hat': lambda V: ramp(along(V), link * 1.9, link * 2.1)}}
-    print('CUE broom charm: buckle at d %.2f, hat point %s, long=%s' % (bd, [round(x, 3) for x in P2], long))
+    print('CUE broom remake: buckle at d %.2f, hat point %s, head to d %.2f' % (bd, [round(x, 3) for x in P2], bulb_ds[-1]))
 
 
 # =============================================================================================
@@ -783,66 +880,24 @@ def witch_broom(k):
 
 @piece
 def witch_broom_aura(k):
-    """Aura-only decoration (hides with the aura, brief 2.4), the second build (designer,
-    2026-10-28 11:55: the first read as a plain matte stick): the concept's glowing magic
-    ribbons round the whole handle, made the Firework's way (CuePiecesUnique.firework: narrow
-    saturated Neon strips; wide pale bands and a Glow toward white only bloomed into a white
-    sheet in daylight). Two ribbons (violet, emerald, 0.09 wide) spiralling in opposite senses
-    0.2 off the bark, a turn every 1.8 studs, turning like a screw (40 and -40 degrees a
-    second) with a Glow wave toward a lighter tint of their own hue; a thin gold sparkle
-    thread the other way (70 a second, twinkling); three gold crescent moons, five four-point
-    stars and two bats as meshes orbiting the handle (Spin and Bob, the bats flapping on Sway
-    hinges), the stars twinkling (Fade). Lower effects keeps the ribbons, the moons and one
-    bat; the stars, the gold thread and the second bat hide."""
+    """Aura-only decoration (hides with the aura, brief 2.4), the third build (Justin, 12:55: no
+    ribbons on any cue, each cue its own hand-made effect): the Broom's are the things a witch
+    keeps round her broom. Three gold crescent moons, five four-point stars and two bats as
+    meshes orbiting the handle (Spin and Bob, the bats flapping on Sway hinges), the stars
+    twinkling (Fade); three spell sigils (a Neon ring with a pentagram and an inner circle,
+    violet, emerald and gold) hovering beside the handle facing out, each on a `life` cycle of
+    its own length (it writes itself in, holds, dissolves), turning slowly. The smoke, bats
+    bursting from the bristles, the crystal's sparks and the potion bubbles are the skin's
+    emitters. Lower effects keeps the moons, two sigils and one bat; the stars, the third
+    sigil and the second bat hide."""
     import bmesh
     from mathutils import Vector
     R = _radius()
     k.material('Violet', 'Neon', '#8B30FF', Transparency=0.05)
     k.material('Emerald', 'Neon', '#19E088', Transparency=0.05)
     k.material('Gold', 'Neon', BROOM['gold'], Transparency=0.0)
-    k.material('GoldSoft', 'Neon', '#FFC94A', Transparency=0.2)
     k.material('Bat', 'SmoothPlastic', '#160A28')
     k.material('BatEye', 'Neon', '#FFD36A')
-
-    def helix_strip(sense, phase, pitch, lift, half, n=160, d0=0.35, d1=6.9, wave=0.0):
-        bm = bmesh.new()
-        left, right = [], []
-        for i in range(n):
-            d = d0 + (d1 - d0) * i / (n - 1)
-            a = sense * 2 * math.pi * d / pitch + phase
-            radial = Vector((math.sin(a), 0, math.cos(a)))
-            p = Vector((0, -d, 0)) + radial * (R(d) + lift)
-            d2 = min(d + 0.01, d1)
-            a2 = sense * 2 * math.pi * d2 / pitch + phase
-            p2 = Vector((0, -d2, 0)) + Vector((math.sin(a2), 0, math.cos(a2))) * (R(d2) + lift)
-            tang = (p2 - p).normalized()
-            across = tang.cross(radial).normalized()
-            w = half + wave * math.sin(d * 1.7 + phase)
-            left.append(bm.verts.new(p - across * w))
-            right.append(bm.verts.new(p + across * w))
-        for i in range(n - 1):
-            bm.faces.new((left[i], right[i], right[i + 1], left[i + 1]))
-        return bm
-
-    # The two magic ribbons: narrow saturated Neon strips, the Firework's recipe in the
-    # Broom's colours; their Glow breathes toward a lighter tint of the same hue, never white.
-    for name, mat, tint, sense, phase, rate, period in (
-            ('RibbonViolet', 'Violet', '#B470FF', 1, 0.0, 40.0, 2.6),
-            ('RibbonEmerald', 'Emerald', '#7CFFC2', -1, math.pi, -40.0, 4.0)):
-        k.joint(name, pivot=(0, -3.5, 0), aura=True,
-                motion=[{'Kind': 'Spin', 'Axis': (0, 1, 0), 'Rate': rate}],
-                visual=[{'Kind': 'Glow', 'Min': 0.0, 'Max': 0.45, 'Period': period, 'Phase': 0 if sense > 0 else 90,
-                         'Color': tint}])
-        ob = k.mesh_object(name + 'Strip', helix_strip(sense, phase, 1.8, 0.2, 0.045), [mat])
-        apply_modifier(k.bpy, ob, 'SOLIDIFY', thickness=0.016, offset=0.0)
-        k.add(name, ob)
-    # The gold sparkle thread, the other way and faster, twinkling.
-    k.joint('ThreadGold', pivot=(0, -3.5, 0), aura=True, low='hide',
-            motion=[{'Kind': 'Spin', 'Axis': (0, 1, 0), 'Rate': 70.0}],
-            visual=[{'Kind': 'Fade', 'Min': 0.35, 'Max': 1.0, 'Period': 1.6}])
-    ob = k.mesh_object('ThreadGoldStrip', helix_strip(1, math.pi * 0.5, 3.4, 0.3, 0.02), ['GoldSoft'])
-    apply_modifier(k.bpy, ob, 'SOLIDIFY', thickness=0.016, offset=0.0)
-    k.add('ThreadGold', ob)
 
     def flat(bm, ob_name, mat, thickness):
         ob = k.mesh_object(ob_name, bm, [mat])
@@ -930,6 +985,40 @@ def witch_broom_aura(k):
             for j in range(len(vs) - 1):
                 bm.faces.new((root, vs[j], vs[j + 1]))
             k.add(wname, flat(bm, wname, 'Bat', 0.02))
+
+    # Three spell sigils hovering beside the handle, facing out: a ring, a pentagram and an inner
+    # circle of thin Neon quads (0.028 wide, like the web lines that read in the lab), each on a
+    # life cycle of its own length and turning slowly round the handle.
+    for i, (d, mat, tint, rate, period, phase, low) in enumerate((
+            (1.1, 'Violet', '#C9A0FF', 14.0, 6.0, 0, None), (3.0, 'Emerald', '#9CFFD8', -11.0, 7.5, 120, None),
+            (4.9, 'Gold', '#FFF0C0', 16.0, 6.8, 240, 'hide'))):
+        name = 'Sigil%d' % (i + 1)
+        k.joint(name, pivot=(0, -d, 0), aura=True, low=low,
+                motion=[{'Kind': 'Spin', 'Axis': (0, 1, 0), 'Rate': rate},
+                        {'Kind': 'Bob', 'Dir': (0, 1, 0), 'Amp': 0.12, 'Period': 2.9 + 0.4 * i, 'Phase': 50 * i}],
+                visual=[{'Kind': 'Fade', 'Min': 0.0, 'Max': 1.0, 'Period': period, 'Shape': 'life', 'Phase': phase},
+                        {'Kind': 'Glow', 'Min': 0.0, 'Max': 0.35, 'Period': 1.7, 'Phase': 30 * i, 'Color': tint}])
+        bm = bmesh.new()
+        c = Vector((0.62, -d, 0))
+        u, v = Vector((0, 1, 0)), Vector((0, 0, 1))   # the sigil's plane faces out from the handle
+        w = 0.028
+
+        def line(p, q):
+            along = (q - p).normalized()
+            across = Vector((0, along.z, -along.y)) * (w / 2)   # in the plane, across the line
+            bm.faces.new((bm.verts.new(p - across), bm.verts.new(q - across), bm.verts.new(q + across), bm.verts.new(p + across)))
+        n = 28
+        ring = [c + u * (0.3 * math.cos(2 * math.pi * j / n)) + v * (0.3 * math.sin(2 * math.pi * j / n)) for j in range(n)]
+        for j in range(n):
+            line(ring[j], ring[(j + 1) % n])
+        pts = [c + u * (0.26 * math.cos(math.pi / 2 + 2 * math.pi * j / 5)) + v * (0.26 * math.sin(math.pi / 2 + 2 * math.pi * j / 5)) for j in range(5)]
+        for j in range(5):
+            line(pts[j], pts[(j + 2) % 5])
+        m = 12
+        for j in range(m):
+            line(c + u * (0.1 * math.cos(2 * math.pi * j / m)) + v * (0.1 * math.sin(2 * math.pi * j / m)),
+                 c + u * (0.1 * math.cos(2 * math.pi * (j + 1) / m)) + v * (0.1 * math.sin(2 * math.pi * (j + 1) / m)))
+        k.add(name, flat(bm, name + 'Glyph', mat, 0.02))
 
 
 @piece
@@ -1608,14 +1697,17 @@ def check_envelope(pid, kit):
                         fail('decor stands out in a hand zone (d %.2f)' % dm, rad.max() - env - r['HandRadius'])
                     continue
                 if dm >= r['ButtZone'][0]:
-                    if rad.max() > env + r['ButtExtra'] + 1e-4:
-                        fail('too wide at the butt (d %.2f)' % dm, rad.max() - env - r['ButtExtra'])
+                    # an Aim joint's decor (the Broom's hat charm hanging under the binding) has the
+                    # Aim room here too: it fades for the aiming owner like the overhang (remake, 13:10)
+                    lim = r['AimRadius'] if aim and ob.name not in BODY_SHAFT.get(pid, ()) else env + r['ButtExtra']
+                    if rad.max() > lim + 1e-4:
+                        fail('too wide at the butt (d %.2f)' % dm, rad.max() - lim)
                     continue
                 side = np.abs(sx).max()
                 down = (-sz).max()
                 up = sz.max()
-                if side > env + r['SideDown'] + 1e-4:
-                    fail('too wide sideways (d %.2f)' % dm, side - env - r['SideDown'])
+                if side > env + r.get('Side', r['SideDown']) + 1e-4:
+                    fail('too wide sideways (d %.2f)' % dm, side - env - r.get('Side', r['SideDown']))
                 if down > env + r['SideDown'] + 1e-4:
                     fail('too deep downward (-Z, into the torso on a back) (d %.2f)' % dm, down - env - r['SideDown'])
                 up_lim = r['UpMid'] if r['UpMidZone'][0] <= dm <= r['UpMidZone'][1] else r['SideDown']
@@ -1771,6 +1863,129 @@ def preview_body(pid, t_list=(0.0, 1.3), size=(800, 500)):
 
 # =============================================================================================
 # The entry point
+
+# =============================================================================================
+# The aura decor pieces of the Cat and the Spider (designer, 2026-10-28 11:55: the five cues
+# brought up to their concept cards and the Firework's level): ribbons and orbiters wrapping
+# the cue, the Firework's way (narrow saturated Neon strips; see witch_broom_aura).
+# =============================================================================================
+
+
+def _flat(k, bm, ob_name, mat, thickness):
+    ob = k.mesh_object(ob_name, bm, [mat])
+    apply_modifier(k.bpy, ob, 'SOLIDIFY', thickness=thickness, offset=0.0)
+    return ob
+
+
+def _plane_polygon(bm, origin, u, v, pts, scale=1.0, about=(0.0, 0.0)):
+    """One n-gon (concave allowed, ear-clipped) from 2D points in the plane (origin, u, v)."""
+    import bmesh
+    verts = []
+    for (x, y) in pts:
+        x = about[0] + (x - about[0]) * scale
+        y = about[1] + (y - about[1]) * scale
+        verts.append(bm.verts.new(origin + u * x + v * y))
+    bm.faces.new(verts)
+    bmesh.ops.triangulate(bm, faces=bm.faces[:], ngon_method='EAR_CLIP')
+    return bm
+
+
+# A leaping cat seen from the side, nose toward +x, standing on y = 0 (the concept's shadow
+# cats: no face, no eyes; a silhouette).
+def _web_wheel(bm, c, u, v, r=0.32, spokes=8, rings=(0.11, 0.21, 0.31), w=0.011):
+    """A spider web in the plane (c, u, v): spokes from the centre and polygon rings, thin quads."""
+    from mathutils import Vector
+    for j in range(spokes):
+        a = 2 * math.pi * j / spokes
+        dirn = u * math.cos(a) + v * math.sin(a)
+        across = u * -math.sin(a) + v * math.cos(a)
+        bm.faces.new((bm.verts.new(c + across * w), bm.verts.new(c - across * w),
+                      bm.verts.new(c + dirn * r - across * w), bm.verts.new(c + dirn * r + across * w)))
+    for rr in rings:
+        pts = []
+        for j in range(spokes):
+            a = 2 * math.pi * j / spokes
+            # a strand sags a little between the spokes: the rings are polygons, not circles
+            pts.append(c + (u * math.cos(a) + v * math.sin(a)) * rr)
+        for j in range(spokes):
+            p, q = pts[j], pts[(j + 1) % spokes]
+            d = (q - p).normalized()
+            n = (u * d.dot(v) - v * d.dot(u)).normalized() if abs(d.dot(u)) + abs(d.dot(v)) > 0 else u
+            n = Vector((0, 0, 0)) + (u * (-(q - p).dot(v)) + v * ((q - p).dot(u))).normalized()
+            bm.faces.new((bm.verts.new(p + n * w), bm.verts.new(p - n * w), bm.verts.new(q - n * w), bm.verts.new(q + n * w)))
+    return bm
+
+
+@piece
+def spider_aura(k):
+    """Aura-only decoration of the Spider (hides with the aura), the third build (Justin,
+    12:55: no ribbons on any cue, each cue its own hand-made effect; the concept C1b_spider.png
+    rule: no spiders, legs or creatures). Three silk web wheels standing beside the cue, turning
+    round it and bobbing, each spinning itself on a `life` cycle of its own length (it writes
+    itself in with two blinks, holds, dissolves); four silk droplines hanging under the cue,
+    each a thread crossed so it reads from every side with a dew bead at its end, swinging on
+    two Sways, the beads breathing toward white; two crimson Neon hourglass charms orbiting
+    the forearm with a Glow pulse. The live-spun strands between the cue's points are the
+    skin's Silk beams. Lower effects keeps two webs and two droplines; the third web, the
+    other droplines and the charms hide."""
+    import bmesh
+    from mathutils import Vector
+    R = _radius()
+    k.material('Silk', 'Neon', SPIDER['silk'], Transparency=0.1)
+    k.material('SilkSoft', 'Neon', SPIDER['silver_bright'], Transparency=0.2)
+    k.material('Web', 'Neon', SPIDER['silk'], Transparency=0.15)
+    k.material('Crimson', 'Neon', SPIDER['crimson'], Transparency=0.0)
+
+    for i, (d, rate, period, radius, life, phase) in enumerate(((1.6, 20.0, 2.6, 0.78, 5.0, 0), (3.6, -16.0, 3.3, 0.82, 6.5, 130),
+                                                                 (5.4, 24.0, 2.9, 0.78, 8.0, 260))):
+        name = 'Web%d' % (i + 1)
+        k.joint(name, pivot=(0, -d, 0), aura=True, low=('hide' if i == 2 else None),
+                motion=[{'Kind': 'Spin', 'Axis': (0, 1, 0), 'Rate': rate},
+                        {'Kind': 'Bob', 'Dir': (0, 1, 0), 'Amp': 0.12, 'Period': period, 'Phase': 60 * i}],
+                visual=[{'Kind': 'Fade', 'Min': 0.15, 'Max': 1.0, 'Period': life, 'Shape': 'life', 'Phase': phase}])
+        bm = bmesh.new()
+        _web_wheel(bm, Vector((radius, -d, 0)), Vector((0, 0, 1)), Vector((0, 1, 0)))
+        k.add(name, _flat(k, bm, name + 'Wheel', 'Web', 0.012))
+
+    # Four silk droplines hanging under the cue: a thread (two crossed quads) with a dew bead
+    # (a small diamond) at its end, swinging round the cue's axis and along it.
+    for i, (d, length, period, low) in enumerate(((1.2, 0.5, 1.7, None), (2.6, 0.65, 2.1, None), (4.0, 0.55, 1.9, 'hide'), (5.6, 0.7, 2.3, 'hide'))):
+        name = 'Drop%d' % (i + 1)
+        top = Vector((0, -d, -R(d) + 0.01))
+        k.joint(name, pivot=tuple(top), aura=True, low=low,
+                motion=[{'Kind': 'Sway', 'Axis': (0, 1, 0), 'Amp': 9.0, 'Period': period, 'Phase': 70 * i},
+                        {'Kind': 'Sway', 'Axis': (1, 0, 0), 'Amp': 4.0, 'Period': period * 1.37, 'Phase': 40 * i}],
+                visual=[{'Kind': 'Glow', 'Min': 0.0, 'Max': 0.5, 'Period': 1.3 + 0.2 * i, 'Phase': 90 * i}])
+        bm = bmesh.new()
+        q = top + Vector((0, 0, -length))
+        for across in (Vector((0.012, 0, 0)), Vector((0, 0.012, 0))):
+            bm.faces.new((bm.verts.new(top - across), bm.verts.new(q - across), bm.verts.new(q + across), bm.verts.new(top + across)))
+        k.add(name, _flat(k, bm, name + 'Thread', 'SilkSoft', 0.01))
+        bm = bmesh.new()
+        c = q + Vector((0, 0, -0.045))
+        r = 0.04
+        tip_up, tip_dn = bm.verts.new(c + Vector((0, 0, r * 1.4))), bm.verts.new(c - Vector((0, 0, r * 1.4)))
+        ring = [bm.verts.new(c + Vector((r * math.cos(2 * math.pi * j / 6), r * math.sin(2 * math.pi * j / 6), 0))) for j in range(6)]
+        for j in range(6):
+            bm.faces.new((tip_up, ring[j], ring[(j + 1) % 6]))
+            bm.faces.new((tip_dn, ring[(j + 1) % 6], ring[j]))
+        k.add(name, k.mesh_object(name + 'Bead', bm, ['Silk'], smooth=False))
+
+    for i, (d, rate, phase) in enumerate(((2.4, 30.0, 0), (4.6, -26.0, 180))):
+        name = 'Hourglass%d' % (i + 1)
+        k.joint(name, pivot=(0, -d, 0), aura=True, low='hide',
+                motion=[{'Kind': 'Spin', 'Axis': (0, 1, 0), 'Rate': rate, 'Phase': phase},
+                        {'Kind': 'Bob', 'Dir': (0, 1, 0), 'Amp': 0.1, 'Period': 1.5, 'Phase': 90 * i}],
+                visual=[{'Kind': 'Glow', 'Min': 0.0, 'Max': 0.5, 'Period': 1.6, 'Phase': 90 * i, 'Color': '#FF6A7A'}])
+        bm = bmesh.new()
+        c = Vector((0.58, -d, 0))
+        u, v = Vector((0, 0, 1)), Vector((0, 1, 0))
+        for sgn in (1, -1):
+            bm.faces.new((bm.verts.new(c + u * -0.07 + v * (0.12 * sgn)), bm.verts.new(c + u * 0.07 + v * (0.12 * sgn)),
+                          bm.verts.new(c + v * (0.01 * sgn))))
+        k.add(name, _flat(k, bm, name + 'Glass', 'Crimson', 0.02))
+
+
 # =============================================================================================
 
 def build_checked(pid, render_preview=True):
