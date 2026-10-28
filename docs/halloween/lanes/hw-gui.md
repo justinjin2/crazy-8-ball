@@ -32,6 +32,49 @@ From PLAN §4 (everything else is read-only; ask below under Requests):
   `docs/STATUS.md`, `ROADMAP.md`, `DECISIONS.md`, `ECONOMY.md` (coordinator).
 
 ## Status
+- **13:41 FRESH-PLAYER RUN (the coordinator's 13:19 request) on hw-gui @f84823fb = halloween
+  @1908738e merged clean; lint OK, 1468/1468 tests. No code changed (nothing in my files needed
+  a fix).** Window 1523x814 (HUD 1523x756), ProfileStore mock save (NoAccess), event Live by
+  BootLive. Shots `~/Desktop/8ball-refs/halloween/shots/hw-gui/fresh1319/` (Gate shots).
+  - Tutorial Arrow → Pad (QueuePad_02, the bot came) → Game1 → Skip: at each step a scan of every
+    visible text found nothing with HALLOWEEN, KING, CANDY, BOOST or BADGE: no Halloween button,
+    popups, badge toasts or King pill (01, 02). After Skip (still in Game1): "Candy Boost: +120%"
+    (Rush 2x × group 1.1) over "Money Boost: +120%" and "CANDY RUSH 7:54" (03); the tile and the
+    King pill wait for the lobby, as they should.
+  - First match: the skipped Game1 played out by script (PoolMatchQA shots): WINNER 1-0,
+    LegalEight, $6,240 + Mystery block (04). **The result card has no Candy line, by design**
+    (CandyToast: a match's Candy is a "+N" chip after the card closes). The save got 143 Candy =
+    (10 balls × 3 + 10 + 25) × 2.2 (server: `HwCandy 143 [Match, x2, PC]`, `3_FirstCandy`).
+  - Lobby popups in order: BRONZE! (05, closes itself after 6 s) → Daily Rewards (06; Day 1
+    claimed, closed) → Invite a friend? (07) → lobby: HALLOWEEN tile (NEW, !, ENDS IN 6d 0h),
+    "PUMPKIN KING IN 7:16", the lines and the chip (07, 08).
+  - **For hw-core (not my files): the first match's "+143" chip is lost.** A second fresh run
+    with a 0.05 s watcher: the toast arrives with the result card; Continue → BRONZE! → BRONZE!
+    closes (t 122.8) → the chip pops (122.9) → Daily Rewards opens (123.3) and HudFocus disables
+    the HalloweenToast screen (Enabled false; its DisplayOrder 15 over Daily's 10 does not help),
+    so the chip is gone about 0.4 s in, before reaching the tile (hidden too). A new player never
+    really sees their first Candy. Suggestion: `CandyToast.busy()` true while a chip flies
+    (`Progression.quiet` already asks it), so Daily's open waits about 1 s; or keep HalloweenToast
+    up through `Config.UI.Menu.Focus.Keep`.
+  - King pill: "PUMPKIN KING IN 13:17" in a Rush (`/hw time rush`, 08); "PUMPKIN KING IS HERE!
+    11:20" in gold at UTC :15:20 (`/hw time +740`, 11), where the chip has gone and the Candy line
+    reads +10% (group only), correct. PC: nothing touches the pill (645,64 to 877,98);
+    `hudOverlap` empty.
+  - Phone pass (09, 10): the Root trick cannot reach the lobby HUD (PoolHud has no Root; the
+    corners and the King pill read the ScreenGui's size) and `studio_size.sh` sees no Studio
+    window (Terminal has no Accessibility). So an 844x390 frame (the 58 px bar + an 844x332 HUD)
+    holds fresh MoneyHud, BoostPill and Countdown copies on live data: King pill 327,6 to 517,36
+    ("IS HERE!" 310 to 534); chip y 206-236; Candy line 242-260; Money line 260-278; money pill
+    284-324: no overlap. Not emulated: corners, column, win track, match bar, hotbar (my pieces
+    against them: the layout test). The pill sits under the top bar, the rank pill and Settings in
+    the bar row, so they cannot meet at any width: a reading of the code, not a phone render.
+  - Console (both runs, the full LogService history): client only `[8ball] shot done`,
+    `multiplayer client ready` and the known 203785492 ContentId. Server: info lines (Tutorial,
+    TutorialBot, Funnel, server ready, Admin, EconomyLog, the mock-save notice), this unpublished
+    place's no-API lines (DataStore and MemoryStore opening failures, `Leaderboards ... no
+    store`, `[ProfileStore]: Roblox API services unavailable`), "Badges: would award FirstWin,
+    RankBronze, Halloween2026", and 45x `StudioMatchQA:27: Unknown QA table` from my own table-id
+    probe (1-60), not the game. No error or warning from game code.
 - 13:19 coordinator: `halloween` @d0b1d604 adds map 656825bf + ee17dc24 (**Boss.Mode "Timed" is ON**: the King visits the roof's middle at UTC :15 and :45 for 12 min) + 092ab2c9 (result-card pumpkin portrait) + 4ebc50cb (winners last in his line), core fa17a763 (visit reward +150 Candy / +$2,500 / +100 XP once a visit, KingVisit save mark, the King timer pill) and cues-a 95325e31 (the Jack's own signature, no ribbons). Reward fairness checked: kept. Lint OK, 1,468 tests, Team Create: :15 arrival, challenge seated, Jack lab, console clean. Merge `origin/halloween` before your next READY.
 - 12:37 coordinator: `halloween` @7be001ed adds map 88e9cceb (throne builds once; Studio: 1 throne, 1 King) + 623d0051 (timed King schedule, Mode Throne), core 1361de6d (ActiveGate, pacing), sys 57bc2b91 (50 badges, v2 icons), cues-a 66af67b0 (painted Jack, Candy rework) + fec0cb91 (deterministic generator; a main-checkout regen is now clean), cues-b 0e3569b6 (Broom redo). Lint OK, 1,465 tests, Team Create play console clean. JUSTIN (12:35): the Pumpkin King becomes a timed visitor (UTC :15 and :45, 12 min, middle of the map, 1.5x size, a top timer, the King's line when tables are full, one paid win a visit: +150 Candy, +$2,500, +100 XP). Map and core build it by 15:00; Throne mode stays the fallback. Run `git fetch && git merge origin/halloween` before your next READY.
 - 12:15 coordinator: `halloween` @5dae747d adds map 7fd462cc + 39815514 (night rooftop, King, drops, /king), core d7120fac (the 11:30 review fixed, the Rush chip names what runs) and gui c9f01ea6 (the boost lines restyle, VIP perks in the Soft step). The contract test is now STRICT. Lint OK, 1,460 tests, Team Create play console clean (shots/coordinator/merge_5dae747d_boost_lines.jpg). Known blocker sent to map: the throne builds twice on a server that starts during Live. Run `git fetch && git merge origin/halloween` before your next READY.
@@ -410,3 +453,16 @@ effects until Cues A's bodies and skins land, so re-shoot then):
   844x390 and 844x332, iPad; PC is the shots).
 - Switch decision: **OFF**, reason under Status (10:05): the phone and a real controller cannot
   be reached from this lane; the coordinator's sweep (Requests) flips it with one line.
+
+Fresh-player run 13:41 (`~/Desktop/8ball-refs/halloween/shots/hw-gui/fresh1319/`, Studio window
+1523x814, mock save; the phone ones are an emulated 844x390 frame, see Status 13:41):
+- `01-tutorial-arrow-no-halloween-pc.jpg`, `02-tutorial-game1-no-halloween-pc.jpg`: no Halloween
+  button, popup, toast or King pill in the tutorial.
+- `03-after-skip-game1-boost-lines-rush-chip-pc.jpg`: right after Skip, in Game1.
+- `04-first-match-result-card-no-candy-row-pc.jpg`: WINNER, no Candy line (by design).
+- `05-popup1-bronze-rank-up-pc.jpg`, `06-popup2-daily-rewards-pc.jpg`,
+  `07-popup3-invite-lobby-halloween-tile-king-pill-pc.jpg`: the popups in order.
+- `08-lobby-rush-chip-king-countdown-boost-lines-pc.jpg`: the King pill, the chip and the lines.
+- `09-phone-emu-844x390-king-countdown-rush-chip-lines.jpg` (and `-full`),
+  `10-phone-emu-844x390-king-is-here-lines.jpg`: the phone pass.
+- `11-lobby-king-is-here-gold-candy-10-pc.jpg`: "IS HERE!" in gold, Candy +10% after the Rush.
