@@ -258,14 +258,54 @@ function Rules.minuteText(at: number): string
 	return (":%02d"):format(math.floor(at / 60) % 60)
 end
 
---- The King's line (user ids, first in line first): `id` joins at the back once. Its place.
-function Rules.lineJoin(line: { number }, id: number): number
+--- The place `id` has in the King's line (user ids, first in line first), or would get on
+--- joining it. Winners last (fairness review, 2026-10-28): one who already won this visit
+--- (`beaten[id]`) joins at the back, one who hasn't joins ahead of every winner.
+function Rules.linePlace(line: { number }, id: number, beaten: { [number]: boolean }?): number
 	local at = table.find(line, id)
 	if at then
 		return at
 	end
-	table.insert(line, id)
-	return #line
+	if beaten and not beaten[id] then
+		for i, other in line do
+			if beaten[other] then
+				return i
+			end
+		end
+	end
+	return #line + 1
+end
+
+--- `id` joins the King's line once (Rules.linePlace's order). Its place.
+function Rules.lineJoin(line: { number }, id: number, beaten: { [number]: boolean }?): number
+	local place = Rules.linePlace(line, id, beaten)
+	if line[place] ~= id then
+		table.insert(line, place, id)
+	end
+	return place
+end
+
+--- Who the line seats next: the first one `free` says can play now (not in another match). A
+--- winner of this visit only while nobody in the line has yet to win. Nil: nobody.
+function Rules.lineNext(
+	line: { number },
+	beaten: { [number]: boolean },
+	free: (id: number) -> boolean
+): number?
+	local unpaidWaiting = false
+	for _, id in line do
+		if not beaten[id] then
+			unpaidWaiting = true
+			break
+		end
+	end
+	for _, id in line do
+		if (unpaidWaiting and beaten[id]) or not free(id) then
+			continue
+		end
+		return id
+	end
+	return nil
 end
 
 --- `id` leaves the line (walked away, left the server, seated). True when it was in it.
