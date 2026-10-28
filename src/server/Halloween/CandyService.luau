@@ -438,6 +438,35 @@ export type MatchFacts = {
 -- The last match each player used an ability in ("tableId:epoch", from UltService.Used).
 local ultMatch: { [Player]: string } = setmetatable({}, { __mode = "k" }) :: any
 
+-- Whether the match `matchKey` ("tableId:epoch") is a Pumpkin King match: a bot with a boss's
+-- own look (BotService.playBoss sets `icon` only for the King, hw-map lane) in a seat at that
+-- table, in that game. Read late (TableService and BotService require Ranking, which requires
+-- this module); false on any doubt.
+local function kingTable(matchKey: string): boolean
+	local tableId, epoch = string.match(matchKey or "", "^(%d+):(%d+)$")
+	if tableId == nil then
+		return false
+	end
+	local ok, found = pcall(function(): any
+		local t = require(script.Parent.Parent.TableService).get(tonumber(tableId) :: number) :: any
+		local e = t and t.engine
+		if e == nil or tostring(e.epoch) ~= epoch then
+			return false
+		end
+		local BotService = require(script.Parent.Parent.Bots.BotService) :: any
+		for _, seat in e.seats do
+			local bot = if type(seat.userId) == "number" and seat.userId < 0
+				then BotService.get(seat.userId)
+				else nil
+			if bot and bot.icon ~= nil then
+				return true
+			end
+		end
+		return false
+	end)
+	return ok and found == true
+end
+
 --- A settled match's Candy and quest events (Ranking.settleOne, in a pcall): real matches
 --- against people only (the tutorial's bot counts; a disguised bot, PC and solo never do), all
 --- in one commit. Returns the Candy added (0 when the match pays none: never a "+0").
@@ -457,6 +486,13 @@ function CandyService.matchSettled(player: Player, f: MatchFacts): number
 		if group then "Group" else "NoGroup"
 	)
 	if how ~= "Paid" then
+		if how == "PC" and kingTable(f.matchKey) then
+			-- A Pumpkin King match: the Matches and Balls quests only (Boss.CountsForQuests).
+			local events = CandyMath.kingEvents(f.balls, f.forfeited)
+			if #events > 0 then
+				after(player, PlayerData.hwQuest(player, events, CandyService.ctx()), "King")
+			end
+		end
 		return 0
 	end
 	local farm = f.farm or { Balls = 1, Bonus = 1 }

@@ -3794,6 +3794,10 @@ Config.Halloween = {
 		-- King quests; no cooldown. Numbers proposed by the coordinator, about one strong real
 		-- win each (docs/ECONOMY.md).
 		Visit = { Candy = 150, Money = 2500, Xp = 100 },
+		-- A King match (won or lost, Pc against his seat) counts for the Matches and Balls
+		-- quests (not Wins, no match Candy), so chasing him does not leave the quests behind
+		-- (coordinator 13:10); a match the player's side forfeited counts only its balls.
+		CountsForQuests = true,
 	},
 	-- Lobby pickups (map's CandyDrop spawns them): Candy each (flat), at most HourCap per player
 	-- per UTC hour. The ONLY pickup cap: CandyService.pickup enforces it.
