@@ -2207,7 +2207,7 @@
       },
       "Sound": {
         "Asset": "sounds/firework_fireworks.wav",
-        "Volume": 0.7,
+        "Volume": 0.33,
         "RollOffMinStuds": 8,
         "RollOffMaxStuds": 60,
         "Note": "the fireworks at the pocket (designer, 2026-10-04)"
