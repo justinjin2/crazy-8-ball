@@ -567,7 +567,7 @@ conversion with an end screen, the tutorial gate, the tile, the menu.
 - [x] Every switch verified and set true; analytics events seen in the Funnel log
 - [x] Fresh-player run (tutorial played and skipped): Candy from game 1, no event UI until Done/Skipped, then tile, menu, match, claim; console clean
 - [x] Four device sizes + pad for the tile, menu, chip text, countdown, toast and end screen; screenshots (10:11: PC + pad in Studio; phone 844x390 and iPad 1024x768 by emulating the menu's Root size since the window helper fails, three cuts fixed; the tile by its layout test; the card and end screen UIScale-fit)
-- [ ] Lane file Status final (what works, switches, shared-file changes, requests) + all screenshots
+- [x] Lane file Status final (what works, switches, shared-file changes, requests) + all screenshots (10:16; kept current on later requests)
 - [x] Merge halloween, re-test (lint, tests, Studio main path), push (10:13: @f32c3d1b at 0a522df6; lint OK, 1,431 tests at 8e33628a; Studio menu, claim and console clean; again on each coordinator merge call)
 
 ## Notes
