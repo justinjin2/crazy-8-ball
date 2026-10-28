@@ -56,6 +56,16 @@ From PLAN §4 (everything else is read-only; ask through Requests):
 
 ## Status (continued)
 
+- 11:38: Studio check of the merged build (`halloween` @537270fd in my window): boot clean, a
+  tutorial skip, both cues given, a solo fixture, the Jack equipped and aimed: the body in
+  hands (7 parts, no fade needed), the PULL card draws it, core's 2x CANDY chip and the +120%
+  pill beside it, `HalloweenCueEquipped` logged (`merged_537270fd_jack_hands.jpg`). Console:
+  no CueSkinLook, CuePiece or CueAssets line; the known `203785492` lines; one new line
+  `ContentId: rbxassetid://1591779 failed due to: Asset is not approved for the requester`,
+  right before the tutorial bot joined. That id is in no file under `src/`, `assets/` or
+  `tools/` (grep), so it is not a cue row's; it looks like the bot's avatar wearing an asset
+  this universe may not load. Not mine; noted for the coordinator's sweep.
+
 - 11:37: `git merge origin/halloween` @537270fd: a fast-forward (it holds `hw-cues-a` @83e876db
   whole, 72fd7358), no conflict. On the merged tree `cue_skins_data.py` rewrites nothing
   (63 skins, 22 pieces), lint green, client_compiles + cue_body/looks/mesh + catalog tests
@@ -472,3 +482,5 @@ Gate 2 addition (10:28, `gate2/`): Jack-o'-Lantern complete @ db1a9fdb (+ 73fc00
   `phone_my_cues_jack_844x390.jpg`: the Index (Jack chosen; the Exclusive row) and My Cues at
   phone size by Root-frame emulation, no clipped text.
 - `ipad_index_exclusive_row_1024x768.jpg`, `ipad_my_cues_jack_1024x768.jpg`: the same at iPad size.
+- `merged_537270fd_jack_hands.jpg`: the Jack in hands on the merged `halloween` build (core's
+  CANDY chip and the pill beside the PULL card).
