@@ -49,6 +49,13 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
   here). Cues A's drops 1 (7bef0153) and 2 (eb98e2ef) are READY on `hw-cues-a` but not in
   `halloween` yet, so P7 merges them with drop 3; until then no generated rows (skins stay
   draft) and the bodies are judged in headless previews.
+- 09:50 P5 done: the Black Cat body built, checked and uploaded (5 parts, 7,652 triangles:
+  one glossy black atlas lathe tip to butt with the gold claw curve at the ferrule, scratches,
+  the diamond knurl 4.4-6.6 as a normal map and gold bands; Foil ring pairs at 3.3 and 4.3, the
+  triple collar, the cap ring; three Neon claw slashes on the forearm with a 3 s Glow breath;
+  the skinned five-bone tail with a gold ForceField rim shell, compact curl 0.28 past the butt;
+  `black_cat_parts.glb` 97976303474135, `Tail.glb` 133878609951821, atlas decals with image
+  ids). Preview beside the concept: `gate2/cat_body_vs_C2c.png`. No head, face or eyes anywhere.
 
 ## Shared-file changes
 

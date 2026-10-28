@@ -619,7 +619,7 @@ floor by **15:00**, write a Request to the coordinator at once (Cues A may take 
   of an existing piece still runs with your file imported (no side effects, `py_compile` clean).
   If drop 2 is not in `halloween` yet, merge what is there, say so in Status and tick: P7 merges
   it with drop 3.
-- [ ] 5. Black Cat body: black shaft, gold rings, claw inlays, knurled wrap, gold claw tip
+- [x] 5. Black Cat body: black shaft, gold rings, claw inlays, knurled wrap, gold claw tip
   inlay, the skinned swaying tail with its gold ForceField shell (compact and long, `Aim`), one
   atlas; `check_envelope` passes; uploaded; preview beside `C2c_black_cat.png`.
 - [ ] 6. Spider body: segmented chrome shaft, spear ferrule, one crimson hourglass, the skinned

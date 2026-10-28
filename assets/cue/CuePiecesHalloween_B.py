@@ -772,6 +772,527 @@ def witch_broom(k):
 
 
 # =============================================================================================
+# Black Cat Cue (Mythic): the body
+# =============================================================================================
+
+CAT = {
+    'black': '#0B0B0D', 'black_soft': '#17171B', 'gold': '#E2B04A', 'claw': '#FFC85A',
+    'rim': '#E8B04A', 'fur': '#0A0A0C', 'fur_tip': '#1C1C22',
+}
+CAT_RINGS = ((3.26, 0.02), (3.36, 0.02), (4.24, 0.02), (4.34, 0.02),     # the pairs (mid zone)
+             (6.6, 0.012), (6.67, 0.012), (6.74, 0.012),                   # the triple collar (grip zone: flush)
+             (6.92, 0.02))                                                 # the cap ring (butt zone)
+CAT_WRAP = (4.4, 6.6)         # the knurled wrap (normal map)
+CAT_FOREARM = (3.6, 4.4)      # the three claw slashes
+
+
+def _sweep_uv(bm, uvl, path, radii, segs, uv_fn, profile=None, cap=True):
+    """A tube along `path` (Vectors) with a radius per point and parallel-transported frames,
+    segs + 1 vertices a ring (a real seam, at the ring's -normal side) so the UVs never wrap:
+    u across 0..1, v along 0..1 (uv_fn maps them). profile(angle) scales the radius."""
+    from mathutils import Vector
+    pts = [Vector(p) for p in path]
+    n = len(pts)
+    tangents = []
+    for i in range(n):
+        a = pts[max(i - 1, 0)]
+        b = pts[min(i + 1, n - 1)]
+        tangents.append((b - a).normalized())
+    t0 = tangents[0]
+    up = Vector((0, 0, 1))
+    if abs(t0.dot(up)) > 0.95:
+        up = Vector((1, 0, 0))
+    nrm = (up - t0 * t0.dot(up)).normalized()
+    rings = []
+    for i in range(n):
+        t = tangents[i]
+        nrm = (nrm - t * t.dot(nrm)).normalized()
+        bin_ = t.cross(nrm)
+        r = radii[i]
+        ring = []
+        for k in range(segs + 1):
+            ang = 2 * math.pi * k / segs + math.pi
+            sc = profile(ang) if profile else 1.0
+            ring.append(bm.verts.new(pts[i] + (nrm * math.cos(ang) + bin_ * math.sin(ang)) * (r * sc)))
+        rings.append(ring)
+    faces = []
+    for i in range(n - 1):
+        a, b = rings[i], rings[i + 1]
+        va, vb = i / (n - 1), (i + 1) / (n - 1)
+        for k in range(segs):
+            f = bm.faces.new((a[k], a[k + 1], b[k + 1], b[k]))
+            for lp, (u, v) in zip(f.loops, ((k / segs, va), ((k + 1) / segs, va), ((k + 1) / segs, vb), (k / segs, vb))):
+                lp[uvl].uv = uv_fn(u, v)
+            faces.append(f)
+    if cap:
+        for ring, rev, v in ((rings[0], True, 0.0), (rings[-1], False, 1.0)):
+            c = sum((x.co for x in ring[:-1]), Vector()) / (len(ring) - 1)
+            cv = bm.verts.new(c)
+            for k in range(segs):
+                q = (ring[k], ring[k + 1], cv)
+                f = bm.faces.new(q[::-1] if rev else q)
+                for lp in f.loops:
+                    lp[uvl].uv = uv_fn(0.5, v)
+                faces.append(f)
+    return rings, faces
+
+
+def _curve(points, n):
+    """A smooth polyline through `points` (Catmull-Rom), n samples."""
+    from mathutils import Vector
+    P = [Vector(p) for p in points]
+    P = [P[0]] + P + [P[-1]]
+    out = []
+    m = len(points) - 1
+    for i in range(n):
+        t = i / (n - 1) * m
+        j = min(int(math.floor(t)), m - 1)
+        f = t - j
+        p0, p1, p2, p3 = P[j], P[j + 1], P[j + 2], P[j + 3]
+        out.append(0.5 * ((2 * p1) + (-p0 + p2) * f + (2 * p0 - 5 * p1 + 4 * p2 - p3) * f * f + (-p0 + 3 * p1 - 3 * p2 + p3) * f * f * f))
+    return out
+
+
+def _arc_lengths(pts):
+    s = [0.0]
+    for a, b in zip(pts[:-1], pts[1:]):
+        s.append(s[-1] + (b - a).length)
+    return s
+
+
+def _cat_atlas(k):
+    """The Cat's atlas: SHAFT (glossy black, faint scratches, the knurl's diamonds as a normal
+    map over the wrap, gold bands under the rings), TIP (black with the gold claw curve,
+    emissive) and FUR (near-black strands along the tail, their tips a shade lighter)."""
+    import numpy as np
+    A = Atlas('black_cat')
+    A.region('SHAFT', 0.0, 0.0, 0.5, 1.0)
+    A.region('TIP', 0.5, 0.0, 1.0, 0.25)
+    A.region('FUR', 0.5, 0.5, 1.0, 1.0)
+    A.region('GOLD', 0.5, 0.25, 0.75, 0.5)
+    black, soft, gold, claw = (_rgb(CAT[x]) for x in ('black', 'black_soft', 'gold', 'claw'))
+
+    U, V = A.grid('SHAFT')
+    d = V * 7.0
+    scratch = _smooth(_fbm(U * 2, V * 0.3, 60.0, octaves=2, seed=11), 0.72, 0.8) * 0.5
+    sheen = _fbm(U, V, 5.0, octaves=2, seed=12)
+    col = _lerp(black, soft, 0.35 * sheen + scratch)
+    h = scratch * 0.3
+    # the knurl over the wrap: a diamond lattice (two crossed sets of grooves)
+    inwrap = _smooth(d, CAT_WRAP[0], CAT_WRAP[0] + 0.03) * _smooth(d, CAT_WRAP[1], CAT_WRAP[1] - 0.03)
+    g1 = np.abs(np.sin(2 * np.pi * (U * 18 + V * 7.0 * 9)))
+    g2 = np.abs(np.sin(2 * np.pi * (U * 18 - V * 7.0 * 9)))
+    knurl = (1 - _smooth(g1, 0.0, 0.25)) + (1 - _smooth(g2, 0.0, 0.25))
+    h = h + inwrap * (-0.9 * np.clip(knurl, 0, 1))
+    col = _lerp(col, _rgb('#050506'), inwrap * np.clip(knurl, 0, 1) * 0.6)
+    col = _lerp(col, soft, inwrap * (1 - np.clip(knurl, 0, 1)) * 0.25)
+    # the forearm a hair lighter so its claw slashes sit on a panel
+    infore = _smooth(d, CAT_FOREARM[0], CAT_FOREARM[0] + 0.02) * _smooth(d, CAT_FOREARM[1], CAT_FOREARM[1] - 0.02)
+    col = _lerp(col, soft, infore * 0.3)
+    # gold bands under every ring
+    band = np.zeros_like(U)
+    for rd, rr in CAT_RINGS:
+        band = np.maximum(band, _smooth(np.abs(d - rd), rr + 0.006, rr - 0.002))
+    col = _lerp(col, gold, band)
+    A.paint('SHAFT', col, height=h, bump=1.8)
+
+    # TIP: the first 0.3 studs: black, a gold claw curve hooking round the ferrule (emissive)
+    U, V = A.grid('TIP')
+    cx = (U - 0.5) * 2.0          # -1..1 round the tip
+    cy = V                        # 0 at the very tip, 1 at 0.3 studs
+    # a hooked claw: a crescent-like stroke from the ferrule's base curving to a point near the tip
+    ang = np.arctan2(cy - 0.75, cx)
+    rad = np.sqrt(cx * cx + (cy - 0.75) ** 2)
+    stroke = _smooth(np.abs(rad - 0.55), 0.1, 0.03) * _smooth(ang, -2.9, -2.6) * _smooth(ang, -0.3, -0.6)
+    taper = _smooth(ang, -0.6, -2.4)
+    clawm = np.clip(stroke * (0.35 + 0.65 * taper), 0, 1)
+    tcol = _lerp(black, soft, 0.3 * _fbm(U, V, 6.0, octaves=2, seed=13))
+    tcol = _lerp(tcol, claw, clawm)
+    A.paint('TIP', tcol, height=clawm * 0.5, emissive=clawm)
+
+    # FUR: strands along v, tips lighter
+    U, V = A.grid('FUR')
+    fur, fur_tip = _rgb(CAT['fur']), _rgb(CAT['fur_tip'])
+    strands = 0.5 + 0.5 * np.sin(2 * np.pi * (U * 34 + 0.5 * _fbm(U, V, 9.0, octaves=3, seed=14) + V * 2))
+    strands = strands ** 2
+    fine = _fbm(U * 3, V, 50.0, octaves=2, seed=15)
+    A.paint('FUR', _lerp(fur, fur_tip, strands * 0.6 + fine * 0.2), height=strands * 0.8 + fine * 0.2, bump=1.6)
+    U, V = A.grid('GOLD')
+    A.paint('GOLD', _lerp(gold * 0.85, gold, 0.5 + 0.5 * np.sin(U * 9)), height=np.zeros_like(U))
+    A.materials(k, opaque='Body', emissive_tint=CAT['claw'], emissive_strength=1.8, Reflectance=0.12)
+    return A
+
+
+def _cat_tail_path(long):
+    """The tail's centreline (Vectors) from the cap's end: compact curls up within 0.3 past the
+    butt; long sweeps 0.8 back and 0.9 up, the concept's C-curve."""
+    if long:
+        pts = [(0, -7.0, 0.0), (0, -7.3, 0.02), (0, -7.6, 0.14), (0.02, -7.8, 0.42), (0.03, -7.76, 0.7), (0.02, -7.55, 0.88), (0, -7.3, 0.9)]
+    else:
+        pts = [(0, -7.0, 0.0), (0, -7.12, 0.01), (0, -7.22, 0.07), (0.01, -7.28, 0.17), (0.01, -7.25, 0.28), (0, -7.15, 0.35)]
+    return _curve(pts, 16 if long else 12)
+
+
+@piece
+def black_cat(k):
+    """The Black Cat body (brief 2.5, concept C2c_black_cat.png rev 3). One glossy black lathe on
+    the envelope from the tip to the butt (Reflectance 0.12), its atlas giving a gold claw curve
+    at the ferrule (emissive), faint scratches, a diamond knurl over the wrap 4.4-6.6 (normal
+    map) and gold bands under the rings; Foil gold rings: pairs at 3.3 and 4.3, the triple
+    collar at 6.6-6.75 (flush), the cap ring; three Neon gold claw slashes raked across the top
+    of the forearm (Glow breath 0.1-0.5 over 3 s); the butt cap 6.75-7.0 a touch wider. The
+    tail (joint Tail, Aim fade): one skinned fur tube on five bones out of the cap, a Sway
+    travelling down it over 2.4 s (8-14 degrees a joint) over a slower sideways Hinge, with a
+    slightly larger gold ForceField shell for the thin rim light. Compact: curls up within 0.3
+    past the butt; long: 0.8 back and 0.9 up. No head, no face, no eyes anywhere."""
+    import bmesh
+    import numpy as np
+    from mathutils import Vector
+    R = _radius()
+    A = _cat_atlas(k)
+    k.material('Ring', 'Foil', CAT['gold'])
+    k.material('Claw', 'Neon', CAT['claw'])
+    k.material('TailShell', 'ForceField', CAT['rim'], Transparency=0.3)
+    long = LONG['black_cat']
+
+    # --- the shaft: tip (own UV region) + body + cap, one lathe -----------------------------------
+    k.joint('Body', pivot=(0, -3.5, 0))
+    bm = bmesh.new()
+    uvl = bm.loops.layers.uv.new('UVMap')
+    nt = 7
+    dst = [0.3 * i / (nt - 1) for i in range(nt)]
+    _lathe_uv(bm, uvl, dst, [max(R(d), 0.03) if i else 0.03 for i, d in enumerate(dst)], 20,
+              lambda u, v: A.uv('TIP', u, v), close=True, cap_uv=A.uv('TIP', 0.5, 0.02))
+    n = int(round((7.0 - 0.3) / 0.08)) + 1
+    ds = [0.3 + (7.0 - 0.3) * i / (n - 1) for i in range(n)]
+
+    def cap_r(d):
+        return R(d) + 0.02 * float(_smooth(d, 6.76, 6.82))
+    _lathe_uv(bm, uvl, ds, [cap_r(d) for d in ds], 24, lambda u, v: A.uv('SHAFT', u, (0.3 + 6.7 * v) / 7.0),
+              close=True, cap_uv=A.uv('SHAFT', 0.5, 0.975))
+    k.add('Body', k.mesh_object('Shaft', bm, ['Body']))
+
+    # --- the gold rings ----------------------------------------------------------------------------
+    bm = bmesh.new()
+    for rd, rr in CAT_RINGS:
+        _torus(bm, (0, -rd, 0), (0, 1, 0), cap_r(rd) + rr * 0.45, rr, segs=22, minor=7)
+    k.add('Body', k.mesh_object('Rings', bm, ['Ring']))
+
+    # --- the claw slashes: three Neon strips raked diagonally across the top of the forearm -------
+    k.joint('Claws', pivot=(0, -4.0, 0), parent='Body',
+            visual=[{'Kind': 'Glow', 'Min': 0.1, 'Max': 0.5, 'Period': 3.0}])
+    bm = bmesh.new()
+    uvl = bm.loops.layers.uv.new('UVMap')
+    for i in range(3):
+        d_start = CAT_FOREARM[0] + 0.12 + 0.18 * i
+        left, right = [], []
+        for s in range(7):
+            t = s / 6
+            d = d_start + 0.38 * t
+            ang = math.pi + (0.55 - 1.1 * t) + (i - 1) * 0.12      # across the top, from +X side to -X side
+            r = R(d) + 0.012
+            p = Vector((r * math.sin(ang), -d, -r * math.cos(ang)))
+            along = Vector((math.cos(ang) * 0.6, -0.8, math.sin(ang) * 0.6)).normalized()
+            w = 0.022 * (0.4 + 0.6 * math.sin(math.pi * t) ** 0.5)
+            left.append(p - along * (w / 2))
+            right.append(p + along * (w / 2))
+        _strip_uv(bm, uvl, left, right, lambda u, v: (u, v))
+    ob = k.mesh_object('ClawSlashes', bm, ['Claw'], smooth=False)
+    apply_modifier(k.bpy, ob, 'SOLIDIFY', thickness=0.012, offset=0.0)
+    k.add('Claws', ob)
+
+    # --- the tail: a skinned fur tube on five bones, a gold ForceField shell ----------------------
+    path = _cat_tail_path(long)
+    s = _arc_lengths(path)
+    L = s[-1]
+    radii = [0.075 * (1 - 0.72 * (si / L) ** 1.2) + 0.012 * math.sin(math.pi * (si / L) ** 2) for si in s]
+    bones = ['Tail', 'Tail2', 'Tail3', 'Tail4', 'Tail5']
+    at = [0.0, 0.2, 0.42, 0.64, 0.84]
+    pivots = []
+    for frac in at:
+        target = frac * L
+        j = min(range(len(s)), key=lambda q: abs(s[q] - target))
+        pivots.append(path[j])
+    period = 2.4
+    for i, (name, piv) in enumerate(zip(bones, pivots)):
+        motion = [{'Kind': 'Sway', 'Axis': (1, 0, 0), 'Amp': 8.0 + 1.5 * i, 'Period': period, 'Phase': 55 * i}]
+        if i == 0:
+            motion.append({'Kind': 'Hinge', 'Axis': (0, 0, 1), 'Amp': 6.0, 'Period': 4.0, 'Phase': 20})
+        if i == 2:
+            motion.append({'Kind': 'Hinge', 'Axis': (0, 0, 1), 'Amp': 4.0, 'Period': 4.0, 'Phase': 120})
+        k.joint(name, pivot=tuple(piv), parent=('Body' if i == 0 else bones[i - 1]), motion=motion)
+    bm = bmesh.new()
+    uvl = bm.loops.layers.uv.new('UVMap')
+    _sweep_uv(bm, uvl, path, radii, 14, lambda u, v: A.uv('FUR', u, v * 0.98),
+              profile=lambda a: 1.0 + 0.08 * math.cos(2 * a))
+    tail = k.mesh_object('Tail', bm, ['Body'])
+    shell = tail.copy()
+    shell.data = tail.data.copy()
+    shell.name = shell.data.name = 'TailShell'
+    k.bpy.context.scene.collection.objects.link(shell)
+    apply_modifier(k.bpy, shell, 'DISPLACE', strength=0.011, mid_level=0.0)
+    shell.data.materials.clear()
+    shell.data.materials.append(k.blender_mat('TailShell'))
+    for poly in shell.data.polygons:
+        poly.material_index = 0
+    k.add('Tail', tail)
+    k.add('Tail', shell)
+    P = np.array([list(p) for p in path])
+    S = np.array(s)
+
+    def arc(V):
+        V = np.asarray(V, float)
+        d2 = ((V[:, None, :] - P[None, :, :]) ** 2).sum(-1)
+        return S[d2.argmin(1)]
+    k.skins['Tail'] = {'root': 'Tail', 'meshes': [tail, shell], 'bones': {
+        name: (lambda frac: (lambda V: ramp(arc(V), (frac - 0.07) * L, (frac + 0.07) * L)))(frac)
+        for name, frac in zip(bones[1:], at[1:])}}
+    print('CUE cat tail: %d samples, %.2f studs long, long=%s, pivots %s' % (len(path), L, long, [[round(x, 2) for x in p] for p in pivots]))
+
+
+# =============================================================================================
+# Spider Cue (Mythic): the body
+# =============================================================================================
+
+SPIDER = {
+    'chrome': '#101014', 'chrome_light': '#2A2A32', 'silver': '#C9CED8', 'silver_bright': '#F2F5FA',
+    'silk': '#DDE3F0', 'crimson': '#C0142C',
+}
+SPIDER_BLADES = 8
+SPIDER_FAN = math.radians(200.0)      # the crown spans this round the top (+Z), none pointing down
+SPIDER_COLLAR = (6.75, 7.0)
+
+
+def _spider_atlas(k):
+    """The Spider's atlas: SHAFT (black chrome in segments, silver-edged chevrons, emissive
+    edges), TIP (the spear ferrule: dark facets with silver edges), BLADE (black with silver
+    edges along both sides, brighter at the outer edge, emissive) and WEB (silk strands with
+    alpha: spokes and a loose spiral)."""
+    import numpy as np
+    A = Atlas('spider')
+    A.region('SHAFT', 0.0, 0.0, 0.5, 1.0)
+    A.region('TIP', 0.5, 0.0, 1.0, 0.25)
+    A.region('BLADE', 0.5, 0.25, 1.0, 0.5)
+    A.region('WEB', 0.5, 0.5, 1.0, 1.0)
+    chrome, chrome_light, silver, bright, silk = (_rgb(SPIDER[x]) for x in ('chrome', 'chrome_light', 'silver', 'silver_bright', 'silk'))
+
+    U, V = A.grid('SHAFT')
+    d = V * 7.0
+    sheen = _fbm(U, V, 4.0, octaves=2, seed=61)
+    col = _lerp(chrome, chrome_light, 0.3 * sheen)
+    # segments every 0.5 studs from 0.3: a dark seam line, a chevron pointing at the tip on each
+    seg = ((d - 0.3) / 0.5) % 1.0
+    seam = _smooth(np.abs(seg - 0.5), 0.03, 0.0) * (d > 0.3) * (d < 6.75)
+    # chevron: v-shaped silver line: |u - 0.5| maps to a d offset
+    chev = np.abs(((U + 0.25) % 0.5) - 0.25) * 2.0           # 0..1 twice round
+    line = _smooth(np.abs(seg - (0.15 + 0.25 * chev)), 0.02, 0.006) * (d > 0.5) * (d < 6.7)
+    col = _lerp(col, _rgb('#050508'), seam * 0.8)
+    col = _lerp(col, silver, line)
+    emis = line * 0.7
+    h = -seam * 0.6 + line * 0.4
+    # the collar 6.75-7.0: ridged dark chrome, a brighter band
+    incol = _smooth(d, SPIDER_COLLAR[0], SPIDER_COLLAR[0] + 0.02)
+    ridges = 0.5 + 0.5 * np.sin(2 * np.pi * (d - 6.75) / 0.05)
+    col = _lerp(col, chrome_light, incol * ridges * 0.5)
+    h = h + incol * ridges * 0.5
+    A.paint('SHAFT', col, height=h, emissive=emis, bump=1.6)
+
+    # TIP: the spear: dark facets, silver edges running to the point (emissive)
+    U, V = A.grid('TIP')
+    facet = np.abs(((U * 6) % 1.0) - 0.5) * 2.0
+    edge = _smooth(facet, 0.82, 0.95)
+    tcol = _lerp(_lerp(chrome, chrome_light, 0.4 * facet), silver, edge)
+    tcol = _lerp(tcol, bright, edge * _smooth(V, 0.3, 0.0))
+    A.paint('TIP', tcol, height=edge * 0.6, emissive=edge * 0.8)
+
+    # BLADE: u across (inner edge 0 .. outer edge 1), v along (root 0 .. tip 1)
+    U, V = A.grid('BLADE')
+    inner = _smooth(U, 0.09, 0.03)
+    outer = _smooth(U, 0.91, 0.97)
+    spine = _smooth(np.abs(U - 0.5), 0.05, 0.02) * 0.6
+    bcol = _lerp(chrome, chrome_light, 0.35 * _fbm(U, V, 5.0, octaves=2, seed=62))
+    bcol = _lerp(bcol, silver, np.clip(inner + spine, 0, 1))
+    bcol = _lerp(bcol, bright, outer)
+    A.paint('BLADE', bcol, height=(outer + inner) * 0.5 + spine, emissive=np.clip(outer * 1.0 + inner * 0.6 + spine * 0.4, 0, 1))
+
+    # WEB: silk strands with alpha: radial spokes from the bottom centre and a loose spiral
+    U, V = A.grid('WEB')
+    cx, cy = U - 0.5, V + 0.05
+    ang = np.arctan2(cy, cx)
+    rad = np.sqrt(cx * cx + cy * cy)
+    spokes = _smooth(np.abs(((ang * 9 / math.pi) % 1.0) - 0.5), 0.47, 0.49)
+    spokes = np.maximum(spokes, _smooth(np.abs(((ang * 9 / math.pi + 0.5) % 1.0) - 0.5), 0.485, 0.495) * 0.6)
+    rings = _smooth(np.abs(((rad * 7.0 + 0.08 * np.sin(ang * 4)) % 1.0) - 0.5), 0.45, 0.49)
+    sag = _smooth(np.abs(((rad * 7.0 + 0.06 * np.cos(ang * 9 * 2)) % 1.0) - 0.5), 0.46, 0.49) * 0.7
+    web = np.clip(spokes + rings + sag, 0, 1) * _smooth(rad, 1.05, 0.95)
+    dust = _smooth(_fbm(U, V, 70.0, octaves=2, seed=63), 0.74, 0.8) * 0.5
+    alpha = np.clip(web * 0.85 + dust * 0.4, 0, 1)
+    wcol = _lerp(silk * 0.8, bright, web)
+    A.paint('WEB', wcol, alpha=alpha, height=np.zeros_like(U), emissive=web * 0.5)
+
+    A.materials(k, opaque='Body', alpha='Web', emissive_tint=SPIDER['silver_bright'], emissive_strength=1.4,
+                Material='Foil', Reflectance=0.08)
+    return A
+
+
+def _spider_blade_curve(theta, i, long):
+    """A blade's centreline (Vectors) from the collar's back edge, sweeping back past the butt
+    and curving outward like Hela's crown; the top blades the longest. Compact: a closed crown
+    curling round the cap within 0.3 past the butt."""
+    from mathutils import Vector
+    rad = Vector((math.sin(theta), 0, -math.cos(theta)))      # out from the axis at this angle
+    topness = 0.5 + 0.5 * math.cos(theta - math.pi)           # 1 at the top, 0 at the sides
+    if long:
+        length = 0.9 + 0.6 * topness                          # 0.9 .. 1.5 past the butt
+        flare = 0.45 + 0.4 * topness
+    else:
+        length = 0.3
+        flare = 0.1
+    r0 = 0.19
+    pts = []
+    n = 9
+    for s in range(n):
+        t = s / (n - 1)
+        back = 6.95 + length * t
+        if long:
+            out = r0 + flare * (t ** 1.6) - 0.08 * max(0.0, t - 0.85) ** 2 * 40
+        else:
+            out = r0 + flare * t
+        pts.append(Vector((0, -back, 0)) + rad * out)
+    return pts, rad
+
+
+@piece
+def spider(k):
+    """The Spider body (brief 2.6, concept C1b_spider.png rev 2): a black chrome shaft (Foil,
+    one atlas) in 0.5-stud segments with silver-edged chevrons (emissive), a faceted spear
+    ferrule in the tip limits with silver edges, a ridged collar on the butt cap with a Foil
+    silver ring and ONE small crimson Neon hourglass on +Z (Glow 1.6 s). The crown (joint Crown,
+    Aim fade): eight blades rooted at the collar's back edge fanning over the top and sides
+    (±100 degrees from +Z, none down), each a skinned fin on its own bone breathing on a Hinge
+    (2-4 degrees, 3-4 s, phases spread), black with silver emissive edges; silk webs between
+    neighbouring blades as a second skinned mesh with web alpha. Compact: a closed crown within
+    0.3 past the butt; long: the top blade reaches 1.5. No spiders, legs or creatures."""
+    import bmesh
+    import numpy as np
+    from mathutils import Vector
+    R = _radius()
+    A = _spider_atlas(k)
+    k.material('Ring', 'Foil', SPIDER['silver'])
+    k.material('Hourglass', 'Neon', SPIDER['crimson'])
+    long = LONG['spider']
+
+    # --- the shaft: spear tip (facets), segmented body, the collar ---------------------------------
+    k.joint('Body', pivot=(0, -3.5, 0))
+    bm = bmesh.new()
+    uvl = bm.loops.layers.uv.new('UVMap')
+    dst = [0.0, 0.03, 0.1, 0.2, 0.3]
+    rst = [0.004, 0.028, 0.05, 0.057, R(0.3)]
+    _lathe_uv(bm, uvl, dst, rst, 6, lambda u, v: A.uv('TIP', u, v), close=True, cap_uv=A.uv('TIP', 0.5, 0.02))
+    n = int(round((7.0 - 0.3) / 0.08)) + 1
+    ds = [0.3 + (7.0 - 0.3) * i / (n - 1) for i in range(n)]
+
+    def shaft_r(d):
+        seam = 0.0
+        if 0.6 < d < 6.7:
+            seg = ((d - 0.3) / 0.5) % 1.0
+            seam = -0.006 * max(0.0, 1 - abs(seg - 0.5) / 0.08)
+        collar = 0.0
+        if d >= SPIDER_COLLAR[0]:
+            collar = 0.02 + 0.012 * (0.5 + 0.5 * math.sin(2 * math.pi * (d - 6.75) / 0.05))
+        return R(d) + seam + collar
+    _lathe_uv(bm, uvl, ds, [shaft_r(d) for d in ds], 24, lambda u, v: A.uv('SHAFT', u, (0.3 + 6.7 * v) / 7.0),
+              close=True, cap_uv=A.uv('SHAFT', 0.5, 0.975))
+    k.add('Body', k.mesh_object('Shaft', bm, ['Body']))
+    bm = bmesh.new()
+    _torus(bm, (0, -6.79, 0), (0, 1, 0), R(6.79) + 0.03, 0.016, segs=24, minor=7)
+    k.add('Body', k.mesh_object('CollarRing', bm, ['Ring']))
+
+    # --- the hourglass: two Neon triangles point to point on +Z of the collar ----------------------
+    k.joint('Hourglass', pivot=(0, -6.88, 0), parent='Body',
+            visual=[{'Kind': 'Glow', 'Min': 0.0, 'Max': 0.6, 'Period': 1.6}])
+    bm = bmesh.new()
+    zc = shaft_r(6.88) + 0.004
+    for sgn in (1, -1):
+        a = bm.verts.new(Vector((0.0, -6.88, zc)))
+        b = bm.verts.new(Vector((-0.024, -6.88 + sgn * 0.045, zc + 0.002)))
+        c = bm.verts.new(Vector((0.024, -6.88 + sgn * 0.045, zc + 0.002)))
+        bm.faces.new((a, b, c) if sgn > 0 else (a, c, b))
+    ob = k.mesh_object('Hourglass', bm, ['Hourglass'], smooth=False)
+    apply_modifier(k.bpy, ob, 'SOLIDIFY', thickness=0.012, offset=0.0)
+    k.add('Hourglass', ob)
+
+    # --- the crown: eight skinned blades and the webs between them ----------------------------------
+    k.joint('Crown', pivot=(0, -6.95, 0), parent='Body')
+    thetas = [math.pi - SPIDER_FAN / 2 + SPIDER_FAN * i / (SPIDER_BLADES - 1) for i in range(SPIDER_BLADES)]
+    curves = []
+    bm = bmesh.new()
+    uvl = bm.loops.layers.uv.new('UVMap')
+    for i, theta in enumerate(thetas):
+        pts, rad = _spider_blade_curve(theta, i, long)
+        curves.append((pts, rad))
+        k.joint('Blade%d' % (i + 1), pivot=tuple(pts[0]), parent='Crown', motion=[
+            {'Kind': 'Hinge', 'Axis': tuple(Vector((0, 1, 0)).cross(rad)), 'Amp': 2.0 + 2.0 * (i % 3) / 2, 'Period': 3.0 + 0.14 * i,
+             'Phase': 45 * i}],
+            visual=[{'Kind': 'Glow', 'Min': 0.0, 'Max': 0.35, 'Period': 2.6, 'Phase': 40 * i}])
+        # the fin: width spans the radial direction (inner edge toward the axis, outer edge out)
+        w0 = 0.11 if long else 0.07
+        inner, outer = [], []
+        for s, p in enumerate(pts):
+            t = s / (len(pts) - 1)
+            w = w0 * ((1 - t) ** 0.7) + 0.004
+            inner.append(p - rad * (w * 0.45))
+            outer.append(p + rad * (w * 0.55))
+        _strip_uv(bm, uvl, inner, outer, lambda u, v: A.uv('BLADE', u, v))
+    blades = k.mesh_object('Blades', bm, ['Body'], smooth=False)
+    apply_modifier(k.bpy, blades, 'SOLIDIFY', thickness=0.014, offset=0.0)
+    k.add('Crown', blades)
+    # the webs: a membrane between each pair of neighbours, sampled along both centrelines
+    bm = bmesh.new()
+    uvl = bm.loops.layers.uv.new('UVMap')
+    for i in range(SPIDER_BLADES - 1):
+        pa, _ = curves[i]
+        pb, _ = curves[i + 1]
+        n_s = len(pa)
+        left = [pa[s] for s in range(1, n_s - (2 if long else 1))]
+        right = [pb[s] for s in range(1, n_s - (2 if long else 1))]
+        # pull the membrane in a little between the blades (silk sags toward the axis)
+        mid = []
+        for s in range(len(left)):
+            m = (left[s] + right[s]) / 2
+            mid.append(m - Vector((m.x, 0, m.z)) * 0.12)
+        _strip_uv(bm, uvl, left, mid, lambda u, v: A.uv('WEB', u * 0.5, v))
+        _strip_uv(bm, uvl, mid, right, lambda u, v: A.uv('WEB', 0.5 + u * 0.5, v))
+    webs = k.mesh_object('Webs', bm, ['Web'], smooth=False)
+    apply_modifier(k.bpy, webs, 'SOLIDIFY', thickness=0.004, offset=0.0)
+    k.add('Crown', webs)
+
+    # bone weights: tents round each blade's angle, each bone taking its absolute share of what
+    # the bones before it left (skin_weights hands each bone a share of its parent's remainder)
+    th = np.array(thetas)
+    step = SPIDER_FAN / (SPIDER_BLADES - 1)
+
+    def hats(V):
+        V = np.asarray(V, float)
+        a = np.arctan2(V[:, 0], -V[:, 2])
+        a = np.where(a < 0, a + 2 * math.pi, a)
+        H = np.clip(1 - np.abs(a[:, None] - th[None, :]) / step, 0, 1)
+        H[:, 0] = np.where(a < th[0], 1.0, H[:, 0])
+        H[:, -1] = np.where(a > th[-1], 1.0, H[:, -1])
+        return H
+
+    def bone_fn(i):
+        def fn(V):
+            H = hats(V)
+            left = 1 - H[:, :i].sum(1)
+            return np.where(left > 1e-6, H[:, i] / np.maximum(left, 1e-6), 0.0)
+        return fn
+    k.skins['Crown'] = {'root': 'Crown', 'meshes': [blades, webs],
+                        'bones': {'Blade%d' % (i + 1): bone_fn(i) for i in range(SPIDER_BLADES)}}
+    print('CUE spider crown: %d blades, long=%s, top blade to d %.2f' % (SPIDER_BLADES, long, -curves[SPIDER_BLADES // 2][0][-1].y))
+
+
+# =============================================================================================
 # Checks: the budget and the body envelope
 # =============================================================================================
 
@@ -919,10 +1440,10 @@ VIEWS = {
     # (camera, target, lens mm): a three-quarter of the whole cue, the hand zones close, the butt end
     'witch_broom': [((4.4, -3.3, 2.4), (0, -3.7, 0.0), 24), ((1.3, -0.8, 0.75), (0, -1.4, 0.0), 50),
                     ((1.7, -8.4, 0.45), (0.1, -7.05, -0.05), 45), ((-1.4, -8.2, 0.9), (0, -7.0, 0.0), 45)],
-    'black_cat': [((3.2, -2.2, 1.6), (0, -3.6, 0.05), 32), ((1.4, -4.2, 0.7), (0, -4.0, 0.0), 50),
-                  ((1.9, -8.9, 1.1), (0, -7.0, 0.05), 45), ((-1.6, -8.4, 0.9), (0, -7.0, 0.05), 45)],
-    'spider': [((3.2, -2.2, 1.6), (0, -3.6, 0.05), 32), ((1.4, -0.9, 0.7), (0, -0.8, 0.0), 50),
-               ((1.9, -8.9, 1.1), (0, -7.0, 0.05), 45), ((-1.6, -8.4, 0.9), (0, -7.0, 0.05), 45)],
+    'black_cat': [((4.4, -3.3, 2.4), (0, -3.7, 0.0), 24), ((1.1, -3.3, 0.9), (0, -3.9, 0.0), 50),
+                  ((1.6, -8.2, 0.5), (0, -7.1, 0.15), 45), ((-1.2, -8.0, 1.1), (0, -7.1, 0.15), 45)],
+    'spider': [((4.4, -3.3, 2.4), (0, -3.7, 0.0), 24), ((1.0, -0.2, 0.6), (0, -0.9, 0.0), 50),
+               ((1.7, -8.3, 0.8), (0, -7.05, 0.12), 45), ((-1.3, -8.4, 1.0), (0, -7.05, 0.12), 45)],
 }
 
 
