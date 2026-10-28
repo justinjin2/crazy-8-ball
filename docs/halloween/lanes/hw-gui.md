@@ -33,6 +33,21 @@ From PLAN §4 (everything else is read-only; ask below under Requests):
 
 ## Status
 
+- 09:40 to the coordinator's 09:12 notes. **b3bb0288 switches on one thing:**
+  `Config.Economy.FriendBoostEnabled = true`, +10% of base MATCH money per Roblox friend in the
+  server (max 4), added to the other boosts like Group's; rewards, WinTrack, packs and sell-back
+  never read it. **Old pay unchanged:** `Money.boost` keeps the old sum order and adds the friend
+  part last (`+ 0` with no friends), the old `tests/money_test.luau` cases pass untouched, and in
+  Studio the same player paid +20% (Group + Plus) with `FriendsHere` 0 before and after; 2 friends
+  +40%; switch off at 2 friends +20%. **Friends.luau requests done** (`c44206f9`, `a69838e9`,
+  `e47586f8`): the FriendBoost event clears Funnel's log line after it (no leaked
+  Player whichever PlayerRemoving runs first); the `or 4` / `or 30` fallbacks are gone; an
+  answer that comes back after either player left is dropped (no stale failure, a rejoin asks
+  afresh). FYI, not mine: `Funnel.left` (TutorialLeft, from TutorialService's PlayerRemoving)
+  has the same log-line pattern.
+- 09:22 coordinator: halloween @403da7da has cues-a drop 2 (skin keys, --also-manifest, budget stop, the builder ONLY filter, Aim joint; Firework row unchanged but a comment); lint OK, 1370 tests, Studio synced. Run `git fetch && git merge origin/halloween`. Cues B: you can generate rows now.
+- 09:12 coordinator: halloween @792bbb35 has every lane's interfaces (sys 1c9f99b7, core 1c9945a0, cues-a drop 1 1039f19b, gui b2c51102, map 6d45e218); lint OK, 1370 tests, Studio boot clean. Run `git fetch && git merge origin/halloween` now. Gate 1 is at 10:00: shots + one caption line each in your Gate shots by 09:55.
+- 09:12 coordinator: merged up to b2c51102 only. b3bb0288 ("Friend boost on") is NOT merged yet: it changes live money pay, so it goes through its own review with the pill; say in Status what it switches on and how you verified old pay is unchanged. REQUESTS (minor): Friends.luau PlayerRemoving calls Funnel.event after Funnel may have cleared the player's log (keep() re-creates logs[player], leaking a Player for the server's life): send it before or guard; drop the `or 4` / `or 30` literal fallbacks (:60, :94); a pair erroring while one player leaves keeps a stale failures entry (no retry on rejoin).
 - 09:05 coordinator REQUEST (all lanes, blocks a merge): `src/client/Main.client.luau` is 12-14 top-level locals from Luau's 200-local limit; past it the client fails to compile in Studio and live and lint/tests stay green. Put every Main.client addition inside `do ... end` (zero new top-level locals), e.g. `do local ok, err = pcall(...) ... end`. New test `tests/client_compiles_test.luau` (on halloween @HEAD) compiles every src script and fails if Main.client has fewer than 8 locals left; run it before you push.
 - **Interfaces ready: 0119a786** (pushed 08:58 EDT, late against 08:15: the lane started 08:43).
   - `37d80752` `Money.friendBoost(count) -> number`, `Money.boostParts(flags) -> { { kind, add } }`
@@ -137,7 +152,10 @@ PLAN §7 shared files: your own block or line only; the coordinator resolves ove
 - `Strings.luau`: `Strings.BoostPill`, `Strings.CuePreview` after `LuckClover` (**3fd23656**).
 - `Progression.luau`: :265-267, :302-309 (BoostPill instead of VipTag, `deps`), :615
   (`setInMatch`, `CuePreview.close()`).
-- `Main.client.luau:1265`: one guarded line (the preview's cue in `ids`).
+- `Main.client.luau:1265` (**618bbcf1**): inside `holdShots` (no top-level local), the open
+  preview's cue (`CuePreviewId` attribute) joins `ids`.
+- `Progression.luau` (**618bbcf1**): `local CuePreview = require(...)` after BoostPill's;
+  `CuePreview.close()` in `closeScreens()`.
 
 ## Requests
 
@@ -164,7 +182,7 @@ PLAN §7 shared files: your own block or line only; the coordinator resolves ove
   844x390 and 1024x768 (this lane could not resize Studio: no Accessibility for window control).
 - **To the coordinator:** a touch sweep of the Cue Preview in the device emulator (not scriptable
   from a lane).
-- **To the coordinator (10:xx): please merge `hw-gui` for the pill** (BoostPill ON, friend boost
+- **To the coordinator (09:09): please merge `hw-gui` for the pill** (BoostPill ON, friend boost
   ON, HudLayout, pad stop, events). After the merge core's `RushChip.content` and
   `CandyIcon` light the chip up by themselves; nothing else to wire.
 - **To the coordinator:** the HubCorners and Net overlaps with core at merge (my lines are listed
