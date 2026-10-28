@@ -175,8 +175,9 @@ return {
 		end
 		H.expect(n >= 4, "the first ones are in the menu")
 		H.expect(ids[1] == "Popcorn" and ids[2] == "RatDance", "Popcorn, then Rat Dance")
-		local passinho, scenario = table.find(ids, "Passinho"), table.find(ids, "Scenario")
-		H.expect(passinho == n + 1 and scenario == n + 2, "the rest keep their order")
+		H.expect(ids[4] == "Passinho" and ids[8] == "SegaWalk", "Passinho 4th, Sega Walk 8th")
+		local scenario, scuba = table.find(ids, "Scenario"), table.find(ids, "Scuba")
+		H.expect(scenario == n + 1 and scuba == n + 2, "the rest keep their order")
 	end,
 
 	["our own emotes are in the menu while their switch is on"] = function()

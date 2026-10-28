@@ -18015,8 +18015,18 @@ Config.EmoteMenu = {
 		},
 	},
 	-- The menu starts with these, in this order (designer, 2026-10-27: the ones with music
-	-- first); every other dance follows in List's order. An id not in the menu is skipped.
-	First = { "Popcorn", "RatDance", "LowCortisol", "SegaWalk", "Bullseye", "GojoWalk", "GetoWalk" },
+	-- first; 2026-10-28: Passinho and Sega Walk swapped places); every other dance follows in
+	-- List's order. An id not in the menu is skipped.
+	First = {
+		"Popcorn",
+		"RatDance",
+		"LowCortisol",
+		"Passinho",
+		"Bullseye",
+		"GojoWalk",
+		"GetoWalk",
+		"SegaWalk",
+	},
 	-- Our own emotes (designer, 2026-10-26): Popcorn (lounging on a beach lounger, throwing
 	-- popcorn at your mouth, half of it bouncing off your face) and Bullseye (a bow and a
 	-- target pop up, one shot dead centre, a blow on the bow like a smoking gun). Made by Lucky
