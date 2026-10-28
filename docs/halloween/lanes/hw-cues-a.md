@@ -61,6 +61,37 @@ From PLAN §4 (everything else is read-only; ask through Requests):
 
 ## Status (continued)
 
+- 19:01 GHOST LANTERN (the 150 slot; id GhostLanternCue, skin ghost_lantern, "Ghost Lantern Cue",
+  coordinator 18:55: the catalog already has a live Rare PhantomCue, so never "Phantom"). Built to
+  C6_phantom.png and in the lab: `gate2/side_by_side_ghost_lantern_v2.jpg` (the card, the stand
+  in lobby light, the back, in hand aiming, our card picture, the live Rare Phantom's thumbnail
+  for contrast). Body `ghost_lantern` (7 parts, 8,616 tris): tip and ferrule, a cyan glass tube
+  end to end with a Neon core pulsing inside, five thin iron rings, two iron bands with a thick
+  iron chain (two turns, 0.09-stud links, `Outline = false` so its forty links get no ink)
+  between the hands, and past the butt the ghost lantern as an Aim-fade joint: iron neck and cap,
+  a six-bar cage with rings, a candle rod flickering, a Meshy ghost (assets/cue/models/ghost,
+  from an OpenAI front view) bobbing and turning inside, knob and hanging ring. Decor
+  `ghost_lantern_aura`: three of the same ghosts 0.9 studs tall drifting a lap round the shaft
+  in nine seconds (Path racetrack 0.5 off the glass, Bob, roll, a ghostly Fade), Lower effects
+  keeps one. Finisher `ghost_lantern_pocket`: four ghosts spiralling up a widening helix out of
+  the pocket, plus a mist column, ghost sprites, sparks, two cyan rings. Trail: a cyan-white
+  wisp ribbon with little ghosts floating up behind the ball. Aura 22.5/s (mist, sparkles,
+  lantern wisps, a tiny ghost now and then), two lights. Slot swap done: Catalog, Config track
+  150 and Art (new card art `assets/ui/halloween/CueGhostLantern.png`), Strings, the three
+  tests, build_cue_templates ONLY, vfx_lab IDS; CandyCornCue's skin, pieces, textures, thumb,
+  rows and manifest rows are out (its builder code stays in CuePiecesHalloween_A.py, unused,
+  for a later cleanup). Uploads: 3 meshes, 17 maps (colour + emissive per ghost; the PBR maps
+  dropped: a matte white ghost at half a stud does not need them), the sprite, the thumb, the
+  card art; image ids applied; templates built in my window; lint OK, 24 cue/catalog/Halloween
+  tests green.
+  **Honest gaps to the card:** (1) in the lobby the shaft reads as a solid bright cyan rod, the
+  glass look is lost under the core's bloom (readable on the bright floor, which the coordinator
+  asked for first); (2) the chain covers two turns between the hands only (the hand-zone rule:
+  a hand would clip through links), the card winds it along the whole lower half; (3) three
+  ghosts, not a swarm, and at the back-cue distance they read as white shapes, the faces only
+  close (emissive lowered 0.6 -> 0.3 for the next template build); (4) from the owner's aiming
+  camera a passing ghost foreshortens to a white blob (the Cat's old issue); (5) the trail and
+  the finisher are not yet seen in a shot (next, in the running solo match).
 - 18:29 PHANTOM (coordinator 18:45, Justin's verdict: the Candy slot is replaced). Concept card done:
   `~/Desktop/8ball-refs/halloween/mocks/v2/C6_phantom.png` (from M3's Phantom and the C3 layout):
   a translucent cyan glass shaft lit from inside, a dark iron chain spiralling the lower half, a
