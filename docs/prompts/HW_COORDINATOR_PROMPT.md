@@ -583,7 +583,7 @@ the Experience Event, the 16:00 cut enforcement, the freeze, RELEASE.md, the 19:
 - [ ] 15:30 Merge pass 3; each lane's 16:00 cut list collected; every cut switched off and seen invisible.
 - [ ] 16:00 Final lane merges and the last template build; device sweep 2 (every new screen, 4 sizes, pad, the Device presets) and a fresh-player run on the final build.
 - [ ] 16:30 Thumbnail candidates (night map, the Broom, HUD on); the event description fixed for any cut; the "Justin at 16:30" list handed over.
-- [ ] 16:45 Docs: STATUS, DECISIONS, ROADMAP, the REQUIREMENTS statuses, `docs/halloween/RELEASE.md` (checklist, switches, custom events, Discord draft), committed and pushed.
+- [x] 16:45 (done 17:56 late, the Mac slept: STATUS ce76959b, DECISIONS + RELEASE cc887cc4, ROADMAP 69afa1a5, REQUIREMENTS cb89ebcc) Docs: STATUS, DECISIONS, ROADMAP, the REQUIREMENTS statuses, `docs/halloween/RELEASE.md` (checklist, switches, custom events, Discord draft), committed and pushed.
 - [ ] 17:00 Freeze: `halloween` clean and pushed at the final sha; the Team Create window synced, saved to `place/8ball.rbxl`; the test-place build ready; Justin told exactly what to publish and how.
 - [ ] 17:00-18:30 Playtest support: Justin's notes fixed only as he asks (by the owning lane or you), each re-verified and merged; at 18:30 the release checklist walked with him (he publishes, outdated-only restart).
 - [ ] 19:00 Go-live: the LIVE icon and the `[🎃 HALLOWEEN]` title confirmed; the event state Live seen in live data; first watch reading.
