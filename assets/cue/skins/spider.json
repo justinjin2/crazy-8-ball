@@ -224,7 +224,7 @@
           "LightEmission": 1,
           "LightInfluence": 0,
           "LockedToPart": false,
-          "Brightness": 2.0
+          "Brightness": 2.4
         },
         {
           "Name": "DewDrips",
@@ -259,15 +259,15 @@
           "Size": [
             [
               0,
-              0.05
+              0.07
             ],
             [
               0.3,
-              0.1
+              0.13
             ],
             [
               1,
-              0.04
+              0.05
             ]
           ],
           "Transparency": [
@@ -302,7 +302,7 @@
           "LightEmission": 1,
           "LightInfluence": 0,
           "LockedToPart": false,
-          "Brightness": 2.0
+          "Brightness": 2.6
         },
         {
           "Name": "WebFlecks",
@@ -1016,8 +1016,8 @@
           "Name": "Silk1",
           "FromStuds": 0.5,
           "ToStuds": 2.6,
-          "Width0": 0.14,
-          "Width1": 0.14,
+          "Width0": 0.18,
+          "Width1": 0.18,
           "Segments": 12,
           "Texture": "vfx/spider/silk.png",
           "TextureMode": "Wrap",
@@ -1039,11 +1039,11 @@
             ],
             [
               0.08,
-              0.35
+              0.2
             ],
             [
               0.92,
-              0.35
+              0.2
             ],
             [
               1,
@@ -1057,7 +1057,7 @@
             "Max": 1.0,
             "Period": 2.2
           },
-          "Brightness": 1.4
+          "Brightness": 2.0
         },
         {
           "Name": "Silk2",
@@ -1086,11 +1086,11 @@
             ],
             [
               0.08,
-              0.35
+              0.2
             ],
             [
               0.92,
-              0.35
+              0.2
             ],
             [
               1,
@@ -1104,14 +1104,14 @@
             "Max": 1.0,
             "Period": 2.9
           },
-          "Brightness": 1.4
+          "Brightness": 2.0
         },
         {
           "Name": "Silk3",
           "FromStuds": 4.2,
           "ToStuds": 7.1,
-          "Width0": 0.16,
-          "Width1": 0.16,
+          "Width0": 0.18,
+          "Width1": 0.18,
           "Segments": 12,
           "Texture": "vfx/spider/silk.png",
           "TextureMode": "Wrap",
@@ -1133,11 +1133,11 @@
             ],
             [
               0.08,
-              0.35
+              0.2
             ],
             [
               0.92,
-              0.35
+              0.2
             ],
             [
               1,
@@ -1151,14 +1151,14 @@
             "Max": 1.0,
             "Period": 2.5
           },
-          "Brightness": 1.4
+          "Brightness": 2.0
         },
         {
           "Name": "Silk4",
           "FromStuds": 1.0,
           "ToStuds": 6.9,
-          "Width0": 0.1,
-          "Width1": 0.1,
+          "Width0": 0.18,
+          "Width1": 0.18,
           "Segments": 12,
           "Texture": "vfx/spider/silk.png",
           "TextureMode": "Wrap",
@@ -1180,11 +1180,11 @@
             ],
             [
               0.08,
-              0.35
+              0.2
             ],
             [
               0.92,
-              0.35
+              0.2
             ],
             [
               1,
@@ -1198,7 +1198,7 @@
             "Max": 1.0,
             "Period": 3.4
           },
-          "Brightness": 1.4
+          "Brightness": 2.0
         }
       ],
       "Orbiters": [
@@ -2114,7 +2114,7 @@
       "Orbiters": 1,
       "BodyTriangles": 5764,
       "PocketPieceTriangles": 2208,
-      "Note": "Third build (2026-10-28, 13:15): the aura piece without ribbons (web wheels on life cycles, four droplines with dew beads, two hourglasses)."
+      "Note": "Third build (2026-10-28, 13:15): the aura piece without ribbons (web wheels on life cycles, four droplines with dew beads, two hourglasses). Readability pass 13:40: opaque silk and web Neon, web wheels 0.44 (lines 0.017), longer and thicker droplines, bigger dew beads, Silk strands 0.18 wide at 0.2 transparency, brighter drips/motes/glints."
     }
   },
   "piece": "spider_aura"

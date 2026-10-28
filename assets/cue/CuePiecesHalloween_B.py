@@ -1917,6 +1917,30 @@ def _plane_polygon(bm, origin, u, v, pts, scale=1.0, about=(0.0, 0.0)):
 
 
 
+def _web_wheel(bm, c, u, v, r=0.32, spokes=8, rings=(0.11, 0.21, 0.31), w=0.011):
+    """A spider web in the plane (c, u, v): spokes from the centre and polygon rings, thin quads."""
+    from mathutils import Vector
+    for j in range(spokes):
+        a = 2 * math.pi * j / spokes
+        dirn = u * math.cos(a) + v * math.sin(a)
+        across = u * -math.sin(a) + v * math.cos(a)
+        bm.faces.new((bm.verts.new(c + across * w), bm.verts.new(c - across * w),
+                      bm.verts.new(c + dirn * r - across * w), bm.verts.new(c + dirn * r + across * w)))
+    for rr in rings:
+        pts = []
+        for j in range(spokes):
+            a = 2 * math.pi * j / spokes
+            # a strand sags a little between the spokes: the rings are polygons, not circles
+            pts.append(c + (u * math.cos(a) + v * math.sin(a)) * rr)
+        for j in range(spokes):
+            p, q = pts[j], pts[(j + 1) % spokes]
+            d = (q - p).normalized()
+            n = (u * d.dot(v) - v * d.dot(u)).normalized() if abs(d.dot(u)) + abs(d.dot(v)) > 0 else u
+            n = Vector((0, 0, 0)) + (u * (-(q - p).dot(v)) + v * ((q - p).dot(u))).normalized()
+            bm.faces.new((bm.verts.new(p + n * w), bm.verts.new(p - n * w), bm.verts.new(q - n * w), bm.verts.new(q + n * w)))
+    return bm
+
+
 @piece
 def spider_aura(k):
     """Aura-only decoration of the Spider (hides with the aura), the third build (Justin,
@@ -1932,9 +1956,10 @@ def spider_aura(k):
     import bmesh
     from mathutils import Vector
     R = _radius()
-    k.material('Silk', 'Neon', SPIDER['silk'], Transparency=0.1)
-    k.material('SilkSoft', 'Neon', SPIDER['silver_bright'], Transparency=0.2)
-    k.material('Web', 'Neon', SPIDER['silk'], Transparency=0.15)
+    # Readability on the bright floor (coordinator 13:35): opaque Neon silk, wider web lines.
+    k.material('Silk', 'Neon', SPIDER['silk'], Transparency=0.0)
+    k.material('SilkSoft', 'Neon', SPIDER['silver_bright'], Transparency=0.05)
+    k.material('Web', 'Neon', SPIDER['silver_bright'], Transparency=0.0)
     k.material('Crimson', 'Neon', SPIDER['crimson'], Transparency=0.0)
 
     for i, (d, rate, period, radius, life, phase) in enumerate(((1.6, 20.0, 2.6, 0.78, 5.0, 0), (3.6, -16.0, 3.3, 0.82, 6.5, 130),
@@ -1943,14 +1968,14 @@ def spider_aura(k):
         k.joint(name, pivot=(0, -d, 0), aura=True, low=('hide' if i == 2 else None),
                 motion=[{'Kind': 'Spin', 'Axis': (0, 1, 0), 'Rate': rate},
                         {'Kind': 'Bob', 'Dir': (0, 1, 0), 'Amp': 0.12, 'Period': period, 'Phase': 60 * i}],
-                visual=[{'Kind': 'Fade', 'Min': 0.15, 'Max': 1.0, 'Period': life, 'Shape': 'life', 'Phase': phase}])
+                visual=[{'Kind': 'Fade', 'Min': 0.0, 'Max': 1.0, 'Period': life, 'Shape': 'life', 'Phase': phase}])
         bm = bmesh.new()
-        _web_wheel(bm, Vector((radius, -d, 0)), Vector((0, 0, 1)), Vector((0, 1, 0)))
-        k.add(name, _flat(k, bm, name + 'Wheel', 'Web', 0.012))
+        _web_wheel(bm, Vector((radius + 0.1, -d, 0)), Vector((0, 0, 1)), Vector((0, 1, 0)), r=0.44, rings=(0.14, 0.28, 0.42), w=0.017)
+        k.add(name, _flat(k, bm, name + 'Wheel', 'Web', 0.016))
 
     # Four silk droplines hanging under the cue: a thread (two crossed quads) with a dew bead
     # (a small diamond) at its end, swinging round the cue's axis and along it.
-    for i, (d, length, period, low) in enumerate(((1.2, 0.5, 1.7, None), (2.6, 0.65, 2.1, None), (4.0, 0.55, 1.9, 'hide'), (5.6, 0.7, 2.3, 'hide'))):
+    for i, (d, length, period, low) in enumerate(((1.2, 0.62, 1.7, None), (2.6, 0.8, 2.1, None), (4.0, 0.68, 1.9, 'hide'), (5.6, 0.85, 2.3, 'hide'))):
         name = 'Drop%d' % (i + 1)
         top = Vector((0, -d, -R(d) + 0.01))
         k.joint(name, pivot=tuple(top), aura=True, low=low,
@@ -1959,12 +1984,12 @@ def spider_aura(k):
                 visual=[{'Kind': 'Glow', 'Min': 0.0, 'Max': 0.5, 'Period': 1.3 + 0.2 * i, 'Phase': 90 * i}])
         bm = bmesh.new()
         q = top + Vector((0, 0, -length))
-        for across in (Vector((0.012, 0, 0)), Vector((0, 0.012, 0))):
+        for across in (Vector((0.018, 0, 0)), Vector((0, 0.018, 0))):
             bm.faces.new((bm.verts.new(top - across), bm.verts.new(q - across), bm.verts.new(q + across), bm.verts.new(top + across)))
-        k.add(name, _flat(k, bm, name + 'Thread', 'SilkSoft', 0.01))
+        k.add(name, _flat(k, bm, name + 'Thread', 'SilkSoft', 0.014))
         bm = bmesh.new()
-        c = q + Vector((0, 0, -0.045))
-        r = 0.04
+        c = q + Vector((0, 0, -0.06))
+        r = 0.055
         tip_up, tip_dn = bm.verts.new(c + Vector((0, 0, r * 1.4))), bm.verts.new(c - Vector((0, 0, r * 1.4)))
         ring = [bm.verts.new(c + Vector((r * math.cos(2 * math.pi * j / 6), r * math.sin(2 * math.pi * j / 6), 0))) for j in range(6)]
         for j in range(6):
