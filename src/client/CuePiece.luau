@@ -309,6 +309,10 @@ function CuePiece.new(
 					end
 					if rootPart then
 						rootPart.Transparency = 1
+						-- A Highlight outlines a fully transparent part too: the importer's 2x2x1 root
+						-- drew a gold box round the Cat's middle (2026-10-28). Shrunk to a dot; the
+						-- bones hang off its CFrame, not its size.
+						rootPart.Size = Vector3.one * 0.01
 						local weld = Instance.new("Weld")
 						weld.Part0 = root
 						weld.Part1 = rootPart
