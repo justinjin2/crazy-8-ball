@@ -1223,6 +1223,42 @@ return {
 		Step = "%s to %s: %s instead of %s",
 		EndsIn = "Ends in %s",
 	},
+	-- The boost pill over the money pill (BoostPill; Halloween 2026, hw-gui lane): "+130%" and
+	-- its "YOUR BOOSTS" card, a row per part (Money.boostParts' kinds).
+	BoostPill = {
+		Title = "YOUR BOOSTS",
+		Percent = "+%d%%",
+		Parts = {
+			Vip = "VIP",
+			Group = "Group",
+			Plus = "Roblox Plus",
+			Friends = "Friends (%d)",
+			Starter = "Starter Pack",
+			Party = "Money Party",
+		},
+		TimeLeft = "%s left", -- after a timed part: "Starter Pack · 42m left"
+		Total = "Total",
+		None = "No boosts yet",
+		FriendRule = "Each friend in your server +%d%% (max %d)",
+		CandyToo = "Friends and Group boost Candy too",
+		Get = {
+			Group = "Join the group: +%d%%",
+			Friends = "Friends here: +%d%% each",
+			Vip = "VIP: +%d%%",
+		},
+	},
+	-- The Cue Preview (CuePreview; R7): the stage behind a framed panel.
+	CuePreview = {
+		Title = "CUE PREVIEW",
+		Tabs = { Model = "MODEL", Trail = "TRAIL", Finisher = "FINISHER" },
+		AuraOn = "AURA ON",
+		AuraOff = "AURA OFF",
+		Equip = "EQUIP",
+		Equipped = "EQUIPPED",
+		Hint = "Drag to rotate",
+		Loading = "Loading...",
+		Button = "Preview",
+	},
 	-- The login days (economy v4 plan 6.1): the first week, then the later weeks.
 	Login = {
 		FirstWeek = "Day %d: %s · log in on any 7 days within 14",

@@ -9429,6 +9429,111 @@ Config.UI.LuckClover = {
 	},
 }
 
+-- The boost pill (Halloween 2026, PLAN §2 "Boost display"; hw-gui lane; mock H1_boost_hud): one
+-- pill over the money pill with the summed money boost ("+130%", a crown for VIP) in place of
+-- the VIP tag; tap, click or A opens "YOUR BOOSTS"; the Rush chip's shell sits over it (core
+-- fills its words). Pixels and seconds; "Short" for a phone on its side. HudLayout places both.
+Config.UI.BoostPill = {
+	Enabled = false, -- true once the four sizes and the pad pass; false = today's VIP tag
+	ZIndex = 12, -- over the money pill, as the VIP tag
+	HeightPx = 34, -- the VIP tag's
+	ShortHeightPx = 26,
+	TextPx = 22,
+	ShortTextPx = 16,
+	IconShare = 0.8, -- the crown or arrow, a share of the pill's height
+	PadPx = 8, -- inside the pill, each end
+	InnerGapPx = 4, -- between the icon and the words
+	LeftPx = 6, -- from the money HUD's left edge
+	GapPx = 6, -- between the pill and the money pill under it
+	ColumnGapPx = 6, -- a short screen: at least this far right of the left column
+	ClearPx = 2, -- the room HudLayout keeps between the pill or chip and any other piece
+	WidestText = "+360%", -- the pill's fixed width (VIP + Party + Starter + Group + Plus + 4 friends)
+	CharWidthShare = 0.62, -- a character's width per text px (the layout's estimate, test and game alike)
+	ShowAtZero = true, -- "+0%" shows dimmed after the tutorial (false: hidden at zero)
+	ZeroTransparency = 0.35, -- the dimmed "+0%"
+	Green = { 70, 205, 110 }, -- the arrow and the card's "+N%"
+	CrownRock = { 8, 2.2 }, -- the crown rocks this many degrees each way, over these seconds (the VIP tag's)
+	CountSeconds = 0.4, -- a higher total counts up this long, then pops
+	PopScale = 1.12,
+	PinSeconds = 6, -- a press keeps the card open this long
+	PurchaseSeconds = 8, -- after buying VIP the card stays this long, the VIP row flashing gold
+	PollSeconds = 1, -- the timed parts (Starter, Party): how often it looks while one runs
+	-- The "YOUR BOOSTS" card over the pill (H1): a row per part, a rule, the total, the footer.
+	Card = {
+		CornerPx = 14,
+		PadPx = 12,
+		GapPx = 6, -- between an icon and its words, under the title
+		TitlePx = 20,
+		TextPx = 16,
+		NotePx = 13, -- the footer and the grey "you could get" rows
+		RowPx = 24,
+		IconPx = 18,
+		RulePx = 2,
+		TotalPx = 20,
+		AbovePx = 8, -- its room over the pill
+		WidthPx = 250,
+		ShortWidthPx = 210,
+		Grey = { 120, 128, 140 }, -- the footer and the rows you could still get
+		ValueGreen = { 36, 166, 78 }, -- a part's "+N%" and the total, on the white card
+		Gold = { 255, 196, 40 }, -- the VIP row's flash after buying VIP
+	},
+	-- The Rush chip's shell (R1.10), right over the pill at its left x: core's words
+	-- (RushChip.content), the candy icon from Config.Halloween.CandyIcon.
+	Chip = {
+		ZIndex = 11, -- under the pill, so the pill's open card covers it
+		HeightPx = 40,
+		ShortHeightPx = 30,
+		TextPx = 18,
+		ShortTextPx = 14,
+		MinTextPx = 10, -- a long text shrinks to fit, never under this
+		IconShare = 0.8,
+		PadPx = 8,
+		InnerGapPx = 4,
+		CompactPattern = "^%S+%s+%S+%s+(.+)$", -- "2x CANDY 8:12" -> "2x " .. "8:12" (the compact chip)
+		GapPx = 6, -- between the chip and the pill under it
+		Color = { 255, 150, 40 }, -- orange
+		PulseSeconds = 1.6, -- its colour breathes this often (never its scale: text never pulses)
+		BreatheLighten = 0.25, -- how far towards white it breathes
+		PollSeconds = 1, -- how often it asks core's RushChip.content
+	},
+}
+
+-- The Cue Preview (R7, permanent; PLAN §2 "Cue preview"; mock PREV1_cue_preview): a client-only
+-- stage far from the lobby seen through the panel's window. Studs, degrees, seconds, pixels.
+Config.UI.CuePreview = {
+	Enabled = false, -- ON only after it passes on a phone size and with a controller
+	Origin = { 2400, 2400, 0 }, -- clear of the map and the Backrooms hall ({0, 2400, 0})
+	OutsideTransparency = 0.35, -- the flat navy veil outside the panel (never a blur)
+	WindowShare = 0.6, -- the 3D window, a share of the panel's width
+	ShortWindowShare = 0.56,
+	WindowMinShare = 0.5,
+	MinHitPx = 44, -- every button at least this tall
+	FovDeg = 40,
+	PitchMinDeg = -10,
+	PitchMaxDeg = 50,
+	DragDegPerPx = 0.4,
+	StickDegPerSecond = 120,
+	SpinDecay = 4, -- a flick's spin fades by this factor a second
+	IdleResumeSeconds = 3, -- the auto-turn comes back this long after the last drag
+	TurnDegPerSecond = 20,
+	Tabs = { -- the camera per tab: focus offset from the stage centre, distance, pitch
+		Model = { Focus = { 0, 1, 0 }, Distance = 9, Pitch = 12 },
+		Trail = { Focus = { 0, 0.5, 0 }, Distance = 8, Pitch = 30 },
+		Finisher = { Focus = { 0, 0.5, 0 }, Distance = 4.5, Pitch = 25 },
+	},
+	StrokeBackSeconds = 0.35,
+	StrokeHitSeconds = 0.1,
+	RollSeconds = 1.2,
+	DropSeconds = 0.15,
+	FinisherRollShare = 0.3,
+	FinisherHoldSeconds = 2.2,
+	GapSeconds = 0.6,
+	LoadTimeoutSeconds = 8,
+	Backdrop = { 18, 22, 44 },
+	KeyLight = { Brightness = 3, Range = 30, Angle = 60 },
+	RimLight = { Color = { 150, 120, 255 }, Brightness = 2, Range = 20 },
+}
+
 -- The economy's menus (2026-09-28, docs/prompts/ECONOMY_UI_PROMPT.md sections 5 and 5.1): the
 -- left column (MenuColumn), every full menu's frame (MenuFrame: header band, tabs, sheet, red
 -- X), its confirm dialog, notice line, scrollers and card tiles, the rarity dressing and cue
