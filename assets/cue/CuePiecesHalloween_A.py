@@ -777,9 +777,165 @@ def body_preview(pid, out_dir=None):
     print('CUE pieces body preview', os.path.join(out, 'preview.png'))
 
 
+# ---------------------------------------------------------------------------------------------
+# Candy Corn sprites: the tumbling kernel flipbook (Blender, real materials) and the sprinkle
+# rods sheet (Pillow). `-- --sprites` under Blender renders the kernel frames; `--sheets` under
+# the system python joins them (CuePieces.sheet_sprite) and draws the rods.
+# ---------------------------------------------------------------------------------------------
+
+VFX_DIR = os.path.join(os.path.dirname(PIECES_DIR), 'vfx', 'candy_corn')
+KERNEL_PROFILE = [(0.0, 0.04), (0.035, 0.038), (0.07, 0.03), (0.10, 0.018), (0.125, 0.008), (0.13, 0.0)]
+
+
+def kernel_sprite(frames=16, px=240):
+    """vfx/candy_corn/_frames_kernel/NN.png: one candy-corn kernel (the body's profile and
+    palette) tumbling end over end on a transparent film, lit like the lobby, for the aura's
+    floating kernels, the trail and the finisher. Blender side."""
+    import bpy
+    import bmesh
+    import cue_common as cc
+    from mathutils import Euler, Vector
+    cc.clear_scene('KernelSprite')
+    scene = bpy.context.scene
+    scene.render.engine = 'BLENDER_EEVEE'
+    scene.view_settings.view_transform = 'Standard'
+    scene.render.film_transparent = True
+    scene.render.image_settings.color_mode = 'RGBA'
+    scene.render.resolution_x = scene.render.resolution_y = px
+    world = bpy.data.worlds.new('W')
+    world.use_nodes = True
+    bg = next(n for n in world.node_tree.nodes if n.type == 'BACKGROUND')
+    bg.inputs[0].default_value = (1, 1, 1, 1)
+    bg.inputs[1].default_value = 0.6
+    scene.world = world
+    # the kernel, standing on +Z at the origin, UV v along its length (the palette's bands)
+    bm = bmesh.new()
+    uvl = bm.loops.layers.uv.new('UVMap')
+    rings = []
+    for t, r in KERNEL_PROFILE:
+        if r <= 1e-6:
+            rings.append(([bm.verts.new(Vector((0, 0, t - 0.065)))], t))
+            continue
+        ring = [bm.verts.new(Vector((r * math.cos(2 * math.pi * s_ / 10), r * math.sin(2 * math.pi * s_ / 10), t - 0.065)))
+                for s_ in range(10)]
+        rings.append((ring, t))
+    c0 = bm.verts.new(Vector((0, 0, -0.065)))
+    r0 = rings[0][0]
+    for s_ in range(10):
+        f = bm.faces.new((c0, r0[(s_ + 1) % 10], r0[s_]))
+        for lp in f.loops:
+            lp[uvl].uv = (0.5, 0.02)
+    for i in range(len(rings) - 1):
+        (ra, ta), (rb, tb) = rings[i], rings[i + 1]
+        for s_ in range(10):
+            if len(rb) == 1:
+                f = bm.faces.new((ra[s_], ra[(s_ + 1) % 10], rb[0]))
+                ts = (ta, ta, tb)
+            else:
+                f = bm.faces.new((ra[s_], ra[(s_ + 1) % 10], rb[(s_ + 1) % 10], rb[s_]))
+                ts = (ta, ta, tb, tb)
+            for lp, tt in zip(f.loops, ts):
+                lp[uvl].uv = (0.5, 0.04 + 0.92 * tt / 0.13)
+    _finish(bm)
+    me = bpy.data.meshes.new('Kernel')
+    bm.to_mesh(me)
+    bm.free()
+    for poly in me.polygons:
+        poly.use_smooth = True
+    mat = bpy.data.materials.new('KernelSprite')
+    mat.use_nodes = True
+    nt = mat.node_tree
+    bsdf = next(n for n in nt.nodes if n.type == 'BSDF_PRINCIPLED')
+    tex = nt.nodes.new('ShaderNodeTexImage')
+    kernel_palette()
+    tex.image = bpy.data.images.load(os.path.join(VFX_DIR, 'kernel_palette.png'))
+    tex.interpolation = 'Closest'
+    nt.links.new(tex.outputs['Color'], bsdf.inputs['Base Color'])
+    bsdf.inputs['Roughness'].default_value = 0.35
+    me.materials.append(mat)
+    pivot = bpy.data.objects.new('Pivot', None)
+    scene.collection.objects.link(pivot)
+    pivot.rotation_euler = Euler((math.radians(62), 0, math.radians(20)))   # the tumble axis, tilted to the camera
+    ob = bpy.data.objects.new('Kernel', me)
+    scene.collection.objects.link(ob)
+    ob.parent = pivot
+    for loc, e in (((1.5, -2.5, 3.0), 2.0), ((-2.5, -2.0, 1.0), 0.9), ((1.0, 2.5, -1.0), 0.5)):
+        ld = bpy.data.lights.new('L', 'AREA')
+        ld.energy = 60 * e
+        ld.size = 2.5
+        lo = bpy.data.objects.new('L', ld)
+        lo.location = loc
+        scene.collection.objects.link(lo)
+        lo.rotation_euler = (Vector((0, 0, 0)) - Vector(loc)).to_track_quat('-Z', 'Y').to_euler()
+    cam_d = bpy.data.cameras.new('C')
+    cam_d.type = 'ORTHO'
+    cam_d.ortho_scale = 0.17
+    cam = bpy.data.objects.new('C', cam_d)
+    scene.collection.objects.link(cam)
+    scene.camera = cam
+    cam.location = (0, -3, 0.35)
+    cam.rotation_euler = (Vector((0, 0, 0)) - Vector(cam.location)).to_track_quat('-Z', 'Z').to_euler()
+    out = os.path.join(VFX_DIR, '_frames_kernel')
+    os.makedirs(out, exist_ok=True)
+    for i in range(frames):
+        ob.rotation_euler = Euler((2 * math.pi * i / frames, 0, 0))   # end over end about the pivot's X
+        scene.render.filepath = os.path.join(out, '%02d.png' % i)
+        bpy.ops.render.render(write_still=True)
+    print('CUE kernel sprite frames', out)
+
+
+def rods_sheet(size=1024, grid=4, pad=8):
+    """vfx/candy_corn/rods_4x4.png: sixteen sprinkle rods, white, orange and yellow in turn,
+    each at its own angle (held still per particle: FlipbookFramerate 0, a random start).
+    System python (Pillow)."""
+    from PIL import Image, ImageDraw, ImageFilter
+    import random
+    rnd = random.Random(8)
+    colours = [((255, 255, 255), (228, 222, 210)), ((255, 122, 18), (200, 84, 6)), ((255, 210, 30), (208, 160, 10))]
+    cell = size // grid
+    inner = cell - 2 * pad
+    sheet = Image.new('RGBA', (size, size), (0, 0, 0, 0))
+    big = inner * 2
+    for i in range(grid * grid):
+        light, dark = colours[i % 3]
+        im = Image.new('RGBA', (big, big), (0, 0, 0, 0))
+        dr = ImageDraw.Draw(im)
+        length, width = int(big * 0.66), int(big * 0.17)
+        x0, y0 = (big - length) // 2, (big - width) // 2
+        dr.rounded_rectangle((x0, y0, x0 + length, y0 + width), radius=width // 2, fill=dark + (255,))
+        dr.rounded_rectangle((x0 + 3, y0 + 2, x0 + length - 3, y0 + width - width // 3), radius=width // 2, fill=light + (255,))
+        hl = Image.new('RGBA', (big, big), (0, 0, 0, 0))
+        ImageDraw.Draw(hl).rounded_rectangle((x0 + width // 2, y0 + width // 5, x0 + length - width // 2, y0 + width // 2), radius=width // 4, fill=(255, 255, 255, 110))
+        hl = hl.filter(ImageFilter.GaussianBlur(3))
+        im.alpha_composite(hl)
+        im = im.rotate(rnd.uniform(0, 180), resample=Image.BICUBIC, expand=False)
+        im = im.resize((inner, inner), Image.LANCZOS)
+        r, c = divmod(i, grid)
+        sheet.paste(im, (c * cell + pad, r * cell + pad))
+    os.makedirs(VFX_DIR, exist_ok=True)
+    path = os.path.join(VFX_DIR, 'rods_4x4.png')
+    sheet.save(path, optimize=True)
+    print('CUE rods sheet', path)
+    return path
+
+
+def sheets():
+    """System python: join the kernel frames into kernel_4x4.png and draw the rods sheet."""
+    from CuePieces import sheet_sprite
+    if os.path.isdir(os.path.join(VFX_DIR, '_frames_kernel')):
+        sheet_sprite('kernel', 'candy_corn')
+    rods_sheet()
+
+
 def main():
     import sys
-    argv = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else []
+    argv = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else sys.argv[1:]
+    if '--sprites' in argv:
+        kernel_sprite()
+        return
+    if '--sheets' in argv:
+        sheets()
+        return
     if '--preview' in argv:
         i = argv.index('--preview')
         out_dir = argv[argv.index('--out') + 1] if '--out' in argv else None

@@ -368,10 +368,22 @@
     "assetType": "Model",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/vfx/candy_corn/kernel_4x4.png": {
+    "assetId": "86802001063942",
+    "assetType": "Decal",
+    "imageId": "107248613281213",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/vfx/candy_corn/kernel_palette.png": {
     "assetId": "120865108870850",
     "assetType": "Decal",
     "imageId": "119521496210859",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/vfx/candy_corn/rods_4x4.png": {
+    "assetId": "118126099688548",
+    "assetType": "Decal",
+    "imageId": "87422541803734",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball-refs/emotes/birdbrain_loop.flac": {
