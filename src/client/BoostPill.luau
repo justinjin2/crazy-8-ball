@@ -23,8 +23,8 @@
 -- missing or "" collapses the slot). It pops in the first time, then its colour breathes gently
 -- (never its scale: text never pulses); it says what runs and for how long, the Candy line how
 -- much. HudLayout places the lines and the chip from the live rects of the pieces around them.
--- Studio only: GuiQA `boosts`, `candyLine`, `boostCard`, `boostPerks`, `rushChip`, `hudRects`,
--- `hudOverlap`. Sizes in Config.UI.BoostPill, words in Strings.BoostPill.
+-- Studio only: GuiQA `boosts`, `candyLine`, `boostCard`, `boostPress`, `boostPerks`, `rushChip`,
+-- `hudRects`, `hudOverlap`. Sizes in Config.UI.BoostPill, words in Strings.BoostPill.
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
@@ -999,6 +999,11 @@ function BoostPill.addQA(self: any)
 		else
 			self:pin(P.PinSeconds * 10)
 		end
+		return self.card.Visible
+	end)
+	-- A click, tap or A on the pill (MCP cannot click it).
+	GuiQA.add("boostPress", function()
+		self:press()
 		return self.card.Visible
 	end)
 	GuiQA.add("boostPerks", function()
