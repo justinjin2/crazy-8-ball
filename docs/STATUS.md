@@ -185,6 +185,12 @@ One line each; the long form is the 2026-10-12 (evening) entry at the top of
   this before, so 2v2 (never had the cutscene) is the comparison. Checked in Studio: a 1v1
   surrender and the tutorial's first match (fresh player) open the result at once, Rematch and
   Leave log the event, console clean. Check live: finish a 1v1 on a phone, a PC and a pad.
+- **Emote sounds heard 30% nearer, pushed 2026-10-27, not published:** a song full to 8.4 studs
+  and silent from 49 (were 12 and 70), about half volume a table away (a table is ~18 studs);
+  Popcorn's and Bullseye's sounds full to 7, silent from 42 (were 10 and 60). Distance is from
+  the listener's camera. Checked in Studio (the song's emitter carries the new curve, console
+  clean). Check live: dance at one table, a friend at the next table hears it about half as
+  loud, three tables away nothing.
 - **The abilities:** the one-by-one review goes on (unreviewed ones are provisional); phone,
   controller, sounds by ear, the sneak with two players, the designer's voice lines.
 - **Tutorial v2 leftovers** (`docs/prompts/TUTORIAL_V2_REPORT.md`, last section): the first
