@@ -133,9 +133,6 @@ local DAILY_KEYS = {
 	"SkyGiven",
 }
 
---- A fresh copy of a new player's save. Every call builds new tables, so changing one copy
---- never changes the next. Every map starts empty: ProfileStore's Reconcile copies template
---- keys into saves that lack them, so an entry here would appear in every player's map.
 --- A fresh Halloween table (the event's save field): Candy from play and from packs, the
 --- active seconds (the Spider), the track steps given, quest progress and claims, the Pumpkin
 --- King's day and cooldown, the pickup hour, and the conversion's marks. String keys only.
@@ -162,6 +159,9 @@ function SaveSchema.freshHalloween(): any
 	}
 end
 
+--- A fresh copy of a new player's save. Every call builds new tables, so changing one copy
+--- never changes the next. Every map starts empty: ProfileStore's Reconcile copies template
+--- keys into saves that lack them, so an entry here would appear in every player's map.
 function SaveSchema.template(): any
 	local stats = {}
 	for _, key in STAT_KEYS do

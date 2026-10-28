@@ -1298,7 +1298,6 @@ return {
 		CandyToo = "Friends and Group boost Candy too",
 		Get = {
 			Group = "Join the group: +%d%%",
-			Friends = "Friends here: +%d%% each",
 			Vip = "VIP: +%d%%",
 		},
 	},
@@ -1895,6 +1894,7 @@ return {
 	-- currency; the quests' text takes the need ("Win %d matches").
 	Halloween = {
 		Name = "HALLOWEEN", -- the right-side tile
+		New = "NEW", -- the tile's badge until the menu was opened once
 		Title = "HALLOWEEN EVENT", -- the event menu's header
 		Candy = "Candy",
 		EndsIn = "ENDS IN %s", -- the tile's and the menu's pill, a duration (Halloween.Event.short)
@@ -1903,9 +1903,80 @@ return {
 			Rush = "2x CANDY %s", -- "2x CANDY 8:12" (mm:ss)
 			Double = "2x CANDY %s", -- Oct 31: "2x CANDY 9:12:44" (h:mm:ss)
 		},
+		-- Durations (Halloween.Event): a clock ("8:12", "9:12:44") and a pill's short form.
+		Time = {
+			Hours = "%d:%02d:%02d",
+			Minutes = "%d:%02d",
+			ShortDays = "%dd %dh",
+			ShortHours = "%dh %dm",
+			ShortMinutes = "%dm",
+		},
 		Countdown = "HALLOWEEN EVENT IN %s", -- 18:30-19:00, "HALLOWEEN EVENT IN 29:59"
 		Started = "THE HALLOWEEN EVENT HAS STARTED!",
 		Ended = "THE HALLOWEEN EVENT HAS ENDED!",
+		-- The event menu (Halloween/EventMenu).
+		TrackTitle = "CANDY TRACK",
+		-- The track cards' short cue names.
+		CueShort = {
+			CandyCornCue = "Candy Corn",
+			JackOLanternCue = "Jack-o'-Lantern",
+			BlackCatCue = "Black Cat",
+			SpiderCue = "Spider",
+			WitchBroomCue = "Witch's Broom",
+		},
+		GrandPrize = "GRAND PRIZE",
+		Spins = { One = "1 SPIN", Many = "%d SPINS" }, -- ability spins on a track gift
+		Preview = "Preview",
+		QuestsTitle = "QUESTS",
+		Day = "DAY %d",
+		UnlocksIn = "Unlocks in %s",
+		Claim = "CLAIM",
+		Claimed = "CLAIMED",
+		Reward = "+%d", -- a quest's Candy chip
+		-- A quest's line by its kind (Config.Halloween.Quests): One for a need of 1, else Many with
+		-- the need ("Win 3 matches"); Active takes minutes.
+		Quests = {
+			Matches = { One = "Play 1 match", Many = "Play %d matches" },
+			Wins = { One = "Win 1 match", Many = "Win %d matches" },
+			Balls = { One = "Pocket 1 ball", Many = "Pocket %d balls" },
+			NiceShots = { One = "Make 1 nice shot", Many = "Make %d nice shots" },
+			TeamMatches = { One = "Play a 2v2 or 3v3", Many = "Play %d 2v2 or 3v3 matches" },
+			TeamWins = { One = "Win a 2v2 or 3v3", Many = "Win %d 2v2 or 3v3 matches" },
+			UltMatches = {
+				One = "Use an ability in a match",
+				Many = "Use an ability in %d matches",
+			},
+			King = { One = "Beat the Pumpkin King", Many = "Beat the Pumpkin King %d times" },
+			Pickups = { One = "Pick up 1 lobby Candy", Many = "Pick up %d lobby Candy" },
+			Active = { One = "Play 1 min", Many = "Play %d min" },
+		},
+		QuestsSoon = "Quests open soon!",
+		Spider = "PLAY 3H 01M", -- the playtime cue's panel
+		SpiderOf = "%s / %s", -- "1h 12m / 3h 01m"
+		SpiderNote = "Only active play counts",
+		SpiderDone = "YOURS!",
+		GetCandy = "GET CANDY",
+		PackCandy = "%s Candy",
+		-- The Rush strip at the menu's foot.
+		Rush = "CANDY RUSH",
+		RushSoon = "2x CANDY starts in %s",
+		RushNow = "2x CANDY ends in %s",
+		RushDone = "No more Rushes this event", -- Rush off, or the event's last hour
+		-- The Candy toast and the NEW CUE! card (Halloween/CandyToast).
+		Toast = "+%s", -- "+57" (Format.commas)
+		Double = "2x",
+		NewCue = "NEW CUE!",
+		FromTrack = "Candy Track prize",
+		FromSpider = "3 hours of play",
+		Ok = "OK",
+		Night = "HALLOWEEN NIGHT",
+		NightNow = "2x CANDY ALL DAY %s",
+		Yours = "YOURS!",
+		-- The end screen (Halloween/EndScreen).
+		EndCandy = "%s CANDY", -- "1,240 CANDY"
+		EndNote = "Your leftover candy was turned into money. Thanks for playing!",
+		YoursForever = "YOURS FOREVER",
+		Collect = "COLLECT",
 		-- The designer's /hw command (DevCommands; CandyService.dev).
 		Dev = {
 			Status = "Halloween: %s at %s UTC (offset %ds). Candy %d, board %d, %dx, active %ds",

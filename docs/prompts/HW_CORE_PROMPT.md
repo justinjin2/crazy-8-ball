@@ -548,26 +548,26 @@ conversion with an end screen, the tutorial gate, the tile, the menu.
 
 ## Progress
 
-- [ ] Interface 1: `Config.Halloween`, `Strings.Halloween` skeleton, `Event.luau`, `Clock.luau` (+ test-place offset at boot), `halloween_event_test.luau`; pushed, lane file says ready
-- [ ] Interface 2: `Halloween` save field (template, MAP_KEYS, validate, old-save test), the PlayerData block, real `CandyService` (add, bossWon, bossCooldown -> unix time or 0, pickup -> ok + reason "Cap"/"NotLive"/"NotLoaded", isLive) in Bootstrap, tests; pushed, lane file says ready
-- [ ] `/hw` dev command block (time offsets, candy, quest, active, kingwin, convert, reset), checked in Studio
-- [ ] Take the 08:30 interface merge (`git fetch && git merge halloween`), lint, tests, push; later merges on Request from 08:45 (cues-a drop 2, drop 3 + GUI pill about 10:00-10:20), merge `halloween` again after each
-- [ ] Match Candy at settle (Ranking hook, CandyMath with `finished`, Rush/double, friends/group through `Money.friendBoost`/`boostParts` with the guarded fallback, no "+0"), HwCandy/HwMatch events; tutorial game pays in Studio
-- [ ] Client state: `Halloween` remote, `Candy`/`HwOn` attributes, `State.luau`; nothing visible before the tutorial is Done/Skipped
-- [ ] Event tile in the right-side slot (HubCorners spec, pure placement + overlap test, first `padStops` entry, NEW, "!"); gate 1 shots
-- [ ] Track steps + gifts + cue grants (only when `Catalog.ready(id)`, held otherwise and retried on load and every tick) and the Spider active clock (SkyDropService getter, 5 s tick, grant at 10,860 s); tests
-- [ ] Event menu part 1: lively frame, Candy pill, the 11-step track (phone sideways scroll, guarded `CuePreview.open` on cue cards)
-- [ ] Quests: 6 boards finalised and ordered, routing with overflow and Alts (`HM.Enabled and HM.Boss/Candy.Enabled`, `UltService.Used` missing), hooks (settle, pickup, King, `UltService.Used` subscription, active minutes), CLAIM remote; tests
-- [ ] Event menu part 2: quest board with day tabs (fake data allowed for gate 2), CLAIM flying Candy, Spider ring, Rush strip; gate 2 shots at phone and PC by 10:50
-- [ ] Rush chip content (`RushChip.content`) for the GUI shell, and the Candy toast + track-step reveal card
-- [ ] Candy packs: products created, Config rows, Shop/PlayerData grant in one commit, replay test, Get Candy section
-- [ ] Conversion at the end (once per save, claims finished quests first, lobby and arena), HwConvert; tests incl. rejoin
-- [ ] End screen (M5) with count-up, owned cue cards, COLLECT; once per save
-- [ ] Countdown pill 18:30-19:00 and the 19:00 start moment, walked with `/hw time`
-- [ ] Every switch verified and set true; analytics events seen in the Funnel log
-- [ ] Fresh-player run (tutorial played and skipped): Candy from game 1, no event UI until Done/Skipped, then tile, menu, match, claim; console clean
-- [ ] Four device sizes + pad for the tile, menu, chip text, countdown, toast and end screen; screenshots
-- [ ] Lane file Status final (what works, switches, shared-file changes, requests) + all screenshots
-- [ ] Merge halloween, re-test (lint, tests, Studio main path), push
+- [x] Interface 1: `Config.Halloween`, `Strings.Halloween` skeleton, `Event.luau`, `Clock.luau` (+ test-place offset at boot), `halloween_event_test.luau`; pushed, lane file says ready
+- [x] Interface 2: `Halloween` save field (template, MAP_KEYS, validate, old-save test), the PlayerData block, real `CandyService` (add, bossWon, bossCooldown -> unix time or 0, pickup -> ok + reason "Cap"/"NotLive"/"NotLoaded", isLive) in Bootstrap, tests; pushed, lane file says ready
+- [x] `/hw` dev command block (time offsets, candy, quest, active, kingwin, convert, reset), checked in Studio
+- [x] Take the 08:30 interface merge (`git fetch && git merge halloween`), lint, tests, push; later merges on Request from 08:45 (cues-a drop 2, drop 3 + GUI pill about 10:00-10:20), merge `halloween` again after each
+- [x] Match Candy at settle (Ranking hook, CandyMath with `finished`, Rush/double, friends/group through `Money.friendBoost`/`boostParts` with the guarded fallback, no "+0"), HwCandy/HwMatch events; tutorial game pays in Studio
+- [x] Client state: `Halloween` remote, `Candy`/`HwOn` attributes, `State.luau`; nothing visible before the tutorial is Done/Skipped
+- [x] Event tile in the right-side slot (HubCorners spec, pure placement + overlap test, first `padStops` entry, NEW, "!"); gate 1 shots
+- [x] Track steps + gifts + cue grants (only when `Catalog.ready(id)`, held otherwise and retried on load and every tick) and the Spider active clock (SkyDropService getter, 5 s tick, grant at 10,860 s); tests
+- [x] Event menu part 1: lively frame, Candy pill, the 11-step track (phone sideways scroll, guarded `CuePreview.open` on cue cards)
+- [x] Quests: 6 boards finalised and ordered, routing with overflow and Alts (`HM.Enabled and HM.Boss/Candy.Enabled`, `UltService.Used` missing), hooks (settle, pickup, King, `UltService.Used` subscription, active minutes), CLAIM remote; tests
+- [x] Event menu part 2: quest board with day tabs (fake data allowed for gate 2), CLAIM flying Candy, Spider ring, Rush strip; gate 2 shots at phone and PC by 10:50
+- [x] Rush chip content (`RushChip.content`) for the GUI shell, and the Candy toast + track-step reveal card
+- [x] Candy packs: products created, Config rows, Shop/PlayerData grant in one commit, replay test, Get Candy section
+- [x] Conversion at the end (once per save, claims finished quests first, lobby and arena), HwConvert; tests incl. rejoin
+- [x] End screen (M5) with count-up, owned cue cards, COLLECT; once per save
+- [x] Countdown pill 18:30-19:00 and the 19:00 start moment, walked with `/hw time`
+- [x] Every switch verified and set true; analytics events seen in the Funnel log
+- [x] Fresh-player run (tutorial played and skipped): Candy from game 1, no event UI until Done/Skipped, then tile, menu, match, claim; console clean
+- [x] Four device sizes + pad for the tile, menu, chip text, countdown, toast and end screen; screenshots (10:11: PC + pad in Studio; phone 844x390 and iPad 1024x768 by emulating the menu's Root size since the window helper fails, three cuts fixed; the tile by its layout test; the card and end screen UIScale-fit)
+- [x] Lane file Status final (what works, switches, shared-file changes, requests) + all screenshots (10:16; kept current on later requests)
+- [x] Merge halloween, re-test (lint, tests, Studio main path), push (10:13: @f32c3d1b at 0a522df6; lint OK, 1,431 tests at 8e33628a; Studio menu, claim and console clean; again on each coordinator merge call)
 
 ## Notes

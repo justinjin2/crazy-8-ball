@@ -51,6 +51,7 @@ local Restock = require(Shared.Progression.Restock)
 local Daily = require(Shared.Progression.Daily)
 local Inventory = require(Shared.Progression.Inventory)
 local LuckyBlocks = require(Shared.Progression.LuckyBlocks)
+local HwClock = require(Shared.Halloween.Clock)
 local PlayerData = require(script.Parent.PlayerData)
 local Funnel = require(script.Parent.Funnel)
 local Counters = require(script.Parent.Counters)
@@ -68,6 +69,7 @@ local LIST: {
 		Vip: boolean?, -- the release sale's VIP (grants VIP like VipOffer)
 		Retired: boolean?, -- never offered again, so its price is never shown
 		ClaimAll: number?, -- Claim All (Config.Daily.ClaimAll): never a gift
+		Candy: number?, -- a Halloween Candy pack: its window runs on the Halloween clock
 	},
 } =
 	Config.Products.List :: any
@@ -256,6 +258,9 @@ local function context(player: Player, now: number): ShopView.Context?
 			nil,
 			{ joinDay = Daily.joinDayOf(data.Shop.FirstJoin) }
 		).product,
+		-- The Candy packs' window (Shop.packsOpen) on the Halloween clock: os.time() in the live
+		-- game, Studio's /hw test time there.
+		hwNow = HwClock.serverNow(),
 	}
 end
 
@@ -584,10 +589,13 @@ local function grantProduct(
 	elseif LuckyBlocks.skipTierOf(key) ~= nil then
 		grant = { key = key, money = 0, luckySkip = true }
 	else
+		-- A Candy pack's window runs on the Halloween clock (the same os.time() in the live game;
+		-- Studio's /hw test time there), every other product on os.time().
+		local now = if row ~= nil and row.Candy ~= nil then HwClock.serverNow() else os.time()
 		grant, notFor = Shop.grantFor(
 			key,
 			data.Shop,
-			os.time(),
+			now,
 			owns(player, "Vip"),
 			player:GetAttribute(ATTR.Restricted) == true
 		)

@@ -76,6 +76,10 @@ return {
 		H.expect(Event.nextRushAt(START + 600) == START + 3600, "next hour")
 		H.expect(Event.nextRushAt(START + 3600) == START + 3600, "on the hour")
 		H.expect(Event.nextRushAt(COUNTDOWN) == START, "before the event: its first Rush")
+		local ends = END
+		H.expect(Event.nextRushAt(ends - 3600 - 1) == ends - 3600, "the last Rush")
+		H.expect(Event.nextRushAt(ends - 3600 + 1) == nil, "none in the last hour")
+		H.expect(Event.nextRushAt(ends + 10) == nil, "none after the end")
 	end,
 
 	["the double day is Oct 31 in US Eastern time"] = function()

@@ -19,6 +19,7 @@
 -- (receiptCheck): a receipt that is not for this player now is never refused, it is paid as
 -- plain money instead (fallbackGrant, at the first pack's money per Robux).
 local Config = require(script.Parent.Parent.Config)
+local Event = require(script.Parent.Parent.Halloween.Event)
 
 local S = Config.Shop
 local P = Config.Products
@@ -70,6 +71,9 @@ export type Grant = {
 	-- Claim All: the most days of the login row to claim (Config.Daily.ClaimAll). The server
 	-- works the days out from the save as it applies the grant (Daily.claimAll).
 	claimAll: number?,
+	-- Halloween Candy to add to the save's Halloween.Bought, flat (a Candy pack, Config.Halloween
+	-- .Packs), with the track's prizes it reaches, in the same save mutation (PlayerData).
+	candy: number?,
 }
 
 export type LimitedRow = {
@@ -122,6 +126,7 @@ type ProductRow = {
 	Vip: boolean?, -- grants VIP in the save, like the welcome offer (the sale's VIP)
 	Retired: boolean?, -- never offered again; an old receipt still pays (economy v4)
 	ClaimAll: number?, -- Claim All: the most login days one claims (Config.Daily.ClaimAll)
+	Candy: number?, -- Halloween Candy one purchase adds (the Candy packs, Config.Halloween.Packs)
 }
 
 local LIST: { [string]: ProductRow } = P.List :: any
@@ -189,6 +194,7 @@ Shop.GrantFields = {
 	luckySkip = true,
 	boostEnds = true,
 	claimAll = true,
+	candy = true,
 } :: { [string]: boolean }
 
 -- A finite whole number, else 0.
@@ -458,18 +464,30 @@ function Shop.mysteryPrice(count: any): number?
 	return Shop.blockPrice("Mystery", count)
 end
 
+--- Whether the Halloween Candy packs (Config.Products rows with Candy) are sold at unix time
+--- `now` (the Halloween clock: Halloween/Clock.serverNow on the server): Config.Halloween.Packs
+--- switched on and the event Live. No grace past EndsAt: Candy stops there and the end turns
+--- it into money, so a later receipt pays the money fallback instead.
+function Shop.packsOpen(now: number): boolean
+	return Config.Halloween.Packs.Enabled == true and Event.isLive(now)
+end
+
 --- Why a receipt for developer product `key` at unix time `now` must not give what the product
 --- gives, or nil when it may. `vipPass` is whether the player owns the VIP game pass. "Owned":
 --- VIP already (the pass or the offer) for the VIP offer, the Starter Pack bought, a Robux
 --- Limited already in Shop.Limited. "Closed": the VIP offer outside both its welcome and its
 --- comeback window, the Starter Pack past its week (FirstJoin unknown: closed); each window
---- counts OfferGraceSeconds longer here than at the prompt. Every other product: nil. A Robux
---- Limited's window and cap are the server's Limited counter's.
+--- counts OfferGraceSeconds longer here than at the prompt. A Candy pack while the packs are
+--- not sold (Shop.packsOpen, no grace). Every other product: nil. A Robux Limited's window and
+--- cap are the server's Limited counter's.
 function Shop.receiptCheck(key: string, shopSave: ShopSave, now: number, vipPass: boolean): string?
 	local first = whole(shopSave.FirstJoin)
 	local saleRow = LIST[key]
 	if saleRow ~= nil and saleRow.Vip == true and Shop.isVip(vipPass, shopSave) then
 		return "Owned" -- the sale's VIP when VIP already (a receipt still pays the fallback)
+	end
+	if saleRow ~= nil and saleRow.Candy ~= nil and not Shop.packsOpen(now) then
+		return "Closed" -- a Candy pack off or outside the event (a receipt pays the fallback)
 	end
 	if key == VIP_OFFER then
 		if Shop.isVip(vipPass, shopSave) then
@@ -642,6 +660,11 @@ function Shop.grantFor(
 	if claimAll > 0 then
 		grant.claimAll = claimAll
 	end
+	-- Halloween Candy (a Candy pack, open: receiptCheck): flat, into the save's Bought.
+	local candy = whole(row.Candy)
+	if candy > 0 then
+		grant.candy = candy
+	end
 	if
 		grant.money <= 0
 		and grant.cue == nil
@@ -652,6 +675,7 @@ function Shop.grantFor(
 		and grant.lucky == nil
 		and grant.blocks == nil
 		and grant.claimAll == nil
+		and grant.candy == nil
 	then
 		return nil, nil
 	end

@@ -353,6 +353,117 @@
     "imageId": "93822415051422",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball-hw-core/assets/ui/halloween/Candy.png": {
+    "assetId": "75949906210202",
+    "assetType": "Image",
+    "imageId": "75949906210202",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-core/assets/ui/halloween/CandyPile.png": {
+    "assetId": "100770056241444",
+    "assetType": "Image",
+    "imageId": "100770056241444",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-core/assets/ui/halloween/CueBlackCat.png": {
+    "assetId": "95439931834328",
+    "assetType": "Image",
+    "imageId": "95439931834328",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-core/assets/ui/halloween/CueBroom.png": {
+    "assetId": "83442214439619",
+    "assetType": "Image",
+    "imageId": "83442214439619",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-core/assets/ui/halloween/CueCandyCorn.png": {
+    "assetId": "99907004080834",
+    "assetType": "Image",
+    "imageId": "99907004080834",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-core/assets/ui/halloween/CueJack.png": {
+    "assetId": "114487013205177",
+    "assetType": "Image",
+    "imageId": "114487013205177",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-core/assets/ui/halloween/CueSpider.png": {
+    "assetId": "134067061693157",
+    "assetType": "Image",
+    "imageId": "134067061693157",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-core/assets/ui/halloween/EventTile.png": {
+    "assetId": "109690179795075",
+    "assetType": "Image",
+    "imageId": "109690179795075",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-core/assets/ui/halloween/Gift.png": {
+    "assetId": "130940237317316",
+    "assetType": "Image",
+    "imageId": "130940237317316",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-core/assets/ui/halloween/HeaderPumpkin.png": {
+    "assetId": "100823591958466",
+    "assetType": "Image",
+    "imageId": "100823591958466",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/candy_corn/candy_corn_parts.glb": {
+    "assetId": "123970008672363",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/jack_o_lantern/jack_o_lantern_parts.glb": {
+    "assetId": "110253384942835",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/jack_o_lantern_pocket/jack_o_lantern_pocket_parts.glb": {
+    "assetId": "133027458090786",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/thumbs/candy_corn.png": {
+    "assetId": "86620364444680",
+    "assetType": "Decal",
+    "imageId": "112696270813806",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/thumbs/jack_o_lantern.png": {
+    "assetId": "107861865998214",
+    "assetType": "Decal",
+    "imageId": "110159550393453",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/vfx/candy_corn/kernel_4x4.png": {
+    "assetId": "86802001063942",
+    "assetType": "Decal",
+    "imageId": "107248613281213",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/vfx/candy_corn/kernel_palette.png": {
+    "assetId": "120865108870850",
+    "assetType": "Decal",
+    "imageId": "119521496210859",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/vfx/candy_corn/rods_4x4.png": {
+    "assetId": "118126099688548",
+    "assetType": "Decal",
+    "imageId": "87422541803734",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/vfx/jack_o_lantern/jack_4x4.png": {
+    "assetId": "118106652557059",
+    "assetType": "Decal",
+    "imageId": "108632142265177",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/pieces/black_cat/Tail.glb": {
     "assetId": "133878609951821",
     "assetType": "Model",

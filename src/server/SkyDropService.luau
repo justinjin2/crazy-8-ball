@@ -118,6 +118,13 @@ function SkyDropService.dev(player: Player): boolean
 	return true
 end
 
+--- Whether the player pinged an input within the last IdleSeconds (the Sky clock's rule). The
+--- Halloween Spider clock reads it (hw-core).
+function SkyDropService.isActive(player: Player): boolean
+	local seen = lastActive[player]
+	return seen ~= nil and os.clock() - seen <= C.IdleSeconds
+end
+
 --- `isLobby`: blocks fall only in a lobby; the clock runs in every server.
 function SkyDropService.start(isLobby: boolean)
 	if started then

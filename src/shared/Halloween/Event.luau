@@ -72,12 +72,19 @@ function Event.rushEndsAt(now: number): number?
 end
 
 -- The start of the next Candy Rush after `now` (the top of the next hour, or StartsAt's first
--- one before the event): a time to show, even outside Live.
-function Event.nextRushAt(now: number): number
+-- one before the event), or nil when none comes: Rush switched off, or the next top of the hour
+-- is at or past EndsAt (the event's last hour, and after it).
+function Event.nextRushAt(now: number): number?
+	if not C.Rush.Enabled then
+		return nil
+	end
 	local from = math.max(now, C.StartsAt)
 	local start = hourStart(from)
 	if start < from then
 		start += 3600
+	end
+	if start >= C.EndsAt then
+		return nil
 	end
 	return start
 end
@@ -110,24 +117,26 @@ end
 
 -- "8:12" (m:ss) under an hour, else "9:12:44" (h:mm:ss); never negative.
 function Event.clock(seconds: number): string
+	local T = Strings.Halloween.Time
 	local s = math.max(0, math.floor(seconds))
 	local h, m = s // 3600, (s % 3600) // 60
 	if h > 0 then
-		return ("%d:%02d:%02d"):format(h, m, s % 60)
+		return T.Hours:format(h, m, s % 60)
 	end
-	return ("%d:%02d"):format(m, s % 60)
+	return T.Minutes:format(m, s % 60)
 end
 
--- A short duration for a pill: "5d 23h", "23h 12m", "12m", "0m".
+-- A short duration for a pill: "5d 23h", "23h 12m", "12m", "0m" (Strings.Halloween.Time).
 function Event.short(seconds: number): string
+	local T = Strings.Halloween.Time
 	local s = math.max(0, math.floor(seconds))
 	local d, h, m = s // 86400, (s % 86400) // 3600, (s % 3600) // 60
 	if d > 0 then
-		return ("%dd %dh"):format(d, h)
+		return T.ShortDays:format(d, h)
 	elseif h > 0 then
-		return ("%dh %dm"):format(h, m)
+		return T.ShortHours:format(h, m)
 	end
-	return ("%dm"):format(m)
+	return T.ShortMinutes:format(m)
 end
 
 -- The Candy Rush chip's text and end: on the double day "2x CANDY 9:12:44" (to Double.To), in

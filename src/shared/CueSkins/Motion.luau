@@ -269,6 +269,7 @@ export type Joint = {
 	visuals: { any }, -- Fade, Blink, Glow rows the client applies to the joint's parts
 	aura: boolean,
 	low: string?, -- "hide": gone under Lower effects (Quality)
+	aim: string?, -- "fade": clear on the owner's own screen while the stick is drawn for a shot
 }
 
 export type Rig = {
@@ -302,6 +303,7 @@ function Motion.rig(piece: any): Rig
 			visuals = j.Visual or {},
 			aura = j.Aura == true,
 			low = j.Low,
+			aim = j.Aim,
 		}
 	end
 	local depth: { [string]: number } = {}

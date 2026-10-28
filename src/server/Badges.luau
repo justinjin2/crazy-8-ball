@@ -17,7 +17,8 @@
 --   change, so settles, cue grants (the reel included), rank-ups, rewards, trades, codes and the
 --   tutorial's end all come through one listener.
 -- - Holds: nothing is awarded until the save's tutorial is Done or Skipped and TutorialActive is
---   not true, nor within RevealDelaySeconds of a lucky block opening (the reel).
+--   not true, nor within Rules.revealSeconds() of a lucky block opening (about 28 s: the
+--   slowest reel and pull scene to its card, so no toast spoils a pull).
 -- - One loop, running only while a queue holds something: round-robin over the players, at most
 --   one award per player every StaggerSeconds, and a budget of Budget.Base + Budget.PerPlayer x
 --   players calls a minute shared by AwardBadgeAsync and UserHasBadgeAsync.
@@ -55,6 +56,7 @@ local LIVE = not IS_STUDIO and game.GameId == B.UniverseId
 -- PlayerData ops that never change what a badge reads (the playtime tick, our own marks).
 local SKIP_OPS = { addPlaySeconds = true, markBadges = true }
 local TICK_SECONDS = 0.5 -- the queue loop's step while it has work
+local REVEAL_SECONDS = Rules.revealSeconds()
 
 local Badges = {}
 
@@ -76,6 +78,7 @@ type State = {
 local started = false
 local states: { [Player]: State } = {}
 local byKey: { [string]: Rules.Row } = {}
+local Tables: any -- TableService, required in start() (it reaches Ranking, which calls us)
 local looping = false
 local tokens = 0 -- the call budget (a token bucket refilled each tick)
 local lastRefill = 0
@@ -159,6 +162,15 @@ local function savePass(player: Player, retro: boolean)
 	local stats = if type(save.Stats) == "table" then save.Stats else {}
 	local flags = if type(save.Flags) == "table" then save.Flags else {}
 	st.tutorialDone = Steps.Ends[Steps.load(flags.Tutorial, stats.Matches, stats.Wins)] == true
+	-- Held already: done, so a live grant (every ability use, every team settle) stops at the
+	-- state check instead of reading (deep-copying) the save again.
+	if type(save.Badges) == "table" then
+		for key, owned in save.Badges do
+			if owned == true and byKey[key] then
+				st.done[key] = true
+			end
+		end
+	end
 	for _, key in Rules.pending(Rules.fromSave(save, B.List), save, B.List, B.Paused) do
 		enqueue(player, key, retro, "Save")
 	end
@@ -297,7 +309,7 @@ local function onChanged(player: Player, op: string)
 		return
 	end
 	if op == "openLuckyBlock" then
-		st.holdUntil = now() + B.RevealDelaySeconds
+		st.holdUntil = now() + REVEAL_SECONDS
 	end
 	st.changeToken += 1
 	local token = st.changeToken
@@ -342,10 +354,15 @@ local function onLoaded(player: Player)
 	end)
 end
 
--- UltService.Used: Power Up, and one Ability Master count per match.
+-- UltService.Used: Power Up, and one Ability Master count per match. Solo practice fires it
+-- too (free abilities there): skipped, or practice would farm the saved Stats.UltMatches.
 local function onUltUsed(player: Player, tableId: any, epoch: any)
 	local st = stateOf(player)
 	if not st then
+		return
+	end
+	local t = if type(tableId) == "number" then Tables.get(tableId) else nil
+	if t == nil or t.engine.solo ~= nil then
 		return
 	end
 	Badges.grant(player, "Ability1", "Ult")
@@ -472,6 +489,7 @@ function Badges.start()
 		end
 	end
 	-- Required here, not at the top: UltService reaches TableService and Ranking, which call us.
+	Tables = require(script.Parent.TableService) :: any
 	local UltService = require(script.Parent.UltService) :: any
 	UltService.Used:Connect(function(player: Player, tableId: any, epoch: any)
 		local ok, err = pcall(function()
