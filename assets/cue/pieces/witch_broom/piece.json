@@ -2,12 +2,46 @@
   "id": "witch_broom",
   "Frame": "cue",
   "frame": "Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)",
-  "Triangles": 3500,
+  "Triangles": 6534,
   "Parts": [
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#FFFFFF",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "SurfaceAppearance": {
+        "ColorMap": "pieces/witch_broom/atlas_color.png",
+        "NormalMap": "pieces/witch_broom/atlas_normal.png",
+        "EmissiveMask": "pieces/witch_broom/atlas_emissive.png",
+        "EmissiveTint": "#FFD36A",
+        "EmissiveStrength": 1.6
+      },
+      "Name": "HatCharm",
+      "File": "pieces/witch_broom/HatCharm.glb",
+      "Mesh": "HatCharmSkin",
+      "Joint": "Charm",
+      "Skinned": true,
+      "Bones": [
+        "Charm",
+        "Chain2",
+        "Hat"
+      ],
+      "Triangles": 520,
+      "Offset": [
+        -0.2788,
+        -0.1736,
+        -3.5343
+      ],
+      "Size": [
+        0.1188,
+        0.1956,
+        0.2138
+      ]
+    },
     {
       "Material": "Glass",
       "Color": "#A86BFF",
-      "Transparency": 0.25,
+      "Transparency": 0.2,
       "Reflectance": 0.0,
       "Name": "Tip_Crystal",
       "File": "pieces/witch_broom/Tip_Crystal.obj",
@@ -18,8 +52,8 @@
         3.35
       ],
       "Size": [
-        0.0988,
-        0.1141,
+        0.1005,
+        0.116,
         0.3
       ],
       "Triangles": 60
@@ -35,54 +69,96 @@
       "Offset": [
         0.0,
         0.0,
-        3.345
+        3.34
       ],
       "Size": [
-        0.052,
-        0.06,
-        0.25
+        0.0554,
+        0.064,
+        0.26
       ],
       "Triangles": 48
     },
     {
       "Material": "SmoothPlastic",
-      "Color": "#6B4A2E",
+      "Color": "#FFFFFF",
       "Transparency": 0.0,
       "Reflectance": 0.0,
+      "SurfaceAppearance": {
+        "ColorMap": "pieces/witch_broom/atlas_color.png",
+        "NormalMap": "pieces/witch_broom/atlas_normal.png",
+        "EmissiveMask": "pieces/witch_broom/atlas_emissive.png",
+        "EmissiveTint": "#FFD36A",
+        "EmissiveStrength": 1.6
+      },
       "Name": "Body_Bark",
       "File": "pieces/witch_broom/Body_Bark.obj",
       "Joint": "Body",
       "Offset": [
-        0.0,
-        0.0,
+        -0.015,
+        0.0492,
         -0.15
       ],
       "Size": [
-        0.36,
-        0.36,
+        0.48,
+        0.5483,
         6.7
       ],
-      "Triangles": 3264
+      "Triangles": 5340
     },
     {
       "Material": "SmoothPlastic",
-      "Color": "#D9A441",
+      "Color": "#FFFFFF",
       "Transparency": 0.0,
       "Reflectance": 0.0,
+      "SurfaceAppearance": {
+        "ColorMap": "pieces/witch_broom/atlas_color.png",
+        "NormalMap": "pieces/witch_broom/atlas_normal.png",
+        "EmissiveMask": "pieces/witch_broom/atlas_emissive.png",
+        "EmissiveTint": "#FFD36A",
+        "EmissiveStrength": 1.6
+      },
+      "Name": "Bristles_Bark",
+      "File": "pieces/witch_broom/Bristles_Bark.obj",
+      "Joint": "Bristles",
+      "Offset": [
+        0.0,
+        0.018,
+        -3.62
+      ],
+      "Size": [
+        0.4434,
+        0.444,
+        0.24
+      ],
+      "Triangles": 286
+    },
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#FFFFFF",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "SurfaceAppearance": {
+        "ColorMap": "pieces/witch_broom/atlas_color.png",
+        "NormalMap": "pieces/witch_broom/atlas_normal.png",
+        "EmissiveMask": "pieces/witch_broom/atlas_emissive.png",
+        "EmissiveTint": "#FFD36A",
+        "EmissiveStrength": 1.6,
+        "AlphaMode": "Transparency"
+      },
       "Name": "Bristles_Straw",
       "File": "pieces/witch_broom/Bristles_Straw.obj",
       "Joint": "Bristles",
       "Offset": [
-        0.0,
-        0.0,
-        -3.65
+        -0.007,
+        0.0378,
+        -3.6497
       ],
       "Size": [
-        0.5,
-        0.5,
-        0.3
+        0.5835,
+        0.4956,
+        0.3024
       ],
-      "Triangles": 128
+      "Triangles": 280
     }
   ],
   "Joints": {
@@ -142,11 +218,121 @@
             0,
             0
           ],
-          "Amp": 1.5,
+          "Amp": 1.2,
           "Period": 2.6
+        },
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0,
+            0,
+            1
+          ],
+          "Amp": 0.8,
+          "Period": 4.0,
+          "Phase": 90
         }
       ],
       "Aim": "fade"
+    },
+    "Charm": {
+      "Parent": "Body",
+      "Pivot": [
+        0.23499999940395355,
+        -6.934999942779541,
+        -0.08500000089406967
+      ],
+      "PivotRoblox": [
+        -0.235,
+        -0.085,
+        -3.435
+      ],
+      "Motion": [
+        {
+          "Kind": "Sway",
+          "Axis": [
+            0,
+            1,
+            0
+          ],
+          "Amp": 7.0,
+          "Period": 1.8
+        },
+        {
+          "Kind": "Sway",
+          "Axis": [
+            1,
+            0,
+            0
+          ],
+          "Amp": 4.0,
+          "Period": 2.61,
+          "Phase": 40
+        }
+      ]
+    },
+    "Chain2": {
+      "Parent": "Charm",
+      "Pivot": [
+        0.24400269985198975,
+        -6.968760013580322,
+        -0.1133585125207901
+      ],
+      "PivotRoblox": [
+        -0.244,
+        -0.1134,
+        -3.4688
+      ],
+      "Motion": [
+        {
+          "Kind": "Sway",
+          "Axis": [
+            0,
+            1,
+            0
+          ],
+          "Amp": 6.0,
+          "Period": 1.8,
+          "Phase": 55
+        }
+      ]
+    },
+    "Hat": {
+      "Parent": "Chain2",
+      "Pivot": [
+        0.25300541520118713,
+        -7.0025200843811035,
+        -0.14171701669692993
+      ],
+      "PivotRoblox": [
+        -0.253,
+        -0.1417,
+        -3.5025
+      ],
+      "Motion": [
+        {
+          "Kind": "Sway",
+          "Axis": [
+            0,
+            1,
+            0
+          ],
+          "Amp": 5.0,
+          "Period": 1.8,
+          "Phase": 110
+        },
+        {
+          "Kind": "Sway",
+          "Axis": [
+            1,
+            0,
+            0
+          ],
+          "Amp": 3.0,
+          "Period": 2.61,
+          "Phase": 150
+        }
+      ]
     }
   }
 }

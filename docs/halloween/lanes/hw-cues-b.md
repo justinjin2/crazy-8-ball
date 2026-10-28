@@ -23,6 +23,7 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
 
 ## Status
 
+- 09:05 coordinator REQUEST (all lanes, blocks a merge): `src/client/Main.client.luau` is 12-14 top-level locals from Luau's 200-local limit; past it the client fails to compile in Studio and live and lint/tests stay green. Put every Main.client addition inside `do ... end` (zero new top-level locals), e.g. `do local ok, err = pcall(...) ... end`. New test `tests/client_compiles_test.luau` (on halloween @HEAD) compiles every src script and fails if Main.client has fewer than 8 locals left; run it before you push.
 - 08:55 P1 under way: builder file with its entry point, `AIM` table, `check_envelope` and a
   Broom blockout; three draft skin stubs; the Lune test (skips drafts). Started 08:43 (the
   launch came late), so the first push lands about 09:10 instead of 08:15; the rest of the
@@ -38,6 +39,12 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
   found by name (id 876392f5), the lab shows Eclipse, Beta, Firework and Kitsune on backs and
   stands (`shots/hw-cues-b/p2_lab_bar_eclipse_beta_firework_kitsune.jpg`). Starting the real
   Broom body (P3).
+- 09:20 P3 done: the Witch's Broom body built, checked and uploaded (6 parts, 6,534 triangles;
+  `witch_broom_parts.glb` 138086579066996, `HatCharm.glb` 108447719616824, the atlas colour /
+  normal / emissive decals with image ids in the manifest). Compact bristles (0.24 past the
+  butt); the long variant is a build flag (`LONG['witch_broom']`) for P18. Gate-1 renders in
+  `gate1/` (lines under Gate shots). Cues A's drop 2 adds `k.joint(..., aim='fade')`; my
+  `patch_aim` writes the same key from the static `AIM` table, so both agree once merged.
 
 ## Shared-file changes
 
@@ -60,4 +67,31 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
 
 ## Assumptions
 
+- Past-butt radial room: a compact (non-Aim) part may sit up to 0.45 from the axis past the
+  butt (the brief gives only the 0.3 length); the Broom's hat charm brim corner reaches 0.42
+  there, hanging beside the straw root. An Aim overhang may reach 1.0 off the axis (the Cat's
+  long tail curls 0.9 up). Both are `RULES` in `CuePiecesHalloween_B.py`.
+- The Broom's buckle sits on the +X side of the binding and the charm hangs down and back
+  (toward the butt) from its lower edge, so on a back it is no deeper toward the body than the
+  binding itself.
+- One atlas per body (512 px colour + alpha, normal, emissive mask), worn by an opaque
+  material (`Bark`) and an alpha twin (`Straw`, AlphaMode Transparency) so the straw cards are
+  the only transparent part; the Broom's shows in `broom_2_bridge.png` (bark) and
+  `broom_3_charm.png` (straw, buckle, hat).
+
 ## Gate shots
+
+Gate 1 (`~/Desktop/8ball-refs/halloween/shots/hw-cues-b/gate1/`, headless Blender renders of
+the Broom body, compact bristles, no aura yet):
+
+- `broom_body_vs_C3b.png`: the concept `C3b_broom.png` on top, the four body renders below.
+- `broom_1_three_quarter.png`: the whole cue: crystal tip with the silver bands, the crooked
+  bark branch (straight in both hand zones), the knot hole at 2.6, three twig stubs on top, the
+  purple binding, the straw head and the hat charm.
+- `broom_2_bridge.png`: the bridge hand zone close: bark colour and normal map on the plain
+  envelope (the hand sits on a round stick).
+- `broom_3_charm.png`: the +X side of the butt: the purple wraps, the silver buckle with the
+  gold crescent (emissive), the two chain links and the purple hat with its gold band, the
+  straw head's cut ends and cards.
+- `broom_4_bristles.png`: the -X side: the binding and the compact straw head (0.3 past the
+  butt, 0.48 across).

@@ -353,6 +353,44 @@
     "imageId": "93822415051422",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/pieces/witch_broom/HatCharm.glb": {
+    "assetId": "108447719616824",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/pieces/witch_broom/atlas_color.png": {
+    "assetId": "116712819424383",
+    "assetType": "Decal",
+    "imageId": "104049980497453",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/pieces/witch_broom/atlas_emissive.png": {
+    "assetId": "87679972037422",
+    "assetType": "Decal",
+    "imageId": "124097811559348",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/pieces/witch_broom/atlas_normal.png": {
+    "assetId": "119519181677611",
+    "assetType": "Decal",
+    "imageId": "89200995212626",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/pieces/witch_broom/witch_broom_parts.glb": {
+    "assetId": "138086579066996",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-refs/emotes/birdbrain_loop.flac": {
+    "assetId": "75387278867392",
+    "assetType": "Audio",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-refs/emotes/birdbrain_loop_v2.flac": {
+    "assetId": "94466746495096",
+    "assetType": "Audio",
+    "status": "removed by Roblox moderation (2026-10-28)"
+  },
   "/Users/justinjin/Desktop/8ball-tutorial/assets/ui/tutorial/arrow_chevron_up.png": {
     "assetId": "76883899985215",
     "assetType": "Decal",
@@ -737,43 +775,6 @@
     "assetId": "113082192164237",
     "assetType": "Decal",
     "imageId": "137525961488251",
-    "status": "ok"
-  },
-  "/Users/justinjin/Desktop/8ball/assets/ui/icons/emote.png": {
-    "assetId": "132544200168263",
-    "assetType": "Decal",
-    "imageId": "101229121269358",
-    "status": "ok"
-  },
-  "/Users/justinjin/Desktop/8ball/assets/emotes/bullseye/anims/BullseyeShot.rbxm": {
-    "assetId": "90958833606867",
-    "assetType": "Animation",
-    "status": "ok"
-  },
-  "/Users/justinjin/Desktop/8ball/assets/emotes/bullseye/bullseye.glb": {
-    "assetId": "80309530019247",
-    "assetType": "Model",
-    "status": "ok"
-  },
-  "/Users/justinjin/Desktop/8ball/assets/emotes/popcorn/anims/PopcornIntro.rbxm": {
-    "assetId": "101661105635659",
-    "assetType": "Animation",
-    "status": "ok"
-  },
-  "/Users/justinjin/Desktop/8ball/assets/emotes/popcorn/anims/PopcornLoop.rbxm": {
-    "assetId": "92414707292170",
-    "assetType": "Animation",
-    "status": "ok"
-  },
-  "/Users/justinjin/Desktop/8ball/assets/emotes/popcorn/popcorn.glb": {
-    "assetId": "121716712153613",
-    "assetType": "Model",
-    "status": "ok"
-  },
-  "/Users/justinjin/Desktop/8ball/assets/emotes/popcorn/popcorn_sprite.png": {
-    "assetId": "129179409765641",
-    "assetType": "Decal",
-    "imageId": "138195617882872",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/abilities/BlackFlash/BlackFlash.glb": {
@@ -5051,6 +5052,37 @@
     "imageId": "129683785836185",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball/assets/emotes/bullseye/anims/BullseyeShot.rbxm": {
+    "assetId": "90958833606867",
+    "assetType": "Animation",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/emotes/bullseye/bullseye.glb": {
+    "assetId": "80309530019247",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/emotes/popcorn/anims/PopcornIntro.rbxm": {
+    "assetId": "101661105635659",
+    "assetType": "Animation",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/emotes/popcorn/anims/PopcornLoop.rbxm": {
+    "assetId": "92414707292170",
+    "assetType": "Animation",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/emotes/popcorn/popcorn.glb": {
+    "assetId": "121716712153613",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/emotes/popcorn/popcorn_sprite.png": {
+    "assetId": "129179409765641",
+    "assetType": "Decal",
+    "imageId": "138195617882872",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball/assets/luckyblocks/anims/BoxIdle.rbxm": {
     "assetId": "120822945598411",
     "assetType": "Animation",
@@ -6022,15 +6054,5 @@
     "assetId": "124844921098629",
     "assetType": "Audio",
     "status": "ok"
-  },
-  "/Users/justinjin/Desktop/8ball-refs/emotes/birdbrain_loop.flac": {
-    "assetId": "75387278867392",
-    "assetType": "Audio",
-    "status": "ok"
-  },
-  "/Users/justinjin/Desktop/8ball-refs/emotes/birdbrain_loop_v2.flac": {
-    "assetId": "94466746495096",
-    "assetType": "Audio",
-    "status": "removed by Roblox moderation (2026-10-28)"
   }
 }

@@ -609,7 +609,7 @@ floor by **15:00**, write a Request to the coordinator at once (Cues A may take 
   green, pushed, Status line.
 - [x] 2. Lane ready: worktree on `hw-cues-b`, Rojo 34885 into `lane-hw-cues-b.rbxl`, the window
   found by name, the lab showing Eclipse, Beta and Firework.
-- [ ] 3. Witch's Broom body: crystal tip, crooked bark handle straight in both hand zones, knot,
+- [x] 3. Witch's Broom body: crystal tip, crooked bark handle straight in both hand zones, knot,
   twig stubs, binding and buckle, straw bristles (compact and long, `Aim`), skinned hat charm on
   a Sway chain, one atlas; `check_envelope` passes; uploaded; preview and gate-1 renders beside
   `C3b_broom.png`.
