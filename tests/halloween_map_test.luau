@@ -349,6 +349,13 @@ return {
 		end
 	end,
 
+	["the King's challenge is on only with his throne"] = function()
+		-- His prompt is on the throne: a challenge without one could never be met, while core's
+		-- quest (it reads HM.Enabled and HM.Boss.Enabled) would still ask for it.
+		local HM = H.require("Config").HalloweenMap
+		H.expect(not HM.Boss.Enabled or HM.Throne.Enabled, "Boss.Enabled needs Throne.Enabled")
+	end,
+
 	["the cloths keep their raw contrast with every ball"] = function()
 		local Config = H.require("Config")
 		local HM = Config.HalloweenMap

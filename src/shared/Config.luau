@@ -9189,7 +9189,7 @@ Config.Lighting = {
 -- core's (Config.Halloween), never copied here. Studs, seconds.
 ---------------------------------------------------------------------------------------------
 Config.HalloweenMap = {
-	Enabled = false, -- the master switch: off turns every part below off
+	Enabled = true, -- the master switch: off turns every part below off
 	PollSeconds = 1, -- the server reads Event.state this often
 	FlipSeconds = 4, -- a client crossfades the light this long when the state flips
 	-- Studio only: a workspace attribute holding a state name ("Before", "Countdown", "Live",
@@ -9200,7 +9200,7 @@ Config.HalloweenMap = {
 	StateAttribute = "HalloweenMapState",
 	FlipAtAttribute = "HalloweenMapFlipAt",
 	Night = {
-		Enabled = false, -- the Night light while Live (Config.Lighting.Night in Day's slot)
+		Enabled = true, -- the Night light while Live (Config.Lighting.Night in Day's slot)
 		-- In Play, Night held vs Day held from one camera: the floor and tables' mean luminance
 		-- at least this share of Day's ("as readable as day").
 		MinBrightnessShare = 0.9,
@@ -9211,7 +9211,7 @@ Config.HalloweenMap = {
 		},
 	},
 	Tables = {
-		Enabled = false, -- every table's event look by its mode
+		Enabled = true, -- every table's event look by its mode
 		Base = "Blue", -- the black-frame look (Config.TableModel.Looks; the arena's)
 		-- Every cloth keeps at least this CIEDE2000 from every ball, as rendered under Night and
 		-- Sunset (tools/halloween/hw_map_cloth_check.py).
@@ -9230,7 +9230,7 @@ Config.HalloweenMap = {
 	-- the cabinet's underside at 1.3, the legs' inner faces at X +-8.24 and Z +-4.24 there, the
 	-- rails from 2.74 to the rail top 3.233 (assets/table/TableModel.blend, read 2026-10-28).
 	Decor = {
-		Enabled = false, -- the haunted kit on each table (TableBuilder.addDecor)
+		Enabled = true, -- the haunted kit on each table (TableBuilder.addDecor)
 		MaxPartsPerTable = 10, -- the most parts a table's kit may add
 		MaxTrianglesPerTable = 1500, -- and triangles
 		Folder = "HalloweenDecor", -- the kit's Folder under the table model
@@ -9278,7 +9278,7 @@ Config.HalloweenMap = {
 	-- The rooftop's props while Live (HalloweenMap/MapProps; the lobby only), built once into a
 	-- ServerStorage holder so Live and Ended only move them.
 	Props = {
-		Enabled = false, -- the dead trees, pumpkins, planters, string lights and cobwebs
+		Enabled = true, -- the dead trees, pumpkins, planters, string lights and cobwebs
 		-- Put away while Live (name patterns under workspace.Map, read in Studio 2026-10-28;
 		-- Rules.hideList never takes a portal's): the 18 palms (their pots and the pots'
 		-- collision stay: a dead tree grows from each pot), the 12 fern planters and 11 planter
@@ -9353,7 +9353,10 @@ Config.HalloweenMap = {
 		},
 	},
 	Throne = {
-		Enabled = false, -- the Pumpkin King's throne where the piano stands
+		-- The Pumpkin King's throne where the piano stands. It goes up only while Boss is on too
+		-- (BossService adds it), and Boss is on only with it (his prompt is on the throne; a
+		-- test holds it): switch both off together.
+		Enabled = true, -- the Pumpkin King's throne where the piano stands
 		Pivot = { 0, 2, -86.05 }, -- the piano's spot at the end of the spawn aisle
 		YawDegrees = 0, -- facing the spawn (+Z)
 		MaxHeightStuds = 18, -- under the pergola's beam and the globe lights
@@ -9363,7 +9366,7 @@ Config.HalloweenMap = {
 		Hide = { "^Piano_", "^PianoBench_", "^piano_%d+$", "^piano_bench_%d+$", "^Seat_11$" },
 	},
 	Boss = {
-		Enabled = false, -- the Pumpkin King's challenge
+		Enabled = true, -- the Pumpkin King's challenge
 		-- A practice bot: Settle pays it as PC (no rank, practice money, the PC cap), so the
 		-- King can't be farmed. Never a new kind.
 		Kind = "Pc",
@@ -9484,7 +9487,7 @@ Config.HalloweenMap = {
 		CrownOnMesh = -0.2,
 	},
 	Candy = {
-		Enabled = false, -- the lobby's candy drops (the hour cap is core's Halloween.Pickup.HourCap)
+		Enabled = true, -- the lobby's candy drops (the hour cap is core's Halloween.Pickup.HourCap)
 		TargetPerHour = 25, -- about this many an hour for an active player
 		SpawnEverySeconds = 30, -- one candy per eligible player this often...
 		JitterSeconds = 10, -- ...give or take this
