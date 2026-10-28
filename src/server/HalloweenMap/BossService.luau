@@ -330,6 +330,9 @@ local function challenge(
 		logChallenge(p, "NoTable", tiers)
 		return false, "KingNoTable"
 	end
+	-- The visit this seat belongs to, taken now: playBoss waits for his body, and a visit
+	-- ending meanwhile must not credit the win to the next one.
+	local seatVisit = if Rules.kingTimed() then visit or (Rules.kingWindow(Clock.now())) else nil
 	promised[t] = true
 	seating += 1 -- (a press at the same moment sees this seat taken)
 	local ok, bot = pcall(function(): any
@@ -363,7 +366,7 @@ local function challenge(
 		playerTier = playerTier,
 		kingTier = kingTier,
 		lastTaunt = 0,
-		visit = if Rules.kingTimed() then visit or (Rules.kingWindow(Clock.now())) else nil,
+		visit = seatVisit,
 	}
 	if Rules.lineDrop(line, p.UserId) then
 		p:SetAttribute(K.LineAttribute, nil)
