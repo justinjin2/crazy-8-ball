@@ -3,7 +3,7 @@
   "name": "Spider Cue",
   "tier": "Mythic",
   "catalog_id": "SpiderCue",
-  "draft": false,
+  "draft": true,
   "note": "Halloween 2026 (lane Cues B, brief 2.6, concept C1b_spider.png rev 2): a black chrome segmented shaft with silver-edged chevrons, a spear ferrule, one small crimson hourglass on the collar and a crown of eight huge silver-edged blades laced with silk sweeping past the butt; black smoke with silver silk and webs. No spider bodies, legs or crawling creatures anywhere. Draft until complete.",
   "body": "spider",
   "maps_from": "classic",
