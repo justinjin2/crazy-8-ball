@@ -507,6 +507,51 @@ return {
 		H.expect(clean == true, "a Roblox global leaked into the module environment")
 	end,
 
+	-- hw-map lane (Halloween 2026): the keys core's quests read, PLAN's numbers, every switch.
+	["the Haunted Rooftop's config keeps PLAN's numbers and its switches are booleans"] = function()
+		local Config = H.require("Config")
+		local HM = Config.HalloweenMap
+		H.expect(type(HM) == "table", "Config.HalloweenMap exists")
+		-- Every Enabled under it is a boolean, the master included (core reads three of them).
+		local function switches(t: { [string]: any }, where: string)
+			for key, v in t do
+				if key == "Enabled" then
+					H.expect(type(v) == "boolean", where .. ".Enabled is a boolean")
+				elseif type(v) == "table" then
+					switches(v, where .. "." .. tostring(key))
+				end
+			end
+		end
+		switches(HM, "HalloweenMap")
+		for _, block in { HM, HM.Boss, HM.Candy } do
+			H.expect(type(block.Enabled) == "boolean", "a switch core's quests read")
+		end
+		-- No hour cap here: it lives only in core's Config.Halloween.Pickup.HourCap.
+		for key in HM.Candy do
+			H.expect(not tostring(key):lower():match("cap"), "no hour-cap key: " .. tostring(key))
+		end
+		local tints = { { 185, 90, 230 }, { 90, 94, 102 }, { 110, 220, 40 } }
+		for size, rgb in tints do
+			local row = HM.Tables.ByTeamSize[size]
+			for i = 1, 3 do
+				H.expect(row.Cloth[i] == rgb[i], ("the %dv%d cloth is PLAN's"):format(size, size))
+			end
+		end
+		H.expect(HM.Boss.MaxAtOnce == 3 and HM.Boss.SpareTables == 2, "MaxAtOnce 3, SpareTables 2")
+		H.expect(HM.Boss.Kind == "Pc" and HM.Boss.Rematch == "Never", "a practice bot, no rematch")
+		H.expect(HM.Props.Budget.Lights == 6, "six real lights at most")
+		local C = Config.Lighting.Cycle
+		H.expect(C.Day == 600 and C.Sunset == 300 and C.Fade == 10, "the 10/5 cycle, 10 s fades")
+		local tiers: { [string]: boolean } = {}
+		for _, name in Config.Ranks.Tiers do
+			tiers[name] = true
+		end
+		for from, to in HM.Boss.TierFor do
+			H.expect(tiers[from] and tiers[to], ("TierFor %s -> %s: rank tiers"):format(from, to))
+		end
+		H.expect(tiers[HM.Boss.MinTier], "MinTier is a rank tier")
+	end,
+
 	["shared modules can require each other via script.Parent"] = function()
 		local Config = H.evalInModuleEnv("return require(script.Parent.Config)")
 		H.expect(

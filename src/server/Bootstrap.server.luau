@@ -185,6 +185,23 @@ DevCommands.start() -- /day and /sunset, for the developer only
 -- The owner's admin panel (Painicane only) and its money rain; the drops and the rain only in
 -- a lobby.
 require(script.Parent:WaitForChild("MoneyRain")).start(not isArena)
+-- The Haunted Rooftop (Halloween 2026, hw-map): the event's map (Night and the tables in an
+-- arena too), the Pumpkin King and the lobby's candy drops. Each is off while its
+-- Config.HalloweenMap switch is, and a failure in one never stops the server's start.
+do
+	local folder = script.Parent:WaitForChild("HalloweenMap")
+	local function startPart(name: string, on: boolean)
+		local ok, err = pcall(function()
+			(require(folder:WaitForChild(name)) :: any).start(on)
+		end)
+		if not ok then
+			warn(("[HalloweenMap] %s failed to start: %s"):format(name, tostring(err)))
+		end
+	end
+	startPart("EventMap", isArena)
+	startPart("BossService", not isArena)
+	startPart("CandyDrop", not isArena)
+end
 require(script.Parent:WaitForChild("AdminService")).start(not isArena)
 GlobalQueue.start(not isArena) -- every server takes its turn pairing the global queue
 -- A public lobby server moves everyone to a fresh one every 5 to 6 hours (ServerRestart).
