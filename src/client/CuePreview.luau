@@ -1056,6 +1056,7 @@ local function teardown(s: Session, fold: boolean?)
 				tween:Cancel()
 			end
 			parts.content.Visible = false
+			parts.backing.Visible = true
 			parts.backing.BackgroundTransparency = 0
 			parts.backingEdge.Transparency = 0
 			reveal:close(function()
@@ -1153,11 +1154,22 @@ local function playOpen(s: Session)
 			return
 		end
 		parts.content.Visible = true
+		-- Hidden by Visible in the end: with Reduce Motion Stage's fader holds the panel's
+		-- transparencies until the open is over, so a fade alone would leave it covering the hole.
+		if UIAnim.reduced() then
+			parts.backing.Visible = false
+			return
+		end
 		local info = TweenInfo.new(C.BackingFadeSeconds)
 		parts.backingTweens = {
 			TweenService:Create(parts.backing, info, { BackgroundTransparency = 1 }),
 			TweenService:Create(parts.backingEdge, info, { Transparency = 1 }),
 		}
+		parts.backingTweens[1].Completed:Connect(function(state)
+			if state == Enum.PlaybackState.Completed then
+				parts.backing.Visible = false
+			end
+		end)
 		for _, tween in parts.backingTweens do
 			tween:Play()
 		end
