@@ -16896,7 +16896,9 @@ Config.UI.Halloween = {
 		-- node at least NodeMinPx wide, scrolling sideways.
 		NodePx = 84, -- a node's card (a computer)
 		ShortNodePx = 70,
-		NodeMinPx = 78,
+		NodeMinPx = 78, -- a phone's slot at least this wide
+		NodeGapPx = 4, -- between two cards at least
+		NodeLabelMinPx = 8, -- a card's name shrinks down to this to fit ("Jack-o'-Lantern")
 		GrandScale = 1.25, -- the Witch's Broom's card
 		BarPx = 12,
 		ShortBarPx = 9,

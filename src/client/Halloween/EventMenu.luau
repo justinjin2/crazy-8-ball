@@ -501,8 +501,14 @@ function EventMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		trackTitle.Position = UDim2.fromOffset(0, 2)
 		sizeText(trackTitle, headPx)
 		local count = #nodes
+		-- A computer fits all eleven (the cards shrink on a narrow window); a phone scrolls.
+		if not short then
+			local room = inner - 2 * pad - (count - 1) * M.NodeGapPx
+			nodePx = math.min(nodePx, math.floor(room / (count - 1 + M.GrandScale)))
+		end
 		local grand = round(nodePx * M.GrandScale)
-		local slotW = math.max(M.NodeMinPx, (inner - 2 * pad - grand) / math.max(1, count - 1))
+		local slotMin = if short then math.max(M.NodeMinPx, nodePx + M.NodeGapPx) else 0
+		local slotW = math.max(slotMin, (inner - 2 * pad - grand) / math.max(1, count - 1))
 		local trackW = math.max(inner - 2 * pad, slotW * (count - 1) + grand)
 		local barPx = if short then M.ShortBarPx else M.BarPx
 		local cardTop = textPx + 6
@@ -529,7 +535,7 @@ function EventMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 			sizeText(node.at, textPx)
 			node.label.Size = UDim2.fromScale(1, 0.28)
 			node.label.Position = UDim2.fromScale(0, 0.72)
-			sizeText(node.label, math.max(9, textPx - 6))
+			HudParts.setTextSize(node.label, math.max(9, textPx - 6), M.NodeLabelMinPx)
 			node.check.Size = UDim2.fromOffset(round(px * 0.32), round(px * 0.32))
 			node.check.Position = UDim2.fromOffset(round(px * 0.7), -round(px * 0.1))
 			if node.preview then
