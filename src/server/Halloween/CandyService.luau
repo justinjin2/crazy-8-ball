@@ -474,6 +474,9 @@ local function activeNow(player: Player): boolean
 	return ok and active == true
 end
 
+-- Whether the funnel's 1_Button step was tried this session.
+local buttonTried: { [Player]: boolean } = setmetatable({}, { __mode = "k" }) :: any
+
 -- The tick for one player: held grants (a cue that became ready) and the end's conversion.
 local function tickPlayer(player: Player): any
 	local ctx = CandyService.ctx()
@@ -490,8 +493,14 @@ local function tickPlayer(player: Player): any
 		end
 		return nil
 	end
-	-- The funnel's first step: the tile shows for the player (Live, tutorial over).
-	if Event.isLive(ctx.now) and player:GetAttribute("HwOn") == true then
+	-- The funnel's first step: the tile shows for the player (Live, tutorial over). Tried once a
+	-- session (Funnel.once copies the save's flags each call).
+	if
+		not buttonTried[player]
+		and Event.isLive(ctx.now)
+		and player:GetAttribute("HwOn") == true
+	then
+		buttonTried[player] = true
 		Funnel.once(player, "Halloween", "1_Button")
 	end
 	-- The Spider's clock (and the Active quests): this tick's seconds while the player is active.
