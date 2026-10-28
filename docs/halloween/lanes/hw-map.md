@@ -50,6 +50,49 @@ From PLAN §4 (everything else is read-only to this lane; ask through Requests):
 - `Config.HalloweenMap.Props.Budget.Lights = 6` (throne 2 + the throne King's aura 1 + 3 table Kings).
 
 ## Status
+- 19:50 hw-map: **BONE CUE PARKED, PITCHFORK CUE started** (coordinator 19:40: Justin picked the
+  Pitchfork for the 500 slot). The Bone WIP is committed as parked (5450b579), origin/halloween
+  is merged with halloween's side for every Track, Catalog, Strings and Art row (10d228f9), and
+  the Bone is off the track: a draft skin, no generated rows (3e785650). Nothing of the Bone
+  goes live. The opt-in `Smooth` part key in `cue_pieces_glb.py` is approved (856430e4).
+  Lint clean, 1,477 tests pass. Next: the Pitchfork builder (`CuePiecesHalloween_Pitchfork.py`).
+- 19:27 hw-map: **BONE CUE rework per the 19:05 review**, and the flame colour made one switch
+  (coordinator 19:2x: the Bone is a candidate for the 500 slot, Ghost out; green C7 or red R3).
+  Captures (Blender, the lab's views): `shots/hw-map/bone/blender2_skull.png`,
+  `blender2_body.png`, `blender2_pocket.png`.
+  - SKULL: the Meshy skull is gone. It is now a clean cartoon skull modelled from a distance
+    function and meshed by OpenVDB in headless Blender: a smooth round cranium, big round
+    sockets with Neon eyes, a small nose hole, a wide grin with 13 chunky teeth. Painted by a
+    bake from the fine mesh: zone colours plus ambient occlusion in one warm-ivory map. The face
+    looks three ways at once (up/out for the back view, -X for the stand side, a little past
+    the butt as in C7) and the crown leans to the tip, so the cue enters the back of the head
+    (C7 and R3). Body: 3 parts / 8,006 tris, `check_body` passes, reaches 1.14 past the butt.
+  - SPINE: four knobby cartoon bones between the hands (wide two-lobed knuckles, a waist), a
+    bronze ring between the middle two and at both ends; the tall spines dropped. The grip is
+    two long smooth bones with a flush ring (the hand rule allows only +-0.02). Painted
+    occlusion in the hollows, hairline cracks, a bronze collar under the skull.
+  - FINISHER: the same skull split at the grin (a real jaw part on a chattering hinge), six
+    3D bones and two mini skulls; Lower effects hides three bones and the minis.
+    13 parts / 9,200 tris.
+  - PALETTE: `PALETTE = 'green' | 'red'` in `CuePiecesHalloween_Bone.py`. The build writes
+    every flame, spark, smoke, light, ring, trail and outline colour into `skins/bone.json`
+    (red = R3's swatches); the eyes follow it.
+  - Lab uploads only (no card, nothing final): new maps and meshes uploaded, ids filled, data
+    tool clean. The Meshy model and its maps were deleted (unused); their manifest rows were
+    dropped. Next: the lab in Night and Day (stand, back, hand at aim) side by side with C7.
+- 19:06 hw-map: **BONE CUE in progress** (coordinator 18:45/18:50/19:08). Concept
+  `mocks/v2/C7_bone.png` approved (no ghosts). Built in my own files
+  (`assets/cue/CuePiecesHalloween_Bone.py`, `skins/bone.json`, `pieces/bone*`, `vfx/bone/`):
+  a Meshy skull (`models/bone_skull`, 35 credits) on the butt, real 3D vertebrae between the
+  hands, the grip carved flush, a neck vertebra, Neon green eyes; body 4 parts / 8,692 tris,
+  passes `check_body`; the pocket piece is the skull (skinned chattering jaw) with six 3D bones
+  and two mini skulls whirling round it (9 parts / 11,496 tris). Uploaded to the group,
+  image ids filled, `cue_skins_data.py bone` clean. Slot swap done locally (Catalog, track
+  2,000, Strings, Art, four tests, BlackCatCue rows/files/builder block/sprites out, as Cues A
+  asked), not committed yet. Lab (Night light, `shots/hw-map/bone/`): first pass read pale
+  lavender (cream + 0.06 reflectance under the violet Night; maps also loaded late) and the
+  skull's inner edges inked green: fixed (tan ivory, no reflectance, skull Outline off, skull
+  turned face-up as on M3), re-lab next. Flat bone/skull cards removed (19:08 rule).
 - 18:40 hw-map: **READY night sky @9e8cbcf5: NIGHT SKY AND MOON** (coordinator 18:45, Justin's
   verdict: night "too dull", the moon "looks like a sun"). Shots in `~/Desktop/8ball-refs/halloween/shots/hw-map/night2/`:
   `before_lobby_moon.jpg` vs `after_lobby_moon.jpg` (same lobby camera), `after_moon_view.jpg`
@@ -359,6 +402,8 @@ From PLAN §4 (everything else is read-only to this lane; ask through Requests):
 ## Shared-file changes
 
 Landed (only my own blocks unless said):
+- `tools/cue_pieces_glb.py`: an opt-in `"Smooth": true` part key (shares a part's vertex
+  normals; no key = the old flat faces, so every other cue's GLB is unchanged) — 856430e4.
 - `Config.luau`: `Config.Lighting.Night` (after Sunset), `Config.HalloweenMap` (after Lighting) — 0b5ef756, ccb73403, 0498b301.
 - `Strings.luau`: `Strings.HalloweenMap` (after `Arena`); 5 keys in `GlobalQueue.Failed` (`KingBusy`,
   `KingNoTable`, `KingCooldown`, `KingNotNow`, `CandyBagFull`: the bag-full note reuses the queue
@@ -439,6 +484,14 @@ coordinator resolves overlaps. Planned (add the commit sha when each lands):
 - Coordinator: please include the step-1 interface commit in the interface merge.
 
 ## Assumptions
+
+- Cue labs, 2026-10-28: the lab spot moved to (-80, 0, 68). At (-40, 0, 70) the SoloPortal's
+  cyan PointLight (range 14, brightness 2) tints every cue mint (cues-a and cues-b told). Body
+  cues carry no large coloured PointLight of their own: by day it dyes the body (the Bone read lime).
+- Which way a body piece faces, measured on the lab: on the stand Blender -X faces the camera
+  and Z is up; on a back carry Blender +Z faces the camera behind and -X and past-the-butt point
+  at the floor. A butt piece is posed between the two (the Pitchfork's fork is tilted 30 degrees
+  from X toward +Z).
 
 - Night readability, 2026-10-28: Justin's richer night is a touch darker, so the floor rule is
   0.8 of Day's (was 0.9; measured 0.84). The moon stays painted into the skybox (works at every
