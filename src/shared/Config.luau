@@ -3770,7 +3770,7 @@ Config.Halloween = {
 	-- Match Candy at settle (Halloween/CandyMath; real matches against people only): PerBall a
 	-- ball pocketed, Finished for a match the player's side did not forfeit, Win on top for a
 	-- win; times the event multiplier and the friends + group boost.
-	Match = { Enabled = false, PerBall = 3, Finished = 10, Win = 25 },
+	Match = { Enabled = true, PerBall = 3, Finished = 10, Win = 25 },
 	-- Beating the Pumpkin King: the first PaidWinsPerDay wins of a UTC day pay Candy (flat);
 	-- every win starts a personal cooldown of CooldownSeconds (the King's prompt shows it).
 	Boss = { Candy = 50, PaidWinsPerDay = 2, CooldownSeconds = 900 },

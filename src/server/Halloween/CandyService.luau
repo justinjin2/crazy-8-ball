@@ -23,6 +23,7 @@ local Event = require(Shared.Halloween.Event)
 local CandyMath = require(Shared.Halloween.CandyMath)
 local Quests = require(Shared.Halloween.Quests)
 local PlayerData = require(script.Parent.Parent.PlayerData)
+local Funnel = require(script.Parent.Parent.Funnel)
 
 local C = Config.Halloween
 
@@ -89,6 +90,15 @@ function CandyService.multiplier(player: Player): number
 	return CandyMath.multiplier(Event.multiplier(Clock.serverNow()), friends, group)
 end
 
+-- The HwCandy event (value: the Candy; a: its source; b: "x1" or "x2", the event multiplier;
+-- c: the device). Never per pickup (up to 40 an hour): pickups are counted by HwQuest instead.
+local function logCandy(player: Player, amount: number, source: string)
+	if amount > 0 and source ~= "Pickup" then
+		local x = ("x%d"):format(Event.multiplier(Clock.serverNow()))
+		Funnel.event(player, "HwCandy", amount, source, x, Funnel.device(player))
+	end
+end
+
 --- Adds Candy earned from `source` (Live only, the save loaded). `opts.boost` applies the
 --- event multiplier and the friends + group boost (match Candy); quests, the King and pickups
 --- are flat. Returns the Candy added (0 when refused).
@@ -105,7 +115,9 @@ function CandyService.add(player: Player, amount: number, source: string, opts: 
 		candy = CandyMath.apply(candy, CandyService.multiplier(player))
 	end
 	local result = PlayerData.hwAddCandy(player, candy, "Earned", CandyService.ctx(), o.events)
-	return if result then result.candy else 0
+	local added = if result then result.candy else 0
+	logCandy(player, added, source)
+	return added
 end
 
 --- A Pumpkin King win (the map lane, from BotService.matchEnded): every win counts for the
@@ -120,6 +132,7 @@ function CandyService.bossWon(player: Player): BossWon
 	if boss == nil then
 		return none
 	end
+	logCandy(player, boss.amount, "Boss")
 	return { granted = boss.granted, amount = boss.amount, cooldownEndsAt = boss.cooldownEndsAt }
 end
 
@@ -168,13 +181,24 @@ function CandyService.matchSettled(player: Player, f: MatchFacts): number
 	if not isPlayer(player) or C.Match.Enabled ~= true or not CandyService.isLive() then
 		return 0
 	end
-	if not f.real or f.payKind ~= "Player" or f.botKind == "Disguised" then
+	-- HwMatch: every settled match while Live (value: friends here, capped; a: how it paid;
+	-- b: in the group), so the friend and group shares can be measured.
+	local friends, group = boostInputs(player)
+	local how = CandyMath.how(f)
+	Funnel.event(
+		player,
+		"HwMatch",
+		math.min(math.floor(friends), 4),
+		how,
+		if group then "Group" else "NoGroup"
+	)
+	if how ~= "Paid" then
 		return 0
 	end
 	local farm = f.farm or { Balls = 1, Bonus = 1 }
 	local base = CandyMath.base({
 		balls = f.balls,
-		finished = if f.forfeited == true then 0 else 1,
+		finished = CandyMath.finished(f.forfeited),
 		won = if f.won then 1 else 0,
 		farmBalls = farm.Balls,
 		farmBonus = farm.Bonus,
@@ -199,7 +223,9 @@ function CandyService.matchSettled(player: Player, f: MatchFacts): number
 		table.insert(events, { kind = "UltMatches", amount = 1 })
 	end
 	local result = PlayerData.hwAddCandy(player, candy, "Earned", CandyService.ctx(), events)
-	return if result then result.candy else 0
+	local added = if result then result.candy else 0
+	logCandy(player, added, "Match")
+	return added
 end
 
 -- Hears hw-sys's UltService.Used (player, tableId, epoch) for the ability quest, through a

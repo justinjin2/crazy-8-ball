@@ -64,6 +64,38 @@ return {
 		H.expect(CandyMath.base({ balls = -3, finished = 0, won = 0 }) == 0, "never below 0")
 	end,
 
+	["only real matches against people pay: every pay kind and bot kind"] = function()
+		local CandyMath = load()
+		local function how(real: boolean, payKind: string, botKind: string?): string
+			return CandyMath.how({ real = real, payKind = payKind, botKind = botKind })
+		end
+		H.expect(how(true, "Player", nil) == "Paid", "people")
+		H.expect(how(true, "Player", "Tutorial") == "Paid", "the tutorial's bot counts")
+		H.expect(how(true, "Player", "Disguised") == "Disguised", "a disguised bot pays 0")
+		H.expect(how(true, "PC", "Disguised") == "Disguised", "past its daily limit too")
+		H.expect(how(true, "PC", "Pc") == "PC", "Play against PC (the King too)")
+		H.expect(how(true, "PC", nil) == "PC", "PC")
+		H.expect(how(false, "Player", nil) == "Short", "a short forfeit")
+		H.expect(how(false, "Player", "Tutorial") == "Short", "not real is never paid")
+		H.expect(how(true, "Solo", nil) == "PC", "solo never pays")
+	end,
+
+	["finished: a played-out match, a draw and both sides of a real forfeit"] = function()
+		local CandyMath = load()
+		local function candy(balls: number, forfeited: boolean?, won: boolean): number
+			return CandyMath.match({
+				balls = balls,
+				finished = CandyMath.finished(forfeited),
+				won = if won then 1 else 0,
+			}, 1)
+		end
+		H.expect(candy(7, false, true) == 21 + 10 + 25, "a win played out: 56")
+		H.expect(candy(5, false, false) == 15 + 10, "a loss played out: 25")
+		H.expect(candy(4, nil, false) == 12 + 10, "a draw pays the 10")
+		H.expect(candy(1, false, true) == 3 + 10 + 25, "the winner of a real forfeit")
+		H.expect(candy(3, true, false) == 9, "the side that forfeited keeps its balls only")
+	end,
+
 	["the anti-farm rows cut a match's Candy like its money"] = function()
 		local CandyMath = load()
 		local f = { balls = 6, finished = 1, won = 1, farmBalls = 0.5, farmBonus = 0.25 }

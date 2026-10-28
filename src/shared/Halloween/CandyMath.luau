@@ -50,6 +50,33 @@ function CandyMath.base(facts: MatchFacts): number
 		+ M.Win * won * factor(facts.farmBonus)
 end
 
+export type Settled = {
+	real: boolean, -- past the one-minute mark (or a bot match that always counts)
+	payKind: string, -- Settle.moneyKind: "Player", "PC", ...
+	botKind: string?, -- Settle.botKind: "Tutorial", "Disguised", "Pc" or nil
+}
+
+-- How a settled match pays Candy: "Paid" for a real match against people (the tutorial's bot
+-- counts: PLAN "Candy still counts from the first match"), else "Short" (not real), "Disguised"
+-- (a disguised bot, never paid so a "+0" never outs it) or "PC".
+function CandyMath.how(f: Settled): string
+	if not f.real then
+		return "Short"
+	elseif f.botKind == "Disguised" then
+		return "Disguised"
+	elseif f.payKind ~= "Player" then
+		return "PC"
+	end
+	return "Paid"
+end
+
+-- `finished` for CandyMath.base: 1 unless the player's side forfeited the (real) match. The
+-- winner of a real forfeit (a surrender, out of timeouts, the other side emptied after the
+-- one-minute mark) gets it; the side that forfeited keeps only its balls.
+function CandyMath.finished(forfeited: boolean?): number
+	return if forfeited == true then 0 else 1
+end
+
 -- The friend part for `friends` in the server (uncapped count; Money caps it).
 function CandyMath.friendsAdd(friends: number): number
 	local fn = (Money :: any).friendBoost
