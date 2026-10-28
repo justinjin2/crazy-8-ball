@@ -1,0 +1,26 @@
+{
+  "name": "ghost",
+  "endpoint": "image-to-3d",
+  "task_id": "01a184a2-a3f1-7651-9422-3533df0d8f68",
+  "status": "SUCCEEDED",
+  "credits": 30,
+  "params": {
+    "ai_model": "latest",
+    "should_texture": true,
+    "enable_pbr": true,
+    "geometry_resolution": "standard",
+    "target_formats": [
+      "glb"
+    ],
+    "texture_resolution": "2k",
+    "texture_prompt": "smooth matte white cartoon ghost, glossy black oval eyes with white highlights, dark open smiling mouth, soft cyan rim",
+    "should_remesh": true,
+    "target_polycount": 20000,
+    "topology": "triangle",
+    "images": [
+      "assets/cue/concepts/phantom/ghost_front.png"
+    ]
+  },
+  "finished_at": 1793226683210,
+  "task_error": null
+}

@@ -3884,7 +3884,7 @@ Config.Halloween = {
 	Track = {
 		Steps = {
 			{ At = 50, Spins = 1 },
-			{ At = 150, Cue = "CandyCornCue" },
+			{ At = 150, Cue = "GhostLanternCue" },
 			{ At = 300, Money = 2500 },
 			{ At = 500, Cue = "JackOLanternCue" },
 			{ At = 1000, Spins = 2 },
@@ -17376,7 +17376,7 @@ Config.UI.Halloween = {
 	-- Pictures (image ids; "" = the fallback named): the cue cards until the cue lanes' thumbnails
 	-- exist (the approved concept art), the gift boxes, the end screen's candy pile and cash.
 	Art = {
-		CandyCornCue = "rbxassetid://99907004080834",
+		GhostLanternCue = "rbxassetid://105792322478609", -- the Ghost Lantern (assets/ui/halloween/CueGhostLantern.png, 2026-10-28)
 		JackOLanternCue = "rbxassetid://114487013205177",
 		BlackCatCue = "rbxassetid://95439931834328",
 		SpiderCue = "rbxassetid://134067061693157",

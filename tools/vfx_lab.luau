@@ -17,7 +17,7 @@
 -- not count), so it moves your avatar next to the lab at the end. Give new emitters a couple
 -- of seconds before a capture.
 
-local IDS = { "CandyCornCue", "JackOLanternCue", "EclipseCue", "BetaCue", "FireworkCue", "InfernalCue", "BloodMoonCue" }
+local IDS = { "GhostLanternCue", "JackOLanternCue", "EclipseCue", "BetaCue", "FireworkCue", "InfernalCue", "BloodMoonCue" }
 local ORIGIN = Vector3.new(-40, 0, 70) -- an open stretch of the lobby floor
 local SPACING = 14
 local CLEAR = false

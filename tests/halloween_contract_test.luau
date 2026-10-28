@@ -13,7 +13,7 @@ local COUNTDOWN = 1793226600 -- 18:30 EDT
 local ENDS = 1793750400 -- Tue Nov 3 19:00 EST
 local DOUBLE_FROM, DOUBLE_TO = 1793419200, 1793505600 -- Oct 31, US Eastern
 local EVENT_CUES =
-	{ "CandyCornCue", "JackOLanternCue", "BlackCatCue", "SpiderCue", "WitchBroomCue" }
+	{ "GhostLanternCue", "JackOLanternCue", "BlackCatCue", "SpiderCue", "WitchBroomCue" }
 
 local function tryRequire(path: string): any
 	local ok, mod = pcall(H.require, path)
@@ -148,7 +148,7 @@ return {
 		then
 			local want = {
 				{ 50, 1 },
-				{ 150, "CandyCornCue" },
+				{ 150, "GhostLanternCue" },
 				{ 300, 2500 },
 				{ 500, "JackOLanternCue" },
 				{ 1000, 2 },
@@ -266,7 +266,7 @@ return {
 	["halloween: the five cues are Exclusive rows with names"] = function()
 		local Catalog = H.require("Progression.Catalog")
 		local Strings = H.require("Strings")
-		if not present("the five Catalog rows (cues-a)", Catalog.get("CandyCornCue")) then
+		if not present("the five Catalog rows (cues-a)", Catalog.get("GhostLanternCue")) then
 			return
 		end
 		for _, id in EVENT_CUES do

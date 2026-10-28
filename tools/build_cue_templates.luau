@@ -17,7 +17,7 @@
 -- one failed LoadAsset in a full run would break a shipped cue), or ALL for the old full
 -- rebuild. Returns a report.
 
-local ONLY = nil -- e.g. { "CandyCornCue", "JackOLanternCue" }: rebuild only these skins'
+local ONLY = nil -- e.g. { "GhostLanternCue", "JackOLanternCue" }: rebuild only these skins'
 -- templates and the pieces they use (Piece, Carrier, Body, Pocket.Piece); nothing else is touched
 local ALL = false -- true: the old full rebuild (never on the live place)
 
