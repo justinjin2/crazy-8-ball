@@ -9321,6 +9321,9 @@ Config.HalloweenMap = {
 			CandyPurple = 58,
 			Bush = 62,
 		},
+		-- The glowing core inside each pumpkin (studs at scale 1, inside the shell): the carved
+		-- holes glow straight on instead of showing through the one-sided shell.
+		PumpkinCore = { 1.6, 1.2, 1.6 },
 		-- The Neon glow by prop (RGB): the carved faces, the lanterns' glass, the bulbs.
 		Glow = {
 			Pumpkin = { 255, 190, 60 },
@@ -9362,6 +9365,9 @@ Config.HalloweenMap = {
 		NearStuds = { 10, 30 }, -- this far from them
 		PadClearStuds = 6, -- never this close to a queue or portal pad
 		LifeSeconds = 60, -- an unclaimed candy goes after this
+		-- The crown's lift over the mesh head's half height (studs; the mesh's top bound is its
+		-- stem's tip, so negative sets the band on the pumpkin with the stem inside it).
+		CrownOnMesh = -0.2,
 		MaxAlive = 40, -- on the server
 		MaxAlivePerPlayer = 3,
 		PickupStuds = 5, -- walked over within this

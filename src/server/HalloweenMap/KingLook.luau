@@ -84,6 +84,24 @@ local function prop(
 	if model == nil then
 		return false
 	end
+	if name == "Pumpkin" then
+		-- A glowing core, so the carved holes glow straight on (the shell is one-sided).
+		local c = Config.HalloweenMap.Assets
+		local core = piece(
+			"PumpkinCore",
+			Enum.PartType.Ball,
+			Vector3.new(c.PumpkinCore[1], c.PumpkinCore[2], c.PumpkinCore[3]) * scale,
+			rgb(c.Glow.Pumpkin),
+			Enum.Material.Neon
+		)
+		if to then
+			weld(core, to, cf)
+		else
+			core.Anchored = true
+			core.CFrame = cf
+			core.Parent = parent
+		end
+	end
 	local pivot = model:GetPivot()
 	for _, part in model:GetChildren() do
 		if part:IsA("BasePart") then
@@ -241,7 +259,8 @@ local function dressHead(head: BasePart)
 	end
 	local size = Vector3.new(1.9, 1.55, 1.9)
 	local at = CFrame.new(0, 0.12, 0)
-	if not prop("Pumpkin", at, Vector3.new(0.95, 0.85, 0.95), head) then
+	local meshed = prop("Pumpkin", at, Vector3.new(0.95, 0.85, 0.95), head)
+	if not meshed then
 		local shell = piece("PumpkinHead", Enum.PartType.Ball, size, rgb(KL.Pumpkin))
 		weld(shell, head, at)
 		carve(head, at, size, rgb(KL.Glow), "Head")
@@ -255,7 +274,7 @@ local function dressHead(head: BasePart)
 	end
 	-- The tilted gold crown with purple gems.
 	local crownAt = at
-		* CFrame.new(0.15, size.Y / 2 + 0.15, 0)
+		* CFrame.new(0.15, size.Y / 2 + (if meshed then KL.CrownOnMesh else 0.15), 0)
 		* CFrame.Angles(0, 0, math.rad(-KL.CrownTiltDegrees))
 	if prop("Crown", crownAt * CFrame.new(0, -0.1, 0), Vector3.one, head) then
 		-- the purple gems at the points' feet (the .glb's points: Blender angle 72k degrees)
