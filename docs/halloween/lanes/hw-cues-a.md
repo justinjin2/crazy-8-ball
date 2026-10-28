@@ -60,7 +60,7 @@ From PLAN §4 (everything else is read-only; ask through Requests):
 
 ## Status (continued)
 
-- 12:59: **STATUS FINAL (Progress 20, 21). READY hw-cues-a @ 1a17820e** = `halloween`
+- 12:43: **STATUS FINAL (Progress 20, 21). READY hw-cues-a @ 1a17820e** = `halloween`
   @e9b90417 merged (map 88e9cceb + 623d0051, core 1361de6d, sys 57bc2b91, cues-b 0e3569b6 the
   Broom redo, the coordinator's first Team Create ONLY build), lint OK, 1,465 tests pass, the
   generator a no-op on the merged tree. Studio on the merged build (my window): the ONLY build
@@ -643,5 +643,5 @@ Gate 2 addition (10:28, `gate2/`): Jack-o'-Lantern complete @ db1a9fdb (+ 73fc00
 - `final_fresh_join_arrow.jpg`, `final_fresh_game1_start.jpg`, `final_fresh_game1_break.jpg`,
   `final_fresh_after_skip_streak2.jpg`, `final_fresh_result_card.jpg`: the Progress 18
   fresh-player run on 66af67b0 (12:40).
-- `final_merged_1a17820e_row_five.jpg`: 12:58, the five cues on the lab row on the merged build
+- `final_merged_1a17820e_row_five.jpg`: 12:42, the five cues on the lab row on the merged build
   (Candy, Jack, the Broom redo, Cat, Spider), backs and stands.
