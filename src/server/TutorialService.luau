@@ -777,6 +777,22 @@ local FUNNEL_EVENTS: { [string]: (Player) -> () } = {
 	AbilitiesOpened = function(player: Player)
 		Funnel.spins(player, "OpenedAbilities")
 	end,
+	-- The boost card and the Cue Preview (Halloween 2026, hw-gui lane): how many open them.
+	BoostCardOpened = function(player: Player)
+		Funnel.event(player, "BoostCard", 1, "Opened", Funnel.device(player))
+	end,
+	CuePreviewCues = function(player: Player)
+		Funnel.event(player, "CuePreview", 1, "Opened", "Cues", Funnel.device(player))
+	end,
+	CuePreviewIndex = function(player: Player)
+		Funnel.event(player, "CuePreview", 1, "Opened", "Index", Funnel.device(player))
+	end,
+	CuePreviewTrack = function(player: Player)
+		Funnel.event(player, "CuePreview", 1, "Opened", "Track", Funnel.device(player))
+	end,
+	CuePreviewEquip = function(player: Player)
+		Funnel.event(player, "CuePreview", 1, "Equip", Funnel.device(player))
+	end,
 }
 local lastFunnelEvent: { [Player]: { [string]: number } } = {}
 
