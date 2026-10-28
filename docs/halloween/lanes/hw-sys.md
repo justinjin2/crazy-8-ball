@@ -20,6 +20,11 @@ New files the brief adds for these: `src/shared/Matchmaking/Roam.luau`, `tests/r
 `tools/badges_manifest.json`, `assets/ui/badges/`.
 
 ## Status
+- 12:20 hw-sys: JUSTIN's badge round (asked 11:55, answered at once; his words, shortened): (1) icons: "try pool ball style", truer to the game's looks, font and style, "a bit more cartoony flat simple"; (2) the old ones "look super AI made" and do not match the game; (3) rank badges OK, "update and fix background"; (4) plainer names, one word if possible (Rookie, Contender, Hustler OK; "Pool Shark sounds silly"); (5) First Win's "The tutorial match counts!" must go; rarity badges all "XX Find" or "XX Pull", Secret too, Unique's text stays; Curator, Cue Rack, Museum, Pocket Pro, Pocket Machine, Lives Here renamed; Tycoon (10M, out of reach) and Part of the Crew cut entirely; owner descriptions without his username. DONE ON ROBLOX (free, `roblox_badges.py --sync --apply`): 14 text changes (Pool Shark→Ace, Shiny!→Rare Find, Legendary/Mythic/Secret→… Find, Curator→Super Collector, Cue Rack→Master Collector, Museum→Grand Collector, Pocket Pro→Marksman, Pocket Machine→Deadeye, Lives Here→Diehard, First Win, Met/Beat the Owner descriptions) and Tycoon + Part of the Crew DISABLED (a badge cannot be deleted; the public list shows 50). The names I picked where he gave none: Ace, the three Collectors, Marksman, Deadeye, Diehard (assumption, easy to change). Code: rows and strings (ac7c9511), sync tool (f0047f84), hwActive in SKIP_OPS (4bbb4f9f, core's request). ICONS: v2 drawn by hand as SVG (no generated art), 6 samples shown to him at 12:10 and all 50 at 12:18 (b6c5164e); UPLOAD WAITS FOR HIS GO (then `--sync --icons --apply`, about 1 minute, then Roblox moderation).
+- 12:15 coordinator: `halloween` @5dae747d adds map 7fd462cc + 39815514 (night rooftop, King, drops, /king), core d7120fac (the 11:30 review fixed, the Rush chip names what runs) and gui c9f01ea6 (the boost lines restyle, VIP perks in the Soft step). The contract test is now STRICT. Lint OK, 1,460 tests, Team Create play console clean (shots/coordinator/merge_5dae747d_boost_lines.jpg). Known blocker sent to map: the throne builds twice on a server that starts during Live. Run `git fetch && git merge origin/halloween` before your next READY.
+- 11:55 coordinator: JUSTIN: the 52 badges from group funds are fine; he dislikes the icons and some names. Ask him directly (your 11:55 round), then apply by API before 18:30.
+- 11:49 coordinator: `halloween` @64085ab2 adds core de236025 (the NEW CUE! card and end screen count in Progression.quiet) and cues-b a431419b (Witch Broom, Black Cat and Spider out of draft). cue_skins_data.py clean on halloween (66 skins, 28 pieces). Lint OK, 1,441 tests, Team Create play console clean. Map's READY 7fd462cc is next. Run `git fetch && git merge origin/halloween` before your next READY.
+- 11:36 coordinator: `halloween` @537270fd has cues-a 83e876db (drop 3 body path, CuePreview bodies, Candy Corn + Jack-o'-Lantern, Upright, analytics, Aim-fade fix), core 3c4b87aa (event menu, tile, quests, Spider, packs, art), sys c5b6b607 and gui 3438ea94 (review fixes). Lint OK, 1,436 tests, Team Create play console clean (only the known 203785492 ContentId lines), tile + 2x chip + pill +120% seen. Review of this merge is running; findings come back as Requests. Run `git fetch && git merge origin/halloween` before your next READY. Main.client still has 12 top-level locals to spare.
 
 - 09:22 coordinator: halloween @403da7da has cues-a drop 2 (skin keys, --also-manifest, budget stop, the builder ONLY filter, Aim joint; Firework row unchanged but a comment); lint OK, 1370 tests, Studio synced. Run `git fetch && git merge origin/halloween`. Cues B: you can generate rows now.
 - 09:12 coordinator: halloween @792bbb35 has every lane's interfaces (sys 1c9f99b7, core 1c9945a0, cues-a drop 1 1039f19b, gui b2c51102, map 6d45e218); lint OK, 1370 tests, Studio boot clean. Run `git fetch && git merge origin/halloween` now. Gate 1 is at 10:00: shots + one caption line each in your Gate shots by 09:55.
@@ -100,8 +105,8 @@ New files the brief adds for these: `src/shared/Matchmaking/Roam.luau`, `tests/r
 
 PLAN §7 shared files: add your own block or line, and as each lands replace its planned line
 below with file:line and the commit. The coordinator resolves overlaps.
-- `src/shared/Config.luau:8259` `Config.Multiplayer.Roam` after `Fence`; `:17534` the `Config.Badges` block (new, before the Cutscenes block); `:1769` `Config.Save.MaxBadgeEntries` (one new line) — 9b79ca6b; ids 2ef43de5; `Roam.Enabled = true` e7551a9d; `Badges.Enabled = true` 6d019bb1; `:17544` `RevealMarginSeconds` replaces `RevealDelaySeconds` 076fb297
-- `src/shared/Strings.luau:2546` `Strings.Badges` (new block at the end) — 9b79ca6b
+- `src/shared/Config.luau:8259` `Config.Multiplayer.Roam` after `Fence`; `:17534` the `Config.Badges` block (new, before the Cutscenes block); `:1769` `Config.Save.MaxBadgeEntries` (one new line) — 9b79ca6b; ids 2ef43de5; `Roam.Enabled = true` e7551a9d; `Badges.Enabled = true` 6d019bb1; `:17544` `RevealMarginSeconds` replaces `RevealDelaySeconds` 076fb297; Money10M and Crew rows removed + a comment by `Paused` ac7c9511
+- `src/shared/Strings.luau:2733` `Strings.Badges` (new block at the end) — 9b79ca6b; the designer's names, Money10M and Crew removed ac7c9511
 - `src/shared/Progression/SaveSchema.luau:67` `"UltMatches"` in `STAT_KEYS`; `:90` `"Badges"` in `MAP_KEYS`; the template's `Badges = {}` after `EmoteFavorites`; `:1432` `fixMap(data.Badges, ...)` (core adds `Halloween` to the same spots) — 9b79ca6b
 - `src/server/UltService.luau:51-56` the `Used` BindableEvent + `UltService.Used` (comment: listeners skip solo, 46b6ba78); `:327` fired in the UltActivate success branch next to `Funnel.spins` — interface 2
 - `src/server/Bootstrap.server.luau:73` `Badges.start()` right after `Leaderboards.start` — interface 2
@@ -148,24 +153,32 @@ below with file:line and the commit. The coordinator resolves overlaps.
   - "2026-10-28 (designer): roaming in matches, reversing 2026-09-26 'stay by your table'."
   - "2026-10-28 (designer): 52 Roblox badges created from group funds; rules are Config.Badges
     rows, back-paid from saves, 1 per 3 s, held in the tutorial and lucky-block reels."
+  - "2026-10-28 (designer, noon review): plainer badge names, Tycoon and Part of the Crew cut
+    (disabled on Roblox), 50 badges; icons redrawn by hand as flat pool balls in the game's
+    style (the first set looked AI-made)."
 - A new GDD section, "Badges" (next to Progression):
 
-  > **Badges (2026-10-28).** 52 Roblox badges on the game page: wins, streaks, balls potted,
+  > **Badges (2026-10-28).** 50 Roblox badges on the game page: wins, streaks, balls potted,
   > nice shots, money earned, rank peaks, cue rarities and collections, abilities, team
-  > matches, the group, meeting or beating the owner, and three Halloween ones. Each is a row
+  > matches, meeting or beating the owner, and three Halloween ones (Tycoon and Part of the
+  > Crew were cut at the designer's review and are disabled on Roblox). Each is a row
   > in `Config.Badges.List` (`Key`, `BadgeId`, `Rule`), its name and description in
-  > `Strings.Badges`, its icon in `assets/ui/badges/<Key>.png` (512 px, generated by
-  > `tools/gen_badge_icons.py`). The server (`src/server/Badges.luau`) awards what a save already
+  > `Strings.Badges`, its icon in `assets/ui/badges/<Key>.png` (512 px, a flat pool ball drawn as
+  > SVG by `tools/gen_badge_icons.py`, no generated art). The server (`src/server/Badges.luau`) awards what a save already
   > meets on join (the back-pay) and after every save change, one award per player every 3 s,
   > never during the tutorial or within about 28 s of a lucky block opening (the reel and pull
   > scene), and notes each in the save's `Badges` map. Studio and the test place only log
   > "would award". Switch: `Config.Badges.Enabled`; one row is stopped with
   > `Config.Badges.Paused[Key] = true`.
-  > **Adding badge 53:** add the Config row (`BadgeId = 0`) and its Strings entry, make the
-  > icon, run `python3 tools/roblox_badges.py` (dry run: cost and total), then
+  > **Adding a badge:** add the Config row (`BadgeId = 0`) and its Strings entry, add its
+  > icon to `BADGES` in `tools/gen_badge_icons.py` and `--compose` it, run `python3 tools/roblox_badges.py` (dry run: cost and total), then
   > `python3 tools/roblox_badges.py --create --only <Key>` (100 R$ from group funds once the
   > day's 5 free are used; the designer approves any spend), then
   > `python3 tools/roblox_badges.py --write-config` and commit Config + the manifest.
+  > **Renaming or a new icon** (free): change Strings or the icon, then
+  > `python3 tools/roblox_badges.py --sync [--icons]` (dry run) and `--apply`. A row taken out
+  > of Config has its badge disabled by the same command. Update the count in the two badge
+  > tests.
 
 ### Live checks for Justin (after the publish)
 
@@ -241,6 +254,12 @@ Gate 2 (`~/Desktop/8ball-refs/halloween/shots/hw-sys/gate2/`):
 - `04_portal_pad_no_dialog.jpg`: mid-match in the PC portal: no "Play vs PC?" ask (Portals.setBlocked).
 - `05_fresh_player_first_match_result.jpg`: a fresh player with both switches on: tutorial skipped, first `/bot` match, normal result screen (Rematch / Leave).
 - Studio log (not a shot): a veteran's 22 badges held in the tutorial, then Welcome at 2.75 s after the skip and one every 3.07 s; a lucky block open holds the next award (27.9 s now); off the roof a roamer is back at their table in 0.57 s.
+
+Badge review with Justin, 12:00 (`gate2/`):
+- `06_current_52_names_icons.png`: what he reviewed: the 52 as they were (icon, name, how).
+- `07_icons_v2_six_samples.png`: the six v2 samples (Welcome, First Win, Wins100, Gold rank, Streak5, Halloween) at 150 px on Roblox's light and dark pages.
+- `08_icons_v2_all50_150px.png`: all 50 v2 icons at 150 px, light and dark.
+- `09_icons_v2_names_list.png`: the 50 with the new names and descriptions (as now on Roblox), v2 icons.
 
 Devices (`~/Desktop/8ball-refs/halloween/shots/hw-sys/devices/`):
 - `01_pad_turn_start_home.jpg`: controller mode (GuiQA padMode), my turn after roaming 29 studs away: home in 0.03 s, camera locked, the pad legend up, the left stick now aims ("table").
