@@ -59,6 +59,7 @@ From PLAN §4 (lanes ask for these through their own lane file's Requests):
 - 07:50 desktop session (hand-over): the briefs, lane files and hooks committed and pushed on
   `halloween`, the six worktrees fast-forwarded to it, the six lane Studio windows opened.
   Verify it at the 07:30 Progress line; do not redo it.
+- 09:21 Gate 1 page published (private): "Halloween Gates" https://claude.ai/artifact/R2zt2CDfJeU5wuJp7VvMXA (slug c2a2bdc0-a441-4a0c-8479-0585a4bd07ad, v 1793193675-635a); builder `~/Desktop/8ball-refs/halloween/shots/coordinator/gate/build.py gate1|gate2`. Five asks to Justin: icons, event text, title, store schedule yes, gui's +0% pill.
 
 ## Shared-file changes
 
