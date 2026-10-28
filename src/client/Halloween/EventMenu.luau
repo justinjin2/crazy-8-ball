@@ -375,6 +375,22 @@ function EventMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 				claiming[key] = nil
 			end)
 			EventMenu.redraw()
+			-- A controller's selection moves on from the CLAIM that just hid: to the next waiting
+			-- CLAIM, else the X, so nothing hidden stays selected.
+			if GuiService.SelectedObject == row.claim and not row.claim.Visible then
+				local nextClaim: GuiObject? = nil
+				for _, other in rows do
+					if other.claim.Visible and other.claim.Parent ~= nil then
+						nextClaim = other.claim
+						break
+					end
+				end
+				if nextClaim then
+					GuiService.SelectedObject = nextClaim
+				else
+					frame:focus()
+				end
+			end
 		end, "Green", nil)
 		row.claim.Name = "Claim"
 		row.claim.ZIndex = 6
