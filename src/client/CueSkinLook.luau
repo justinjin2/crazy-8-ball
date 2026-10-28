@@ -58,6 +58,7 @@ CueSkinLook.__index = CueSkinLook
 export type Opts = {
 	aura: boolean, -- the aura shows (every stick today)
 	back: boolean?, -- worn on a back: BackRateScale and the behind-the-body push
+	own: boolean?, -- the local player's own stick: a body's Aim joints clear while aiming
 }
 
 -- The carrier (designer, 2026-10-04: a Secret's aura engulfs the player too): a stick worn on a
@@ -109,6 +110,7 @@ export type Look = typeof(setmetatable(
 		lights: { Light },
 		sound: { s: Sound, volume: number }?, -- the aura's sound (Aura.Sound), volume unquieted
 		piece: any?,
+		body: any?, -- the cue's own model over the hidden mesh (Config.CueSkins.Bodies)
 		carrierPiece: any?, -- the skin's Carrier piece on the carrying character (backs only)
 		carrierOn: boolean, -- the engulfing aura is drawn (see carrierShown)
 		highlights: { Highlight }, -- the stick's outline and the piece's (nearest cues only)
@@ -189,6 +191,7 @@ function CueSkinLook.attach(stick: Model, opts: Opts): Look
 		lights = {},
 		sound = nil,
 		piece = nil,
+		body = nil, -- the cue's own model over the hidden mesh (Config.CueSkins.Bodies)
 		carrierPiece = nil,
 		carrierOn = true,
 		highlights = {},
@@ -281,6 +284,10 @@ function CueSkinLook.clear(self: Look)
 		self.piece:destroy()
 		self.piece = nil
 	end
+	if self.body then
+		self.body:destroy()
+		self.body = nil
+	end
 	if self.carrierPiece then
 		self.carrierPiece:destroy()
 		self.carrierPiece = nil
@@ -353,6 +360,16 @@ function CueSkinLook.refresh(self: Look)
 	self.folder = folder
 	self.t0 = os.clock()
 	self:buildSurface(row, popped)
+	-- The body: the stick's Body attribute (CueStickBuilder decided it through CueSkins.bodyOf),
+	-- welded to the hidden mesh; it follows the stick, never the aura.
+	local bodyId = self.stick:GetAttribute("Body")
+	if type(bodyId) == "string" then
+		self.body = CuePiece.new(bodyId, mesh, folder, nil, { body = true })
+	end
+	-- A body wears the outline itself (a Highlight on a hidden mesh draws nothing), unless the
+	-- Bodies.Outline switch is off; the ink ribbons trace a straight stick, so a body skips them.
+	local outlineOn = self.body == nil or C.Bodies.Outline
+	local outlinee: Instance = if self.body then self.body.model else self.stick
 	if row.Piece then
 		self.piece = CuePiece.new(row.Piece, mesh, folder)
 	end
@@ -399,8 +416,8 @@ function CueSkinLook.refresh(self: Look)
 		-- the piece's own (Aura.Highlight).
 		local O = C.Outline
 		local color = aura.Outline or O.Colors[row.Tier]
-		if color and not inked then
-			self:addHighlight("CueOutline", self.stick, {
+		if color and not inked and outlineOn then
+			self:addHighlight("CueOutline", outlinee, {
 				FillColor = color,
 				FillTransparency = O.FillTransparency,
 				OutlineColor = color,
@@ -427,15 +444,19 @@ function CueSkinLook.refresh(self: Look)
 		local level = Pop.level(Catalog.get(row.CatalogId), row)
 		local tier = O.ByRarity[level] or {}
 		local color = Pop.outline(row, C.Pop)
-		self:addHighlight("CueOutline", self.stick, {
-			FillColor = color,
-			FillTransparency = C.Outline.FillTransparency,
-			OutlineColor = color,
-			OutlineTransparency = tier.Transparency or O.Transparency,
-		})
-		self.outline = self.highlights[#self.highlights]
+		if outlineOn then
+			self:addHighlight("CueOutline", outlinee, {
+				FillColor = color,
+				FillTransparency = C.Outline.FillTransparency,
+				OutlineColor = color,
+				OutlineTransparency = tier.Transparency or O.Transparency,
+			})
+			self.outline = self.highlights[#self.highlights]
+		end
 		self.palette = Pop.palette(row, C.Pop, level)
-		self:buildInk(color, O.Ink.LineStuds * (tier.LineScale or 1))
+		if self.body == nil then
+			self:buildInk(color, O.Ink.LineStuds * (tier.LineScale or 1))
+		end
 	end
 	if self.piece then
 		self.piece:setAura(self.opts.aura)
@@ -1014,6 +1035,9 @@ function CueSkinLook.applyVisible(self: Look)
 	if self.piece then
 		self.piece:setModifier(if aura then 0 else 1)
 	end
+	if self.body then
+		self.body:setModifier(if visible then 0 else 1) -- the stick's visibility, never AuraOff
+	end
 	if self.carrierPiece then
 		self.carrierPiece:setModifier(if aura then 0 else 1)
 	end
@@ -1169,9 +1193,31 @@ function CueSkinLook.step(self: Look, t: number)
 			self.piece:setModifier(mesh.LocalTransparencyModifier)
 		end
 	end
-	-- A moving gradient outline: the colours flow along the ribbons, the Highlight cycles.
+	local body = self.body
+	if body then
+		-- On the owner's own screen the Aim joints clear while the stick is drawn for a shot
+		-- (AuraQuiet on their turn, AuraOff raised); everyone else sees the body whole.
+		body:setAim(
+			self.opts.own == true
+				and (
+					self.stick:GetAttribute("AuraQuiet") == true
+					or self.stick:GetAttribute("AuraOff") == true
+				)
+		)
+		body:step(t)
+		if self.visible then
+			-- The mesh's camera fade, and each part's own distance to the camera.
+			body:setModifier(
+				mesh.LocalTransparencyModifier,
+				Workspace.CurrentCamera.CFrame.Position,
+				Config.Cue.CameraFadeStuds
+			)
+		end
+	end
+	-- A moving gradient outline: the colours flow along the ribbons, the Highlight cycles
+	-- (a body cue has no ribbons; its Highlight still cycles).
 	local palette = self.palette
-	if palette and #self.inks > 0 then
+	if palette and (#self.inks > 0 or body ~= nil) then
 		local G = C.Pop.Outline.Gradient
 		local phase = t / G.Period
 		local n = #self.inks

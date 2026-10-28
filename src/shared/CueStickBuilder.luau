@@ -44,6 +44,7 @@ local Config = require(script.Parent.Config)
 local CueArt = require(script.Parent.CueArt)
 local CueShape = require(script.Parent.CueShape)
 local Catalog = require(script.Parent.Progression.Catalog)
+local CueSkins = require(script.Parent.CueSkins)
 
 local CueStickBuilder = {}
 
@@ -139,6 +140,7 @@ type Stick = {
 	meshOffset: CFrame,
 	meshOn: boolean,
 	meshSkin: string?, -- whose SurfaceAppearance the slot wears
+	body: string?, -- the body piece drawn over the hidden mesh (CueSkins.bodyOf), or nil
 	wanted: boolean, -- the last setVisible
 	pending: string?, -- a cue waiting for its look to load before it is painted (the stick
 	-- shows its current cue meanwhile)
@@ -155,6 +157,15 @@ local sticks: { [Model]: Stick } = setmetatable({}, { __mode = "k" }) :: any
 -- Model -> the player whose equipped cue it wears, and the listener that repaints it.
 type Wearer = { player: Player, connection: RBXScriptConnection }
 local wearers: { [Model]: Wearer } = {}
+
+-- A piece template is in the place (ReplicatedStorage[Config.CueSkins.PiecesFolder]).
+local function hasPiece(name: string): boolean
+	local folder = ReplicatedStorage:FindFirstChild(Config.CueSkins.PiecesFolder)
+	return folder ~= nil and folder:FindFirstChild(name) ~= nil
+end
+
+-- Cues whose body template was missing: warned once each per session (the fail-safe).
+local warnedBodies: { [string]: boolean } = {}
 
 -- Cylinders lie along X; turned to lie along +Z, centred on their stretch of the stick.
 local function along(zStart: number, length: number): CFrame
@@ -176,7 +187,8 @@ local function applyVisibility(model: Model)
 		part.Transparency = if visible and i <= stick.used then 0 else 1
 	end
 	if stick.mesh then
-		stick.mesh.Transparency = if visible and stick.meshOn then 0 else 1
+		-- A body cue's mesh slot stays hidden: it is the body's root and the camera-fade source.
+		stick.mesh.Transparency = if visible and stick.meshOn and stick.body == nil then 0 else 1
 	end
 end
 
@@ -203,7 +215,26 @@ local function paintStick(model: Model, id: string, bandsOnly: boolean)
 		end)
 		template = if worn then all[worn] else nil
 	end
+	-- The cue's own model (Halloween 2026, Config.CueSkins.Bodies): drawn over the hidden mesh
+	-- slot by CueSkinLook. Missing from the place: the mesh shows in the skin's maps, one warn.
+	local B = Config.CueSkins.Bodies
+	local body = if template then CueSkins.bodyOf(id, hasPiece, B.Enabled) else nil
+	if body == nil and template and B.Enabled and not warnedBodies[id] then
+		local index = CueSkins.index(id)
+		if index and type(index.Body) == "string" then
+			warnedBodies[id] = true
+			warn(
+				("CueStickBuilder: %s's body piece %s is not in ReplicatedStorage.%s; drawn with the shared mesh"):format(
+					id,
+					index.Body,
+					Config.CueSkins.PiecesFolder
+				)
+			)
+		end
+	end
+	stick.body = body
 	stick.meshOn = template ~= nil
+	model:SetAttribute("Body", body)
 	model:SetAttribute("Mesh", stick.meshOn)
 	if stick.mesh then
 		local mesh = stick.mesh :: MeshPart
@@ -223,7 +254,7 @@ local function paintStick(model: Model, id: string, bandsOnly: boolean)
 			stick.meshSkin = worn
 		end
 		mesh.CFrame = pivot * stick.meshOffset
-		mesh.CastShadow = template ~= nil
+		mesh.CastShadow = template ~= nil and body == nil
 	end
 	local bands = if template then {} else layout(id)
 	for i, part in stick.parts do
@@ -384,6 +415,7 @@ function CueStickBuilder.build(parent: Instance, cueId: string?): Model
 		meshOffset = meshOffset,
 		meshOn = false,
 		meshSkin = if mesh then ids[1] else nil,
+		body = nil,
 		wanted = true,
 		pending = nil,
 	}

@@ -398,6 +398,9 @@ local function dress(w: Warm)
 			if row.Piece then
 				hasPiece = addPiece(w, row.Piece, seen)
 			end
+			if row.Body then
+				hasPiece = addPiece(w, row.Body, seen) or hasPiece -- the body, warm before a swap
+			end
 			collect(row.Aura, sprites, seen)
 			collect(row.Moving, sprites, seen)
 		end

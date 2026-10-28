@@ -17,7 +17,10 @@
 -- Transform = B^-1 * Motion.jointDelta * B, B the bone's rest frame in the piece's frame read
 -- from the template (the importer turns bones too: the dragon's top bone is half a turn
 -- about Y, and assuming square bones threw its body past the butt).
--- Joints marked Aura (the dragon, the running fox) hide with the aura.
+-- Joints marked Aura (the dragon, the running fox) hide with the aura. Joints marked Aim
+-- "fade" (a body reaching past the butt: the Broom's bristles) ease to clear on the owner's own
+-- screen while the stick is drawn for a shot (setAim) and back after it. A body's parts also
+-- take their own camera fade (setModifier with an eye), so a long part never pokes into the lens.
 -- A joint's Visual rows (Fade, Blink, Glow, Type) are looks applied every step: the first
 -- three on the joint's rigid parts, Type as a typing SurfaceGui riding the joint (the Beta
 -- Cue's blueprint panels), Config.CueSkins.Typing holding the shared numbers.
@@ -76,11 +79,16 @@ export type CuePiece = typeof(setmetatable(
 		typers: { Typer },
 		auraJoints: { [string]: boolean },
 		lowJoints: { [string]: boolean }, -- joints (and their children) gone under Lower effects
+		aimJoints: { [string]: boolean }, -- joints (and their children) clear while aiming
+		aimOn: boolean, -- aiming now (the target of the ease)
+		aim: number, -- the Aim joints' clear share, eased toward aimOn
+		lastT: number?,
 		auraShown: boolean,
 		low: boolean, -- Lower effects is on
 		qualityConnection: RBXScriptConnection?,
 		scale: number,
 		lift: CFrame, -- the whole piece raised on its root (a Carrier piece to the body's head)
+		turn: CFrame, -- each rigid part's rest turn: FLIP for decor, none for a body
 		fade: number,
 		pose: { [string]: Motion.Xf },
 	},
@@ -218,7 +226,17 @@ end
 --- Build piece `id` welded to `root` (its frame: the cue mesh for a cue piece, the pocket
 --- root for a pocket piece), in `parent`. Nil when the row or the template is missing.
 --- `lift`: studs the whole piece is raised on its root (a Carrier piece lifted to the body's head).
-function CuePiece.new(id: string, root: BasePart, parent: Instance, lift: number?): CuePiece?
+export type Opts = {
+	body: boolean?, -- a cue body (Halloween 2026): its rigid parts keep the design's orientation
+}
+
+function CuePiece.new(
+	id: string,
+	root: BasePart,
+	parent: Instance,
+	lift: number?,
+	opts: Opts?
+): CuePiece?
 	local row = CueSkins.piece(id)
 	local source = template(id)
 	if row == nil or source == nil then
@@ -226,13 +244,19 @@ function CuePiece.new(id: string, root: BasePart, parent: Instance, lift: number
 	end
 	local model = Instance.new("Model")
 	model.Name = "Piece_" .. id
+	-- A rigid part's GLB (tools/cue_pieces_glb.py) is written so the importer's half turn lands
+	-- it in the cue frame already; FLIP then turns it once more, end for end. Every shipped decor
+	-- piece was approved looking that way, so it keeps it; a body must wear its tip at the tip.
+	local turn = if opts and opts.body then CFrame.identity else FLIP
 	local rig = Motion.rig(row)
 	local auraJoints: { [string]: boolean } = {}
 	local lowJoints: { [string]: boolean } = {}
+	local aimJoints: { [string]: boolean } = {}
 	for _, name in rig.order do
 		local j = rig.joints[name]
 		auraJoints[name] = j.aura or (j.parent ~= nil and auraJoints[j.parent] == true)
 		lowJoints[name] = j.low == "hide" or (j.parent ~= nil and lowJoints[j.parent] == true)
+		aimJoints[name] = j.aim == "fade" or (j.parent ~= nil and aimJoints[j.parent] == true)
 	end
 	local rigid: { Rigid } = {}
 	local skinned: { Skinned } = {}
@@ -304,7 +328,7 @@ function CuePiece.new(id: string, root: BasePart, parent: Instance, lift: number
 					part = part,
 					weld = weld,
 					joint = p.Joint,
-					offset = CFrame.new(o[1], o[2], o[3]) * FLIP,
+					offset = CFrame.new(o[1], o[2], o[3]) * turn,
 					base = part.Transparency,
 					color = part.Color,
 					visuals = if joint then joint.visuals else {},
@@ -323,11 +347,16 @@ function CuePiece.new(id: string, root: BasePart, parent: Instance, lift: number
 		typers = {},
 		auraJoints = auraJoints,
 		lowJoints = lowJoints,
+		aimJoints = aimJoints,
+		aimOn = false,
+		aim = 0,
+		lastT = nil,
 		auraShown = true,
 		low = Quality.isLow(),
 		qualityConnection = nil :: RBXScriptConnection?,
 		scale = 1,
 		lift = CFrame.new(0, lift or 0, 0),
+		turn = turn,
 		fade = 0,
 		pose = {},
 	}, CuePiece)
@@ -459,11 +488,23 @@ end
 function CuePiece.step(self: CuePiece, t: number)
 	local pose = Motion.pose(self.rig, t)
 	self.pose = pose
+	-- The Aim joints ease to clear while aiming and back after (Config.CueSkins.Bodies).
+	local target = if self.aimOn then 1 else 0
+	if self.aim ~= target then
+		local dt = math.clamp(t - (self.lastT or t), 0, 0.1)
+		local by = dt / math.max(Config.CueSkins.Bodies.AimFadeSeconds, 1e-3)
+		self.aim = if self.aim < target
+			then math.min(target, self.aim + by)
+			else math.max(target, self.aim - by)
+	end
+	self.lastT = t
 	local s = self.scale
 	for _, r in self.rigid do
 		if not self:hidden(r.joint) then
 			local x = pose[r.joint]
-			local offset = if s == 1 then r.offset else CFrame.new(r.offset.Position * s) * FLIP
+			local offset = if s == 1
+				then r.offset
+				else CFrame.new(r.offset.Position * s) * self.turn
 			r.weld.C0 = self.lift * (if x then cframe(x, s) else CFrame.identity) * offset
 		end
 		if #r.visuals > 0 then
@@ -502,12 +543,39 @@ local function skinnedRoot(sk: Skinned): string?
 	return nil
 end
 
+-- How far a part fades for an eye within `studs` of its box (Camera.fadeNear's formula,
+-- quantised the same way): 0 outside, 1 with the eye inside the part.
+local function nearFade(part: BasePart, eye: Vector3, studs: number): number
+	local v = part.CFrame:PointToObjectSpace(eye)
+	local half = part.Size / 2
+	local out = Vector3.new(
+		math.max(math.abs(v.X) - half.X, 0),
+		math.max(math.abs(v.Y) - half.Y, 0),
+		math.max(math.abs(v.Z) - half.Z, 0)
+	)
+	local fade = math.clamp(1 - out.Magnitude / math.max(studs, 1e-3), 0, 1)
+	return math.floor(fade * 50 + 0.5) / 50
+end
+
 -- Hide or show every part by its joint's state (aura off, Lower effects):
--- LocalTransparencyModifier, so nothing about the parts is rebuilt.
-function CuePiece.applyHidden(self: CuePiece, modifier: number?)
+-- LocalTransparencyModifier, so nothing about the parts is rebuilt. Given an `eye`, each rigid
+-- part also fades by its own distance to it (within `studs`), and the Aim joints by the aim
+-- share; a part takes the largest. This is the one writer of the parts' modifier.
+function CuePiece.applyHidden(self: CuePiece, modifier: number?, eye: Vector3?, studs: number?)
 	local base = modifier or 0
 	for _, r in self.rigid do
-		r.part.LocalTransparencyModifier = if self:hidden(r.joint) then 1 else base
+		local m = if self:hidden(r.joint) then 1 else base
+		if m < 1 then
+			if eye then
+				m = math.max(m, nearFade(r.part, eye, studs or 1))
+			end
+			if self.aimJoints[r.joint] and self.aim > 0 then
+				m = math.max(m, self.aim)
+			end
+		end
+		if r.part.LocalTransparencyModifier ~= m then
+			r.part.LocalTransparencyModifier = m
+		end
 	end
 	for _, sk in self.skinned do
 		local root = skinnedRoot(sk)
@@ -589,9 +657,15 @@ function CuePiece.deepen(self: CuePiece, shellFade: number, emissiveScale: numbe
 end
 
 --- Every part of the piece follows `modifier` (a stick's camera fade), hidden joints staying
---- hidden.
-function CuePiece.setModifier(self: CuePiece, modifier: number)
-	self:applyHidden(modifier)
+--- hidden; with an `eye`, each part also fades by its own distance to it within `studs`.
+function CuePiece.setModifier(self: CuePiece, modifier: number, eye: Vector3?, studs: number?)
+	self:applyHidden(modifier, eye, studs)
+end
+
+--- Aiming on the owner's own screen: the Aim joints ease to clear (true) or back (false) on
+--- the following steps.
+function CuePiece.setAim(self: CuePiece, on: boolean)
+	self.aimOn = on
 end
 
 --- Uniform scale about the root (the pocket piece grows as it rises): sizes and every

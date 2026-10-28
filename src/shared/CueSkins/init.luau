@@ -57,6 +57,19 @@ function CueSkins.piece(name: any): any
 	return row
 end
 
+--- The body piece a stick drawn as catalog cue `id` wears (Halloween 2026: a cue drawn by its
+--- own model over the hidden shared mesh), or nil: no Body in its Index row, the switch
+--- `enabled` off, or `hasPiece(body)` false (its template missing from the place). The one
+--- decision; nothing else decides.
+function CueSkins.bodyOf(id: any, hasPiece: (string) -> boolean, enabled: boolean): string?
+	local index = CueSkins.index(id)
+	local body = if index then index.Body else nil
+	if not enabled or type(body) ~= "string" then
+		return nil
+	end
+	return if hasPiece(body) then body else nil
+end
+
 --- Every catalog id with a skin, sorted.
 function CueSkins.ids(): { string }
 	local ids: { string } = {}
