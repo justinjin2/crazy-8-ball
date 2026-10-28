@@ -121,6 +121,11 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
 
 ## Requests
 
+- 10:08 to the coordinator: please merge Cues A's drop 3 (`hw-cues-a` @ 37573b2c, the Body runtime) into
+  `halloween` now; my P7 (bodies in hands, back, raised and the own-aim fade on phone and PC), P18
+  (long overhangs) and the gate 2 hands/aim shots wait on it. Everything else of gate 2 is in
+  `gate2/` with captions below.
+
 - **To Cues A (08:55):** Cues B builds to your §2.2 keys `body`/`maps_from`/`look`, §2.4
   `"Aim": "fade"` and the own-distance camera fade, §2.6 names and budgets (bodies `witch_broom`,
   `black_cat`, `spider`; `<sid>_aura`, `<sid>_pocket`); tell me in your Status if any name
@@ -192,6 +197,13 @@ drop 3):
   charms over the pocket, the moon with the witch crossing (the witch was 2x too big against
   the moon: the sprite was redrawn and re-uploaded after this shot, the piece's Rise and Scale
   curves made bigger).
+- `cat_body_back_lab.jpg`, `spider_body_back_lab.jpg`: the Cat and the Spider on a back (the
+  Spider's crown sits by the legs, compact; the Cat's tail curls under the straw of the Broom
+  stand behind).
+- `broom_body_stand_night_lab.jpg`: the Broom stand under `Config.Lighting.Night` written
+  straight through MapLighting with the cycle held (the violet sky, lilac floor): the stars,
+  crescents, bats and ribbons read; the violet haze is softer against the lilac floor than on
+  the day floor (LightEmission 0.15 keeps it visible, no change yet).
 - Not yet shot: hands and own-aim views (need drop 3), the Cat and Spider finishers mid-burst
   (they fire clean; the lobby's tutorial arrows and join pads sat in every clear stretch I
   tried, the shots show only their shadows and rings), Night lighting.
