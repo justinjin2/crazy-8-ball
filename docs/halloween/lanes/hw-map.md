@@ -51,6 +51,15 @@ From PLAN §4 (everything else is read-only to this lane; ask through Requests):
 
 ## Status
 
+- 11:32 hw-map: step 17 done (f61bb19a). All eight `Config.HalloweenMap` switches are true
+  (the map still follows core's Event.state: nothing before the event, all gone after). Each
+  checked in Studio, Live, with only it off: master (no state attribute, the normal cycle, nothing
+  up, no prompt), Night (the normal cycle's sky and exposure; all else on), Tables (today's
+  cloth; the kits still on), Decor (looks, no kits), Props (the 41 palms and planters stay),
+  Throne (the piano stays; no prompt), Boss (no throne either), Candy (none in a 45 s walk).
+  Found: the King's prompt lives on the throne, so Throne off with Boss on would leave core's
+  King quest unfinishable; a test now holds Boss on only with Throne on, and the switches say
+  "switch both off together". Now: devices (18).
 - 11:24 hw-map: step 16 done. **Counts** (step 14's, Studio): 47,786 triangles of 60,000, 112
   MeshParts of 130, 16 unique meshes (OVERRULED), 3 lights of 6; every event MeshPart is
   RenderFidelity Automatic (Roblox's own LOD on weak devices), touches nothing, is never
