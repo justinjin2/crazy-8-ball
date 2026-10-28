@@ -50,6 +50,34 @@ From PLAN §4 (everything else is read-only to this lane; ask through Requests):
 - `Config.HalloweenMap.Props.Budget.Lights = 6` (throne 2 + the throne King's aura 1 + 3 table Kings).
 
 ## Status
+- 18:40 hw-map: **READY night sky @9e8cbcf5: NIGHT SKY AND MOON** (coordinator 18:45, Justin's
+  verdict: night "too dull", the moon "looks like a sun"). Shots in `~/Desktop/8ball-refs/halloween/shots/hw-map/night2/`:
+  `before_lobby_moon.jpg` vs `after_lobby_moon.jpg` (same lobby camera), `after_moon_view.jpg`
+  (the moon over the tables), `after_moon_view_hud.jpg` (HUD on the new sky).
+  - The "sun" was the painting, not Roblox: the old night faces had a cream disc inside three
+    big pale glow lobes (one 60% white over a wide cone), which is what bloomed behind the
+    avatar. Roblox's own sun/moon are off (SunAngularSize/MoonAngularSize 0, Glare 0) and
+    Bloom's threshold 2.6 does not reach the sky.
+  - New night faces (gen_sky.py, headless Blender, uploaded to the group, image ids in
+    `Config.Lighting.Night.Sky`): a deep indigo zenith to a magenta-violet horizon, deeper sea
+    and violet clouds, and the moon is now a real full-moon crater photo
+    (`assets/map/textures/moon_disc.png`, made with openai_image.py, cut to a disc) projected
+    onto the sky at 6 degrees radius (was 3.6), cool grey, only a faint violet halo.
+  - Kept painted, not `Sky.MoonTextureId` (Roblox's moon sits opposite the sun, and the Night
+    holds Sunset's sun; it draws additively so the dark seas go see-through) and not a far
+    billboard (cut by low graphics levels' draw distance; costs instances).
+  - Light: Exposure 0.45 to 0.3 (0.45 washed the sky to lilac), Brightness 3 to 4.4 and a light
+    violet OutdoorAmbient #BCA2F6 to keep the floor bright, Atmosphere #9A5CFF/#4A1A90,
+    ColorCorrection Saturation 0.05 to 0.25, Tint #EADCFF. Bloom stays Sunset's (test).
+  - Measured, same camera (floor L*, three patches): Day 92.6, old Night 82.5 (0.90), new
+    Night 78.0 (0.84) with floor saturation 0.29 (old 0.17, Day 0.13). Tables and players read
+    clearly; the HUD reads on the deeper sky. `HalloweenMap.Night.MinBrightnessShare` 0.9 to 0.8
+    (Assumptions).
+  - Switches: forcing Before brings back Day's sky (Bk 136510513323451) and light, forcing Live
+    brings the new Night back; every Night value in Studio matches Config; both consoles clean.
+    Lint OK, 1,472 tests.
+  - Next: the Bone cue. Concept card `mocks/v2/C7_bone.png` posted; asked Cues A (owns
+    black_cat) and Cues B (pipeline) for the swap and the recipe; skull reference for Meshy made.
 - 18:07 hw-map: **ROBUSTNESS PASS** (coordinator 17:52), on halloween @cb89ebcc (merged 77026883).
   Three read-only reviews (the King server; candy and the client; props, Night and switches),
   every finding checked against the code; my own Studio checks below. Ten fixes, one commit
@@ -411,6 +439,11 @@ coordinator resolves overlaps. Planned (add the commit sha when each lands):
 - Coordinator: please include the step-1 interface commit in the interface merge.
 
 ## Assumptions
+
+- Night readability, 2026-10-28: Justin's richer night is a touch darker, so the floor rule is
+  0.8 of Day's (was 0.9; measured 0.84). The moon stays painted into the skybox (works at every
+  graphics level, no instances); it is about 150 px across at 1080p, enough for its seas and
+  rays, limited by the 1024 px face.
 
 - The throne stays at the piano spot (gate 2 option (c)) until Justin answers the gate 2 question
   (`gate2/05`): from the spawn it reads as a glow between the two lobby boards, and the prompt
