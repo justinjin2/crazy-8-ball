@@ -8,6 +8,11 @@ Create the game's Roblox badges through Open Cloud and write their ids back into
     python3 tools/roblox_badges.py --probe    quota, price, and a deliberately invalid create
                                               (proves the key and scope; charges nothing)
     python3 tools/roblox_badges.py --self-test    offline checks of the guards and write-back
+    python3 tools/roblox_badges.py --sync [--icons] [--only Key ...] [--apply]
+                                              names and descriptions (and with --icons the
+                                              icons) from Strings and assets onto the made
+                                              badges, and every manifest badge no longer in
+                                              Config disabled; a dry run unless --apply (free)
 
 The rows come from `lune run tools/export_badges.luau` (Config.Badges + Strings.Badges), so
 the game and Roblox never disagree. Every created badge goes into tools/badges_manifest.json
@@ -42,6 +47,10 @@ QUOTA_URL = "https://badges.roblox.com/v1/universes/{}/free-badges-quota"
 METADATA_URL = "https://badges.roblox.com/v1/badges/metadata"
 CREATE_URL = "https://apis.roblox.com/legacy-badges/v1/universes/{}/badges"
 LIST_URL = "https://badges.roblox.com/v1/universes/{}/badges?limit=100&sortOrder=Asc"
+UPDATE_URL = "https://apis.roblox.com/legacy-badges/v1/badges/{}"  # PATCH name, description, enabled
+ICON_URL = "https://apis.roblox.com/legacy-badges/v1/badges/{}/icon"  # POST a new icon (moderated)
+INFO_URL = "https://badges.roblox.com/v1/badges/{}"
+ICON_VERSION = 2  # the hand-drawn pool balls (designer, 2026-10-28); the manifest notes what is up
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MANIFEST = os.path.join(ROOT, "tools", "badges_manifest.json")
 CONFIG = os.path.join(ROOT, "src", "shared", "Config.luau")
@@ -325,6 +334,92 @@ def create(args):
     return 0
 
 
+def sync_plan(rows, manifest, live, icons, icon_version=ICON_VERSION):
+    """What --sync would send: [(key, id, kind, payload)] with kind "text", "disable" or "icon".
+
+    `live` maps a badge id to Roblox's {name, description, enabled}; a row already matching is
+    skipped, and so is an icon the manifest says is at `icon_version`."""
+    out = []
+    keys = set()
+    for row in rows:
+        keys.add(row["key"])
+        entry = manifest.get(row["key"])
+        if not entry:
+            continue
+        now = live.get(entry["id"], {})
+        if now.get("name") != row["name"] or now.get("description") != row["description"]:
+            out.append((row["key"], entry["id"], "text", {"name": row["name"], "description": row["description"]}))
+        if icons and entry.get("iconVersion") != icon_version:
+            out.append((row["key"], entry["id"], "icon", row["icon"]))
+    for key, entry in sorted(manifest.items()):
+        if key not in keys and live.get(entry["id"], {}).get("enabled", True):
+            out.append((key, entry["id"], "disable", {"enabled": False}))
+    return out
+
+
+def sync(args):
+    rows = export_rows()  # all of them: a row left out would read as retired and be disabled
+    manifest = load_manifest()
+    live = {}
+    for entry in manifest.values():
+        status, info = call(INFO_URL.format(entry["id"]))
+        if status != 200:
+            raise SystemExit(f"reading badge {entry['id']} failed: HTTP {status} {info}")
+        live[entry["id"]] = info
+    todo = sync_plan(rows, manifest, live, args.icons)
+    if args.only:
+        todo = [t for t in todo if t[0] in set(args.only)]
+    for key, badge_id, kind, payload in todo:
+        if kind == "text":
+            now = live[badge_id]
+            print(f"  {key:<16} text  {now.get('name')!r} -> {payload['name']!r}"
+                  + ("" if now.get("description") == payload["description"]
+                     else f"; description -> {payload['description']!r}"))
+        elif kind == "disable":
+            print(f"  {key:<16} disable ({live[badge_id].get('name')!r}, not in Config any more)")
+        else:
+            print(f"  {key:<16} icon  {payload}")
+    if not args.apply:
+        print(f"dry run: {len(todo)} changes; nothing sent (add --apply)")
+        return 0
+    api_key = read_api_key()
+    if not api_key:
+        print(f"no key in the Keychain under {KEY_SERVICE}")
+        return 2
+    for key, badge_id, kind, payload in todo:
+        for attempt in range(3):
+            if kind == "icon":
+                body, ctype = multipart({}, os.path.join(ROOT, payload))
+                status, reply = call(ICON_URL.format(badge_id), api_key, body, ctype, "POST")
+            else:
+                status, reply = call(UPDATE_URL.format(badge_id), api_key, json.dumps(payload).encode(),
+                                     "application/json", "PATCH")
+            if status != 429:
+                break
+            print("  429: waiting 60 s")
+            time.sleep(60)
+        if status == 200:
+            if kind == "icon":
+                manifest[key]["iconVersion"] = ICON_VERSION
+                if isinstance(reply, dict) and reply.get("targetId"):
+                    manifest[key]["iconImageId"] = reply["targetId"]
+            elif kind == "text":
+                manifest[key]["name"] = payload["name"]
+            else:
+                manifest[key]["disabled"] = True
+            save_manifest(manifest)
+            print(f"  {key:<16} {kind} OK")
+        elif status == 401 or (status == 403 and any(c in (0, 12) for c in error_codes(reply))):
+            print(f"{key}: HTTP {status} {reply}: the key lacks the scope for this call; stopped")
+            return 1
+        else:
+            print(f"{key}: {kind} HTTP {status} {reply}: stopped")
+            return 1
+        time.sleep(0.7)  # well under Roblox's limit
+    print(f"done: {len(todo)} changes sent")
+    return 0
+
+
 def write_back(manifest, config_text):
     """Config text with each manifest id over its row's `BadgeId = 0`; exactly one match a key."""
     for key, entry in sorted(manifest.items()):
@@ -356,6 +451,18 @@ def write_config():
 
 
 def self_test():
+    # sync: a changed name is sent, a matching one is not, a retired key is disabled once,
+    # an icon already at this version is skipped
+    rows = [{"key": "A", "name": "New", "description": "d", "icon": "a.png"},
+            {"key": "B", "name": "Same", "description": "d", "icon": "b.png"}]
+    manifest = {"A": {"id": 1}, "B": {"id": 2, "iconVersion": ICON_VERSION}, "Gone": {"id": 3}}
+    live = {1: {"name": "Old", "description": "d", "enabled": True},
+            2: {"name": "Same", "description": "d", "enabled": True},
+            3: {"name": "Gone", "description": "d", "enabled": True}}
+    got = sync_plan(rows, manifest, live, icons=True)
+    assert [(k, kind) for k, _, kind, _ in got] == [("A", "text"), ("A", "icon"), ("Gone", "disable")], got
+    live[3]["enabled"] = False
+    assert [k for k, _, kind, _ in sync_plan(rows, manifest, live, icons=False)] == ["A"]
     # cost guard
     assert next_cost(5, 100, 0, 4700) == (0, None)
     assert next_cost(0, 100, 4600, 4700) == (100, None)
@@ -415,6 +522,9 @@ def main():
     parser.add_argument("--max-spend", type=int, default=DEFAULT_MAX_SPEND, help="Robux cap for the run, manifest included")
     parser.add_argument("--write-config", action="store_true", help="write manifest ids into Config")
     parser.add_argument("--self-test", action="store_true", help="offline checks")
+    parser.add_argument("--sync", action="store_true", help="text (and --icons) onto the made badges; retired ones disabled")
+    parser.add_argument("--icons", action="store_true", help="with --sync: upload the icons too")
+    parser.add_argument("--apply", action="store_true", help="with --sync: send (else a dry run)")
     args = parser.parse_args()
     if args.probe:
         return probe()
@@ -424,6 +534,8 @@ def main():
         return write_config()
     if args.create:
         return create(args)
+    if args.sync:
+        return sync(args)
     return plan(args)
 
 
