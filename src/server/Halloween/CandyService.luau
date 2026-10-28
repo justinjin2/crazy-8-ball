@@ -522,19 +522,30 @@ function CandyService.band(candy: number): string
 	return ">7000"
 end
 
--- Requests from the client (the Halloween remote), at most one every MIN_GAP seconds.
-local MIN_GAP = 0.25
-local lastRequest: { [Player]: number } = setmetatable({}, { __mode = "k" }) :: any
+-- Requests from the client (the Halloween remote): each player's bucket (C.Requests).
+local buckets: { [Player]: { tokens: number, at: number } } = setmetatable({}, { __mode = "k" }) :: any
+
+-- Takes one request from the player's bucket; false when it is empty (the request is dropped).
+local function takeRequest(player: Player): boolean
+	local t = os.clock()
+	local b = buckets[player]
+	if b == nil then
+		b = { tokens = C.Requests.Burst, at = t }
+		buckets[player] = b
+	end
+	b.tokens = math.min(C.Requests.Burst, b.tokens + (t - b.at) * C.Requests.PerSecond)
+	b.at = t
+	if b.tokens < 1 then
+		return false
+	end
+	b.tokens -= 1
+	return true
+end
 
 local function onRequest(player: Player, msg: any)
-	if type(msg) ~= "table" then
+	if type(msg) ~= "table" or not takeRequest(player) then
 		return
 	end
-	local t = os.clock()
-	if t - (lastRequest[player] or -math.huge) < MIN_GAP then
-		return
-	end
-	lastRequest[player] = t
 	if type(msg.claim) == "string" then
 		local key = msg.claim
 		local amount, result = PlayerData.hwClaim(player, key, CandyService.ctx())

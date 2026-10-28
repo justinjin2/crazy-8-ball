@@ -3887,6 +3887,9 @@ Config.Halloween = {
 	TickSeconds = 5, -- the server adds active time and retries held grants this often
 	PushSeconds = 2, -- at most one event view pushed to a player this often
 	ActivePushSeconds = 30, -- active time alone re-sends the view this often (the menu shows minutes)
+	-- Requests from the client (the Halloween remote): a bucket of Burst requests refilled at
+	-- PerSecond, so two quick CLAIMs both count but a spamming client is held back.
+	Requests = { Burst = 4, PerSecond = 4 },
 	-- The two Candy packs (Config.Products.List Candy500 / Candy2000; flat, fill the whole track,
 	-- not quests).
 	Packs = { Enabled = true, Keys = { "Candy500", "Candy2000" } },
