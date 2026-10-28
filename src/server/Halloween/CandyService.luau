@@ -474,6 +474,9 @@ local function activeNow(player: Player): boolean
 	return ok and active == true
 end
 
+-- Whether the funnel's 1_Button step was tried this session.
+local buttonTried: { [Player]: boolean } = setmetatable({}, { __mode = "k" }) :: any
+
 -- The tick for one player: held grants (a cue that became ready) and the end's conversion.
 local function tickPlayer(player: Player): any
 	local ctx = CandyService.ctx()
@@ -490,8 +493,14 @@ local function tickPlayer(player: Player): any
 		end
 		return nil
 	end
-	-- The funnel's first step: the tile shows for the player (Live, tutorial over).
-	if Event.isLive(ctx.now) and player:GetAttribute("HwOn") == true then
+	-- The funnel's first step: the tile shows for the player (Live, tutorial over). Tried once a
+	-- session (Funnel.once copies the save's flags each call).
+	if
+		not buttonTried[player]
+		and Event.isLive(ctx.now)
+		and player:GetAttribute("HwOn") == true
+	then
+		buttonTried[player] = true
 		Funnel.once(player, "Halloween", "1_Button")
 	end
 	-- The Spider's clock (and the Active quests): this tick's seconds while the player is active.
@@ -513,19 +522,32 @@ function CandyService.band(candy: number): string
 	return ">7000"
 end
 
--- Requests from the client (the Halloween remote), at most one every MIN_GAP seconds.
-local MIN_GAP = 0.25
-local lastRequest: { [Player]: number } = setmetatable({}, { __mode = "k" }) :: any
+-- Requests from the client (the Halloween remote): each player's bucket (C.Requests) and when
+-- their last PackPrompt was logged.
+local buckets: { [Player]: { tokens: number, at: number } } = setmetatable({}, { __mode = "k" }) :: any
+local lastPackPrompt: { [Player]: number } = setmetatable({}, { __mode = "k" }) :: any
+
+-- Takes one request from the player's bucket; false when it is empty (the request is dropped).
+local function takeRequest(player: Player): boolean
+	local t = os.clock()
+	local b = buckets[player]
+	if b == nil then
+		b = { tokens = C.Requests.Burst, at = t }
+		buckets[player] = b
+	end
+	b.tokens = math.min(C.Requests.Burst, b.tokens + (t - b.at) * C.Requests.PerSecond)
+	b.at = t
+	if b.tokens < 1 then
+		return false
+	end
+	b.tokens -= 1
+	return true
+end
 
 local function onRequest(player: Player, msg: any)
-	if type(msg) ~= "table" then
+	if type(msg) ~= "table" or not takeRequest(player) then
 		return
 	end
-	local t = os.clock()
-	if t - (lastRequest[player] or -math.huge) < MIN_GAP then
-		return
-	end
-	lastRequest[player] = t
 	if type(msg.claim) == "string" then
 		local key = msg.claim
 		local amount, result = PlayerData.hwClaim(player, key, CandyService.ctx())
@@ -551,8 +573,13 @@ local function onRequest(player: Player, msg: any)
 			CandyService.changed(player)
 		end
 	elseif type(msg.pack) == "string" and table.find(C.Packs.Keys, msg.pack) ~= nil then
-		-- A Get Candy button (its Buy goes to the Store): the start of the pack funnel (HwPack).
-		Funnel.event(player, "HwMenu", 1, "PackPrompt", msg.pack)
+		-- A Get Candy button (its Buy goes to the Store): the start of the pack funnel (HwPack),
+		-- logged at most once every PackPromptGapSeconds a player (the analytics budget).
+		local t = os.clock()
+		if t - (lastPackPrompt[player] or -math.huge) >= C.PackPromptGapSeconds then
+			lastPackPrompt[player] = t
+			Funnel.event(player, "HwMenu", 1, "PackPrompt", msg.pack)
+		end
 	end
 end
 

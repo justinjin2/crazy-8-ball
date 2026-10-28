@@ -3887,6 +3887,10 @@ Config.Halloween = {
 	TickSeconds = 5, -- the server adds active time and retries held grants this often
 	PushSeconds = 2, -- at most one event view pushed to a player this often
 	ActivePushSeconds = 30, -- active time alone re-sends the view this often (the menu shows minutes)
+	-- Requests from the client (the Halloween remote): a bucket of Burst requests refilled at
+	-- PerSecond, so two quick CLAIMs both count but a spamming client is held back.
+	Requests = { Burst = 4, PerSecond = 4 },
+	PackPromptGapSeconds = 30, -- HwMenu PackPrompt (a Get Candy press) logged at most this often
 	-- The two Candy packs (Config.Products.List Candy500 / Candy2000; flat, fill the whole track,
 	-- not quests).
 	Packs = { Enabled = true, Keys = { "Candy500", "Candy2000" } },
@@ -10015,24 +10019,23 @@ Config.UI.LuckClover = {
 Config.UI.BoostPill = {
 	Enabled = true, -- on since the Studio sweep (2026-10-28; phone sizes by the layout test); false = today's VIP tag
 	ZIndex = 12, -- over the money pill, as the VIP tag
-	HeightPx = 34, -- the VIP tag's
-	ShortHeightPx = 26,
-	TextPx = 22,
-	ShortTextPx = 16,
-	IconShare = 0.8, -- the crown or arrow, a share of the pill's height
-	PadPx = 8, -- inside the pill, each end
-	InnerGapPx = 4, -- between the icon and the words
+	-- No background (designer, 2026-10-28): outlined lines in the HUD font right over the money
+	-- pill, "Money Boost: +N%" and, over it while the event is live, "Candy Boost: +N%".
+	LinePx = 24, -- one line's height
+	ShortLinePx = 18,
+	TextPx = 20, -- as the money pill's total
+	ShortTextPx = 15,
 	LeftPx = 6, -- from the money HUD's left edge
-	GapPx = 6, -- between the pill and the money pill under it
+	GapPx = 6, -- between the lines and the money pill under them
 	ColumnGapPx = 6, -- a short screen: at least this far right of the left column
-	ClearPx = 2, -- the room HudLayout keeps between the pill or chip and any other piece
-	WidestText = "+360%", -- the pill's fixed width (VIP + Party + Starter + Group + Plus + 4 friends)
+	ClearPx = 2, -- the room HudLayout keeps between the lines or chip and any other piece
+	WidestText = "Money Boost: +360%", -- the lines' fixed width (VIP + Party + Starter + Group + Plus + 4 friends)
 	CharWidthShare = 0.62, -- a character's width per text px (the layout's estimate, test and game alike)
-	ShowAtZero = true, -- "+0%" shows dimmed after the tutorial (false: hidden at zero)
-	ZeroTransparency = 0.35, -- the dimmed "+0%"
-	Green = { 70, 205, 110 }, -- the arrow and the card's "+N%"
-	CrownRock = { 8, 2.2 }, -- the crown rocks this many degrees each way, over these seconds (the VIP tag's)
-	CountSeconds = 0.4, -- a higher total counts up this long, then pops
+	ShowAtZero = true, -- a line at "+0%" shows dimmed after the tutorial (false: hidden at zero)
+	ZeroTransparency = 0.5, -- a line at "+0%", its outline too: a bit dimmer than the old pill's 0.35 (Justin, 2026-10-28)
+	MoneyGreen = { 70, 205, 110 }, -- the Money line
+	CandyOrange = { 255, 150, 40 }, -- the Candy line (the Rush chip's orange)
+	CountSeconds = 0.4, -- a higher number counts up this long, then its line pops
 	PopScale = 1.12,
 	PinSeconds = 6, -- a press keeps the card open this long
 	PurchaseSeconds = 8, -- after buying VIP the card stays this long, the VIP row flashing gold
@@ -10055,6 +10058,8 @@ Config.UI.BoostPill = {
 		Grey = { 120, 128, 140 }, -- the footer and the rows you could still get
 		ValueGreen = { 36, 166, 78 }, -- a part's "+N%" and the total, on the white card
 		Gold = { 255, 196, 40 }, -- the VIP row's flash after buying VIP
+		MinScale = 0.6, -- too tall for the room over the pill even without its foot lines: it
+		-- scales down to fit, never under this (HudLayout.cardFit)
 	},
 	-- The Rush chip's shell (R1.10), right over the pill at its left x: core's words
 	-- (RushChip.content), the candy icon from Config.Halloween.CandyIcon.
@@ -10068,7 +10073,7 @@ Config.UI.BoostPill = {
 		IconShare = 0.8,
 		PadPx = 8,
 		InnerGapPx = 4,
-		CompactPattern = "^%S+%s+%S+%s+(.+)$", -- "2x CANDY 8:12" -> "2x " .. "8:12" (the compact chip)
+		CompactPattern = "^%S+%s+%S+%s+(.+)$", -- "CANDY RUSH 8:12" -> "CANDY " .. "8:12" (the compact chip)
 		GapPx = 6, -- between the chip and the pill under it
 		Color = { 255, 150, 40 }, -- orange
 		PulseSeconds = 1.6, -- its colour breathes this often (never its scale: text never pulses)
@@ -10450,6 +10455,8 @@ Config.UI.Menu = {
 			-- The rank roadmap draws in its own ScreenGui, made on its first open (2026-10-08:
 			-- without this the focus hid it and the roadmap opened blank).
 			Ranked = { "Roadmap", "RoadmapTopbar" },
+			-- A CLAIM's Candy chip flies into the event menu's Candy pill (hw-core).
+			Halloween = { "HalloweenToast" },
 		},
 	},
 	Lively = {
@@ -17359,7 +17366,7 @@ Config.UI.Halloween = {
 		FlySeconds = 0.6, -- then flies to the tile (or the menu's Candy pill) this long
 		StillSeconds = 1.6, -- with nowhere to fly it stays this long, then fades
 		ClaimFromSeconds = 3, -- a claim's Candy flies out of the CLAIM pressed this recently
-		MaxWaitSeconds = 300, -- a match's chip waits for the result screen at most this long
+		MaxWaitSeconds = 300, -- a chip or a prize's flight waits for a free lobby at most this long (a NEW CUE! card always waits)
 		PollSeconds = 0.25, -- how often a waiting chip or card checks the player is free
 		-- The NEW CUE! card.
 		CardWidthPx = 340,

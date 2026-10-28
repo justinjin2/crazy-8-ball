@@ -6,7 +6,7 @@
 
 local H = require("./harness")
 
-local STRICT = false
+local STRICT = true
 
 local GO_LIVE = 1793228400 -- Wed Oct 28 19:00 EDT
 local COUNTDOWN = 1793226600 -- 18:30 EDT

@@ -1286,6 +1286,11 @@ return {
 	BoostPill = {
 		Title = "YOUR BOOSTS",
 		Percent = "+%d%%",
+		-- The HUD lines over the money pill (no background): Money green, Candy orange.
+		Lines = {
+			Money = "Money Boost: +%d%%",
+			Candy = "Candy Boost: +%d%%", -- while the event is live
+		},
 		Parts = {
 			Vip = "VIP",
 			Group = "Group",
@@ -1294,7 +1299,7 @@ return {
 			Starter = "Starter Pack",
 			Party = "Money Party",
 		},
-		TimeLeft = "%s left", -- after a timed part: "Starter Pack · 42m left"
+		TimeLeft = "%s · %s left", -- a timed part and its time: "Starter Pack · 42m left"
 		Total = "Total",
 		None = "No boosts yet",
 		FriendRule = "Each friend in your server +%d%% (max %d)",
@@ -1901,10 +1906,11 @@ return {
 		Title = "HALLOWEEN EVENT", -- the event menu's header
 		Candy = "Candy",
 		EndsIn = "ENDS IN %s", -- the tile's and the menu's pill, a duration (Halloween.Event.short)
-		-- The Candy Rush chip above the boost pill (the GUI lane's shell): the time left.
+		-- The Candy Rush chip above the boost pill (the GUI lane's shell): what runs and the time
+		-- left; how much is the boost pill's Candy line (so no "2x" here).
 		Chip = {
-			Rush = "2x CANDY %s", -- "2x CANDY 8:12" (mm:ss)
-			Double = "2x CANDY %s", -- Oct 31: "2x CANDY 9:12:44" (h:mm:ss)
+			Rush = "CANDY RUSH %s", -- "CANDY RUSH 8:12" (mm:ss)
+			Double = "HALLOWEEN NIGHT %s", -- Oct 31: "HALLOWEEN NIGHT 9:12:44" (h:mm:ss)
 		},
 		-- Durations (Halloween.Event): a clock ("8:12", "9:12:44") and a pill's short form.
 		Time = {

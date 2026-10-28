@@ -207,7 +207,9 @@ function CandyToast.pump(self: any)
 				local open = item.gate == "now"
 					or (item.gate == "free" and quiet)
 					or (item.gate == "card" and quiet and self.card == nil)
-				if os.clock() - item.at > T.MaxWaitSeconds then
+				-- A chip or a prize's flight goes stale; a NEW CUE! card (once a cue) waits as long
+				-- as the player is busy (a menu left open, back-to-back matches).
+				if item.gate ~= "card" and os.clock() - item.at > T.MaxWaitSeconds then
 					table.remove(self.queue, i)
 				elseif open and not blocked[item.gate] then
 					table.remove(self.queue, i)

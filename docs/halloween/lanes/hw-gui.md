@@ -32,6 +32,45 @@ From PLAN §4 (everything else is read-only; ask below under Requests):
   `docs/STATUS.md`, `ROADMAP.md`, `DECISIONS.md`, `ECONOMY.md` (coordinator).
 
 ## Status
+- **12:15 READY (restyle + review fixes; hw-gui @bf82d3fc after merging halloween @64085ab2):**
+  lint OK, `client_compiles` OK, **1442/1442 tests**, Studio play console clean (only the known
+  203785492 ContentId lines). One commit per item:
+  - **Restyle (Justin) 88a4d89f:** no pill background or frame: outlined HUD-font lines right over
+    the money pill, "Money Boost: +N%" in green (`MoneyGreen`) and, while the event is Live and
+    shows for the player (`State.on`), "Candy Boost: +N%" in orange (`CandyOrange`, the Rush chip's)
+    over it. The Candy number is `CandyMath.multiplier(Event.multiplier(now), FriendsHere, InGroup)`
+    over 1, what `CandyService.multiplier` pays (Rush/Double included): +120% for group in a Rush.
+    Words in `Strings.BoostPill.Lines`. Tapping still opens YOUR BOOSTS. Each line counts up and
+    pops on its own. On a phone the lines sit right of the column when they fit, else over the
+    money pill with the column keeping above them; anything they still touch (an iPad's full
+    hotbar) they rise over. `tests/hud_layout_test.luau`: every case with and without the Candy
+    line, core's new chip words.
+  - **With hw-core (agreed 12:00):** the chip says what runs and for how long, the Candy line how
+    much. Core's 213c8220 (on hw-core, comes with their next READY) makes the chip "CANDY RUSH
+    8:12" / "HALLOWEEN NIGHT 9:12:44" (no "2x"). The chip stays right over the Candy line at the
+    same x; HudLayout keeps ClearPx between them. The open card covers the chip, as before.
+  - **Zero (Justin Q5) bde1e449:** kept, a bit dimmer: a line at +0% at 0.5 transparency, its
+    outline too (`ZeroTransparency` 0.35 -> 0.5).
+  - **(a) b33b9a2d:** a VIP's pill shows while the tutorial runs (the VIP tag did), and
+    `showPerks` forces it on before the Vip attribute lands. Studio: Soft step, non-VIP hidden;
+    VIP shown; `boostPerks` with the attribute not yet VIP: pill and card shown. (In the guided
+    part the whole money HUD is hidden, as it was for the VIP tag.)
+  - **(b) 090833e2:** the card fits a short phone: foot lines go from the end (the "get" lines,
+    the Candy line, the friend rule), then it scales down (`HudLayout.cardFit`,
+    `Card.MinScale` 0.6) in a holder whose UIScale is not the pop's. Studio 750x311 (844x390's HUD
+    area): all 6 parts + Total at 0.90, top at the screen's top. Layout test: every size, 1-6 rows.
+  - **(c) 4c473e7d:** `BoostCardOpened` fires only from a press that opens the card. Studio:
+    pin and `showPerks` logged nothing; a press logged `BoostCard 1 [Opened, PC]` once.
+  - **(d) d7ff2c1b:** the " · " into `Strings.BoostPill.TimeLeft` ("%s · %s left").
+  - **Review item 4 (09:52) 8ee19e5c:** the chip breathes when it pops in with the lines and stops
+    when they hide (it stayed flat orange). Studio: Soft VIP, chip shown and breathing.
+  - bf82d3fc: Studio-only GuiQA `boostPress` (MCP cannot click); also `candyLine`.
+  - Phone and iPad by emulation: the real `MoneyHud` + `BoostPill` built in a 750x311 and a
+    1024x700 frame (they lay out from their parent's size); the column, Invite and the track are
+    not in those frames (the layout test covers them).
+- 11:55 coordinator: JUSTIN's answers (gate 1/2): Q5 at zero boosts, keep the pill a bit dimmer (not hidden). Plus the restyle: no background; green "Money Boost: +XX%" and orange "Candy Boost: +XX%" (full text in my 11:57 message). The four 09:55 review items are still open (Soft-step VIP perks is should-fix before go-live). READY target 14:00.
+- 11:49 coordinator: `halloween` @64085ab2 adds core de236025 (the NEW CUE! card and end screen count in Progression.quiet) and cues-b a431419b (Witch Broom, Black Cat and Spider out of draft). cue_skins_data.py clean on halloween (66 skins, 28 pieces). Lint OK, 1,441 tests, Team Create play console clean. Map's READY 7fd462cc is next. Run `git fetch && git merge origin/halloween` before your next READY.
+- 11:36 coordinator: `halloween` @537270fd has cues-a 83e876db (drop 3 body path, CuePreview bodies, Candy Corn + Jack-o'-Lantern, Upright, analytics, Aim-fade fix), core 3c4b87aa (event menu, tile, quests, Spider, packs, art), sys c5b6b607 and gui 3438ea94 (review fixes). Lint OK, 1,436 tests, Team Create play console clean (only the known 203785492 ContentId lines), tile + 2x chip + pill +120% seen. Review of this merge is running; findings come back as Requests. Run `git fetch && git merge origin/halloween` before your next READY. Main.client still has 12 top-level locals to spare.
 
 - **10:10 FINAL (every Progress line ticked; hw-gui @1dc99f84 after merging halloween @f32c3d1b):**
   lint OK, `client_compiles` OK, **1405/1405 tests**, Studio boot and console clean (only the
@@ -233,6 +272,12 @@ PLAN §7 shared files: your own block or line only; the coordinator resolves ove
 - `Config.luau`: the `Config.Economy` friend lines after `PlusBoost` (**37d80752**, added only);
   `Config.UI.BoostPill` and `Config.UI.CuePreview` after `Config.UI.LuckClover` (**3fd23656**).
 - `Strings.luau`: `Strings.BoostPill`, `Strings.CuePreview` after `LuckClover` (**3fd23656**).
+- 12:15, my blocks only: `Config.UI.BoostPill` swaps the pill's tokens for the lines' (`LinePx`,
+  `ShortLinePx`, `TextPx` 20/15, `WidestText`, `MoneyGreen`, `CandyOrange`, `ZeroTransparency`
+  0.5; `HeightPx`, `ShortHeightPx`, `IconShare`, `PadPx`, `InnerGapPx`, `Green`, `CrownRock` gone,
+  read only by BoostPill and HudLayout) and gains `Card.MinScale` (**88a4d89f**, **090833e2**,
+  **bde1e449**); `Strings.BoostPill` gains `Lines` and `TimeLeft` became "%s · %s left"
+  (**88a4d89f**, **d7ff2c1b**). No other shared file changed.
 - `Progression.luau`: :265-267, :302-309 (BoostPill instead of VipTag, `deps`), :615
   (`setInMatch`, `CuePreview.close()`).
 - `Main.client.luau:1265` (**618bbcf1**): inside `holdShots` (no top-level local), the open
@@ -278,6 +323,13 @@ PLAN §7 shared files: your own block or line only; the coordinator resolves ove
 - **To the coordinator:** the HubCorners and Net overlaps with core at merge (my lines are listed
   under Shared-file changes).
 
+- **To the coordinator (12:15): please merge `hw-gui`** (READY above). Core's 213c8220 (chip
+  words) can land before or after; until it does the chip still says "2x CANDY 8:12".
+- **To the coordinator (12:15):** PLAN §2 "Boost display" and UI_STYLE still describe the white
+  pill with a crown and the "2x CANDY 8:12" chip; now two outlined lines (Money green, Candy
+  orange while Live) and "CANDY RUSH 8:12". Yours to update, with a DECISIONS line for Justin's
+  restyle.
+
 ## Assumptions
 
 - 09:55 "+0%" at zero boosts: **shown, dimmed** (`ShowAtZero = true`, the brief's default) so a
@@ -286,8 +338,30 @@ PLAN §7 shared files: your own block or line only; the coordinator resolves ove
   gate-1 question below rather than stopping the lane on it.
 - The chip's idle is a gentle colour breathe, not a scale pulse (UI taste rule: text never
   pulses its scale endlessly); `PulseSeconds` is the breathe's period.
+- 12:15 restyle: **no icons** with the background gone (Justin: "just" the green and orange
+  text): the VIP crown and the arrow are dropped; VIP stays a row in the card.
+- 12:15: **Money at the bottom** (right over the money pill, the VIP tag's old place), Candy over
+  it, the Rush chip over Candy, so the Candy pieces sit together.
+- 12:15: line text 20 px on a computer, 15 px on a phone (the money pill's total is 20/16); a
+  line at +0% at 0.5 (Justin: "a bit dimmer").
+- 12:15: the compact chip keeps the first word and the clock ("CANDY 8:12"); it sits over the
+  orange Candy line, so it reads.
 
 ## Gate shots
+
+Restyle READY 12:15 (`~/Desktop/8ball-refs/halloween/shots/hw-gui/restyle/`, Studio window
+1523x814; phone and iPad: the real MoneyHud + BoostPill built in a frame of that size):
+- `pill-pc-1523x814-vip-group-2friends-candy30-chip.jpg`: PC, VIP + group + 2 friends: orange
+  "Candy Boost: +30%" over green "Money Boost: +130%" over the money pill, the chip over them
+  (still core's old "2x CANDY" words on this branch).
+- `pill-phone-750x311-emu-vip-group-2friends-candy30-rush.jpg`: phone (844x390's HUD area),
+  "CANDY RUSH 8:12" chip (core's new words, faked here), the two lines, the money pill.
+- `pill-phone-750x311-emu-zero-money-dim-rush.jpg`: phone, no boosts in a Rush: Candy +100%,
+  Money +0% dimmed.
+- `pill-pc-1523x814-zero-both-dim.jpg`: PC, both lines at +0%, dimmed.
+- `pill-ipad-1024x700-emu-group-rush.jpg`: iPad, group in a Rush: Candy +120%, Money +10%.
+- `card-phone-750x311-emu-all6-scaled.jpg`: phone, the card with all 6 parts and the Total
+  scaled to 0.90 so it fits under the top (the foot lines dropped); it covers the chip.
 
 Gate 1 (`~/Desktop/8ball-refs/halloween/shots/hw-gui/gate1/`, Studio window 1523x814; the phone
 size could not be reached, see Status):
