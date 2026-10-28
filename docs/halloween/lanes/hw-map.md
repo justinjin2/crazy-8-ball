@@ -197,3 +197,35 @@ Gate 1 (`~/Desktop/8ball-refs/halloween/shots/hw-map/gate1/`, Play captures, lan
   Night up (Brightness/Exposure, the purple kept).
 - `night-sky-cross.png`: the Night sky's six faces (gen_sky night: moon, stars, violet
   gradient), uploaded as the six ids in `Config.Lighting.Night.Sky`.
+
+
+Gate 2 (`~/Desktop/8ball-refs/halloween/shots/hw-map/gate2/`, Play captures, lane window, Live forced):
+
+- `01-throne-night.jpg`: the throne at the piano spot (0, 2, -86) from its carpet: the carved
+  pumpkin back (the event mesh), the crown over it, purple banners, steps, candles, four small
+  carved pumpkins (meshes). The piano and its bench hidden; 98 parts, 28 meshes, 3 lights.
+- `02-king-close.jpg`: the King on his throne, the real head (carved pumpkin mesh, tilted gold
+  crown with purple gems), black suit, orange vest, seated, the cue as a sceptre.
+  `00-king-backwards-before-fix.jpg`: he first sat facing the pumpkin (fixed, 8df3864c).
+  Note: his orange head sits on the orange pumpkin back, so he reads less than he could.
+- `03-king-match.jpg`: a King match at table 11 from the prompt (the real path: tutorial
+  skipped, HwOn set by hand as core's server is not merged yet): Gold King vs an Unranked
+  player, JackOLanternCue, Pc kind. The loss (he ran the table) logged Lost, no cooldown, and a
+  second challenge right after worked (lose = retry at once).
+- A staged win (PoolMatchQA finalEight, a real shot) found a bug: every win logged "Left" and
+  paid nothing (the table lets the player go before the bot sees the result). Fixed
+  (a38b71e1, `Rules.kingOutcome` + test); now "Won", and the reward runs to core's
+  CandyService (missing here: "a King win grants nothing" warning until core merges).
+- `04-candy-burst.jpg`: the candy explosion over table 11 (the real Burst remote): the event's
+  wrapped candy meshes flung up, an orange pop, sparkles; "+50 CANDY" riser checked in the
+  client (not in this frame: the candies were frozen 0.3 s in for the shot).
+- `05-throne-from-spawn.jpg`: **gate 2 question**: from the spawn the throne is only a glow
+  between the two lobby boards (Top players / Top countries) that stand in the aisle in front
+  of the piano spot. Options: (a) move the throne forward of the boards (z about -66, still on
+  the aisle's axis; mine, one Config line); (b) part the boards while Live (LobbyBoards, not
+  mine); (c) leave it (the prompt and the glow lead players there). I suggest (a).
+- Difficulty table: under Assumptions (all ten rows measured; the top three play a
+  Grandmaster King).
+- The PC-kind King pays a Pc match's money for balls (the staged win: +$66 for one ball), as
+  PLAN chose ("Pc" so no farming); his portrait is still the PC robot (Config King.Icon empty:
+  next).

@@ -622,13 +622,13 @@ request: ask in your lane file's Requests when a verified part should land early
 - [x] 3. EventMap's switch: Event.state with the Studio force, the two workspace attributes, idempotent on and off, a boot during Live.
 - [x] 4. Night: Lighting.Night tuned in Play, `LightCycle.event` and `mixStates`, DayCycle following the state with preload and crossfade; Night ≥ 0.9 of Day's brightness, measured.
 - [ ] 5. Table looks by mode at run time (black frame + tints, restored at the end); rendered ΔE ≥ 17 under Night and Sunset, table in the lane file; gate 1 shots by 09:00.
-- [ ] 6. First start `bot_duel` in the background for every TierFor row (200 games each, `--no-write`, output to a log outside the repo) so step 9 only reads it; then the BotService boss hooks (description, icon, animations, dress, playBoss, BotsQA "boss"), Body's new arguments, People's icon.
+- [x] 6. First start `bot_duel` in the background for every TierFor row (200 games each, `--no-write`, output to a log outside the repo) so step 9 only reads it; then the BotService boss hooks (description, icon, animations, dress, playBoss, BotsQA "boss"), Body's new arguments, People's icon.
 - [ ] 7. King look (description, head, crown, cape, suit pieces, aura, idle; a placeholder head is fine for gate 2, the real one by 13:00) and the throne at the piano spot with the throne figure; the piano hidden; the Rojo round trip of the first .rbxm checked.
-- [ ] 8. BossService: prompt, server checks, free table with 2 spare, MaxAtOnce 3, notices, taunts, analytics; a King match end to end in Studio.
+- [x] 8. BossService: prompt, server checks, free table with 2 spare, MaxAtOnce 3, notices, taunts, analytics; a King match end to end in Studio.
 - [x] 9. Difficulty from the background bot_duel runs for every TierFor row (win shares in the lane file; a row under 20% stepped down, re-measured and logged).
 - [ ] 10. The reward: bossWon on every win, bossCooldown into `PumpkinKingReadyAt` and the prompt countdown, `Badges.grant` Pumpkin Slayer, the candy explosion; gate 2 shots by 11:00.
 - [ ] 11. CandyDrop and its client FX: spawning, eligibility, the teleport check, CandyService.pickup's `(ok, reason)`, the bag-full note only for `"Cap"`, analytics; a 5-minute walk test.
-- [ ] 12. The purple night sky: gen_sky night variant (headless), 6 uploads, Night.Sky ids, the Night-to-Sunset swap checked in Play.
+- [x] 12. The purple night sky: gen_sky night variant (headless), 6 uploads, Night.Sky ids, the Night-to-Sunset swap checked in Play.
 - [ ] 13. `TableBuilder.addDecor` and the three kits (bounds-checked, no collision), on every table, removed at the end.
 - [ ] 14. Props: dead trees, pumpkins, spooky planters, tombstones, string lights, cobwebs (headless Blender, uploads, Assets); the hide list applied and restored; the budget counted.
 - [ ] 15. The full flip test: Before → Countdown → Live → Ended → Live in one Play session, a boot during Live, an arena (lighting and tables only); console clean.
