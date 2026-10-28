@@ -89,6 +89,12 @@ New files the brief adds for these: `src/shared/Matchmaking/Roam.luau`, `tests/r
   Fresh-player run with both on (join, tutorial hold, skip -> Welcome + Crew logs, `/bot` match
   roaming, `RoamHome`, result screen, Continue card): console clean. Devices: see Assumptions
   (the resize helper still sees no Studio windows). Lint OK, 1,406 tests.
+- 10:25 hw-sys: **FINAL, ready to merge: fe78db7a** (pushed; halloween @f32c3d1b already merged,
+  nothing newer). Both switches ON: `Config.Multiplayer.Roam.Enabled`, `Config.Badges.Enabled`.
+  Off = one-line publish each. Docs to paste, live checks and data notes are under Requests;
+  every shot is under Gate shots. Open for the coordinator: the device size sweep (resize
+  helper), and the GDD/DECISIONS text. Icon moderation: 6 approved at 09:40, the rest pending
+  (Roblox shows a placeholder until approved; nothing to do).
 
 ## Shared-file changes
 

@@ -529,7 +529,7 @@ validation, the no-award guard outside the live experience, the spend guard.
 - [x] 17. Fresh-player run with both switches on (join, tutorial or skip, first match, popups).
 - [x] 18. Devices: phone, iPad, PC, TV + pad mode for roaming and the turn-start move; screenshots.
 - [x] 19. Lane file Requests: the GDD and DECISIONS text (section 2.5), the live checks for Justin (a Welcome toast on join, a veteran's back-pay, Creator Hub award counts), every shared-file change listed.
-- [ ] 20. Lane file Status final + all screenshots.
-- [ ] 21. Merge `halloween`, re-test (lint, tests, the Studio roam and badge paths), push.
+- [x] 20. Lane file Status final + all screenshots.
+- [x] 21. Merge `halloween`, re-test (lint, tests, the Studio roam and badge paths), push.
 
 ## Notes
