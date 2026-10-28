@@ -10248,6 +10248,8 @@ Config.UI.Menu = {
 			-- The rank roadmap draws in its own ScreenGui, made on its first open (2026-10-08:
 			-- without this the focus hid it and the roadmap opened blank).
 			Ranked = { "Roadmap", "RoadmapTopbar" },
+			-- A CLAIM's Candy chip flies into the event menu's Candy pill (hw-core).
+			Halloween = { "HalloweenToast" },
 		},
 	},
 	Lively = {
