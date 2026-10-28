@@ -667,6 +667,12 @@ return {
 			StarterCue = "Starter Cue",
 			BetaCue = "Beta Cue",
 			FireworkCue = "Firework Cue",
+			-- Halloween 2026 (docs/halloween/PLAN.md §3)
+			CandyCornCue = "Candy Corn Cue",
+			JackOLanternCue = "Jack-o'-Lantern Cue",
+			BlackCatCue = "Black Cat Cue",
+			SpiderCue = "Spider Cue",
+			WitchBroomCue = "Witch's Broom",
 		},
 		Rarities = {
 			Common = "Common",
