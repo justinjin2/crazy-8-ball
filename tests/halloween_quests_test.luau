@@ -43,16 +43,38 @@ return {
 		H.expect(on ~= nil and off ~= nil, "board 2")
 		local kingOn, kingOff = (on :: any)[2], (off :: any)[2]
 		H.expect(kingOn.kind == "King" and kingOn.need == 1, "the King")
-		H.expect(kingOff.kind == "Wins" and kingOff.need == 2, "its Alt")
+		H.expect(kingOff.kind == "Matches" and kingOff.need == 4, "its Alt")
 		H.expect(kingOff.key == kingOn.key, "same key")
 		local pickOff = (Quests.board(1, ALL_OFF) :: any)[4]
 		H.expect(pickOff.kind == "Balls" and pickOff.need == 30, "pickups -> balls x2")
-		local ultOff = (Quests.board(3, ALL_OFF) :: any)[2]
-		H.expect(ultOff.kind == "Wins" and ultOff.need == 3, "abilities -> wins 3")
+		local ultOff = (Quests.board(3, ALL_OFF) :: any)[1]
+		H.expect(ultOff.kind == "Matches" and ultOff.need == 5, "abilities -> matches 5")
 		-- The map on but the King off (HalloweenMap.Enabled with Boss.Enabled false): only the
 		-- King's quests swap.
 		local mixed = Quests.board(2, { king = false, pickups = true, ult = true }) :: any
-		H.expect(mixed[2].kind == "Wins" and mixed[1].kind == "TeamMatches", "only the King swaps")
+		H.expect(
+			mixed[2].kind == "Matches" and mixed[1].kind == "TeamMatches",
+			"only the King swaps"
+		)
+	end,
+
+	["no board shows the same quest twice, whichever hooks are off"] = function()
+		local Quests = load()
+		for _, king in { true, false } do
+			for _, pickups in { true, false } do
+				for _, ult in { true, false } do
+					local hooks = { king = king, pickups = pickups, ult = ult }
+					for n = 1, Quests.count() do
+						local seen = {}
+						for _, quest in Quests.board(n, hooks) or {} do
+							local id = quest.kind .. quest.need
+							H.expect(seen[id] == nil, ("board %d: %s twice"):format(n, id))
+							seen[id] = true
+						end
+					end
+				end
+			end
+		end
 	end,
 
 	["one win counts once, on the oldest open board with that quest unfinished"] = function()

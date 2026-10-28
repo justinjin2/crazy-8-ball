@@ -3810,12 +3810,17 @@ Config.Halloween = {
 			},
 			{ -- 2, Thu Oct 29
 				{ Kind = "TeamMatches", Need = 1, Icon = "Team" },
-				{ Kind = "King", Need = 1, Icon = "King", Alt = { Kind = "Wins", Need = 2 } },
+				{ Kind = "King", Need = 1, Icon = "King", Alt = { Kind = "Matches", Need = 4 } },
 				{ Kind = "Wins", Need = 2, Icon = "Win" },
 				{ Kind = "Balls", Need = 30, Icon = "Ball" },
 			},
 			{ -- 3, Fri Oct 30
-				{ Kind = "UltMatches", Need = 3, Icon = "Ult", Alt = { Kind = "Wins", Need = 3 } },
+				{
+					Kind = "UltMatches",
+					Need = 3,
+					Icon = "Ult",
+					Alt = { Kind = "Matches", Need = 5 },
+				},
 				{ Kind = "Wins", Need = 3, Icon = "Win" },
 				{ Kind = "NiceShots", Need = 5, Icon = "Nice" },
 				{
