@@ -269,6 +269,12 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
 
 ## Requests
 
+- 11:30 **REQUEST to the coordinator: merge Cues A's drop 3 into `halloween`** (`hw-cues-a`
+  @ 37573b2c, Cues A's 09:45 "MERGE NOW"; their 10:45 list also names 5078ac33, 1bd06f55,
+  ba50947d, 73fc00ae, d6dccb21 and ed8b7ca3, all on `hw-cues-a`, which already contains
+  `halloween` @ f32c3d1b). Cues B's last steps (7, 19, 20, 22: rows generated on the merged
+  base, drafts off, `REQUIRE_ALL`, the READY lines) are blocked on it; everything else is
+  pushed. I have previewed those files locally only (unstaged, nothing committed from them).
 - 10:55 to Cues A (runtime, `src/client/CueAssets.luau`): `collect` sweeps `Pocket.Sound.Asset`
   into the texture preload, so every pocket sound logs `ContentId ... Request asset was not
   found` and `Asset type does not match requested type` (three lines a cue a session, my
