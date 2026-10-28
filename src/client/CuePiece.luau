@@ -72,6 +72,7 @@ export type CuePiece = typeof(setmetatable(
 	{} :: {
 		id: string,
 		model: Model,
+		noInk: Model?, -- parts with Outline = false: a sibling Model the cue's Highlights never adorn
 		rig: Motion.Rig,
 		rigid: { Rigid },
 		skinned: { Skinned },
@@ -267,6 +268,10 @@ function CuePiece.new(
 	local rigid: { Rigid } = {}
 	local skinned: { Skinned } = {}
 	local doneModels: { [string]: boolean } = {}
+	-- A part row with Outline = false (a Broom's two hundred straws, 2026-10-28) goes under a
+	-- sibling Model, so the body's inked Highlight (CueSkinLook adorns the piece Model) skips it;
+	-- its weld, motion and fades are the same.
+	local noInk: Model? = nil
 	for _, p in row.Parts do
 		if p.Model then
 			if not doneModels[p.Model] then
@@ -304,6 +309,10 @@ function CuePiece.new(
 					end
 					if rootPart then
 						rootPart.Transparency = 1
+						-- A Highlight outlines a fully transparent part too: the importer's 2x2x1 root
+						-- drew a gold box round the Cat's middle (2026-10-28). Shrunk to a dot; the
+						-- bones hang off its CFrame, not its size.
+						rootPart.Size = Vector3.one * 0.01
 						local weld = Instance.new("Weld")
 						weld.Part0 = root
 						weld.Part1 = rootPart
@@ -327,7 +336,16 @@ function CuePiece.new(
 				weld.Part0 = root
 				weld.Part1 = part
 				weld.Parent = part
-				part.Parent = model
+				if p.Outline == false then
+					if noInk == nil then
+						local made = Instance.new("Model")
+						made.Name = "Piece_" .. id .. "_NoOutline"
+						noInk = made
+					end
+					part.Parent = noInk :: Model
+				else
+					part.Parent = model
+				end
 				local o = p.Offset
 				local joint = rig.joints[p.Joint]
 				table.insert(rigid, {
@@ -343,9 +361,13 @@ function CuePiece.new(
 		end
 	end
 	model.Parent = parent
+	if noInk then
+		noInk.Parent = parent
+	end
 	local self = setmetatable({
 		id = id,
 		model = model,
+		noInk = noInk,
 		rig = rig,
 		rigid = rigid,
 		skinned = skinned,
@@ -669,11 +691,17 @@ function CuePiece.deepen(self: CuePiece, shellFade: number, emissiveScale: numbe
 			sk.base[i] = shell(part, sk.base[i])
 		end
 	end
-	for _, d in self.model:GetDescendants() do
-		if d:IsA("SurfaceAppearance") then
-			d.EmissiveStrength *= emissiveScale
-			if tint then
-				d.Color = tint
+	local holders: { Model } = { self.model }
+	if self.noInk then
+		table.insert(holders, self.noInk)
+	end
+	for _, holder in holders do
+		for _, d in holder:GetDescendants() do
+			if d:IsA("SurfaceAppearance") then
+				d.EmissiveStrength *= emissiveScale
+				if tint then
+					d.Color = tint
+				end
 			end
 		end
 	end
@@ -698,6 +726,9 @@ function CuePiece.setScale(self: CuePiece, scale: number)
 		return
 	end
 	self.model:ScaleTo(math.max(scale, 0.01))
+	if self.noInk then
+		self.noInk:ScaleTo(math.max(scale, 0.01))
+	end
 	self.scale = scale
 end
 
@@ -707,6 +738,9 @@ function CuePiece.destroy(self: CuePiece)
 		self.qualityConnection = nil
 	end
 	self.model:Destroy()
+	if self.noInk then
+		self.noInk:Destroy()
+	end
 end
 
 return CuePiece

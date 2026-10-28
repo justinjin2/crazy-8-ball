@@ -413,6 +413,11 @@
     "imageId": "100823591958466",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/black_cat_aura/black_cat_aura_parts.glb": {
+    "assetId": "103166820594434",
+    "assetType": "Model",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/candy_corn/candy_corn_parts.glb": {
     "assetId": "135070490205166",
     "assetType": "Model",
@@ -448,6 +453,12 @@
     "assetId": "107861865998214",
     "assetType": "Decal",
     "imageId": "110159550393453",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/vfx/black_cat/claw_swipe.png": {
+    "assetId": "137606027112313",
+    "assetType": "Decal",
+    "imageId": "139208403900742",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/vfx/candy_corn/bands_512.png": {
