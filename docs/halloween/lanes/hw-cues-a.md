@@ -55,6 +55,15 @@ From PLAN §4 (everything else is read-only; ask through Requests):
 
 ## Status (continued)
 
+- 2026-10-28 10:45: **Fresh-player pre-run on this build (Progress 18 runs again on the final
+  build):** a new mock save joins at the tutorial's Arrow (`fresh_join_tutorial_arrow.jpg`),
+  steps on the reserved table's pad, the bot comes, Game1 starts with Classic in hand, the
+  break pots two (STREAK x2, `fresh_game1_break_streak.jpg`), the hints step on; after a
+  skip the lobby's popups (Daily Rewards, Invite a friend) show as before (10:37 captures).
+  Console: no CueSkinLook, CuePiece, CueAssets or Effects warning, no script error; the one
+  error line in every session is `ContentId: rbxassetid://203785492 failed ... Asset type
+  does not match requested type` three times at join, present before this lane's changes
+  (not a cue asset; worth a look by whoever owns it).
 - 2026-10-28 10:44: **Progress 19, the rows against the shots (R2.1, R2.2, R2.8, R2.9):**
   - R2.1 Candy Corn Cue (Epic, track 150): unique model and tip (the candy-corn body: white
     glowing kernel tip, orange rings, the barber-pole ribbon, the banded bulb, three turning
@@ -397,3 +406,5 @@ Gate 2 addition (10:28, `gate2/`): Jack-o'-Lantern complete @ db1a9fdb (+ 73fc00
 - `tv_index_exclusive_row.jpg`, `tv_index_jack_detail.jpg`, `tv_my_cues.jpg`: the Index row,
   its detail with the Jack chosen and My Cues in the TV (pad) layout.
 - `tv_you_got_jack.jpg`, `tv_you_got_candy.jpg`: the YOU GOT scene with each card.
+- `fresh_join_tutorial_arrow.jpg`, `fresh_game1_break_streak.jpg`: the fresh-player pre-run:
+  the tutorial's first screen, the first match's break.
