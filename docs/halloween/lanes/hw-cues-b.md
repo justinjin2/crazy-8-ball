@@ -68,6 +68,14 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
   neighbours), compact = a closed bud 0.3 past the butt; `spider_parts.glb` 134241355070040,
   `Crown.glb` 88297987618252, atlas decals with image ids). Preview beside the concept:
   `gate2/spider_body_vs_C1b.png`. No spider bodies, legs or creatures anywhere.
+- 10:49 P11 in a real solo game (my window; the tutorial skipped by its own report, Painicane
+  put on QueuePad_03 by script, `/solo` through the Studio DevCommandsQA hook, the Broom
+  given with `/givecue` and equipped through ItemRequest EquipCue, shots sent as ShotFired
+  with the snapshot's epoch and turn): the break and a pot both fire the finisher at the real
+  pocket (portal rings, moon witch, bats, straw, the library whoosh), the cue ball carries the
+  trail, the PULL card shows the Broom's card, no console errors. Cloth: the lobby's blue only
+  (every Studio table is blue; the charcoal and green cloths are not reachable in solo here:
+  logged as a cut). Cat and Spider next in the same game.
 - 10:41 P13/P16 Lower effects: the Cat and Spider stands with `Quality.set(true)` on the day
   floor (`*_lower_lab.jpg`): both drop to an outline and a few motes with no errors; fine for
   a low-end phone. Switched back after the shots.
@@ -290,4 +298,14 @@ drop 3):
   the day floor with Lower effects on (`Quality.set(true)`, rate 0.35): the Cat keeps its
   outline, a shadow cat and a wisp or two; the Spider its outline, a web fleck and a glint;
   nothing breaks, nothing fills the screen; the bodies carry the read at this setting.
-- Not yet shot: hands and own-aim views (need drop 3).
+- `broom_own_view_placement_lab.jpg`: a real solo game at table 3 (seated on its pad by
+  script, `/solo`, the Broom equipped): the shooter's own placement view at PC size, the cue
+  in hand with the ribbons, the violet band and bats at the quiet share, the PULL card drawing
+  the Broom's card art; the cue itself is still the Classic wood (no body before drop 3).
+- `broom_finisher_break_pot_lab.jpg`: the break pots a ball: the portal rings, bats and straw
+  over the near corner pocket, seen from the table's side.
+- `broom_finisher_pot_lab.jpg`: the next pot (the 9): the two portal rings risen over the far
+  corner pocket, the witch over the moon and bats above, seen from the watcher's side.
+- `broom_trail_match_lab.jpg`: a long rail shot: the cue ball's violet-emerald trail with a
+  crescent as it slows by the corner; short and soft at this speed.
+- Not yet shot: hands and own-aim views with the bodies (need drop 3).
