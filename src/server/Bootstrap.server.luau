@@ -70,7 +70,15 @@ Trading.start() -- player-to-player trades (TradeRequest, TradeState) and the tr
 Settings.start() -- each player's switches and seen moments (SettingsState, SettingsRequest)
 require(script.Parent:WaitForChild("Friends")).start() -- FriendHere: a Roblox friend in the server
 Leaderboards.start(not isArena) -- the global boards, the country tally and the lobby boards
-require(script.Parent:WaitForChild("Badges")).start() -- Roblox badges (Config.Badges; off = nothing)
+-- Roblox badges (Config.Badges; off = nothing). Guarded: a badge failure never stops the boot.
+do
+	local ok, err = pcall(function()
+		require(script.Parent:WaitForChild("Badges")).start()
+	end)
+	if not ok then
+		warn("[8ball] Badges failed to start: " .. tostring(err))
+	end
+end
 
 -- Then the imported meshes the clients need (a MeshId is plugin-only, so they live in the
 -- place, in ServerStorage), published to ReplicatedStorage.Assets before anything else so they
