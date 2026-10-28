@@ -61,6 +61,15 @@ From PLAN §4 (everything else is read-only; ask through Requests):
 
 ## Status (continued)
 
+- 14:02 The Cat in a real solo match in my window (the Cat given and equipped, a 1v1 pad, `/solo`,
+  two shots): the break and a long shot play, no rejection, console clean; the trail shows the
+  dark ribbon with the gold core, the new claw-swipe mark and a dropped shadow cat behind the
+  cue ball (`gate2/sig_cat_trail_v2.jpg`). One open point for Justin: from the owner's aiming
+  camera (straight above) the three racing cats foreshorten to dark bars with gold edges
+  (`gate2/sig_cat_aim_above_v1.jpg`); from the side, the back and the lobby they read as cats.
+  Crossed planes fixed that view but read as lumps everywhere else, so I kept the single
+  leaning plane; a sprite-billboard cat would need a new visual kind in CuePiece.
+
 - 13:59 The `Outline = false` runtime (4d759889) checked on the real case: with `halloween`
   @ b185fdc6 merged, Cues B's remade Broom (`witch_broom`, `Bristles_Bark` with the flag) on my
   lab stand puts the straw bulb under `Piece_witch_broom_NoOutline` (one child) and the head
@@ -753,3 +762,4 @@ Gate 2 addition (10:28, `gate2/`): Jack-o'-Lantern complete @ db1a9fdb (+ 73fc00
   (their gate2/cat_aura_stand_lab.jpg); `sig_cat_close_v1.jpg`, `sig_cat_butt_v1.jpg`: the first
   pass (the tail root's gold box, the rim planes showing through, blades merging).
 - `outline_broom_head_lab.jpg`: 13:59, Cues B's remade Broom head on my stand with the Outline flag live (no strokes on the straws).
+- `sig_cat_trail_v2.jpg`, `sig_cat_aim_above_v1.jpg`: 14:02, the Cat's trail on a real shot (claw mark + shadow cat) and the aiming view from above (the cats as bars).
