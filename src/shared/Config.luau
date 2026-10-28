@@ -8257,7 +8257,7 @@ Config.Multiplayer = {
 		EscapeStuds = 2, -- a participant this far outside (clipped through) is put back inside
 	},
 	Roam = { -- in-match players walk anywhere while they wait (designer, 2026-10-28)
-		Enabled = false, -- true once the roam checks in HW_SYS_PROMPT section 4 pass; false = the fence for all
+		Enabled = true, -- in-match roaming (checks passed 2026-10-28); false = the fence for all, as before
 		HomeExtraStuds = 2, -- a shooter this far outside the match walls at turn start goes to the pad
 	},
 	-- The shooter's root on the server (TableService). While they aim, the anchored root
