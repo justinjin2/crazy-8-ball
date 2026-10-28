@@ -1800,6 +1800,22 @@ return {
 		Off = "%d%% OFF!", -- VIP's welcome offer against VIP's price
 		Only = 'ONLY <font color="#%s">%s</font>',
 	},
+	-- The Halloween 2026 event (src/client/Halloween; Config.Halloween). Candy is the event's
+	-- currency; the quests' text takes the need ("Win %d matches").
+	Halloween = {
+		Name = "HALLOWEEN", -- the right-side tile
+		Title = "HALLOWEEN EVENT", -- the event menu's header
+		Candy = "Candy",
+		EndsIn = "ENDS IN %s", -- the tile's and the menu's pill, a duration (Halloween.Event.short)
+		-- The Candy Rush chip above the boost pill (the GUI lane's shell): the time left.
+		Chip = {
+			Rush = "2x CANDY %s", -- "2x CANDY 8:12" (mm:ss)
+			Double = "2x CANDY %s", -- Oct 31: "2x CANDY 9:12:44" (h:mm:ss)
+		},
+		Countdown = "HALLOWEEN EVENT IN %s", -- 18:30-19:00, "HALLOWEEN EVENT IN 29:59"
+		Started = "THE HALLOWEEN EVENT HAS STARTED!",
+		Ended = "THE HALLOWEEN EVENT HAS ENDED!",
+	},
 	-- The banner at the top middle (Banner). Names are players' usernames.
 	Banner = {
 		-- "Painicane unboxed a Legendary Cue!" (username), by rarity; never the cue's name
