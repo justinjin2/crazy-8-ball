@@ -17538,7 +17538,10 @@ Config.Badges = {
 	StaggerSeconds = 3, -- at most one award per player every 3 s (PLAN section 2)
 	Budget = { Base = 40, PerPlayer = 30 }, -- badge API calls a minute per server (Roblox: 50 + 35 x players)
 	DebounceSeconds = 2, -- re-check a save this long after its last change (PlayerData.read copies it)
-	RevealDelaySeconds = 8, -- no award this long after openLuckyBlock (the big reel is about 7.7 s)
+	-- No award from openLuckyBlock until the longest pull has shown its card: the rise, the big
+	-- spin and its settle, the longest scene to its flash (Secret, 16.85 s), then this margin,
+	-- about 28 s in all (Badges.revealSeconds). A toast before the card would spoil the pull.
+	RevealMarginSeconds = 2,
 	Retries = { 5, 20, 60 }, -- seconds before each retry of a failed call; then wait for the next join
 	Paused = {} :: { [string]: boolean }, -- [Key] = true: cut or misbehaving; the row never awards (a one-line publish)
 	List = {

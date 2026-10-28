@@ -17,7 +17,8 @@
 --   change, so settles, cue grants (the reel included), rank-ups, rewards, trades, codes and the
 --   tutorial's end all come through one listener.
 -- - Holds: nothing is awarded until the save's tutorial is Done or Skipped and TutorialActive is
---   not true, nor within RevealDelaySeconds of a lucky block opening (the reel).
+--   not true, nor within Rules.revealSeconds() of a lucky block opening (about 28 s: the
+--   slowest reel and pull scene to its card, so no toast spoils a pull).
 -- - One loop, running only while a queue holds something: round-robin over the players, at most
 --   one award per player every StaggerSeconds, and a budget of Budget.Base + Budget.PerPlayer x
 --   players calls a minute shared by AwardBadgeAsync and UserHasBadgeAsync.
@@ -55,6 +56,7 @@ local LIVE = not IS_STUDIO and game.GameId == B.UniverseId
 -- PlayerData ops that never change what a badge reads (the playtime tick, our own marks).
 local SKIP_OPS = { addPlaySeconds = true, markBadges = true }
 local TICK_SECONDS = 0.5 -- the queue loop's step while it has work
+local REVEAL_SECONDS = Rules.revealSeconds()
 
 local Badges = {}
 
@@ -298,7 +300,7 @@ local function onChanged(player: Player, op: string)
 		return
 	end
 	if op == "openLuckyBlock" then
-		st.holdUntil = now() + B.RevealDelaySeconds
+		st.holdUntil = now() + REVEAL_SECONDS
 	end
 	st.changeToken += 1
 	local token = st.changeToken

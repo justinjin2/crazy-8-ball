@@ -188,7 +188,7 @@ Config.Badges = {
 	StaggerSeconds = 3, -- at most one award per player every 3 s (PLAN section 2)
 	Budget = { Base = 40, PerPlayer = 30 }, -- badge API calls a minute per server (Roblox: 50 + 35 x players)
 	DebounceSeconds = 2, -- re-check a save this long after its last change (PlayerData.read copies it)
-	RevealDelaySeconds = 8, -- no award this long after openLuckyBlock (the big reel is about 7.7 s)
+	RevealMarginSeconds = 2, -- after the slowest pull's card (Badges.revealSeconds, about 28 s; was a flat 8 s)
 	Retries = { 5, 20, 60 }, -- seconds before each retry of a failed call; then wait for the next join
 	Paused = {}, -- [Key] = true: cut or misbehaving; the row never awards (a one-line publish)
 	List = {
@@ -269,7 +269,7 @@ owned), `Badges.matchSettled(player, facts)`.
   in registry order, marked `retro = true`.
 - **On change** (`PlayerData.Changed(player, op)`): skip `addPlaySeconds` (every 30 s) and
   `markBadges`; trailing debounce `DebounceSeconds`; `task.defer`, never re-enter PlayerData
-  inside its own event. Op `"openLuckyBlock"` sets a hold until `now + RevealDelaySeconds`.
+  inside its own event. Op `"openLuckyBlock"` sets a hold until `now + Badges.revealSeconds()` (the slowest reel and pull scene to its card, about 28 s; coordinator review 09:52).
   This one listener covers settle, cue grants (the reel included; `CueFound` misses reel finds),
   rank-ups, rewards, trades, codes and the tutorial's end.
 - **Holds:** nothing is awarded until the save's `Flags.Tutorial` is `"Done"` or `"Skipped"`
