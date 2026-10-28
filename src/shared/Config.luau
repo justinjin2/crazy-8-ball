@@ -18191,9 +18191,10 @@ Config.EmoteMenu = {
 		},
 		-- The sounds (Roblox's free sound library), heard by everyone nearby: full volume to
 		-- HearStuds, silent from MaxStuds. First picks; the designer chooses by ear. Seconds
-		-- (optional): only the sound's first this many seconds play.
-		HearStuds = 10,
-		MaxStuds = 60,
+		-- (optional): only the sound's first this many seconds play. 30% nearer (designer,
+		-- 2026-10-27, live: heard too far; were 10 and 60).
+		HearStuds = 7,
+		MaxStuds = 42,
 		Sounds = {
 			-- Popcorn makes only the munch (designer, 2026-10-27: the rest was annoying): the
 			-- designer's crunch, only its first crunch (0.1 to 0.38 s, then quiet), very quiet
@@ -18214,8 +18215,10 @@ Config.EmoteMenu = {
 	-- here (designer, 2026-10-27, live: one dancer was too loud; 45% quieter). Dancers in step
 	-- still get louder together (MusicTwoTogether).
 	Loudness = 0.55,
-	MusicHearStuds = 12, -- full volume up to here
-	MusicMaxStuds = 70, -- silent from here
+	-- 30% nearer (designer, 2026-10-27, live: heard too far; were 12 and 70). A table is about
+	-- 18 studs long with its rails: half volume about a table away, silent at under three.
+	MusicHearStuds = 8.4, -- full volume up to here
+	MusicMaxStuds = 49, -- silent from here
 	MusicLoadSeconds = 5, -- a track not loaded by then is skipped (the dance goes on silent)
 	-- Every dancer of a song plays it from their own body (designer, 2026-10-27): one playback
 	-- per group in step, heard from up to MusicVoices of its dancers nearest your camera
