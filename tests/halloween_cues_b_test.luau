@@ -7,7 +7,7 @@
 
 local H = require("./harness")
 
-local REQUIRE_ALL = false
+local REQUIRE_ALL = true
 
 local CUES = {
 	{ id = "WitchBroomCue", tier = "Secret", particles = 170, lights = 3, pocketPiece = true },

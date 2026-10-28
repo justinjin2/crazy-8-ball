@@ -3,7 +3,7 @@
   "name": "Black Cat Cue",
   "tier": "Mythic",
   "catalog_id": "BlackCatCue",
-  "draft": true,
+  "draft": false,
   "note": "Halloween 2026 (lane Cues B, brief 2.5, concept C2c_black_cat.png rev 3): a glossy black shaft with gold ring pairs, three gold claw slashes on a knurled forearm, a gold claw tip inlay, a triple gold collar and a living black tail with a thin gold rim; black smoke with gold-edged wisps and faceless shadow cats running in it. No head, no face, no eyes, no pink. Draft until complete.",
   "body": "black_cat",
   "maps_from": "classic",
