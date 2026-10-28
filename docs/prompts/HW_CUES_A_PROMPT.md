@@ -677,7 +677,7 @@ Justin's changes at a gate go straight into the work and into the lane file's St
 - [x] 19. R2.1, R2.2, R2.8 and R2.9 checked row by row against the shots; coordinator Requests
   3.6 written in full (merges, the manifest/CueSkins merge rules and regenerate, the Team
   Create ONLY build, the publish note).
-- [ ] 20. Lane file Status final + all screenshots.
-- [ ] 21. Merge `halloween` (the 3.4 conflict rules), re-test, push.
+- [x] 20. Lane file Status final + all screenshots. Done 12:59 (lane file STATUS FINAL; every capture listed under Gate shots).
+- [x] 21. Merge `halloween` (the 3.4 conflict rules), re-test, push. Done: `halloween` @e9b90417 merged @ 1a17820e, lint OK, 1,465 tests, merged-build Studio check, pushed 12:59; re-done before any later READY.
 
 ## Notes

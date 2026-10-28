@@ -60,6 +60,26 @@ From PLAN §4 (everything else is read-only; ask through Requests):
 
 ## Status (continued)
 
+- 12:59: **STATUS FINAL (Progress 20, 21). READY hw-cues-a @ 1a17820e** = `halloween`
+  @e9b90417 merged (map 88e9cceb + 623d0051, core 1361de6d, sys 57bc2b91, cues-b 0e3569b6 the
+  Broom redo, the coordinator's first Team Create ONLY build), lint OK, 1,465 tests pass, the
+  generator a no-op on the merged tree. Studio on the merged build (my window): the ONLY build
+  of all five (5 skins, 11 pieces, no problems), the five on the lab row with their backs
+  (`final_merged_1a17820e_row_five.jpg`), console clean for cue code (the badge "would award"
+  lines are hw-sys's Studio stand-ins; the `203785492` ContentId lines are the tutorial bot's
+  avatar, pre-existing). **Shipped by this lane:** Candy Corn (Epic, track 150) and
+  Jack-o'-Lantern (Legendary, track 500): body cues (pieces `candy_corn`, `jack_o_lantern`),
+  painted maps, decor pieces (`candy_corn_aura`, `jack_o_lantern_aura`), auras, trails,
+  finishers (`jack_o_lantern_pocket`), cards, the `Config.CueSkins.Bodies` switch (off = the
+  old mesh skins), `HalloweenCueEquipped`, the CuePiece Aim-fade and ghost fixes, the
+  deterministic generator. **Open after this lane:** (a) the designer's look at the painted
+  Jack and Candy (`side_by_side_jack_round3.jpg`, `side_by_side_candy_round1.jpg`); a further
+  orb cut is one json line a layer; (b) the two review minors from 11:55 (gate the CueAssets
+  body warm on `Config.CueSkins.Bodies.Enabled`; `HalloweenCueEquipped` fires again on a
+  re-equip), both harmless, not done; (c) Progress 17's phone/iPad power bar and YOU GOT
+  (BLOCKED: window resize); (d) Cues B's requests watched until 15:00 (line 13). **Publish
+  note (coordinator Requests 3.6):** the Team Create ONLY build with all five ids, then
+  publish; `Config.CueSkins.Bodies.Enabled = false` is the one-line fallback.
 - 12:40: **Progress 18 done: fresh-player run on 66af67b0 (halloween @f164d356 merged), my
   window, a fresh mock save.** Join at the tutorial's Arrow (`final_fresh_join_arrow.jpg`: "Join
   a table!", the chevrons to the reserved pad), step on the pad, the bot comes in 2.2 s, Game1
@@ -623,3 +643,5 @@ Gate 2 addition (10:28, `gate2/`): Jack-o'-Lantern complete @ db1a9fdb (+ 73fc00
 - `final_fresh_join_arrow.jpg`, `final_fresh_game1_start.jpg`, `final_fresh_game1_break.jpg`,
   `final_fresh_after_skip_streak2.jpg`, `final_fresh_result_card.jpg`: the Progress 18
   fresh-player run on 66af67b0 (12:40).
+- `final_merged_1a17820e_row_five.jpg`: 12:58, the five cues on the lab row on the merged build
+  (Candy, Jack, the Broom redo, Cat, Spider), backs and stands.
