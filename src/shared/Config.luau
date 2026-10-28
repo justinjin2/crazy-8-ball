@@ -9402,7 +9402,7 @@ Config.HalloweenMap = {
 		-- middle of the roof on a schedule every server shares (Timed below) and is challenged at
 		-- his stage there, a line forming when the tables are full; "Throne": always on his
 		-- throne at the piano (Throne above). Core reads it too (the reward per visit, the timer).
-		Mode = "Throne",
+		Mode = "Timed",
 		Timed = {
 			-- A visit starts every EverySeconds at OffsetSeconds past each period (UTC :15 and
 			-- :45) and lasts StaySeconds (to :27 and :57: never in the :00-:10 Candy Rush).
