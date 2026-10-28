@@ -287,8 +287,12 @@ local function makePlayer(
 	image.Parent = card
 	HudParts.corner(image, Config.Multiplayer.Style.PortraitCornerPx - 2)
 	local userId = if type(player.userId) == "number" then player.userId else 0
-	-- A bot's card (the Bots lane): its avatar's account, or the PC robot's picture.
-	if player.bot == "Pc" then
+	-- A bot's card (the Bots lane): a boss's own portrait (the Pumpkin King), its avatar's
+	-- account, or the PC robot's picture.
+	if type(player.icon) == "string" then
+		image.Image = player.icon
+		fallback.Visible = false
+	elseif player.bot == "Pc" then
 		image.Image = Config.Bots.Robot.Icon
 		fallback.Visible = false
 	else

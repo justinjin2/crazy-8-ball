@@ -483,6 +483,36 @@ return {
 		H.expect(line[1] == 11, "the first in line is next")
 	end,
 
+	["a winner of this visit waits behind everyone who hasn't won"] = function()
+		local R = H.require("HalloweenMap.Rules")
+		local beaten = { [11] = true, [44] = true } -- 11 and 44 already won this visit
+		local line = {}
+		H.expect(R.lineJoin(line, 11, beaten) == 1, "a winner alone is first")
+		H.expect(R.lineJoin(line, 22, beaten) == 1, "someone who hasn't won goes ahead of him")
+		H.expect(R.lineJoin(line, 33, beaten) == 2, "and the next one behind them, still ahead")
+		H.expect(R.lineJoin(line, 44, beaten) == 4, "a second winner at the very back")
+		H.expect(table.concat(line, ",") == "22,33,11,44", "unpaid first in order, then winners")
+		H.expect(R.lineJoin(line, 22, beaten) == 1 and #line == 4, "joining again keeps the place")
+		H.expect(R.linePlace(line, 55, beaten) == 3 and #line == 4, "linePlace only looks")
+		H.expect(R.linePlace(line, 55) == 5, "with no winners known it is first come first served")
+		local everyone = function(_id: number): boolean
+			return true
+		end
+		H.expect(R.lineNext(line, beaten, everyone) == 22, "the first who hasn't won plays next")
+		local busy = { [22] = true, [33] = true }
+		local free = function(id: number): boolean
+			return not busy[id]
+		end
+		H.expect(
+			R.lineNext(line, beaten, free) == nil,
+			"no winner gets a table while anyone who hasn't won waits, even in another match"
+		)
+		R.lineDrop(line, 22)
+		R.lineDrop(line, 33)
+		H.expect(R.lineNext(line, beaten, free) == 11, "only winners left: the first of them")
+		H.expect(R.lineNext({}, beaten, everyone) == nil, "an empty line seats nobody")
+	end,
+
 	["the timed King's fixed notices name the minutes his schedule uses"] = function()
 		-- The queue notices can't be formatted, so they spell ":15 and :45"; they must follow
 		-- Boss.Timed if it ever moves.
@@ -510,7 +540,7 @@ return {
 		local Config = H.require("Config")
 		H.expect(Config.UI.Queue.StatusWidth == 320, "the card these lengths were measured for")
 		local keys = { "KingBusy", "KingNoTable", "KingCooldown", "KingNotNow" }
-		for _, key in { "KingLined", "KingLineLeft", "KingLeft", "KingAway" } do -- the timed King's
+		for _, key in { "KingLined", "KingLineLeft", "KingLeft", "KingAway", "KingLinedBeaten" } do
 			table.insert(keys, key)
 		end
 		for _, key in keys do
