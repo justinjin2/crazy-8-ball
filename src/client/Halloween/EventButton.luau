@@ -297,9 +297,10 @@ function EventButton.bump(self: any)
 	end
 end
 
---- The tile's middle on the screen (where Candy flies), or nil while it is hidden.
+--- The tile's middle on the screen (where Candy flies), or nil while it is hidden (the corners
+--- too: under the result screen and in a match).
 function EventButton.target(self: any): Vector2?
-	if not self.shown or not self.button.Visible then
+	if not self.shown or not self.button.Visible or not self.corners:isShown() then
 		return nil
 	end
 	return self.button.AbsolutePosition + self.button.AbsoluteSize / 2
