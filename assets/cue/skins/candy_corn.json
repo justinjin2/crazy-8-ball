@@ -1,0 +1,20 @@
+{
+  "id": "candy_corn",
+  "name": "Candy Corn",
+  "tier": "Epic",
+  "draft": true,
+  "catalog_id": "CandyCornCue",
+  "note": "Halloween 2026 track cue (150 Candy). Drawn by its own body piece (candy_corn): a kernel tip, cream shaft, barber-pole wrap, orange forearm, yellow handle, a candy-corn bulb; three kernels turn above the joint. Lane hw-cues-a, 2026-10-28.",
+  "body": "candy_corn",
+  "maps_from": "classic",
+  "look": {
+    "Shaft": "#FFF4E2",
+    "Forearm": "#FF7A12",
+    "Wrap": "#FFD21E",
+    "Ring": "#FF7A12",
+    "Tip": "#FFFFFF",
+    "Cap": "#FFD21E",
+    "Accent": "#FFFFFF"
+  },
+  "vfx": {}
+}

@@ -1,0 +1,20 @@
+{
+  "id": "jack_o_lantern",
+  "name": "Jack-o'-Lantern",
+  "tier": "Legendary",
+  "draft": true,
+  "catalog_id": "JackOLanternCue",
+  "note": "Halloween 2026 track cue (500 Candy). Drawn by its own body piece (jack_o_lantern): a stem tip, ribbed orange shaft, a vine with swaying leaves, wood collars with glowing slits, the carved pumpkin whose face flickers. Lane hw-cues-a, 2026-10-28.",
+  "body": "jack_o_lantern",
+  "maps_from": "classic",
+  "look": {
+    "Shaft": "#FF7A1C",
+    "Forearm": "#FF7A1C",
+    "Wrap": "#FF7A1C",
+    "Ring": "#5A3A22",
+    "Tip": "#2F5A2A",
+    "Cap": "#FF8A1C",
+    "Accent": "#3E8E3A"
+  },
+  "vfx": {}
+}
