@@ -3538,6 +3538,12 @@ local function hwMutate(
 		return nil
 	end
 	local hw = hwField(data)
+	-- Once converted (the end) the save's Candy became money: no more Candy, quests, King pay or
+	-- active time lands in it (a server whose clock runs a few seconds behind, or an EndsAt
+	-- moved later); only its marks (hwMark: the end screen seen).
+	if hw.Converted == true and (op :: string) ~= "hwMark" then
+		return nil
+	end
 	local result: HwResult = { candy = 0, steps = {}, spider = false, quests = {}, money = 0 }
 	fn(data, hw, result)
 	-- Once converted (the end) no prize is given any more, whatever the client sends.
