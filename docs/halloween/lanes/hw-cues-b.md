@@ -68,7 +68,12 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
   neighbours), compact = a closed bud 0.3 past the butt; `spider_parts.glb` 134241355070040,
   `Crown.glb` 88297987618252, atlas decals with image ids). Preview beside the concept:
   `gate2/spider_body_vs_C1b.png`. No spider bodies, legs or creatures anywhere.
-- 10:08 P10/P11 drafted and lab-checked, P13/P14 and P16/P17 drafted: all three skins carry
+- 10:06 P17 piece: `spider_pocket` built headless (a silver Neon orb web of eight spokes and four
+  rings turning 24 deg/s, a ForceField funnel of six silk threads to an apex 1.3 up turning the
+  other way, a crimson Neon hourglass bead glowing at the apex; 3 parts, 2,208 triangles; no
+  spider), packed, uploaded (70623027624109) and wired into the Spider finisher (Rise, Scale,
+  Spin 180, silver outline). Cut candidate #4 is no longer needed.
+- 09:58 P10/P11 drafted and lab-checked, P13/P14 and P16/P17 drafted: all three skins carry
   their vfx rows (aura, Style, trail emitters, finisher; draft stays true). Lab in my window
   (local rows from `--allow-missing`, never committed; templates built with ONLY for the three):
   Broom aura 97/s on the stand and the back beside Eclipse (violet haze, stars, crescents,
@@ -80,7 +85,7 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
   no console errors (leap and web ring seen), judged again once the bodies are in. Sounds:
   Roblox library only, found with search_asset: Broom 9125646918 (PSE magic whoosh, 0.45),
   Cat 71522230632243 (Creator Store cat hiss, 0.45), Spider 9120660757 (PSE whip crack, 0.4).
-- 09:50 P3 rework (coordinator REQUEST 09:20, all three points): (1) the bristle bundle has no
+- 09:45 P3 rework (coordinator REQUEST 09:20, all three points): (1) the bristle bundle has no
   end face any more: the opaque root flares into a low dome of strands, a cone of straw (alpha,
   fraying to the centre) closes it, and three rings of straw cards (40) all round it splay to
   uneven alpha-frayed tips (compact to 7.45, 0.76 across); the straw texture is twice as

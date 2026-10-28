@@ -1510,6 +1510,51 @@ def check_envelope(pid, kit):
     print('CUE check_envelope %s: OK (hand zones within %.3f of the envelope)' % (pid, worst))
 
 
+# =============================================================================================
+# Spider: the pocket piece (an orb web and a silk funnel; no spider)
+# =============================================================================================
+
+@piece
+def spider_pocket(k):
+    """The Spider's pocket finisher piece (brief 2.6; pocket frame, origin at the mouth, Z up):
+    a silver Neon orb web lying flat (eight spokes, four rings) turning slowly, a funnel of six
+    silk threads rising from its rim to an apex 1.3 up, turning the other way so the threads
+    twist, and a small crimson Neon hourglass bead glowing at the apex. No spider."""
+    import bmesh
+    from mathutils import Vector, Matrix
+    k.frame = 'pocket'
+    k.material('Silk', 'Neon', '#E6EAF2', Transparency=0.08)
+    k.material('Thread', 'ForceField', '#F2F4F8', Transparency=0.25)
+    k.material('Crimson', 'Neon', '#C8102E')
+    k.joint('Web', pivot=(0, 0, 0), motion=[{'Kind': 'Spin', 'Axis': (0, 0, 1), 'Rate': 24.0}],
+            visual=[{'Kind': 'Glow', 'Min': 0.0, 'Max': 0.35, 'Period': 0.8}])
+    bm = bmesh.new()
+    for i in range(8):
+        a = 2 * math.pi * i / 8
+        d = Vector((math.cos(a), math.sin(a), 0))
+        _box(bm, d * 0.55, (0.016, 1.1, 0.016), (Vector((-math.sin(a), math.cos(a), 0)), d, Vector((0, 0, 1))))
+    for Rr in (0.3, 0.55, 0.8, 1.05):
+        _torus(bm, (0, 0, 0), (0, 0, 1), Rr, 0.011, segs=40, minor=6)
+    k.add('Web', k.mesh_object('WebDisc', bm, ['Silk']))
+    k.joint('Funnel', pivot=(0, 0, 0), parent='Web', motion=[{'Kind': 'Spin', 'Axis': (0, 0, 1), 'Rate': -48.0}])
+    bm = bmesh.new()
+    apex = Vector((0, 0, 1.3))
+    for i in range(6):
+        a = 2 * math.pi * i / 6 + 0.3
+        P = Vector((math.cos(a), math.sin(a), 0))
+        d = apex - P
+        ey = d.normalized()
+        ex = ey.cross(Vector((0, 0, 1))).normalized()
+        ez = ex.cross(ey)
+        _box(bm, P + d / 2, (0.014, d.length, 0.014), (ex, ey, ez))
+    k.add('Funnel', k.mesh_object('Threads', bm, ['Thread']))
+    k.joint('Bead', pivot=(0, 0, 1.3), parent='Funnel', visual=[{'Kind': 'Glow', 'Min': 0.2, 'Max': 0.8, 'Period': 0.5}])
+    bm = bmesh.new()
+    _lathe(bm, [0.0, 0.03, 0.06, 0.09, 0.12], [0.001, 0.055, 0.022, 0.055, 0.001], 12, close=True)
+    bmesh.ops.transform(bm, matrix=Matrix.Translation(Vector((0, 0, 1.24))) @ Matrix.Rotation(math.radians(-90), 4, 'X'), verts=bm.verts[:])
+    k.add('Bead', k.mesh_object('BeadHourglass', bm, ['Crimson'], smooth=False))
+
+
 # The part(s) that are the shaft itself in the hand zones (checked for the centreline and the
 # exact radius); any other part there is decor and only has to stay flush.
 BODY_SHAFT = {

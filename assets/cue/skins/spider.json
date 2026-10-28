@@ -1185,7 +1185,7 @@
       ]
     },
     "Pocket": {
-      "Note": "Mythic, about 1.6 s: a cool white flash; a silver web ring (own decal) spreads on the cloth with a crimson ring after it; black smoke and a burst of silk threads shoot up and fall, web shards tumble, sparks; a crimson glint at the heart; silver motes rain back; a whip-crack snap (Roblox library). No 3D piece yet (spider_pocket is the lane's cut candidate #4).",
+      "Note": "Mythic, about 1.6 s: a cool white flash; a silver web ring (own decal) spreads on the cloth with a crimson ring after it; black smoke and a burst of silk threads shoot up and fall, web shards tumble, sparks; a crimson glint at the heart; silver motes rain back; a whip-crack snap (Roblox library). The orb-web piece (pieces/spider_pocket: a silver Neon web turning slowly, a funnel of six silk threads turning the other way, a crimson hourglass bead glowing at the apex) rises and widens out of the pocket.",
       "Flash": {
         "Color": [
           230,
@@ -1608,6 +1608,73 @@
         "RollOffMinStuds": 8,
         "RollOffMaxStuds": 60,
         "Note": "Roblox library: Pro Sound Effects \"Whip Cracks 8\" (0.9 s), free, no upload"
+      },
+      "Piece": {
+        "Piece": "spider_pocket",
+        "Delay": 0.05,
+        "Seconds": 1.5,
+        "Rise": [
+          [
+            0,
+            -0.3
+          ],
+          [
+            0.3,
+            0.5
+          ],
+          [
+            1,
+            0.9
+          ]
+        ],
+        "Scale": [
+          [
+            0,
+            0.5
+          ],
+          [
+            0.3,
+            1.2
+          ],
+          [
+            1,
+            1.4
+          ]
+        ],
+        "Spin": [
+          [
+            0,
+            0
+          ],
+          [
+            1,
+            180
+          ]
+        ],
+        "Transparency": [
+          [
+            0,
+            0.3
+          ],
+          [
+            0.15,
+            0
+          ],
+          [
+            0.65,
+            0
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "Outline": {
+          "Color": "#D8DCE6",
+          "Transparency": 0.5
+        },
+        "ShellFade": 0.3,
+        "EmissiveScale": 1.0
       }
     },
     "Budget": {
@@ -1615,7 +1682,8 @@
       "Beams": 5,
       "Lights": 2,
       "Orbiters": 1,
-      "BodyTriangles": 5764
+      "BodyTriangles": 5764,
+      "PocketPieceTriangles": 2208
     }
   }
 }
