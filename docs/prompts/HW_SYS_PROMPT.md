@@ -517,16 +517,16 @@ validation, the no-award guard outside the live experience, the spend guard.
 - [x] 5. TableService roam: PoolRoamer group, `roams`, `outsideArea` moved up, waiting branch, fall rescue kept, turn-start seat-weld release + home move, `RoamHome` event.
 - [x] 6. Guards: `Portals.setBlocked` + the Progression call; LuckyBlockService `Busy` during a match.
 - [x] 7. First Studio roam pass (checks 1, 3, 4, 8) and gate 1 shots; merge `halloween` after 08:30.
-- [ ] 8. Gate 1 (09:00): shots in `gate1/`, one line each in the lane file.
+- [x] 8. Gate 1 (09:00): shots in `gate1/`, one line each in the lane file.
 - [x] 9. `tools/export_badges.luau` + the rest of `tools/roblox_badges.py` around the step-1 probe (dry run, duplicate skip, manifest, cost guard, write-back, `--self-test`); dry-run plan in the lane file.
 - [x] 10. Create the 5 free badges and ONE paid one; Justin confirms group funds (waiting file); create the other 46; `--write-config`; manifest + ids committed (by 10:45).
 - [ ] 11. Gate 2 (11:00): shots in `gate2/`, one line each in the lane file.
 - [x] 12. Pure `src/shared/Progression/Badges.luau` + `tests/badges_test.luau` + config_test and save_schema_test lines; `Inventory.everOwned`; the `halloween` rule kind (Pumpkin Slayer, Halloween 2026) and its tests; the BroomRider rule after the Cues A merge.
 - [x] 13. Server queue in `src/server/Badges.luau`: load pass, Changed debounce, holds (tutorial, reel), budget, stagger, award/has/retry, Studio and test-place logging, `BadgeAwarded`, `BadgesQA`.
 - [x] 14. Hooks: Ranking settle (Squad, BeatOwner), `UltService.Used` (Ability1, `countUltMatch`), OwnerHere, InGroup, PumpkinSlayer grant (map's call; the `KingWins` rule back-pays).
-- [ ] 15. Result walk-off exemption; roam checks 2, 5, 6, 7, 9, 10; `Roam.Enabled = true` once all pass.
-- [ ] 16. Badge Studio checks (tutorial hold, veteran stagger and budget, reel hold, settle cases, console clean); `Badges.Enabled = true` once they pass.
-- [ ] 17. Fresh-player run with both switches on (join, tutorial or skip, first match, popups).
+- [x] 15. Result walk-off exemption; roam checks 2, 5, 6, 7, 9, 10; `Roam.Enabled = true` once all pass.
+- [x] 16. Badge Studio checks (tutorial hold, veteran stagger and budget, reel hold, settle cases, console clean); `Badges.Enabled = true` once they pass.
+- [x] 17. Fresh-player run with both switches on (join, tutorial or skip, first match, popups).
 - [ ] 18. Devices: phone, iPad, PC, TV + pad mode for roaming and the turn-start move; screenshots.
 - [ ] 19. Lane file Requests: the GDD and DECISIONS text (section 2.5), the live checks for Justin (a Welcome toast on join, a veteran's back-pay, Creator Hub award counts), every shared-file change listed.
 - [ ] 20. Lane file Status final + all screenshots.
