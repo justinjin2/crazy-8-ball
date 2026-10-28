@@ -32,6 +32,22 @@ local C = Config.Halloween
 
 local CandyService = {}
 
+-- The failures already warned: a repeated one (every tick, every player) warns once a server,
+-- and at most WARN_CAP different ones, so a broken event cannot flood the live console.
+local WARN_CAP = 50
+local warned: { [string]: boolean } = {}
+local warnedCount = 0
+
+local function warnOnce(what: string, err: any)
+	local text = ("[8ball] CandyService: %s: %s"):format(what, tostring(err))
+	if warned[text] or warnedCount >= WARN_CAP then
+		return
+	end
+	warned[text] = true
+	warnedCount += 1
+	warn(text)
+end
+
 local function isPlayer(x: any): boolean
 	return typeof(x) == "Instance" and x:IsA("Player") and x.Parent == Players
 end
@@ -217,7 +233,7 @@ function CandyService.changed(player: Player)
 			return nil
 		end)
 		if not ok then
-			warn("[8ball] CandyService: push failed: " .. tostring(err))
+			warnOnce("push failed", err)
 		end
 	end)
 end
@@ -378,7 +394,7 @@ function CandyService.bossWon(player: Player, visitStart: number?): BossWon
 				return nil
 			end)
 			if not ok then
-				warn("[8ball] CandyService: the King's XP failed: " .. tostring(err))
+				warnOnce("the King's XP failed", err)
 			end
 		end
 		-- The win's line on screen (CandyToast): what it paid, or that this visit already paid
@@ -869,7 +885,7 @@ function CandyService.start()
 			return nil
 		end)
 		if not ok then
-			warn("[8ball] CandyService: request failed: " .. tostring(err))
+			warnOnce("request failed", err)
 		end
 	end)
 	PlayerData.Loaded:Connect(function(player: Player)
@@ -879,7 +895,7 @@ function CandyService.start()
 			return nil
 		end)
 		if not ok then
-			warn("[8ball] CandyService: on load: " .. tostring(err))
+			warnOnce("on load", err)
 		end
 	end)
 	-- A Candy pack landed (PlayerData.applyPurchase, the receipt's one change): HwPack (value: the
@@ -893,7 +909,7 @@ function CandyService.start()
 			return nil
 		end)
 		if not ok then
-			warn("[8ball] CandyService: pack: " .. tostring(err))
+			warnOnce("pack", err)
 		end
 	end)
 	-- The tutorial's end (its save flag) turns the event on for the player.
@@ -904,7 +920,7 @@ function CandyService.start()
 				return nil
 			end)
 			if not ok then
-				warn("[8ball] CandyService: HwOn: " .. tostring(err))
+				warnOnce("HwOn", err)
 			end
 		end
 	end)
@@ -921,7 +937,7 @@ function CandyService.start()
 			for _, player in Players:GetPlayers() do
 				local ok, err = pcall(tickPlayer, player)
 				if not ok then
-					warn("[8ball] CandyService: tick: " .. tostring(err))
+					warnOnce("tick", err)
 				end
 				if everyone then
 					CandyService.changed(player)
