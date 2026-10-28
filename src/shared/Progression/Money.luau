@@ -139,11 +139,46 @@ export type Boosts = {
 	starter: boolean?, -- inside the Starter Pack's hour of 2x money
 	group: boolean?, -- a member of the game's group
 	plus: boolean?, -- a Roblox Plus (Premium) subscriber (GUI lane, 2026-10-03)
+	friends: number?, -- Roblox friends in the server, uncapped (the FriendsHere attribute; nil = 0)
 }
 
+-- One active part of the boost: the card shows one row each (BoostPill).
+export type BoostPart = { kind: string, add: number }
+
+--- The friend part of the boost (Halloween 2026): FriendBoost per friend in the server, at most
+--- FriendBoostMaxFriends of them; 0 while FriendBoostEnabled is off or for a count that is not a
+--- finite number. Core's Candy reads this same function, so it is the one friend switch.
+function Money.friendBoost(count: number?): number
+	if E.FriendBoostEnabled ~= true or not finite(count) then
+		return 0
+	end
+	local friends = math.min(math.max(0, math.floor(count :: number)), E.FriendBoostMaxFriends)
+	return E.FriendBoost * friends
+end
+
+--- The active parts of the money boost (add > 0), in the card's order: Vip, Group, Plus,
+--- Friends, Starter, Party. A fresh table each call.
+function Money.boostParts(on: Boosts): { BoostPart }
+	local flags: any = if type(on) == "table" then on else {}
+	local parts: { BoostPart } = {}
+	local function add(kind: string, value: number)
+		if value > 0 then
+			table.insert(parts, { kind = kind, add = value })
+		end
+	end
+	add("Vip", if flags.vip == true then E.VipBoost else 0)
+	add("Group", if flags.group == true then E.GroupBoost else 0)
+	add("Plus", if flags.plus == true then E.PlusBoost or 0 else 0)
+	add("Friends", Money.friendBoost(flags.friends))
+	add("Starter", if flags.starter == true then E.StarterBoost else 0)
+	add("Party", if flags.party == true then E.PartyBoost else 0)
+	return parts
+end
+
 --- The money boost (ECONOMY 3.5): VIP 1.0, Money Party 1.0, the Starter hour 1.0 and the
---- group 0.1 add (and Roblox Plus, PlusBoost), and the pay is then x (1 + boost). VIP during the
---- Starter hour is x3.
+--- group 0.1 add (and Roblox Plus, PlusBoost, and the friends, Money.friendBoost), and the pay
+--- is then x (1 + boost). VIP during the Starter hour is x3. Equal to the sum of boostParts,
+--- added in the order it always was (bit for bit the old pay for every old flag set).
 function Money.boost(on: Boosts): number
 	local flags: any = if type(on) == "table" then on else {}
 	return (if flags.vip == true then E.VipBoost else 0)
@@ -151,6 +186,7 @@ function Money.boost(on: Boosts): number
 		+ (if flags.starter == true then E.StarterBoost else 0)
 		+ (if flags.group == true then E.GroupBoost else 0)
 		+ (if flags.plus == true then E.PlusBoost or 0 else 0)
+		+ Money.friendBoost(flags.friends)
 end
 
 --- The anti-farm row for the n-th match against the same opponent in one UTC day (ECONOMY

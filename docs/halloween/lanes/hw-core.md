@@ -29,6 +29,16 @@ From PLAN §4 (everything else is read-only; ask below under Requests):
 
 ## Status
 
+- 09:12 **Interface 1 READY to merge** (`4f63cb79` on `hw-core`): `Config.Halloween` (times, numbers,
+  switches, `CandyIcon = ""`), `Strings.Halloween` skeleton, `src/shared/Halloween/Event.luau` (pure:
+  `state/isLive/over/endsIn/startsIn/rushActive/rushEndsAt/nextRushAt/doubleDay/multiplier/boardIndex/
+  boardOpensAt/rushChip/clock/short`) and `Clock.luau` (`Clock.now()` for gates, `Clock.serverNow()` for
+  saves; `HwTimeOffset` only in Studio and on the test place). Bootstrap calls `Clock.boot()`: in Studio
+  and on the test place a server booted before 19:00 starts Live (`Config.Halloween.Test.BootLive`).
+  **Every lane gates on `Event.*(Clock.now())`.** Lint and all 1,354 tests green. Interface 2
+  (save field + real `CandyService`) next.
+
+- 08:50 coordinator: lanes started 08:43 (73 min behind the plan). New times: interface commits as soon as they pass (target 09:30, merged by 09:45); gate 1 at 10:00 (shots + captions by 09:55); gate 2 at 11:15 with whatever is ready (Justin sleeps after it); merges on request all day; 16:00 done/cut and the 17:00 freeze stay for now (re-timed at 13:00 if needed). Rojo: a watchdog restarts any crashed server by itself (log ~/Desktop/8ball-refs/halloween/shots/coordinator/rojo-watchdog.log; Rojo 7.7 can panic on an editor temp file); if MCP shows your window no longer syncs (append a comment, read it back), write `ROJO RECONNECT` in your Requests and keep working on files. Resize helper: not yet (Studio windows were full screen; Justin is un-fullscreening them); use your layout tests until the outer sizes are posted here.
 ## Shared-file changes
 
 Shared per PLAN §7 (add only core's own block or line; the coordinator resolves overlaps).
@@ -41,7 +51,7 @@ Planned, each to be confirmed here with its commit when it lands:
 - `HubCorners.luau`: the event tile spec and ONE line, the tile first in `padStops` (GUI adds the pill right after Plus, and `blurPad`/`padFocusedOn`).
 - `Net.luau`: the `Halloween` remote (map adds its remotes, GUI a comment line).
 - `DevCommands.luau`: the `/hw` block (`/hw kingwin`, not map's `/king`).
-- `Bootstrap.server.luau`, client `Progression.luau`, `Shop.luau`, `SkyDropService.luau` (one getter).
+- `Bootstrap.server.luau`: one `Clock.boot()` line after `Net.build()` (4f63cb79); client `Progression.luau`, `Shop.luau`, `SkyDropService.luau` (one getter).
 - `tests/save_schema_test.luau`, `tests/config_test.luau`: core's own cases only (sys and map add theirs).
 
 ## Requests

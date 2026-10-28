@@ -192,7 +192,17 @@ local function paintStick(model: Model, id: string, bandsOnly: boolean)
 	local L = Config.Cue.CueLengthStuds
 	-- Placed from the stick's pivot, so a stick repainted mid-shot stays where it is drawn.
 	local pivot = model:GetPivot()
-	local template = if bandsOnly or stick.mesh == nil then nil else meshTemplates()[id]
+	-- The template worn: the cue's own, or its stand-in's (an event cue before its skin is
+	-- built draws as Classic, Catalog.drawAs), or none (bands).
+	local template: Template? = nil
+	local worn: string? = nil
+	if not bandsOnly and stick.mesh ~= nil then
+		local all = meshTemplates()
+		worn = Catalog.drawAs(id, function(key: string): boolean
+			return all[key] ~= nil
+		end)
+		template = if worn then all[worn] else nil
+	end
 	stick.meshOn = template ~= nil
 	model:SetAttribute("Mesh", stick.meshOn)
 	if stick.mesh then
@@ -200,7 +210,7 @@ local function paintStick(model: Model, id: string, bandsOnly: boolean)
 		-- Every mesh skin shares one mesh, so a slot only ever needs its SurfaceAppearance
 		-- changed: a clone of the template's. That creates no part, so Camera.fadeNear's
 		-- cached list stays right.
-		if template and stick.meshSkin ~= id then
+		if template and stick.meshSkin ~= worn then
 			for _, child in mesh:GetChildren() do
 				if child:IsA("SurfaceAppearance") then
 					child:Destroy()
@@ -210,7 +220,7 @@ local function paintStick(model: Model, id: string, bandsOnly: boolean)
 			if look then
 				look:Clone().Parent = mesh
 			end
-			stick.meshSkin = id
+			stick.meshSkin = worn
 		end
 		mesh.CFrame = pivot * stick.meshOffset
 		mesh.CastShadow = template ~= nil
