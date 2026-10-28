@@ -58,6 +58,25 @@ From PLAN §4 (everything else is read-only; ask below under Requests):
     card's Preview button only when `CuePreview.enabled()`.
 
 - 08:50 coordinator: lanes started 08:43 (73 min behind the plan). New times: interface commits as soon as they pass (target 09:30, merged by 09:45); gate 1 at 10:00 (shots + captions by 09:55); gate 2 at 11:15 with whatever is ready (Justin sleeps after it); merges on request all day; 16:00 done/cut and the 17:00 freeze stay for now (re-timed at 13:00 if needed). Rojo: a watchdog restarts any crashed server by itself (log ~/Desktop/8ball-refs/halloween/shots/coordinator/rojo-watchdog.log; Rojo 7.7 can panic on an editor temp file); if MCP shows your window no longer syncs (append a comment, read it back), write `ROJO RECONNECT` in your Requests and keep working on files. Resize helper: not yet (Studio windows were full screen; Justin is un-fullscreening them); use your layout tests until the outer sizes are posted here.
+- **Step 4 (friend boost live in code):** `BoostFlags.of(player, now)` (new
+  `src/shared/Progression/BoostFlags.luau`) is the one reader; `Economy.boost(player)` =
+  `Money.boost(BoostFlags.of(player, os.time()))`. **Studio pay check** (Server datamodel, the
+  live player's attributes through the same modules; this Studio player is in the group and
+  Premium, so its base is +20%): 0 friends +20% → `FriendsQA count 2` +40% (a $100 ball pays
+  $140 instead of $120, x1.4/1.2 = the friend part's exact +0.2) → VIP + 2 friends +140% → 7
+  friends capped at +160% (VIP+Group+Plus+40%) → switch off: +120%, no friend part. Console
+  clean (only the usual Studio DataStore lines). `FriendBoostEnabled = true`. A played match's
+  pay is covered by the fresh-player run at step 10.
+- **R5.2 money effect (record, hand maths; `docs/ECONOMY.md` 3.5's rule: boosts add, then x(1+boost)):**
+  the friend part only reaches match money (every shot, match bonus, streak bonus), never
+  rewards, WinTrack, packs or sell-back. Nobody measures friends in a server today, so assume
+  15% of sessions with 1 friend and 5% with 2+ (avg 2.5 → +25%): the average friend part is
+  0.15 x 0.10 + 0.05 x 0.25 = **+0.0275 of base match money (about +2.75%)**, less once divided
+  by today's average (1 + boost) (VIP/Group/Plus already ≈ +0.2–0.3 on average) → **about +2–2.5%
+  more match money in the game**. Worst case a 4-friend party: +40% of base for those players
+  (a VIP in that party: x2.4 instead of x2.0, +20%). The `FriendBoost` event (session peak
+  0..4 and device, logged on leaving) gives the real share after publishing.
+
 ## Shared-file changes
 
 PLAN §7 shared files: your own block or line only; the coordinator resolves overlaps. Planned

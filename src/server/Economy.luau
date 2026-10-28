@@ -28,6 +28,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared.Config)
 local Net = require(Shared.Net)
 local Engine = require(Shared.Rules.MatchEngine)
+local BoostFlags = require(Shared.Progression.BoostFlags)
 local Money = require(Shared.Progression.Money)
 local Settle = require(Shared.Progression.Settle)
 local PlayerData = require(script.Parent.PlayerData)
@@ -85,18 +86,11 @@ function Economy.partyActive(): boolean
 	return type(endsAt) == "number" and endsAt > os.time()
 end
 
---- A player's money boost now (Money.boost): VIP, a Money Party, the Starter hour and the
---- group, added.
+--- A player's money boost now (Money.boost): VIP, a Money Party, the Starter hour, the group,
+--- Roblox Plus and the friends in the server, added. The flags come from BoostFlags, the reader
+--- the boost pill uses too, so the pill shows what is paid.
 function Economy.boost(player: Player): number
-	local starterEnds = player:GetAttribute("MoneyBoostEnds")
-	return Money.boost({
-		vip = player:GetAttribute("Vip") == true,
-		party = Economy.partyActive(),
-		starter = type(starterEnds) == "number" and starterEnds > os.time(),
-		group = player:GetAttribute("InGroup") == true,
-		-- Roblox Plus (Premium) members (GUI lane, 2026-10-03; Config.Economy.PlusBoost).
-		plus = player.MembershipType == Enum.MembershipType.Premium,
-	})
+	return Money.boost(BoostFlags.of(player, os.time()))
 end
 
 --- Who `player`'s match pays like (Settle.moneyKind): "Player", "PC" or "Solo". A disguised

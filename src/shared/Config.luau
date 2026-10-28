@@ -2033,7 +2033,7 @@ Config.Economy = {
 	-- (never multiplied), permanent, on match money (Money.boost) and on Candy (core reads these
 	-- same lines through Money.friendBoost; Config.Halloween has no copy). A friend check still
 	-- waiting or failed counts 0 (research A4).
-	FriendBoostEnabled = false, -- own switch: true once the Studio pay check passes; false = no friend part in money or Candy
+	FriendBoostEnabled = true, -- own switch (true since the Studio pay check, 2026-10-28); false = no friend part in money or Candy
 	FriendBoost = 0.1,
 	FriendBoostMaxFriends = 4, -- +40% at most (24-player servers: no cap would allow +230%)
 	FriendRetrySeconds = 30, -- a failed IsFriendsWithAsync is asked once more after this, then 0
