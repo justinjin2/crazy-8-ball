@@ -287,7 +287,7 @@ def rank_disc(key, ring):
         data = base64.b64encode(handle.read()).decode()
     box = 330
     return f"""{defs()}
-    <circle cx="{C}" cy="{C}" r="{BALL_R}" fill="{ring}"/>
+    <circle cx="{C}" cy="{C}" r="{BALL_R}" fill="{fill_of(ring)[0]}"/>
     <circle cx="{C}" cy="{C}" r="{BALL_R - 30}" fill="{PALE}"/>
     <circle cx="{C - 8}" cy="{C - 10}" r="{BALL_R - 40}" fill="#FFFFFF"/>
     <circle cx="{C}" cy="{C}" r="{BALL_R - 30}" fill="none" stroke="{INK}" stroke-width="8"/>
