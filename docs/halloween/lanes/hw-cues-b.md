@@ -68,6 +68,12 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
   neighbours), compact = a closed bud 0.3 past the butt; `spider_parts.glb` 134241355070040,
   `Crown.glb` 88297987618252, atlas decals with image ids). Preview beside the concept:
   `gate2/spider_body_vs_C1b.png`. No spider bodies, legs or creatures anywhere.
+- 11:04 P7 backs: the three bodies on lab dummies' backs with the Body runtime
+  (`broom_back_body_lab.jpg`, `cat_back_body_lab.jpg`, `spider_back_body_lab.jpg`): each
+  sits on the back at the shared placement, the overhangs (straw head, tail curl, crown)
+  hang by the hip and clear the legs, nothing clips the torso on my small R15. Tall R15, R6,
+  walking and sitting need other avatars: not checked here (BackCue's placement is the same
+  code every shipped cue uses). The gate 2 package is complete at my level: 37 shots.
 - 11:02 P7 bodies in the game, through a local preview of drop 3: `origin/halloween` still
   lacks it at 11:00, so Cues A's fifteen pushed runtime and tool files (`hw-cues-a` @
   c75fbe56, which contains `halloween` @ f32c3d1b) are checked out into my tree UNSTAGED and
@@ -401,5 +407,14 @@ for at 08:55 and 10:08).
   glint, the dark smoke and a gold glint on the felt by the cue; the tail is faded away.
 - `spider_own_aim_body_lab.jpg`: the Spider body in the own aim view: the segmented chrome
   shaft with its spear ferrule, a silk glint; the crown faded away.
-- Not yet shot: the three bodies on a back and in hands from a watcher's side (lab backs
-  next); tall R15, R6, walking and sitting carriers need other avatars (not in this window).
+- `broom_back_body_lab.jpg`: the Broom body on a lab dummy's back (my small R15 rig), from
+  behind and to the side: the crystal tip up, the crooked bark handle with its knot, the
+  violet and emerald ribbons and crescents along it, the straw head with the purple binding
+  and the hat charm at the bottom by the hip. The Cat's dummy stands behind.
+- `cat_back_body_lab.jpg`: the Cat body on a back: black shaft, gold rings and claw inlays,
+  the gold claw tip low, the tail curling at the butt by the shoulder, a shadow cat and
+  embers; the Spider's dummy behind.
+- `spider_back_body_lab.jpg`: the Spider body on a back: the segmented chrome shaft wrapped
+  in silk with web flecks, the spear ferrule up, the crimson crown by the hip.
+- Not yet shot: hands from a watcher's side (the match camera owns the camera on my turn);
+  tall R15, R6, walking and sitting carriers need other avatars (not in this window).
