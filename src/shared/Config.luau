@@ -9161,35 +9161,43 @@ Config.Lighting = {
 	-- stays Sunset's (Config.HalloweenMap.Night.SunPath holds it, the light from the moon's
 	-- side), the haze stays 0 (Sunset's lesson: haze fogs the city into one flat colour) and
 	-- Bloom is exactly Sunset's. Only used while the event is Live (LightCycle.event puts it in
-	-- Day's slot of the cycle). Tuned in Play captures, never Edit's preview. (tune)
+	-- Day's slot of the cycle). Tuned in Play captures, never Edit's preview. Richer since
+	-- 2026-10-28 (designer: the night "too dull", the moon "looks like a sun"): a deeper, more
+	-- saturated violet sky with a photo moon, a violet shade and fog, more colour. (tune)
 	Night = {
-		Brightness = 3, -- a moonlit roof as bright as the day's floor (Night.MinBrightnessShare)
-		ExposureCompensation = 0.45,
+		-- A strong moonlight, so the floor stays bright under the exposure that keeps the sky deep
+		-- (Play: floor L* 0.84 of Day's, Night.MinBrightnessShare).
+		Brightness = 4.4,
+		ExposureCompensation = 0.3, -- 0.45 washed the deep violet sky out to lilac
 		EnvironmentDiffuseScale = 0.25, -- as Sunset: the violet sky's fill would tint the roof
 		EnvironmentSpecularScale = 0.6,
 		Ambient = "#000000",
-		OutdoorAmbient = "#B8A8D8", -- a light lilac shade, so shadows read violet, not black (Play: floor L* 0.91 of Day)
-		ColorShift_Top = "#E8D4FF", -- the moon's pale lilac on lit faces
+		OutdoorAmbient = "#BCA2F6", -- a light violet shade, so shadows read purple, never black
+		ColorShift_Top = "#D8BCFF", -- the moon's lilac on lit faces
 		ColorShift_Bottom = "#000000",
 		Atmosphere = {
 			Density = 0.08, -- as Day and Sunset: the far edge fades, the roof stays crisp
 			Offset = 0.2,
 			Haze = 0, -- never a haze (it fogged Sunset's city into one colour in Play)
 			Glare = 0,
-			Color = "#B48CFF", -- a violet tint
-			Decay = "#5B2A8C",
+			Color = "#9A5CFF", -- a saturated violet tint
+			Decay = "#4A1A90",
 		},
-		-- gen_sky.py's night faces (textures/sky_night_*.png): a violet zenith to a lilac-pink
-		-- horizon, a painted full moon over the sea with its path on the water, stars above,
-		-- lavender clouds lit from the moon, the far city's windows lit.
+		-- gen_sky.py's night faces (textures/sky_night_*.png): a deep indigo zenith to a magenta-
+		-- violet horizon, a big full moon painted from a crater photo (textures/moon_disc.png)
+		-- with only a faint halo, its path on the water, stars above, violet clouds lit from
+		-- the moon, the far city's windows lit.
 		Sky = {
-			SkyboxBk = "rbxassetid://117090215716759",
-			SkyboxDn = "rbxassetid://83186185752495",
-			SkyboxFt = "rbxassetid://71528418518720",
-			SkyboxLf = "rbxassetid://134144329026901",
-			SkyboxRt = "rbxassetid://128224127682264",
-			SkyboxUp = "rbxassetid://121512489350859",
-			SunAngularSize = 0, -- the moon is painted on the sky, never Roblox's
+			SkyboxBk = "rbxassetid://98196263566137",
+			SkyboxDn = "rbxassetid://111958545310989",
+			SkyboxFt = "rbxassetid://122560708610120",
+			SkyboxLf = "rbxassetid://125792311735961",
+			SkyboxRt = "rbxassetid://107769309242708",
+			SkyboxUp = "rbxassetid://102716814370721",
+			-- The moon is painted on the sky, never Roblox's: Roblox's sits opposite the sun
+			-- (the Night holds Sunset's sun), draws additively (its dark seas show the sky) and
+			-- is lit as a glow; a far billboard is cut by low graphics levels' draw distance.
+			SunAngularSize = 0,
 			MoonAngularSize = 0,
 			StarCount = 0, -- the stars are painted too
 			CelestialBodiesShown = true,
@@ -9203,9 +9211,9 @@ Config.Lighting = {
 		},
 		ColorCorrection = {
 			Brightness = 0.02,
-			Contrast = 0.1,
-			Saturation = 0.05,
-			TintColor = "#F2EAFF", -- a faint lilac
+			Contrast = 0.12,
+			Saturation = 0.25, -- richer colour all round (0.05 read dull)
+			TintColor = "#EADCFF", -- a lilac
 		},
 		Bloom = { Intensity = 0.8, Size = 24, Threshold = 2.6 }, -- exactly Sunset's (PLAN: unchanged)
 		SunRays = { Intensity = 0, Spread = 0.5 },
@@ -9255,8 +9263,9 @@ Config.HalloweenMap = {
 	Night = {
 		Enabled = true, -- the Night light while Live (Config.Lighting.Night in Day's slot)
 		-- In Play, Night held vs Day held from one camera: the floor and tables' mean luminance
-		-- at least this share of Day's ("as readable as day").
-		MinBrightnessShare = 0.9,
+		-- at least this share of Day's ("as readable as day"). 0.8 since 2026-10-28: the richer,
+		-- more saturated night the designer asked for is a touch darker (measured 0.84).
+		MinBrightnessShare = 0.8,
 		-- The sun all through the event cycle: Sunset's (the light from the moon's side).
 		SunPath = {
 			{ Blend = 0, GeographicLatitude = -30, ClockTime = 7.4 },
