@@ -5,7 +5,7 @@
 return {
 	Id = "spider",
 	Frame = "cue",
-	Rigid = "102318984627266",
+	Rigid = "119622637359515",
 	Models = {
 		Crown = "93000287192965",
 	},
@@ -64,9 +64,9 @@ return {
 			Transparency = 0,
 			Reflectance = 0.12,
 			SurfaceAppearance = {
-				ColorMap = "rbxassetid://118295253566741",
-				NormalMap = "rbxassetid://82613135220998",
-				EmissiveMask = "rbxassetid://118721577489296",
+				ColorMap = "rbxassetid://136685013702647",
+				NormalMap = "rbxassetid://89592941305226",
+				EmissiveMask = "rbxassetid://137219366088334",
 				EmissiveTint = "#FF3A50",
 				EmissiveStrength = 1.6,
 			},
@@ -74,6 +74,7 @@ return {
 			Joint = "Body",
 			Offset = { 0, 0, 0.02 },
 			Size = { 0.8, 0.6928, 6.96 },
+			Smooth = true,
 		},
 		{
 			Material = "Neon",
@@ -84,6 +85,7 @@ return {
 			Joint = "Body",
 			Offset = { 0, 0, 0.1058 },
 			Size = { 0.396, 0.396, 5.3865 },
+			Smooth = true,
 		},
 		{
 			Material = "Neon",
@@ -104,6 +106,7 @@ return {
 			Joint = "Crown",
 			Offset = { 0, 0, -4.095 },
 			Size = { 0.86, 0.86, 1.23 },
+			Smooth = true,
 		},
 		{
 			Material = "Neon",
@@ -114,6 +117,7 @@ return {
 			Joint = "Eyes",
 			Offset = { 0, 0, -4.5063 },
 			Size = { 0.8464, 0.8591, 0.5146 },
+			Smooth = true,
 		},
 	},
 	Joints = {
