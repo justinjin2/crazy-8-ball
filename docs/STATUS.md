@@ -4,7 +4,7 @@ Current state only, rewritten in place. Keep it to about two screens (under 100 
 step is finished and verified, move its dated entry to the top of
 `docs/archive/STATUS_HISTORY.md` and keep only what is still true or still open here.
 
-Updated 2026-10-27 (**published by the designer 2026-10-27: everything up to `7c4d85aa`**: the emote system, 2KLIKES, the 1v1 result cutscene off). **The game is live** (officially released 2026-10-10). Work goes on
+Updated 2026-10-28 (**published by the designer 2026-10-27: everything up to `7c4d85aa`**: the emote system, 2KLIKES, the 1v1 result cutscene off; the emote audio update is pushed and waiting to publish). **The game is live** (officially released 2026-10-10). Work goes on
 in `~/Desktop/8ball`, branch `gui-v4`. The STATUS from just before launch, in full, is the top
 entry of `docs/archive/STATUS_HISTORY.md`.
 
@@ -185,39 +185,19 @@ One line each; the long form is the 2026-10-12 (evening) entry at the top of
   this before, so 2v2 (never had the cutscene) is the comparison. Checked in Studio: a 1v1
   surrender and the tutorial's first match (fresh player) open the result at once, Rematch and
   Leave log the event, console clean. Check live: finish a 1v1 on a phone, a PC and a pad.
-- **Emote sounds heard 30% nearer, pushed 2026-10-27, not published:** a song full to 8.4 studs
-  and silent from 49 (were 12 and 70), about half volume a table away (a table is ~18 studs);
-  Popcorn's and Bullseye's sounds full to 7, silent from 42 (were 10 and 60). Distance is from
-  the listener's camera. Checked in Studio (the song's emitter carries the new curve, console
-  clean). Check live: dance at one table, a friend at the next table hears it about half as
-  loud, three tables away nothing.
-- **Emote update, pushed 2026-10-28, not published:** **Bird Brain** last in the menu (catalog
-  120486252224195, the designer's song uploaded to Lucky 8 as 75387278867392: its first 16 bars
-  at 160 BPM, 24 s, Volume 0.87 against Rat Dance; it plays from 0.527 s, on "but I falter",
-  past the ticking lead-in, and loops 15 bars, 22.5 s; a re-cut without the lead-in,
-  94466746495096, was removed by Roblox the same day, and this one may be too, which leaves
-  the dance silent: a licensed Birdbrain is not on Roblox; the cut is
-  `~/Desktop/8ball-refs/emotes/birdbrain_loop.flac`, not in git); Passinho 4th and Sega Walk
-  8th; every emote sound 18% quieter (`Loudness` 0.45, was 0.55) and Popcorn's crunch about
-  twice as loud as heard (Munch 0.17). **The Avatar Shop link was blocked by Roblox**
-  ("AllowThirdPartySales has blocked the purchase prompt": every emote is another creator's):
-  Allow Third Party Sales turned on in the place (Workspace, Game Settings > Security) on
-  2026-10-28, live with the next publish; Studio play tests still show the block (a known
-  Studio quirk), so check it live. Checked in Studio: 14 cards in the new order, Bird Brain's
-  song at 0.39 and its animation, console clean. Check live: Avatar Shop on any emote opens
-  Roblox's buy popup; Bird Brain's song loops without a seam; the songs quieter, the crunch heard.
-- **Bird Brain as the whole 30 s dance, pushed 2026-10-28, not published:** one emote is at
-  most 10 s, so the row plays "Teto Birdbrain Dance" Part 1, 2 and 3 of 3 in turn (`Parts`,
-  each 10 s, by nameswapped3; Avatar Shop opens Part 1, 104263317795993). The song (the kept
-  upload) plays once a loop from "but I falter" to its end (23.5 s), then is quiet until the
-  loop at 30 s (`Music.Every`). New in the emote system: rows with Parts (EmotePlayer hands each
-  part to the next PartLeadSeconds early; EmoteAlign seeks only the current part) and
-  `Music.Every`; every other dance runs as before. Checked in Studio with the card-press hook:
-  P1, P2 at 10 s, P3 at 20 s, P1 at 30 s on the clock within 0.02 s; the song quiet from 23.5 s
-  and back at 30 s; a jump ends it; Rat Dance loops as before; console clean. **Needs a
-  2-player look:** another player's screen switches parts late by ping, which may show a blip
-  at each part change. Check live: dance Bird Brain 35 s on a phone and a PC; a friend watches
-  the changes at 10, 20 and 30 s.
+- **Waiting to publish (pushed 2026-10-28, up to `b7e5050f`): the emote audio update.**
+  Emote sounds heard 30% nearer (songs full to 8.4 studs, silent from 49, were 12 / 70;
+  Popcorn's and Bullseye's sounds 7 / 42, were 10 / 60); every emote sound 18% quieter
+  (`Loudness` 0.45, was 0.55); Popcorn's crunch about twice as loud as heard (Munch 0.17);
+  Passinho 4th in the menu and Sega Walk 8th. **The Avatar Shop link fixed**: Roblox blocked
+  the buy prompt for another creator's item ("AllowThirdPartySales has blocked the purchase
+  prompt"), so Allow Third Party Sales is on in the place (Workspace; Game Settings >
+  Security), a place setting that ships with the publish; Studio play tests still show the
+  block (a Studio quirk). Bird Brain was added and then removed (designer, 2026-10-28): none of
+  it is in the build, and the emote code is the live game's again. Checked in Studio: 13
+  cards in the new order, Passinho's song at 0.35, a jump ends it, console clean. Check
+  live: Avatar Shop on an emote opens Roblox's buy popup; the songs quieter and heard about a
+  table away; Popcorn's crunch heard.
 - **The abilities:** the one-by-one review goes on (unreviewed ones are provisional); phone,
   controller, sounds by ear, the sneak with two players, the designer's voice lines.
 - **Tutorial v2 leftovers** (`docs/prompts/TUTORIAL_V2_REPORT.md`, last section): the first
