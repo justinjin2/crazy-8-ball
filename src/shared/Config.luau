@@ -3784,7 +3784,7 @@ Config.Halloween = {
 	-- the pickups switched off in Config.HalloweenMap, or no ability signal). Icon: a key of
 	-- Config.UI.Halloween.QuestIcons. Order and needs: docs/halloween/lanes/hw-core.md.
 	Quests = {
-		Enabled = false,
+		Enabled = true,
 		Rewards = { 60, 100, 150, 250 },
 		Boards = {
 			{ -- 1, Wed Oct 28
@@ -3805,9 +3805,9 @@ Config.Halloween = {
 				{ Kind = "Balls", Need = 30, Icon = "Ball" },
 			},
 			{ -- 3, Fri Oct 30
-				{ Kind = "NiceShots", Need = 5, Icon = "Nice" },
 				{ Kind = "UltMatches", Need = 3, Icon = "Ult", Alt = { Kind = "Wins", Need = 3 } },
 				{ Kind = "Wins", Need = 3, Icon = "Win" },
+				{ Kind = "NiceShots", Need = 5, Icon = "Nice" },
 				{
 					Kind = "Pickups",
 					Need = 30,
