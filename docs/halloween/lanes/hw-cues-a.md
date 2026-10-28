@@ -34,6 +34,7 @@ From PLAN §4 (everything else is read-only; ask through Requests):
   holds and retries otherwise), so a skin leaves draft only when the cue is complete.
 
 ## Status
+- 11:49 coordinator: `halloween` @64085ab2 adds core de236025 (the NEW CUE! card and end screen count in Progression.quiet) and cues-b a431419b (Witch Broom, Black Cat and Spider out of draft). cue_skins_data.py clean on halloween (66 skins, 28 pieces). Lint OK, 1,441 tests, Team Create play console clean. Map's READY 7fd462cc is next. Run `git fetch && git merge origin/halloween` before your next READY.
 - 11:36 coordinator: `halloween` @537270fd has cues-a 83e876db (drop 3 body path, CuePreview bodies, Candy Corn + Jack-o'-Lantern, Upright, analytics, Aim-fade fix), core 3c4b87aa (event menu, tile, quests, Spider, packs, art), sys c5b6b607 and gui 3438ea94 (review fixes). Lint OK, 1,436 tests, Team Create play console clean (only the known 203785492 ContentId lines), tile + 2x chip + pill +120% seen. Review of this merge is running; findings come back as Requests. Run `git fetch && git merge origin/halloween` before your next READY. Main.client still has 12 top-level locals to spare.
 
 - 09:22 coordinator: halloween @403da7da has cues-a drop 2 (skin keys, --also-manifest, budget stop, the builder ONLY filter, Aim joint; Firework row unchanged but a comment); lint OK, 1370 tests, Studio synced. Run `git fetch && git merge origin/halloween`. Cues B: you can generate rows now.
@@ -55,6 +56,16 @@ From PLAN §4 (everything else is read-only; ask through Requests):
 - 09:55 coordinator: `halloween` @82ab885c (+ docs f8566968) has core interface 2 (7f01d27b: Halloween save field, CandyService, /hw; switches off), sys 4cdf5620 (roam off, badges off) and gui f2562efb (boost pill ON, friend boost ON, Cue Preview core off). Lint OK, 1,404 tests, Studio play console clean, pill shows +120%. Run `git fetch && git merge origin/halloween` before your next READY. Main.client still has 12 top-level locals to spare: hooks stay inside `do ... end`.
 
 ## Status (continued)
+
+- 11:50: **Progress 14 done.** `git merge origin/halloween` @64085ab2 (B's READY a431419b and
+  core de236025) into `hw-cues-a` -> 8db5f068, no conflict; `cue_skins_data.py` rewrites
+  nothing (66 skins, 28 pieces); against the 11:45 rehearsal tree the only differences under
+  `src/`, `assets/` and `tools/` are core's EndScreen and Progression lines, every cue row and
+  tool identical, so the 11:45-11:48 path checks (backs, hands, Aim fade, PULL cards, console)
+  stand for this build. Lint green; client_compiles, cue_body/looks/mesh/motion, catalog and
+  halloween_cues_b tests pass. My window, Edit, ONLY build on the merged tree: 5 skins
+  rebuilt, 61 other templates untouched, the same 9 pieces, no problems. Nothing to fix or
+  answer for B. Next: the fresh-player run on this build (Progress 18).
 
 - 11:48: **Progress 14 run on Cues B's READY tip (a431419b, their 11:43 READY lines; the real
   tick waits only for that tip to reach `halloween`):** local scratch branch `integ-scratch2`
