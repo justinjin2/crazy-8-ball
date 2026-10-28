@@ -68,7 +68,7 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
   neighbours), compact = a closed bud 0.3 past the butt; `spider_parts.glb` 134241355070040,
   `Crown.glb` 88297987618252, atlas decals with image ids). Preview beside the concept:
   `gate2/spider_body_vs_C1b.png`. No spider bodies, legs or creatures anywhere.
-- 10:36 P10 Broom aura under Night beside the Eclipse (`broom_vs_eclipse_night_before_lab.jpg`,
+- 10:34 P10 Broom aura under Night beside the Eclipse (`broom_vs_eclipse_night_before_lab.jpg`,
   then `broom_vs_eclipse_night_lab.jpg`): the pale lavender halo (#D9B8FF to #9B4DFF, 0.7
   transparent) vanished against the lilac Night sky and was near white on the day floor; the
   ribbons, bats, crescents and wisps read. Tuned @ 3b24168c: the halo #9B4DFF to #6A2FD0, 0.6
