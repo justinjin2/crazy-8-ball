@@ -11,14 +11,14 @@ Quotes are Justin's own words.
 |---|---|---|
 | R0.1 | Release **today Oct 28**. 5 PM EDT was the target. Justin added at 06:30: "if you think this requires more time like 6-7-8pm, i dont mind pushing it a few hours back ... as long as it gets released by end of today still in high quality". | open |
 | R0.2 | Build tasks finish by about **3 PM** (or 2 h before the chosen release time), so Justin gets 1-2 h to playtest before it goes public. | open |
-| R0.3 | Runs in the **Claude CLI in the terminal**, not the desktop app: 3 lane terminals + 1 coordinator = 4 windows (a 5th is allowed for badges if needed). Give Justin clear move instructions before starting. | open |
-| R0.4 | Recommend the effort level (ultracode? max?) and when to use Opus 5.5 vs Fable 5.1 for hard or visual tasks. Usage limits don't matter ("you can use all of this week's usage"). | open |
-| R0.5 | Test every new GUI and feature on **phone, tablet, console and PC** without Justin switching devices by hand. Find a way. | open |
+| R0.3 | Runs in the **Claude CLI in the terminal**, not the desktop app: 3 lane terminals + 1 coordinator = 4 windows (a 5th is allowed for badges if needed). Give Justin clear move instructions before starting. | decided (7 windows, §9); running since 08:43 |
+| R0.4 | Recommend the effort level (ultracode? max?) and when to use Opus 5.5 vs Fable 5.1 for hard or visual tasks. Usage limits don't matter ("you can use all of this week's usage"). | decided (§9) |
+| R0.5 | Test every new GUI and feature on **phone, tablet, console and PC** without Justin switching devices by hand. Find a way. | decided (§9) |
 | R0.6 | Feasible, optimized, bug-free on console/mobile/PC, little tweaking after, done in time. AI runs on its own after the first approval. | open |
 | R0.7 | Push back when it gives better results. Interview Justin about anything unclear before implementing. | ongoing |
 | R0.8 | Justin is awake for the next ~5 h (from 06:15) and can test short gates any time. Do as much as possible without him and ask only when his input is needed. | ongoing |
 | R0.9 | Don't lose detail as the conversation gets long (this file, the plan page and memory hold it all). | ongoing |
-| R0.10 | Before starting the Halloween work, report back how Candy works: how much per Candy and per win. | open |
+| R0.10 | Before starting the Halloween work, report back how Candy works: how much per Candy and per win. | done (answered in chat and on the plan page) |
 
 ## 1. Event core (from the first request plus answers)
 
@@ -33,7 +33,7 @@ Quotes are Justin's own words.
 | R1.7 | **Automated update countdown on the game icon/thumbnail**, starting about 5 h before release (Justin referenced an "image #3" that did not come through). Or use a Roblox feature if one exists. Set it up when we get there. | open |
 | R1.8 | Clear Halloween icon/button on the right side of the screen. | decided |
 | R1.9 | New game icon (an edit of the current one) + Halloween thumbnail. | decided |
-| R1.10 | Candy Rush boost: clear **bottom-left chip "x2 Candy" with a countdown timer**. | open |
+| R1.10 | Candy Rush boost: clear **bottom-left chip "x2 Candy" with a countdown timer**. | decided; "bottom-left" superseded: the chip sits above the pill (§9) |
 | R1.11 | Track gifts between cues: Justin didn't understand Q4. Explain it simply and propose (more cues means more rewards between quests). | open |
 | R1.12 | Halloween abilities: optional idea from the first request. The plan said no new ability. | decided (no) |
 
@@ -43,7 +43,7 @@ Quotes are Justin's own words.
 |---|---|---|
 | R2.1 | **Candy Corn** (new 5th cue): starter of the track. Candy corn texture + candy corn aura, smaller trail and finisher. Visual tier about **Rare-Epic**, still unique in model, trail, finisher, aura and VFX. | open |
 | R2.2 | **Jack-o'-Lantern**: no candy corn on it. Pumpkin auras. Finisher = **laughing jack-o'-lantern**. Tier about **Epic-Legendary**. | open |
-| R2.3 | **Black Cat** (replaces Bone): cute (especially appealing to girls), detailed animated cat VFX/auras, colours clearly different from Spider (not another black cue). Tier about **Legendary-Mythic**. Unique model twist. Concept art first. | open |
+| R2.3 | **Black Cat** (replaces Bone): cute (especially appealing to girls), detailed animated cat VFX/auras, colours clearly different from Spider (not another black cue). Tier about **Legendary-Mythic**. Unique model twist. Concept art first. | decided; "cute / appealing to girls / not another black cue" superseded by Black Cat rev 3 (§9) |
 | R2.4 | **Spider** (replaces Phantom, which already exists in the game): cool black arachnid cue with extra model extensions, not creepy for people with arachnophobia, "kinda like hela's helmet from thor". Tier about **Legendary-Mythic**. Concept art, then **Justin's approval before building**. | open |
 | R2.5 | **Witch's Broom**: last and hardest prize, tier about **Mythic-Secret**. Unique model, doesn't have to follow cue conventions, as long as the shape roughly matches so holding looks right. Keep the little **witch-hat charm, and make it sway**. | open |
 | R2.6 | Playtime cue at **3 h 01 m** ("31"), not 3 h 06 m. (Spider took Phantom's slot as the playtime cue: confirm.) | open |
@@ -79,7 +79,7 @@ Quotes are Justin's own words.
 | R5.2 | **Friend boost for money too**, about +10% per friend (as in Steal an Egg, Grow a Garden, Slime RNG). Check it won't inflate the economy. | open |
 | R5.3 | VIP shows its boost (2x). One format everywhere: all multipliers or all percentages. Boosts stack. | open |
 | R5.4 | **Group join: +10% permanent**. | open |
-| R5.5 | The boost pill sits **next to the money pill**, and the invite button moves aside. It **must fit on mobile**. | open |
+| R5.5 | The boost pill sits **next to the money pill**, and the invite button moves aside. It **must fit on mobile**. | decided; "invite moves aside" superseded: the pill replaces the VIP tag (§9) |
 | R5.6 | Tapping it opens a tiny info card showing where each active boost comes from (group, friends, VIP). | open |
 | R5.7 | **Show a mock before implementing.** | open |
 

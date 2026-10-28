@@ -35,6 +35,17 @@ From PLAN §4 (lanes ask for these through their own lane file's Requests):
 
 ## Status
 
+- 08:52 coordinator (CLI, started 08:44): baseline `halloween` @b16b5544, lint OK, tests 1345 passed / 0 failed.
+  Hand-over verified: briefs, lane files, hooks committed and pushed (origin/halloween = local), six worktrees at
+  b16b5544 with brief + lane file + hook, six lane Studio windows + the Team Create window in `list_roblox_studios`,
+  Rojo 34872 serving `halloween` with live sync proven (probe comment read back in Studio, then reverted). Lanes
+  started 08:43 (73 min late): new times posted in every lane file (gate 1 10:00, gate 2 11:15).
+- 08:47 hw-map's Rojo had panicked at 08:44 on a Claude temp file (`Config.luau.tmp.<pid>`, change_processor.rs:172);
+  could not reproduce with plain tmp+rename writes. Started `tools/halloween/rojo_watchdog.sh` (restarts any of the
+  7 servers within 10 s, log `shots/coordinator/rojo-watchdog.log`); map restarted 08:47, Justin asked to Connect.
+- 08:50 resize helper: System Events reads Terminal windows (Accessibility OK) and CoreGraphics reads Studio titles
+  (Screen Recording OK), but all 7 Studio windows are full screen in their own Spaces, so AX sees 0 windows; Justin
+  asked to exit full screen. cliclick installed (/opt/homebrew/bin/cliclick).
 - 07:50 desktop session (hand-over): the briefs, lane files and hooks committed and pushed on
   `halloween`, the six worktrees fast-forwarded to it, the six lane Studio windows opened.
   Verify it at the 07:30 Progress line; do not redo it.
