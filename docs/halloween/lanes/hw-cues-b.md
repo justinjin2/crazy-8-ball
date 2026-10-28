@@ -22,6 +22,23 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
   `Index.luau`, `Textures.luau` (regenerate after every merge conflict there).
 
 ## Status
+- 19:40 **Spider v12, the crown to C1's close-up, READY** (the coordinator's 19:3x review of
+  v11, five points). The dome is plain glossy black: the purple pixelated checker was the lobby
+  skybox mirrored at Reflectance 0.15, now 0 on the dome and the blades. Sixteen Neon red eye
+  hemispheres (one at the pole, seven filling the end face, eight smaller round the rim; the
+  Glow kept red). Four broad bevelled crescent blades on the diagonals (0.32 wide at the bulge,
+  0.06 thick, the inner edge bowing back toward the shaft) and four short ones between, each
+  with the Neon red rim on the OUTER edge only; the forward sweep and the grip-zone limit kept.
+  No silk lines on the crown. Neon red rim rings where the crown meets the dome and the neck,
+  a soft red under-glow sprite behind the crown (CrownGlow, 2/s; 115.15 pps of 120) and the
+  crown light at 1.2. The shaft is untouched (C1's chevron scales, point 5, not done). Body 7
+  parts, 9,812 tris of 10,000 (the eyes at one icosphere subdivision; two passed the budget).
+  Lab on the bright floor: stand, back and the crown close-up beside C1's crown
+  (gate2/spider_v12_side_by_side.jpg; spider_v12_stand/back/crown_lab.jpg): the crown reads as
+  solid black blades with red rims and a red-lit black dome, the eyes count from behind. Gaps:
+  the chevron scales (5); the hand-at-aim shot not re-taken (the body in the hand zones is
+  v11's, spider_v11_hand_lab.jpg); the finisher as in v11. Stale uploads from v12's iterations,
+  unused: body GLBs 93011720885951, Crown GLB 98572312341592.
 - 19:25 **Spider v11 in the lab, READY** (the coordinator's 19:08 review of v7: blades forward, no
   flat web discs, a red atmosphere). The crown turned round: the glossy black eye dome is now
   the exposed END of the cue (a crown part on a neck, d 7.55-8.21 on the Aim room, twelve Neon
@@ -429,6 +446,9 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
 
 ## Requests
 
+- 19:40 **READY SpiderCue v12 @ 094488d6** (skin `spider`: body 102318984627266 + Crown 93000287192965,
+  the other ids as the 19:25 READY; base `halloween` @c133dacb; lint OK, 1,477 tests,
+  cue_skins_data.py clean). Template build in Team Create: `ONLY = { "SpiderCue" }`.
 - 19:25 **READY SpiderCue redo @ f08ee53c** (skin `spider`: body 88368976050945 + Crown
   97556953003027, atlas 97389489374909 / 74929761773896 / 97411211072627 (image ids applied),
   aura 110112671613639, pocket 76740152492017, card 94647986969002 / image 75625207590037; base
