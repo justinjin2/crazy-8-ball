@@ -607,7 +607,7 @@ floor by **15:00**, write a Request to the coordinator at once (Cues A may take 
   `CuePiecesHalloween_B.py` (entry point, `AIM` table, `check_envelope`, a Broom blockout body
   that passes), `tests/halloween_cues_b_test.luau` (skips drafts); compile, lint and tests
   green, pushed, Status line.
-- [ ] 2. Lane ready: worktree on `hw-cues-b`, Rojo 34885 into `lane-hw-cues-b.rbxl`, the window
+- [x] 2. Lane ready: worktree on `hw-cues-b`, Rojo 34885 into `lane-hw-cues-b.rbxl`, the window
   found by name, the lab showing Eclipse, Beta and Firework.
 - [ ] 3. Witch's Broom body: crystal tip, crooked bark handle straight in both hand zones, knot,
   twig stubs, binding and buckle, straw bristles (compact and long, `Aim`), skinned hat charm on
