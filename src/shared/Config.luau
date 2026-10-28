@@ -3766,7 +3766,7 @@ Config.Halloween = {
 	-- through Money.friendBoost / Money.boostParts; added to each other, never multiplied.
 	-- The Candy icon (candy corn, 256 px): map's +1 / +50 billboards, the GUI lane's chip and the
 	-- event menu read it. "" = each uses its own fallback.
-	CandyIcon = "",
+	CandyIcon = "rbxassetid://75949906210202",
 	-- Match Candy at settle (Halloween/CandyMath; real matches against people only): PerBall a
 	-- ball pocketed, Finished for a match the player's side did not forfeit, Win on top for a
 	-- win; times the event multiplier and the friends + group boost.
@@ -16648,7 +16648,7 @@ Config.UI.Halloween = {
 		GapPx = 10, -- kept from the offer tile
 		BadgePx = 24, -- the red "!" (a claim waits, or a new board) and the NEW badge
 		ShortBadgePx = 20,
-		Icon = "", -- the pumpkin with candy (256 px); "" = the Candy icon or a plain pumpkin colour
+		Icon = "rbxassetid://109690179795075", -- the pumpkin with candy (256 px); "" = the Candy icon
 		GlowTint = { 255, 140, 30 }, -- the pumpkin's soft glow behind it
 	},
 }
