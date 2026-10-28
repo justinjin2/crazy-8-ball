@@ -294,6 +294,7 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
 
 ## Requests
 
+- 12:34 **READY WitchBroomCue redo @ 0e3569b6** (skin `witch_broom`, same ids and rows; the redo commit is e8f49f12, merged with `halloween` @f164d356, cue_skins_data.py clean, lint OK, 1,460 tests). Piece ids: `witch_broom` (body, unchanged mesh, crystal tip material), `witch_broom_aura` (rebuilt: 19 parts, 4,600 triangles, rigid 124125704817567), `witch_broom_pocket` (unchanged). Template build: `tools/build_cue_templates.luau` with `ONLY = { "WitchBroomCue" }` in the Team Create place (the aura piece's new id). Side-by-side for Justin: `~/Desktop/8ball-refs/halloween/shots/hw-cues-b/gate2/broom_redo_side_by_side.jpg`. The Cat and the Spider follow the same recipe next.
 - 11:43 **READY WitchBroomCue @ a431419b** (skin `witch_broom`, Secret, the Candy Track's
   7,000 reward). Piece ids: `witch_broom` (body, 6 parts), `witch_broom_aura` (ribbons),
   `witch_broom_pocket` (finisher, 13 parts). Manifest paths: `assets/cue/pieces/witch_broom/`,
