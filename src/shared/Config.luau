@@ -16631,6 +16631,9 @@ Config.Debug = {
 		-- real|board <n>|+<s> (Studio and the test place only), candy <n>, quest done, active <s>,
 		-- kingwin, convert, reset (Studio and the test place only).
 		Halloween = "/hw",
+		-- /king [tier] (hw-map; BossService.qa): a real Pumpkin King match for you now, from
+		-- anywhere, his cooldown ignored; a tier names his. Only the accounts in UserIds.
+		King = "/king",
 		-- The ult commands' old names, by command: each still runs its command.
 		OldAliases = {
 			UltBar = "/ultbar",
