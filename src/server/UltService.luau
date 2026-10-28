@@ -50,8 +50,9 @@ local started = false
 
 local usedEvent = Instance.new("BindableEvent")
 --- (player, tableId, epoch) Fires after a player fires an ability at their table (the
---- UltActivate success branch; solo practice too, the table id tells them apart). The badges
---- (Power Up, Ability Master) and the Halloween quests listen; hw-sys lane, 2026-10-28.
+--- UltActivate success branch). Solo practice fires it too, and the table id does not tell it
+--- apart: a listener checks `TableService.get(tableId).engine.solo ~= nil` and skips it. The
+--- badges (Power Up, Ability Master) and the Halloween quests listen; hw-sys lane, 2026-10-28.
 UltService.Used = usedEvent.Event
 
 local function now(): number

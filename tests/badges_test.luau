@@ -267,4 +267,15 @@ return {
 		expect(#problemsOf(many) > 0, "more rows than a save holds")
 		expect(#Badges.check({}, {}, Catalog, 52) > 0, "not 52 rows")
 	end,
+
+	["the reel hold lasts until the slowest pull's card"] = function()
+		-- Coordinator review 09:52: the old flat 8 s ended before a Mythic or Secret scene did.
+		local hold = Badges.revealSeconds()
+		local R = Config.UI.Reel.Reel
+		local CS = Config.Cutscenes
+		local secret = Config.LuckyBlocks.Rise.Seconds + R.BigSeconds + CS.Secret.FlashAt
+		local mythic = Config.LuckyBlocks.Rise.Seconds + R.BigSeconds + CS.Mythic.FlashAt
+		expect(hold > secret and hold > mythic, "the hold ends before a big pull's card")
+		expect(hold < 60, "a hold over a minute: check the scene timings")
+	end,
 }

@@ -12,7 +12,8 @@ Create the game's Roblox badges through Open Cloud and write their ids back into
 The rows come from `lune run tools/export_badges.luau` (Config.Badges + Strings.Badges), so
 the game and Roblox never disagree. Every created badge goes into tools/badges_manifest.json
 right after Roblox answers, before the next call; a re-run skips a key already in the
-manifest or already on the universe under the same name, so a crash never pays twice. The
+manifest or already on the universe under the same name (recorded into the manifest by name),
+so a crash never pays twice; a create that gets no answer (timeout) stops the run. The
 cost is 0 while the day's free quota lasts, then the metadata price; a cost above
 MAX_COST_EACH or a running total above --max-spend refuses the call. Payment: group funds
 (paymentSourceType 2; the universe belongs to group 675425213).
@@ -89,8 +90,13 @@ def multipart(fields, file_path=None):
     return b"\r\n".join(out) + b"\r\n", "multipart/form-data; boundary=" + boundary
 
 
+NETWORK = 0  # call()'s status when no answer came back (timeout, reset, DNS): outcome unknown
+
+
 def call(url, api_key=None, data=None, content_type=None, method=None):
-    """(status, parsed JSON) for one request; never raises on an HTTP error."""
+    """(status, parsed JSON) for one request; never raises on an HTTP or network error.
+
+    A network error returns NETWORK: for a create POST that means it may have been charged."""
     request = urllib.request.Request(url, data=data, method=method)
     if api_key:
         request.add_header("x-api-key", api_key)
@@ -105,6 +111,8 @@ def call(url, api_key=None, data=None, content_type=None, method=None):
             return err.code, json.loads(body)
         except ValueError:
             return err.code, {"raw": body[:300]}
+    except (urllib.error.URLError, TimeoutError, ConnectionError, OSError) as err:
+        return NETWORK, {"network": str(getattr(err, "reason", err))[:200]}
 
 
 def error_codes(body):
@@ -177,6 +185,19 @@ def existing_badges():
             return found
 
 
+def adopt_existing(rows, manifest, existing, price):
+    """Rows already on the universe by name but not in the manifest (a create whose answer was
+    lost) go into the manifest with their ids. Their cost is unknown, so the price is counted
+    against --max-spend. Returns the adopted keys."""
+    adopted = []
+    for row in rows:
+        if row["key"] not in manifest and row["name"] in existing:
+            manifest[row["key"]] = {"id": existing[row["name"]], "cost": price, "name": row["name"],
+                                    "foundByName": True, "time": time.strftime("%Y-%m-%dT%H:%M:%S%z")}
+            adopted.append(row["key"])
+    return adopted
+
+
 def to_create(rows, manifest, existing):
     """Rows still to create: BadgeId 0, with a Rule, not in the manifest, no badge of that name."""
     out = []
@@ -245,8 +266,12 @@ def create(args):
     rows = select(export_rows(), args.only)
     manifest = load_manifest()
     existing = existing_badges()
+    adopted = adopt_existing(rows, manifest, existing, read_quota_price()[1])
+    if adopted:
+        save_manifest(manifest)
+        print(f"on the universe but not in the manifest, recorded by name: {', '.join(adopted)}")
     todo = to_create(rows, manifest, existing)[: args.limit or None]
-    total = sum(int(e.get("cost", 0)) for e in manifest.values())
+    total = sum(int(e.get("cost") or 0) for e in manifest.values())
     print(f"{len(todo)} to create; {total} R$ already spent by the manifest")
     for row in todo:
         icon = os.path.join(ROOT, row["icon"])
@@ -267,6 +292,11 @@ def create(args):
                 break
             print("  429: waiting 60 s")
             time.sleep(60)
+        if status == NETWORK:
+            print(f"{row['key']}: no answer from Roblox ({reply.get('network')}): it may have been "
+                  "created and charged. Stopped: check the universe's badges before re-running "
+                  "(a re-run records a badge it finds by name instead of paying again)")
+            return 1
         codes = error_codes(reply)
         if status == 200 and reply.get("id"):
             manifest[row["key"]] = {"id": reply["id"], "iconImageId": reply.get("iconImageId"),
@@ -298,8 +328,9 @@ def create(args):
 def write_back(manifest, config_text):
     """Config text with each manifest id over its row's `BadgeId = 0`; exactly one match a key."""
     for key, entry in sorted(manifest.items()):
-        pattern = re.compile(r'(Key = "' + re.escape(key) + r'", BadgeId = )0\b')
-        already = re.search(r'Key = "' + re.escape(key) + r'", BadgeId = ' + str(entry["id"]) + r'\b', config_text)
+        # StyLua may split a long row over lines once it has an id: allow any space between.
+        pattern = re.compile(r'(Key = "' + re.escape(key) + r'",\s*BadgeId = )0\b')
+        already = re.search(r'Key = "' + re.escape(key) + r'",\s*BadgeId = ' + str(entry["id"]) + r'\b', config_text)
         matches = pattern.findall(config_text)
         if already and not matches:
             continue
@@ -335,6 +366,14 @@ def self_test():
             {"key": "C", "name": "Gamma", "badgeId": 0}, {"key": "D", "name": "Delta", "badgeId": 7}]
     left = to_create(rows, {"A": {"id": 1}}, {"Beta": 2})
     assert [r["key"] for r in left] == ["C"], left
+    # a create whose answer was lost: found by name, recorded with its id, counted as paid
+    manifest = {"A": {"id": 1, "cost": 0}}
+    assert adopt_existing(rows, manifest, {"Beta": 2, "Alpha": 1}, 100) == ["B"]
+    assert manifest["B"]["id"] == 2 and manifest["B"]["cost"] == 100 and manifest["B"]["foundByName"]
+    assert adopt_existing(rows, manifest, {"Beta": 2}, 100) == [], "a second run adopts nothing"
+    # a network error is an answer, not an exception (a timeout on a create stops the run)
+    status, body = call("http://127.0.0.1:9/")
+    assert status == NETWORK and "network" in body, (status, body)
     # manifest save is atomic and round-trips
     tmp = tempfile.mkdtemp()
     try:
@@ -346,18 +385,21 @@ def self_test():
         shutil.copy(CONFIG, copy)
         with open(copy) as handle:
             text = handle.read()
-        first_key = re.search(r'Key = "(\w+)", BadgeId = 0\b', text).group(1)
+        # The copy's first row made inert again (Config's rows all have ids once created).
+        first_key = re.search(r'Key = "(\w+)",\s*BadgeId = \d+', text).group(1)
+        text = re.sub(r'(Key = "' + first_key + r'",\s*BadgeId = )\d+', r"\g<1>0", text, count=1)
         new = write_back({first_key: {"id": 123456789}}, text)
         assert f'Key = "{first_key}", BadgeId = 123456789' in new
         assert new.count("BadgeId = 123456789") == 1
         assert write_back({first_key: {"id": 123456789}}, new) == new, "a second run changes nothing"
+        split = new.replace(f'Key = "{first_key}", BadgeId', f'Key = "{first_key}",\n\t\t\tBadgeId')
+        assert write_back({first_key: {"id": 123456789}}, split) == split, "a row split over lines"
         try:
             write_back({"NoSuchKey": {"id": 5}}, text)
             raise AssertionError("an unknown key must refuse")
         except SystemExit:
             pass
-        broom = write_back({"BroomRider": {"id": 99}}, text)
-        assert 'Key = "BroomRider", BadgeId = 99' in broom, "a row without a Rule"
+
     finally:
         shutil.rmtree(tmp)
     print("self-test OK")

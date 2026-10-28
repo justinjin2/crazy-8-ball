@@ -8284,7 +8284,7 @@ Config.Multiplayer = {
 		EscapeStuds = 2, -- a participant this far outside (clipped through) is put back inside
 	},
 	Roam = { -- in-match players walk anywhere while they wait (designer, 2026-10-28)
-		Enabled = false, -- true once the roam checks in HW_SYS_PROMPT section 4 pass; false = the fence for all
+		Enabled = true, -- in-match roaming (checks passed 2026-10-28); false = the fence for all, as before
 		HomeExtraStuds = 2, -- a shooter this far outside the match walls at turn start goes to the pad
 	},
 	-- The shooter's root on the server (TableService). While they aim, the anchored root
@@ -17743,68 +17743,127 @@ Config.UI.PlayerList = {
 -- halloween (the Halloween save field: KingWins, or Candy = Earned + Bought), event (only from a
 -- live hook, never the save). Names and descriptions in Strings.Badges.
 Config.Badges = {
-	Enabled = false, -- the award queue; true once HW_SYS_PROMPT section 4's badge checks pass
+	Enabled = true, -- the award queue (checks passed 2026-10-28); false = no badge is awarded or logged
 	UniverseId = 10767330648, -- awards run only in this experience; Studio and the test place log
 	OwnerUserId = 544959133, -- Painicane: Met the Owner, Beat the Owner
 	StaggerSeconds = 3, -- at most one award per player every 3 s (PLAN section 2)
 	Budget = { Base = 40, PerPlayer = 30 }, -- badge API calls a minute per server (Roblox: 50 + 35 x players)
 	DebounceSeconds = 2, -- re-check a save this long after its last change (PlayerData.read copies it)
-	RevealDelaySeconds = 8, -- no award this long after openLuckyBlock (the big reel is about 7.7 s)
+	-- No award from openLuckyBlock until the longest pull has shown its card: the rise, the big
+	-- spin and its settle, the longest scene to its flash (Secret, 16.85 s), then this margin,
+	-- about 28 s in all (Badges.revealSeconds). A toast before the card would spoil the pull.
+	RevealMarginSeconds = 2,
 	Retries = { 5, 20, 60 }, -- seconds before each retry of a failed call; then wait for the next join
 	Paused = {} :: { [string]: boolean }, -- [Key] = true: cut or misbehaving; the row never awards (a one-line publish)
 	List = {
-		{ Key = "Welcome", BadgeId = 0, Rule = { always = true } },
-		{ Key = "FirstWin", BadgeId = 0, Rule = { stat = "Wins", atLeast = 1 } },
-		{ Key = "Wins5", BadgeId = 0, Rule = { stat = "Wins", atLeast = 5 } },
-		{ Key = "Wins10", BadgeId = 0, Rule = { stat = "Wins", atLeast = 10 } },
-		{ Key = "Wins25", BadgeId = 0, Rule = { stat = "Wins", atLeast = 25 } },
-		{ Key = "Wins50", BadgeId = 0, Rule = { stat = "Wins", atLeast = 50 } },
-		{ Key = "Wins100", BadgeId = 0, Rule = { stat = "Wins", atLeast = 100 } },
-		{ Key = "Wins250", BadgeId = 0, Rule = { stat = "Wins", atLeast = 250 } },
-		{ Key = "Wins500", BadgeId = 0, Rule = { stat = "Wins", atLeast = 500 } },
-		{ Key = "Wins1000", BadgeId = 0, Rule = { stat = "Wins", atLeast = 1000 } },
-		{ Key = "RankBronze", BadgeId = 0, Rule = { peak = "Bronze" } },
-		{ Key = "RankSilver", BadgeId = 0, Rule = { peak = "Silver" } },
-		{ Key = "RankGold", BadgeId = 0, Rule = { peak = "Gold" } },
-		{ Key = "RankPlatinum", BadgeId = 0, Rule = { peak = "Platinum" } },
-		{ Key = "RankDiamond", BadgeId = 0, Rule = { peak = "Diamond" } },
-		{ Key = "RankExpert", BadgeId = 0, Rule = { peak = "Expert" } },
-		{ Key = "RankVeteran", BadgeId = 0, Rule = { peak = "Veteran" } },
-		{ Key = "RankMaster", BadgeId = 0, Rule = { peak = "Master" } },
-		{ Key = "RankGrandmaster", BadgeId = 0, Rule = { peak = "Grandmaster" } },
-		{ Key = "RankReyes", BadgeId = 0, Rule = { peak = "Reyes" } },
-		{ Key = "Streak3", BadgeId = 0, Rule = { stat = "BestWinStreak", atLeast = 3 } },
-		{ Key = "Streak5", BadgeId = 0, Rule = { stat = "BestWinStreak", atLeast = 5 } },
-		{ Key = "Streak10", BadgeId = 0, Rule = { stat = "BestWinStreak", atLeast = 10 } },
-		{ Key = "CueRare", BadgeId = 0, Rule = { seenRarity = "Rare" } },
-		{ Key = "CueEpic", BadgeId = 0, Rule = { seenRarity = "Epic" } },
-		{ Key = "CueLegendary", BadgeId = 0, Rule = { seenRarity = "Legendary" } },
-		{ Key = "CueMythic", BadgeId = 0, Rule = { seenRarity = "Mythic" } },
-		{ Key = "CueSecret", BadgeId = 0, Rule = { seenRarity = "Secret" } },
-		{ Key = "CueUnique", BadgeId = 0, Rule = { seenGroup = "Unique" } },
-		{ Key = "Cues5", BadgeId = 0, Rule = { seenCount = 5 } },
-		{ Key = "Cues10", BadgeId = 0, Rule = { seenCount = 10 } },
-		{ Key = "Cues25", BadgeId = 0, Rule = { seenCount = 25 } },
-		{ Key = "Cues50", BadgeId = 0, Rule = { seenCount = 50 } },
-		{ Key = "Balls100", BadgeId = 0, Rule = { stat = "BallsPocketed", atLeast = 100 } },
-		{ Key = "Balls1000", BadgeId = 0, Rule = { stat = "BallsPocketed", atLeast = 1000 } },
-		{ Key = "Balls10000", BadgeId = 0, Rule = { stat = "BallsPocketed", atLeast = 10000 } },
-		{ Key = "Matches10", BadgeId = 0, Rule = { stat = "Matches", atLeast = 10 } },
-		{ Key = "Matches100", BadgeId = 0, Rule = { stat = "Matches", atLeast = 100 } },
-		{ Key = "Matches1000", BadgeId = 0, Rule = { stat = "Matches", atLeast = 1000 } },
-		{ Key = "Nice10", BadgeId = 0, Rule = { stat = "NiceShots", atLeast = 10 } },
-		{ Key = "Nice100", BadgeId = 0, Rule = { stat = "NiceShots", atLeast = 100 } },
-		{ Key = "Money1M", BadgeId = 0, Rule = { stat = "MoneyEarned", atLeast = 1000000 } },
-		{ Key = "Money10M", BadgeId = 0, Rule = { stat = "MoneyEarned", atLeast = 10000000 } },
-		{ Key = "Squad", BadgeId = 0, Rule = { event = "TeamMatch" } },
-		{ Key = "Ability1", BadgeId = 0, Rule = { event = "UltUsed" } },
-		{ Key = "Ability100", BadgeId = 0, Rule = { stat = "UltMatches", atLeast = 100 } },
-		{ Key = "Crew", BadgeId = 0, Rule = { event = "InGroup" } },
-		{ Key = "MetOwner", BadgeId = 0, Rule = { event = "OwnerHere" } },
-		{ Key = "BeatOwner", BadgeId = 0, Rule = { event = "BeatOwner" } },
-		{ Key = "Halloween2026", BadgeId = 0, Rule = { halloween = "Candy", atLeast = 1 } },
-		{ Key = "PumpkinSlayer", BadgeId = 0, Rule = { halloween = "KingWins", atLeast = 1 } },
-		{ Key = "BroomRider", BadgeId = 0 }, -- Rule { seenCue = "WitchBroomCue" } once Cues A's row is merged
+		{ Key = "Welcome", BadgeId = 3774850189892880, Rule = { always = true } },
+		{ Key = "FirstWin", BadgeId = 3575671673255502, Rule = { stat = "Wins", atLeast = 1 } },
+		{ Key = "Wins5", BadgeId = 1783364137353474, Rule = { stat = "Wins", atLeast = 5 } },
+		{ Key = "Wins10", BadgeId = 927047773955007, Rule = { stat = "Wins", atLeast = 10 } },
+		{ Key = "Wins25", BadgeId = 4233206622630547, Rule = { stat = "Wins", atLeast = 25 } },
+		{ Key = "Wins50", BadgeId = 376201506130396, Rule = { stat = "Wins", atLeast = 50 } },
+		{ Key = "Wins100", BadgeId = 831874640123472, Rule = { stat = "Wins", atLeast = 100 } },
+		{ Key = "Wins250", BadgeId = 3973719596541883, Rule = { stat = "Wins", atLeast = 250 } },
+		{ Key = "Wins500", BadgeId = 4153607260909108, Rule = { stat = "Wins", atLeast = 500 } },
+		{ Key = "Wins1000", BadgeId = 4209400550247267, Rule = { stat = "Wins", atLeast = 1000 } },
+		{ Key = "RankBronze", BadgeId = 2329095724540517, Rule = { peak = "Bronze" } },
+		{ Key = "RankSilver", BadgeId = 4398852937714373, Rule = { peak = "Silver" } },
+		{ Key = "RankGold", BadgeId = 155480003848566, Rule = { peak = "Gold" } },
+		{ Key = "RankPlatinum", BadgeId = 2829693839225343, Rule = { peak = "Platinum" } },
+		{ Key = "RankDiamond", BadgeId = 4229037065586405, Rule = { peak = "Diamond" } },
+		{ Key = "RankExpert", BadgeId = 3574464846773739, Rule = { peak = "Expert" } },
+		{ Key = "RankVeteran", BadgeId = 53445696872777, Rule = { peak = "Veteran" } },
+		{ Key = "RankMaster", BadgeId = 1165688399912031, Rule = { peak = "Master" } },
+		{ Key = "RankGrandmaster", BadgeId = 1393315583078416, Rule = { peak = "Grandmaster" } },
+		{ Key = "RankReyes", BadgeId = 4069284758940460, Rule = { peak = "Reyes" } },
+		{
+			Key = "Streak3",
+			BadgeId = 1928096058793175,
+			Rule = { stat = "BestWinStreak", atLeast = 3 },
+		},
+		{
+			Key = "Streak5",
+			BadgeId = 3859711772126671,
+			Rule = { stat = "BestWinStreak", atLeast = 5 },
+		},
+		{
+			Key = "Streak10",
+			BadgeId = 2179885669728373,
+			Rule = { stat = "BestWinStreak", atLeast = 10 },
+		},
+		{ Key = "CueRare", BadgeId = 207940625235143, Rule = { seenRarity = "Rare" } },
+		{ Key = "CueEpic", BadgeId = 2207389274593671, Rule = { seenRarity = "Epic" } },
+		{ Key = "CueLegendary", BadgeId = 494978037344337, Rule = { seenRarity = "Legendary" } },
+		{ Key = "CueMythic", BadgeId = 832024187830975, Rule = { seenRarity = "Mythic" } },
+		{ Key = "CueSecret", BadgeId = 1923791243743351, Rule = { seenRarity = "Secret" } },
+		{ Key = "CueUnique", BadgeId = 1800047869806584, Rule = { seenGroup = "Unique" } },
+		{ Key = "Cues5", BadgeId = 2409084780202428, Rule = { seenCount = 5 } },
+		{ Key = "Cues10", BadgeId = 3048335140968827, Rule = { seenCount = 10 } },
+		{ Key = "Cues25", BadgeId = 1158904462514818, Rule = { seenCount = 25 } },
+		{ Key = "Cues50", BadgeId = 112973040839564, Rule = { seenCount = 50 } },
+		{
+			Key = "Balls100",
+			BadgeId = 2473617397250925,
+			Rule = { stat = "BallsPocketed", atLeast = 100 },
+		},
+		{
+			Key = "Balls1000",
+			BadgeId = 1277347348028555,
+			Rule = { stat = "BallsPocketed", atLeast = 1000 },
+		},
+		{
+			Key = "Balls10000",
+			BadgeId = 7174693576307,
+			Rule = { stat = "BallsPocketed", atLeast = 10000 },
+		},
+		{ Key = "Matches10", BadgeId = 823038805053890, Rule = { stat = "Matches", atLeast = 10 } },
+		{
+			Key = "Matches100",
+			BadgeId = 729958242555812,
+			Rule = { stat = "Matches", atLeast = 100 },
+		},
+		{
+			Key = "Matches1000",
+			BadgeId = 2829128822759859,
+			Rule = { stat = "Matches", atLeast = 1000 },
+		},
+		{ Key = "Nice10", BadgeId = 4410726107997015, Rule = { stat = "NiceShots", atLeast = 10 } },
+		{
+			Key = "Nice100",
+			BadgeId = 2851523231108112,
+			Rule = { stat = "NiceShots", atLeast = 100 },
+		},
+		{
+			Key = "Money1M",
+			BadgeId = 2699082964518478,
+			Rule = { stat = "MoneyEarned", atLeast = 1000000 },
+		},
+		{
+			Key = "Money10M",
+			BadgeId = 217838342274579,
+			Rule = { stat = "MoneyEarned", atLeast = 10000000 },
+		},
+		{ Key = "Squad", BadgeId = 432657693674846, Rule = { event = "TeamMatch" } },
+		{ Key = "Ability1", BadgeId = 97386214196697, Rule = { event = "UltUsed" } },
+		{
+			Key = "Ability100",
+			BadgeId = 2989268570496762,
+			Rule = { stat = "UltMatches", atLeast = 100 },
+		},
+		{ Key = "Crew", BadgeId = 2950008037199385, Rule = { event = "InGroup" } },
+		{ Key = "MetOwner", BadgeId = 3300678702313834, Rule = { event = "OwnerHere" } },
+		{ Key = "BeatOwner", BadgeId = 4060031209370529, Rule = { event = "BeatOwner" } },
+		{
+			Key = "Halloween2026",
+			BadgeId = 919572845897837,
+			Rule = { halloween = "Candy", atLeast = 1 },
+		},
+		{
+			Key = "PumpkinSlayer",
+			BadgeId = 3371654715960934,
+			Rule = { halloween = "KingWins", atLeast = 1 },
+		},
+		{ Key = "BroomRider", BadgeId = 89437091380909, Rule = { seenCue = "WitchBroomCue" } },
 	} :: { { Key: string, BadgeId: number, Rule: { [string]: any }? } },
 }
 
