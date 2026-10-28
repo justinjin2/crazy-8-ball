@@ -613,7 +613,7 @@ floor by **15:00**, write a Request to the coordinator at once (Cues A may take 
   twig stubs, binding and buckle, straw bristles (compact and long, `Aim`), skinned hat charm on
   a Sway chain, one atlas; `check_envelope` passes; uploaded; preview and gate-1 renders beside
   `C3b_broom.png`.
-- [ ] 4. Drops 1 and 2 in your branch: `git fetch && git merge halloween` once the coordinator
+- [x] 4. Drops 1 and 2 in your branch: `git fetch && git merge halloween` once the coordinator
   has merged drop 1 (the three rows present) and drop 2 (generator keys, `--also-manifest`, the
   ONLY filter, the guarded import of your file); one plain `CuePieces.py -- <pid>` headless build
   of an existing piece still runs with your file imported (no side effects, `py_compile` clean).

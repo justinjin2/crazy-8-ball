@@ -45,6 +45,10 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
   butt); the long variant is a build flag (`LONG['witch_broom']`) for P18. Gate-1 renders in
   `gate1/` (lines under Gate shots). Cues A's drop 2 adds `k.joint(..., aim='fade')`; my
   `patch_aim` writes the same key from the static `AIM` table, so both agree once merged.
+- 09:35 P4: merged `origin/halloween` @ 14e2d157 (the compile and contract tests; both green
+  here). Cues A's drops 1 (7bef0153) and 2 (eb98e2ef) are READY on `hw-cues-a` but not in
+  `halloween` yet, so P7 merges them with drop 3; until then no generated rows (skins stay
+  draft) and the bodies are judged in headless previews.
 
 ## Shared-file changes
 
