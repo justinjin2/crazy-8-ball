@@ -461,6 +461,17 @@ end
 -- 1 as built), Blink (gone on alternate sub-steps of a short window once a period) and Glow
 -- (the colour pushed toward white, or the row's Color, by an effect wave). The part's
 -- Transparency composes the share with its dressed base and the piece's fade.
+-- A Glow row's Color3, parsed once per hex string (it was parsed every frame, review 2026-10-28).
+local glowColors: { [string]: Color3 } = {}
+local function glowColor(hex: string): Color3
+	local c: Color3? = glowColors[hex]
+	if not c then
+		c = Color3.fromHex(hex)
+		glowColors[hex] = c
+	end
+	return c :: Color3
+end
+
 local function applyVisuals(r: Rigid, t: number, fade: number)
 	local shown = 1
 	local glow = 0
@@ -477,7 +488,7 @@ local function applyVisuals(r: Rigid, t: number, fade: number)
 			local k = Motion.vfxWave(t, v)
 			if k > glow then
 				glow = k
-				glowTo = if v.Color then Color3.fromHex(v.Color) else nil
+				glowTo = if v.Color then glowColor(v.Color) else nil
 			end
 		end
 	end
@@ -556,9 +567,9 @@ function CuePiece.step(self: CuePiece, t: number)
 				then r.offset
 				else CFrame.new(r.offset.Position * s) * self.turn
 			r.weld.C0 = self.lift * (if x then cframe(x, s) else CFrame.identity) * offset
-		end
-		if #r.visuals > 0 then
-			applyVisuals(r, t, self.fade)
+			if #r.visuals > 0 then
+				applyVisuals(r, t, self.fade)
+			end
 		end
 	end
 	for _, r in self.riders do
