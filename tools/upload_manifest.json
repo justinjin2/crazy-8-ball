@@ -464,6 +464,177 @@
     "imageId": "108632142265177",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/pieces/black_cat/Tail.glb": {
+    "assetId": "133878609951821",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/pieces/black_cat/atlas_color.png": {
+    "assetId": "95747904436181",
+    "assetType": "Decal",
+    "imageId": "70872651253415",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/pieces/black_cat/atlas_emissive.png": {
+    "assetId": "71056628970591",
+    "assetType": "Decal",
+    "imageId": "125549519255659",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/pieces/black_cat/atlas_normal.png": {
+    "assetId": "80592588137888",
+    "assetType": "Decal",
+    "imageId": "77812296800419",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/pieces/black_cat/black_cat_parts.glb": {
+    "assetId": "97976303474135",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/pieces/spider/Crown.glb": {
+    "assetId": "88297987618252",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/pieces/spider/atlas_color.png": {
+    "assetId": "112073831259612",
+    "assetType": "Decal",
+    "imageId": "100379192943211",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/pieces/spider/atlas_emissive.png": {
+    "assetId": "80293813989325",
+    "assetType": "Decal",
+    "imageId": "71205341846168",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/pieces/spider/atlas_normal.png": {
+    "assetId": "127619131733472",
+    "assetType": "Decal",
+    "imageId": "100085691510749",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/pieces/spider/spider_parts.glb": {
+    "assetId": "134241355070040",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/pieces/spider_pocket/spider_pocket_parts.glb": {
+    "assetId": "86978515586894",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/pieces/witch_broom/HatCharm.glb": {
+    "assetId": "84761573077366",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/pieces/witch_broom/atlas_color.png": {
+    "assetId": "133730570874017",
+    "assetType": "Decal",
+    "imageId": "133510963296448",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/pieces/witch_broom/atlas_emissive.png": {
+    "assetId": "73910439696293",
+    "assetType": "Decal",
+    "imageId": "92422786331997",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/pieces/witch_broom/atlas_normal.png": {
+    "assetId": "70889581925253",
+    "assetType": "Decal",
+    "imageId": "96376837202239",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/pieces/witch_broom/witch_broom_parts.glb": {
+    "assetId": "79787647258778",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/pieces/witch_broom_aura/witch_broom_aura_parts.glb": {
+    "assetId": "123761019110800",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/pieces/witch_broom_pocket/witch_broom_pocket_parts.glb": {
+    "assetId": "123188942694509",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/thumbs/black_cat.png": {
+    "assetId": "115496115118704",
+    "assetType": "Decal",
+    "imageId": "139545705429939",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/thumbs/spider.png": {
+    "assetId": "123638860690562",
+    "assetType": "Decal",
+    "imageId": "80551345054710",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/thumbs/witch_broom.png": {
+    "assetId": "140099377083301",
+    "assetType": "Decal",
+    "imageId": "114319101783547",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/vfx/black_cat/cat_leap_4x4.png": {
+    "assetId": "98170765493066",
+    "assetType": "Decal",
+    "imageId": "114540965456482",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/vfx/black_cat/cat_run_4x4.png": {
+    "assetId": "105454913916499",
+    "assetType": "Decal",
+    "imageId": "120281480144576",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/vfx/spider/silk.png": {
+    "assetId": "102032864350114",
+    "assetType": "Decal",
+    "imageId": "94518948967265",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/vfx/spider/web.png": {
+    "assetId": "96639118500165",
+    "assetType": "Decal",
+    "imageId": "117540828296742",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/vfx/spider/web_ring.png": {
+    "assetId": "117112524858267",
+    "assetType": "Decal",
+    "imageId": "109603483431038",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/vfx/witch_broom/bat_flap_4x4.png": {
+    "assetId": "102426836220602",
+    "assetType": "Decal",
+    "imageId": "112103632429044",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/vfx/witch_broom/crescent.png": {
+    "assetId": "91685715536997",
+    "assetType": "Decal",
+    "imageId": "87107087522024",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/vfx/witch_broom/straw.png": {
+    "assetId": "88876590677875",
+    "assetType": "Decal",
+    "imageId": "82454926277152",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/vfx/witch_broom/witch_moon_4x4.png": {
+    "assetId": "77938547508430",
+    "assetType": "Decal",
+    "imageId": "113918266054738",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball-refs/emotes/birdbrain_loop.flac": {
     "assetId": "75387278867392",
     "assetType": "Audio",

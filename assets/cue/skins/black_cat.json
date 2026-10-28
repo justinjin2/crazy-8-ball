@@ -1,0 +1,1369 @@
+{
+  "id": "black_cat",
+  "name": "Black Cat Cue",
+  "tier": "Mythic",
+  "catalog_id": "BlackCatCue",
+  "draft": false,
+  "note": "Halloween 2026 (lane Cues B, brief 2.5, concept C2c_black_cat.png rev 3): a glossy black shaft with gold ring pairs, three gold claw slashes on a knurled forearm, a gold claw tip inlay, a triple gold collar and a living black tail with a thin gold rim; black smoke with gold-edged wisps and faceless shadow cats running in it. No head, no face, no eyes, no pink. Draft until complete.",
+  "body": "black_cat",
+  "maps_from": "classic",
+  "look": {
+    "Shaft": [
+      11,
+      11,
+      13
+    ],
+    "Forearm": [
+      11,
+      11,
+      13
+    ],
+    "Wrap": [
+      20,
+      20,
+      22
+    ],
+    "Ring": [
+      226,
+      176,
+      74
+    ],
+    "Accent": [
+      255,
+      200,
+      90
+    ],
+    "Tip": [
+      226,
+      176,
+      74
+    ],
+    "Cap": [
+      11,
+      11,
+      13
+    ]
+  },
+  "colours": {
+    "black": "#0B0B0D",
+    "gold": "#E2B04A",
+    "claw": "#FFC85A",
+    "rim": "#E8B04A",
+    "smoke": "#0A0A0C"
+  },
+  "vfx": {
+    "Piece": {
+      "Note": "No aura piece: the body (pieces/black_cat) carries the living tail (Sway chain, Aim fade), the Neon claw slashes (Glow) and the gold rim shell."
+    },
+    "Moving": {
+      "Note": "The tail sways on a 5-bone chain (2.4 s travelling wave); the claw slashes glow 0.1-0.5 over 3 s; the halo beam pulses; one ember orbiter."
+    },
+    "Aura": {
+      "Note": "Mythic (brief 2.5): black smoke (LightEmission 0, unlit: dark on the bright floor and under Night), gold-edged wisps rising, embers drifting up, faceless shadow cats running in place in the smoke (2-4 alive, 0.6-0.9 studs, a 4x4 Loop flipbook on the part, no travel so no moonwalk), gold glints and sparks, a claw glint at the tip; one warm gold halo beam; a gold ember orbiter; one warm gold PointLight at the collar; gold outline. About 63 particles a second (budget 120).",
+      "Emitters": [
+        {
+          "Name": "Smoke",
+          "Texture": "vfx/v2/smoke_8x8.png",
+          "FlipbookLayout": "Grid8x8",
+          "FlipbookMode": "OneShot",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.3,
+            "ToStuds": 7.0,
+            "Width": 1.0,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Volume"
+          },
+          "Rate": 16,
+          "Lifetime": [
+            1.4,
+            2.0
+          ],
+          "Speed": [
+            0.05,
+            0.2
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Drag": 1.2,
+          "Size": [
+            [
+              0,
+              0.6
+            ],
+            [
+              0.5,
+              1.3
+            ],
+            [
+              1,
+              1.7
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.1,
+              0.5
+            ],
+            [
+              0.6,
+              0.65
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Rotation": [
+            0,
+            360
+          ],
+          "RotSpeed": [
+            -20,
+            20
+          ],
+          "Color": [
+            [
+              0,
+              "#1E1A26"
+            ],
+            [
+              0.5,
+              "#14121A"
+            ],
+            [
+              1,
+              "#0B0B0D"
+            ]
+          ],
+          "LightEmission": 0,
+          "LightInfluence": 0,
+          "LockedToPart": true
+        },
+        {
+          "Name": "GoldWisps",
+          "Texture": "vfx/v2/wisp_8x8.png",
+          "FlipbookLayout": "Grid8x8",
+          "FlipbookMode": "OneShot",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.3,
+            "ToStuds": 7.0,
+            "Width": 0.8,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Volume"
+          },
+          "Rate": 12,
+          "Lifetime": [
+            0.9,
+            1.4
+          ],
+          "Speed": [
+            0.25,
+            0.7
+          ],
+          "SpreadAngle": [
+            40,
+            40
+          ],
+          "EmissionDirection": "Top",
+          "Acceleration": [
+            0,
+            0.3,
+            0
+          ],
+          "Drag": 0.8,
+          "Size": [
+            [
+              0,
+              0.4
+            ],
+            [
+              0.5,
+              0.8
+            ],
+            [
+              1,
+              0.45
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.15,
+              0.25
+            ],
+            [
+              0.7,
+              0.45
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Rotation": [
+            -20,
+            20
+          ],
+          "Color": [
+            [
+              0,
+              "#FFE2A0"
+            ],
+            [
+              0.5,
+              "#E8B04A"
+            ],
+            [
+              1,
+              "#B07A20"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": true,
+          "Brightness": 1.3
+        },
+        {
+          "Name": "Embers",
+          "Texture": "vfx/v2/dust.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.3,
+            "ToStuds": 7.0,
+            "Width": 1.2,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Volume"
+          },
+          "Rate": 14,
+          "Lifetime": [
+            1.0,
+            1.8
+          ],
+          "Speed": [
+            0.1,
+            0.4
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Acceleration": [
+            0,
+            0.5,
+            0
+          ],
+          "Drag": 0.6,
+          "Size": [
+            [
+              0,
+              0.08
+            ],
+            [
+              0.3,
+              0.2
+            ],
+            [
+              1,
+              0.06
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.2,
+              0
+            ],
+            [
+              0.8,
+              0.2
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Rotation": [
+            0,
+            360
+          ],
+          "Color": [
+            [
+              0,
+              "#FFE2A0"
+            ],
+            [
+              0.5,
+              "#E8B04A"
+            ],
+            [
+              1,
+              "#FF8A2A"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": false,
+          "Brightness": 2.2
+        },
+        {
+          "Name": "ShadowCats",
+          "Texture": "vfx/black_cat/cat_run_4x4.png",
+          "FlipbookLayout": "Grid4x4",
+          "FlipbookMode": "Loop",
+          "FlipbookFramerate": [
+            10,
+            13
+          ],
+          "FlipbookStartRandom": true,
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.8,
+            "ToStuds": 6.6,
+            "Width": 0.9,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Volume"
+          },
+          "Rate": 2.4,
+          "Lifetime": [
+            1.0,
+            1.5
+          ],
+          "Speed": [
+            0,
+            0.05
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Size": [
+            [
+              0,
+              0.6
+            ],
+            [
+              0.5,
+              0.9
+            ],
+            [
+              1,
+              0.6
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.2,
+              0.05
+            ],
+            [
+              0.8,
+              0.05
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Rotation": 0,
+          "Color": "#FFFFFF",
+          "LightEmission": 0,
+          "LightInfluence": 0,
+          "LockedToPart": true
+        },
+        {
+          "Name": "Glints",
+          "Texture": "vfx/v2/glint.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.3,
+            "ToStuds": 7.0,
+            "Width": 1.1,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Volume"
+          },
+          "Rate": 5,
+          "Lifetime": [
+            0.5,
+            0.9
+          ],
+          "Speed": [
+            0.05,
+            0.2
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Size": [
+            [
+              0,
+              0
+            ],
+            [
+              0.5,
+              0.4
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Transparency": 0,
+          "Rotation": [
+            0,
+            30
+          ],
+          "Color": [
+            [
+              0,
+              "#FFFFFF"
+            ],
+            [
+              1,
+              "#E8B04A"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": true,
+          "Brightness": 3.2
+        },
+        {
+          "Name": "Sparks",
+          "Texture": "vfx/v2/flare.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.3,
+            "ToStuds": 7.0,
+            "Width": 1.4,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Volume"
+          },
+          "Rate": 10,
+          "Lifetime": [
+            0.4,
+            0.8
+          ],
+          "Speed": [
+            0.1,
+            0.5
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Drag": 1,
+          "Size": [
+            [
+              0,
+              0
+            ],
+            [
+              0.4,
+              0.18
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Transparency": 0,
+          "Rotation": [
+            0,
+            45
+          ],
+          "Color": [
+            [
+              0,
+              "#FFE2A0"
+            ],
+            [
+              1,
+              "#E8B04A"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": false,
+          "Brightness": 3
+        },
+        {
+          "Name": "ClawGlint",
+          "Texture": "vfx/v2/flare.png",
+          "Host": {
+            "Kind": "Attachment",
+            "AtStuds": 0.25
+          },
+          "Rate": 4,
+          "Lifetime": [
+            0.4,
+            0.7
+          ],
+          "Speed": [
+            0.05,
+            0.2
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Size": [
+            [
+              0,
+              0
+            ],
+            [
+              0.5,
+              0.3
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Transparency": 0,
+          "Rotation": [
+            0,
+            45
+          ],
+          "Color": [
+            [
+              0,
+              "#FFFFFF"
+            ],
+            [
+              1,
+              "#E8B04A"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": true,
+          "Brightness": 3.5
+        }
+      ],
+      "Beams": [
+        {
+          "Name": "GoldHalo",
+          "FromStuds": 0.0,
+          "ToStuds": 7.1,
+          "Width0": 0.45,
+          "Width1": 0.9,
+          "Segments": 20,
+          "Texture": "vfx/_shared/halo_strip.png",
+          "TextureMode": "Stretch",
+          "Color": [
+            [
+              0,
+              "#FFE2A0"
+            ],
+            [
+              1,
+              "#E8B04A"
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.06,
+              0.75
+            ],
+            [
+              0.9,
+              0.68
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 1,
+          "FaceCamera": true,
+          "Pulse": {
+            "Min": 0.6,
+            "Max": 1.0,
+            "Period": 3.6
+          },
+          "Brightness": 1.6
+        }
+      ],
+      "Orbiters": [
+        {
+          "Name": "Ember",
+          "FromStuds": 0.4,
+          "ToStuds": 6.7,
+          "TravelSeconds": 3.6,
+          "Loop": "pingpong",
+          "TurnsPerSecond": 0.6,
+          "Radius": 0.3,
+          "RadiusFromSurface": true,
+          "Wobble": 0.05,
+          "WobbleHz": 0.8,
+          "Phase": 0,
+          "Delay": 0,
+          "Trail": {
+            "Lifetime": 0.9,
+            "WidthStuds": 0.06,
+            "Color": "#E8B04A",
+            "Brightness": 3,
+            "Transparency": [
+              [
+                0,
+                0
+              ],
+              [
+                0.6,
+                0.3
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "LightEmission": 1,
+            "Texture": "vfx/_shared/trail_soft.png",
+            "TextureMode": "Stretch"
+          },
+          "Head": {
+            "Texture": "vfx/v2/orb.png",
+            "Size": 0.2,
+            "Color": "#FFE2A0",
+            "LightEmission": 1
+          }
+        }
+      ],
+      "Lights": [
+        {
+          "AtStuds": 6.8,
+          "Color": "#FFC46A",
+          "Brightness": 0.6,
+          "Range": 7,
+          "Flicker": {
+            "Min": 0.7,
+            "Max": 1.1,
+            "Period": 1.9
+          }
+        }
+      ],
+      "Outline": "#E8B04A"
+    },
+    "Style": {
+      "Trail": {
+        "Colors": [
+          [
+            36,
+            30,
+            44
+          ],
+          [
+            20,
+            16,
+            28
+          ],
+          [
+            232,
+            176,
+            74
+          ]
+        ],
+        "NearTransparency": 0.0,
+        "Lifetime": 1.2,
+        "WidthStuds": 0.5,
+        "LightEmission": 0.25,
+        "WidthScale": [
+          [
+            0,
+            0.7
+          ],
+          [
+            0.3,
+            1.1
+          ],
+          [
+            0.7,
+            0.9
+          ],
+          [
+            1,
+            0.5
+          ]
+        ],
+        "Core": {
+          "Color": [
+            255,
+            226,
+            160
+          ],
+          "Width": 0.18,
+          "NearTransparency": 0.0,
+          "LightEmission": 1,
+          "Transparency": [
+            [
+              0,
+              0.0
+            ],
+            [
+              0.5,
+              0.15
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "WidthScale": [
+            [
+              0,
+              1
+            ],
+            [
+              0.6,
+              0.75
+            ],
+            [
+              1,
+              0.4
+            ]
+          ],
+          "Brightness": 2.2
+        },
+        "Transparency": [
+          [
+            0,
+            0.0
+          ],
+          [
+            0.55,
+            0.15
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "Brightness": 1.2
+      },
+      "Pocket": {
+        "Colors": [
+          [
+            232,
+            176,
+            74
+          ],
+          [
+            20,
+            16,
+            28
+          ]
+        ],
+        "ColorShare": 1
+      }
+    },
+    "Trail": {
+      "Note": "A dark ribbon with a gold core; shadow cats dropped along the path (they stay where dropped, running in place), embers, smoke puffs and sparks behind the ball.",
+      "Emitters": [
+        {
+          "Name": "CatRun",
+          "Texture": "vfx/black_cat/cat_run_4x4.png",
+          "FlipbookLayout": "Grid4x4",
+          "FlipbookMode": "Loop",
+          "FlipbookFramerate": [
+            11,
+            13
+          ],
+          "FlipbookStartRandom": true,
+          "Host": {
+            "Kind": "Point"
+          },
+          "Rate": 2.2,
+          "Lifetime": [
+            0.8,
+            1.1
+          ],
+          "Speed": [
+            0,
+            0.05
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Size": 0.55,
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.15,
+              0.05
+            ],
+            [
+              0.8,
+              0.05
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Rotation": 0,
+          "Color": "#FFFFFF",
+          "LightEmission": 0,
+          "LightInfluence": 0
+        },
+        {
+          "Name": "Embers",
+          "Texture": "vfx/v2/dust.png",
+          "Host": {
+            "Kind": "Point"
+          },
+          "Rate": 10,
+          "Lifetime": [
+            0.5,
+            0.9
+          ],
+          "Speed": [
+            0.3,
+            1.0
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Acceleration": [
+            0,
+            1.0,
+            0
+          ],
+          "Drag": 1,
+          "Size": [
+            [
+              0,
+              0.16
+            ],
+            [
+              1,
+              0.05
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0
+            ],
+            [
+              0.7,
+              0.2
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Rotation": [
+            0,
+            360
+          ],
+          "Color": [
+            [
+              0,
+              "#FFE2A0"
+            ],
+            [
+              0.5,
+              "#E8B04A"
+            ],
+            [
+              1,
+              "#FF8A2A"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "Brightness": 2.4
+        },
+        {
+          "Name": "Puffs",
+          "Texture": "vfx/v2/smoke_8x8.png",
+          "FlipbookLayout": "Grid8x8",
+          "FlipbookMode": "OneShot",
+          "Host": {
+            "Kind": "Point"
+          },
+          "Rate": 5,
+          "Lifetime": [
+            0.5,
+            0.8
+          ],
+          "Speed": [
+            0.1,
+            0.3
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Drag": 1.5,
+          "Size": [
+            [
+              0,
+              0.3
+            ],
+            [
+              1,
+              0.7
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0.5
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Rotation": [
+            0,
+            360
+          ],
+          "Color": [
+            [
+              0,
+              "#1E1A26"
+            ],
+            [
+              1,
+              "#0B0B0D"
+            ]
+          ],
+          "LightEmission": 0,
+          "LightInfluence": 0
+        },
+        {
+          "Name": "Sparks",
+          "Texture": "vfx/v2/flare.png",
+          "Host": {
+            "Kind": "Point"
+          },
+          "Rate": 8,
+          "Lifetime": [
+            0.3,
+            0.6
+          ],
+          "Speed": [
+            0.5,
+            1.5
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Drag": 1.5,
+          "Size": [
+            [
+              0,
+              0
+            ],
+            [
+              0.3,
+              0.16
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Transparency": 0,
+          "Rotation": [
+            0,
+            45
+          ],
+          "Color": [
+            [
+              0,
+              "#FFE2A0"
+            ],
+            [
+              1,
+              "#E8B04A"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "Brightness": 3
+        }
+      ]
+    },
+    "Pocket": {
+      "Note": "Mythic, about 1.6 s: a gold flash and ring on the cloth; a burst of black smoke and gold shards; the shadow cat leaps out of the pocket (a 4x4 OneShot flipbook, 3.5 studs, 1.6 studs up: it springs, arcs and fades); sparks and embers rain back; a second gold ring; black hiss (Roblox library).",
+      "Flash": {
+        "Color": [
+          255,
+          200,
+          90
+        ],
+        "Brightness": 10,
+        "Seconds": 0.25
+      },
+      "Rings": [
+        {
+          "Texture": "vfx/v2/ring.png",
+          "Color": "#E8B04A",
+          "Start": 0.4,
+          "End": 4.0,
+          "Seconds": 0.45,
+          "Delay": 0.0
+        },
+        {
+          "Texture": "vfx/v2/ring.png",
+          "Color": "#2A2436",
+          "Start": 0.3,
+          "End": 3.0,
+          "Seconds": 0.4,
+          "Delay": 0.3
+        }
+      ],
+      "Layers": [
+        {
+          "Name": "Smoke",
+          "Texture": "vfx/v2/smoke_8x8.png",
+          "FlipbookLayout": "Grid8x8",
+          "FlipbookMode": "OneShot",
+          "Host": {
+            "Kind": "Point",
+            "Size": 0.5
+          },
+          "Burst": 12,
+          "Lifetime": [
+            0.6,
+            1.0
+          ],
+          "Speed": [
+            2,
+            4
+          ],
+          "SpreadAngle": [
+            25,
+            25
+          ],
+          "EmissionDirection": "Top",
+          "Drag": 1.6,
+          "Size": [
+            [
+              0,
+              0.6
+            ],
+            [
+              1,
+              1.6
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0.35
+            ],
+            [
+              0.5,
+              0.55
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": [
+            [
+              0,
+              "#1E1A26"
+            ],
+            [
+              1,
+              "#0B0B0D"
+            ]
+          ],
+          "LightEmission": 0,
+          "LightInfluence": 0
+        },
+        {
+          "Name": "Shards",
+          "Texture": "vfx/v2/shard.png",
+          "Delay": 0.05,
+          "Host": {
+            "Kind": "Point",
+            "Size": 0.3
+          },
+          "Burst": 18,
+          "Lifetime": [
+            0.5,
+            0.8
+          ],
+          "Speed": [
+            3,
+            7
+          ],
+          "SpreadAngle": [
+            30,
+            30
+          ],
+          "EmissionDirection": "Top",
+          "Acceleration": [
+            0,
+            -9,
+            0
+          ],
+          "Orientation": "VelocityParallel",
+          "Size": [
+            [
+              0,
+              0.3
+            ],
+            [
+              1,
+              0.1
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0
+            ],
+            [
+              0.8,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": [
+            [
+              0,
+              "#FFE2A0"
+            ],
+            [
+              1,
+              "#B07A20"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "Brightness": 2
+        },
+        {
+          "Name": "Leap",
+          "Texture": "vfx/black_cat/cat_leap_4x4.png",
+          "FlipbookLayout": "Grid4x4",
+          "FlipbookMode": "OneShot",
+          "FlipbookFramerate": 13,
+          "Delay": 0.1,
+          "Host": {
+            "Kind": "Point",
+            "Offset": [
+              0,
+              1.6,
+              0
+            ],
+            "Size": 0
+          },
+          "Burst": 1,
+          "Lifetime": [
+            1.25,
+            1.25
+          ],
+          "Speed": [
+            0,
+            0
+          ],
+          "SpreadAngle": [
+            0,
+            0
+          ],
+          "Size": 3.5,
+          "Transparency": 0,
+          "Rotation": 0,
+          "Color": "#FFFFFF",
+          "LightEmission": 0,
+          "LightInfluence": 0,
+          "ZOffset": 0.5
+        },
+        {
+          "Name": "Sparks",
+          "Texture": "vfx/v2/flare.png",
+          "Delay": 0.1,
+          "Host": {
+            "Kind": "Point",
+            "Size": 0.3
+          },
+          "Burst": 28,
+          "Lifetime": [
+            0.5,
+            0.9
+          ],
+          "Speed": [
+            2,
+            6
+          ],
+          "SpreadAngle": [
+            35,
+            35
+          ],
+          "EmissionDirection": "Top",
+          "Acceleration": [
+            0,
+            -6,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0
+            ],
+            [
+              0.3,
+              0.22
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Transparency": 0,
+          "Rotation": [
+            0,
+            45
+          ],
+          "Color": [
+            [
+              0,
+              "#FFE2A0"
+            ],
+            [
+              0.5,
+              "#E8B04A"
+            ],
+            [
+              1,
+              "#FF8A2A"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "Brightness": 4
+        },
+        {
+          "Name": "Embers",
+          "Texture": "vfx/v2/dust.png",
+          "Delay": 0.5,
+          "Host": {
+            "Kind": "Point",
+            "Offset": [
+              0,
+              2.2,
+              0
+            ],
+            "Size": 1.6
+          },
+          "Burst": 24,
+          "Lifetime": [
+            0.6,
+            1.0
+          ],
+          "Speed": [
+            0.3,
+            1
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Acceleration": [
+            0,
+            -1.5,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.14
+            ],
+            [
+              1,
+              0.04
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0
+            ],
+            [
+              0.7,
+              0.2
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Rotation": [
+            0,
+            360
+          ],
+          "Color": [
+            [
+              0,
+              "#FFE2A0"
+            ],
+            [
+              1,
+              "#FF8A2A"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "Brightness": 2.2
+        }
+      ],
+      "Sound": {
+        "Asset": "rbxassetid://9125645963",
+        "Volume": 0.45,
+        "RollOffMinStuds": 8,
+        "RollOffMaxStuds": 60,
+        "Note": "Roblox library: Pro Sound Effects \"Magic Whooshes Growly Magic Whooshes Airy Gusts 5\" (2.2 s), free, no upload; PreloadAsync Success 2026-10-28"
+      }
+    },
+    "Budget": {
+      "ParticlesPerSecond": 63.4,
+      "Beams": 1,
+      "Lights": 1,
+      "Orbiters": 1,
+      "BodyTriangles": 7652
+    }
+  }
+}
