@@ -251,6 +251,7 @@ return {
 			KingLineLeft = "You walked away from the King's line.",
 			KingLeft = "The King has left. Back at :15 and :45!",
 			KingAway = "The King visits at :15 and :45. Come back!",
+			KingLinedBeaten = "You beat him this visit! Others go first.", -- a winner in his line
 			CandyBagFull = "Your candy bag is full until :00", -- the lobby candy's hour cap (CandyDrop)
 		},
 	},
