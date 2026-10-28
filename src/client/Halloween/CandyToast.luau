@@ -67,6 +67,16 @@ local function free(): boolean
 	return P ~= nil and P.quiet() == true and not softPopupUp()
 end
 
+-- When the NEW CUE! card up now was shown (os.clock), nil when none is.
+local cardShownAt: number? = nil
+
+--- Whether a NEW CUE! card is up (Progression.quiet: the other popups wait for it). Never
+--- longer than its auto-close, so a card that failed to close cannot hold the lobby's popups.
+function CandyToast.busy(): boolean
+	local at = cardShownAt
+	return at ~= nil and os.clock() - at < T.AutoCloseSeconds + 1
+end
+
 local function font(): Enum.Font
 	return (Enum.Font :: any)[K.Font]
 end
@@ -388,6 +398,7 @@ function CandyToast.showCard(self: any, cueId: string, note: string)
 			return
 		end
 		closed = true
+		cardShownAt = nil
 		ContextActionService:UnbindAction(CLOSE_ACTION)
 		if GuiService.SelectedObject ~= nil and GuiService.SelectedObject:IsDescendantOf(dim) then
 			GuiService.SelectedObject = nil
@@ -406,6 +417,7 @@ function CandyToast.showCard(self: any, cueId: string, note: string)
 	ok.ZIndex = 14
 	HudParts.setButtonTextSize(ok, math.floor(okH * 0.55))
 	self.card = dim
+	cardShownAt = os.clock()
 	UIAnim.popIn(card)
 	UIAnim.slam(title, HudParts.tone("Gold"), { burst = true })
 	UIAnim.glowBurst(thumb, CueThumb.rarityColor(rarity), 0.6)
