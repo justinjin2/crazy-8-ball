@@ -1,0 +1,695 @@
+{
+  "id": "spider_aura",
+  "Frame": "cue",
+  "frame": "Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)",
+  "Triangles": 1328,
+  "Parts": [
+    {
+      "Material": "Neon",
+      "Color": "#F2F5FA",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Web1_Web",
+      "File": "pieces/spider_aura/Web1_Web.obj",
+      "Joint": "Web1",
+      "Offset": [
+        -0.88,
+        0.0,
+        1.9
+      ],
+      "Size": [
+        0.016,
+        0.88,
+        0.88
+      ],
+      "Triangles": 384
+    },
+    {
+      "Material": "Neon",
+      "Color": "#F2F5FA",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Web2_Web",
+      "File": "pieces/spider_aura/Web2_Web.obj",
+      "Joint": "Web2",
+      "Offset": [
+        -0.92,
+        0.0,
+        -0.1
+      ],
+      "Size": [
+        0.016,
+        0.88,
+        0.88
+      ],
+      "Triangles": 384
+    },
+    {
+      "Material": "Neon",
+      "Color": "#F2F5FA",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Web3_Web",
+      "File": "pieces/spider_aura/Web3_Web.obj",
+      "Joint": "Web3",
+      "Offset": [
+        -0.88,
+        0.0,
+        -1.9
+      ],
+      "Size": [
+        0.016,
+        0.88,
+        0.88
+      ],
+      "Triangles": 384
+    },
+    {
+      "Material": "Neon",
+      "Color": "#F2F5FA",
+      "Transparency": 0.05,
+      "Reflectance": 0.0,
+      "Name": "Drop1_SilkSoft",
+      "File": "pieces/spider_aura/Drop1_SilkSoft.obj",
+      "Joint": "Drop1",
+      "Offset": [
+        0.0,
+        -0.376,
+        2.3
+      ],
+      "Size": [
+        0.036,
+        0.62,
+        0.036
+      ],
+      "Triangles": 24
+    },
+    {
+      "Material": "Neon",
+      "Color": "#DDE3F0",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Drop1_Silk",
+      "File": "pieces/spider_aura/Drop1_Silk.obj",
+      "Joint": "Drop1",
+      "Offset": [
+        0.0,
+        -0.746,
+        2.3
+      ],
+      "Size": [
+        0.11,
+        0.154,
+        0.0953
+      ],
+      "Triangles": 12
+    },
+    {
+      "Material": "Neon",
+      "Color": "#F2F5FA",
+      "Transparency": 0.05,
+      "Reflectance": 0.0,
+      "Name": "Drop2_SilkSoft",
+      "File": "pieces/spider_aura/Drop2_SilkSoft.obj",
+      "Joint": "Drop2",
+      "Offset": [
+        0.0,
+        -0.4995,
+        0.9
+      ],
+      "Size": [
+        0.036,
+        0.8,
+        0.036
+      ],
+      "Triangles": 24
+    },
+    {
+      "Material": "Neon",
+      "Color": "#DDE3F0",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Drop2_Silk",
+      "File": "pieces/spider_aura/Drop2_Silk.obj",
+      "Joint": "Drop2",
+      "Offset": [
+        0.0,
+        -0.9595,
+        0.9
+      ],
+      "Size": [
+        0.11,
+        0.154,
+        0.0953
+      ],
+      "Triangles": 12
+    },
+    {
+      "Material": "Neon",
+      "Color": "#F2F5FA",
+      "Transparency": 0.05,
+      "Reflectance": 0.0,
+      "Name": "Drop3_SilkSoft",
+      "File": "pieces/spider_aura/Drop3_SilkSoft.obj",
+      "Joint": "Drop3",
+      "Offset": [
+        0.0,
+        -0.4854,
+        -0.5
+      ],
+      "Size": [
+        0.036,
+        0.68,
+        0.036
+      ],
+      "Triangles": 24
+    },
+    {
+      "Material": "Neon",
+      "Color": "#DDE3F0",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Drop3_Silk",
+      "File": "pieces/spider_aura/Drop3_Silk.obj",
+      "Joint": "Drop3",
+      "Offset": [
+        0.0,
+        -0.8854,
+        -0.5
+      ],
+      "Size": [
+        0.11,
+        0.154,
+        0.0953
+      ],
+      "Triangles": 12
+    },
+    {
+      "Material": "Neon",
+      "Color": "#F2F5FA",
+      "Transparency": 0.05,
+      "Reflectance": 0.0,
+      "Name": "Drop4_SilkSoft",
+      "File": "pieces/spider_aura/Drop4_SilkSoft.obj",
+      "Joint": "Drop4",
+      "Offset": [
+        0.0,
+        -0.595,
+        -2.1
+      ],
+      "Size": [
+        0.036,
+        0.85,
+        0.036
+      ],
+      "Triangles": 24
+    },
+    {
+      "Material": "Neon",
+      "Color": "#DDE3F0",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Drop4_Silk",
+      "File": "pieces/spider_aura/Drop4_Silk.obj",
+      "Joint": "Drop4",
+      "Offset": [
+        0.0,
+        -1.08,
+        -2.1
+      ],
+      "Size": [
+        0.11,
+        0.154,
+        0.0953
+      ],
+      "Triangles": 12
+    },
+    {
+      "Material": "Neon",
+      "Color": "#C0142C",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Hourglass1_Crimson",
+      "File": "pieces/spider_aura/Hourglass1_Crimson.obj",
+      "Joint": "Hourglass1",
+      "Offset": [
+        -0.58,
+        0.0,
+        1.1
+      ],
+      "Size": [
+        0.02,
+        0.14,
+        0.24
+      ],
+      "Triangles": 16
+    },
+    {
+      "Material": "Neon",
+      "Color": "#C0142C",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Hourglass2_Crimson",
+      "File": "pieces/spider_aura/Hourglass2_Crimson.obj",
+      "Joint": "Hourglass2",
+      "Offset": [
+        -0.58,
+        0.0,
+        -1.1
+      ],
+      "Size": [
+        0.02,
+        0.14,
+        0.24
+      ],
+      "Triangles": 16
+    }
+  ],
+  "Joints": {
+    "Web1": {
+      "Parent": null,
+      "Pivot": [
+        0,
+        -1.6,
+        0
+      ],
+      "PivotRoblox": [
+        0,
+        0,
+        1.9
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0,
+            1,
+            0
+          ],
+          "Rate": 20.0
+        },
+        {
+          "Kind": "Bob",
+          "Dir": [
+            0,
+            1,
+            0
+          ],
+          "Amp": 0.12,
+          "Period": 2.6,
+          "Phase": 0
+        }
+      ],
+      "Aura": true,
+      "Visual": [
+        {
+          "Kind": "Fade",
+          "Min": 0.0,
+          "Max": 1.0,
+          "Period": 5.0,
+          "Shape": "life",
+          "Phase": 0
+        }
+      ]
+    },
+    "Web2": {
+      "Parent": null,
+      "Pivot": [
+        0,
+        -3.6,
+        0
+      ],
+      "PivotRoblox": [
+        0,
+        0,
+        -0.1
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0,
+            1,
+            0
+          ],
+          "Rate": -16.0
+        },
+        {
+          "Kind": "Bob",
+          "Dir": [
+            0,
+            1,
+            0
+          ],
+          "Amp": 0.12,
+          "Period": 3.3,
+          "Phase": 60
+        }
+      ],
+      "Aura": true,
+      "Visual": [
+        {
+          "Kind": "Fade",
+          "Min": 0.0,
+          "Max": 1.0,
+          "Period": 6.5,
+          "Shape": "life",
+          "Phase": 130
+        }
+      ]
+    },
+    "Web3": {
+      "Parent": null,
+      "Pivot": [
+        0,
+        -5.4,
+        0
+      ],
+      "PivotRoblox": [
+        0,
+        0,
+        -1.9
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0,
+            1,
+            0
+          ],
+          "Rate": 24.0
+        },
+        {
+          "Kind": "Bob",
+          "Dir": [
+            0,
+            1,
+            0
+          ],
+          "Amp": 0.12,
+          "Period": 2.9,
+          "Phase": 120
+        }
+      ],
+      "Aura": true,
+      "Visual": [
+        {
+          "Kind": "Fade",
+          "Min": 0.0,
+          "Max": 1.0,
+          "Period": 8.0,
+          "Shape": "life",
+          "Phase": 260
+        }
+      ],
+      "Low": "hide"
+    },
+    "Drop1": {
+      "Parent": null,
+      "Pivot": [
+        0.0,
+        -1.2000000476837158,
+        -0.06602946668863297
+      ],
+      "PivotRoblox": [
+        -0.0,
+        -0.066,
+        2.3
+      ],
+      "Motion": [
+        {
+          "Kind": "Sway",
+          "Axis": [
+            0,
+            1,
+            0
+          ],
+          "Amp": 9.0,
+          "Period": 1.7,
+          "Phase": 0
+        },
+        {
+          "Kind": "Sway",
+          "Axis": [
+            1,
+            0,
+            0
+          ],
+          "Amp": 4.0,
+          "Period": 2.329,
+          "Phase": 0
+        }
+      ],
+      "Aura": true,
+      "Visual": [
+        {
+          "Kind": "Glow",
+          "Min": 0.0,
+          "Max": 0.5,
+          "Period": 1.3,
+          "Phase": 0
+        }
+      ]
+    },
+    "Drop2": {
+      "Parent": null,
+      "Pivot": [
+        0.0,
+        -2.5999999046325684,
+        -0.09948166459798813
+      ],
+      "PivotRoblox": [
+        -0.0,
+        -0.0995,
+        0.9
+      ],
+      "Motion": [
+        {
+          "Kind": "Sway",
+          "Axis": [
+            0,
+            1,
+            0
+          ],
+          "Amp": 9.0,
+          "Period": 2.1,
+          "Phase": 70
+        },
+        {
+          "Kind": "Sway",
+          "Axis": [
+            1,
+            0,
+            0
+          ],
+          "Amp": 4.0,
+          "Period": 2.8770000000000002,
+          "Phase": 40
+        }
+      ],
+      "Aura": true,
+      "Visual": [
+        {
+          "Kind": "Glow",
+          "Min": 0.0,
+          "Max": 0.5,
+          "Period": 1.5,
+          "Phase": 90
+        }
+      ]
+    },
+    "Drop3": {
+      "Parent": null,
+      "Pivot": [
+        0.0,
+        -4.0,
+        -0.1453624963760376
+      ],
+      "PivotRoblox": [
+        -0.0,
+        -0.1454,
+        -0.5
+      ],
+      "Motion": [
+        {
+          "Kind": "Sway",
+          "Axis": [
+            0,
+            1,
+            0
+          ],
+          "Amp": 9.0,
+          "Period": 1.9,
+          "Phase": 140
+        },
+        {
+          "Kind": "Sway",
+          "Axis": [
+            1,
+            0,
+            0
+          ],
+          "Amp": 4.0,
+          "Period": 2.603,
+          "Phase": 80
+        }
+      ],
+      "Aura": true,
+      "Visual": [
+        {
+          "Kind": "Glow",
+          "Min": 0.0,
+          "Max": 0.5,
+          "Period": 1.7000000000000002,
+          "Phase": 180
+        }
+      ],
+      "Low": "hide"
+    },
+    "Drop4": {
+      "Parent": null,
+      "Pivot": [
+        0.0,
+        -5.599999904632568,
+        -0.17000000178813934
+      ],
+      "PivotRoblox": [
+        -0.0,
+        -0.17,
+        -2.1
+      ],
+      "Motion": [
+        {
+          "Kind": "Sway",
+          "Axis": [
+            0,
+            1,
+            0
+          ],
+          "Amp": 9.0,
+          "Period": 2.3,
+          "Phase": 210
+        },
+        {
+          "Kind": "Sway",
+          "Axis": [
+            1,
+            0,
+            0
+          ],
+          "Amp": 4.0,
+          "Period": 3.151,
+          "Phase": 120
+        }
+      ],
+      "Aura": true,
+      "Visual": [
+        {
+          "Kind": "Glow",
+          "Min": 0.0,
+          "Max": 0.5,
+          "Period": 1.9000000000000001,
+          "Phase": 270
+        }
+      ],
+      "Low": "hide"
+    },
+    "Hourglass1": {
+      "Parent": null,
+      "Pivot": [
+        0,
+        -2.4,
+        0
+      ],
+      "PivotRoblox": [
+        0,
+        0,
+        1.1
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0,
+            1,
+            0
+          ],
+          "Rate": 30.0,
+          "Phase": 0
+        },
+        {
+          "Kind": "Bob",
+          "Dir": [
+            0,
+            1,
+            0
+          ],
+          "Amp": 0.1,
+          "Period": 1.5,
+          "Phase": 0
+        }
+      ],
+      "Aura": true,
+      "Visual": [
+        {
+          "Kind": "Glow",
+          "Min": 0.0,
+          "Max": 0.5,
+          "Period": 1.6,
+          "Phase": 0,
+          "Color": "#FF6A7A"
+        }
+      ],
+      "Low": "hide"
+    },
+    "Hourglass2": {
+      "Parent": null,
+      "Pivot": [
+        0,
+        -4.6,
+        0
+      ],
+      "PivotRoblox": [
+        0,
+        0,
+        -1.1
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0,
+            1,
+            0
+          ],
+          "Rate": -26.0,
+          "Phase": 180
+        },
+        {
+          "Kind": "Bob",
+          "Dir": [
+            0,
+            1,
+            0
+          ],
+          "Amp": 0.1,
+          "Period": 1.5,
+          "Phase": 90
+        }
+      ],
+      "Aura": true,
+      "Visual": [
+        {
+          "Kind": "Glow",
+          "Min": 0.0,
+          "Max": 0.5,
+          "Period": 1.6,
+          "Phase": 90,
+          "Color": "#FF6A7A"
+        }
+      ],
+      "Low": "hide"
+    }
+  }
+}

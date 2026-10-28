@@ -16,7 +16,8 @@
 -- MaxAtOnce matches running) joins his line ("You're #2 in the King's line" on his prompt); the
 -- first in line is seated as soon as a table frees, and walking LineStuds away or leaving the
 -- server drops a place. When he leaves the line clears. A win pays once per visit (core's
--- CandyService.bossWon(player, visitStart)); losing means trying again at once.
+-- CandyService.bossWon(player, visitStart)); losing means trying again at once. A winner of
+-- this visit may play him again, but waits behind everyone in the line who hasn't won yet.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -217,10 +218,42 @@ local function refusal(p: Player, qa: boolean, fromLine: boolean?): string?
 end
 
 -- `p` joins (or keeps their place in) the King's line; their place on their prompt.
+-- Whether `p` already won a prize from him this visit (BeatAttribute, set on a paid win).
+local function hasBeaten(p: Player): boolean
+	return visit ~= nil and p:GetAttribute(K.BeatAttribute) == visit
+end
+
+-- Who in the line (and `also`) already won this visit: they wait behind everyone who hasn't
+-- (Rules.linePlace and lineNext; fairness review, 2026-10-28).
+local function beatenSet(also: Player?): { [number]: boolean }
+	local beaten: { [number]: boolean } = {}
+	for _, id in line do
+		local q = Players:GetPlayerByUserId(id)
+		if q and hasBeaten(q) then
+			beaten[id] = true
+		end
+	end
+	if also and hasBeaten(also) then
+		beaten[also.UserId] = true
+	end
+	return beaten
+end
+
+-- Everyone in the line sees their place (a joiner ahead of the winners moves them back).
+local function renumber()
+	for i, id in line do
+		local q = Players:GetPlayerByUserId(id)
+		if q and q:GetAttribute(K.LineAttribute) ~= i then
+			q:SetAttribute(K.LineAttribute, i)
+		end
+	end
+end
+
 local function joinLine(p: Player, tiers: string)
 	local fresh = table.find(line, p.UserId) == nil
-	p:SetAttribute(K.LineAttribute, Rules.lineJoin(line, p.UserId))
-	notify(p, "KingLined")
+	Rules.lineJoin(line, p.UserId, beatenSet(p))
+	renumber()
+	notify(p, if hasBeaten(p) then "KingLinedBeaten" else "KingLined")
 	if fresh then
 		logChallenge(p, "Lined", tiers)
 	end
@@ -261,8 +294,9 @@ local function challenge(
 	end
 	local root = rootOf(p) :: BasePart
 	local timed = Rules.kingTimed() and visit ~= nil
-	-- In his line someone else is first: wait your turn (the line seats the first).
-	if timed and not fromLine and line[1] ~= nil and line[1] ~= p.UserId then
+	-- Someone would be ahead of them in his line: wait your turn (the line seats them in
+	-- order, everyone who hasn't won this visit before any winner).
+	if timed and not fromLine and Rules.linePlace(line, p.UserId, beatenSet(p)) > 1 then
 		joinLine(p, tiers)
 		return false, "KingLined"
 	end
@@ -527,17 +561,16 @@ local function tickLine()
 			notify(p, "KingLineLeft")
 		end
 	end
-	local nextUp: Player? = nil
-	for i, id in line do
-		local p = Players:GetPlayerByUserId(id) :: Player
-		if p:GetAttribute(K.LineAttribute) ~= i then
-			p:SetAttribute(K.LineAttribute, i)
-		end
-		if nextUp == nil and ownTable(p) ~= false then
-			nextUp = p
-		end
+	renumber()
+	if aliveKings() >= K.MaxAtOnce then
+		return
 	end
-	if nextUp == nil or aliveKings() >= K.MaxAtOnce then
+	local nextId = Rules.lineNext(line, beatenSet(), function(id: number): boolean
+		local q = Players:GetPlayerByUserId(id)
+		return q ~= nil and ownTable(q) ~= false
+	end)
+	local nextUp = if nextId then Players:GetPlayerByUserId(nextId) else nil
+	if nextUp == nil then
 		return
 	end
 	local root = rootOf(nextUp) :: BasePart

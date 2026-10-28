@@ -149,6 +149,7 @@ function SaveSchema.freshHalloween(): any
 		KingPaid = 0, -- paid King wins that day
 		KingWins = 0, -- every King win (the PumpkinSlayer badge reads it)
 		KingReadyAt = 0, -- unix seconds the personal King cooldown ends
+		KingVisit = 0, -- unix start of the King's visit whose first win was paid (Timed mode)
 		PickHour = 0, -- the UTC hour (unix // 3600) PickCount counts
 		PickCount = 0, -- lobby pickups that hour
 		Seen = false, -- opened the event menu once (the tile's NEW)
@@ -1293,7 +1294,7 @@ local HALLOWEEN_COUNTS = {
 	"PickCount",
 	"ConvertedMoney",
 }
-local HALLOWEEN_TIMES = { "KingReadyAt", "ConvertedAt" }
+local HALLOWEEN_TIMES = { "KingReadyAt", "ConvertedAt", "KingVisit" }
 local HALLOWEEN_FLAGS = { "Spider", "Seen", "Converted", "EndSeen" }
 
 -- The Halloween field (2026-10-28): whole counters and times clamped, marks true or false,

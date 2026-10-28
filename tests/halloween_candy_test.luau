@@ -163,6 +163,36 @@ return {
 		local _ = Config
 	end,
 
+	["the timed King: a visit's first win pays Visit once, the rest count only"] = function()
+		local _, Ledger, Config, SaveSchema = load()
+		local V = Config.Halloween.Boss.Visit
+		local hw = SaveSchema.freshHalloween()
+		local visit = START + 900 -- a visit's start (the map's kingWindow)
+		local first = Ledger.bossVisitWin(hw, visit + 60, visit)
+		H.expect(first ~= nil and first.granted and first.amount == V.Candy, "the visit pays Candy")
+		H.expect(
+			first ~= nil and first.money == V.Money and first.xp == V.Xp,
+			"money and XP to give"
+		)
+		H.expect(first ~= nil and first.cooldownEndsAt == 0, "no cooldown")
+		H.expect(hw.KingVisit == visit and hw.Earned == V.Candy, "the visit marked")
+		-- A replay, or a second win in the same visit (even one that ends after he left).
+		local again = Ledger.bossVisitWin(hw, visit + 900, visit)
+		H.expect(again ~= nil and not again.granted and again.amount == 0, "once a visit")
+		H.expect(again ~= nil and again.money == 0 and again.xp == 0, "no money or XP again")
+		H.expect(hw.KingWins == 2 and hw.Earned == V.Candy, "counted, not paid")
+		-- The next visit pays again.
+		local nextVisit = visit + 1800
+		local third = Ledger.bossVisitWin(hw, nextVisit + 30, nextVisit)
+		H.expect(third ~= nil and third.granted and hw.Earned == 2 * V.Candy, "the next visit")
+		-- No visit given, or outside the event: nothing.
+		local none = Ledger.bossVisitWin(hw, nextVisit + 60, 0)
+		H.expect(none ~= nil and not none.granted, "no visit, no pay")
+		H.expect(Ledger.bossVisitWin(hw, END, END - 100) == nil, "not after the event")
+		H.expect(Ledger.bossVisitWin(hw, START - 1, START - 100) == nil, "not before it")
+		H.expect(hw.KingWins == 4, "every win in Live counted")
+	end,
+
 	["pickups: NotLive outside the event, Cap at 40 a UTC hour"] = function()
 		local _, Ledger, _, SaveSchema = load()
 		local hw = SaveSchema.freshHalloween()
@@ -288,6 +318,33 @@ return {
 			#Quests.claimable(again.Q, again.Claimed, Config.Halloween.Boards, hooks) == 0,
 			"all claimed"
 		)
+	end,
+
+	["a King match counts one match and its balls for the quests, never a win or Candy"] = function()
+		local CandyMath, _, Config = load()
+		local B = Config.Halloween.Boss
+		local function kinds(events: { { kind: string, amount: number } }): string
+			local out = {}
+			for _, e in events do
+				table.insert(out, e.kind .. "=" .. e.amount)
+			end
+			return table.concat(out, ",")
+		end
+		H.expect(B.CountsForQuests == true, "on by default")
+		H.expect(kinds(CandyMath.kingEvents(4, false)) == "Matches=1,Balls=4", "a finished match")
+		H.expect(kinds(CandyMath.kingEvents(0, nil)) == "Matches=1", "no balls: no Balls event")
+		-- A surrender (or timeouts) is no match: an instant one cannot farm the Matches quests.
+		H.expect(kinds(CandyMath.kingEvents(3, true)) == "Balls=3", "forfeited: balls only")
+		H.expect(kinds(CandyMath.kingEvents(0, true)) == "", "forfeited at once: nothing")
+		H.expect(kinds(CandyMath.kingEvents(-2, false)) == "Matches=1", "never negative balls")
+		for _, e in CandyMath.kingEvents(7, false) do
+			H.expect(e.kind ~= "Wins" and e.kind ~= "TeamWins", "never a win")
+		end
+		local saved = B.CountsForQuests
+		B.CountsForQuests = false
+		local off = CandyMath.kingEvents(5, false)
+		B.CountsForQuests = saved
+		H.expect(#off == 0, "switched off: nothing")
 	end,
 
 	["the end with no Candy pays nothing; switched off it never runs"] = function()

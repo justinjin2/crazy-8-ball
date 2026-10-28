@@ -3626,12 +3626,24 @@ end
 
 --- A Pumpkin King win (Halloween/Ledger.bossWin): the paid Candy, the cooldown and the King
 --- quests together. (boss result or nil when not Live, the mutation's result or nil.)
-function PlayerData.hwBoss(player: Player, ctx: HwCtx): (HwLedger.BossResult?, HwResult?)
+function PlayerData.hwBoss(
+	player: Player,
+	ctx: HwCtx,
+	visitStart: number?
+): (HwLedger.BossResult?, HwResult?)
 	local boss: HwLedger.BossResult? = nil
-	local result = hwMutate("hwBoss", player, function(_, hw, result)
-		boss = HwLedger.bossWin(hw, ctx.now)
+	local result = hwMutate("hwBoss", player, function(data, hw, result)
+		-- Timed mode (a visit's start given): the visit's first win pays Candy and money here,
+		-- in this one change with the visit's mark, so a replay can never pay twice.
+		boss = if visitStart ~= nil
+			then HwLedger.bossVisitWin(hw, ctx.now, visitStart)
+			else HwLedger.bossWin(hw, ctx.now)
 		if boss ~= nil then
 			result.candy = boss.amount
+			local money = boss.money or 0
+			if money > 0 then
+				addMoneyTo(data, money, true, "HalloweenKing")
+			end
 			hwRoute(hw, ctx, { { kind = "King", amount = 1 } }, result)
 		end
 	end)

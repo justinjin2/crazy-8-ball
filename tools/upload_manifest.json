@@ -525,6 +525,11 @@
     "assetType": "Model",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/pieces/black_cat_aura/black_cat_aura_parts.glb": {
+    "assetId": "108664970112629",
+    "assetType": "Model",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/pieces/spider/Crown.glb": {
     "assetId": "88297987618252",
     "assetType": "Model",
@@ -553,41 +558,46 @@
     "assetType": "Model",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/pieces/spider_aura/spider_aura_parts.glb": {
+    "assetId": "112575234442239",
+    "assetType": "Model",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/pieces/spider_pocket/spider_pocket_parts.glb": {
     "assetId": "86978515586894",
     "assetType": "Model",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/pieces/witch_broom/HatCharm.glb": {
-    "assetId": "84761573077366",
+    "assetId": "113228232691476",
     "assetType": "Model",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/pieces/witch_broom/atlas_color.png": {
-    "assetId": "133730570874017",
+    "assetId": "106471947942716",
     "assetType": "Decal",
-    "imageId": "133510963296448",
+    "imageId": "137627713975392",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/pieces/witch_broom/atlas_emissive.png": {
-    "assetId": "73910439696293",
+    "assetId": "115807134054769",
     "assetType": "Decal",
-    "imageId": "92422786331997",
+    "imageId": "126089154408348",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/pieces/witch_broom/atlas_normal.png": {
-    "assetId": "70889581925253",
+    "assetId": "115792270423755",
     "assetType": "Decal",
-    "imageId": "96376837202239",
+    "imageId": "138814904584787",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/pieces/witch_broom/witch_broom_parts.glb": {
-    "assetId": "79787647258778",
+    "assetId": "81896660220724",
     "assetType": "Model",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/pieces/witch_broom_aura/witch_broom_aura_parts.glb": {
-    "assetId": "124125704817567",
+    "assetId": "95270734621489",
     "assetType": "Model",
     "status": "ok"
   },
@@ -609,9 +619,9 @@
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/thumbs/witch_broom.png": {
-    "assetId": "140099377083301",
+    "assetId": "75454419026225",
     "assetType": "Decal",
-    "imageId": "114319101783547",
+    "imageId": "121330247838904",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/vfx/black_cat/cat_leap_4x4.png": {
