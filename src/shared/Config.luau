@@ -17104,6 +17104,20 @@ Config.UI.Halloween = {
 		CardDisplayOrder = 45, -- its screen: over the tutorial's popups (40), under the scenes (60)
 		AutoCloseSeconds = 8, -- it closes itself after this long (OK closes it sooner)
 	},
+	-- The end screen (Halloween/EndScreen; the M5 mock): laid out at WidthPx (a phone's
+	-- ShortWidthPx) and scaled down to fit.
+	End = {
+		WidthPx = 640,
+		ShortWidthPx = 560,
+		HeightShare = 0.92, -- of the screen's height at most
+		RibbonTint = { 112, 48, 190 }, -- the title ribbon's purple
+		CandyTint = { 255, 140, 30 }, -- the Candy pill
+		ArrowTint = { 255, 160, 40 },
+		MaxCues = 5, -- the event cues the player owns, as cards
+		CountUpSeconds = 1.2, -- the two numbers count up this long
+		DisplayOrder = 45, -- its screen: as the NEW CUE! card's
+		DimTransparency = 0.45,
+	},
 	-- A quest row's icon by its Icon key (Config.Halloween.Quests): Kit icon keys; "Candy" is the
 	-- Candy icon.
 	QuestIcons = {

@@ -1973,6 +1973,11 @@ return {
 		Night = "HALLOWEEN NIGHT",
 		NightNow = "2x CANDY ALL DAY %s",
 		Yours = "YOURS!",
+		-- The end screen (Halloween/EndScreen).
+		EndCandy = "%s CANDY", -- "1,240 CANDY"
+		EndNote = "Your leftover candy was turned into money. Thanks for playing!",
+		YoursForever = "YOURS FOREVER",
+		Collect = "COLLECT",
 		-- The designer's /hw command (DevCommands; CandyService.dev).
 		Dev = {
 			Status = "Halloween: %s at %s UTC (offset %ds). Candy %d, board %d, %dx, active %ds",
