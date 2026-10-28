@@ -6,7 +6,7 @@
 local H = require("./harness")
 
 return {
-	["every block, rank and Exclusive cue and Classic has a skin; a Unique cue may still be unbuilt"] = function()
+	["every block, rank and Exclusive cue and Classic has a skin; a Unique or event cue may still be unbuilt"] = function()
 		local Catalog = H.require("Progression.Catalog")
 		local CueSkins = H.require("CueSkins")
 		-- The Unique cues are built one at a time (the Beta Cue first, 2026-10-04); a Unique
@@ -22,6 +22,26 @@ return {
 					not CueSkins.has(cue.Id),
 					cue.Id .. ": a Unique cue's skin is not built yet"
 				)
+			elseif cue.Event ~= nil then
+				-- An event cue (Halloween 2026) is hidden and drawn as Classic until its skin
+				-- exists; a built one is drawn by its own model (Body), has a card (Thumb) and
+				-- flat colours (Look) for the power-bar cue.
+				if CueSkins.has(cue.Id) then
+					local row = CueSkins.get(cue.Id)
+					local index = CueSkins.index(cue.Id)
+					H.expect(
+						type(row.Body) == "string" and row.Body == index.Body,
+						cue.Id .. ": a built event cue has a Body"
+					)
+					H.expect(
+						type(row.Thumb) == "string" and #row.Thumb > 0,
+						cue.Id .. ": a built event cue has a Thumb"
+					)
+					H.expect(
+						type(row.Look) == "table" and row.Look.Shaft ~= nil,
+						cue.Id .. ": a built event cue has a Look"
+					)
+				end
 			else
 				H.expect(CueSkins.has(cue.Id), cue.Id .. " has no skin")
 			end

@@ -64,6 +64,7 @@ local STAT_KEYS = {
 	"MoneyEarned",
 	"WinStreak",
 	"BestWinStreak",
+	"UltMatches", -- matches in which the player fired at least one ability (2026-10-28, the Ability Master badge)
 }
 
 -- The top-level sub-tables, all string-keyed maps, in the order fixes are reported.
@@ -87,6 +88,7 @@ local MAP_KEYS = {
 	"LuckyBlocks",
 	"EmoteFavorites",
 	"Halloween",
+	"Badges",
 }
 
 -- Shop's true/false fields, in the order fixes are reported.
@@ -266,6 +268,10 @@ function SaveSchema.template(): any
 		-- so no version bump: Reconcile adds it to an older save. Candy is never spent: the
 		-- track counts Earned + Bought, and once the event ends it all becomes money (Converted).
 		Halloween = SaveSchema.freshHalloween(),
+		-- Roblox badges this save already holds (2026-10-28; Config.Badges keys): [key] = true.
+		-- A new field, so no version bump: Reconcile adds it to an older save. Unknown keys stay,
+		-- so a retired badge never strips anything.
+		Badges = {},
 	}
 end
 
@@ -1488,6 +1494,7 @@ function SaveSchema.validate(data: any): (any, { string })
 	fixMap(data.EmoteFavorites, "EmoteFavorites", SaveCfg.MaxSmallEntries, onlyTrue, fixes)
 
 	fixHalloween(data.Halloween, fixes)
+	fixMap(data.Badges, "Badges", SaveCfg.MaxBadgeEntries, onlyTrue, fixes)
 
 	return data, fixes
 end
