@@ -163,6 +163,36 @@ return {
 		local _ = Config
 	end,
 
+	["the timed King: a visit's first win pays Visit once, the rest count only"] = function()
+		local _, Ledger, Config, SaveSchema = load()
+		local V = Config.Halloween.Boss.Visit
+		local hw = SaveSchema.freshHalloween()
+		local visit = START + 900 -- a visit's start (the map's kingWindow)
+		local first = Ledger.bossVisitWin(hw, visit + 60, visit)
+		H.expect(first ~= nil and first.granted and first.amount == V.Candy, "the visit pays Candy")
+		H.expect(
+			first ~= nil and first.money == V.Money and first.xp == V.Xp,
+			"money and XP to give"
+		)
+		H.expect(first ~= nil and first.cooldownEndsAt == 0, "no cooldown")
+		H.expect(hw.KingVisit == visit and hw.Earned == V.Candy, "the visit marked")
+		-- A replay, or a second win in the same visit (even one that ends after he left).
+		local again = Ledger.bossVisitWin(hw, visit + 900, visit)
+		H.expect(again ~= nil and not again.granted and again.amount == 0, "once a visit")
+		H.expect(again ~= nil and again.money == 0 and again.xp == 0, "no money or XP again")
+		H.expect(hw.KingWins == 2 and hw.Earned == V.Candy, "counted, not paid")
+		-- The next visit pays again.
+		local nextVisit = visit + 1800
+		local third = Ledger.bossVisitWin(hw, nextVisit + 30, nextVisit)
+		H.expect(third ~= nil and third.granted and hw.Earned == 2 * V.Candy, "the next visit")
+		-- No visit given, or outside the event: nothing.
+		local none = Ledger.bossVisitWin(hw, nextVisit + 60, 0)
+		H.expect(none ~= nil and not none.granted, "no visit, no pay")
+		H.expect(Ledger.bossVisitWin(hw, END, END - 100) == nil, "not after the event")
+		H.expect(Ledger.bossVisitWin(hw, START - 1, START - 100) == nil, "not before it")
+		H.expect(hw.KingWins == 4, "every win in Live counted")
+	end,
+
 	["pickups: NotLive outside the event, Cap at 40 a UTC hour"] = function()
 		local _, Ledger, _, SaveSchema = load()
 		local hw = SaveSchema.freshHalloween()

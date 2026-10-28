@@ -246,6 +246,14 @@ Epic block + 5 spins. **Weekly community codes** (2026-10-26, posted in the Disc
 designer each Monday): 5 spins each, one per week Monday 00:00 UTC to the next Monday: BREAKSHOT (to Nov 2),
 BANKSHOT (Nov 9), CUEBALL (Nov 16), TRICKSHOT (Nov 23), CORNERPOCKET (Nov 30), MASSESHOT (Dec 7).
 
+**The Pumpkin King, timed** (Halloween 2026, 2026-10-28, Justin's numbers through the coordinator;
+only while Live and only with `Config.HalloweenMap.Boss.Mode` "Timed", Throne mode keeps its
+50 Candy for the first 2 wins of a UTC day): he visits 12 minutes at UTC :15 and :45, and the
+first win of each visit pays a player **+150 Candy (flat), +$2,500 (a reward, never boosted) and
++100 XP** (through the real rank rules), once per visit; later wins in the same visit pay nothing
+but count for the King quests. At most 2 visits an hour; no cooldown. `Config.Halloween.Boss.Visit`;
+measured by the `HwKing` event (Paid or Repeat).
+
 **Planned, not built** (Config.Planned): the Daily Challenge (its button is off for the release),
 Lucky Shot free (miss $250, grey $500, blue $1,000, red $2,500, gold a Mystery) and Golden Shot
 15 R$ (miss a Mystery; grey a Mystery + $10,000; blue 2 Mysteries; red a Rare block; gold a Rare

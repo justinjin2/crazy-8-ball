@@ -11,7 +11,13 @@ local CAP = Config.Save.StatCap
 
 local Ledger = {}
 
-export type BossResult = { granted: boolean, amount: number, cooldownEndsAt: number }
+export type BossResult = {
+	granted: boolean,
+	amount: number, -- Candy paid
+	cooldownEndsAt: number,
+	money: number?, -- Timed mode's visit reward (bossVisitWin)
+	xp: number?,
+}
 
 local function whole(x: any): number
 	if type(x) ~= "number" or x ~= x or math.abs(x) == math.huge then
@@ -58,6 +64,31 @@ function Ledger.bossWin(hw: any, now: number): BossResult?
 		amount = Ledger.addCandy(hw, B.Candy, "Earned")
 	end
 	return { granted = amount > 0, amount = amount, cooldownEndsAt = hw.KingReadyAt }
+end
+
+-- A Pumpkin King win at `now` in Timed mode, in the visit that started at `visitStart` (Live
+-- only: nil otherwise). Every win counts (KingWins); the first win of a visit pays Boss.Visit
+-- once (KingVisit marks it: a replay or a second win in the same visit pays nothing); no
+-- cooldown. `money` and `xp` are for the caller to give in the same change.
+function Ledger.bossVisitWin(hw: any, now: number, visitStart: number): BossResult?
+	if not Event.isLive(now) then
+		return nil
+	end
+	hw.KingWins = math.min(whole(hw.KingWins) + 1, CAP)
+	local start = whole(visitStart)
+	if start <= 0 or whole(hw.KingVisit) == start then
+		return { granted = false, amount = 0, cooldownEndsAt = 0, money = 0, xp = 0 }
+	end
+	local V = C.Boss.Visit
+	hw.KingVisit = start
+	local amount = Ledger.addCandy(hw, V.Candy, "Earned")
+	return {
+		granted = true,
+		amount = amount,
+		cooldownEndsAt = 0,
+		money = whole(V.Money),
+		xp = whole(V.Xp),
+	}
 end
 
 -- When the player's King cooldown ends (unix seconds), or 0 when none is running.
