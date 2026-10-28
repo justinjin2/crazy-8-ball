@@ -51,6 +51,15 @@ From PLAN §4 (everything else is read-only to this lane; ask through Requests):
 
 ## Status
 
+- 11:00 hw-map: step 13 done (28fd816f meshes, fa43df20 kits). Every table wears its mode's
+  kit while Live, arenas too, and loses it at the end: Orchid 1v1 (purple underglow, two glowing
+  bats on the long aprons; 3 parts, 196 tris), Pumpkin 2v2 (orange underglow, trim ring under
+  the rail line, bats, four small jack-o'-lanterns by the legs; 8 parts, 956 tris), Toxic 3v3
+  (green underglow, trim, bats, cobwebs in two opposite corners; 6 parts, 676 tris). Studio: all
+  16 tables built (74 parts), every piece passed `Rules.decorInside` (no warnings), a forced
+  Ended removed every kit and look, Live again put the same 74 back, Live twice changed nothing.
+  New meshes in the props GLB (re-uploaded, Model 113325392217599): PumpkinSmall (182 tris, one
+  piece) and Trim. Shots: `shots/hw-map/decor/01-03`. Now: props and hides (14).
 - 10:55 hw-map: step 11 done. Candy walk test (5 min, the player walked by Humanoid:MoveTo, core
   live): 4 candies spawned near the moving player, all 4 picked up by walking over them, core's
   save PickCount 4 and Earned +4 (+1 each); none while idle. About one per 30 s of eligible
@@ -168,6 +177,18 @@ coordinator resolves overlaps. Planned (add the commit sha when each lands):
   (Grandmaster) and 14.0% (Reyes), all under the brief's 20% floor; stepped down one tier they
   read 26.5% / 33.0% / 36.0%, inside 25-45%. The Reyes row's King is now one tier below the
   player (the only row so).
+
+- `TableBuilder.addDecor(model, kit?)` reads the table's frame from the model's pivot (the
+  placement's own, set by `buildFromModel`), so it takes no `p`: EventMap finds tables by model,
+  and an arena's table is placed the same way.
+- The trim is one mesh ring (Assets `Trim`, the body footprint's size, 32 tris), not strips: four
+  strips put the 2v2 kit at 11 parts, and a solid plate would show inside the pocket cups.
+- The bats glow Neon in the kit's colour: the brief's black bat vanishes on the black-frame
+  apron. They sit 0.022 studs proud of the apron (the footprint leaves 0.024).
+- The underglow stays inside the footprint, as the brief rules: at Transparency 0.45 it reads as
+  a pool of light under the table (a solid Neon plate read as a yellow slab). The 2v2 kit's
+  orange is (255, 90, 10): Neon draws (255, 122, 26) nearly yellow.
+- The decor goes on arena tables too (part of the table's look, like the cloth tint).
 
 ### King difficulty (bot_duel, 200 games a row, `--no-write`, 2026-10-28)
 
