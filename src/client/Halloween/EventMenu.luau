@@ -409,6 +409,7 @@ function EventMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 	spiderText.ZIndex = 3
 	local spiderNote = HudParts.text(spiderBox, "Note", M.TextPx - 4, W.SpiderNote)
 	spiderNote.TextColor3 = HudParts.tone("Soft")
+	spiderNote.TextYAlignment = Enum.TextYAlignment.Top
 	spiderNote.ZIndex = 3
 
 	-- Get Candy: the two packs.
@@ -466,6 +467,9 @@ function EventMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		end
 		return math.max(1, open)
 	end
+
+	local packTextPx = M.TextPx -- the packs' text size at the last layout
+	local packFit = "" -- the packs' width, text size and labels when last fitted
 
 	local function sizeText(label: TextLabel, px: number)
 		HudParts.setTextSize(label, px)
@@ -626,7 +630,8 @@ function EventMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		sizeText(spiderText, textPx + 2)
 		spiderBarBack.Size = UDim2.fromOffset(textW, 12)
 		spiderBarBack.Position = UDim2.fromOffset(textX, titleH + round(artPx * 0.15) + textPx + 12)
-		spiderNote.Size = UDim2.fromOffset(textW, textPx + 4)
+		-- Two lines' room: a narrow column (an iPad) wraps the note instead of cutting it.
+		spiderNote.Size = UDim2.fromOffset(textW, 2 * textPx + 4)
 		spiderNote.Position = UDim2.fromOffset(textX, titleH + round(artPx * 0.15) + textPx + 30)
 		sizeText(spiderNote, math.max(10, textPx - 4))
 		local packY = sideY + spiderH + gap
@@ -642,6 +647,7 @@ function EventMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 			button.Position = UDim2.fromOffset(round(qPad + (i - 1) * (bw + qPad)), titleH + 4)
 			HudParts.setButtonTextSize(button, textPx)
 		end
+		packTextPx = textPx
 		local bottom = if short then packY + packH else y + questH
 		scroll.CanvasSize = UDim2.fromOffset(0, bottom + gap)
 	end
@@ -764,17 +770,47 @@ function EventMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 			local products = if type(shop) == "table" and type(shop.products) == "table"
 				then shop.products
 				else {}
+			local labels: { { words: string, price: string? } } = {}
+			local fitKey = ("%d|%d|"):format(packButtons[1].Size.X.Offset, packTextPx)
 			for i, key in H.Packs.Keys do
 				local row = products[key]
 				local robux = if type(row) == "table" and type(row.robux) == "number"
 					then row.robux
 					else nil
-				local candyCount = if key == "Candy500" then 500 else 2000
-				HudParts.setText(
-					packButtons[i],
-					W.PackCandy:format(Format.commas(candyCount))
-						.. (if robux then "  " .. ShopParts.robux(robux) else "")
-				)
+				local spec = (Config.Products.List :: any)[key]
+				local candyCount = if type(spec) == "table" then spec.Candy or 0 else 0
+				local words = W.PackCandy:format(Format.commas(candyCount))
+				local price = if robux then ShopParts.robux(robux) else nil
+				labels[i] = { words = words, price = price }
+				fitKey ..= words .. (price or "")
+			end
+			if packFit ~= fitKey then
+				packFit = fitKey
+				-- Too wide for a narrow column (an iPad) even at the smallest text: both packs put
+				-- the price on a second line, so the two buttons still match.
+				local floorPx = math.min(packTextPx, K.Text.Min)
+				local twoLines = false
+				for i, label in labels do
+					local button = packButtons[i]
+					HudParts.setText(
+						button,
+						if label.price then label.words .. "  " .. label.price else label.words
+					)
+					if
+						label.price
+						and HudParts.candyWidth(button, button.Size.Y.Offset, floorPx)
+							> button.Size.X.Offset
+					then
+						twoLines = true
+					end
+				end
+				if twoLines then
+					for i, label in labels do
+						if label.price then
+							HudParts.setText(packButtons[i], label.words .. "\n" .. label.price)
+						end
+					end
+				end
 			end
 		end
 		-- The Rush strip.
