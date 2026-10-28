@@ -142,6 +142,16 @@ return {
 		H.expect(Quests.find("x", 6, ALL_ON) == nil and Quests.find("9.9", 6, ALL_ON) == nil, "")
 	end,
 
+	["find takes only a quest's own key, never another spelling of it"] = function()
+		local Quests = load()
+		-- A claim is recorded under the key the client sent: "01.4" or "1.04" finding quest
+		-- 1.4 would let one finished quest be claimed once per spelling.
+		H.expect(Quests.find("1.4", 1, ALL_ON) ~= nil, "the real key")
+		for _, spelling in { "01.4", "001.4", "1.04", "01.04", "1.4 ", " 1.4", "+1.4", "1.4.0" } do
+			H.expect(Quests.find(spelling, 1, ALL_ON) == nil, "refused: " .. spelling)
+		end
+	end,
+
 	["each board's four go easiest first (by expected minutes)"] = function()
 		local Quests = load()
 		-- A rough clock: 6.3 min a match, half of them won, 5.75 balls a match, a King win in

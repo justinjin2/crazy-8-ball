@@ -145,11 +145,15 @@ function Quests.route(
 	return changed
 end
 
--- The quest behind `key` on an open board (nil for a key that is not one).
+-- The quest behind `key` on an open board (nil for a key that is not one). Only the quest's
+-- own spelling ("1.4", never "01.4" or "1.04"): a claim is recorded under the key sent.
 function Quests.find(key: string, open: number, hooks: Hooks): Quest?
 	local board, slot = string.match(key, "^(%d+)%.(%d+)$")
 	local n, s = tonumber(board), tonumber(slot)
 	if n == nil or s == nil or n < 1 or n > math.min(open, Quests.count()) then
+		return nil
+	end
+	if key ~= Quests.key(n, s) then
 		return nil
 	end
 	local list = Quests.board(n, hooks)

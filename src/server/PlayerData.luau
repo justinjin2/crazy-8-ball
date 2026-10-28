@@ -3744,7 +3744,7 @@ function PlayerData.hwClaim(player: Player, key: string, ctx: HwCtx): (number, H
 		or found == nil
 		or type(saved.Q) ~= "table"
 		or type(saved.Claimed) ~= "table"
-		or saved.Claimed[key] == true
+		or saved.Claimed[found.key] == true
 		or not Quests.done(saved.Q, found)
 	then
 		return 0, nil
@@ -3755,10 +3755,10 @@ function PlayerData.hwClaim(player: Player, key: string, ctx: HwCtx): (number, H
 			return
 		end
 		local quest = Quests.find(key, ctx.open, ctx.hooks)
-		if quest == nil or hw.Claimed[key] == true or not Quests.done(hw.Q, quest) then
+		if quest == nil or hw.Claimed[quest.key] == true or not Quests.done(hw.Q, quest) then
 			return
 		end
-		hw.Claimed[key] = true
+		hw.Claimed[quest.key] = true -- the quest's own key, whatever the client sent
 		claimed = HwLedger.addCandy(hw, quest.reward, "Earned")
 		result.candy = claimed
 	end)
