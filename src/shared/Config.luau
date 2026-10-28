@@ -9351,11 +9351,23 @@ Config.HalloweenMap = {
 		Cape = { 92, 34, 150 },
 		Lining = { 255, 122, 26 },
 		Vest = { 255, 122, 26 },
-		Icon = "", -- his 256x256 portrait (rbxassetid; empty: the PC robot's)
-		-- His idle and walk (Body.build's keys; nil: Config.Bots.Animations); the throne figure
-		-- sits (Sit).
-		Animations = nil :: { [string]: string }?,
+		-- his 256x256 portrait (rbxassetid; empty: the PC robot's): a ViewportFrame headshot,
+		-- keyed transparent (assets/halloween/map/portrait/king_portrait.png)
+		Icon = "rbxassetid://85794616941921",
+		-- His idle and walk (Body.build's keys; nil: Config.Bots.Animations): Roblox's Vampire
+		-- animation package (checked in Studio 2026-10-28: all Roblox-owned, all load); the
+		-- throne figure sits (Sit, the bots' own: the package has none).
+		Animations = {
+			Idle = "rbxassetid://1083445855", -- Vampire Idle
+			Walk = "rbxassetid://1083473930", -- Vampire Walk
+			Jump = "rbxassetid://1083455352", -- Vampire Jump
+			Fall = "rbxassetid://1083443587", -- Vampire Fall
+			Sit = "rbxassetid://2506281703",
+		} :: { [string]: string }?,
 		CrownTiltDegrees = 14,
+		-- The crown's lift over the mesh head's half height (studs; the mesh's top bound is its
+		-- stem's tip, so negative sets the band on the pumpkin with the stem inside it).
+		CrownOnMesh = -0.2,
 	},
 	Candy = {
 		Enabled = false, -- the lobby's candy drops (the hour cap is core's Halloween.Pickup.HourCap)
@@ -9365,9 +9377,6 @@ Config.HalloweenMap = {
 		NearStuds = { 10, 30 }, -- this far from them
 		PadClearStuds = 6, -- never this close to a queue or portal pad
 		LifeSeconds = 60, -- an unclaimed candy goes after this
-		-- The crown's lift over the mesh head's half height (studs; the mesh's top bound is its
-		-- stem's tip, so negative sets the band on the pumpkin with the stem inside it).
-		CrownOnMesh = -0.2,
 		MaxAlive = 40, -- on the server
 		MaxAlivePerPlayer = 3,
 		PickupStuds = 5, -- walked over within this
