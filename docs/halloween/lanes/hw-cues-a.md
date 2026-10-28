@@ -56,6 +56,25 @@ From PLAN §4 (everything else is read-only; ask through Requests):
 
 ## Status (continued)
 
+- 11:48: **Progress 14 run on Cues B's READY tip (a431419b, their 11:43 READY lines; the real
+  tick waits only for that tip to reach `halloween`):** local scratch branch `integ-scratch2`
+  = `hw-cues-a` @e30b90ec + `origin/hw-cues-b` @01c43189 (B's tip already contains `halloween`
+  @537270fd, so the merge is clean: no conflict, the manifest already the union, the Index
+  with all five). `cue_skins_data.py` rewrites nothing (66 skins, 28 pieces), lint green,
+  client_compiles + cue_body/looks/mesh/motion + catalog + B's halloween_cues_b tests pass. My
+  window, Edit: ONLY build of the five: 5 skins rebuilt, 61 other templates untouched, 9
+  pieces (black_cat 4, candy_corn 7, jack_o_lantern 7 + pocket 4, spider 4 + pocket 3,
+  witch_broom 6 + aura 2 + pocket 13), no problems. Play: all four event cues given, each of
+  B's bodies on my own back in the lobby (`final_broom_back.jpg`, `final_cat_back.jpg`,
+  `final_spider_back.jpg`) and in hands in a solo fixture while aiming with the PULL card
+  (`final_broom_hands.jpg`, `final_cat_hands.jpg`, `final_spider_hands.jpg`); the Aim fade
+  measured on the owner's screen: Broom HatCharm 1.00, Bristles 1.00, tip/bark/ribbons 0; Cat
+  Tail + TailShell 1.00, body/ring/claws 0; Spider Webs + Blades 1.00, body/ring/hourglass 0.
+  `HalloweenCueEquipped` logged for all three. Console: no CueSkinLook, CuePiece or CueAssets
+  line; the known `203785492` lines; the "not approved" ContentId line is the tutorial bot's
+  avatar (a different id with each bot: 1591779, then 24797508), not a lane's. Tree back on
+  `hw-cues-a`; the five Edit templates stay in my window.
+
 - 11:38: Studio check of the merged build (`halloween` @537270fd in my window): boot clean, a
   tutorial skip, both cues given, a solo fixture, the Jack equipped and aimed: the body in
   hands (7 parts, no fade needed), the PULL card draws it, core's 2x CANDY chip and the +120%
@@ -484,3 +503,7 @@ Gate 2 addition (10:28, `gate2/`): Jack-o'-Lantern complete @ db1a9fdb (+ 73fc00
 - `ipad_index_exclusive_row_1024x768.jpg`, `ipad_my_cues_jack_1024x768.jpg`: the same at iPad size.
 - `merged_537270fd_jack_hands.jpg`: the Jack in hands on the merged `halloween` build (core's
   CANDY chip and the pill beside the PULL card).
+- `final_broom_back.jpg`, `final_cat_back.jpg`, `final_spider_back.jpg`: B's three bodies on my
+  own back in the lobby, on the merge of B's READY tip a431419b.
+- `final_broom_hands.jpg`, `final_cat_hands.jpg`, `final_spider_hands.jpg`: the same three in
+  hands while aiming (solo fixture), the Aim joints cleared, each PULL card drawn.
