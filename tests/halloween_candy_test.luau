@@ -64,6 +64,38 @@ return {
 		H.expect(CandyMath.base({ balls = -3, finished = 0, won = 0 }) == 0, "never below 0")
 	end,
 
+	["only real matches against people pay: every pay kind and bot kind"] = function()
+		local CandyMath = load()
+		local function how(real: boolean, payKind: string, botKind: string?): string
+			return CandyMath.how({ real = real, payKind = payKind, botKind = botKind })
+		end
+		H.expect(how(true, "Player", nil) == "Paid", "people")
+		H.expect(how(true, "Player", "Tutorial") == "Paid", "the tutorial's bot counts")
+		H.expect(how(true, "Player", "Disguised") == "Disguised", "a disguised bot pays 0")
+		H.expect(how(true, "PC", "Disguised") == "Disguised", "past its daily limit too")
+		H.expect(how(true, "PC", "Pc") == "PC", "Play against PC (the King too)")
+		H.expect(how(true, "PC", nil) == "PC", "PC")
+		H.expect(how(false, "Player", nil) == "Short", "a short forfeit")
+		H.expect(how(false, "Player", "Tutorial") == "Short", "not real is never paid")
+		H.expect(how(true, "Solo", nil) == "PC", "solo never pays")
+	end,
+
+	["finished: a played-out match, a draw and both sides of a real forfeit"] = function()
+		local CandyMath = load()
+		local function candy(balls: number, forfeited: boolean?, won: boolean): number
+			return CandyMath.match({
+				balls = balls,
+				finished = CandyMath.finished(forfeited),
+				won = if won then 1 else 0,
+			}, 1)
+		end
+		H.expect(candy(7, false, true) == 21 + 10 + 25, "a win played out: 56")
+		H.expect(candy(5, false, false) == 15 + 10, "a loss played out: 25")
+		H.expect(candy(4, nil, false) == 12 + 10, "a draw pays the 10")
+		H.expect(candy(1, false, true) == 3 + 10 + 25, "the winner of a real forfeit")
+		H.expect(candy(3, true, false) == 9, "the side that forfeited keeps its balls only")
+	end,
+
 	["the anti-farm rows cut a match's Candy like its money"] = function()
 		local CandyMath = load()
 		local f = { balls = 6, finished = 1, won = 1, farmBalls = 0.5, farmBonus = 0.25 }
@@ -193,5 +225,50 @@ return {
 		H.expect(Ledger.convertDue(hw, END), "due at the end")
 		hw.Converted = true
 		H.expect(not Ledger.convertDue(hw, END + 86400 * 40), "once (a December rejoin too)")
+	end,
+
+	["the end on a rejoin: finished quests claimed first, the marks survive a reload"] = function()
+		local _, Ledger, Config, SaveSchema = load()
+		local Quests = H.require("Halloween.Quests")
+		local hooks = { king = true, pickups = true, ult = true }
+		local hw = SaveSchema.freshHalloween()
+		hw.Earned = 1000
+		-- Board 1 finished, its first quest already claimed: three wait.
+		for _, quest in Quests.board(1, hooks) or {} do
+			hw.Q[quest.key] = quest.need
+		end
+		hw.Claimed["1.1"] = true
+		local waiting = Quests.claimable(hw.Q, hw.Claimed, Config.Halloween.Boards, hooks)
+		H.expect(#waiting == 3, "three to claim: " .. #waiting)
+		for _, quest in waiting do -- as PlayerData.hwConvert does, before paying
+			hw.Claimed[quest.key] = true
+			Ledger.addCandy(hw, quest.reward, "Earned")
+		end
+		H.expect(hw.Earned == 1000 + 100 + 150 + 250, "rewards in: " .. hw.Earned)
+		H.expect(Ledger.convertMoney(hw) == 15000, "$15,000")
+		hw.Converted, hw.ConvertedMoney, hw.ConvertedAt = true, 15000, END + 5
+		-- Saved and loaded again (a rejoin in any server): still converted, never paid twice.
+		local save = SaveSchema.template()
+		save.Halloween = hw
+		local loaded, fixes = SaveSchema.validate(save)
+		H.expect(#fixes == 0, "clean: " .. table.concat(fixes, "; "))
+		local again = loaded.Halloween
+		H.expect(again.Converted == true and again.ConvertedMoney == 15000, "marks kept")
+		H.expect(not Ledger.convertDue(again, END + 86400 * 40), "not again")
+		H.expect(
+			#Quests.claimable(again.Q, again.Claimed, Config.Halloween.Boards, hooks) == 0,
+			"all claimed"
+		)
+	end,
+
+	["the end with no Candy pays nothing; switched off it never runs"] = function()
+		local _, Ledger, Config, SaveSchema = load()
+		local hw = SaveSchema.freshHalloween()
+		H.expect(Ledger.convertDue(hw, END) and Ledger.convertMoney(hw) == 0, "due, $0")
+		local C = Config.Halloween.Convert
+		local saved = C.Enabled
+		C.Enabled = false
+		H.expect(not Ledger.convertDue(hw, END + 60), "off")
+		C.Enabled = saved
 	end,
 }

@@ -3776,11 +3776,11 @@ Config.Halloween = {
 	-- through Money.friendBoost / Money.boostParts; added to each other, never multiplied.
 	-- The Candy icon (candy corn, 256 px): map's +1 / +50 billboards, the GUI lane's chip and the
 	-- event menu read it. "" = each uses its own fallback.
-	CandyIcon = "",
+	CandyIcon = "rbxassetid://75949906210202",
 	-- Match Candy at settle (Halloween/CandyMath; real matches against people only): PerBall a
 	-- ball pocketed, Finished for a match the player's side did not forfeit, Win on top for a
 	-- win; times the event multiplier and the friends + group boost.
-	Match = { Enabled = false, PerBall = 3, Finished = 10, Win = 25 },
+	Match = { Enabled = true, PerBall = 3, Finished = 10, Win = 25 },
 	-- Beating the Pumpkin King: the first PaidWinsPerDay wins of a UTC day pay Candy (flat);
 	-- every win starts a personal cooldown of CooldownSeconds (the King's prompt shows it).
 	Boss = { Candy = 50, PaidWinsPerDay = 2, CooldownSeconds = 900 },
@@ -3794,7 +3794,7 @@ Config.Halloween = {
 	-- the pickups switched off in Config.HalloweenMap, or no ability signal). Icon: a key of
 	-- Config.UI.Halloween.QuestIcons. Order and needs: docs/halloween/lanes/hw-core.md.
 	Quests = {
-		Enabled = false,
+		Enabled = true,
 		Rewards = { 60, 100, 150, 250 },
 		Boards = {
 			{ -- 1, Wed Oct 28
@@ -3810,14 +3810,19 @@ Config.Halloween = {
 			},
 			{ -- 2, Thu Oct 29
 				{ Kind = "TeamMatches", Need = 1, Icon = "Team" },
-				{ Kind = "King", Need = 1, Icon = "King", Alt = { Kind = "Wins", Need = 2 } },
+				{ Kind = "King", Need = 1, Icon = "King", Alt = { Kind = "Matches", Need = 4 } },
 				{ Kind = "Wins", Need = 2, Icon = "Win" },
 				{ Kind = "Balls", Need = 30, Icon = "Ball" },
 			},
 			{ -- 3, Fri Oct 30
-				{ Kind = "NiceShots", Need = 5, Icon = "Nice" },
-				{ Kind = "UltMatches", Need = 3, Icon = "Ult", Alt = { Kind = "Wins", Need = 3 } },
+				{
+					Kind = "UltMatches",
+					Need = 3,
+					Icon = "Ult",
+					Alt = { Kind = "Matches", Need = 5 },
+				},
 				{ Kind = "Wins", Need = 3, Icon = "Win" },
+				{ Kind = "NiceShots", Need = 5, Icon = "Nice" },
 				{
 					Kind = "Pickups",
 					Need = 30,
@@ -3878,12 +3883,13 @@ Config.Halloween = {
 	},
 	-- The playtime cue: Seconds of ACTIVE play while the event is Live (any server; idle time
 	-- does not count: SkyDropService.isActive), 3 h 01 m.
-	Spider = { Enabled = false, Cue = "SpiderCue", Seconds = 10860 },
+	Spider = { Enabled = true, Cue = "SpiderCue", Seconds = 10860 },
 	TickSeconds = 5, -- the server adds active time and retries held grants this often
 	PushSeconds = 2, -- at most one event view pushed to a player this often
+	ActivePushSeconds = 30, -- active time alone re-sends the view this often (the menu shows minutes)
 	-- The two Candy packs (Config.Products.List Candy500 / Candy2000; flat, fill the whole track,
 	-- not quests).
-	Packs = { Enabled = false, Keys = { "Candy500", "Candy2000" } },
+	Packs = { Enabled = true, Keys = { "Candy500", "Candy2000" } },
 	-- Once per save, once the event has ended: all Candy (earned + bought) becomes money.
 	Convert = { Enabled = true, MoneyPerCandy = 10 },
 	-- Test time (Halloween/Clock): the workspace attribute HwTimeOffset (seconds added to the
@@ -4096,8 +4102,8 @@ Config.Shop = {
 ---------------------------------------------------------------------------------------------
 Config.Products = {
 	-- Everything Robux buys (economy v4, 2026-10-08; tools/products_spec.json holds the names,
-	-- prices and descriptions): 3 game passes and 40 developer products (8 retired; Claim All's
-	-- 6 not made yet), made
+	-- prices and descriptions): 3 game passes and 44 developer products (9 retired; the two
+	-- Halloween Candy packs made 2026-10-28), made
 	-- through Open Cloud by tools/roblox_products.py (managed pricing off; --sync updates them). Id 0 would show "Coming soon" and prompt
 	-- nothing. Robux is the fallback price; the live price
 	-- is read from Roblox. Random = true: a paid random item, refused where PolicyService
@@ -4377,6 +4383,12 @@ Config.Products = {
 			SaleOf = "Mystery10",
 			Retired = true,
 		},
+		-- The Halloween 2026 Candy packs (Config.Halloween.Packs; made 2026-10-28): Candy is the
+		-- Halloween Candy one purchase adds to the save's Halloween.Bought, flat (no Rush, double
+		-- day, friends or group; no quest). Sold only while Packs.Enabled and the event is Live;
+		-- a receipt outside that pays Shop.fallbackMoney.
+		Candy500 = { Kind = "Product", Id = 3723285204, Robux = 49, Candy = 500 },
+		Candy2000 = { Kind = "Product", Id = 3723285208, Robux = 149, Candy = 2000 },
 	},
 }
 
@@ -10160,7 +10172,15 @@ Config.UI.Menu = {
 	-- 8-balls scroll, the white sheet has the still dots and an 8-ball sits on the top edge.
 	-- Menus not listed keep the kit frame (pop in, still pattern). Names as Menus.register.
 	-- "Inventory": the Cues menu (concept 2, 2026-10-08); "Ranked": the roadmap (pick "ranked A").
-	LivelyMenus = { "Shop", "Inventory", "FreeReward", "Ranked", "Settings", "DailyRewards" },
+	LivelyMenus = {
+		"Shop",
+		"Inventory",
+		"FreeReward",
+		"Ranked",
+		"Settings",
+		"DailyRewards",
+		"Halloween",
+	},
 	-- One thing at a time (HudFocus; designer, 2026-10-06): while a full menu is open every
 	-- other screen of ours is off. These ScreenGuis stay on (a "...Menu" screen always does):
 	-- popups that must still reach the player and invisible probes. KeepWith: more per menu.
@@ -16179,6 +16199,7 @@ Config.Tutorial = {
 			PathR = "FunnelR",
 			Game2 = "FunnelG2",
 			Social = "FunnelSocial",
+			Halloween = "FunnelHw", -- the Halloween event (hw-core)
 		},
 		ThirdMatch = 3, -- the onboarding funnel's ThirdMatch: this many matches played
 		EventGapSeconds = 0.5, -- a client's funnel report of one kind counts at most this often
@@ -16988,6 +17009,181 @@ Config.UI.Corners = {
 	ShortDismissPx = 20,
 	DismissInShare = 0.15, -- its middle this much of its size in from the tile's corner
 	DismissHitPx = 36, -- a touch reaches it from this far round (at least this big)
+}
+
+---------------------------------------------------------------------------------------------
+-- The Halloween event's screens (hw-core; src/client/Halloween; Config.Halloween; words in
+-- Strings.Halloween). Pixels for a computer, Short* for a phone on its side
+-- (Config.Multiplayer.Style.ShortHeight).
+---------------------------------------------------------------------------------------------
+Config.UI.Halloween = {
+	-- The event tile on the hub's right side (HubCorners, Halloween/TileLayout): as big as the
+	-- offer tile, its word in the offer's size, an "ENDS IN 5d 23h" pill over its top edge.
+	Tile = {
+		Px = 94,
+		ShortPx = 62,
+		WordPx = 21,
+		ShortWordPx = 15,
+		PillPx = 22,
+		ShortPillPx = 18,
+		PillTextPx = 13,
+		ShortPillTextPx = 11,
+		GapPx = 10, -- kept from the offer tile
+		BadgePx = 24, -- the red "!" (a claim waits, or a new board) and the NEW badge
+		ShortBadgePx = 20,
+		Icon = "rbxassetid://109690179795075", -- the pumpkin with candy (256 px); "" = the Candy icon
+		GlowTint = { 255, 140, 30 }, -- the pumpkin's soft glow behind it
+	},
+	-- The event menu (Halloween/EventMenu): the lively frame round the Candy pill, the track,
+	-- the quest board, the Spider panel and Get Candy, with the Rush strip pinned at its foot. A
+	-- computer shows the quests and the Spider side by side; a phone one scrolling column.
+	Menu = {
+		WidthShare = 0.72, -- of a computer's screen (the track's 11 nodes need the room)
+		PhoneWidthShare = 0.94,
+		PadPx = 12,
+		GapPx = 10,
+		TextPx = 18, -- body text (a phone's: ShortTextPx)
+		ShortTextPx = 14,
+		HeadPx = 22, -- section titles
+		ShortHeadPx = 17,
+		PillPx = 36, -- the Candy pill and the ends pill
+		ShortPillPx = 30,
+		-- The track: nodes evenly spaced on a bar filled by share between them; on a phone each
+		-- node at least NodeMinPx wide, scrolling sideways.
+		NodePx = 84, -- a node's card (a computer)
+		ShortNodePx = 70,
+		NodeMinPx = 78, -- a phone's slot at least this wide
+		NodeGapPx = 4, -- between two cards at least
+		NodeLabelMinPx = 8, -- a card's name shrinks down to this to fit ("Jack-o'-Lantern")
+		GrandScale = 1.25, -- the Witch's Broom's card
+		BarPx = 12,
+		ShortBarPx = 9,
+		TrackColor = { 255, 140, 30 }, -- the bar's fill
+		BarBack = { 60, 40, 90 },
+		CardTint = { 70, 40, 110 }, -- a cue node's card (night purple)
+		GiftTint = { 255, 255, 255 },
+		GivenTint = { 255, 207, 64 }, -- a reached node's gold frame
+		-- The quest board: four rows, each this tall.
+		RowPx = 46,
+		ShortRowPx = 40,
+		TabPx = 30,
+		ShortTabPx = 26,
+		QuestShare = 0.6, -- of a computer's width (the Spider and Get Candy take the rest)
+		-- The Rush strip at the foot.
+		StripPx = 40,
+		ShortStripPx = 32,
+		StripTint = { 46, 20, 82 },
+		RushTint = { 255, 140, 30 },
+		SpiderTint = { 46, 20, 82 },
+		HeadTint = { 255, 140, 30 }, -- the section titles' orange
+		ClaimBounceSeconds = 1.2, -- a waiting CLAIM bounces this often
+		MaxHeightShare = 0.86, -- of the screen's height at most
+	},
+	-- Pictures (image ids; "" = the fallback named): the cue cards until the cue lanes' thumbnails
+	-- exist (the approved concept art), the gift boxes, the end screen's candy pile and cash.
+	Art = {
+		CandyCornCue = "rbxassetid://99907004080834",
+		JackOLanternCue = "rbxassetid://114487013205177",
+		BlackCatCue = "rbxassetid://95439931834328",
+		SpiderCue = "rbxassetid://134067061693157",
+		WitchBroomCue = "rbxassetid://83442214439619",
+		Header = "rbxassetid://100823591958466", -- the menu header's jack-o'-lantern ("" = the Candy icon)
+		Gift = "rbxassetid://130940237317316", -- "" = Kit icon Gift
+		CandyPile = "rbxassetid://100770056241444",
+		CashStack = "rbxassetid://103851828700645", -- "" = Kit icon CashStack (this is ShopMoney's Pack2 stack)
+	},
+	-- The countdown pill 18:30-19:00 and the start message (Halloween/Countdown; SkyBanner's look).
+	Countdown = {
+		TextPx = 18, -- a phone's: ShortTextPx
+		ShortTextPx = 14,
+		PadPx = 8,
+		GapPx = 6, -- the icon to the words
+		IconShare = 1.1, -- the Candy icon, of the pill's height
+		GapBelowPx = 6, -- kept under the Banner, the queue's card and the tutorial's quest line
+		ZIndex = 20,
+		StartedSeconds = 6, -- "THE HALLOWEEN EVENT HAS STARTED!" stays this long
+		StartedWindowSeconds = 120, -- a player busy at 19:00 still gets it this long after
+	},
+	-- The Candy toast and the NEW CUE! card (Halloween/CandyToast).
+	Toast = {
+		ChipPx = 44, -- the "+57" chip's height (a phone's: ShortChipPx)
+		ShortChipPx = 36,
+		ChipTint = { 255, 140, 30 }, -- the "+57" (the track's orange)
+		TagPx = 22, -- its "2x" tag
+		ShortTagPx = 18,
+		StartYShare = 0.62, -- a chip with no button to fly from starts here (of the screen's height)
+		HoldSeconds = 0.45, -- the chip pops in and waits this long
+		FlySeconds = 0.6, -- then flies to the tile (or the menu's Candy pill) this long
+		StillSeconds = 1.6, -- with nowhere to fly it stays this long, then fades
+		ClaimFromSeconds = 3, -- a claim's Candy flies out of the CLAIM pressed this recently
+		MaxWaitSeconds = 300, -- a match's chip waits for the result screen at most this long
+		PollSeconds = 0.25, -- how often a waiting chip or card checks the player is free
+		-- The NEW CUE! card.
+		CardWidthPx = 340,
+		ShortCardWidthPx = 280,
+		CardHeightShare = 0.86, -- of the screen's height at most (it scales down to fit)
+		DimTransparency = 0.45, -- the screen behind it
+		CardDisplayOrder = 45, -- its screen: over the tutorial's popups (40), under the scenes (60)
+		AutoCloseSeconds = 8, -- it closes itself after this long (OK closes it sooner)
+	},
+	-- The end screen (Halloween/EndScreen; the M5 mock): laid out at WidthPx (a phone's
+	-- ShortWidthPx) and scaled down to fit.
+	End = {
+		WidthPx = 640,
+		ShortWidthPx = 560,
+		HeightShare = 0.92, -- of the screen's height at most
+		RibbonTint = { 112, 48, 190 }, -- the title ribbon's purple
+		CandyTint = { 255, 140, 30 }, -- the Candy pill
+		ArrowTint = { 255, 160, 40 },
+		MaxCues = 5, -- the event cues the player owns, as cards
+		CountUpSeconds = 1.2, -- the two numbers count up this long
+		DisplayOrder = 45, -- its screen: as the NEW CUE! card's
+		DimTransparency = 0.45,
+	},
+	-- A quest row's icon by its Icon key (Config.Halloween.Quests): Kit icon keys; "Candy" is the
+	-- Candy icon.
+	QuestIcons = {
+		Win = "Trophy",
+		Match = "Play",
+		Ball = "Target",
+		Nice = "Star",
+		Team = "People",
+		Ult = "Lightning",
+		King = "Crown",
+		Clock = "Stopwatch",
+	},
+	-- The menu's open (the lively frame's schedule; Stage ids from EventMenu).
+	Open = {
+		OpenSeconds = 0.9,
+		Steps = {
+			{ Ids = { "Panel" }, Kind = "Unroll", At = 0 },
+			{ Ids = { "Header" }, Kind = "Fade", At = 0.12, Length = 0.15 },
+			{ Ids = { "Basket", "Title", "Close" }, Kind = "Pop", At = 0.18 },
+			{ Ids = { "HwCandy", "HwEnds" }, Kind = "Pop", At = 0.2 },
+			{ Ids = { "HwTrack" }, Kind = "Grow", At = 0.22 },
+			{
+				Ids = {
+					"HwNode1",
+					"HwNode2",
+					"HwNode3",
+					"HwNode4",
+					"HwNode5",
+					"HwNode6",
+					"HwNode7",
+					"HwNode8",
+					"HwNode9",
+					"HwNode10",
+				},
+				Kind = "Pop",
+				At = 0.26,
+				Stagger = 1.25,
+			},
+			{ Ids = { "HwNode11" }, Kind = "Pop", At = 0.4, Burst = "Gold" },
+			{ Ids = { "HwQuests", "HwSpider", "HwPacks" }, Kind = "Grow", At = 0.36 },
+			{ Ids = { "HwRush" }, Kind = "Fade", At = 0.46, Length = 0.15 },
+			{ Ids = { "Flair" }, Kind = "Drop", At = 0.6, Length = 0.25 },
+		},
+	},
 }
 
 ---------------------------------------------------------------------------------------------

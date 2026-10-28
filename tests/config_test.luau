@@ -562,4 +562,65 @@ return {
 			"require via script.Parent failed"
 		)
 	end,
+
+	-- The Halloween event's config (hw-core; Config.Halloween).
+	["halloween: times in order, track ascending, quests and switches valid"] = function()
+		local Config = H.require("Config")
+		local C = Config.Halloween
+		H.expect(C.CountdownAt < C.StartsAt and C.StartsAt < C.EndsAt, "times in order")
+		H.expect(C.Double.From < C.Double.To and C.Double.From >= C.StartsAt, "the double day")
+		H.expect(C.Double.To <= C.EndsAt, "inside the event")
+		local last = 0
+		for _, step in C.Track.Steps do
+			H.expect(step.At > last, "track ascending")
+			last = step.At
+			local prizes = (if step.Cue then 1 else 0)
+				+ (if step.Spins then 1 else 0)
+				+ (if step.Money then 1 else 0)
+			H.expect(prizes == 1, "one prize a step")
+		end
+		local kinds = {
+			Matches = true,
+			Wins = true,
+			Balls = true,
+			NiceShots = true,
+			TeamMatches = true,
+			TeamWins = true,
+			UltMatches = true,
+			King = true,
+			Pickups = true,
+			Active = true,
+		}
+		local icons = Config.UI.Halloween.QuestIcons :: any
+		H.expect(#C.Quests.Boards == C.Boards and #C.Quests.Rewards == 4, "boards and rewards")
+		for n, board in C.Quests.Boards do
+			H.expect(#board == 4, "four on board " .. n)
+			for _, row in board do
+				H.expect(kinds[row.Kind] == true and row.Need >= 1 and row.Need % 1 == 0, "row")
+				H.expect(row.Icon == "Candy" or icons[row.Icon] ~= nil, "icon " .. row.Icon)
+				if row.Alt then
+					H.expect(kinds[row.Alt.Kind] == true and row.Alt.Need >= 1, "alt")
+					H.expect(
+						row.Kind == "King" or row.Kind == "Pickups" or row.Kind == "UltMatches",
+						"an Alt only for a hooked kind"
+					)
+				elseif row.Kind == "King" or row.Kind == "Pickups" or row.Kind == "UltMatches" then
+					error("a hooked quest needs an Alt: " .. row.Kind)
+				end
+			end
+		end
+		for _, key in { "Enabled" } do
+			H.expect(type((C :: any)[key]) == "boolean", key)
+		end
+		for _, part in { "Match", "Quests", "Spider", "Packs", "Convert", "Rush" } do
+			H.expect(type((C :: any)[part].Enabled) == "boolean", part .. ".Enabled")
+		end
+		for key in C :: any do
+			local lower = string.lower(key)
+			H.expect(not string.find(lower, "friend") and not string.find(lower, "group"), key)
+		end
+		H.expect(C.Pickup.HourCap >= 1 and C.Pickup.HourCap % 1 == 0, "HourCap")
+		H.expect(type(C.CandyIcon) == "string", "CandyIcon")
+		H.expect(C.EventMultiplier == 2 and C.Convert.MoneyPerCandy == 10, "2x, $10")
+	end,
 }

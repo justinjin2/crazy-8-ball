@@ -353,6 +353,66 @@
     "imageId": "93822415051422",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball-hw-core/assets/ui/halloween/Candy.png": {
+    "assetId": "75949906210202",
+    "assetType": "Image",
+    "imageId": "75949906210202",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-core/assets/ui/halloween/CandyPile.png": {
+    "assetId": "100770056241444",
+    "assetType": "Image",
+    "imageId": "100770056241444",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-core/assets/ui/halloween/CueBlackCat.png": {
+    "assetId": "95439931834328",
+    "assetType": "Image",
+    "imageId": "95439931834328",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-core/assets/ui/halloween/CueBroom.png": {
+    "assetId": "83442214439619",
+    "assetType": "Image",
+    "imageId": "83442214439619",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-core/assets/ui/halloween/CueCandyCorn.png": {
+    "assetId": "99907004080834",
+    "assetType": "Image",
+    "imageId": "99907004080834",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-core/assets/ui/halloween/CueJack.png": {
+    "assetId": "114487013205177",
+    "assetType": "Image",
+    "imageId": "114487013205177",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-core/assets/ui/halloween/CueSpider.png": {
+    "assetId": "134067061693157",
+    "assetType": "Image",
+    "imageId": "134067061693157",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-core/assets/ui/halloween/EventTile.png": {
+    "assetId": "109690179795075",
+    "assetType": "Image",
+    "imageId": "109690179795075",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-core/assets/ui/halloween/Gift.png": {
+    "assetId": "130940237317316",
+    "assetType": "Image",
+    "imageId": "130940237317316",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-core/assets/ui/halloween/HeaderPumpkin.png": {
+    "assetId": "100823591958466",
+    "assetType": "Image",
+    "imageId": "100823591958466",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/candy_corn/candy_corn_parts.glb": {
     "assetId": "123970008672363",
     "assetType": "Model",
