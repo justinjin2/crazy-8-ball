@@ -661,7 +661,7 @@ function BossService.start(isLobby: boolean)
 					tickVisit()
 				end)
 				if not ok then
-					warn("[HalloweenMap] the King's visit: " .. tostring(err))
+					warnOnce("visit " .. tostring(err), "the King's visit: " .. tostring(err)) -- (every second)
 				end
 				task.wait(1)
 			end
