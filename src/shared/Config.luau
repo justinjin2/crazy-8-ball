@@ -9138,11 +9138,11 @@ Config.Lighting = {
 	-- Day's slot of the cycle). Tuned in Play captures, never Edit's preview. (tune)
 	Night = {
 		Brightness = 3, -- a moonlit roof as bright as the day's floor (Night.MinBrightnessShare)
-		ExposureCompensation = 0.15,
+		ExposureCompensation = 0.45,
 		EnvironmentDiffuseScale = 0.25, -- as Sunset: the violet sky's fill would tint the roof
 		EnvironmentSpecularScale = 0.6,
 		Ambient = "#000000",
-		OutdoorAmbient = "#A898C8", -- a light lilac shade, so shadows read violet, not black
+		OutdoorAmbient = "#B8A8D8", -- a light lilac shade, so shadows read violet, not black (Play: floor L* 0.91 of Day)
 		ColorShift_Top = "#E8D4FF", -- the moon's pale lilac on lit faces
 		ColorShift_Bottom = "#000000",
 		Atmosphere = {
@@ -9153,15 +9153,16 @@ Config.Lighting = {
 			Color = "#B48CFF", -- a violet tint
 			Decay = "#5B2A8C",
 		},
-		-- The night sky (gen_sky.py's night faces, hw-map step 12); Sunset's faces until they
-		-- are uploaded, so the event never shows a grey sky.
+		-- gen_sky.py's night faces (textures/sky_night_*.png): a violet zenith to a lilac-pink
+		-- horizon, a painted full moon over the sea with its path on the water, stars above,
+		-- lavender clouds lit from the moon, the far city's windows lit.
 		Sky = {
-			SkyboxBk = "rbxassetid://110051239637159",
-			SkyboxDn = "rbxassetid://88040117694749",
-			SkyboxFt = "rbxassetid://96378244528009",
-			SkyboxLf = "rbxassetid://94840130578947",
-			SkyboxRt = "rbxassetid://76832687371860",
-			SkyboxUp = "rbxassetid://139224542954081",
+			SkyboxBk = "rbxassetid://117090215716759",
+			SkyboxDn = "rbxassetid://83186185752495",
+			SkyboxFt = "rbxassetid://71528418518720",
+			SkyboxLf = "rbxassetid://134144329026901",
+			SkyboxRt = "rbxassetid://128224127682264",
+			SkyboxUp = "rbxassetid://121512489350859",
 			SunAngularSize = 0, -- the moon is painted on the sky, never Roblox's
 			MoonAngularSize = 0,
 			StarCount = 0, -- the stars are painted too
@@ -9215,7 +9216,7 @@ Config.Lighting = {
 -- core's (Config.Halloween), never copied here. Studs, seconds.
 ---------------------------------------------------------------------------------------------
 Config.HalloweenMap = {
-	Enabled = false, -- the master switch: off turns every part below off
+	Enabled = true, -- the master switch: off turns every part below off
 	PollSeconds = 1, -- the server reads Event.state this often
 	FlipSeconds = 4, -- a client crossfades the light this long when the state flips
 	-- Studio only: a workspace attribute holding a state name ("Before", "Countdown", "Live",
@@ -9226,7 +9227,7 @@ Config.HalloweenMap = {
 	StateAttribute = "HalloweenMapState",
 	FlipAtAttribute = "HalloweenMapFlipAt",
 	Night = {
-		Enabled = false, -- the Night light while Live (Config.Lighting.Night in Day's slot)
+		Enabled = true, -- the Night light while Live (Config.Lighting.Night in Day's slot)
 		-- In Play, Night held vs Day held from one camera: the floor and tables' mean luminance
 		-- at least this share of Day's ("as readable as day").
 		MinBrightnessShare = 0.9,
@@ -9237,7 +9238,7 @@ Config.HalloweenMap = {
 		},
 	},
 	Tables = {
-		Enabled = false, -- every table's event look by its mode
+		Enabled = true, -- every table's event look by its mode
 		Base = "Blue", -- the black-frame look (Config.TableModel.Looks; the arena's)
 		-- Every cloth keeps at least this CIEDE2000 from every ball, as rendered under Night and
 		-- Sunset (tools/halloween/hw_map_cloth_check.py).
@@ -9247,37 +9248,152 @@ Config.HalloweenMap = {
 		ByTeamSize = {
 			[1] = { Cloth = { 185, 90, 230 }, Kit = "Orchid" }, -- orchid purple
 			[2] = { Cloth = { 90, 94, 102 }, Kit = "Pumpkin" }, -- charcoal, glowing orange trim
-			[3] = { Cloth = { 110, 220, 40 }, Kit = "Toxic" }, -- toxic green
+			[3] = { Cloth = { 88, 176, 32 }, Kit = "Toxic" }, -- toxic green (80% of 110,220,40: ΔE 19.9)
 		},
 	},
+	-- The haunted kit on each table (TableBuilder.addDecor), in the table's own frame: studs
+	-- from its pivot (the cloth's centre on the floor, +X to the foot). The Body's footprint is
+	-- X +-9.12, Z +-5.12; its apron's face stands at X +-9.096, Z +-5.096 from 1.75 to 2.72 up,
+	-- the cabinet's underside at 1.3, the legs' inner faces at X +-8.24 and Z +-4.24 there, the
+	-- rails from 2.74 to the rail top 3.233 (assets/table/TableModel.blend, read 2026-10-28).
 	Decor = {
-		Enabled = false, -- the haunted kit on each table (TableBuilder.addDecor)
+		Enabled = true, -- the haunted kit on each table (TableBuilder.addDecor)
 		MaxPartsPerTable = 10, -- the most parts a table's kit may add
 		MaxTrianglesPerTable = 1500, -- and triangles
-		Kits = {}, -- by name: filled at hw-map step 13
+		Folder = "HalloweenDecor", -- the kit's Folder under the table model
+		-- Each piece's triangles (gen_props.py's count; the plate is a box): the budget test.
+		Triangles = {
+			Underglow = 12,
+			Trim = 32,
+			BatPair = 184,
+			PumpkinCorners = 728,
+			CobwebPair = 448,
+		},
+		-- A Neon plate on the floor under the body: the glowing ring of light round its foot.
+		-- Transparency: see-through enough to read as a pool of light, not a slab (Studio).
+		Underglow = { Size = { 18.2, 0.04, 10.2 }, Y = 0.025, Transparency = 0.45 },
+		TrimY = 2.66, -- the trim ring's middle (Assets "Trim", the footprint's size, 0.08 tall)
+		-- The prop sets a kit may place: an Assets prop, where its origin goes (X, Y, Z), its
+		-- turn about Y (degrees; 0 faces -Z) and its scale. Glow: drawn Neon in the kit's colour.
+		-- Each is one merged mesh placed at the table's pivot (gen_props.py lays its pieces out
+		-- from the measurements above), so a table's set is one MeshPart (the event budget).
+		Sets = {
+			-- A bat on each long apron, 0.022 proud of the apron's face.
+			Bats = { { Prop = "BatPair", At = { 0, 0, 0 }, Yaw = 0, Scale = 1, Glow = true } },
+			-- A small jack-o'-lantern on the floor inside each corner leg, under the apron.
+			Pumpkins = { { Prop = "PumpkinCorners", At = { 0, 0, 0 }, Yaw = 0, Scale = 1 } },
+			-- Cobwebs hung from the cabinet's underside against the leg, two opposite corners.
+			Cobwebs = { { Prop = "CobwebPair", At = { 0, 0, 0 }, Yaw = 0, Scale = 1 } },
+		},
+		-- By name (Tables.ByTeamSize's Kit): the glow colour (RGB), and what goes on.
+		Kits = {
+			Orchid = { Color = { 175, 80, 255 }, Underglow = true, Trim = false, Sets = { "Bats" } },
+			Pumpkin = {
+				Color = { 255, 90, 10 }, -- Neon draws lighter: this shows as the pumpkins' orange
+				Underglow = true,
+				Trim = true,
+				Sets = { "Bats", "Pumpkins" },
+			},
+			Toxic = {
+				Color = { 110, 255, 50 },
+				Underglow = true,
+				Trim = true,
+				Sets = { "Bats", "Cobwebs" },
+			},
+		},
 	},
+	-- The rooftop's props while Live (HalloweenMap/MapProps; the lobby only), built once into a
+	-- ServerStorage holder so Live and Ended only move them.
 	Props = {
-		Enabled = false, -- the dead trees, pumpkins, planters, string lights and cobwebs
-		Hide = {}, -- name patterns under workspace.Map put away while Live (step 14)
-		Place = {}, -- the props' placements (step 14)
-		-- The event's whole cost, counted in Studio.
+		Enabled = true, -- the dead trees, pumpkins, planters, string lights and cobwebs
+		-- Put away while Live (name patterns under workspace.Map, read in Studio 2026-10-28;
+		-- Rules.hideList never takes a portal's): the 18 palms (their pots and the pots'
+		-- collision stay: a dead tree grows from each pot), the 12 fern planters and 11 planter
+		-- beds, 2 of them the portals' (visual Models; their collision twins stay: each becomes a
+		-- spooky planter of the same footprint). Moved to ServerStorage, never destroyed.
+		Hide = { "^Palm_%d+$", "^FernPlanter_%d+$", "^PlanterBed_%d+$" },
+		Holder = "HalloweenProps", -- the props' Folder (ServerStorage, workspace while Live)
+		-- A hidden palm's dead tree: in the nearest pot, its foot this far under the pot's top
+		-- (in its foliage), this share of the palm's height (the DeadTree mesh is 11.75 at
+		-- scale 1), leaning toward the roof's middle (never over the railing), give or take
+		-- YawJitter degrees.
+		Trees = {
+			Prop = "DeadTree",
+			Replaces = "^Palm_%d+$", -- the hidden Models that get a tree
+			Pots = "^PalmPlanter_%d+$",
+			FootBelowPotTop = 0.6,
+			HeightShare = 0.75,
+			MinScale = 0.9,
+			MaxScale = 2,
+			YawJitter = 25,
+		},
+		-- A hidden planter's spooky twin: a dark box the size and place of its pot (the part whose
+		-- name matches Pot), its dressing mesh on top (scaled to the pot's width against the
+		-- mesh's own Width), the pumpkins turned to face the roof's middle.
+		Planters = {
+			Pot = "__Opaque$",
+			Color = { 44, 34, 52 },
+			Material = "Slate",
+			Dressings = {
+				-- (drawn for a 4-stud pot; 3 makes it fill a pot's top, not sit small on a dark cube)
+				{ Match = "^FernPlanter_", Prop = "PotDressing", Width = 3 },
+				{ Match = "^PlanterBed_", Prop = "BedDressing", Width = 16 },
+			},
+		},
+		-- String lights hung between From and To (the mesh stretched along its length; Glow: the
+		-- bulbs' colour, else Assets.Glow.Strand). The pergola (the map spec): bays between
+		-- 4.5-square columns at X +-57.5 and +-19.2, the front beam's face at Z -74.75, every
+		-- beam's underside 24 up, the globes on the front beam (Z -76.05) and the middle beam
+		-- (Z -86.75): the middle row hangs in front of its globes.
+		Strands = {
+			{ From = { -55.25, 24, -74.6 }, To = { -21.45, 24, -74.6 } },
+			{ From = { -16.95, 24, -74.6 }, To = { 16.95, 24, -74.6 }, Glow = { 170, 80, 255 } },
+			{ From = { 21.45, 24, -74.6 }, To = { 55.25, 24, -74.6 } },
+			{ From = { -55.25, 24, -84.4 }, To = { -21.45, 24, -84.4 }, Glow = { 170, 80, 255 } },
+			{ From = { -16.95, 24, -84.4 }, To = { 16.95, 24, -84.4 } },
+			{ From = { 21.45, 24, -84.4 }, To = { 55.25, 24, -84.4 }, Glow = { 170, 80, 255 } },
+		} :: { { From: { number }, To: { number }, Glow: { number }? } },
+		-- The other placements: a prop's origin at At, turned Yaw degrees, scaled. A cobweb's
+		-- origin is its corner (it fans out, -X at Yaw 0, and down); a pumpkin cluster stands on
+		-- the floor, its pumpkins facing -Z at Yaw 0.
+		Place = {
+			{ Prop = "Cobweb", At = { -55.25, 24, -74.6 }, Yaw = 180, Scale = 1.4 },
+			{ Prop = "Cobweb", At = { 55.25, 24, -74.6 }, Yaw = 0, Scale = 1.4 },
+			{ Prop = "Cobweb", At = { -16.95, 24, -74.6 }, Yaw = 180, Scale = 1.4 },
+			{ Prop = "Cobweb", At = { 16.95, 24, -74.6 }, Yaw = 0, Scale = 1.4 },
+			-- at the two lanterns by the throne's aisle (Lantern_57, Lantern_65), facing the spawn
+			{ Prop = "PumpkinCluster", At = { -17.2, 0, -65 }, Yaw = 180, Scale = 1.2 },
+			{ Prop = "PumpkinCluster", At = { 17.2, 0, -65 }, Yaw = 180, Scale = 1.2 },
+		},
+		StrandProp = "Strand", -- the string-of-lights mesh
+		-- The event's whole cost, counted in Studio (2026-10-28, Live, the lobby at rest: 47,786
+		-- triangles, 112 MeshParts, 16 unique meshes, 3 lights; a full server's 40 candies and
+		-- 3 table Kings add up to 12,300 triangles and 49 MeshParts while they last).
 		Budget = {
 			Triangles = 60000,
 			MeshParts = 130,
-			UniqueMeshes = 8,
+			-- The brief's 8 (OVERRULED, lane file): 16 small meshes, 6,900 triangles in all on
+			-- one palette texture; merging further would put the props' places in the meshes.
+			UniqueMeshes = 16,
 			Textures = 6, -- new images (the sky's faces not counted)
 			Lights = 6, -- throne 2 + the throne King's aura 1 + 3 table Kings
 		},
 	},
 	Throne = {
-		Enabled = false, -- the Pumpkin King's throne where the piano stands
+		-- The Pumpkin King's throne where the piano stands. It goes up only while Boss is on too
+		-- (BossService adds it), and Boss is on only with it (his prompt is on the throne; a
+		-- test holds it): switch both off together.
+		Enabled = true, -- the Pumpkin King's throne where the piano stands
 		Pivot = { 0, 2, -86.05 }, -- the piano's spot at the end of the spawn aisle
 		YawDegrees = 0, -- facing the spawn (+Z)
 		MaxHeightStuds = 18, -- under the pergola's beam and the globe lights
 		PromptAt = { 0, 3, -79 }, -- the challenge prompt's anchor
+		-- The piano under workspace.Map, put away while the throne stands (GrayBox names: the
+		-- piano and its bench, their collision boxes, the bench's seat).
+		Hide = { "^Piano_", "^PianoBench_", "^piano_%d+$", "^piano_bench_%d+$", "^Seat_11$" },
 	},
 	Boss = {
-		Enabled = false, -- the Pumpkin King's challenge
+		Enabled = true, -- the Pumpkin King's challenge
 		-- A practice bot: Settle pays it as PC (no rank, practice money, the PC cap), so the
 		-- King can't be farmed. Never a new kind.
 		Kind = "Pc",
@@ -9285,7 +9401,8 @@ Config.HalloweenMap = {
 		MinTier = "Gold", -- the King plays at least this tier...
 		TiersAbove = 2, -- ...and this many tiers above the player's (Unranked counts as Bronze)
 		-- The King's tier by the player's (Rules.kingTier; measured with tools/bot_duel.luau,
-		-- the win shares in docs/halloween/lanes/hw-map.md). (tune)
+		-- the win shares in docs/halloween/lanes/hw-map.md). The top three rows play a
+		-- Grandmaster King: a Reyes King left those players 11-14% (2026-10-28). (tune)
 		TierFor = {
 			Bronze = "Gold",
 			Silver = "Platinum",
@@ -9294,9 +9411,9 @@ Config.HalloweenMap = {
 			Diamond = "Veteran",
 			Expert = "Master",
 			Veteran = "Grandmaster",
-			Master = "Reyes",
-			Grandmaster = "Reyes",
-			Reyes = "Reyes",
+			Master = "Grandmaster",
+			Grandmaster = "Grandmaster",
+			Reyes = "Grandmaster",
 		},
 		MaxAtOnce = 3, -- King matches at once on a server
 		SpareTables = 2, -- free 1v1 tables a King match never takes
@@ -9309,10 +9426,95 @@ Config.HalloweenMap = {
 		ReadyAttribute = "PumpkinKingReadyAt", -- player attribute: unix seconds his cooldown ends
 		Aura = { Rate = 12, LightRange = 10 }, -- flame wisps a second (halved on low quality); studs
 		-- The candy explosion over the table on a win: sprites, sparkles, seconds, drawn this close.
-		Burst = { Candies = 50, Sparkles = 30, Seconds = 2, ShowStuds = 120 },
+		-- CandyScale: each flung candy's size against the lobby candy mesh; FlashStuds: the
+		-- orange pop's width at its widest.
+		Burst = {
+			Candies = 50,
+			Sparkles = 30,
+			Seconds = 2,
+			ShowStuds = 120,
+			CandyScale = 0.6,
+			FlashStuds = 9,
+		},
+	},
+	-- The event's meshes (assets/halloween/map/gen_props.py: one .glb, one palette texture),
+	-- uploaded as one Model and loaded on the server (HalloweenMap/Assets) into ReplicatedStorage
+	-- [Folder], one template Model per prop. Origins: where each prop's origin sat along
+	-- Blender X in the file (its pivot: a pumpkin's centre, a tree's or a tombstone's foot, a
+	-- strand's ends' middle, a cobweb's corner). Pieces named "*.Glow" are drawn Neon in Glow.
+	Assets = {
+		Model = 104392077731266, -- HalloweenMap_props.glb (tools/upload_manifest_hw_map.json)
+		Folder = "HalloweenMapAssets",
+		LoadRetries = 3,
+		LoadRetrySeconds = 2,
+		WaitSeconds = 15, -- the most a part waits for the meshes before its fallback shapes
+		Origins = {
+			Pumpkin = 0,
+			Crown = 4,
+			DeadTree = 10,
+			Strand = 32,
+			Cobweb = 50,
+			CandyOrange = 55,
+			CandyPurple = 58,
+			PumpkinSmall = 66,
+			Trim = 80,
+			PotDressing = 96,
+			BedDressing = 110,
+			PumpkinCluster = 122,
+			BatPair = 135,
+			PumpkinCorners = 150,
+			CobwebPair = 170,
+		},
+		-- The glowing core inside each pumpkin (studs at scale 1, inside the shell): the carved
+		-- holes glow straight on instead of showing through the one-sided shell.
+		PumpkinCore = { 1.6, 1.2, 1.6 },
+		-- The Neon glow by prop (RGB): the carved faces, the lanterns' glass, the bulbs.
+		Glow = {
+			Pumpkin = { 255, 190, 60 },
+			DeadTree = { 255, 150, 50 },
+			Strand = { 255, 130, 40 },
+		},
+	},
+	-- The Pumpkin King's look (KingLook; the approved mocks/v2/P1_pumpkin_king.png): a blocky
+	-- R15 body in a black suit, a glowing carved pumpkin head with a tilted gold crown, a purple
+	-- cape lined orange, an orange bow tie, a gold chain, pumpkin epaulettes, a purple and orange
+	-- flame aura. Colours RGB 0-255 (the head and crown meshes: Assets; the rest code-built).
+	King = {
+		Body = {
+			Head = { 20, 20, 24 },
+			Torso = { 24, 24, 28 },
+			Arms = { 24, 24, 28 },
+			Legs = { 34, 34, 40 },
+		},
+		Shirt = 0, -- a catalog Shirt id (0: body colours alone)
+		Pants = 0,
+		Pumpkin = { 255, 122, 26 }, -- the head's skin
+		Glow = { 255, 196, 64 }, -- the carved face's light (Neon)
+		Gold = { 255, 196, 60 },
+		Gem = { 170, 70, 255 }, -- the crown's gems (Neon)
+		Cape = { 92, 34, 150 },
+		Lining = { 255, 122, 26 },
+		Vest = { 255, 122, 26 },
+		-- his 256x256 portrait (rbxassetid; empty: the PC robot's): a ViewportFrame headshot,
+		-- keyed transparent (assets/halloween/map/portrait/king_portrait.png)
+		Icon = "rbxassetid://85794616941921",
+		-- His idle and walk (Body.build's keys; nil: Config.Bots.Animations): Roblox's Vampire
+		-- animation package (checked in Studio 2026-10-28: all Roblox-owned, all load); the
+		-- throne figure sits (Sit, the bots' own: the package has none).
+		Animations = {
+			Idle = "rbxassetid://1083445855", -- Vampire Idle
+			Walk = "rbxassetid://1083473930", -- Vampire Walk
+			Jump = "rbxassetid://1083455352", -- Vampire Jump
+			Fall = "rbxassetid://1083443587", -- Vampire Fall
+			Sit = "rbxassetid://2506281703",
+		} :: { [string]: string }?,
+		CrownTiltDegrees = 14,
+		-- The crown's lift over the mesh head's half height (studs; the mesh's top bound is its
+		-- stem's tip, so negative sets the band on the pumpkin with the stem inside it).
+		CrownOnMesh = -0.2,
 	},
 	Candy = {
-		Enabled = false, -- the lobby's candy drops (the hour cap is core's Halloween.Pickup.HourCap)
+		Enabled = true, -- the lobby's candy drops (the hour cap is core's Halloween.Pickup.HourCap)
 		TargetPerHour = 25, -- about this many an hour for an active player
 		SpawnEverySeconds = 30, -- one candy per eligible player this often...
 		JitterSeconds = 10, -- ...give or take this
@@ -9329,6 +9531,10 @@ Config.HalloweenMap = {
 		IdleStuds = 4,
 		FloorWithinStuds = 1.5, -- a spot's floor within this of the player's feet
 		SpotTries = 20, -- random spots tried before skipping a turn
+		-- A client floats and spins each candy this close to its camera every frame (Lower
+		-- effects: the nearer one); one farther off holds still.
+		AnimateStuds = 160,
+		AnimateStudsLow = 60,
 	},
 }
 

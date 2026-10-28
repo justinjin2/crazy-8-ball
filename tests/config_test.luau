@@ -533,7 +533,7 @@ return {
 		for key in HM.Candy do
 			H.expect(not tostring(key):lower():match("cap"), "no hour-cap key: " .. tostring(key))
 		end
-		local tints = { { 185, 90, 230 }, { 90, 94, 102 }, { 110, 220, 40 } }
+		local tints = { { 185, 90, 230 }, { 90, 94, 102 }, { 88, 176, 32 } }
 		for size, rgb in tints do
 			local row = HM.Tables.ByTeamSize[size]
 			for i = 1, 3 do

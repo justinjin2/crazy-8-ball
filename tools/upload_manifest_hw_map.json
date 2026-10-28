@@ -1,0 +1,49 @@
+{
+  "/Users/justinjin/Desktop/8ball-hw-map/assets/halloween/map/HalloweenMap_props.glb": {
+    "assetId": "104392077731266",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-map/assets/halloween/map/portrait/king_portrait.png": {
+    "assetId": "105151772907937",
+    "assetType": "Decal",
+    "imageId": "85794616941921",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-map/assets/map/textures/sky_night_Bk.png": {
+    "assetId": "122030141467369",
+    "assetType": "Decal",
+    "imageId": "117090215716759",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-map/assets/map/textures/sky_night_Dn.png": {
+    "assetId": "96781056762776",
+    "assetType": "Decal",
+    "imageId": "83186185752495",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-map/assets/map/textures/sky_night_Ft.png": {
+    "assetId": "134758549910753",
+    "assetType": "Decal",
+    "imageId": "71528418518720",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-map/assets/map/textures/sky_night_Lf.png": {
+    "assetId": "75310446077019",
+    "assetType": "Decal",
+    "imageId": "134144329026901",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-map/assets/map/textures/sky_night_Rt.png": {
+    "assetId": "78625239045059",
+    "assetType": "Decal",
+    "imageId": "128224127682264",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-map/assets/map/textures/sky_night_Up.png": {
+    "assetId": "135532925275097",
+    "assetType": "Decal",
+    "imageId": "121512489350859",
+    "status": "ok"
+  }
+}

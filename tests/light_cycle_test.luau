@@ -153,6 +153,59 @@ return {
 		H.expect(L.Night.Atmosphere.Haze == 0, "no haze at night")
 	end,
 
+	["the event light puts Night in Day's slot, holds the sun and swaps the sky once"] = function()
+		local LC = H.require("LightCycle")
+		local Config = H.require("Config")
+		local L = Config.Lighting
+		local path = Config.HalloweenMap.Night.SunPath
+		local E = LC.event(L, L.Night, path)
+		H.expect(L.Day ~= L.Night and E.Day == L.Night, "Night in Day's slot")
+		H.expect(E.Sunset == L.Sunset and E.Cycle == L.Cycle, "Sunset and the cycle kept")
+		H.expect(E.DuskSky == L.Night.Sky, "the in-between sky is Night's")
+		matches(LC.state(0, E), L.Night, "blend 0 is Night")
+		matches(LC.state(1, E), L.Sunset, "blend 1 is Sunset")
+		local last = L.SunPath[#L.SunPath]
+		for _, blend in { 0, 0.25, 0.5, 1 } do
+			local s = LC.state(blend, E)
+			H.near(s.GeographicLatitude, last.GeographicLatitude, 1e-9, "the sun held")
+			H.near(s.ClockTime, last.ClockTime, 1e-9, "the sun held")
+		end
+		for key, id in L.Night.Sky do
+			if key:match("^Skybox") then
+				local second = L.SkySwaps[2]
+				H.expect(
+					LC.state(second - 1e-6, E).Sky[key] == id,
+					key .. ": Night's to the last swap"
+				)
+				H.expect(
+					LC.state(second, E).Sky[key] == L.Sunset.Sky[key],
+					key .. ": then Sunset's"
+				)
+			end
+		end
+		-- Without a path the sun is held at Sunset's too; the base lighting is untouched.
+		local D = LC.event(L, L.Night)
+		H.near(LC.state(0, D).ClockTime, last.ClockTime, 1e-9, "the default holds Sunset's sun")
+		H.expect(L.Day ~= L.Night and L.DuskSky ~= L.Night.Sky, "Config.Lighting unchanged")
+		H.expect(L.Cycle.Speed == 1, "the cycle runs at 1")
+	end,
+
+	["two light states crossfade, the sky's images at half way"] = function()
+		local LC = H.require("LightCycle")
+		local L = H.require("Config").Lighting
+		local a, b = LC.state(0, L), LC.state(0, LC.event(L, L.Night))
+		matches(LC.mixStates(a, b, 0), L.Day, "w 0 is a")
+		matches(LC.mixStates(a, b, 1), L.Night, "w 1 is b")
+		H.near(
+			LC.mixStates(a, b, 0.5).Brightness,
+			(L.Day.Brightness + L.Night.Brightness) / 2,
+			1e-9,
+			"half"
+		)
+		H.expect(LC.mixStates(a, b, 0.49).Sky.SkyboxUp == L.Day.Sky.SkyboxUp, "a's sky first")
+		H.expect(LC.mixStates(a, b, 0.5).Sky.SkyboxUp == L.Night.Sky.SkyboxUp, "b's from half way")
+	end,
+
 	["colours mix per channel and the sky's images change only at the swap"] = function()
 		local LC = H.require("LightCycle")
 		local L = H.require("Config").Lighting
