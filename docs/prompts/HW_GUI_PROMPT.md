@@ -588,7 +588,7 @@ and card, the chip shell, the layout test, pad access to the pill.
 - [x] 8. Gate 1 (09:00; PC-window shots only, the phone size is not reachable from this lane: lane file Status) : phone and PC shots in `gate1/` (pill, card, the chip shell through GuiQA `rushChip`), lines in the lane file, the one question if needed.
 - [x] 9. Pad and lists: the pill as one `HubCorners.padStops` entry right after Plus (core's event tile stays first), your `blurPad` and `padFocusedOn` lines, each listed under Shared-file changes; MenuColumn and PadGuide names; the `BoostCardOpened` event; GuiQA `hudRects` and `hudOverlap`.
 - [x] 10. (sizes by the layout test only, see lane Status) Studio sweep of the pill: four sizes and pad, `hudOverlap` empty, a match at phone size, the fresh-player run (tutorial and skip); `BoostPill.Enabled = true`; push; lane file asks the coordinator to merge it (the pill merge, about 10:00-10:20).
-- [ ] 11. `CuePreviewMath` (panel rects, window framing, loop timeline) and `tests/cue_preview_math_test.luau`.
+- [x] 11. `CuePreviewMath` (panel rects, window framing, loop timeline) and `tests/cue_preview_math_test.luau`.
 - [ ] 12. CuePreview core: registered menu and `CuePreviewMenu` gui, the stage at Origin (stripped table clone or slab, lights, backdrop), camera taken and restored, walking and touch controls held, MODEL tab with auto-turn and drag by mouse, touch and right stick, every close path; switch off.
 - [ ] 13. Gate 2 (11:00): the pill at the four sizes and on the pad, the card with VIP/Group/Friends (2), the preview's first look at phone and PC in `gate2/`.
 - [ ] 14. TRAIL and FINISHER: stroke, trail, pocket, finisher loop through Effects; the preview's cue in Main's holdShots; spinner and timeout.
