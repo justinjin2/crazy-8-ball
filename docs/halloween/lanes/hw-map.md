@@ -51,6 +51,20 @@ From PLAN §4 (everything else is read-only to this lane; ask through Requests):
 
 ## Status
 
+- 11:24 hw-map: step 16 done. **Counts** (step 14's, Studio): 47,786 triangles of 60,000, 112
+  MeshParts of 130, 16 unique meshes (OVERRULED), 3 lights of 6; every event MeshPart is
+  RenderFidelity Automatic (Roblox's own LOD on weak devices), touches nothing, is never
+  queried and casts no shadow (103 checked). **Client, on vs off** (Play, one camera over the
+  lobby, 4 s each): draw calls 445 / 504 Live vs 483 Before, scene triangles 439.5k / 491.6k vs
+  467.6k: the day cycle's light moves them more than the event does; graphics mesh memory 4.2
+  MB both ways; +470 instances. Frame time could not be told apart here: the lane window renders
+  in the background, throttled to 15 fps both ways (RenderCPU/GPUFrameTime read 0 in Studio).
+  **Low quality:** the burst, candy sparkles and the King's aura already halve or go; new
+  (aa8c2804): the per-frame candy float only within `AnimateStudsLow` 60 studs with Lower
+  effects (160 otherwise; it was a hardcoded 160), checked in Studio through SettingsState.
+  **Server:** heartbeat time 0.098 / 0.094 ms Live vs 0.108 ms Before (one player); the map's
+  loops are the 1 s state poll, the 1 s King and candy spawn ticks, and the 0.2 s pickup check
+  (at most 40 candies x players, distance only); nothing per frame. Now: switches (17).
 - 11:20 hw-map: step 15 done (the full flip test, Studio, switches on in the working tree only).
   Lobby, one Play session, server parts and the client's light read at each state: Before (no
   look, kit, prop, throne; the 41 Models and the piano in the map; client Day sky, exposure
