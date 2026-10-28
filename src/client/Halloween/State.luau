@@ -6,7 +6,8 @@
 --   State.view()     the last view pushed (nil before the first)
 --   State.phase()    Event.state(Clock.now()), "Before" while State.on() is false
 --   State.Changed    fires (view) when a new view arrives or HwOn changes
---   State.Moment     fires (moment) for { toast = {...} }, { step = n }, { spider = true }
+--   State.Moment     fires (moment) for { toast = {...} }, { step = n }, { spider = true },
+--                    { king = {...} }
 --   State.send(msg)  { claim = key } | { seen = true } | { endSeen = true }
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -66,7 +67,12 @@ function State.start()
 		if type(msg.view) == "table" then
 			current = msg.view
 			changedEvent:Fire(current)
-		elseif type(msg.toast) == "table" or type(msg.step) == "number" or msg.spider == true then
+		elseif
+			type(msg.toast) == "table"
+			or type(msg.step) == "number"
+			or msg.spider == true
+			or type(msg.king) == "table"
+		then
 			momentEvent:Fire(msg)
 		end
 	end)
