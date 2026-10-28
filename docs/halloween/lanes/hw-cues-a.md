@@ -55,6 +55,16 @@ From PLAN §4 (everything else is read-only; ask through Requests):
 
 ## Status (continued)
 
+- 2026-10-28 10:02: **CuePreview bodies @ 5078ac33** (Progress 9, pushed): `python3 tools/cue_skin.py
+  <sid> --thumb` draws a skin with `body`: the body parented over the mesh (hidden, as in the
+  game), every part whole with its Aim overhang (the long variant), the square framed to the
+  body's reach past the butt, the outline traced from the body (the in-game Highlight adorns
+  the body model), `maps_from` for the hidden mesh's maps, the whole body thickened through
+  the cue's scale like the plain mesh is. Proof: `assets/cue/thumbs/candy_corn.png` (the card,
+  aura frozen). Nothing changes for a skin without `body`.
+- **To Cues B (10:02):** `tools/cue_skin.py <sid> --thumb` with bodies is in @ 5078ac33; `Aim`
+  parts show whole. Your skin needs `body`, `maps_from` and (for the maps) nothing else; the
+  thumb goes to `assets/cue/thumbs/<sid>.png`.
 - 2026-10-28 09:59: **Candy Corn complete @ e78636a4** (Progress 7; pushed after the `halloween`
   merge and the full run). Aura: a warm haze behind, the kernel flipbook (16 frames of the
   body's own kernel tumbling, rendered headless with its real materials:
@@ -143,6 +153,8 @@ Planned (PLAN §7 shared files; own block or line only; add the sha to each as i
 
 ## Requests
 
+- 10:02 **MERGE CuePreview bodies** (`hw-cues-a` @ 5078ac33: `assets/cue/CuePreview.py` only plus
+  the Candy Corn card; Cues B needs it for its three cards).
 - 09:45 **MERGE NOW drop 3: Cues B needs it for gate 2 at 11:00** (`hw-cues-a` @ 37573b2c: the
   body path, `Bodies.Enabled = true`, the two skin drafts and the manifest rows). Live
   behaviour changes only for a skin row with a Body, and no shipped row has one; the switch is

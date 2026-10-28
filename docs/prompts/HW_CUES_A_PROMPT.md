@@ -651,7 +651,7 @@ Justin's changes at a gate go straight into the work and into the lane file's St
   draft until its card, line 12); lab beside Eclipse, Beta, Firework and Blood Moon; a match
   (hands, trail, pocket).
 - [x] 8. Gate 2 shots and lines (11:00).
-- [ ] 9. Body support in `CuePreview.py --thumb` (2.5) by 12:00, its own commit, pushed;
+- [x] 9. Body support in `CuePreview.py --thumb` (2.5) by 12:00, its own commit, pushed;
   `MERGE CuePreview bodies` in Requests and a Status line for Cues B (it needs this for its
   cards).
 - [ ] 10. Jack: aura (smoke, flames, embers, mini jacks, orbiters, lights), face flicker, leaves
