@@ -2059,11 +2059,11 @@
         "EmissiveScale": 1.0
       },
       "Sound": {
-        "Asset": "rbxassetid://9125646918",
+        "Asset": "rbxassetid://9125646252",
         "Volume": 0.45,
         "RollOffMinStuds": 8,
         "RollOffMaxStuds": 60,
-        "Note": "Roblox library: Pro Sound Effects \"Magic Whooshes Pass Bys Metallic Shimmering 7\" (1.8 s), free, no upload"
+        "Note": "Roblox library: Pro Sound Effects \"Magic Whooshes Growly Magic Whooshes Airy Gusts 7\" (1.6 s), free, no upload; PreloadAsync Success 2026-10-28"
       }
     },
     "Budget": {
