@@ -20,6 +20,7 @@ New files the brief adds for these: `src/shared/Matchmaking/Roam.luau`, `tests/r
 `tools/badges_manifest.json`, `assets/ui/badges/`.
 
 ## Status
+- 18:22 hw-sys: badge icons: all 50 v2 icons approved by Roblox moderation (thumbnails API: 50 Completed, 0 Pending or Blocked).
 - 18:20 hw-sys **READY @ b7696894** (robustness pass; `halloween` @d9474296 merged in, lint OK, 1,470 passed, 0 failed; this lane file commit on top). Commits: 78ca56e6, 1b67eeef, 2cbf45cb, 4bd7e117, 57e5bead, ae16f727.
 - 18:15 hw-sys ROBUSTNESS PASS (coordinator 17:52), base `halloween` @d9474296. Found and fixed (one commit each, lint OK, 1,470 tests):
   - **78ca56e6 Roam switch parity (bug, Lune test fails without it):** with `Multiplayer.Roam.Enabled` false, a player away at the first Result poll (a respawn at the spawn) kept the rematch offer instead of declining as before. `Roam.walkOffExempt` now takes `roams(p, t)`; roam_test "roam off: away at the result still declines".
