@@ -160,6 +160,9 @@ function Friends.start()
 	end)
 	Players.PlayerRemoving:Connect(function(player)
 		Funnel.event(player, "FriendBoost", peak[player] or 0, Funnel.device(player))
+		-- Funnel's own PlayerRemoving may have run first: the event's log line would keep the
+		-- Player for the server's life.
+		Funnel.clearLog(player)
 		peak[player] = nil
 		forced[player] = nil
 		task.defer(refreshAll)
