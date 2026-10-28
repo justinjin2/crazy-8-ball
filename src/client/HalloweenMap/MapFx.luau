@@ -151,13 +151,15 @@ local function track(part: Instance)
 	end)
 end
 
--- Every frame: float, spin and pop in each candy near the camera.
+-- Every frame: float, spin and pop in each candy near the camera (nearer with Lower effects;
+-- one farther off holds still).
 local function step()
 	local camera = workspace.CurrentCamera
 	local eye = camera and camera.CFrame.Position or Vector3.zero
 	local now = os.clock()
+	local reach = if Quality.isLow() then HM.Candy.AnimateStudsLow else HM.Candy.AnimateStuds
 	for part, d in drawn do
-		if (part.Position - eye).Magnitude > 160 then
+		if (part.Position - eye).Magnitude > reach then
 			continue
 		end
 		-- Pops up out of the floor over 0.4 s, then floats.

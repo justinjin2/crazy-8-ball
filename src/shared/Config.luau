@@ -9501,6 +9501,10 @@ Config.HalloweenMap = {
 		IdleStuds = 4,
 		FloorWithinStuds = 1.5, -- a spot's floor within this of the player's feet
 		SpotTries = 20, -- random spots tried before skipping a turn
+		-- A client floats and spins each candy this close to its camera every frame (Lower
+		-- effects: the nearer one); one farther off holds still.
+		AnimateStuds = 160,
+		AnimateStudsLow = 60,
 	},
 }
 
