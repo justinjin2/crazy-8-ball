@@ -51,6 +51,15 @@ From PLAN §4 (everything else is read-only to this lane; ask through Requests):
 
 ## Status
 
+- 10:45 hw-map: merged halloween @f32c3d1b (core's CandyService, sys's badges; lint OK, 1418
+  tests). With core live in Studio (BootLive) the King's whole chain works: prompt, match, a
+  staged real win -> `Won`, core's save Earned 50, KingPaid 1, KingWins 1, cooldown 15:00 on
+  `PumpkinKingReadyAt` and the prompt's "Ready in 14:30". Fixes found by testing: a win never
+  paid (a38b71e1), the King sat backwards (8df3864c), see-through pumpkin eyes and a floating
+  crown (c88e894c), core's clock for the cooldown (a5b303ba). New: candy meshes in the lobby
+  and the burst (6925d850), the King's portrait and Vampire idle (4bf19ec7). Steps 3, 4, 6-10, 12
+  ticked; 5 waits on the CONTRACT CHANGE (3v3 tint). Still stand-ins in Studio: `HwOn` set by
+  hand (core's client state not built yet). Now: the candy walk test, then decor kits (13).
 - 09:50 hw-map: pushed ea730d46. Merged halloween @403da7da (lint OK, 1382 tests). Done since
   08:50: Rules + tests (step 2), the Night sky uploaded (6 faces), Night/LightCycle.event/
   DayCycle crossfade, EventMap and the table looks, the King end to end in code (BotService
