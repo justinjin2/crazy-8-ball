@@ -324,6 +324,7 @@ function Progression.start(screen: ScreenGui, hooks: Hooks)
 	DailyRewardsMenu.new(screen, deps)
 	require(script.Parent.Halloween.EventMenu).new(screen, deps) -- the Halloween event (hw-core)
 	require(script.Parent.Halloween.CandyToast).new(screen, deps) -- its Candy chips and cue cards
+	require(script.Parent.Halloween.Countdown).new(screen) -- 18:30-19:00 and the start
 	SettingsMenu.new(screen, deps)
 	-- Held rank rewards: the claim block over the roadmap (the tutorial lane).
 	RankClaimBlock.new(screen, deps, function(): boolean

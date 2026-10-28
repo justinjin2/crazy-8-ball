@@ -16937,6 +16937,18 @@ Config.UI.Halloween = {
 		CandyPile = "rbxassetid://100770056241444",
 		CashStack = "rbxassetid://103851828700645", -- "" = Kit icon CashStack (this is ShopMoney's Pack2 stack)
 	},
+	-- The countdown pill 18:30-19:00 and the start message (Halloween/Countdown; SkyBanner's look).
+	Countdown = {
+		TextPx = 18, -- a phone's: ShortTextPx
+		ShortTextPx = 14,
+		PadPx = 8,
+		GapPx = 6, -- the icon to the words
+		IconShare = 1.1, -- the Candy icon, of the pill's height
+		GapBelowPx = 6, -- kept under the Banner, the queue's card and the tutorial's quest line
+		ZIndex = 20,
+		StartedSeconds = 6, -- "THE HALLOWEEN EVENT HAS STARTED!" stays this long
+		StartedWindowSeconds = 120, -- a player busy at 19:00 still gets it this long after
+	},
 	-- The Candy toast and the NEW CUE! card (Halloween/CandyToast).
 	Toast = {
 		ChipPx = 44, -- the "+57" chip's height (a phone's: ShortChipPx)

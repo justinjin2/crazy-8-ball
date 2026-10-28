@@ -21,6 +21,7 @@ local HudParts = require(script.Parent.Parent.HudParts)
 local Menus = require(script.Parent.Parent.Menus)
 local UIAnim = require(script.Parent.Parent.UIAnim)
 local UISound = require(script.Parent.Parent.UISound)
+local Countdown = require(script.Parent.Countdown)
 local State = require(script.Parent.State)
 
 local T = Config.UI.Halloween.Tile
@@ -164,9 +165,10 @@ function EventButton.new(root: Frame, corners: any): any
 	return self
 end
 
--- Whether the tile should show now: the event Live for this player.
+-- Whether the tile should show now: the event Live for this player, after 19:00's start
+-- message (Halloween/Countdown).
 function EventButton.wanted(_self: any): boolean
-	return State.phase() == "Live"
+	return State.phase() == "Live" and not Countdown.holding()
 end
 
 -- Whether a quest waits to be claimed, or a board opened since the menu was last opened.
