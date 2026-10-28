@@ -63,11 +63,20 @@ local function rules(): any?
 	return if mapRules then mapRules else nil
 end
 
--- The King's timer at `now` (nil outside Timed mode, or when his next visit would start after
--- the event's end), and whether he is here.
+-- Whether the map lane's King runs at all (BossService starts only with both switches on).
+local function kingOn(): boolean
+	local HM = (Config :: any).HalloweenMap
+	return type(HM) == "table"
+		and HM.Enabled == true
+		and type(HM.Boss) == "table"
+		and HM.Boss.Enabled == true
+end
+
+-- The King's timer at `now` (nil outside Timed mode, with the King switched off, or when his
+-- next visit would start after the event's end), and whether he is here.
 local function kingLine(now: number): (string?, boolean)
 	local R = rules()
-	if R == nil or not R.kingTimed() then
+	if R == nil or not kingOn() or not R.kingTimed() then
 		return nil, false
 	end
 	local start, finish = R.kingWindow(now)
