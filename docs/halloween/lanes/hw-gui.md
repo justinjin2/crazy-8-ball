@@ -32,6 +32,31 @@ From PLAN §4 (everything else is read-only; ask below under Requests):
   `docs/STATUS.md`, `ROADMAP.md`, `DECISIONS.md`, `ECONOMY.md` (coordinator).
 
 ## Status
+- **17:48 FINAL FRESH-PLAYER RUN (the coordinator's 17:44 request) on hw-gui @971d5c16 =
+  halloween @16784c7c merged clean; lint OK, 1469/1469 tests. No code changed. PASS: the
+  first-Candy chip is fixed.** Window 1523x814, mock save, event Live by BootLive; a client
+  watcher logged every 0.05 s. Shots `~/Desktop/8ball-refs/halloween/shots/hw-gui/final1744/`.
+  - Tutorial Arrow → Pad → Game1 → Skip: no text with HALLOWEEN, KING, CANDY, BOOST or BADGE at
+    any moment (01, 02).
+  - First match (the skipped Game1 played out by script): WINNER 1-0, LegalEight, the card
+    $5,965 + Mystery block; the save got 143 Candy (`HwCandy 143 [Match, x2]`) (03). This time
+    the bot had left by the shot, so the card showed "Opponent left" with Rematch and Leave.
+  - **The chip, in the watcher's seconds:** Continue 175.14 → BRONZE! 175.44 → BRONZE! closes
+    181.46 → "+143" pops 181.59 at 761,446 and stays on screen, flying right (794 → 1294 by
+    182.54) toward the tile (1434,488) → lands 182.61 → King pill back 183.98 → **Daily Rewards
+    opens 184.23, 1.6 s after it landed** (04).
+  - Popups in order: BRONZE! → Daily Rewards (Day 1 claimed, closed) → Invite a friend? (05) →
+    lobby with the tile, the lines, the chip and "PUMPKIN KING IN 10:09".
+  - King: "PUMPKIN KING IS HERE! 11:26" in gold at UTC :15:32, moved below the arrival banner
+    "The Pumpkin King has arrived! Challenge him in the middle!"; Candy line +10% after the Rush,
+    the chip gone (06). `hudOverlap` empty. Minor, not Halloween's: while that banner shows (a
+    few seconds), its top-left corner (501,64) overlaps the Settings icon's label (497,29 to
+    541,73) by 9 px at this size.
+  - Console (the full LogService history): client only the known 203785492 ContentId. Server:
+    info lines (Tutorial, TutorialBot, Funnel incl. `1_Button`, `3_FirstCandy`, KingSpawn :15,
+    server ready, Admin, EconomyLog), "Badges: would award Welcome, FirstWin, RankBronze,
+    Halloween2026", this place's no-API lines (DataStore, MemoryStore, ProfileStore) and the
+    203785492 ContentId. No error or warning from game code.
 - **13:41 FRESH-PLAYER RUN (the coordinator's 13:19 request) on hw-gui @f84823fb = halloween
   @1908738e merged clean; lint OK, 1468/1468 tests. No code changed (nothing in my files needed
   a fix).** Window 1523x814 (HUD 1523x756), ProfileStore mock save (NoAccess), event Live by
@@ -466,3 +491,11 @@ Fresh-player run 13:41 (`~/Desktop/8ball-refs/halloween/shots/hw-gui/fresh1319/`
 - `09-phone-emu-844x390-king-countdown-rush-chip-lines.jpg` (and `-full`),
   `10-phone-emu-844x390-king-is-here-lines.jpg`: the phone pass.
 - `11-lobby-king-is-here-gold-candy-10-pc.jpg`: "IS HERE!" in gold, Candy +10% after the Rush.
+
+Final fresh-player run 17:48 (`~/Desktop/8ball-refs/halloween/shots/hw-gui/final1744/`, Studio
+window 1523x814, mock save, halloween @16784c7c):
+- `01-tutorial-arrow-no-halloween-pc.jpg`, `02-tutorial-game1-no-halloween-pc.jpg`.
+- `03-first-match-result-card-pc.jpg`: WINNER (the bot had left: Rematch/Leave).
+- `04-popup2-daily-rewards-after-chip-pc.jpg`: Daily opens 1.6 s after the chip landed.
+- `05-popup3-invite-king-countdown-lines-chip-pc.jpg`: the invite, the King countdown, the lines.
+- `06-lobby-king-is-here-banner-candy-10-pc.jpg`: "IS HERE!" under the arrival banner.
