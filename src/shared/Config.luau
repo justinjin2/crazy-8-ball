@@ -17444,7 +17444,8 @@ Config.UI.Halloween = {
 		LinePadPx = 10, -- inside the pill
 		LineMarginPx = 16, -- kept from the screen's sides
 		LineGapPx = 12, -- above the chip
-		LineSeconds = 4, -- it holds this long, then fades
+		LineSeconds = 8, -- with no result card it holds this long (with one: until it closes)
+		LineMaxSeconds = 90, -- never longer (a result card left open)
 	},
 	-- The end screen (Halloween/EndScreen; the M5 mock): laid out at WidthPx (a phone's
 	-- ShortWidthPx) and scaled down to fit.
