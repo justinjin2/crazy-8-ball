@@ -1927,6 +1927,13 @@ return {
 		RushSoon = "2x CANDY starts in %s",
 		RushNow = "2x CANDY ends in %s",
 		RushDone = "No more Rushes this event", -- Rush off, or the event's last hour
+		-- The Candy toast and the NEW CUE! card (Halloween/CandyToast).
+		Toast = "+%s", -- "+57" (Format.commas)
+		Double = "2x",
+		NewCue = "NEW CUE!",
+		FromTrack = "Candy Track prize",
+		FromSpider = "3 hours of play",
+		Ok = "OK",
 		Night = "HALLOWEEN NIGHT",
 		NightNow = "2x CANDY ALL DAY %s",
 		Yours = "YOURS!",

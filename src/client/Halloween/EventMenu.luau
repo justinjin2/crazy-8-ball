@@ -362,6 +362,11 @@ function EventMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 			claiming[key] = true
 			UISound.play("Claim")
 			UIAnim.glowBurst(row.chip, HudParts.tone("Gold"), 0.5)
+			-- The claimed Candy flies out of this button (CandyToast).
+			EventMenu.lastClaim = {
+				at = os.clock(),
+				from = row.claim.AbsolutePosition + row.claim.AbsoluteSize / 2,
+			}
 			State.send({ claim = key })
 			task.delay(3, function()
 				claiming[key] = nil
@@ -787,6 +792,16 @@ function EventMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		end
 	end
 	EventMenu.redraw = draw
+	-- The Candy pill's middle while the menu is open (where a claim's Candy lands), and its bump.
+	EventMenu.candyTarget = function(): Vector2?
+		if not frame:isOpen() or not candyPill.Visible then
+			return nil
+		end
+		return candyPill.AbsolutePosition + candyPill.AbsoluteSize / 2
+	end
+	EventMenu.bumpCandy = function()
+		UIAnim.bounce(candyPill)
+	end
 
 	frame.onLayout = function(g: MenuFrame.Geo)
 		geo = g
@@ -862,5 +877,14 @@ end
 
 -- Redraws the open menu (set by new).
 function EventMenu.redraw() end
+
+-- Set by new: the Candy pill's middle while the menu is open (nil otherwise), and its bounce.
+function EventMenu.candyTarget(): Vector2?
+	return nil
+end
+function EventMenu.bumpCandy() end
+
+-- The last CLAIM press: when (os.clock) and where (its middle, absolute pixels).
+EventMenu.lastClaim = nil :: { at: number, from: Vector2 }?
 
 return EventMenu

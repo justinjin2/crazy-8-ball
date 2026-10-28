@@ -16937,6 +16937,28 @@ Config.UI.Halloween = {
 		CandyPile = "rbxassetid://100770056241444",
 		CashStack = "rbxassetid://103851828700645", -- "" = Kit icon CashStack (this is ShopMoney's Pack2 stack)
 	},
+	-- The Candy toast and the NEW CUE! card (Halloween/CandyToast).
+	Toast = {
+		ChipPx = 44, -- the "+57" chip's height (a phone's: ShortChipPx)
+		ShortChipPx = 36,
+		ChipTint = { 255, 140, 30 }, -- the "+57" (the track's orange)
+		TagPx = 22, -- its "2x" tag
+		ShortTagPx = 18,
+		StartYShare = 0.62, -- a chip with no button to fly from starts here (of the screen's height)
+		HoldSeconds = 0.45, -- the chip pops in and waits this long
+		FlySeconds = 0.6, -- then flies to the tile (or the menu's Candy pill) this long
+		StillSeconds = 1.6, -- with nowhere to fly it stays this long, then fades
+		ClaimFromSeconds = 3, -- a claim's Candy flies out of the CLAIM pressed this recently
+		MaxWaitSeconds = 300, -- a match's chip waits for the result screen at most this long
+		PollSeconds = 0.25, -- how often a waiting chip or card checks the player is free
+		-- The NEW CUE! card.
+		CardWidthPx = 340,
+		ShortCardWidthPx = 280,
+		CardHeightShare = 0.86, -- of the screen's height at most (it scales down to fit)
+		DimTransparency = 0.45, -- the screen behind it
+		CardDisplayOrder = 45, -- its screen: over the tutorial's popups (40), under the scenes (60)
+		AutoCloseSeconds = 8, -- it closes itself after this long (OK closes it sooner)
+	},
 	-- A quest row's icon by its Icon key (Config.Halloween.Quests): Kit icon keys; "Candy" is the
 	-- Candy icon.
 	QuestIcons = {
