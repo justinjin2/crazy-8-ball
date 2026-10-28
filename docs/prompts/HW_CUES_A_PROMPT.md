@@ -665,7 +665,7 @@ Justin's changes at a gate go straight into the work and into the lane file's St
   card and take it out of draft alone first, so it ships.
 - [ ] 13. Every Cues B request answered within 30 minutes (backup uploads, path fixes), in your
   Status (the last by 15:00).
-- [ ] 14. Integration: after B's rows reach `halloween`, merge it (manifest and CueSkins
+- [x] 14. Integration: after B's rows reach `halloween`, merge it (manifest and CueSkins
   conflicts by the 3.4 rules), build all five with ONLY in your window, check the path on the
   Broom, Spider and Cat (hands, back, fade, `Aim`); fix or answer each problem.
 - [x] 15. Lower effects, quiet in the hands and the Night lighting for both cues; their cost
@@ -673,7 +673,7 @@ Justin's changes at a gate go straight into the work and into the lane file's St
 - [x] 16. Analytics: `HalloweenCueEquipped` in `Items.luau`, seen in the Studio log.
 - [x] 17. Devices: Index row and detail, My Cues, power bar and YOU GOT at phone, iPad, PC and
   TV (pad), shots. PC and TV done (lane file 10:43); phone and iPad done for the Index and My Cues by Root-frame emulation (lane file 11:04); BLOCKED for the power bar and YOU GOT at phone and iPad: the window resize helper sees no Studio window from this shell and those two size from the real screen.
-- [ ] 18. Fresh-player run on the final build, console clean.
+- [x] 18. Fresh-player run on the final build, console clean. Done 12:40 on 66af67b0 (lane file 12:40); runs once more if a later READY changes runtime code.
 - [x] 19. R2.1, R2.2, R2.8 and R2.9 checked row by row against the shots; coordinator Requests
   3.6 written in full (merges, the manifest/CueSkins merge rules and regenerate, the Team
   Create ONLY build, the publish note).

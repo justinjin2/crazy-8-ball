@@ -9415,6 +9415,24 @@ Config.HalloweenMap = {
 	},
 	Boss = {
 		Enabled = true, -- the Pumpkin King's challenge
+		-- Where and when he plays (designer, 2026-10-28, gate 2 option 2): "Timed": he visits the
+		-- middle of the roof on a schedule every server shares (Timed below) and is challenged at
+		-- his stage there, a line forming when the tables are full; "Throne": always on his
+		-- throne at the piano (Throne above). Core reads it too (the reward per visit, the timer).
+		Mode = "Throne",
+		Timed = {
+			-- A visit starts every EverySeconds at OffsetSeconds past each period (UTC :15 and
+			-- :45) and lasts StaySeconds (to :27 and :57: never in the :00-:10 Candy Rush).
+			EverySeconds = 1800,
+			OffsetSeconds = 900,
+			StaySeconds = 720,
+			Pivot = { 0, 0, 0 }, -- his stage, the throne's pivot, in the roof's open middle
+			YawDegrees = 0, -- facing the spawn (+Z)
+			Scale = 1.5, -- the stage throne and the King on it against a normal avatar
+			TableScale = 1.5, -- the King at a table against a normal avatar
+			LineStuds = 40, -- a player in his line who walks this far from his prompt drops out
+			ServerStuds = 20, -- the server accepts a challenge this close to his prompt
+		},
 		-- A practice bot: Settle pays it as PC (no rank, practice money, the PC cap), so the
 		-- King can't be farmed. Never a new kind.
 		Kind = "Pc",
@@ -18022,6 +18040,9 @@ Config.Badges = {
 	RevealMarginSeconds = 2,
 	Retries = { 5, 20, 60 }, -- seconds before each retry of a failed call; then wait for the next join
 	Paused = {} :: { [string]: boolean }, -- [Key] = true: cut or misbehaving; the row never awards (a one-line publish)
+	-- The designer cut Tycoon (Money10M, out of reach) and Part of the Crew (Crew) on 2026-10-28:
+	-- their rows are gone and the two badges are disabled on Roblox (they cannot be deleted;
+	-- tools/badges_manifest.json keeps their ids). 50 rows.
 	List = {
 		{ Key = "Welcome", BadgeId = 3774850189892880, Rule = { always = true } },
 		{ Key = "FirstWin", BadgeId = 3575671673255502, Rule = { stat = "Wins", atLeast = 1 } },
@@ -18105,11 +18126,6 @@ Config.Badges = {
 			BadgeId = 2699082964518478,
 			Rule = { stat = "MoneyEarned", atLeast = 1000000 },
 		},
-		{
-			Key = "Money10M",
-			BadgeId = 217838342274579,
-			Rule = { stat = "MoneyEarned", atLeast = 10000000 },
-		},
 		{ Key = "Squad", BadgeId = 432657693674846, Rule = { event = "TeamMatch" } },
 		{ Key = "Ability1", BadgeId = 97386214196697, Rule = { event = "UltUsed" } },
 		{
@@ -18117,7 +18133,6 @@ Config.Badges = {
 			BadgeId = 2989268570496762,
 			Rule = { stat = "UltMatches", atLeast = 100 },
 		},
-		{ Key = "Crew", BadgeId = 2950008037199385, Rule = { event = "InGroup" } },
 		{ Key = "MetOwner", BadgeId = 3300678702313834, Rule = { event = "OwnerHere" } },
 		{ Key = "BeatOwner", BadgeId = 4060031209370529, Rule = { event = "BeatOwner" } },
 		{

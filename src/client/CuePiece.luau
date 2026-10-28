@@ -86,6 +86,9 @@ export type CuePiece = typeof(setmetatable(
 		auraShown: boolean,
 		low: boolean, -- Lower effects is on
 		qualityConnection: RBXScriptConnection?,
+		lastModifier: number?, -- the last setModifier arguments (reused by the Quality and aura toggles)
+		lastEye: Vector3?,
+		lastStuds: number?,
 		scale: number,
 		lift: CFrame, -- the whole piece raised on its root (a Carrier piece to the body's head)
 		turn: CFrame, -- each rigid part's rest turn: FLIP for decor, none for a body
@@ -357,6 +360,9 @@ function CuePiece.new(
 		auraShown = true,
 		low = Quality.isLow(),
 		qualityConnection = nil :: RBXScriptConnection?,
+		lastModifier = nil :: number?,
+		lastEye = nil :: Vector3?,
+		lastStuds = nil :: number?,
 		scale = 1,
 		lift = CFrame.new(0, lift or 0, 0),
 		turn = turn,
@@ -381,7 +387,9 @@ function CuePiece.new(
 	self:applyHidden()
 	self.qualityConnection = Quality.Changed:Connect(function(on: boolean)
 		self.low = on
-		self:applyHidden()
+		-- With the last modifier (a hidden stick's 1), so toggling Lower effects never shows a
+		-- hidden body as a ghost where the cue was last drawn (review, 2026-10-28).
+		self:applyHidden(self.lastModifier, self.lastEye, self.lastStuds)
 	end)
 	return self
 end
@@ -565,6 +573,10 @@ end
 -- part also fades by its own distance to it (within `studs`), and the Aim joints by the aim
 -- share; a part takes the largest. This is the one writer of the parts' modifier.
 function CuePiece.applyHidden(self: CuePiece, modifier: number?, eye: Vector3?, studs: number?)
+	if modifier ~= nil then
+		-- Remembered for the Quality and aura toggles, which have no eye of their own.
+		self.lastModifier, self.lastEye, self.lastStuds = modifier, eye, studs
+	end
 	local base = modifier or 0
 	for _, r in self.rigid do
 		local m = if self:hidden(r.joint) then 1 else base
@@ -604,7 +616,7 @@ function CuePiece.setAura(self: CuePiece, shown: boolean)
 		return
 	end
 	self.auraShown = shown
-	self:applyHidden()
+	self:applyHidden(self.lastModifier, self.lastEye, self.lastStuds)
 end
 
 -- A typing panel's gui is on or off (a SurfaceGui ignores LocalTransparencyModifier): off

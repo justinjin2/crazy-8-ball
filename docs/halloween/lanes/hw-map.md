@@ -50,6 +50,24 @@ From PLAN §4 (everything else is read-only to this lane; ask through Requests):
 - `Config.HalloweenMap.Props.Budget.Lights = 6` (throne 2 + the throne King's aura 1 + 3 table Kings).
 
 ## Status
+- 12:24 hw-map: **READY @88e9cceb**: the 12:16 BLOCKER fixed (c1e75749), halloween @5dae747d
+  merged in (clean), lint OK, 1,462 tests. Cause as the review found: EventMap's first Live pass
+  waited on the meshes in the props, BossService's addPart turned the throne on on Bootstrap's
+  thread, and the resuming pass reached the new part too; both passed `built == nil`. Fix:
+  `HalloweenMap.Once` (a build runs once however many ask; the second waits for it) for the
+  throne and the props; an off during the wait wins over the waiting on; `turnOn` walks the
+  parts as they were and `addPart` turns a late part on in its own thread (Bootstrap no longer
+  waits on the meshes). Test: two ons at once build once (two without the guard), plus retry
+  and error cases. Studio: three Plays into Live, one throne and one King each; a forced Ended
+  left none, the piano and the props back; Live again one; on the merged tree once more one,
+  console clean.
+- 12:15 coordinator: `halloween` @5dae747d adds map 7fd462cc + 39815514 (night rooftop, King, drops, /king), core d7120fac (the 11:30 review fixed, the Rush chip names what runs) and gui c9f01ea6 (the boost lines restyle, VIP perks in the Soft step). The contract test is now STRICT. Lint OK, 1,460 tests, Team Create play console clean (shots/coordinator/merge_5dae747d_boost_lines.jpg). Known blocker sent to map: the throne builds twice on a server that starts during Live. Run `git fetch && git merge origin/halloween` before your next READY.
+- 12:03 hw-map: **READY @39815514** (step 21): halloween @02e046e1 merged in (clean), lint OK,
+  1,459 tests, Studio boot on the merged tree: Live, 16 tables with the look, 44 decor pieces,
+  51 props, the throne; console clean but for the Studio store lines, the known 203785492 ones
+  and `1621084` (the tutorial bot's random avatar, not in src). New since READY 7fd462cc:
+  aaaffdbe and 9af68c6a (King notices fit the card, a test), 10489ad6 (`LocalSearch.isPromised`),
+  b86b9142 (the designer's `/king [tier]`), lane-file updates. All 21 steps ticked.
 - 11:59 hw-map: **Status final** (step 20). Everything below is on (`Config.HalloweenMap`, all
   eight switches true), follows core's Event.state and was checked in my Studio window:
   - **Night**: while Live the event light takes Day's slot of the cycle (Countdown preloads the
@@ -309,7 +327,7 @@ coordinator resolves overlaps. Planned (add the commit sha when each lands):
   and the glow lead players there. Option (a) is a two-line change (`Throne.Pivot` z about -66
   and `PromptAt` with it), to be checked in Studio against the boards and the last table row.
 
-- OVERRULED: the top three TierFor rows play a Grandmaster King, not Reyes (PLAN: two ranks
+- OVERRULED (Justin: yes, 12:16 via the coordinator): the top three TierFor rows play a Grandmaster King, not Reyes (PLAN: two ranks
   above, at most Reyes). Measured: a Reyes King left the model player 11.5% (Master), 13.5%
   (Grandmaster) and 14.0% (Reyes), all under the brief's 20% floor; stepped down one tier they
   read 26.5% / 33.0% / 36.0%, inside 25-45%. The Reyes row's King is now one tier below the
@@ -327,7 +345,7 @@ coordinator resolves overlaps. Planned (add the commit sha when each lands):
   orange is (255, 90, 10): Neon draws (255, 122, 26) nearly yellow.
 - The decor goes on arena tables too (part of the table's look, like the cloth tint).
 
-- OVERRULED: `Props.Budget.UniqueMeshes` is 16, not the brief's 8. The event's 16 meshes hold
+- OVERRULED (Justin: yes, 12:16 via the coordinator): `Props.Budget.UniqueMeshes` is 16, not the brief's 8. The event's 16 meshes hold
   6,900 triangles in all on one palette texture (one upload); getting to 8 would merge props
   whose places are data (trees, strings of lights, dressings) into fixed meshes. The draw cost
   the cap guards is met by the MeshParts count (112 of 130) and the shared texture.

@@ -1,4 +1,11 @@
-# Badges: full list (draft, 2026-10-28)
+# Badges: full list (2026-10-28)
+
+The designer's review (2026-10-28, noon): plainer names (Pool Shark, Curator, Cue Rack, Museum,
+Pocket Pro, Pocket Machine, Lives Here and the rarity names changed; the rarity badges are all
+"<Rarity> Find" but One of a Kind), First Win's tutorial note and Painicane's name out of the
+descriptions, Tycoon (Money10M, out of reach) and Part of the Crew (Crew) cut: their rows are
+gone and the two badges are disabled on Roblox (a badge cannot be deleted). The icons are
+hand-drawn flat pool balls (`tools/gen_badge_icons.py`), no generated art. 50 badges.
 
 The rules are data (a `Config.Badges` row each), and the same evaluator decides both live and
 catch-up awards. The "Back-pay" column says whether existing players get the badge on their
@@ -7,11 +14,11 @@ next join from data the save already has.
 | # | Key | Badge name | How to get it | Back-pay |
 |---|---|---|---|---|
 | 1 | Welcome | Welcome to Crazy 8 Ball! | Join the game | yes (on join) |
-| 2 | FirstWin | First Win! | Win your first match (the tutorial counts) | yes (Wins ≥ 1) |
+| 2 | FirstWin | First Win! | Win your first match | yes (Wins ≥ 1) |
 | 3 | Wins5 | Rookie | Win 5 matches | yes |
 | 4 | Wins10 | Contender | Win 10 matches | yes |
 | 5 | Wins25 | Hustler | Win 25 matches | yes |
-| 6 | Wins50 | Pool Shark | Win 50 matches | yes |
+| 6 | Wins50 | Ace | Win 50 matches | yes |
 | 7 | Wins100 | Pro | Win 100 matches | yes |
 | 8 | Wins250 | Cue Master | Win 250 matches | yes |
 | 9 | Wins500 | Legend | Win 500 matches | yes |
@@ -29,35 +36,33 @@ next join from data the save already has.
 | 21 | Streak3 | Hot Streak | Win 3 in a row | yes (BestWinStreak) |
 | 22 | Streak5 | On Fire | Win 5 in a row | yes |
 | 23 | Streak10 | Unstoppable | Win 10 in a row | yes |
-| 24 | CueRare | Shiny! | Own a Rare cue | yes |
+| 24 | CueRare | Rare Find | Own a Rare cue | yes |
 | 25 | CueEpic | Epic Find | Own an Epic cue | yes |
-| 26 | CueLegendary | Legendary Pull | Own a Legendary cue | yes |
-| 27 | CueMythic | Mythic Moment | Own a Mythic cue | yes |
-| 28 | CueSecret | Secret Keeper | Own a Secret cue | yes |
+| 26 | CueLegendary | Legendary Find | Own a Legendary cue | yes |
+| 27 | CueMythic | Mythic Find | Own a Mythic cue | yes |
+| 28 | CueSecret | Secret Find | Own a Secret cue | yes |
 | 29 | CueUnique | One of a Kind | Own a Unique cue | yes |
 | 30 | Cues5 | Collector | Own 5 cues | yes |
-| 31 | Cues10 | Curator | Own 10 cues | yes |
-| 32 | Cues25 | Cue Rack | Own 25 cues | yes |
-| 33 | Cues50 | Museum | Own 50 cues | yes |
+| 31 | Cues10 | Super Collector | Own 10 cues | yes |
+| 32 | Cues25 | Master Collector | Own 25 cues | yes |
+| 33 | Cues50 | Grand Collector | Own 50 cues | yes |
 | 34 | Balls100 | Sharpshooter | Pocket 100 balls | yes |
-| 35 | Balls1000 | Pocket Pro | Pocket 1,000 balls | yes |
-| 36 | Balls10000 | Pocket Machine | Pocket 10,000 balls | yes |
+| 35 | Balls1000 | Marksman | Pocket 1,000 balls | yes |
+| 36 | Balls10000 | Deadeye | Pocket 10,000 balls | yes |
 | 37 | Matches10 | Regular | Play 10 matches | yes |
 | 38 | Matches100 | Dedicated | Play 100 matches | yes |
-| 39 | Matches1000 | Lives Here | Play 1,000 matches | yes |
+| 39 | Matches1000 | Diehard | Play 1,000 matches | yes |
 | 40 | Nice10 | Nice Shot! | Make 10 nice shots | yes |
 | 41 | Nice100 | Trick Shot Artist | Make 100 nice shots | yes |
 | 42 | Money1M | Millionaire | Earn $1,000,000 total | yes (MoneyEarned) |
-| 43 | Money10M | Tycoon | Earn $10,000,000 total | yes |
-| 44 | Squad | Squad Goals | Play a 2v2 or 3v3 match | from now on** |
-| 45 | Ability1 | Power Up | Use an ability in a match | from now on** |
-| 46 | Ability100 | Ability Master | Use abilities in 100 matches | from now on (new counter) |
-| 47 | Crew | Part of the Crew | Be in the Crazy 8 Ball group while playing | yes (checked on join) |
-| 48 | MetOwner | Met the Owner | Be in a server with Painicane | from now on |
-| 49 | BeatOwner | Beat the Owner! | Win a match against Painicane | from now on |
-| 50 | Halloween2026 | Halloween 2026 | Play during the 2026 Halloween event | event only |
-| 51 | PumpkinSlayer | Pumpkin Slayer | Beat the Pumpkin King | event only |
-| 52 | BroomRider | Broom Rider | Earn the Witch's Broom | event only |
+| 43 | Squad | Squad Goals | Play a 2v2 or 3v3 match | from now on** |
+| 44 | Ability1 | Power Up | Use an ability in a match | from now on** |
+| 45 | Ability100 | Ability Master | Use abilities in 100 matches | from now on (new counter) |
+| 46 | MetOwner | Met the Owner | Be in a server with the owner | from now on |
+| 47 | BeatOwner | Beat the Owner! | Win a match against the owner | from now on |
+| 48 | Halloween2026 | Halloween 2026 | Play during the 2026 Halloween event | event only |
+| 49 | PumpkinSlayer | Pumpkin Slayer | Beat the Pumpkin King | event only |
+| 50 | BroomRider | Broom Rider | Earn the Witch's Broom | event only |
 
 \* Back-pay for ranks needs the highest rank ever reached. If the save keeps only the current
 rank, back-pay goes up to the current rank only.

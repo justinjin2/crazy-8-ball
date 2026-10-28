@@ -39,9 +39,9 @@
       ]
     },
     {
-      "Material": "Glass",
+      "Material": "Neon",
       "Color": "#A86BFF",
-      "Transparency": 0.2,
+      "Transparency": 0.3,
       "Reflectance": 0.0,
       "Name": "Tip_Crystal",
       "File": "pieces/witch_broom/Tip_Crystal.obj",
@@ -178,8 +178,8 @@
       "Visual": [
         {
           "Kind": "Glow",
-          "Min": 0.2,
-          "Max": 0.7,
+          "Min": 0.25,
+          "Max": 1.0,
           "Period": 2.4
         }
       ]

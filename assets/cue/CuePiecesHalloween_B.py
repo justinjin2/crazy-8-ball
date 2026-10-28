@@ -598,12 +598,12 @@ def witch_broom(k):
     from mathutils import Vector, Matrix
     R = _radius()
     A = _broom_atlas(k)
-    k.material('Crystal', 'Glass', BROOM['crystal'], Transparency=0.2)
+    k.material('Crystal', 'Neon', BROOM['crystal'], Transparency=0.3)   # Neon since the 11:55 redo: the Glass read matte
     k.material('CrystalCore', 'Neon', BROOM['core'])
     long = LONG['witch_broom']
 
     # --- the crystal tip --------------------------------------------------------------------
-    k.joint('Tip', pivot=(0, 0, 0), visual=[{'Kind': 'Glow', 'Min': 0.2, 'Max': 0.7, 'Period': 2.4}])
+    k.joint('Tip', pivot=(0, 0, 0), visual=[{'Kind': 'Glow', 'Min': 0.25, 'Max': 1.0, 'Period': 2.4}])
     bm = bmesh.new()
     _lathe(bm, [0.0, 0.05, 0.13, 0.22, 0.3], [0.006, 0.038, 0.058, 0.052, R(0.3)], 6, close=True, twist_per_ring=0.0)
     k.add('Tip', k.mesh_object('TipCrystal', bm, ['Crystal'], smooth=False))
@@ -783,43 +783,153 @@ def witch_broom(k):
 
 @piece
 def witch_broom_aura(k):
-    """Aura-only decoration (hides with the aura, brief 2.4): two flat Neon magic ribbons,
-    purple and emerald, spiralling round the whole handle in opposite senses 0.16 off its
-    surface, a turn every 1.8 studs, each turning about the cue's axis (+45 and -45 degrees a
-    second: a screw, so their glow streams along the cue) with a Glow wave; the outer (purple)
-    ribbon hides under Lower effects. The firework builder's pattern."""
+    """Aura-only decoration (hides with the aura, brief 2.4), the second build (designer,
+    2026-10-28 11:55: the first read as a plain matte stick): the concept's glowing magic
+    ribbons round the whole handle, made the Firework's way (CuePiecesUnique.firework: narrow
+    saturated Neon strips; wide pale bands and a Glow toward white only bloomed into a white
+    sheet in daylight). Two ribbons (violet, emerald, 0.09 wide) spiralling in opposite senses
+    0.2 off the bark, a turn every 1.8 studs, turning like a screw (40 and -40 degrees a
+    second) with a Glow wave toward a lighter tint of their own hue; a thin gold sparkle
+    thread the other way (70 a second, twinkling); three gold crescent moons, five four-point
+    stars and two bats as meshes orbiting the handle (Spin and Bob, the bats flapping on Sway
+    hinges), the stars twinkling (Fade). Lower effects keeps the ribbons, the moons and one
+    bat; the stars, the gold thread and the second bat hide."""
     import bmesh
     from mathutils import Vector
     R = _radius()
-    k.material('Violet', 'Neon', BROOM['violet'], Transparency=0.12)
-    k.material('Emerald', 'Neon', BROOM['emerald'], Transparency=0.15)
-    for name, mat, sense, phase, rate, lift, low, period in (
-            ('RibbonViolet', 'Violet', 1, 0.0, 45.0, 0.16, 'hide', 2.6),
-            ('RibbonEmerald', 'Emerald', -1, math.pi, -45.0, 0.13, None, 4.0)):
-        k.joint(name, pivot=(0, -3.5, 0), aura=True, low=low,
-                motion=[{'Kind': 'Spin', 'Axis': (0, 1, 0), 'Rate': rate}],
-                visual=[{'Kind': 'Glow', 'Min': 0.0, 'Max': 0.45, 'Period': period, 'Phase': 0 if sense > 0 else 90}])
+    k.material('Violet', 'Neon', '#8B30FF', Transparency=0.05)
+    k.material('Emerald', 'Neon', '#19E088', Transparency=0.05)
+    k.material('Gold', 'Neon', BROOM['gold'], Transparency=0.0)
+    k.material('GoldSoft', 'Neon', '#FFC94A', Transparency=0.2)
+    k.material('Bat', 'SmoothPlastic', '#160A28')
+    k.material('BatEye', 'Neon', '#FFD36A')
+
+    def helix_strip(sense, phase, pitch, lift, half, n=160, d0=0.35, d1=6.9, wave=0.0):
         bm = bmesh.new()
-        n = 240
         left, right = [], []
         for i in range(n):
-            d = 0.35 + (6.9 - 0.35) * i / (n - 1)
-            a = sense * 2 * math.pi * d / 1.8 + phase
+            d = d0 + (d1 - d0) * i / (n - 1)
+            a = sense * 2 * math.pi * d / pitch + phase
             radial = Vector((math.sin(a), 0, math.cos(a)))
             p = Vector((0, -d, 0)) + radial * (R(d) + lift)
-            d2 = min(d + 0.01, 6.9)
-            a2 = sense * 2 * math.pi * d2 / 1.8 + phase
+            d2 = min(d + 0.01, d1)
+            a2 = sense * 2 * math.pi * d2 / pitch + phase
             p2 = Vector((0, -d2, 0)) + Vector((math.sin(a2), 0, math.cos(a2))) * (R(d2) + lift)
             tang = (p2 - p).normalized()
             across = tang.cross(radial).normalized()
-            w = 0.024 + 0.01 * math.sin(d * 2.0)
+            w = half + wave * math.sin(d * 1.7 + phase)
             left.append(bm.verts.new(p - across * w))
             right.append(bm.verts.new(p + across * w))
         for i in range(n - 1):
             bm.faces.new((left[i], right[i], right[i + 1], left[i + 1]))
-        ob = k.mesh_object(name + 'Strip', bm, [mat])
-        apply_modifier(k.bpy, ob, 'SOLIDIFY', thickness=0.012, offset=0.0)
+        return bm
+
+    # The two magic ribbons: narrow saturated Neon strips, the Firework's recipe in the
+    # Broom's colours; their Glow breathes toward a lighter tint of the same hue, never white.
+    for name, mat, tint, sense, phase, rate, period in (
+            ('RibbonViolet', 'Violet', '#B470FF', 1, 0.0, 40.0, 2.6),
+            ('RibbonEmerald', 'Emerald', '#7CFFC2', -1, math.pi, -40.0, 4.0)):
+        k.joint(name, pivot=(0, -3.5, 0), aura=True,
+                motion=[{'Kind': 'Spin', 'Axis': (0, 1, 0), 'Rate': rate}],
+                visual=[{'Kind': 'Glow', 'Min': 0.0, 'Max': 0.45, 'Period': period, 'Phase': 0 if sense > 0 else 90,
+                         'Color': tint}])
+        ob = k.mesh_object(name + 'Strip', helix_strip(sense, phase, 1.8, 0.2, 0.045), [mat])
+        apply_modifier(k.bpy, ob, 'SOLIDIFY', thickness=0.016, offset=0.0)
         k.add(name, ob)
+    # The gold sparkle thread, the other way and faster, twinkling.
+    k.joint('ThreadGold', pivot=(0, -3.5, 0), aura=True, low='hide',
+            motion=[{'Kind': 'Spin', 'Axis': (0, 1, 0), 'Rate': 70.0}],
+            visual=[{'Kind': 'Fade', 'Min': 0.35, 'Max': 1.0, 'Period': 1.6}])
+    ob = k.mesh_object('ThreadGoldStrip', helix_strip(1, math.pi * 0.5, 3.4, 0.3, 0.02), ['GoldSoft'])
+    apply_modifier(k.bpy, ob, 'SOLIDIFY', thickness=0.016, offset=0.0)
+    k.add('ThreadGold', ob)
+
+    def flat(bm, ob_name, mat, thickness):
+        ob = k.mesh_object(ob_name, bm, [mat])
+        apply_modifier(k.bpy, ob, 'SOLIDIFY', thickness=thickness, offset=0.0)
+        return ob
+
+    # Three crescent moons standing beside the handle, each turning round it and bobbing.
+    for i, (d, rate, period, radius) in enumerate(((1.4, 30.0, 2.4, 0.8), (3.3, -24.0, 3.1, 0.85), (5.2, 36.0, 2.8, 0.8))):
+        name = 'Moon%d' % (i + 1)
+        k.joint(name, pivot=(0, -d, 0), aura=True,
+                motion=[{'Kind': 'Spin', 'Axis': (0, 1, 0), 'Rate': rate},
+                        {'Kind': 'Bob', 'Dir': (0, 1, 0), 'Amp': 0.15, 'Period': period, 'Phase': 60 * i}],
+                visual=[{'Kind': 'Glow', 'Min': 0.0, 'Max': 0.4, 'Period': 1.9 + 0.3 * i, 'Phase': 40 * i,
+                         'Color': '#FFE9A8'}])
+        bm = bmesh.new()
+        c = Vector((radius, -d, 0))
+        u, v = Vector((0, 0, 1)), Vector((0, 1, 0))   # the moon's plane is tangent to the handle
+        r_out, r_in, off = 0.27, 0.235, 0.13
+        n = 14
+        outer, inner = [], []
+        for j in range(n):
+            t = math.radians(62 + (298 - 62) * j / (n - 1))
+            s = math.radians(92 + (268 - 92) * j / (n - 1))
+            outer.append(bm.verts.new(c + u * (r_out * math.cos(t)) + v * (r_out * math.sin(t))))
+            inner.append(bm.verts.new(c + u * (off + r_in * math.cos(s)) + v * (r_in * math.sin(s))))
+        for j in range(n - 1):
+            bm.faces.new((outer[j], inner[j], inner[j + 1], outer[j + 1]))
+        k.add(name, flat(bm, name + 'Crescent', 'Gold', 0.03))
+
+    # Five four-point stars twinkling round the handle (hidden under Lower effects).
+    for i, (d, rate, period, phase) in enumerate(((0.9, 22.0, 1.3, 0), (2.0, -28.0, 1.7, 70), (3.0, 20.0, 1.1, 140),
+                                                   (4.2, -34.0, 1.9, 210), (5.8, 26.0, 1.5, 280))):
+        name = 'Star%d' % (i + 1)
+        k.joint(name, pivot=(0, -d, 0), aura=True, low='hide',
+                motion=[{'Kind': 'Spin', 'Axis': (0, 1, 0), 'Rate': rate}],
+                visual=[{'Kind': 'Fade', 'Min': 0.0, 'Max': 1.0, 'Period': period, 'Phase': phase}])
+        bm = bmesh.new()
+        c = Vector((0.7, -d, 0))
+        u, v = Vector((0, 0, 1)), Vector((0, 1, 0))
+        centre = bm.verts.new(c)
+        pts = []
+        for j in range(8):
+            a = math.radians(45 * j + 22.5 * (i % 2))
+            r = 0.15 if j % 2 == 0 else 0.05
+            pts.append(bm.verts.new(c + u * (r * math.cos(a)) + v * (r * math.sin(a))))
+        for j in range(8):
+            bm.faces.new((centre, pts[j], pts[(j + 1) % 8]))
+        k.add(name, flat(bm, name + 'Star', 'Gold', 0.02))
+
+    # Two bats flying round the handle, bobbing, wings flapping on hinges; gold eyes.
+    for i, (d, rate, low) in enumerate(((2.2, 40.0, None), (4.6, -32.0, 'hide'))):
+        name = 'Bat%d' % (i + 1)
+        k.joint(name, pivot=(0, -d, 0), aura=True, low=low,
+                motion=[{'Kind': 'Spin', 'Axis': (0, 1, 0), 'Rate': rate},
+                        {'Kind': 'Bob', 'Dir': (0, 1, 0), 'Amp': 0.22, 'Period': 1.1, 'Phase': 90 * i}])
+        c = Vector((0.95, -d, 0))
+        u, v = Vector((0, 1, 0)), Vector((0, 0, 1))   # wings along the handle, body across the flight
+        S = 1.2   # a fifth bigger than the first build: they read from the stand camera
+        bm = bmesh.new()
+        centre = bm.verts.new(c)
+        body = []
+        for j in range(12):
+            a = 2 * math.pi * j / 12
+            body.append(bm.verts.new(c + u * (0.05 * S * math.cos(a)) + v * (0.09 * S * math.sin(a))))
+        for j in range(12):
+            bm.faces.new((centre, body[j], body[(j + 1) % 12]))
+        for sgn in (1, -1):   # ears
+            bm.faces.new((bm.verts.new(c + u * (sgn * 0.015 * S) + v * (0.08 * S)), bm.verts.new(c + u * (sgn * 0.045 * S) + v * (0.08 * S)),
+                          bm.verts.new(c + u * (sgn * 0.03 * S) + v * (0.14 * S))))
+        k.add(name, flat(bm, name + 'Body', 'Bat', 0.02))
+        bm = bmesh.new()
+        for sgn in (1, -1):
+            e = c + u * (sgn * 0.02 * S) + v * (0.045 * S) + Vector((0.012, 0, 0))
+            bm.faces.new((bm.verts.new(e + u * (sgn * 0.0) + v * 0.0), bm.verts.new(e + u * (sgn * 0.016 * S)),
+                          bm.verts.new(e + u * (sgn * 0.016 * S) + v * (0.014 * S)), bm.verts.new(e + v * (0.014 * S))))
+        k.add(name, flat(bm, name + 'Eyes', 'BatEye', 0.01))
+        for side, sgn in (('L', 1), ('R', -1)):
+            wname = name + 'Wing' + side
+            k.joint(wname, pivot=tuple(c), parent=name, aura=True,
+                    motion=[{'Kind': 'Sway', 'Axis': (0, 0, 1), 'Amp': 35.0 * sgn, 'Period': 0.5, 'Phase': 30 * i}])
+            bm = bmesh.new()
+            root = bm.verts.new(c + u * (sgn * 0.04 * S))
+            pts = [(0.04, 0.06), (0.16, 0.14), (0.30, 0.10), (0.26, 0.0), (0.30, -0.1), (0.16, -0.12), (0.04, -0.06)]
+            vs = [bm.verts.new(c + u * (sgn * y * S) + v * (z * S)) for (y, z) in pts]
+            for j in range(len(vs) - 1):
+                bm.faces.new((root, vs[j], vs[j + 1]))
+            k.add(wname, flat(bm, wname, 'Bat', 0.02))
 
 
 @piece
