@@ -1600,16 +1600,17 @@ def _spider_blade_curve(theta, long=True):
     (d 7.55), sweeping FORWARD along the butt and flaring out like a splayed spider leg (a cubic
     in the (d, out) plane, out to 0.93 of the Aim room 1.1), the tip turning in and pointing up
     the shaft at d 6.24: just behind the grip hand's rest at 5.95 (the grip zone 4.4-6.2 stays
-    flush), the way C1's hand holds the shaft ahead of the crown (coordinator 19:08). Every other
-    blade is short (tip at d 6.7, out 0.66) so the crown's silhouette is jagged, not a cage (v9
-    lab); the tips stay wide instead of curling in."""
+    flush), the way C1's hand holds the shaft ahead of the crown (coordinator 19:08). Four broad
+    blades on the diagonals and four short ones between (tip at d 6.8, out 0.6) so the crown's
+    silhouette is jagged, not a cage (v9 lab); the centreline keeps room for the blade's width
+    (a crescent 0.32 wide at its bulge, the inner edge taking most of it)."""
     from mathutils import Vector
     rad = Vector((math.sin(theta), 0, -math.cos(theta)))      # out from the axis at this angle
     topness = 0.5 + 0.5 * math.cos(theta - math.pi)           # 1 at the top (+Z), 0 at the bottom
     if long:
-        P = ((7.55, 0.36), (7.3, 0.9 + 0.04 * topness), (6.7, 0.95 + 0.04 * topness), (6.24, 0.86))
+        P = ((7.55, 0.34), (7.3, 0.8 + 0.03 * topness), (6.72, 0.86 + 0.03 * topness), (6.24, 0.74))
     else:
-        P = ((7.55, 0.36), (7.35, 0.72), (6.95, 0.8), (6.7, 0.66))
+        P = ((7.55, 0.34), (7.4, 0.62), (7.05, 0.7), (6.8, 0.6))
     pts = []
     n = 13
     for s in range(n):
@@ -1631,14 +1632,16 @@ def spider(k):
     three of its flats (Glow); and the crown (joint Crown, Aim fade, the fifth build after the
     coordinator's 19:08 review): the glossy black eye dome as the exposed END of the cue (d
     7.55-8.21, past the butt on the Aim room, on a neck from 6.98) studded with twelve glowing red eyes (Neon
-    icospheres, a ring of eight and a cluster of four at the pole, Glow), and EIGHT curved black
-    leg-blades (none straight up or down) rooted at the dome's base, sweeping FORWARD along the
-    butt and flaring out to 0.93 of the axis like splayed legs, their tips turning in toward the
-    shaft at d 6.24 just behind the grip hand's rest, with Neon red edges along the outer curve
-    and the tip, each a skinned fin on its own bone breathing on a Hinge; silver silk threads
-    crossed between neighbouring blades, in the same skin so they ride the blades. Eight parts:
-    Shaft, Bands, Gem and the crown's Dome, Eyes, Blades, BladeEdges, Webs. Everything that must
-    read on the bright floor is Neon geometry; the silk along the shaft is the skin's live beams."""
+    hemispheres: one at the pole, seven filling the end face, eight smaller round the rim; Glow
+    kept red), and EIGHT curved black blades rooted at the dome's base sweeping FORWARD along
+    the butt like splayed legs, their tips toward the shaft at d 6.24 just behind the grip
+    hand's rest: four broad bevelled crescents on the diagonals (0.32 wide at the bulge, 0.06
+    thick) and four short ones between, each with a Neon red rim along its OUTER edge only, each
+    a skinned fin on its own bone breathing on a Hinge; Neon red rim rings where the crown meets
+    the dome and the neck (the sixth build, coordinator 19:3x: no silk lines on the crown, the
+    dome plain glossy black, big eyes, broad solid blades, red under-glow). Seven parts: Shaft,
+    Bands, Gem and the crown's Dome, Eyes, Blades, BladeEdges. Everything that must read on the
+    bright floor is Neon geometry; the silk is the skin's live beams."""
     import bmesh
     import numpy as np
     from mathutils import Vector, Matrix
@@ -1646,8 +1649,7 @@ def spider(k):
     A = _spider_atlas(k)
     k.material('Red', 'Neon', SPIDER['red'])
     k.material('Eye', 'Neon', SPIDER['eye'])
-    k.material('Blade', 'SmoothPlastic', '#0B0B10', Reflectance=0.15)
-    k.material('Silk', 'Neon', SPIDER['silver_bright'])
+    k.material('Blade', 'SmoothPlastic', '#0B0B10')   # no Reflectance: 0.15 mirrored the skybox as a purple checker (v11 lab)
 
     # --- the shaft: crystal spear, the shaft on the envelope, the collar and the eye cap ----------
     k.joint('Body', pivot=(0, -3.5, 0))
@@ -1709,27 +1711,30 @@ def spider(k):
     apply_modifier(k.bpy, ob, 'SOLIDIFY', thickness=0.05, offset=0.0)
     k.add('Gem', ob)
 
-    # --- the crown: the eye dome at the end, the eyes, eight skinned leg-blades, their red edges
-    # and the silk between them ------------------------------------------------------------------
+    # --- the crown: the eye dome at the end, the eyes, four broad and four short skinned
+    # crescent blades with a red rim on the outer edge, red rim rings (coordinator 19:3x) ----------
     k.joint('Crown', pivot=(0, -7.55, 0), parent='Body', aim='fade')
     bm = bmesh.new()
     _lathe(bm, [q[0] for q in SPIDER_DOME], [q[1] for q in SPIDER_DOME], 24, close=True)
     k.add('Crown', k.mesh_object('Dome', bm, ['Blade']))
-    k.joint('Eyes', pivot=(0, -7.8, 0), parent='Crown',
-            visual=[{'Kind': 'Glow', 'Min': 0.0, 'Max': 0.45, 'Period': 1.3, 'Color': '#FF8A96'}])   # stays red (v6 pulsed pink)
+    # the eyes: Neon red hemispheres (icospheres half sunk into the dome): one at the pole, seven
+    # round it filling the end face, eight smaller round the rim; the Glow stays red
+    k.joint('Eyes', pivot=(0, -8.0, 0), parent='Crown',
+            visual=[{'Kind': 'Glow', 'Min': 0.0, 'Max': 0.35, 'Period': 1.3, 'Color': '#FF3344'}])
     bm = bmesh.new()
     dome_ds = [q[0] for q in SPIDER_DOME]
     dome_rs = [q[1] for q in SPIDER_DOME]
 
     def dome_r(d):
         return float(np.interp(d, dome_ds, dome_rs))
-    eyes = [(7.84, 0.075, math.pi / 8 + i * math.pi / 4, dome_r(7.84) - 0.035) for i in range(8)]
-    eyes += [(8.1, 0.05, i * math.pi / 2, 0.2) for i in range(4)]
+    eyes = [(8.17, 0.11, 0.0, 0.0)]
+    eyes += [(8.1, 0.09, 2 * math.pi * j / 7, 0.21) for j in range(7)]
+    eyes += [(7.8, 0.06, math.pi / 8 + j * math.pi / 4, dome_r(7.8) - 0.03) for j in range(8)]
     for d, r, a, rho in eyes:
         c = Vector((rho * math.sin(a), -d, -rho * math.cos(a)))
-        bmesh.ops.create_icosphere(bm, subdivisions=1, radius=r, matrix=Matrix.Translation(c))
+        bmesh.ops.create_icosphere(bm, subdivisions=1, radius=r, matrix=Matrix.Translation(c))   # 80 tris each (two subdivisions passed the budget)
     k.add('Eyes', k.mesh_object('Eyes', bm, ['Eye']))
-    thetas = [math.pi / 8 + i * math.pi / 4 for i in range(SPIDER_BLADES)]
+    thetas = [i * math.pi / 4 for i in range(SPIDER_BLADES)]       # the broad ones on the diagonals
     curves = []
     bm_b = bmesh.new()
     uvl_b = bm_b.loops.layers.uv.new('UVMap')
@@ -1737,52 +1742,37 @@ def spider(k):
     uvl_e = bm_e.loops.layers.uv.new('UVMap')
     flat_uv = lambda u, v: (u, v)  # noqa: E731
     for i, theta in enumerate(thetas):
-        pts, rad = _spider_blade_curve(theta, long=(i % 2 == 0))
+        big = i % 2 == 1
+        pts, rad = _spider_blade_curve(theta, long=big)
         curves.append((pts, rad))
         k.joint('Blade%d' % (i + 1), pivot=tuple(pts[0]), parent='Crown', motion=[
-            {'Kind': 'Hinge', 'Axis': tuple(Vector((0, 1, 0)).cross(rad)), 'Amp': 2.0 + 1.5 * (i % 3) / 2,
+            {'Kind': 'Hinge', 'Axis': tuple(Vector((0, 1, 0)).cross(rad)), 'Amp': 1.5 + 1.0 * (i % 3) / 2,
              'Period': 3.1 + 0.17 * i, 'Phase': 45 * i}])
+        # a crescent: the outer rim follows the centreline's convex sweep, the inner edge takes
+        # most of the width so it bows back toward the shaft; broad at the bulge, a point at the tip
+        wmax = 0.32 if big else 0.22
         inner, outer = [], []
         for s, p in enumerate(pts):
             t = s / (len(pts) - 1)
-            w = 0.21 * ((1 - t) ** 0.6) * (0.55 + 0.45 * math.sin(math.pi * min(1.0, t * 1.6 + 0.2))) + 0.012
-            inner.append(p - rad * (w * 0.45))
-            outer.append(p + rad * (w * 0.55))
+            w = 0.1 * (1 - t) + wmax * (math.sin(math.pi * t) ** 1.2) + 0.012
+            inner.append(p - rad * (w * 0.7))
+            outer.append(p + rad * (w * 0.3))
         _strip_uv(bm_b, uvl_b, inner, outer, flat_uv)
         eo = [o + rad * 0.004 for o in outer]
-        _strip_uv(bm_e, uvl_e, [o - rad * 0.012 for o in eo], [o + rad * 0.014 for o in eo], flat_uv)
-        hook = [s for s in range(len(pts)) if s / (len(pts) - 1) >= 0.55]
-        ei = [inner[s] - rad * 0.004 for s in hook]
-        _strip_uv(bm_e, uvl_e, [q - rad * 0.014 for q in ei], [q + rad * 0.012 for q in ei], flat_uv)
+        _strip_uv(bm_e, uvl_e, [o - rad * 0.012 for o in eo], [o + rad * 0.02 for o in eo], flat_uv)
     blades = k.mesh_object('Blades', bm_b, ['Blade'])
-    apply_modifier(k.bpy, blades, 'SOLIDIFY', thickness=0.03, offset=0.0)
+    apply_modifier(k.bpy, blades, 'SOLIDIFY', thickness=0.06, offset=0.0)
+    try:
+        apply_modifier(k.bpy, blades, 'BEVEL', width=0.012, segments=1, limit_method='ANGLE')
+    except Exception as e:  # noqa: BLE001
+        print('CUE spider: no bevel on the blades (%s)' % e)
     k.add('Crown', blades)
+    # red rim rings where the crown meets the dome and the neck: the under-glow against the floor
+    _torus(bm_e, (0, -7.56, 0), (0, 1, 0), 0.37, 0.028, segs=24, minor=8)
+    _torus(bm_e, (0, -7.0, 0), (0, 1, 0), 0.33, 0.025, segs=24, minor=8)
     edges = k.mesh_object('BladeEdges', bm_e, ['Red'], smooth=False)
-    apply_modifier(k.bpy, edges, 'SOLIDIFY', thickness=0.046, offset=0.0)
+    apply_modifier(k.bpy, edges, 'SOLIDIFY', thickness=0.08, offset=0.0)
     k.add('Crown', edges)
-
-    bm_w = bmesh.new()
-
-    def thread(p, q, w=0.016):
-        along = q - p
-        n1 = along.cross(Vector((0, 1, 0)))
-        if n1.length < 1e-6:
-            n1 = Vector((1, 0, 0))
-        n1 = n1.normalized()
-        n2 = along.normalized().cross(n1)
-        for across in (n1 * (w / 2), n2 * (w / 2)):
-            for sgn in (1, -1):
-                vs = [bm_w.verts.new(p - across), bm_w.verts.new(q - across), bm_w.verts.new(q + across), bm_w.verts.new(p + across)]
-                bm_w.faces.new(vs if sgn > 0 else vs[::-1])
-    n_s = len(curves[0][0]) - 1
-    for i in range(SPIDER_BLADES):
-        pa, _ = curves[i]
-        pb, _ = curves[(i + 1) % SPIDER_BLADES]
-        # one crossed pair a gap (v6's seven and v9's three read as a wire cage in the lab)
-        for ta, tb in ((0.3, 0.6), (0.6, 0.3)):
-            thread(pa[int(round(ta * n_s))], pb[int(round(tb * n_s))])
-    webs = k.mesh_object('Webs', bm_w, ['Silk'], smooth=False)
-    k.add('Crown', webs)
 
     # bone weights: tents round each blade's angle (wrapping), each bone taking its absolute share
     # of what the bones before it left (skin_weights hands each bone a share of its parent's remainder)
@@ -1802,7 +1792,7 @@ def spider(k):
             left = 1 - H[:, :i].sum(1)
             return np.where(left > 1e-6, H[:, i] / np.maximum(left, 1e-6), 0.0)
         return fn
-    k.skins['Crown'] = {'root': 'Crown', 'meshes': [blades, edges, webs],
+    k.skins['Crown'] = {'root': 'Crown', 'meshes': [blades, edges],
                         'bones': {'Blade%d' % (i + 1): bone_fn(i) for i in range(SPIDER_BLADES)}}
     tipd = min(-pts[-1].y for pts, _ in curves)
     wide = max(math.hypot(p.x, p.z) for pts, _ in curves for p in pts)

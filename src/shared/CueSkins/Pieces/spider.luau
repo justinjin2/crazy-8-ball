@@ -5,16 +5,16 @@
 return {
 	Id = "spider",
 	Frame = "cue",
-	Rigid = "88368976050945",
+	Rigid = "102318984627266",
 	Models = {
-		Crown = "97556953003027",
+		Crown = "93000287192965",
 	},
 	Parts = {
 		{
 			Material = "SmoothPlastic",
 			Color = "#0B0B10",
 			Transparency = 0,
-			Reflectance = 0.15,
+			Reflectance = 0,
 			Name = "Blades",
 			Mesh = "BladesSkin",
 			Joint = "Crown",
@@ -30,8 +30,8 @@ return {
 				"Blade7",
 				"Blade8",
 			},
-			Offset = { -0.0047, 0.0114, -3.395 },
-			Size = { 1.7542, 1.7543, 1.31 },
+			Offset = { 0, 0, -3.395 },
+			Size = { 1.4184, 1.4184, 1.31 },
 			Model = "Crown",
 		},
 		{
@@ -54,32 +54,8 @@ return {
 				"Blade7",
 				"Blade8",
 			},
-			Offset = { -0.0047, 0.0114, -3.395 },
-			Size = { 1.7936, 1.7936, 1.31 },
-			Model = "Crown",
-		},
-		{
-			Material = "Neon",
-			Color = "#F2F5FA",
-			Transparency = 0,
-			Reflectance = 0,
-			Name = "Webs",
-			Mesh = "WebsSkin",
-			Joint = "Crown",
-			Skinned = true,
-			Bones = {
-				"Crown",
-				"Blade1",
-				"Blade2",
-				"Blade3",
-				"Blade4",
-				"Blade5",
-				"Blade6",
-				"Blade7",
-				"Blade8",
-			},
-			Offset = { -0.0051, 0.0124, -3.5744 },
-			Size = { 1.6572, 1.6572, 0.457 },
+			Offset = { 0, 0, -3.434 },
+			Size = { 1.4664, 1.4664, 1.388 },
 			Model = "Crown",
 		},
 		{
@@ -123,7 +99,7 @@ return {
 			Material = "SmoothPlastic",
 			Color = "#0B0B10",
 			Transparency = 0,
-			Reflectance = 0.15,
+			Reflectance = 0,
 			Name = "Crown_Blade",
 			Joint = "Crown",
 			Offset = { 0, 0, -4.095 },
@@ -136,8 +112,8 @@ return {
 			Reflectance = 0,
 			Name = "Eyes_Eye",
 			Joint = "Eyes",
-			Offset = { 0, 0, -4.4594 },
-			Size = { 0.8492, 0.8651, 0.3663 },
+			Offset = { 0, 0, -4.5063 },
+			Size = { 0.8464, 0.8591, 0.5146 },
 		},
 	},
 	Joints = {
@@ -168,26 +144,26 @@ return {
 		},
 		Eyes = {
 			Parent = "Crown",
-			PivotRoblox = { 0, 0, -4.3 },
+			PivotRoblox = { 0, 0, -4.5 },
 			Motion = {},
 			Visual = {
 				{
 					Kind = "Glow",
 					Min = 0,
-					Max = 0.45,
+					Max = 0.35,
 					Period = 1.3,
-					Color = "#FF8A96",
+					Color = "#FF3344",
 				},
 			},
 		},
 		Blade1 = {
 			Parent = "Crown",
-			PivotRoblox = { -0.1378, -0.3326, -4.05 },
+			PivotRoblox = { -0, -0.34, -4.05 },
 			Motion = {
 				{
 					Kind = "Hinge",
-					Axis = { -0.9238795042037964, 0, -0.3826834261417389 },
-					Amp = 2,
+					Axis = { -1, 0, 0 },
+					Amp = 1.5,
 					Period = 3.1,
 					Phase = 0,
 				},
@@ -195,12 +171,12 @@ return {
 		},
 		Blade2 = {
 			Parent = "Crown",
-			PivotRoblox = { -0.3326, -0.1378, -4.05 },
+			PivotRoblox = { -0.2404, -0.2404, -4.05 },
 			Motion = {
 				{
 					Kind = "Hinge",
-					Axis = { -0.3826834261417389, 0, -0.9238795042037964 },
-					Amp = 2.75,
+					Axis = { -0.7071067690849304, 0, -0.7071067690849304 },
+					Amp = 2,
 					Period = 3.27,
 					Phase = 45,
 				},
@@ -208,12 +184,12 @@ return {
 		},
 		Blade3 = {
 			Parent = "Crown",
-			PivotRoblox = { -0.3326, 0.1378, -4.05 },
+			PivotRoblox = { -0.34, -0, -4.05 },
 			Motion = {
 				{
 					Kind = "Hinge",
-					Axis = { 0.3826834261417389, 0, -0.9238795042037964 },
-					Amp = 3.5,
+					Axis = { -6.123234262925839e-17, 0, -1 },
+					Amp = 2.5,
 					Period = 3.44,
 					Phase = 90,
 				},
@@ -221,12 +197,12 @@ return {
 		},
 		Blade4 = {
 			Parent = "Crown",
-			PivotRoblox = { -0.1378, 0.3326, -4.05 },
+			PivotRoblox = { -0.2404, 0.2404, -4.05 },
 			Motion = {
 				{
 					Kind = "Hinge",
-					Axis = { 0.9238795042037964, 0, -0.3826834261417389 },
-					Amp = 2,
+					Axis = { 0.7071067690849304, 0, -0.7071067690849304 },
+					Amp = 1.5,
 					Period = 3.6100000000000003,
 					Phase = 135,
 				},
@@ -234,12 +210,12 @@ return {
 		},
 		Blade5 = {
 			Parent = "Crown",
-			PivotRoblox = { 0.1378, 0.3326, -4.05 },
+			PivotRoblox = { -0, 0.34, -4.05 },
 			Motion = {
 				{
 					Kind = "Hinge",
-					Axis = { 0.9238795042037964, -0, 0.3826834261417389 },
-					Amp = 2.75,
+					Axis = { 1, 0, -1.2246468525851679e-16 },
+					Amp = 2,
 					Period = 3.7800000000000002,
 					Phase = 180,
 				},
@@ -247,12 +223,12 @@ return {
 		},
 		Blade6 = {
 			Parent = "Crown",
-			PivotRoblox = { 0.3326, 0.1378, -4.05 },
+			PivotRoblox = { 0.2404, 0.2404, -4.05 },
 			Motion = {
 				{
 					Kind = "Hinge",
-					Axis = { 0.3826834261417389, -0, 0.9238795042037964 },
-					Amp = 3.5,
+					Axis = { 0.7071067690849304, -0, 0.7071067690849304 },
+					Amp = 2.5,
 					Period = 3.95,
 					Phase = 225,
 				},
@@ -260,12 +236,12 @@ return {
 		},
 		Blade7 = {
 			Parent = "Crown",
-			PivotRoblox = { 0.3326, -0.1378, -4.05 },
+			PivotRoblox = { 0.34, 0, -4.05 },
 			Motion = {
 				{
 					Kind = "Hinge",
-					Axis = { -0.3826834261417389, 0, 0.9238795042037964 },
-					Amp = 2,
+					Axis = { 1.8369701465288538e-16, -0, 1 },
+					Amp = 1.5,
 					Period = 4.12,
 					Phase = 270,
 				},
@@ -273,12 +249,12 @@ return {
 		},
 		Blade8 = {
 			Parent = "Crown",
-			PivotRoblox = { 0.1378, -0.3326, -4.05 },
+			PivotRoblox = { 0.2404, -0.2404, -4.05 },
 			Motion = {
 				{
 					Kind = "Hinge",
-					Axis = { -0.9238795042037964, 0, 0.3826834261417389 },
-					Amp = 2.75,
+					Axis = { -0.7071067690849304, 0, 0.7071067690849304 },
+					Amp = 2,
 					Period = 4.29,
 					Phase = 315,
 				},
