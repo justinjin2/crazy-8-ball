@@ -477,6 +477,28 @@ return {
 		H.expect(I.AnnounceRetrySeconds > 0 and I.AnnounceRetryGrowth >= 1, "waits")
 	end,
 
+	-- hw-sys lane (2026-10-28): the roam switch and the badge registry.
+	["the roam switch and the badge registry are well formed"] = function()
+		local Config = H.require("Config")
+		local Strings = H.require("Strings")
+		H.expect(type(Config.Multiplayer.Roam.Enabled) == "boolean", "Roam.Enabled is a boolean")
+		H.expect(Config.Multiplayer.Roam.HomeExtraStuds >= 0, "HomeExtraStuds")
+		local B = Config.Badges
+		H.expect(B.StaggerSeconds == 3, "one award per player every 3 s (PLAN section 2)")
+		H.expect(#B.List == 52, ("52 badges, got %d"):format(#B.List))
+		local seen = {}
+		for _, row in B.List do
+			H.expect(not seen[row.Key], "duplicate key " .. row.Key)
+			seen[row.Key] = true
+			local text = Strings.Badges[row.Key]
+			H.expect(text ~= nil and #text.Name > 0 and #text.Name <= 50, "name for " .. row.Key)
+			H.expect(
+				#text.Description > 0 and #text.Description <= 1000,
+				"description for " .. row.Key
+			)
+		end
+	end,
+
 	["shared modules cannot see Roblox globals"] = function()
 		local clean = H.evalInModuleEnv([[
 			return game == nil and workspace == nil and Vector3 == nil and CFrame == nil

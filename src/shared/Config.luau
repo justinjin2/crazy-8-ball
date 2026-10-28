@@ -1766,6 +1766,7 @@ Config.Save = {
 	MaxTradeHistory = 50, -- Trades.History: the last trades kept (designer, 2026-10-03)
 	MaxAppliedTrades = 100, -- Trades.Applied: trade ids this save already applied
 	MaxTradeSideItems = 8, -- items on one side of a trade (history entries too)
+	MaxBadgeEntries = 500, -- Badges: Roblox badges this save already holds (Config.Badges keys)
 }
 
 ---------------------------------------------------------------------------------------------
@@ -8104,6 +8105,10 @@ Config.Multiplayer = {
 		-- 10 studs across and 8 deep, so two neighbours' walls still stand 4 and 2 apart. (tune)
 		RoomStuds = 3,
 		EscapeStuds = 2, -- a participant this far outside (clipped through) is put back inside
+	},
+	Roam = { -- in-match players walk anywhere while they wait (designer, 2026-10-28)
+		Enabled = false, -- true once the roam checks in HW_SYS_PROMPT section 4 pass; false = the fence for all
+		HomeExtraStuds = 2, -- a shooter this far outside the match walls at turn start goes to the pad
 	},
 	-- The shooter's root on the server (TableService). While they aim, the anchored root
 	-- follows ShooterStance, so a late joiner or a far table sees the shooter at the table; at
@@ -17028,6 +17033,81 @@ Config.UI.PlayerList = {
 		Grandmaster = { 630, 2100 },
 		Reyes = { 1500, 3500 },
 	} :: { [string]: { number } },
+}
+
+-- Roblox badges (src/shared/Progression/Badges.luau decides, src/server/Badges.luau awards;
+-- designer, 2026-10-28; docs/halloween/BADGES.md). One row per line, exactly
+-- `{ Key = "<Key>", BadgeId = 0, Rule = {...} },`: tools/roblox_badges.py creates the badge on
+-- Roblox and writes its id over the 0. Keys never change (saves hold them). BadgeId 0 = inert.
+-- Rules: stat (Stats.<name> at least n), peak (PeakDivision reached that tier), seenRarity (a
+-- Block cue of that rarity ever owned), seenGroup (any cue of that Catalog group ever owned),
+-- seenCount (distinct cues ever owned, Classic excluded), seenCue (that cue ever owned), always,
+-- halloween (the Halloween save field: KingWins, or Candy = Earned + Bought), event (only from a
+-- live hook, never the save). Names and descriptions in Strings.Badges.
+Config.Badges = {
+	Enabled = false, -- the award queue; true once HW_SYS_PROMPT section 4's badge checks pass
+	UniverseId = 10767330648, -- awards run only in this experience; Studio and the test place log
+	OwnerUserId = 544959133, -- Painicane: Met the Owner, Beat the Owner
+	StaggerSeconds = 3, -- at most one award per player every 3 s (PLAN section 2)
+	Budget = { Base = 40, PerPlayer = 30 }, -- badge API calls a minute per server (Roblox: 50 + 35 x players)
+	DebounceSeconds = 2, -- re-check a save this long after its last change (PlayerData.read copies it)
+	RevealDelaySeconds = 8, -- no award this long after openLuckyBlock (the big reel is about 7.7 s)
+	Retries = { 5, 20, 60 }, -- seconds before each retry of a failed call; then wait for the next join
+	Paused = {} :: { [string]: boolean }, -- [Key] = true: cut or misbehaving; the row never awards (a one-line publish)
+	List = {
+		{ Key = "Welcome", BadgeId = 0, Rule = { always = true } },
+		{ Key = "FirstWin", BadgeId = 0, Rule = { stat = "Wins", atLeast = 1 } },
+		{ Key = "Wins5", BadgeId = 0, Rule = { stat = "Wins", atLeast = 5 } },
+		{ Key = "Wins10", BadgeId = 0, Rule = { stat = "Wins", atLeast = 10 } },
+		{ Key = "Wins25", BadgeId = 0, Rule = { stat = "Wins", atLeast = 25 } },
+		{ Key = "Wins50", BadgeId = 0, Rule = { stat = "Wins", atLeast = 50 } },
+		{ Key = "Wins100", BadgeId = 0, Rule = { stat = "Wins", atLeast = 100 } },
+		{ Key = "Wins250", BadgeId = 0, Rule = { stat = "Wins", atLeast = 250 } },
+		{ Key = "Wins500", BadgeId = 0, Rule = { stat = "Wins", atLeast = 500 } },
+		{ Key = "Wins1000", BadgeId = 0, Rule = { stat = "Wins", atLeast = 1000 } },
+		{ Key = "RankBronze", BadgeId = 0, Rule = { peak = "Bronze" } },
+		{ Key = "RankSilver", BadgeId = 0, Rule = { peak = "Silver" } },
+		{ Key = "RankGold", BadgeId = 0, Rule = { peak = "Gold" } },
+		{ Key = "RankPlatinum", BadgeId = 0, Rule = { peak = "Platinum" } },
+		{ Key = "RankDiamond", BadgeId = 0, Rule = { peak = "Diamond" } },
+		{ Key = "RankExpert", BadgeId = 0, Rule = { peak = "Expert" } },
+		{ Key = "RankVeteran", BadgeId = 0, Rule = { peak = "Veteran" } },
+		{ Key = "RankMaster", BadgeId = 0, Rule = { peak = "Master" } },
+		{ Key = "RankGrandmaster", BadgeId = 0, Rule = { peak = "Grandmaster" } },
+		{ Key = "RankReyes", BadgeId = 0, Rule = { peak = "Reyes" } },
+		{ Key = "Streak3", BadgeId = 0, Rule = { stat = "BestWinStreak", atLeast = 3 } },
+		{ Key = "Streak5", BadgeId = 0, Rule = { stat = "BestWinStreak", atLeast = 5 } },
+		{ Key = "Streak10", BadgeId = 0, Rule = { stat = "BestWinStreak", atLeast = 10 } },
+		{ Key = "CueRare", BadgeId = 0, Rule = { seenRarity = "Rare" } },
+		{ Key = "CueEpic", BadgeId = 0, Rule = { seenRarity = "Epic" } },
+		{ Key = "CueLegendary", BadgeId = 0, Rule = { seenRarity = "Legendary" } },
+		{ Key = "CueMythic", BadgeId = 0, Rule = { seenRarity = "Mythic" } },
+		{ Key = "CueSecret", BadgeId = 0, Rule = { seenRarity = "Secret" } },
+		{ Key = "CueUnique", BadgeId = 0, Rule = { seenGroup = "Unique" } },
+		{ Key = "Cues5", BadgeId = 0, Rule = { seenCount = 5 } },
+		{ Key = "Cues10", BadgeId = 0, Rule = { seenCount = 10 } },
+		{ Key = "Cues25", BadgeId = 0, Rule = { seenCount = 25 } },
+		{ Key = "Cues50", BadgeId = 0, Rule = { seenCount = 50 } },
+		{ Key = "Balls100", BadgeId = 0, Rule = { stat = "BallsPocketed", atLeast = 100 } },
+		{ Key = "Balls1000", BadgeId = 0, Rule = { stat = "BallsPocketed", atLeast = 1000 } },
+		{ Key = "Balls10000", BadgeId = 0, Rule = { stat = "BallsPocketed", atLeast = 10000 } },
+		{ Key = "Matches10", BadgeId = 0, Rule = { stat = "Matches", atLeast = 10 } },
+		{ Key = "Matches100", BadgeId = 0, Rule = { stat = "Matches", atLeast = 100 } },
+		{ Key = "Matches1000", BadgeId = 0, Rule = { stat = "Matches", atLeast = 1000 } },
+		{ Key = "Nice10", BadgeId = 0, Rule = { stat = "NiceShots", atLeast = 10 } },
+		{ Key = "Nice100", BadgeId = 0, Rule = { stat = "NiceShots", atLeast = 100 } },
+		{ Key = "Money1M", BadgeId = 0, Rule = { stat = "MoneyEarned", atLeast = 1000000 } },
+		{ Key = "Money10M", BadgeId = 0, Rule = { stat = "MoneyEarned", atLeast = 10000000 } },
+		{ Key = "Squad", BadgeId = 0, Rule = { event = "TeamMatch" } },
+		{ Key = "Ability1", BadgeId = 0, Rule = { event = "UltUsed" } },
+		{ Key = "Ability100", BadgeId = 0, Rule = { stat = "UltMatches", atLeast = 100 } },
+		{ Key = "Crew", BadgeId = 0, Rule = { event = "InGroup" } },
+		{ Key = "MetOwner", BadgeId = 0, Rule = { event = "OwnerHere" } },
+		{ Key = "BeatOwner", BadgeId = 0, Rule = { event = "BeatOwner" } },
+		{ Key = "Halloween2026", BadgeId = 0, Rule = { halloween = "Candy", atLeast = 1 } },
+		{ Key = "PumpkinSlayer", BadgeId = 0, Rule = { halloween = "KingWins", atLeast = 1 } },
+		{ Key = "BroomRider", BadgeId = 0 }, -- Rule { seenCue = "WitchBroomCue" } once Cues A's row is merged
+	} :: { { Key: string, BadgeId: number, Rule: { [string]: any }? } },
 }
 
 -- The rare-pull cutscenes (PullCutscene; GUI lane, designer 2026-10-03, C11d). After the reel
