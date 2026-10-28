@@ -17,7 +17,7 @@
 -- one failed LoadAsset in a full run would break a shipped cue), or ALL for the old full
 -- rebuild. Returns a report.
 
-local ONLY = nil -- e.g. { "CandyCornCue", "JackOLanternCue" }: rebuild only these skins'
+local ONLY = nil -- e.g. { "JackOLanternCue", "PitchforkCue" }: rebuild only these skins'
 -- templates and the pieces they use (Piece, Carrier, Body, Pocket.Piece); nothing else is touched
 local ALL = false -- true: the old full rebuild (never on the live place)
 
@@ -112,7 +112,10 @@ end
 
 local folder = ReplicatedStorage:FindFirstChild(Config.Cue.MeshSkinsFolder)
 local classic = folder and folder:FindFirstChild("Classic")
-assert(classic and classic.PrimaryPart, "needs ReplicatedStorage.CueSkins.Classic (the cue mesh run's template)")
+assert(
+	classic and classic.PrimaryPart,
+	"needs ReplicatedStorage.CueSkins.Classic (the cue mesh run's template)"
+)
 
 -- Skins
 local before = #folder:GetChildren()
@@ -161,14 +164,21 @@ if wanted then
 			untouched += 1
 		end
 	end
-	note(("only: %d skins rebuilt; %d other templates untouched (%d before)%s"):format(
-		built,
-		untouched,
-		before,
-		if #missing > 0 then "; no maps yet: " .. table.concat(missing, ", ") else ""
-	))
+	note(
+		("only: %d skins rebuilt; %d other templates untouched (%d before)%s"):format(
+			built,
+			untouched,
+			before,
+			if #missing > 0 then "; no maps yet: " .. table.concat(missing, ", ") else ""
+		)
+	)
 else
-	note(("skins: %d templates built%s"):format(built, if #missing > 0 then "; no maps yet: " .. table.concat(missing, ", ") else ""))
+	note(
+		("skins: %d templates built%s"):format(
+			built,
+			if #missing > 0 then "; no maps yet: " .. table.concat(missing, ", ") else ""
+		)
+	)
 end
 
 -- Pieces
@@ -188,7 +198,8 @@ local function load(assetId)
 end
 
 local function dress(part, spec)
-	part.Material = (Enum.Material :: any)[spec.Material or "SmoothPlastic"] or Enum.Material.SmoothPlastic
+	part.Material = (Enum.Material :: any)[spec.Material or "SmoothPlastic"]
+		or Enum.Material.SmoothPlastic
 	part.Color = color(spec.Color or "#FFFFFF")
 	part.Transparency = spec.Transparency or 0
 	part.Reflectance = spec.Reflectance or 0
@@ -282,7 +293,10 @@ for _, pid in sorted do
 				local rig = m:FindFirstChildWhichIsA("Model") or m
 				rig.Name = spec.Model
 				for _, d in rig:GetDescendants() do
-					if d:IsA("AnimationController") or (d:IsA("Folder") and d.Name == "InitialPoses") then
+					if
+						d:IsA("AnimationController")
+						or (d:IsA("Folder") and d.Name == "InitialPoses")
+					then
 						d:Destroy()
 					end
 				end
@@ -316,7 +330,13 @@ for _, pid in sorted do
 		rigidSource:Destroy()
 	end
 	out.Parent = pieces
-	note(("piece %s: %d children%s"):format(pid, #out:GetChildren(), if #problems > 0 then " | " .. table.concat(problems, "; ") else ""))
+	note(
+		("piece %s: %d children%s"):format(
+			pid,
+			#out:GetChildren(),
+			if #problems > 0 then " | " .. table.concat(problems, "; ") else ""
+		)
+	)
 end
 
 if wanted then
