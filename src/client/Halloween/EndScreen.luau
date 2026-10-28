@@ -14,7 +14,6 @@ local ContextActionService = game:GetService("ContextActionService")
 local GuiService = game:GetService("GuiService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local UserInputService = game:GetService("UserInputService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
@@ -23,6 +22,7 @@ local Format = require(Shared:WaitForChild("Progression"):WaitForChild("Format")
 local CueThumb = require(script.Parent.Parent.CueThumb)
 local GuiQA = require(script.Parent.Parent.GuiQA)
 local HudParts = require(script.Parent.Parent.HudParts)
+local PadMode = require(script.Parent.Parent.PadMode)
 local UIAnim = require(script.Parent.Parent.UIAnim)
 local State = require(script.Parent.State)
 
@@ -285,7 +285,7 @@ function EndScreen.show(
 	UIAnim.countUp(0, money, function(n: number)
 		moneyText.Text = Format.money(n)
 	end, E.CountUpSeconds)
-	if UserInputService:GetLastInputType() == Enum.UserInputType.Gamepad1 then
+	if PadMode.active() then
 		GuiService.SelectedObject = collect
 	end
 	ContextActionService:BindActionAtPriority(

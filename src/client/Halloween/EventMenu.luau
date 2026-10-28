@@ -25,6 +25,7 @@ local Format = require(Shared.Progression.Format)
 local Clock = require(Shared.Halloween.Clock)
 local Event = require(Shared.Halloween.Event)
 local HudParts = require(script.Parent.Parent.HudParts)
+local PadMode = require(script.Parent.Parent.PadMode)
 local ItemState = require(script.Parent.Parent.ItemState)
 local MenuFrame = require(script.Parent.Parent.MenuFrame)
 local Menus = require(script.Parent.Parent.Menus)
@@ -837,14 +838,19 @@ function EventMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 				end)
 			)
 		end
-		if ShopParts.gamepad() then
+		-- A controller lands on the first waiting CLAIM once the panel has unrolled (the content
+		-- is hidden until then, so nothing in it can be selected before).
+		task.delay(Config.UI.Halloween.Open.OpenSeconds, function()
+			if not frame:isOpen() or not PadMode.active() then
+				return
+			end
 			for _, row in rows do
-				if row.claim.Visible then
+				if row.claim.Visible and row.claim.Parent ~= nil then
 					GuiService.SelectedObject = row.claim
 					return
 				end
 			end
-		end
+		end)
 	end
 	frame.onClose = function()
 		ticking = false

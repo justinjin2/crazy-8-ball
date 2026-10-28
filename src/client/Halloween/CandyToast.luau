@@ -19,7 +19,6 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TextService = game:GetService("TextService")
 local TweenService = game:GetService("TweenService")
-local UserInputService = game:GetService("UserInputService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
@@ -27,6 +26,7 @@ local Strings = require(Shared:WaitForChild("Strings"))
 local Format = require(Shared:WaitForChild("Progression"):WaitForChild("Format"))
 local CueThumb = require(script.Parent.Parent.CueThumb)
 local HudParts = require(script.Parent.Parent.HudParts)
+local PadMode = require(script.Parent.Parent.PadMode)
 local UIAnim = require(script.Parent.Parent.UIAnim)
 local GuiQA = require(script.Parent.Parent.GuiQA)
 local EventMenu = require(script.Parent.EventMenu)
@@ -409,7 +409,7 @@ function CandyToast.showCard(self: any, cueId: string, note: string)
 	UIAnim.popIn(card)
 	UIAnim.slam(title, HudParts.tone("Gold"), { burst = true })
 	UIAnim.glowBurst(thumb, CueThumb.rarityColor(rarity), 0.6)
-	if UserInputService:GetLastInputType() == Enum.UserInputType.Gamepad1 then
+	if PadMode.active() then
 		GuiService.SelectedObject = ok
 	end
 	ContextActionService:BindActionAtPriority(
