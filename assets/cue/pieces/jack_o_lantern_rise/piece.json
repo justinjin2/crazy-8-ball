@@ -1,0 +1,171 @@
+{
+  "id": "jack_o_lantern_rise",
+  "Frame": "pocket",
+  "frame": "Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)",
+  "Triangles": 6552,
+  "Parts": [
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#FFFFFF",
+      "Transparency": 0.0,
+      "Reflectance": 0.06,
+      "SurfaceAppearance": {
+        "ColorMap": "pieces/jack_o_lantern/atlas_color.png",
+        "NormalMap": "pieces/jack_o_lantern/atlas_normal.png",
+        "EmissiveMask": "pieces/jack_o_lantern/atlas_emissive.png",
+        "EmissiveTint": "#FFB43A",
+        "EmissiveStrength": 1.7
+      },
+      "Name": "Head_Jack",
+      "File": "pieces/jack_o_lantern_rise/Head_Jack.obj",
+      "Joint": "Head",
+      "Offset": [
+        0.0,
+        1.2023,
+        0.0
+      ],
+      "Size": [
+        1.64,
+        1.7449,
+        1.9575
+      ],
+      "Triangles": 2958
+    },
+    {
+      "Material": "Neon",
+      "Color": "#FFB43A",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Core_Core",
+      "File": "pieces/jack_o_lantern_rise/Core_Core.obj",
+      "Joint": "Core",
+      "Offset": [
+        0.0,
+        0.9968,
+        0.0
+      ],
+      "Size": [
+        1.4092,
+        1.1308,
+        1.6639
+      ],
+      "Triangles": 396
+    },
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#FFFFFF",
+      "Transparency": 0.0,
+      "Reflectance": 0.06,
+      "SurfaceAppearance": {
+        "ColorMap": "pieces/jack_o_lantern/atlas_color.png",
+        "NormalMap": "pieces/jack_o_lantern/atlas_normal.png",
+        "EmissiveMask": "pieces/jack_o_lantern/atlas_emissive.png",
+        "EmissiveTint": "#FFB43A",
+        "EmissiveStrength": 1.7
+      },
+      "Name": "Orbit_Jack",
+      "File": "pieces/jack_o_lantern_rise/Orbit_Jack.obj",
+      "Joint": "Orbit",
+      "Offset": [
+        -0.1471,
+        1.1942,
+        -0.2991
+      ],
+      "Size": [
+        3.3049,
+        0.9853,
+        3.1737
+      ],
+      "Triangles": 3198
+    }
+  ],
+  "Joints": {
+    "Head": {
+      "Parent": null,
+      "Pivot": [
+        0,
+        0,
+        1.0
+      ],
+      "PivotRoblox": [
+        0,
+        1.0,
+        0.0
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            1,
+            0,
+            0
+          ],
+          "Base": 3.0,
+          "Amp": 4.0,
+          "Period": 0.3,
+          "Shape": "snap"
+        },
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0,
+            0,
+            1
+          ],
+          "Amp": 6.0,
+          "Period": 2.2,
+          "Phase": 40
+        }
+      ]
+    },
+    "Core": {
+      "Parent": "Head",
+      "Pivot": [
+        0,
+        0,
+        1.0
+      ],
+      "PivotRoblox": [
+        0,
+        1.0,
+        0.0
+      ],
+      "Motion": [],
+      "Visual": [
+        {
+          "Kind": "Glow",
+          "Min": 0.2,
+          "Max": 0.8,
+          "Period": 0.4,
+          "Shape": "flicker",
+          "Color": "#FFC040"
+        }
+      ]
+    },
+    "Orbit": {
+      "Parent": null,
+      "Pivot": [
+        0,
+        0,
+        1.0
+      ],
+      "PivotRoblox": [
+        0,
+        1.0,
+        0.0
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0,
+            0,
+            1
+          ],
+          "Rate": 150.0
+        }
+      ]
+    }
+  },
+  "Upright": true
+}
