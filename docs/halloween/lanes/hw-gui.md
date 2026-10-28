@@ -33,6 +33,40 @@ From PLAN §4 (everything else is read-only; ask below under Requests):
 
 ## Status
 
+- **10:00 Cue Preview steps 12, 14-16 done (switch still OFF, `Config.UI.CuePreview.Enabled =
+  false`).** Checked in Studio at 1523x814 with it switched on locally:
+  - **Core (12):** the stage at Origin (stripped clone of a lobby table, lights, backdrop), MODEL
+    turning, drag (GuiQA `previewDrag 100,20`: 40 deg yaw, 8 deg pitch, a flick spin, through the
+    drag's own function), right stick (`previewTurn 90`: 90 deg), LB/RB bound. Closes on the X
+    and Menus' close (B, Escape), a match start (solo fixture: closed, reopen refused at the
+    table), a death and a respawn. 10 open/close cycles: camera Custom on the live body, walking
+    20.8, touch back, render step unbound, 0 connections, stage and gui gone, memory lower than
+    before. **Found and fixed:** opened over a Scriptable camera it handed back a Scriptable
+    (frozen) camera; it now never does and follows the current body (as Camera and Freecam do).
+  - **Loop (14):** TRAIL (stroke, trail, pocket, finisher) and FINISHER through Effects; FINISHER
+    framed at 9 studs so Eclipse's finisher fits whole. TRAIL/FINISHER wait for
+    `CueAssets.shotReady` as well as the look; spinner in the window while loading, the stick
+    hidden; after 8 s it plays anyway (GuiQA `previewLoad true` stalls it: spinner on, stick
+    hidden, then shown at the timeout). Main's holdShots line: Eclipse (not equipped) kept its
+    shot effects 80 s with the preview open (past the 60 s keep).
+  - **Screen (15):** the lively chrome by hand (no MenuFrame: its blur would blur the stage):
+    the veil fades, the panel unrolls (overshoot), the window opens on the stage, the pieces
+    pop in (`Config.UI.CuePreview.Open`, 0.7 s), the header's 8-balls scroll, the sheet's dots,
+    the title's cue icon, the lit tab's icon and the 8-ball flair rock (the flair hops with a
+    sparkle); a close folds the panel back (0.15 s) while the camera is already given back;
+    open/close spam ends clean. EQUIP: green, grey EQUIPPED (Classic), hidden when not owned and
+    `opts.note` takes its place (checked with "Track: 2,000 Candy"). Strings in
+    `Strings.CuePreview`.
+  - **Entry points (16):** My Cues big card: Preview beside Equip (Equip keeps 58% of the row);
+    Index detail: Preview under the name; both only while `CuePreview.enabled()` (switch off =
+    today's layout exactly). Closing comes back to the big card / the Index on that cue unless
+    another menu took over. Events log: `CuePreview [Opened, Cues, PC]`, `[Opened, Index, PC]`.
+  - **API for core, confirmed (unchanged):** `CuePreview.open(id, { from = "Track", note = ...,
+    onClose = ... }) -> boolean` (false when switched off, in a match, under a popup or reel, an
+    unknown id, or opened again within 0.3 s), `enabled()`, `isOpen()`, `close()`. Require it
+    guarded from `src/client/Halloween/*` as
+    `script.Parent.Parent:FindFirstChild("CuePreview")`; show the track card's Preview only
+    when `enabled()`. `from = "Track"` logs `CuePreview [Opened, Track, device]`.
 - 09:40 to the coordinator's 09:12 notes. **b3bb0288 switches on one thing:**
   `Config.Economy.FriendBoostEnabled = true`, +10% of base MATCH money per Roblox friend in the
   server (max 4), added to the other boosts like Group's; rewards, WinTrack, packs and sell-back
@@ -123,6 +157,13 @@ From PLAN §4 (everything else is read-only; ask below under Requests):
   reachable here: the four device sizes and a phone-size match (layout test only), a played
   shot's pay (the fixture's solo break pocketed nothing; the pay path is checked through
   `Economy.boost` and the money tests).
+- 09:52 coordinator: **merged f2562efb** into `halloween` (pill ON, friend boost ON, Cue Preview core off). I add the friend boost's ECONOMY.md 3.5 and DECISIONS lines myself. Please fix:
+  1. **(before go-live)** `BoostPill.showPerks` does nothing while the pill is hidden, and `allowed()` hides it for the whole Soft step (until game 2). A VIP bought during Soft gets no HUD confirmation (VipTag forced itself on and opened its card), and VIPs still in Soft lose the tag they see today. Show the pill when Vip is true, or let `showPerks` force it like VipTag did.
+  2. The card goes off the HUD area on short phones with 5+ rows (844x390: 23 px over; all 6 parts: 47 px). Drop FriendRule/CandyToo too when it does not fit, or cap the rows.
+  3. `BoostCardOpened` counts a mouse hover and the after-purchase auto-open; count only tap/click/A opens.
+  4. Rush chip: `refresh` pops the chip in without `breathe(true)` (flat orange all of Oct 31), and the hide path leaves the breathe tween running.
+  5. The ` · ` separator (~550) into a `Strings.BoostPill` pattern.
+- 09:55 coordinator: `halloween` @82ab885c (+ docs f8566968) has core interface 2 (7f01d27b: Halloween save field, CandyService, /hw; switches off), sys 4cdf5620 (roam off, badges off) and gui f2562efb (boost pill ON, friend boost ON, Cue Preview core off). Lint OK, 1,404 tests, Studio play console clean, pill shows +120%. Run `git fetch && git merge origin/halloween` before your next READY. Main.client still has 12 top-level locals to spare: hooks stay inside `do ... end`.
 
 ## Shared-file changes
 
@@ -156,6 +197,10 @@ PLAN §7 shared files: your own block or line only; the coordinator resolves ove
   preview's cue (`CuePreviewId` attribute) joins `ids`.
 - `Progression.luau` (**618bbcf1**): `local CuePreview = require(...)` after BoostPill's;
   `CuePreview.close()` in `closeScreens()`.
+- `InventoryCues.luau`, `InventoryIndex.luau` (mine per PLAN §4, the Preview buttons): a
+  `CuePreview` and `GuiQA` require each; the Preview candy, its place in `arrangeDetail`, an
+  `openPreview` method, a Studio-only GuiQA hook (`cuesPreview`, `indexPreview`); My Cues'
+  gamepad first-selection list gains `self.preview`; the Index gains a `Menus` require.
 
 ## Requests
 
