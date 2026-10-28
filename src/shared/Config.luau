@@ -17969,10 +17969,18 @@ Config.EmoteMenu = {
 			Animation = 123471454475978,
 			Creator = "C4rpye's Group",
 			Length = 10.0,
-			-- The designer's song, uploaded 2026-10-28 (Lucky 8): its first 16 bars at 160 BPM
-			-- (0.08 to 24.08 s of the file), up to the break; Volume evens it with Rat Dance
-			-- (RMS 0.157 against 0.275, measured in Studio).
-			Music = { Id = "rbxassetid://75387278867392", Start = 0, Loop = 24.0, Volume = 0.87 },
+			-- The designer's song, uploaded 2026-10-28 (Lucky 8; the song's 0.08 to 24.08 s, 160
+			-- BPM). It starts on "but I falter on the forethought", the full beat at 0.527 s of the
+			-- upload, past the ticking lead-in (designer: the dance starts on that line), and
+			-- loops 15 bars (22.5 s) so each loop lands on the beat. A re-cut without the lead-in
+			-- (94466746495096) was removed by Roblox, so this one plays from an offset instead.
+			-- Volume evens it with Rat Dance (RMS 0.157 against 0.275, measured in Studio).
+			Music = {
+				Id = "rbxassetid://75387278867392",
+				Start = 0.527,
+				Loop = 22.5,
+				Volume = 0.87,
+			},
 		},
 	} :: {
 		{
