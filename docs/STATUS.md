@@ -193,7 +193,10 @@ One line each; the long form is the 2026-10-12 (evening) entry at the top of
   loud, three tables away nothing.
 - **Emote update, pushed 2026-10-28, not published:** **Bird Brain** last in the menu (catalog
   120486252224195, the designer's song uploaded to Lucky 8 as 75387278867392: its first 16 bars
-  at 160 BPM, 24 s, Volume 0.87 against Rat Dance; the cut is
+  at 160 BPM, 24 s, Volume 0.87 against Rat Dance; it plays from 0.527 s, on "but I falter",
+  past the ticking lead-in, and loops 15 bars, 22.5 s; a re-cut without the lead-in,
+  94466746495096, was removed by Roblox the same day, and this one may be too, which leaves
+  the dance silent: a licensed Birdbrain is not on Roblox; the cut is
   `~/Desktop/8ball-refs/emotes/birdbrain_loop.flac`, not in git); Passinho 4th and Sega Walk
   8th; every emote sound 18% quieter (`Loudness` 0.45, was 0.55) and Popcorn's crunch about
   twice as loud as heard (Munch 0.17). **The Avatar Shop link was blocked by Roblox**
