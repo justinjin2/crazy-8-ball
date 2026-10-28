@@ -72,6 +72,7 @@ type Warm = {
 	frames: number,
 	settledAt: number?, -- when every texture last became loaded
 	meshes: boolean, -- the piece's meshes are preloaded
+	pending: number, -- piece preloads still running (the aura piece and the body each start one)
 	ready: boolean,
 	touched: number, -- last asked for
 	waiters: { () -> () },
@@ -341,14 +342,20 @@ local function addPiece(w: Warm, name: string, seen: { [string]: boolean }): boo
 			table.insert(w.offsets, (centre :: CFrame):ToObjectSpace(d.CFrame))
 		end
 	end
-	if not w.meshes then
-		task.spawn(function()
-			pcall(function()
-				ContentProvider:PreloadAsync({ piece })
-			end)
-			w.meshes = true
+	-- Each piece preloads on its own; the copy's meshes count as ready when the last one is
+	-- done (the first to finish used to mark them all, so a body could swap in before its own
+	-- meshes: a hidden mesh with the body popping in; robustness pass 2026-10-28).
+	w.meshes = false
+	w.pending += 1
+	task.spawn(function()
+		pcall(function()
+			ContentProvider:PreloadAsync({ piece })
 		end)
-	end
+		w.pending -= 1
+		if w.pending <= 0 then
+			w.meshes = true
+		end
+	end)
 	return true
 end
 
@@ -496,6 +503,7 @@ local function warm(key: string, id: string, kind: "look" | "shot", skin: Instan
 		frames = 0,
 		settledAt = nil,
 		meshes = false,
+		pending = 0,
 		retries = 0,
 		retriedAt = now,
 		repairing = false,

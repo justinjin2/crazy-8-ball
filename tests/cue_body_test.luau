@@ -114,26 +114,59 @@ return {
 		H.expect(CueSkins.bodyOf("EclipseCue", has({}), true) == nil, "a cue with no Body")
 		H.expect(CueSkins.bodyOf("NoSuchCue", has({}), true) == nil, "an unknown id")
 		H.expect(CueSkins.bodyOf(nil, has({}), true) == nil, "nil")
-		-- A stand-in Index row with a Body (the harness shares the module table).
+		-- A stand-in Index row with a shipped Body row (the harness shares the module table;
+		-- since the robustness pass a body also needs its data row, so a real one is used).
 		Index.BodyTestCue = {
 			Id = "body_test",
 			Name = "Body Test",
 			Tier = "Epic",
 			Thumb = "",
 			Look = {},
-			Body = "body_test",
+			Body = "jack_o_lantern",
 		}
 		H.expect(CueSkins.index("BodyTestCue") ~= nil, "the stand-in row is seen")
 		H.expect(
-			CueSkins.bodyOf("BodyTestCue", has({ body_test = true }), true) == "body_test",
+			CueSkins.bodyOf("BodyTestCue", has({ jack_o_lantern = true }), true) == "jack_o_lantern",
 			"present"
 		)
 		H.expect(
-			CueSkins.bodyOf("BodyTestCue", has({ body_test = true }), false) == nil,
+			CueSkins.bodyOf("BodyTestCue", has({ jack_o_lantern = true }), false) == nil,
 			"the switch off"
 		)
 		H.expect(CueSkins.bodyOf("BodyTestCue", has({}), true) == nil, "the template missing")
 		Index.BodyTestCue = nil
+	end,
+
+	["CueSkins.bodyOf: a template with no data row is no body (robustness pass)"] = function()
+		local CueSkins = H.require("CueSkins")
+		local Index = H.require("CueSkins.Index")
+		local function has(set: { [string]: boolean }): (string) -> boolean
+			return function(name: string): boolean
+				return set[name] == true
+			end
+		end
+		-- A real piece row (jack_o_lantern) with its template: a body. The same stand-in with a
+		-- body whose row does not exist, template present: no body, so the mesh stays shown.
+		H.expect(CueSkins.piece("jack_o_lantern") ~= nil, "the Jack body row is shipped")
+		Index.BodyRowTestCue = {
+			Id = "body_row_test",
+			Name = "Body Row Test",
+			Tier = "Epic",
+			Thumb = "",
+			Look = {},
+			Body = "jack_o_lantern",
+		}
+		H.expect(
+			CueSkins.bodyOf("BodyRowTestCue", has({ jack_o_lantern = true }), true)
+				== "jack_o_lantern",
+			"row and template: the body"
+		)
+		Index.BodyRowTestCue.Body = "no_such_piece_row"
+		H.expect(
+			CueSkins.bodyOf("BodyRowTestCue", has({ no_such_piece_row = true }), true) == nil,
+			"template without a row: no body"
+		)
+		Index.BodyRowTestCue = nil
 	end,
 
 	["Motion.rig keeps a joint's Aim key, and the body config numbers make sense"] = function()

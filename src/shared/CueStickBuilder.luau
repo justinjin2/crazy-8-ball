@@ -282,6 +282,30 @@ end
 --- otherwise. Nothing happens when
 --- it already shows that cue, so it is safe to call whenever a cue may have changed; it never
 --- creates a part.
+--- The body failed to build (CueSkinLook: no piece row, an empty model, an error): the stick
+--- shows the shared mesh in the skin's maps instead, one warn per cue, so a body never leaves
+--- a player without a cue (robustness pass, 2026-10-28).
+function CueStickBuilder.dropBody(model: Model, reason: string)
+	local stick = sticks[model]
+	if stick == nil or stick.body == nil then
+		return
+	end
+	local id = model:GetAttribute("CueId")
+	if type(id) == "string" and not warnedBodies[id] then
+		warnedBodies[id] = true
+		warn(
+			("CueStickBuilder: %s's body %s did not build (%s); drawn with the shared mesh"):format(
+				id,
+				stick.body,
+				reason
+			)
+		)
+	end
+	stick.body = nil
+	model:SetAttribute("Body", nil)
+	applyVisibility(model)
+end
+
 function CueStickBuilder.paint(model: Model, cueId: string?)
 	local stick = sticks[model]
 	local id = known(cueId)
