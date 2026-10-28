@@ -2148,7 +2148,10 @@ def spider_aura(k):
 
     # Four silk droplines hanging under the cue: a thread (two crossed quads) with a dew bead
     # (a small diamond) at its end, swinging round the cue's axis and along it.
-    for i, (d, length, period, low) in enumerate(((1.2, 0.62, 1.7, None), (2.6, 0.8, 2.1, None), (4.0, 0.68, 1.9, 'hide'), (5.6, 0.85, 2.3, 'hide'))):
+    # Robustness pass (17:55): the droplines sit from the forearm back and are short, so a cue
+    # low over the cloth at a rail (tip at ball height, elevation 4-8 deg) keeps them out of the
+    # table; a 0.62 line at d 1.2 went 0.4 into the cloth (gate2/spider_robust_rail_v4_lab.jpg).
+    for i, (d, length, period, low) in enumerate(((2.9, 0.34, 1.7, None), (4.1, 0.42, 2.1, None), (5.2, 0.4, 1.9, 'hide'), (6.3, 0.46, 2.3, 'hide'))):
         name = 'Drop%d' % (i + 1)
         top = Vector((0, -d, -R(d) + 0.01))
         k.joint(name, pivot=tuple(top), aura=True, low=low,

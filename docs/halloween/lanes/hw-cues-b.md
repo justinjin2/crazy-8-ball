@@ -22,6 +22,43 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
   `Index.luau`, `Textures.luau` (regenerate after every merge conflict there).
 
 ## Status
+- 18:05 **Robustness pass** (coordinator 17:52, Justin 17:46: publish tonight after it; base
+  `halloween` @cb89ebcc, merged clean, cue_skins_data.py a no-op at the tip). Checked, for
+  WitchBroomCue, SpiderCue and (read-only, Cues A's now) BlackCatCue:
+  1. Cost: aura particles/s Broom 169.4 of 170 (20 emitters, 1 beam, 3 lights, 2 orbiters),
+  Spider 89.5 of 120 (13 emitters, 5 beams, 2 lights, 1 orbiter), Cat 58.5 of 120 (8, 0, 2);
+  trails 29.5 / 25 / 27 pps; pieces: Broom body 5 parts 9,144 tris, aura 19 parts 2,392,
+  pocket 13 parts 4,928; Spider body 5 parts 5,764, aura 13 parts 1,328, pocket 3 parts 2,208;
+  Cat body 4 parts 7,496. Textures: the Broom's own sprites 512 px (crescent, straw leaf) and
+  1024 px 4x4 sheets (bat flap, witch over the moon: 256 px a frame), the Spider's 512 px, the
+  Cat's 256 to 1024; the shared v2/_shared sprites are every cue's (512 px singles, 1024 px
+  8x8 sheets). Nothing over budget; nothing found.
+  2. Lower effects: the Broom hides the five stars, the third sigil and the second bat and keeps
+  the moons, two sigils, one bat, the body and the halo (`broom_remake_stand_lower_v3_lab.jpg`);
+  the Spider hides the third web, two droplines and both hourglasses and keeps two webs and two
+  droplines; the bodies never hide (they are the cue). Rates follow Quality. Nothing found.
+  3. Pocket pieces: three pocket bursts fired 0.15 s apart (a break potting three) in the lab:
+  Broom peak 120 instances (46 parts, 33 emitters, 3 lights, 9 beams/trails), Spider 104
+  (38, 24, 3, 9); after 1.5 s 54 / 24, after 11.5 s both back to the empty folder and the
+  workspace instance count back to its baseline; `Effects.destroy` leaves nothing. There is no
+  cap: each pot gets its whole finisher (about 2 s of 33 emitters for three at once), which is
+  within what three Firework finishers cost; a cap would be a runtime change (Cues A) and is
+  not asked for here. Nothing leaks.
+  4. Ids: every Texture row of the three skins carries an rbxassetid (41 / 33 / 20, none
+  empty); every piece id (bodies, auras, pockets, HatCharm, atlases, cards) is an `ok` manifest
+  row with an image id where one is needed; the template build loads every model with no
+  problem line; `CueAssets.ready` is true for all three in the lab; the only ids outside the
+  manifest are the three Roblox library pocket sounds (9125645963 / 9125647922 / 9125646252).
+  Nothing found.
+  5. Rail and back: in the lab both cues were posed shooting over Table_01's long rail (tip at
+  ball height, 8 degrees). FOUND: the Spider's 0.62-stud dropline at d 1.2 went 0.4 into the
+  cloth (`spider_robust_rail_v4_lab.jpg`); FIXED in e4032dc0: the four droplines hang from the forearm
+  and butt (d 2.9 to 6.3) at 0.34 to 0.46 studs, over the floor behind the rail
+  (`spider_robust_rail_v5_lab.jpg`); new spider_aura upload 114021005036828. The Broom at the
+  rail: the head over the floor, the sigils and moons orbit clear (`broom_robust_rail_v5_lab.jpg`),
+  the straw now inked clean with Cues A's Outline key in halloween. On the back: Spider
+  (`spider_robust_back_v4_lab.jpg`) and Broom (`broom_remake_back_v3_lab.jpg`) read right.
+  Lab console: only the Studio DataStore lines and the known 203785492 ContentId lines.
 - 13:25 **Broom remake** (Justin 12:55 through the coordinator: a real broom, not the cue mesh
   dressed; the bristles far too small; no ribbons on any cue). The body `witch_broom` is rebuilt
   from scratch in headless Blender (5 parts, 9,144 triangles; the 16,000 ceiling was not
@@ -331,6 +368,9 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
 
 ## Requests
 
+- 18:10 **READY robustness pass @ e4032dc0** (SpiderCue droplines fix; everything else checked, nothing
+  else changed; lint OK, 1,469 tests, cue_skins_data.py clean). Template build in Team Create:
+  `ONLY = { "SpiderCue" }` (new spider_aura id).
 - 13:42 **READY SpiderCue readability @ 76cdfa8e** (skin `spider`, same ids and rows; the readability pass merged with `halloween` @663de787 as 76cdfa8e; lint OK, 1,469
   tests, cue_skins_data.py clean). Coordinator 13:35: the webs read faint on the bright floor.
   `spider_aura` rigid 112575234442239 (13 parts, 1,328 triangles): opaque Neon silk and web
@@ -677,3 +717,6 @@ Broom remake and the no-ribbon auras (13:25; `gate2/`):
   (web wheels, droplines with dew beads, hourglasses, silk strands) against the launch version
   and the Firework.
 - `cat_redo_*.jpg`: the Cat's ribbon pass as handed to Cues A.
+- Robustness pass (18:05): `spider_robust_rail_v4_lab.jpg` (the dropline in the cloth),
+  `spider_robust_rail_v5_lab.jpg` (fixed), `broom_robust_rail_v5_lab.jpg`,
+  `spider_robust_back_v4_lab.jpg`, `broom_remake_stand_lower_v3_lab.jpg` (Lower effects).
