@@ -127,13 +127,15 @@ coordinator resolves overlaps. Planned (add the commit sha when each lands):
 
 ## Requests
 
-- **CONTRACT CHANGE** (10:05, coordinator, and Justin for the colour): the 3v3 toxic green
-  (110,220,40) renders (167,243,23) at the table and sits **ΔE 16.5** from the yellow balls (1
-  and 9) under Night and Sunset alike, under PLAN's 17. Proposed (70,210,55): renders
-  (95,240,47), **ΔE 23.9**, still a vivid toxic green, a little less lime (gate1 `07` vs `08`).
-  It needs PLAN §2 Tables and `tests/halloween_contract_test.luau:214` changed (yours); say go
-  and I change Config, my tests and the cloth tool in one commit, or change the contract line
-  yourself and I follow.
+- **CONTRACT CHANGE** (10:05, updated 10:50; coordinator): the 3v3 toxic green (110,220,40)
+  renders (167,243,23) at the table and sits **ΔE 16.5** from the yellow balls (1 and 9) under
+  Night and Sunset alike (they read the same up close), under PLAN's 17. The brief's rule (§2.4:
+  "shift that tint's lightness within its hue and re-measure") gives **(88,176,32)**: the same
+  hue at 80% lightness, renders (139,219,32), **ΔE 19.9** (gate1 `12`). Recommended: it keeps
+  PLAN's lime. (A greener (70,210,55) reads 23.9 but moves the hue; gate1 `08`.) It needs PLAN
+  §2 Tables and `tests/halloween_contract_test.luau:214` (yours) changed: say go and I change
+  Config, my tests and the cloth tool in one commit, or change the contract line yourself and I
+  follow.
 - **ROJO CONNECT AGAIN** (09:50): the `lane-hw-map.rbxl` window's plugin shows `[Rojo-Warn]
   Disconnected from an error: WebSocket error: 400` and has none of this branch's code. Rojo on
   34886 is up (pid 20013 since 08:47). Please click Connect to `localhost:34886` once more
