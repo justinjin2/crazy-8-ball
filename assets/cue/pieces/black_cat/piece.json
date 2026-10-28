@@ -2,7 +2,7 @@
   "id": "black_cat",
   "Frame": "cue",
   "frame": "Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)",
-  "Triangles": 7496,
+  "Triangles": 7652,
   "Parts": [
     {
       "Material": "SmoothPlastic",
@@ -115,6 +115,26 @@
         3.699
       ],
       "Triangles": 2464
+    },
+    {
+      "Material": "Neon",
+      "Color": "#FFC85A",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Claws_Claw",
+      "File": "pieces/black_cat/Claws_Claw.obj",
+      "Joint": "Claws",
+      "Offset": [
+        -0.0,
+        0.1523,
+        -0.5899
+      ],
+      "Size": [
+        0.2202,
+        0.0535,
+        0.7472
+      ],
+      "Triangles": 156
     }
   ],
   "Joints": {
@@ -131,6 +151,28 @@
         0.0
       ],
       "Motion": []
+    },
+    "Claws": {
+      "Parent": "Body",
+      "Pivot": [
+        0,
+        -4.0,
+        0
+      ],
+      "PivotRoblox": [
+        0,
+        0,
+        -0.5
+      ],
+      "Motion": [],
+      "Visual": [
+        {
+          "Kind": "Glow",
+          "Min": 0.1,
+          "Max": 0.5,
+          "Period": 3.0
+        }
+      ]
     },
     "Tail": {
       "Parent": "Body",

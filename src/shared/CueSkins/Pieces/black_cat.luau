@@ -72,12 +72,35 @@ return {
 			Offset = { 0, 0, -1.59 },
 			Size = { 0.458, 0.4533, 3.699 },
 		},
+		{
+			Material = "Neon",
+			Color = "#FFC85A",
+			Transparency = 0,
+			Reflectance = 0,
+			Name = "Claws_Claw",
+			Joint = "Claws",
+			Offset = { -0, 0.1523, -0.5899 },
+			Size = { 0.2202, 0.0535, 0.7472 },
+		},
 	},
 	Joints = {
 		Body = {
 			Parent = nil,
 			PivotRoblox = { 0, 0, 0 },
 			Motion = {},
+		},
+		Claws = {
+			Parent = "Body",
+			PivotRoblox = { 0, 0, -0.5 },
+			Motion = {},
+			Visual = {
+				{
+					Kind = "Glow",
+					Min = 0.1,
+					Max = 0.5,
+					Period = 3,
+				},
+			},
 		},
 		Tail = {
 			Parent = "Body",

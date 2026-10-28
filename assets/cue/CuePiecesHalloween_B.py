@@ -1254,6 +1254,7 @@ def black_cat(k):
     R = _radius()
     A = _cat_atlas(k)
     k.material('Ring', 'Foil', CAT['gold'])
+    k.material('Claw', 'Neon', CAT['claw'])
     k.material('TailShell', 'ForceField', CAT['rim'], Transparency=0.3)
     long = LONG['black_cat']
 
@@ -1280,10 +1281,28 @@ def black_cat(k):
         _torus(bm, (0, -rd, 0), (0, 1, 0), cap_r(rd) + rr * 0.45, rr, segs=22, minor=7)
     k.add('Body', k.mesh_object('Rings', bm, ['Ring']))
 
-    # The claw slashes (three Neon strips raked across the forearm) are gone (2026-10-28): the
-    # cue's Highlight outline merges round a part that thin into one solid gold slab, even
-    # with the part transparent; the atlas scratches carry the claw marks. The uploaded body
-    # model still holds the ClawSlashes part; the Parts list below no longer dresses it.
+    # --- the claw slashes: three Neon strips raked diagonally across the top of the forearm -------
+    k.joint('Claws', pivot=(0, -4.0, 0), parent='Body',
+            visual=[{'Kind': 'Glow', 'Min': 0.1, 'Max': 0.5, 'Period': 3.0}])
+    bm = bmesh.new()
+    uvl = bm.loops.layers.uv.new('UVMap')
+    for i in range(3):
+        d_start = CAT_FOREARM[0] + 0.12 + 0.18 * i
+        left, right = [], []
+        for s in range(7):
+            t = s / 6
+            d = d_start + 0.38 * t
+            ang = math.pi + (0.55 - 1.1 * t) + (i - 1) * 0.12      # across the top, from +X side to -X side
+            r = R(d) + 0.012
+            p = Vector((r * math.sin(ang), -d, -r * math.cos(ang)))
+            along = Vector((math.cos(ang) * 0.6, -0.8, math.sin(ang) * 0.6)).normalized()
+            w = 0.022 * (0.4 + 0.6 * math.sin(math.pi * t) ** 0.5)
+            left.append(p - along * (w / 2))
+            right.append(p + along * (w / 2))
+        _strip_uv(bm, uvl, left, right, lambda u, v: (u, v))
+    ob = k.mesh_object('ClawSlashes', bm, ['Claw'], smooth=False)
+    apply_modifier(k.bpy, ob, 'SOLIDIFY', thickness=0.012, offset=0.0)
+    k.add('Claws', ob)
 
     # --- the tail: a skinned fur tube on five bones, a gold ForceField shell ----------------------
     path = _cat_tail_path(long)
@@ -1852,30 +1871,6 @@ def preview_body(pid, t_list=(0.0, 1.3), size=(800, 500)):
 # =============================================================================================
 
 
-def _helix_strip(R, sense, phase, pitch, lift, half, n=160, d0=0.35, d1=6.9):
-    """A thin strip spiralling round the cue on the cylinder `lift` off its surface (a turn
-    every `pitch` studs, `sense` +1/-1, `half` the half width across the helix, in the surface)."""
-    import bmesh
-    from mathutils import Vector
-    bm = bmesh.new()
-    left, right = [], []
-    for i in range(n):
-        d = d0 + (d1 - d0) * i / (n - 1)
-        a = sense * 2 * math.pi * d / pitch + phase
-        radial = Vector((math.sin(a), 0, math.cos(a)))
-        p = Vector((0, -d, 0)) + radial * (R(d) + lift)
-        d2 = d + 0.01
-        a2 = sense * 2 * math.pi * d2 / pitch + phase
-        p2 = Vector((0, -d2, 0)) + Vector((math.sin(a2), 0, math.cos(a2))) * (R(min(d2, d1)) + lift)
-        tang = (p2 - p).normalized()
-        across = tang.cross(radial).normalized()
-        left.append(bm.verts.new(p - across * half))
-        right.append(bm.verts.new(p + across * half))
-    for i in range(n - 1):
-        bm.faces.new((left[i], right[i], right[i + 1], left[i + 1]))
-    return bm
-
-
 def _flat(k, bm, ob_name, mat, thickness):
     ob = k.mesh_object(ob_name, bm, [mat])
     apply_modifier(k.bpy, ob, 'SOLIDIFY', thickness=thickness, offset=0.0)
@@ -1897,127 +1892,6 @@ def _plane_polygon(bm, origin, u, v, pts, scale=1.0, about=(0.0, 0.0)):
 
 # A leaping cat seen from the side, nose toward +x, standing on y = 0 (the concept's shadow
 # cats: no face, no eyes; a silhouette).
-CAT_SIL = [
-    (0.50, 0.30), (0.44, 0.40), (0.47, 0.50), (0.40, 0.42), (0.34, 0.50), (0.30, 0.40),
-    (0.20, 0.36), (0.00, 0.34), (-0.20, 0.32), (-0.36, 0.30),
-    (-0.40, 0.33), (-0.50, 0.42), (-0.60, 0.54), (-0.70, 0.58), (-0.68, 0.50), (-0.58, 0.44),
-    (-0.49, 0.34), (-0.44, 0.24),
-    (-0.48, 0.16), (-0.64, 0.06), (-0.60, 0.00), (-0.44, 0.08), (-0.34, 0.14),
-    (-0.16, 0.16), (0.04, 0.16),
-    (0.12, 0.08), (0.30, -0.02), (0.36, 0.04), (0.24, 0.12), (0.34, 0.18), (0.44, 0.22),
-]
-
-
-def _cat_loop(R, d0=0.7, d1=6.5, pitch=4.0, lift=0.24, step=0.1):
-    """The shadow cats' looping path: a helix along the cue from d0 to d1 (a turn every
-    `pitch` studs, the feet `lift` off the surface), half a turn round the butt end, the
-    opposite helix back, half a turn round the tip end. Frames (columns side, tangent,
-    normal away from the cue, point) every `step` studs; returns (frames, step, length)."""
-    import numpy as np
-
-    def at(d, a):
-        return np.array([math.sin(a) * (R(d) + lift), -d, math.cos(a) * (R(d) + lift)])
-
-    samples = []
-    N = 500
-    for i in range(N):
-        d = d0 + (d1 - d0) * i / (N - 1)
-        samples.append((at(d, 2 * math.pi * d / pitch), 2 * math.pi * d / pitch))
-    a1 = 2 * math.pi * d1 / pitch
-    for i in range(1, 50):
-        a = a1 + math.pi * i / 50
-        samples.append((at(d1, a), a))
-    for i in range(N):
-        d = d1 - (d1 - d0) * i / (N - 1)
-        a = 2 * math.pi * d / pitch + math.pi
-        samples.append((at(d, a), a))
-    a0 = 2 * math.pi * d0 / pitch + math.pi
-    for i in range(1, 50):
-        a = a0 + math.pi * i / 50
-        samples.append((at(d0, a), a))
-    P = np.array([s[0] for s in samples])
-    A = np.array([s[1] for s in samples])
-    seg = np.linalg.norm(np.diff(np.vstack([P, P[:1]]), axis=0), axis=1)
-    cum = np.concatenate([[0.0], np.cumsum(seg)])
-    L = float(cum[-1])
-    nF = max(int(round(L / step)), 8)
-    frames = []
-    Pc = np.vstack([P, P[:1]])
-    Ac = np.concatenate([A, A[:1]])
-    for j in range(nF):
-        s = j * L / nF
-        p = np.array([np.interp(s, cum, Pc[:, c]) for c in range(3)])
-        a = float(np.interp(s, cum, Ac))
-        s2 = (s + 0.05) % L
-        s1 = (s - 0.05) % L
-        p2 = np.array([np.interp(s2, cum, Pc[:, c]) for c in range(3)])
-        p1 = np.array([np.interp(s1, cum, Pc[:, c]) for c in range(3)])
-        t = p2 - p1
-        t /= max(np.linalg.norm(t), 1e-6)
-        n = np.array([math.sin(a), 0.0, math.cos(a)])
-        n = n - t * float(np.dot(t, n))
-        n /= max(np.linalg.norm(n), 1e-6)
-        side = np.cross(t, n)
-        M = np.eye(4)
-        M[:3, 0], M[:3, 1], M[:3, 2], M[:3, 3] = side, t, n, p
-        frames.append(M)
-    return frames, L / nF, L
-
-
-@piece
-def black_cat_aura(k):
-    """Aura-only decoration of the Black Cat (hides with the aura), the 2026-10-28 11:55
-    rework toward C2c_black_cat.png and the Firework's level: three shadow cats (black
-    silhouettes, two crossed planes each so they read from every side, a faint warm Glow) running a looping path along the
-    whole cue (a helix out, round the butt, the opposite helix back, round the tip; a lap in
-    9 s, a third of a lap apart); a gold Neon thread spiralling round the cue over a wide
-    black shadow band (one joint, turning like a screw), a thinner gold thread the other way
-    twinkling. (Floating claw-slash charms were tried: strokes 0.02 wide came back from the
-    mesh upload as empty meshes and drew as gold blocks; the body's own slashes stay.) Lower
-    effects keeps two cats, the band and its thread; the third cat and the second thread hide."""
-    import bmesh
-    import numpy as np
-    from mathutils import Vector
-    R = _radius()
-    k.material('Shadow', 'SmoothPlastic', CAT['black'])
-    k.material('ShadowBand', 'SmoothPlastic', CAT['black'], Transparency=0.3)
-    k.material('Gold', 'Neon', '#FFB83A', Transparency=0.05)
-    k.material('GoldSoft', 'Neon', '#FFD070', Transparency=0.15)
-
-    frames, step, length = _cat_loop(R)
-    k.path('Prowl', frames, step)
-    speed = length / 9.0
-    for i in range(3):
-        name = 'Cat%d' % (i + 1)
-        rest = length * i / 3.0
-        idx = int(round(rest / step)) % len(frames)
-        F = frames[idx]
-        side, tang, nrm, pt = Vector(F[:3, 0]), Vector(F[:3, 1]), Vector(F[:3, 2]), Vector(F[:3, 3])
-        k.joint(name, pivot=tuple(pt), aura=True, low=('hide' if i == 2 else None),
-                motion=[{'Kind': 'Path', 'Path': 'Prowl', 'Rest': rest, 'Speed': speed}],
-                visual=[{'Kind': 'Glow', 'Min': 0.0, 'Max': 0.15, 'Period': 2.2 + 0.4 * i, 'Phase': 70 * i, 'Color': '#FFE2A0'}])
-        # Two silhouettes crossed at right angles (one standing on the cue, one lying on it), so
-        # a cat reads from every side: a single flat one is a dark bar whenever it is edge-on to
-        # the viewer, which on a cue is half the time.
-        bm = bmesh.new()
-        _plane_polygon(bm, pt, tang, nrm, CAT_SIL, scale=0.7)
-        k.add(name, _flat(k, bm, name + 'Shadow', 'Shadow', 0.03))
-        bm = bmesh.new()
-        _plane_polygon(bm, pt + nrm * 0.17, tang, side, CAT_SIL, scale=0.7, about=(0.0, 0.25))
-        k.add(name, _flat(k, bm, name + 'Flat', 'Shadow', 0.03))
-
-    k.joint('Shadow', pivot=(0, -3.5, 0), aura=True,
-            motion=[{'Kind': 'Spin', 'Axis': (0, 1, 0), 'Rate': 36.0}],
-            visual=[{'Kind': 'Glow', 'Min': 0.0, 'Max': 0.4, 'Period': 2.8, 'Color': '#FFE2A0'}])
-    k.add('Shadow', _flat(k, _helix_strip(R, 1, 0.0, 2.0, 0.16, 0.09), 'ShadowBandStrip', 'ShadowBand', 0.016))
-    k.add('Shadow', _flat(k, _helix_strip(R, 1, 0.0, 2.0, 0.21, 0.04), 'ThreadGoldStrip', 'Gold', 0.016))
-    k.joint('ThreadGold2', pivot=(0, -3.5, 0), aura=True, low='hide',
-            motion=[{'Kind': 'Spin', 'Axis': (0, 1, 0), 'Rate': -60.0}],
-            visual=[{'Kind': 'Fade', 'Min': 0.4, 'Max': 1.0, 'Period': 1.6}])
-    k.add('ThreadGold2', _flat(k, _helix_strip(R, -1, math.pi * 0.5, 3.2, 0.28, 0.022), 'ThreadGold2Strip', 'GoldSoft', 0.014))
-
-
-
 def _web_wheel(bm, c, u, v, r=0.32, spokes=8, rings=(0.11, 0.21, 0.31), w=0.011):
     """A spider web in the plane (c, u, v): spokes from the centre and polygon rings, thin quads."""
     from mathutils import Vector
