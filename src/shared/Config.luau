@@ -3883,7 +3883,7 @@ Config.Halloween = {
 	},
 	-- The playtime cue: Seconds of ACTIVE play while the event is Live (any server; idle time
 	-- does not count: SkyDropService.isActive), 3 h 01 m.
-	Spider = { Enabled = false, Cue = "SpiderCue", Seconds = 10860 },
+	Spider = { Enabled = true, Cue = "SpiderCue", Seconds = 10860 },
 	TickSeconds = 5, -- the server adds active time and retries held grants this often
 	PushSeconds = 2, -- at most one event view pushed to a player this often
 	ActivePushSeconds = 30, -- active time alone re-sends the view this often (the menu shows minutes)
