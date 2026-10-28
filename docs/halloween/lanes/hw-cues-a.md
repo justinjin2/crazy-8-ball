@@ -55,6 +55,18 @@ From PLAN §4 (everything else is read-only; ask through Requests):
 
 ## Status (continued)
 
+- 2026-10-28 10:50: **Progress 17 (devices): PC and TV done, phone and iPad BLOCKED.** At the
+  window's PC size (1523x814 viewport): the Index's Exclusive row, its detail, My Cues and the
+  power bar (10:33 entry). TV through `GuiQA:Invoke("padMode", true)` (the pad hints on):
+  the Index's Exclusive row (`tv_index_exclusive_row.jpg`), the Index detail with the Jack
+  chosen (`tv_index_jack_detail.jpg`), My Cues (`tv_my_cues.jpg`), YOU GOT for both cues
+  through the quick reveal (`tv_you_got_jack.jpg`, `tv_you_got_candy.jpg`): the cards read
+  at every size the GUI lane draws them, the names fit on one line. Phone (844x390) and iPad
+  (1024x768) need the window resized: `tools/halloween/studio_size.sh` finds no Studio window
+  from this shell (System Events lists zero windows for every RobloxStudio process, with
+  assistive access working for other apps), so those two sizes are blocked until the
+  coordinator posts the outer sizes or resizes the window. Nothing of mine is size-specific:
+  the cards are the GUI lane's components with my images.
 - 2026-10-28 10:41: **Progress 15 and 16 done.** Analytics @ d6dccb21 (pushed): one
   `Funnel.event(player, "HalloweenCueEquipped", 1, cueId)` in `HANDLERS.EquipCue` for a
   Catalog row with `Event = "Halloween2026"`; the Studio server log shows
@@ -76,7 +88,7 @@ From PLAN §4 (everything else is read-only; ask through Requests):
   | cue | body parts / tris | aura emitters | aura /s | orbiters | lights | beams | trail /s | finisher burst | pocket piece |
   |---|---|---|---|---|---|---|---|---|---|
   | Candy Corn (Epic) | 7 / 5,216 | 5 | 68 | 1 (+head) | 1 | 0 | 28 | 106 once | none |
-  | Jack-o'-Lantern (Secret) | 7 / 7,040 | 6 | 93 | 2 (+2 heads) | 3 | 0 | 34 | 120 once + 4 parts / 6,120 tris | jack_o_lantern_pocket |
+  | Jack-o'-Lantern (Legendary) | 7 / 7,040 | 6 | 93 | 2 (+2 heads) | 3 | 0 | 34 | 120 once + 4 parts / 6,120 tris | jack_o_lantern_pocket |
   | Eclipse (reference) | 48 / 58,352 | 14 | 98 | 2 | 1 | 1 | 31 | 84 once | none |
   | Infernal (reference) | 1 / 19,500 | 4 | 57 | 3 | 1 | 5 | 33 | 86 once + 2 parts / 27,500 tris | infernal_pocket |
 
@@ -227,6 +239,27 @@ Planned (PLAN §7 shared files; own block or line only; add the sha to each as i
 
 ## Requests
 
+- 10:45 **Coordinator requests in full (brief 3.6), standing:**
+  1. Merges on request: drop 1 7bef0153, drop 2 eb98e2ef, drop 3 37573b2c (the body path,
+     `Bodies.Enabled = true`), CuePreview bodies 5078ac33, Candy Corn 1bd06f55, Jack-o'-Lantern
+     ba50947d (with the `Upright` flag 73fc00ae), analytics d6dccb21: all on `hw-cues-a`,
+     pushed; `hw-cues-a` already contains `halloween` @ f32c3d1b, so the merge is clean.
+  2. After both cue lanes are merged: run `python3 tools/cue_skins_data.py` in the `halloween`
+     checkout and commit. On a `tools/upload_manifest.json` conflict take the union (an `"ok"`
+     row wins, keys sorted, `indent=2, sort_keys=True`, never drop a row); on a
+     `src/shared/CueSkins/*` conflict re-run `python3 tools/cue_skins_data.py`, never fix the
+     generated files by hand. The generator must run clean (no `--allow-missing`) for the
+     rows to be ready; a draft row stays out of the Index by design.
+  3. Team Create place, Edit mode, once all five are final: `tools/build_cue_templates.luau`
+     with `ONLY = { "CandyCornCue", "JackOLanternCue", "BlackCatCue", "SpiderCue",
+     "WitchBroomCue" }` and `ALL = false`; expect "5 skins, N pieces rebuilt, 60 other
+     templates untouched" (my two: 2 skins, 3 pieces incl. `jack_o_lantern_pocket`); then the
+     lab check. Without this run the five show as Classic sticks with auras (StandIn).
+  4. Publish with "Restart Servers for Updates" (an old server meets a new id and resets the
+     equipped cue to Classic; SaveSchema). What could break live: nothing for shipped cues
+     (every switch keeps the old path: `Config.CueSkins.Bodies.Enabled`, `Catalog.ready`,
+     `Upright` unset on shipped pieces); check by hand: equip Candy Corn and Jack-o'-Lantern
+     from My Cues, one pot each (the finisher, the laugh), the Index's Exclusive row.
 - 10:33 **MERGE Jack-o'-Lantern Cue** (`hw-cues-a` @ ba50947d: the Jack content db1a9fdb, the
   `Upright` flag 73fc00ae, out of draft ba50947d; `assets/cue/CuePieces.py` gets three
   additive lines). Runtime change: the Index gains the row; CuePiece reads `row.Upright`,
@@ -331,3 +364,6 @@ Gate 2 addition (10:28, `gate2/`): Jack-o'-Lantern complete @ db1a9fdb (+ 73fc00
   (pushed into Lighting in my window): the warm lights on the lilac floor, the backs' pieces.
 - `jack_hands_lower_effects.jpg`: Jack in hand with Lower effects on: the body whole, the aura
   thinned to faint smoke.
+- `tv_index_exclusive_row.jpg`, `tv_index_jack_detail.jpg`, `tv_my_cues.jpg`: the Index row,
+  its detail with the Jack chosen and My Cues in the TV (pad) layout.
+- `tv_you_got_jack.jpg`, `tv_you_got_candy.jpg`: the YOU GOT scene with each card.
