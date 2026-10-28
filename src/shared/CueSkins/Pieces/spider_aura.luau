@@ -5,7 +5,7 @@
 return {
 	Id = "spider_aura",
 	Frame = "cue",
-	Rigid = "112575234442239",
+	Rigid = "114021005036828",
 	Models = {},
 	Parts = {
 		{
@@ -45,8 +45,8 @@ return {
 			Reflectance = 0,
 			Name = "Drop1_SilkSoft",
 			Joint = "Drop1",
-			Offset = { 0, -0.376, 2.3 },
-			Size = { 0.036, 0.62, 0.036 },
+			Offset = { 0, -0.28, 0.6 },
+			Size = { 0.036, 0.34, 0.036 },
 		},
 		{
 			Material = "Neon",
@@ -55,7 +55,7 @@ return {
 			Reflectance = 0,
 			Name = "Drop1_Silk",
 			Joint = "Drop1",
-			Offset = { 0, -0.746, 2.3 },
+			Offset = { 0, -0.51, 0.6 },
 			Size = { 0.11, 0.154, 0.0953 },
 		},
 		{
@@ -65,8 +65,8 @@ return {
 			Reflectance = 0,
 			Name = "Drop2_SilkSoft",
 			Joint = "Drop2",
-			Offset = { 0, -0.4995, 0.9 },
-			Size = { 0.036, 0.8, 0.036 },
+			Offset = { 0, -0.357, -0.6 },
+			Size = { 0.036, 0.42, 0.036 },
 		},
 		{
 			Material = "Neon",
@@ -75,7 +75,7 @@ return {
 			Reflectance = 0,
 			Name = "Drop2_Silk",
 			Joint = "Drop2",
-			Offset = { 0, -0.9595, 0.9 },
+			Offset = { 0, -0.627, -0.6 },
 			Size = { 0.11, 0.154, 0.0953 },
 		},
 		{
@@ -85,8 +85,8 @@ return {
 			Reflectance = 0,
 			Name = "Drop3_SilkSoft",
 			Joint = "Drop3",
-			Offset = { 0, -0.4854, -0.5 },
-			Size = { 0.036, 0.68, 0.036 },
+			Offset = { 0, -0.3656, -1.7 },
+			Size = { 0.036, 0.4, 0.036 },
 		},
 		{
 			Material = "Neon",
@@ -95,7 +95,7 @@ return {
 			Reflectance = 0,
 			Name = "Drop3_Silk",
 			Joint = "Drop3",
-			Offset = { 0, -0.8854, -0.5 },
+			Offset = { 0, -0.6256, -1.7 },
 			Size = { 0.11, 0.154, 0.0953 },
 		},
 		{
@@ -105,8 +105,8 @@ return {
 			Reflectance = 0,
 			Name = "Drop4_SilkSoft",
 			Joint = "Drop4",
-			Offset = { 0, -0.595, -2.1 },
-			Size = { 0.036, 0.85, 0.036 },
+			Offset = { 0, -0.4, -2.8 },
+			Size = { 0.036, 0.46, 0.036 },
 		},
 		{
 			Material = "Neon",
@@ -115,7 +115,7 @@ return {
 			Reflectance = 0,
 			Name = "Drop4_Silk",
 			Joint = "Drop4",
-			Offset = { 0, -1.08, -2.1 },
+			Offset = { 0, -0.69, -2.8 },
 			Size = { 0.11, 0.154, 0.0953 },
 		},
 		{
@@ -230,7 +230,7 @@ return {
 		},
 		Drop1 = {
 			Parent = nil,
-			PivotRoblox = { -0, -0.066, 2.3 },
+			PivotRoblox = { -0, -0.11, 0.6 },
 			Motion = {
 				{
 					Kind = "Sway",
@@ -260,7 +260,7 @@ return {
 		},
 		Drop2 = {
 			Parent = nil,
-			PivotRoblox = { -0, -0.0995, 0.9 },
+			PivotRoblox = { -0, -0.147, -0.6 },
 			Motion = {
 				{
 					Kind = "Sway",
@@ -290,7 +290,7 @@ return {
 		},
 		Drop3 = {
 			Parent = nil,
-			PivotRoblox = { -0, -0.1454, -0.5 },
+			PivotRoblox = { -0, -0.1656, -1.7 },
 			Motion = {
 				{
 					Kind = "Sway",
@@ -321,7 +321,7 @@ return {
 		},
 		Drop4 = {
 			Parent = nil,
-			PivotRoblox = { -0, -0.17, -2.1 },
+			PivotRoblox = { -0, -0.17, -2.8 },
 			Motion = {
 				{
 					Kind = "Sway",
