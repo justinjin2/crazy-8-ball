@@ -6,83 +6,26 @@
   "Parts": [
     {
       "Material": "SmoothPlastic",
-      "Color": "#FFF4E2",
-      "Transparency": 0.0,
-      "Reflectance": 0.14,
-      "Name": "Body_Cream",
-      "File": "pieces/candy_corn/Body_Cream.obj",
-      "Joint": "Body",
-      "Offset": [
-        0.0,
-        0.0,
-        1.61
-      ],
-      "Size": [
-        0.2783,
-        0.2783,
-        3.06
-      ],
-      "Triangles": 1248
-    },
-    {
-      "Material": "SmoothPlastic",
-      "Color": "#FF7A12",
-      "Transparency": 0.0,
-      "Reflectance": 0.14,
-      "Name": "Body_Orange",
-      "File": "pieces/candy_corn/Body_Orange.obj",
-      "Joint": "Body",
-      "Offset": [
-        0.0,
-        0.0,
-        -0.085
-      ],
-      "Size": [
-        0.66,
-        0.66,
-        7.03
-      ],
-      "Triangles": 1296
-    },
-    {
-      "Material": "SmoothPlastic",
-      "Color": "#FFD21E",
-      "Transparency": 0.0,
-      "Reflectance": 0.14,
-      "Name": "Body_Yellow",
-      "File": "pieces/candy_corn/Body_Yellow.obj",
-      "Joint": "Body",
-      "Offset": [
-        0.0,
-        0.0,
-        -0.249
-      ],
-      "Size": [
-        0.66,
-        0.66,
-        7.082
-      ],
-      "Triangles": 1176
-    },
-    {
-      "Material": "SmoothPlastic",
       "Color": "#FFFFFF",
       "Transparency": 0.0,
-      "Reflectance": 0.14,
-      "Name": "Body_White",
-      "File": "pieces/candy_corn/Body_White.obj",
+      "Reflectance": 0.08,
+      "SurfaceAppearance": {
+        "ColorMap": "vfx/candy_corn/bands_512.png"
+      },
+      "Name": "Body_Sugar",
+      "File": "pieces/candy_corn/Body_Sugar.obj",
       "Joint": "Body",
       "Offset": [
         0.0,
         0.0,
-        -1.72
+        -0.18
       ],
       "Size": [
-        0.52,
-        0.52,
-        3.4
+        0.66,
+        0.66,
+        7.22
       ],
-      "Triangles": 384
+      "Triangles": 4104
     },
     {
       "Material": "Neon",

@@ -133,6 +133,7 @@ return {
 			Cap = { 255, 210, 30 },
 			Accent = { 255, 255, 255 },
 		},
+		Piece = "candy_corn_aura",
 		Body = "candy_corn",
 	},
 	CandyCue = {

@@ -265,6 +265,82 @@ def kernel_palette():
     return 'vfx/candy_corn/kernel_palette.png'
 
 
+def candy_bands_map(size=512):
+    """vfx/candy_corn/bands_512.png: the painted body (coordinator 2026-10-28 12:05): crisp
+    white, orange and yellow candy bands along the cue with a sugar speckle and a pearly sheen,
+    a hairline dark edge at every band so the stripes read as candy, not paint. u round the
+    cue, v from the tip (0) to 7.3 studs (1); the regions follow candy_corn's lathe."""
+    import numpy as np
+    import cue_common as cc
+    rel = 'vfx/candy_corn/bands_512.png'
+    path = os.path.join(os.path.dirname(PIECES_DIR), rel)
+    rng = np.random.default_rng(11)
+    u = (np.arange(size) + 0.5) / size
+    v = (np.arange(size) + 0.5) / size
+    U, V = np.meshgrid(u, v)
+    d = (1.0 - V) * 7.3  # PNG row 0 is UV v = 1: the butt is the top row, the tip the bottom
+    cream, orange, yellow, white = (250, 228, 190), (255, 112, 10), (255, 200, 20), (255, 255, 255)
+    bands = [(0.0, 0.19, orange), (0.19, 0.30, yellow), (0.30, 0.36, orange), (0.36, 3.42, cream), (3.42, 3.52, orange),
+             (3.52, 3.96, white), (3.96, 4.06, orange), (4.06, 5.0, orange), (5.0, 6.79, yellow), (6.79, 6.925, white),
+             (6.925, 7.105, orange), (7.105, 7.31, yellow)]
+    img = np.zeros((size, size, 3), np.float32)
+    edge = np.zeros((size, size), bool)
+    for lo, hi, col in bands:
+        m = (d >= lo) & (d < hi)
+        img[m] = col
+        edge |= m & (((d - lo) < 0.012) | ((hi - d) < 0.012))
+    # the pearly sheen: a soft highlight band round the cue and a faint ripple along it
+    sheen = 0.5 + 0.5 * np.cos(2 * np.pi * (U - 0.25))
+    img = img * (0.84 + 0.18 * sheen[..., None]) + 0.08 * 255 * (0.5 + 0.5 * np.sin(2 * np.pi * V * 60))[..., None] * (sheen[..., None] ** 3)
+    # sugar glitter: bright specks on the orange and yellow zones, soft pearls on the cream
+    noise = rng.random((size, size)).astype(np.float32)
+    specks = (noise > 0.965).astype(np.float32)
+    glitter = ((d >= 4.06) & (d < 6.79)) | (d < 0.36) | ((d >= 6.925) & (d < 7.31))
+    img = img + specks[..., None] * 70 * glitter[..., None] + (noise > 0.985).astype(np.float32)[..., None] * 22
+    img[edge] = img[edge] * 0.62
+    cc.write_png(path, np.clip(img, 0, 255).astype(np.uint8))
+    return rel
+
+
+def _kernel_at(bm, uvl, centre, up, scale):
+    """One candy-corn kernel (the carousel's profile, scale x) standing on `centre` along the
+    unit Vector `up`, its tri-colour palette through the UV v (0 base, 1 point)."""
+    from mathutils import Vector
+    up = Vector(up).normalized()
+    a0 = Vector((0, 0, 1)) if abs(up.z) < 0.9 else Vector((1, 0, 0))
+    sx = up.cross(a0).normalized()
+    sy = up.cross(sx).normalized()
+    c = Vector(centre)
+    prof = [(0.0, 0.04), (0.035, 0.038), (0.07, 0.03), (0.10, 0.018), (0.125, 0.008), (0.13, 0.0)]
+    rings = []
+    for t, r in prof:
+        if r <= 1e-6:
+            rings.append(([bm.verts.new(c + up * (t * scale))], t))
+            continue
+        ring = []
+        for s_ in range(10):
+            b = 2 * math.pi * s_ / 10
+            ring.append(bm.verts.new(c + up * (t * scale) + (sx * math.cos(b) + sy * math.sin(b)) * (r * scale)))
+        rings.append((ring, t))
+    c0 = bm.verts.new(c)
+    r0 = rings[0][0]
+    for s_ in range(10):
+        f = bm.faces.new((c0, r0[(s_ + 1) % 10], r0[s_]))
+        for lp in f.loops:
+            lp[uvl].uv = (0.5, 0.02)
+    for i in range(len(rings) - 1):
+        (ra, ta), (rb, tb) = rings[i], rings[i + 1]
+        for s_ in range(10):
+            if len(rb) == 1:
+                f = bm.faces.new((ra[s_], ra[(s_ + 1) % 10], rb[0]))
+                ts = (ta, ta, tb)
+            else:
+                f = bm.faces.new((ra[s_], ra[(s_ + 1) % 10], rb[(s_ + 1) % 10], rb[s_]))
+                ts = (ta, ta, tb, tb)
+            for lp, tt in zip(f.loops, ts):
+                lp[uvl].uv = (0.5, 0.04 + 0.92 * tt / 0.13)
+
+
 @piece
 def candy_corn(k):
     """The Candy Corn Cue's body (brief 2.7): a kernel tip (a white glowing point, orange,
@@ -279,6 +355,8 @@ def candy_corn(k):
         k.material(name, 'Neon' if name == 'Glow' else 'SmoothPlastic', hexc, Reflectance=0.0 if name == 'Glow' else 0.14)
     k.material('Kernel', 'SmoothPlastic', '#FFFFFF', Reflectance=0.1,
                SurfaceAppearance={'ColorMap': kernel_palette()})
+    # the painted body (coordinator 12:05): crisp candy bands with a sugar sheen, one colour map
+    k.material('Sugar', 'SmoothPlastic', '#FFFFFF', Reflectance=0.08, SurfaceAppearance={'ColorMap': candy_bands_map()})
 
     # --- the body: one lathe, materials by distance ------------------------------------------
     k.joint('Body', pivot=(0, -3.5, 0))
@@ -301,37 +379,9 @@ def candy_corn(k):
         rows.append((d, 0.33 * math.sqrt(max(0.0, 1 - ((d - 7.10) / 0.19) ** 2))))
     rows.append((7.29, 0.0))
     bm = bmesh.new()
-    _revolve(bm, rows, 24)
+    _revolve(bm, rows, 24, uv=lambda d, share: (share, d / 7.3))
     _finish(bm)
-    mats = ['Cream', 'Orange', 'Yellow', 'White']
-
-    def region(c, n):
-        d = -c[1]
-        if d < 0.19:
-            return 1          # orange tip band
-        if d < 0.30:
-            return 2          # yellow tip band
-        if d < 0.36:
-            return 1          # orange collar
-        if d < 3.42:
-            return 0          # cream shaft
-        if d < 3.52:
-            return 1          # ring
-        if d < 3.96:
-            return 3          # white sleeve
-        if d < 4.06:
-            return 1          # ring
-        if d < 5.0:
-            return 1          # orange forearm
-        if d < 6.79:
-            return 2          # yellow handle
-        if d < 6.925:
-            return 3          # white band
-        if d < 7.105:
-            return 1          # orange band
-        return 2              # yellow dome
-    ob = k.mesh_object('CandyBody', bm, mats)
-    assign_by_region(ob, region)
+    ob = k.mesh_object('CandyBody', bm, ['Sugar'])
     k.add('Body', ob)
 
     # --- the glowing white point of the kernel tip (pulses) -----------------------------------
@@ -403,6 +453,65 @@ def candy_corn(k):
     _finish(bm)
     k.add('Kernels', k.mesh_object('Kernels', bm, ['Kernel']))
     check_body(k)
+
+
+# =============================================================================================
+# Candy Corn aura decor: `candy_corn_aura` (designer 2026-10-28 11:55: the Beta/Firework level)
+# =============================================================================================
+
+
+@piece
+def candy_corn_aura(k):
+    """The Candy Corn Cue's decor round the body: a thin Neon gold swirl ribbon winding along the
+    whole cue (0.17 studs off, a turn every 1.8 studs, screwing along at 40 deg/s, breathing)
+    with a thinner white sugar swirl the other way (hidden under Lower effects), and four
+    candy-corn kernels floating round the cue at four heights (aura joints: Spin round the axis
+    at four rates with a Bob), each wearing the tri-colour palette. Lower effects keeps the
+    gold swirl and two kernels."""
+    import bmesh
+    from mathutils import Vector
+    R = envelope()
+    k.material('Swirl', 'Neon', '#FFD24D', Transparency=0.1)
+    k.material('SugarSwirl', 'Neon', '#FFF6D8', Transparency=0.3)
+    k.material('Kernel', 'SmoothPlastic', '#FFFFFF', Reflectance=0.1, SurfaceAppearance={'ColorMap': kernel_palette()})
+    for name, sense, phase, rate, lift, period, low, half0, half1 in (('Swirl', 1, 0.0, 40.0, 0.17, 2.6, None, 0.02, 0.018),
+                                                                     ('SugarSwirl', -1, math.pi, -30.0, 0.21, 1.6, 'hide', 0.014, 0.01)):
+        k.joint(name, pivot=(0, -3.5, 0), motion=[{'Kind': 'Spin', 'Axis': (0, 1, 0), 'Rate': rate}],
+                visual=[{'Kind': 'Glow', 'Min': 0.0, 'Max': 0.45, 'Period': period}], low=low)
+        bm = bmesh.new()
+        n = 280
+        left, right = [], []
+        for i in range(n):
+            d = 0.35 + (6.9 - 0.35) * i / (n - 1)
+            a = sense * 2 * math.pi * d / 1.8 + phase
+            radial = Vector((math.sin(a), 0, math.cos(a)))
+            p = Vector((0, -d, 0)) + radial * (R(d) + lift)
+            d2 = min(d + 0.01, 6.9)
+            a2 = sense * 2 * math.pi * d2 / 1.8 + phase
+            p2 = Vector((0, -d2, 0)) + Vector((math.sin(a2), 0, math.cos(a2))) * (R(d2) + lift)
+            tang = (p2 - p).normalized()
+            across = tang.cross(radial).normalized()
+            half = half0 + half1 * (0.5 + 0.5 * math.sin(d * 5.0 + phase))
+            left.append(bm.verts.new(p - across * half))
+            right.append(bm.verts.new(p + across * half))
+        for i in range(n - 1):
+            bm.faces.new((left[i], right[i], right[i + 1], left[i + 1]))
+        ob = k.mesh_object(name + 'Strip', bm, [name])
+        apply_modifier(k.bpy, ob, 'SOLIDIFY', thickness=0.012, offset=0.0)
+        k.add(name, ob)
+    for i, (d, rate, ang, bob_period, low) in enumerate(((1.3, 52.0, 0.0, 2.2, None), (2.8, -44.0, 1.6, 2.9, 'hide'),
+                                                         (4.3, 60.0, 3.2, 1.7, None), (5.9, -38.0, 4.8, 3.4, 'hide'))):
+        name = 'Kernel%d' % (i + 1)
+        k.joint(name, pivot=(0, -d, 0), aura=True, low=low,
+                motion=[{'Kind': 'Spin', 'Axis': (0, 1, 0), 'Rate': rate},
+                        {'Kind': 'Bob', 'Dir': (0, 1, 0), 'Amp': 0.1, 'Period': bob_period, 'Phase': 50 * i}])
+        radial = Vector((math.sin(ang), 0, math.cos(ang)))
+        centre = Vector((0, -d, 0)) + radial * (R(d) + 0.5) - Vector((0, 0, 0.1))
+        bm = bmesh.new()
+        uvl = bm.loops.layers.uv.new('UVMap')
+        _kernel_at(bm, uvl, centre, (0.25 * math.cos(ang), 0, 1), 1.6)
+        _finish(bm)
+        k.add(name, k.mesh_object(name + 'Kernel', bm, ['Kernel']))
 
 
 # =============================================================================================
