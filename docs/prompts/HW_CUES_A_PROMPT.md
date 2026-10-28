@@ -647,10 +647,10 @@ Justin's changes at a gate go straight into the work and into the lane file's St
   (visibility, own-distance fade, outline, no ink, clear/destroy), the `Aim` joint key (Cues
   B's request), CueAssets warm, `cue_body_test`; the §4.3 path checks with both bodies (3.3,
   from a local non-draft copy); `Bodies.Enabled = true`; push; `MERGE NOW drop 3`.
-- [ ] 7. Candy Corn complete: motion, aura and its kernel sprites, trail, finisher (it stays
+- [x] 7. Candy Corn complete: motion, aura and its kernel sprites, trail, finisher (it stays
   draft until its card, line 12); lab beside Eclipse, Beta, Firework and Blood Moon; a match
   (hands, trail, pocket).
-- [ ] 8. Gate 2 shots and lines (11:00).
+- [x] 8. Gate 2 shots and lines (11:00).
 - [ ] 9. Body support in `CuePreview.py --thumb` (2.5) by 12:00, its own commit, pushed;
   `MERGE CuePreview bodies` in Requests and a Status line for Cues B (it needs this for its
   cards).
