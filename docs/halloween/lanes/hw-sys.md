@@ -51,6 +51,13 @@ New files the brief adds for these: `src/shared/Matchmaking/Roam.luau`, `tests/r
   Wins10, Wins25 free, then 47 x 100 R$ = **4,700 R$** (BroomRider last, its Rule waits for
   Cues A's `WitchBroomCue` row).
 
+- 09:25 hw-sys: **6 badges created on Roblox** (manifest 9f88af35): Welcome, First Win!, Rookie,
+  Contender, Hustler free (quota now 0), **Pool Shark 100 R$** (paymentSourceType 2). Justin's
+  own purchase list (economy API, read in Chrome) shows no charge today, so it did not come from
+  his Robux; the group's transaction list refused the browser read. **Waiting on Justin**: did
+  -100 R$ "Pool Shark" land in the group's transactions? Then the other 46 (4,600 R$).
+  Icons: all 52 in `assets/ui/badges/` (52118c86). Badge list + contact sheet in `gate1/`.
+
 ## Shared-file changes
 
 PLAN §7 shared files: add your own block or line, and as each lands replace its planned line
