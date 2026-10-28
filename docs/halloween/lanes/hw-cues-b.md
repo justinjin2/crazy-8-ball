@@ -68,6 +68,16 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
   neighbours), compact = a closed bud 0.3 past the butt; `spider_parts.glb` 134241355070040,
   `Crown.glb` 88297987618252, atlas decals with image ids). Preview beside the concept:
   `gate2/spider_body_vs_C1b.png`. No spider bodies, legs or creatures anywhere.
+- 10:56 **Gate 2 package ready except the bodies in game** (`gate2/`, 30 shots, a caption each
+  under Gate shots). Done since gate 1: the three bodies rebuilt and uploaded (the Broom
+  reworked to the 09:20 request), all three auras, trails and finishers built, lab-checked on
+  the day floor, under Night and with Lower effects, the Broom beside the Eclipse, the Cat and
+  Spider finishers as phase strips, all three in a real solo game (finisher at the pocket,
+  trail on the cue ball, the own aim view), the cards drawn and uploaded, the pocket sounds
+  fixed. Open: the bodies in hands, on backs and in the own aim view with the Aim fade (P7,
+  P18) and the drafts off with READY lines (P19), all waiting on Cues A's drop 3 reaching
+  `halloween` (asked 08:55, 10:08; `origin/halloween` still @ f32c3d1b at 10:56). The lane's
+  content is complete and pushed @ HEAD; nothing of mine is in `halloween` yet.
 - 10:55 The `ContentId ... failed` lines are not the sounds: after c08ddc40 the Broom's
   PocketSound loads and plays at the burst (IsLoaded, 1.57 s, Playing, volume 0.45) and the
   lines still appear, three per cue, because `CueAssets.collect` sweeps every
