@@ -1804,6 +1804,7 @@ return {
 	-- currency; the quests' text takes the need ("Win %d matches").
 	Halloween = {
 		Name = "HALLOWEEN", -- the right-side tile
+		New = "NEW", -- the tile's badge until the menu was opened once
 		Title = "HALLOWEEN EVENT", -- the event menu's header
 		Candy = "Candy",
 		EndsIn = "ENDS IN %s", -- the tile's and the menu's pill, a duration (Halloween.Event.short)

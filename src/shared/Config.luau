@@ -16629,6 +16629,31 @@ Config.UI.Corners = {
 }
 
 ---------------------------------------------------------------------------------------------
+-- The Halloween event's screens (hw-core; src/client/Halloween; Config.Halloween; words in
+-- Strings.Halloween). Pixels for a computer, Short* for a phone on its side
+-- (Config.Multiplayer.Style.ShortHeight).
+---------------------------------------------------------------------------------------------
+Config.UI.Halloween = {
+	-- The event tile on the hub's right side (HubCorners, Halloween/TileLayout): as big as the
+	-- offer tile, its word in the offer's size, an "ENDS IN 5d 23h" pill over its top edge.
+	Tile = {
+		Px = 94,
+		ShortPx = 62,
+		WordPx = 21,
+		ShortWordPx = 15,
+		PillPx = 22,
+		ShortPillPx = 18,
+		PillTextPx = 13,
+		ShortPillTextPx = 11,
+		GapPx = 10, -- kept from the offer tile
+		BadgePx = 24, -- the red "!" (a claim waits, or a new board) and the NEW badge
+		ShortBadgePx = 20,
+		Icon = "", -- the pumpkin with candy (256 px); "" = the Candy icon or a plain pumpkin colour
+		GlowTint = { 255, 140, 30 }, -- the pumpkin's soft glow behind it
+	},
+}
+
+---------------------------------------------------------------------------------------------
 -- The owner's admin panel (designer, 2026-10-11; src/shared/Admin.luau, AdminService, the panel
 -- src/server/Admin/AdminPanel.client.luau): only the accounts in Config.Debug.Commands.UserIds
 -- (Painicane) ever get it, and the server checks every request. Off: no panel, nothing listens.
