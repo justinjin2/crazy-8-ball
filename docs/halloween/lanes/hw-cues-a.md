@@ -34,6 +34,7 @@ From PLAN §4 (everything else is read-only; ask through Requests):
   holds and retries otherwise), so a skin leaves draft only when the cue is complete.
 
 ## Status
+- 12:37 coordinator: `halloween` @7be001ed adds map 88e9cceb (throne builds once; Studio: 1 throne, 1 King) + 623d0051 (timed King schedule, Mode Throne), core 1361de6d (ActiveGate, pacing), sys 57bc2b91 (50 badges, v2 icons), cues-a 66af67b0 (painted Jack, Candy rework) + fec0cb91 (deterministic generator; a main-checkout regen is now clean), cues-b 0e3569b6 (Broom redo). Lint OK, 1,465 tests, Team Create play console clean. JUSTIN (12:35): the Pumpkin King becomes a timed visitor (UTC :15 and :45, 12 min, middle of the map, 1.5x size, a top timer, the King's line when tables are full, one paid win a visit: +150 Candy, +$2,500, +100 XP). Map and core build it by 15:00; Throne mode stays the fallback. Run `git fetch && git merge origin/halloween` before your next READY.
 - 12:15 coordinator: `halloween` @5dae747d adds map 7fd462cc + 39815514 (night rooftop, King, drops, /king), core d7120fac (the 11:30 review fixed, the Rush chip names what runs) and gui c9f01ea6 (the boost lines restyle, VIP perks in the Soft step). The contract test is now STRICT. Lint OK, 1,460 tests, Team Create play console clean (shots/coordinator/merge_5dae747d_boost_lines.jpg). Known blocker sent to map: the throne builds twice on a server that starts during Live. Run `git fetch && git merge origin/halloween` before your next READY.
 - 11:55 coordinator: 11:30 review of 83e876db: one should-fix for the rework. Toggling Lower effects makes a hidden body stick reappear as a ghost: CuePiece's Quality.Changed handler calls applyHidden() with no args (base 0), CueSkinLook.step skips invisible looks, so the body shows where the cue was last drawn until it is next shown. Fix: keep the last modifier/eye/studs and reuse them in the Quality handler (and setAura). Minor: gate CueAssets' body warm on Config.CueSkins.Bodies.Enabled; HalloweenCueEquipped also fires on re-equipping the same cue.
 - 11:49 coordinator: `halloween` @64085ab2 adds core de236025 (the NEW CUE! card and end screen count in Progression.quiet) and cues-b a431419b (Witch Broom, Black Cat and Spider out of draft). cue_skins_data.py clean on halloween (66 skins, 28 pieces). Lint OK, 1,441 tests, Team Create play console clean. Map's READY 7fd462cc is next. Run `git fetch && git merge origin/halloween` before your next READY.
@@ -59,6 +60,26 @@ From PLAN §4 (everything else is read-only; ask through Requests):
 
 ## Status (continued)
 
+- 12:43: **STATUS FINAL (Progress 20, 21). READY hw-cues-a @ 1a17820e** = `halloween`
+  @e9b90417 merged (map 88e9cceb + 623d0051, core 1361de6d, sys 57bc2b91, cues-b 0e3569b6 the
+  Broom redo, the coordinator's first Team Create ONLY build), lint OK, 1,465 tests pass, the
+  generator a no-op on the merged tree. Studio on the merged build (my window): the ONLY build
+  of all five (5 skins, 11 pieces, no problems), the five on the lab row with their backs
+  (`final_merged_1a17820e_row_five.jpg`), console clean for cue code (the badge "would award"
+  lines are hw-sys's Studio stand-ins; the `203785492` ContentId lines are the tutorial bot's
+  avatar, pre-existing). **Shipped by this lane:** Candy Corn (Epic, track 150) and
+  Jack-o'-Lantern (Legendary, track 500): body cues (pieces `candy_corn`, `jack_o_lantern`),
+  painted maps, decor pieces (`candy_corn_aura`, `jack_o_lantern_aura`), auras, trails,
+  finishers (`jack_o_lantern_pocket`), cards, the `Config.CueSkins.Bodies` switch (off = the
+  old mesh skins), `HalloweenCueEquipped`, the CuePiece Aim-fade and ghost fixes, the
+  deterministic generator. **Open after this lane:** (a) the designer's look at the painted
+  Jack and Candy (`side_by_side_jack_round3.jpg`, `side_by_side_candy_round1.jpg`); a further
+  orb cut is one json line a layer; (b) the two review minors from 11:55 (gate the CueAssets
+  body warm on `Config.CueSkins.Bodies.Enabled`; `HalloweenCueEquipped` fires again on a
+  re-equip), both harmless, not done; (c) Progress 17's phone/iPad power bar and YOU GOT
+  (BLOCKED: window resize); (d) Cues B's requests watched until 15:00 (line 13). **Publish
+  note (coordinator Requests 3.6):** the Team Create ONLY build with all five ids, then
+  publish; `Config.CueSkins.Bodies.Enabled = false` is the one-line fallback.
 - 12:40: **Progress 18 done: fresh-player run on 66af67b0 (halloween @f164d356 merged), my
   window, a fresh mock save.** Join at the tutorial's Arrow (`final_fresh_join_arrow.jpg`: "Join
   a table!", the chevrons to the reserved pad), step on the pad, the bot comes in 2.2 s, Game1
@@ -622,3 +643,5 @@ Gate 2 addition (10:28, `gate2/`): Jack-o'-Lantern complete @ db1a9fdb (+ 73fc00
 - `final_fresh_join_arrow.jpg`, `final_fresh_game1_start.jpg`, `final_fresh_game1_break.jpg`,
   `final_fresh_after_skip_streak2.jpg`, `final_fresh_result_card.jpg`: the Progress 18
   fresh-player run on 66af67b0 (12:40).
+- `final_merged_1a17820e_row_five.jpg`: 12:42, the five cues on the lab row on the merged build
+  (Candy, Jack, the Broom redo, Cat, Spider), backs and stands.
