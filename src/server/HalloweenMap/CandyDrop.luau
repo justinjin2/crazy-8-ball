@@ -380,6 +380,9 @@ local function report(p: Player)
 		bucket,
 		Funnel.device(p)
 	)
+	-- Funnel's own leave handler may already have cleared its per-player log, and the event
+	-- above makes a new one that would hold the Player for the server's life (Friends' guard).
+	pcall(Funnel.clearLog, p)
 end
 
 --- Start the drops (once, from Bootstrap). isLobby: false in an arena.
