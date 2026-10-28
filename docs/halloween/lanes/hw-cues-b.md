@@ -331,8 +331,8 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
 
 ## Requests
 
-- 13:30 **READY WitchBroomCue remake @ 568de991** (skin `witch_broom`, same ids and rows; the
-  remake commit is 22083cd1, merged with `halloween` @d0b1d604 as 568de991, cue_skins_data.py
+- 13:30 **READY WitchBroomCue remake @ a18478af** (skin `witch_broom`, same ids and rows; the
+  remake commit is 22083cd1, merged with `halloween` @d0b1d604 as 568de991, then a18478af makes the branch cat-neutral (every Cat change comes from Cues A's branch; asked by Cues A 13:28), cue_skins_data.py
   clean, lint OK, tests green). Piece ids: `witch_broom` (body rebuilt: 5 parts, 9,144
   triangles, rigid 81896660220724, HatCharm 113228232691476, atlas 137627713975392 /
   138814904584787 / 126089154408348), `witch_broom_aura` (no ribbons: 19 parts, 2,392
@@ -341,7 +341,7 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
   `ONLY = { "WitchBroomCue", "SpiderCue" }` (new body, aura and card ids). Side-by-side for
   Justin: `~/Desktop/8ball-refs/halloween/shots/hw-cues-b/gate2/broom_remake_side_by_side.jpg`;
   the model alone: `broom_model_sheet.jpg`.
-- 13:30 **READY SpiderCue without ribbons @ 568de991** (skin `spider`, same ids and rows; the
+- 13:30 **READY SpiderCue without ribbons @ a18478af** (skin `spider`, same ids and rows; the
   commit is 6bca1dd8). Piece ids: `spider` (unchanged), `spider_aura` (13 parts, 1,328
   triangles, rigid 113848511095435), `spider_pocket` (unchanged). Same template build as
   above. Side-by-side: `gate2/spider_redo_side_by_side.jpg`.
