@@ -293,8 +293,9 @@ local function flash(at: Vector3, studs: number)
 end
 
 -- The candy explosion: the event's candies flung up over the table (they bounce and go), with
--- an orange pop and sparkles; half on low quality.
-local function burst(at: Vector3, amount: number, winner: number?)
+-- an orange pop and sparkles; half on low quality. `full`: the timed King's arrival (the paid
+-- size with no number).
+local function burst(at: Vector3, amount: number, winner: number?, full: boolean?)
 	local camera = workspace.CurrentCamera
 	if camera and (camera.CFrame.Position - at).Magnitude > K.Burst.ShowStuds then
 		return
@@ -302,9 +303,9 @@ local function burst(at: Vector3, amount: number, winner: number?)
 	local B = K.Burst
 	local low = Quality.isLow()
 	local paid = amount > 0
-	local share = (if low then 0.5 else 1) * (if paid then 1 else 0.4)
+	local share = (if low then 0.5 else 1) * (if paid or full then 1 else 0.4)
 	local p = holder(at, B.Seconds + 1)
-	if paid then
+	if paid or full then
 		flash(at, B.FlashStuds)
 	end
 	burstEmitter(
@@ -385,7 +386,7 @@ local function onFx(fx: any)
 		riser(fx.at + Vector3.new(0, 1.5, 0), S.CandyPickup:format(1), COLOURS.Orange, 1.6, 0.9)
 		pcall(UISound.play, "OwnerPop", 1.3)
 	elseif fx.kind == "Burst" and typeof(fx.at) == "Vector3" then
-		burst(fx.at, tonumber(fx.amount) or 0, tonumber(fx.winner))
+		burst(fx.at, tonumber(fx.amount) or 0, tonumber(fx.winner), fx.full == true)
 	elseif fx.kind == "Puff" and typeof(fx.at) == "Vector3" then
 		puff(fx.at)
 	end

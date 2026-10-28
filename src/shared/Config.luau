@@ -9409,12 +9409,15 @@ Config.HalloweenMap = {
 			EverySeconds = 1800,
 			OffsetSeconds = 900,
 			StaySeconds = 720,
-			Pivot = { 0, 0, 0 }, -- his stage, the throne's pivot, in the roof's open middle
+			-- His stage, the throne's pivot, in the roof's open middle: the aisle x -8.5..8.5 and
+			-- the band z -1.25..10.27 between the pads (seen from the spawn).
+			Pivot = { 0, 0, 4 },
 			YawDegrees = 0, -- facing the spawn (+Z)
-			Scale = 1.5, -- the stage throne and the King on it against a normal avatar
+			Scale = 1.5, -- the King on his stage throne against a normal avatar
 			TableScale = 1.5, -- the King at a table against a normal avatar
 			LineStuds = 40, -- a player in his line who walks this far from his prompt drops out
 			ServerStuds = 20, -- the server accepts a challenge this close to his prompt
+			BannerColor = { 255, 140, 30 }, -- his arrival and leaving banners (the event's orange)
 		},
 		-- A practice bot: Settle pays it as PC (no rank, practice money, the PC cap), so the
 		-- King can't be farmed. Never a new kind.
@@ -9446,6 +9449,8 @@ Config.HalloweenMap = {
 		TauntEverySeconds = 6, -- the King speaks at most this often
 		Cue = "JackOLanternCue", -- his cue (Cues A's row; an existing cue until it lands)
 		ReadyAttribute = "PumpkinKingReadyAt", -- player attribute: unix seconds his cooldown ends
+		LineAttribute = "PumpkinKingLine", -- player attribute: their place in his line (Timed)
+		BeatAttribute = "PumpkinKingBeat", -- player attribute: the visit they won a prize in (Timed)
 		Aura = { Rate = 12, LightRange = 10 }, -- flame wisps a second (halved on low quality); studs
 		-- The candy explosion over the table on a win: sprites, sparkles, seconds, drawn this close.
 		-- CandyScale: each flung candy's size against the lobby candy mesh; FlashStuds: the

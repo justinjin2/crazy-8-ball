@@ -73,6 +73,19 @@ local function kingPrompt(busy: () -> boolean)
 		if p == nil then
 			return
 		end
+		if Rules.kingTimed() then
+			-- His line's place, and after this visit's paid win the time of his next visit.
+			local place = player:GetAttribute(K.LineAttribute)
+			local beat = player:GetAttribute(K.BeatAttribute)
+			local now = Clock.now()
+			p.ActionText = if type(place) == "number"
+				then S.LinePlace:format(place)
+				else S.Challenge
+			p.ObjectText = if type(beat) == "number" and beat == (Rules.kingWindow(now))
+				then S.Beaten:format(Rules.minuteText(Rules.kingNext(now)))
+				else S.ChallengeObject
+			return
+		end
 		local wait = readyIn()
 		p.ActionText = if wait > 0 then S.ReadyIn:format(Rules.clock(wait)) else S.Challenge
 	end
@@ -120,6 +133,7 @@ local function kingPrompt(busy: () -> boolean)
 	ProximityPromptService.PromptShown:Connect(function(p: ProximityPrompt)
 		if p == prompt then
 			shown = true
+			text() -- (not a second late: a line place cleared while it was hidden)
 		end
 	end)
 	ProximityPromptService.PromptHidden:Connect(function(p: ProximityPrompt)
