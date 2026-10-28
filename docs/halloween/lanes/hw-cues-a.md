@@ -61,6 +61,57 @@ From PLAN §4 (everything else is read-only; ask through Requests):
 
 ## Status (continued)
 
+- 18:14 ROBUSTNESS PASS (coordinator 17:52, Justin's word 17:46) on halloween @cb89ebcc, then
+  origin/halloween c2e5fcdb merged (d0427312). Checked and found, by the brief's items:
+  1. FALLBACK: found and fixed (2864e55d). A body cue hid the shared mesh as soon as a
+     template of the body's name existed (CueStickBuilder hasPiece); a body that built empty or
+     short of a part (a re-upload that renamed one), returned nil (no data row) or errored left
+     the player with no cue, and an error inside refresh left `self.row` set so the cue stayed
+     invisible until the next cue change (the own stick's first build runs from Main, so a
+     throw there also stopped Main). Now CueSkinLook builds the body, decor and carrier pieces
+     behind pcall; a body that is nil, errors or misses any part its row names is destroyed
+     and `CueStickBuilder.dropBody` shows the mesh again with one warn per cue id (a bad decor
+     piece costs that piece, not the look); CuePiece counts the template parts a row names but
+     does not hold; `CueSkins.bodyOf` also needs the piece's data row, not only the template
+     (Lune test in `tests/cue_body_test.luau`, fails without the fix). Studio: Jack's body
+     template emptied, then one part renamed (`Body_Rind`): the stick draws the shared mesh in
+     the skin's maps in hand in a solo match (`gate2/robust_fallback_jack_hand.jpg`, the aiming
+     view) and on the back, exactly one warn, no errors; the aura piece still rides.
+  2. EVERY PLACE: checked, nothing found. Hand (aim, break, a long shot, a pot) in solo matches
+     with Jack and the Cat; the back cue; My Cues (`gate2/robust_my_cues.jpg`) and the Index
+     (`gate2/robust_index.jpg`) with all five; the result screen after Surrender; equip during
+     a match (the hand stick repaints at the table, `gate2/robust_jack_in_hand.jpg`). Not
+     re-run in this pass (no code of theirs changed today): 2v2/3v3 turn swaps through
+     `CueAssets.holdLooks`, the King bot's Jack, roaming players, a raised cue over a rail.
+  3. LOWER EFFECTS: checked with the real toggle (`SettingsRequest` Set LowFx) mid-match, on
+     and off twice: the low joints hide (LocalTransparencyModifier 1) and return (0) on the
+     hand look and the back cue; nothing found. (A toggle through an MCP `require` of Quality
+     is a fresh module copy and does nothing live: a test artefact, not a bug.)
+  4. CLEANUP: checked, nothing found. 40 equip swaps across the five (two 20-swap cycles) leave
+     identical instance counts under ClientVisuals and the character, no Piece_ folders left
+     behind, console clean.
+  5. COST: two fixes. 1ad870e4: Glow colours were parsed from hex every frame for every Glow
+     row (cached per string now) and `applyVisuals` ran for joints hidden under Lower effects
+     (skipped). 44cc22c1 (CueAssets): a body cue's copy was marked ready by the first of its
+     two preloads (aura piece vs body) so a body could pop in after a hidden mesh; a pending
+     counter marks ready on the last. Particle budgets per cue (the skin files' rates): jack
+     35/s, candy 58, cat 58.5, broom 169.4 (Secret: 1 beam, 3 lights, 2 orbiters), spider 89.5
+     (5 beams), the Firework Mythic 73.3 for scale. Left as they are (small, in CueSkinLook's
+     beam and trail step, not worth a look check tonight): per-frame `keys` tables for beams,
+     a ColorSequence rebuild, two GetAttribute reads, a Highlight rewrite, and the step
+     running on under AuraOff.
+  6. SWITCH: `Config.CueSkins.Bodies.Enabled = false` in Studio: all five draw the shared mesh
+     (Body attribute nil) in hand and on the back with their aura pieces, console clean; set
+     back to true, Play restarted on the merged tree: all five bodies build again (hand and
+     back, the mesh hidden under them), console clean.
+  7. TRADE AND SELL: checked by the code read on the server, nothing found: the five are
+     catalog `eventCue` rows (group Exclusive); `Tradable` only where
+     `Config.ExclusiveTradable` says (the StarterCue), `Sellable = false` so SellCue answers
+     NotSellable; a trade offer naming one is refused server-side. Note, not a bug: `giveCue`
+     skips a duplicate of an Exclusive cue silently (no payout, no card), as for every event
+     cue.
+  Lint OK, 1,470 Lune tests, my window's console clean. **READY robustness pass @ d0427312**
+  (three fix commits 2864e55d, 44cc22c1, 1ad870e4 on top of the merge).
 - 14:02 The Cat in a real solo match in my window (the Cat given and equipped, a 1v1 pad, `/solo`,
   two shots): the break and a long shot play, no rejection, console clean; the trail shows the
   dark ribbon with the gold core, the new claw-swipe mark and a dropped shadow cat behind the
@@ -565,6 +616,10 @@ Planned (PLAN §7 shared files; own block or line only; add the sha to each as i
   `_cat_polygon`, `_cat_band`, `CAT_SIL`, `_cat_track`, `_claw_blade` and `black_cat_aura` in
   one block after the body builder; nothing of the Broom or the Spider touched. Cues B's
   `_flat`, `_plane_polygon` and `_web_wheel` stay theirs.
+- 18:14 `src/shared/CueSkins/init.luau` (robustness pass, 2864e55d): `CueSkins.bodyOf` also needs
+  the piece's data row (`CueSkins.piece(body) ~= nil`), two lines with a comment; nothing else
+  in the module touched. `tests/cue_body_test.luau` (mine): the stand-in body row now uses the
+  shipped `jack_o_lantern` row, plus one new test.
 
 ## Requests
 
@@ -646,6 +701,10 @@ Planned (PLAN §7 shared files; own block or line only; add the sha to each as i
   changes since are in `CuePiece.luau` (an Outline = false branch no shipped Cues A piece takes,
   and the skinned-root shrink), which only body cues reach; the Cat body was exercised on the
   stand, the back and the diagnostics in the lab, console clean.
+- 18:14 The fallback itself (pcall, dropBody, the missing-part count) builds Instances, so it is
+  not Lune-testable; it is covered by the Studio runs above (template emptied, a part
+  renamed, the switch off and on) and the `bodyOf` row check has the Lune test. Items 2's
+  not-re-run places are stated as not checked rather than assumed.
 
 ## Gate shots
 
@@ -763,3 +822,5 @@ Gate 2 addition (10:28, `gate2/`): Jack-o'-Lantern complete @ db1a9fdb (+ 73fc00
   pass (the tail root's gold box, the rim planes showing through, blades merging).
 - `outline_broom_head_lab.jpg`: 13:59, Cues B's remade Broom head on my stand with the Outline flag live (no strokes on the straws).
 - `sig_cat_trail_v2.jpg`, `sig_cat_aim_above_v1.jpg`: 14:02, the Cat's trail on a real shot (claw mark + shadow cat) and the aiming view from above (the cats as bars).
+- `robust_my_cues.jpg`, `robust_index.jpg`, `robust_jack_in_hand.jpg`: 17:5x, the robustness pass: My Cues and the Index with all five, Jack in hand at the table after an equip during the match.
+- `robust_fallback_jack_hand.jpg`: 18:14, Jack's body template with one part renamed: the stick in hand draws the shared mesh in the skin's maps with its aura, one warn, no errors.
