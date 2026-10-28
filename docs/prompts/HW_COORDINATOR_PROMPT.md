@@ -573,7 +573,7 @@ the Experience Event, the 16:00 cut enforcement, the freeze, RELEASE.md, the 19:
 - [ ] 09:00 Gate 1 page published; Justin's answers in each lane file and in your lane file; his yes for the store schedule.
 - [ ] 09:30 Experience Event "Haunted Rooftop" (Oct 28 19:00 EDT to Nov 3 19:00 EST) created by API or Justin's clicks and seen on the game page; all icons plus the test copy uploaded, moderation polling.
 - [ ] 10:00 Icon route test (identical copy, back at once) and the title no-op PATCH (409 with the window open?); the verdict in your lane file (automatic countdown, or cut with Justin's choice); every icon APPROVED.
-- [ ] 10:00-10:20 Merge cues-a drop 3 (`MERGE NOW`, Cues B needs it for gate 2) and the GUI pill if its step is verified (§2.2), pushed, lanes told.
+- [x] 10:00-10:20 (done late, 11:36 @537270fd, with core/sys/gui) Merge cues-a drop 3 (`MERGE NOW`, Cues B needs it for gate 2) and the GUI pill if its step is verified (§2.2), pushed, lanes told.
 - [ ] 10:30 Requests pass 1 in the Team Create place (EventProps, table looks, anything listed), version noted, fingerprints before and after, logged.
 - [ ] 11:00 Gate 2 page (same artifact); Justin's answers passed on; the "Justin at 16:30" list and your solo calls written.
 - [ ] 12:00 Merge pass 1: every lane with a verified step merged (§2.2), pushed, lanes told.
