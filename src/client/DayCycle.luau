@@ -54,6 +54,11 @@ export type DayCycle = typeof(setmetatable(
 		watch: RBXScriptConnection?,
 		watchedTables: Instance?,
 		watchTables: RBXScriptConnection?,
+		-- The lighting followed (Config.Lighting, or an event's: setLighting), the last state
+		-- written, and a crossfade from it after a change.
+		lighting: any,
+		state: { [string]: any }?,
+		fade: { from: { [string]: any }, start: number, seconds: number }?,
 	},
 	DayCycle
 ))
@@ -85,7 +90,24 @@ function DayCycle.new(): DayCycle
 		watch = nil :: RBXScriptConnection?,
 		watchedTables = nil :: Instance?,
 		watchTables = nil :: RBXScriptConnection?,
+		lighting = L,
+		state = nil :: { [string]: any }?,
+		fade = nil :: { from: { [string]: any }, start: number, seconds: number }?,
 	}, DayCycle)
+end
+
+--- Follow another lighting table (the Halloween event's LightCycle.event, or nil for
+--- Config.Lighting again), crossfading from the light shown now over `seconds` (0: at once).
+function DayCycle.setLighting(self: DayCycle, lighting: any?, seconds: number)
+	local target = lighting or L
+	if target == self.lighting then
+		return
+	end
+	self.lighting = target
+	self.fade = if self.state and seconds > 0
+		then { from = self.state, start = os.clock(), seconds = seconds }
+		else nil
+	self.last = nil -- write everything for the new light
 end
 
 -- Finds the map's glow, light and emissive parts and the tables' lamps again, and watches the
@@ -150,13 +172,24 @@ function DayCycle.update(self: DayCycle, now: number)
 	)
 	local blend = LightCycle.shown(t, C, hold)
 	-- A fade is written every frame (at 12 a second it stepped visibly, designer 2026-10-05).
-	if self.last ~= nil and blend == self.blend then
+	local fade = self.fade
+	if self.last ~= nil and blend == self.blend and fade == nil then
 		return
 	end
 	self.blend = blend
 	local found = self.handles
 	assert(found, "looked above")
-	local state = LightCycle.state(blend, L)
+	local state = LightCycle.state(blend, self.lighting)
+	if fade then
+		local k = math.clamp((now - fade.start) / fade.seconds, 0, 1)
+		if k < 1 then
+			state = LightCycle.mixStates(fade.from, state, k * k * (3 - 2 * k))
+		else
+			self.fade = nil
+			self.last = nil -- the crossfade's end: write everything once more
+		end
+	end
+	self.state = state
 	self.fire = state.Fire.Intensity
 	self.last = MapLighting.apply(state, found, self.last)
 end

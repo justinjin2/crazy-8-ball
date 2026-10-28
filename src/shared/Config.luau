@@ -8971,15 +8971,16 @@ Config.Lighting = {
 			Color = "#B48CFF", -- a violet tint
 			Decay = "#5B2A8C",
 		},
-		-- The night sky (gen_sky.py's night faces, hw-map step 12); Sunset's faces until they
-		-- are uploaded, so the event never shows a grey sky.
+		-- gen_sky.py's night faces (textures/sky_night_*.png): a violet zenith to a lilac-pink
+		-- horizon, a painted full moon over the sea with its path on the water, stars above,
+		-- lavender clouds lit from the moon, the far city's windows lit.
 		Sky = {
-			SkyboxBk = "rbxassetid://110051239637159",
-			SkyboxDn = "rbxassetid://88040117694749",
-			SkyboxFt = "rbxassetid://96378244528009",
-			SkyboxLf = "rbxassetid://94840130578947",
-			SkyboxRt = "rbxassetid://76832687371860",
-			SkyboxUp = "rbxassetid://139224542954081",
+			SkyboxBk = "rbxassetid://117090215716759",
+			SkyboxDn = "rbxassetid://83186185752495",
+			SkyboxFt = "rbxassetid://71528418518720",
+			SkyboxLf = "rbxassetid://134144329026901",
+			SkyboxRt = "rbxassetid://128224127682264",
+			SkyboxUp = "rbxassetid://121512489350859",
 			SunAngularSize = 0, -- the moon is painted on the sky, never Roblox's
 			MoonAngularSize = 0,
 			StarCount = 0, -- the stars are painted too
