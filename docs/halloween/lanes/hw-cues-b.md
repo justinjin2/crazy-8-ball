@@ -68,6 +68,10 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
   neighbours), compact = a closed bud 0.3 past the butt; `spider_parts.glb` 134241355070040,
   `Crown.glb` 88297987618252, atlas decals with image ids). Preview beside the concept:
   `gate2/spider_body_vs_C1b.png`. No spider bodies, legs or creatures anywhere.
+- 10:40 P13/P16 Night: the Cat and Spider stands under Night (`cat_aura_stand_night_lab.jpg`,
+  `spider_aura_stand_night_lab.jpg`): the Cat's shadow cats, wisps and glints read; the
+  Spider's flecks, motes and outline read but the look is quiet without its body (the silk
+  beams run to the blade tips). No change until the in-hand look with the bodies.
 - 10:36 P7 (the part that needs no drop 3): the plain kit CLI (`CuePieces.py -- <pid>`, my file
   imported through its guarded import) builds all three bodies; its first run dropped the
   `Aim` key from the Cat's piece.json because only my `build_checked` path patched it in, so
@@ -271,4 +275,12 @@ drop 3):
 - `broom_aura_stand_day_halo_lab.jpg`: the Broom stand side-on on the day floor after the
   tune: the violet band and the two ribbons along the cue, bats and a crescent at the tip
   end, wisps and the hat charm at the butt.
+- `cat_aura_stand_night_lab.jpg`: the Cat stand under Night: the shadow cats running the
+  length of the cue, the gold-edged wisps and glints, the thin gold outline; the dark smoke
+  is lost on the lilac floor (as meant: it is for the day floor and the charcoal cloth). The
+  cue is the Classic wood until drop 3 draws the black and gold body.
+- `spider_aura_stand_night_lab.jpg`: the Spider stand under Night: web flecks, silk motes and
+  glints and the silver-crimson outline; the silk beams anchor to the blade tips, which are
+  the body, so they barely show here; quiet for a Mythic without its chrome body, to be
+  judged again in hands after drop 3.
 - Not yet shot: hands and own-aim views (need drop 3).
