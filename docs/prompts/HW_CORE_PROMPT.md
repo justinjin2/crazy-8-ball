@@ -558,8 +558,8 @@ conversion with an end screen, the tutorial gate, the tile, the menu.
 - [x] Track steps + gifts + cue grants (only when `Catalog.ready(id)`, held otherwise and retried on load and every tick) and the Spider active clock (SkyDropService getter, 5 s tick, grant at 10,860 s); tests
 - [x] Event menu part 1: lively frame, Candy pill, the 11-step track (phone sideways scroll, guarded `CuePreview.open` on cue cards)
 - [x] Quests: 6 boards finalised and ordered, routing with overflow and Alts (`HM.Enabled and HM.Boss/Candy.Enabled`, `UltService.Used` missing), hooks (settle, pickup, King, `UltService.Used` subscription, active minutes), CLAIM remote; tests
-- [ ] Event menu part 2: quest board with day tabs (fake data allowed for gate 2), CLAIM flying Candy, Spider ring, Rush strip; gate 2 shots at phone and PC by 10:50
-- [ ] Rush chip content (`RushChip.content`) for the GUI shell, and the Candy toast + track-step reveal card
+- [x] Event menu part 2: quest board with day tabs (fake data allowed for gate 2), CLAIM flying Candy, Spider ring, Rush strip; gate 2 shots at phone and PC by 10:50
+- [x] Rush chip content (`RushChip.content`) for the GUI shell, and the Candy toast + track-step reveal card
 - [ ] Candy packs: products created, Config rows, Shop/PlayerData grant in one commit, replay test, Get Candy section
 - [ ] Conversion at the end (once per save, claims finished quests first, lobby and arena), HwConvert; tests incl. rejoin
 - [ ] End screen (M5) with count-up, owned cue cards, COLLECT; once per save
