@@ -3539,7 +3539,10 @@ local function hwMutate(
 	local hw = hwField(data)
 	local result: HwResult = { candy = 0, steps = {}, spider = false, quests = {}, money = 0 }
 	fn(data, hw, result)
-	hwGrantDue(data, hw, result)
+	-- Once converted (the end) no prize is given any more, whatever the client sends.
+	if hw.Converted ~= true then
+		hwGrantDue(data, hw, result)
+	end
 	commit(player, data, op)
 	return result
 end
