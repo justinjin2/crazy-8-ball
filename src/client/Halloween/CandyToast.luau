@@ -72,12 +72,16 @@ end
 
 -- When the NEW CUE! card up now was shown (os.clock), nil when none is.
 local cardShownAt: number? = nil
+-- Until when (os.clock) a match's Candy chip is on screen: a new player's first Candy flies
+-- to the tile before Daily Rewards opens over it (and its focus hides this screen).
+local chipUntil = 0
 
---- Whether a NEW CUE! card is up (Progression.quiet: the other popups wait for it). Never
---- longer than its auto-close, so a card that failed to close cannot hold the lobby's popups.
+--- Whether a NEW CUE! card is up or a match's Candy chip still flies (Progression.quiet: the
+--- other popups wait for them). Never longer than the card's auto-close or the chip's flight,
+--- so a card that failed to close cannot hold the lobby's popups.
 function CandyToast.busy(): boolean
 	local at = cardShownAt
-	return at ~= nil and os.clock() - at < T.AutoCloseSeconds + 1
+	return (at ~= nil and os.clock() - at < T.AutoCloseSeconds + 1) or os.clock() < chipUntil
 end
 
 local function font(): Enum.Font
@@ -137,6 +141,7 @@ function CandyToast.moment(self: any, msg: any)
 		if msg.toast.source == "Match" then
 			self.matchUntil = os.clock() + 1
 			self:push("free", function()
+				chipUntil = os.clock() + T.HoldSeconds + math.max(T.FlySeconds, T.StillSeconds)
 				self:chip(candy, x2, nil)
 			end)
 		else
