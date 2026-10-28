@@ -55,6 +55,22 @@ From PLAN §4 (everything else is read-only; ask through Requests):
 
 ## Status (continued)
 
+- 11:04: **Progress 17, phone and iPad, done for the menus by emulation (the resize helper still
+  sees no window):** in Play the Cues menu's `Root` frame set to 844x390 (phone) and 1024x768
+  (iPad) at (0,0), the way the lively menus lay out from Root's AbsoluteSize. Index with the
+  Jack chosen and scrolled to the Exclusive row (3/4: VIP, Starter, Candy Corn, Jack, the CLAIM
+  banners on the owned ones), and My Cues with the Jack's detail: every visible label
+  `TextFits` at both sizes (0 clipped), nothing overlaps, the cards read
+  (`phone_index_jack_detail_844x390.jpg`, `phone_index_exclusive_row_844x390.jpg`,
+  `phone_my_cues_jack_844x390.jpg`, `ipad_index_exclusive_row_1024x768.jpg`,
+  `ipad_my_cues_jack_1024x768.jpg`). Still not emulable from this window: the power bar card
+  (HUD, sizes from the real screen) and YOU GOT (its own ScreenGui); both checked at PC and TV
+  only. Cues B's 11:02 own-aim note: their "crown faded away" at the frame's bottom was the butt
+  leaving the frame; the measured modifier of the skinned crown and charm was 0 until
+  ed8b7ca3, and is 1 now, so on any viewport nothing of a skinned overhang can poke into the
+  aim view (the Aim fade is by the turn state, the near fade by the eye's distance; neither
+  reads the viewport, so B's phone assumption holds).
+
 - 10:59: **Integration preview done (Progress 14 runs for real once B's rows reach
   `halloween`; neither lane is merged there yet, `halloween` @ f32c3d1b):** a local scratch
   merge of `origin/hw-cues-b` @ 831ba508 into `hw-cues-a` @ c75fbe56 (local only, never
@@ -444,3 +460,7 @@ Gate 2 addition (10:28, `gate2/`): Jack-o'-Lantern complete @ db1a9fdb (+ 73fc00
   cleared, the power bar card.
 - `integ_spider_hands_aim_crown_faded.jpg`: the Spider in hands while aiming after the
   CuePiece fix @ ed8b7ca3: the crown cleared (before it, Webs and Blades stayed solid).
+- `phone_index_jack_detail_844x390.jpg`, `phone_index_exclusive_row_844x390.jpg`,
+  `phone_my_cues_jack_844x390.jpg`: the Index (Jack chosen; the Exclusive row) and My Cues at
+  phone size by Root-frame emulation, no clipped text.
+- `ipad_index_exclusive_row_1024x768.jpg`, `ipad_my_cues_jack_1024x768.jpg`: the same at iPad size.
