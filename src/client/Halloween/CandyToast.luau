@@ -432,7 +432,6 @@ function CandyToast.showCard(self: any, cueId: string, note: string)
 	screen.ScreenInsets = Enum.ScreenInsets.None
 	screen.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 	screen.DisplayOrder = T.CardDisplayOrder
-	screen.Parent = self.gui.Parent
 	local dim = Instance.new("TextButton")
 	dim.Name = "CueCard"
 	dim.Text = ""
@@ -509,6 +508,8 @@ function CandyToast.showCard(self: any, cueId: string, note: string)
 	ok.Size = UDim2.fromOffset(math.floor(width * 0.45), okH)
 	ok.ZIndex = 14
 	HudParts.setButtonTextSize(ok, math.floor(okH * 0.55))
+	-- On screen only once whole: a card that fails half-built must not leave its dim up.
+	screen.Parent = self.gui.Parent
 	self.card = dim
 	cardShownAt = os.clock()
 	UIAnim.popIn(card)
