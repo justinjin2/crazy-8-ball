@@ -634,8 +634,8 @@ request: ask in your lane file's Requests when a verified part should land early
 - [x] 15. The full flip test: Before → Countdown → Live → Ended → Live in one Play session, a boot during Live, an arena (lighting and tables only); console clean.
 - [x] 16. Performance pass: counts against the budget, frame time on vs off, the low-quality path, the server loops' cost.
 - [x] 17. Every verified part's switch set true in Config, each checked once with its own switch off (before the device and fresh-player runs, so they test what ships).
-- [ ] 18. Devices: prompt, notices, billboards and portrait at the four sizes and with the pad; screenshots.
-- [ ] 19. Fresh-player run during Live (tutorial, Skip, first match, the prompt after the tutorial).
+- [x] 18. Devices: prompt, notices, billboards and portrait at the four sizes and with the pad; screenshots.
+- [x] 19. Fresh-player run during Live (tutorial, Skip, first match, the prompt after the tutorial).
 - [ ] 20. Lane file Status final + all screenshots.
 - [ ] 21. Merge halloween, re-test, push.
 

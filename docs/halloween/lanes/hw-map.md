@@ -50,6 +50,31 @@ From PLAN §4 (everything else is read-only to this lane; ask through Requests):
 - `Config.HalloweenMap.Props.Budget.Lights = 6` (throne 2 + the throne King's aura 1 + 3 table Kings).
 
 ## Status
+- 11:54 hw-map: step 19 done (fresh-player run, Studio, a new save each Play). Core's BootLive
+  puts the clock at Live + 60 s: the join shows the Night sky, orchid tables, dead trees and
+  strands (fresh `01`). In the tutorial `HwOn` is false: the King prompt exists but is off (no
+  prompt UI is even made) and no candy spawns near the player. The first match is on table 2,
+  orchid, balls readable (fresh `02`). Skip mid-match: `HwOn` turns true, the prompt stays off
+  while seated; after the match (Surrender) it is on within 3 s and shows at the throne (fresh
+  `03`, behind the result card until Continue). Console clean (Studio store lines and the known
+  203785492 ones). Notes for the sweep: (a) the MCP resets CameraType after every execute_luau,
+  which undid the game's own camera return after the match, and a prompt only shows in view:
+  a test artifact; (b) `RequestLeave` (Hub.requestLeave) has no server handler: a dead remote,
+  not mine, for the cleanup list; (c) one earlier run's Play stopped by itself about 20 s after
+  its tutorial match ended on its own after Skip (HwMatch, HwCandy 77, a Mystery block; no error,
+  no kick line). The same path ran clean once more; not reproduced.
+- 11:54 hw-map: step 18 done as far as one window allows (aaaffdbe notices, 9af68c6a test).
+  Nothing I add depends on the screen size: the prompt is Roblox's default (fixed px; tap works,
+  ClickablePrompt), the queue card is a fixed 320 px with no UIScale, the +1/+50 billboards are
+  sized in studs, the portrait is a square image in the gui lane's MatchHUD slot. Measured in
+  Studio (TextService, FredokaOne 18 px, 300 px of text room): KingBusy 295, KingNoTable 311
+  (about 17 px), KingCooldown 267, KingNotNow 286; the new test holds them to 43 characters.
+  devices/ `01`-`04` as above, `05` the +1 and +50 CANDY billboards (the board clips the +50 only
+  because the shot copy has AlwaysOnTop off). Left to the coordinator's sweep: the four-size
+  screenshots (the resize helper is blocked) and the pad's X glyph (Roblox's prompt follows the
+  real last input; GetImageForKeyCode(ButtonX) resolves to DefaultController/ButtonX@2x.png;
+  GuiQA "pad" drives only our PadMode).
+- 11:49 coordinator: `halloween` @64085ab2 adds core de236025 (the NEW CUE! card and end screen count in Progression.quiet) and cues-b a431419b (Witch Broom, Black Cat and Spider out of draft). cue_skins_data.py clean on halloween (66 skins, 28 pieces). Lint OK, 1,441 tests, Team Create play console clean. Map's READY 7fd462cc is next. Run `git fetch && git merge origin/halloween` before your next READY.
 - 11:45 hw-map: **READY @7fd462cc** for merge pass 1: steps 1-17 (5 now too; all Studio-checked), with
   halloween @070893de merged in (clean, no conflicts). Lint OK, 1,453 tests. Step 18 (devices)
   is partly done and left for later as asked; 19-21 follow.
