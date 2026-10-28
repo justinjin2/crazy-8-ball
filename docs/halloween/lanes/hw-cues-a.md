@@ -55,7 +55,37 @@ From PLAN §4 (everything else is read-only; ask through Requests):
 
 ## Status (continued)
 
-- 2026-10-28 10:50: **Progress 17 (devices): PC and TV done, phone and iPad BLOCKED.** At the
+- 2026-10-28 10:44: **Progress 19, the rows against the shots (R2.1, R2.2, R2.8, R2.9):**
+  - R2.1 Candy Corn Cue (Epic, track 150): unique model and tip (the candy-corn body: white
+    glowing kernel tip, orange rings, the barber-pole ribbon, the banded bulb, three turning
+    kernels: `candy_lab_stand.jpg`, the card); aura (haze, kernel flipbook, sugar sparkles,
+    crackle, one gold swirl, one warm light: `candy_lab_stand.jpg`, `candy_hands_aura_quiet.jpg`);
+    trail (gold strip, tumbling kernels, sugar dots: `candy_trail_kernels_after_scratch.jpg`);
+    pocket finisher (flash, two rings, gold fountain, kernels, rods, glitter, the library pop:
+    `candy_finisher_break_pot.jpg`); animated parts (the kernel carousel and the pulsing tip,
+    drop 3's joints); flipbook VFX (`kernel_4x4.png`, `rods_4x4.png`); card art
+    (`assets/cue/thumbs/candy_corn.png`); Index entry (`index_exclusive_row_candy_jack.jpg`).
+    Epic-sized: 72 particles a second, no beam, one light (the cost table).
+  - R2.2 Jack-o'-Lantern Cue (Legendary, track 500): unique model and tip (green stem tip,
+    ribbed orange shaft, the vine and leaves, slit collars, the carved pumpkin butt:
+    `jack_lab_stand.jpg`, the card); **no candy corn on it** (none in the body, aura, trail or
+    finisher data); aura (dark smoke, flame wisps, embers, crackle, the mini-jack flipbook,
+    the face glow, two flame heads, three flickering lights: `jack_lab_stand.jpg`,
+    `night_jack_stand.jpg`); trail (flame ribbon, embers, jack flecks: `jack_trail.jpg`);
+    pocket finisher = the laughing jack (`jack_finisher_rise.jpg`: the jack rises face-on,
+    jaw snapping, the fire column, seeds and embers, four mini jacks, the library laugh);
+    animated parts (the face flicker, the leaves' sway, the slit pulse, the jack's jaw and
+    wobble); flipbook VFX (`jack_4x4.png`); card art (`assets/cue/thumbs/jack_o_lantern.png`);
+    Index entry (the same row shot). Legendary-sized: 93 particles a second, no beam.
+  - R2.8 the rarity ladder: the Catalog's `Effect` levels are Epic (Candy Corn), Legendary
+    (Jack), Mythic (Black Cat), Mythic (Spider), Secret (Witch's Broom) (`eventCue` rows in
+    `Catalog.luau` 258-262; `catalog_test` checks them); the first two rungs are built and out
+    of draft, each sized to its tier (Candy under Jack on every count in the cost table).
+  - R2.9 unique model: the body path (drop 3) draws a skin's own model over the hidden cue
+    mesh for every cue with a `body` row, including Cues B's three; both of mine wear it in
+    hand, on the back, raised, fading and under Lower effects (`03-candy-hands`,
+    `04-jack-hands`, `jack_hands_lower_effects.jpg`, the lab backs).
+- 2026-10-28 10:43: **Progress 17 (devices): PC and TV done, phone and iPad BLOCKED.** At the
   window's PC size (1523x814 viewport): the Index's Exclusive row, its detail, My Cues and the
   power bar (10:33 entry). TV through `GuiQA:Invoke("padMode", true)` (the pad hints on):
   the Index's Exclusive row (`tv_index_exclusive_row.jpg`), the Index detail with the Jack
