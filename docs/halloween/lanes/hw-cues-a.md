@@ -61,6 +61,12 @@ From PLAN §4 (everything else is read-only; ask through Requests):
 
 ## Status (continued)
 
+- 13:59 The `Outline = false` runtime (4d759889) checked on the real case: with `halloween`
+  @ b185fdc6 merged, Cues B's remade Broom (`witch_broom`, `Bristles_Bark` with the flag) on my
+  lab stand puts the straw bulb under `Piece_witch_broom_NoOutline` (one child) and the head
+  draws with no outline strokes while the handle keeps its ink:
+  `gate2/outline_broom_head_lab.jpg`. Template build for Team Create: ONLY = WitchBroomCue too.
+
 - **13:58 READY hw-cues-a @ c9594f61: the Black Cat's signature (no ribbons), the third of the
   designer's 12:55 three, to the coordinator's 13:08 rule (no head, face, eyes or paw prints).**
   The living tail now flicks every 4.2 s (a pulse down the five bones: it curls up sharply
@@ -746,3 +752,4 @@ Gate 2 addition (10:28, `gate2/`): Jack-o'-Lantern complete @ db1a9fdb (+ 73fc00
   swipe at the butt, on a back; `before_cat_aura_stand_lab_cuesb.jpg` is Cues B's ribbon pass
   (their gate2/cat_aura_stand_lab.jpg); `sig_cat_close_v1.jpg`, `sig_cat_butt_v1.jpg`: the first
   pass (the tail root's gold box, the rim planes showing through, blades merging).
+- `outline_broom_head_lab.jpg`: 13:59, Cues B's remade Broom head on my stand with the Outline flag live (no strokes on the straws).
