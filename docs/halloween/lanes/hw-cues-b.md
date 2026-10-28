@@ -68,7 +68,14 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
   neighbours), compact = a closed bud 0.3 past the butt; `spider_parts.glb` 134241355070040,
   `Crown.glb` 88297987618252, atlas decals with image ids). Preview beside the concept:
   `gate2/spider_body_vs_C1b.png`. No spider bodies, legs or creatures anywhere.
-- 09:32 P9, P12, P15 done together: `tools/hw_sprites_b.py` draws all nine sheets (Broom:
+- 09:34 P10/P11 pieces: `witch_broom_aura` (two Neon ribbons, violet and emerald, spiralling
+  round the handle in opposite senses, Spin 45 and -45 deg/s, Glow waves; 2 parts, 3,832
+  triangles; the violet one hides under Lower effects) and `witch_broom_pocket` (violet and
+  emerald Neon portal rings spinning opposite ways with pale rims, a ForceField disc, eight
+  bobbing crescent and star charms; 13 parts, 4,928 triangles) built headless, packed and
+  uploaded (123761019110800, 123188942694509). The Broom's skin vfx rows (aura, trail,
+  finisher) are drafted; the lab check and the finisher sound come next.
+- 09:19 P9, P12, P15 done together: `tools/hw_sprites_b.py` draws all nine sheets (Broom:
   crescent, straw leaf, bat flap 4x4 Loop, witch over the moon 4x4 OneShot; Cat: run-in-place
   4x4 Loop and leap 4x4 OneShot, black with a 1.5 px gold rim; Spider: radial web, silk strand
   (tileable Beam texture), web ring decal), uploaded with image ids in the manifest. The cats
