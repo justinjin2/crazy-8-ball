@@ -50,6 +50,19 @@ From PLAN §4 (everything else is read-only to this lane; ask through Requests):
 - `Config.HalloweenMap.Props.Budget.Lights = 6` (throne 2 + the throne King's aura 1 + 3 table Kings).
 
 ## Status
+- 13:16 hw-map: **READY @4ebc50cb** (the coordinator's fairness fix, due 14:30): in Timed, a
+  player who already won this visit (PumpkinKingBeat == the visit) waits behind everyone in his
+  line who hasn't (`Rules.linePlace`, `lineJoin`), and is seated only while nobody in the line
+  has yet to win (`Rules.lineNext`); joining, a winner hears "You beat him this visit! Others go
+  first." (new `GlobalQueue.Failed.KingLinedBeaten`, 41 characters). An empty line still seats
+  a winner at once (repeat wins count for the quests on a quiet server). Throne mode never
+  reaches it. Lune test for the order (unpaid first in order, winners after, a busy unpaid
+  player still blocks winners). Studio: as a winner with eight tables taken: #1 in line with
+  the new notice (`timed/09`); a freed table seated me within a second. Lint OK, 1,467 tests.
+  Gap: PumpkinKingBeat lives on the server only, so a winner who rejoins in the same visit is
+  ordered as unpaid (core still pays once; a `CandyService.bossVisit(player)` read would close
+  it). Seen, not mine: `rbxassetid://12661708250 ... not approved` once, not in the repo (the
+  tutorial bot's borrowed avatar, most likely).
 - 13:02 hw-map: **READY @092ab2c9** (the coordinator's go): the King's result card shows his
   pumpkin portrait, not the PC robot. `Ranking.teamList` carries the seat's bot icon (nil for
   every other bot) and `ResultScreen` shows it first. Studio: /king, Surrender, the card shows
@@ -300,6 +313,7 @@ Landed (only my own blocks unless said):
   `KingLineLeft`, `KingLeft`, `KingAway`; `HalloweenMap.LinePlace`, `Beaten`; `Banner.KingArrived`,
   `KingLeft`); `Banner.luau` (no lane's file: one `kind == "King"` branch at the end of
   onBanner).
+- `Strings.luau`: `GlobalQueue.Failed.KingLinedBeaten` — 4ebc50cb.
 - `Ranking.luau` (`teamList`: one `icon` field) and `ResultScreen.luau` (makePlayer: `player.icon`
   first): the King's result-card portrait, on the coordinator's go — 092ab2c9.
 
