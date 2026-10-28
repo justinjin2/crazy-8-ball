@@ -59,6 +59,7 @@ type King = {
 	lastSeq: number?,
 	ended: boolean?,
 	visit: number?, -- the visit (its start) the challenge was seated in (Timed)
+	goneAt: number?, -- when his bot was first seen gone with no ending (os.clock)
 }
 
 local kings: { [number]: King } = {} -- by bot id
@@ -95,14 +96,26 @@ local function candyService(): any?
 	return optional({ "Halloween", "CandyService" })
 end
 
-local function aliveKings(): number
-	local n = 0
-	for _, king in kings do
-		if not king.ended then
-			n += 1
+-- Whether the King bot `botId` still plays (not removed). A King that never saw his result
+-- (his table moved on first) is gone without an ending: forgotten after a grace, so a late
+-- ending (the result's event runs a moment after) still finds him.
+local function playing(botId: number): boolean
+	local bot = BotService.get(botId)
+	if bot ~= nil and not bot.gone then
+		return true
+	end
+	local king = kings[botId]
+	if king and not king.ended then
+		king.goneAt = king.goneAt or os.clock()
+		if os.clock() - (king.goneAt :: number) > 10 then
+			kings[botId] = nil
 		end
 	end
-	return n
+	return false
+end
+
+local function aliveKings(): number
+	return Rules.kingsPlaying(kings, playing)
 end
 
 local function rootOf(p: Player): BasePart?

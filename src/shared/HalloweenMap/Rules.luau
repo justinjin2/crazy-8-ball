@@ -268,6 +268,22 @@ function Rules.minuteText(at: number): string
 	return (":%02d"):format(math.floor(at / 60) % 60)
 end
 
+--- How many King matches count against Boss.MaxAtOnce: every one not ended whose bot still
+--- plays (`playing`). A King whose table moved on before he saw the result (a surrender and a
+--- reset in one burst, a leaver) never gets an ending, so it must not count forever.
+function Rules.kingsPlaying(
+	kings: { [number]: any }, -- by bot id: { ended: boolean? } at least
+	playing: (botId: number) -> boolean
+): number
+	local n = 0
+	for botId, king in kings do
+		if not king.ended and playing(botId) then
+			n += 1
+		end
+	end
+	return n
+end
+
 --- The place `id` has in the King's line (user ids, first in line first), or would get on
 --- joining it. Winners last (fairness review, 2026-10-28): one who already won this visit
 --- (`beaten[id]`) joins at the back, one who hasn't joins ahead of every winner.

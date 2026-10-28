@@ -472,6 +472,20 @@ return {
 		end
 	end,
 
+	["a King whose bot is gone without an ending stops counting toward MaxAtOnce"] = function()
+		local R = H.require("HalloweenMap.Rules")
+		local kings = {
+			[-1] = { ended = true }, -- a finished match
+			[-2] = {}, -- playing
+			[-3] = {}, -- his table reset before he saw the result: removed, never ended
+		}
+		local alive = { [-1] = false, [-2] = true, [-3] = false }
+		local n = R.kingsPlaying(kings, function(id: number): boolean
+			return alive[id]
+		end)
+		H.expect(n == 1, "only the King still playing counts, got " .. n)
+	end,
+
 	["the King's line keeps its order, joins once and drops"] = function()
 		local R = H.require("HalloweenMap.Rules")
 		local line = {}
