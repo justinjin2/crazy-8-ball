@@ -56,10 +56,10 @@
       "Note": "spider_aura: four silk droplines with dew beads (the web wheels and hourglass charms are gone: no flat discs, the gem is on the body)."
     },
     "Moving": {
-      "Note": "The droplines swing (the aura piece); the eight leg-blades breathe on their own bones; the gem and the twelve eyes pulse; the halo and the Silk strands pulse."
+      "Note": "The droplines swing (the aura piece); the eight crescent blades breathe on their own bones; the gem and the sixteen eyes pulse; the halo and the Silk strands pulse."
     },
     "Aura": {
-      "Note": "Mythic (brief 2.6), fifth build (coordinator 19:08: red atmosphere, no web sprites): a dense crimson smoke haze and an additive crimson glow round the butt and the crown, red embers off the blades, silk motes, silver glints, sparks, a crimson glint at the gem, red-white glints over the blades, dew drips falling from the silk; silk pops (a silk star pop, a crimson pop, silk sparks); one crimson halo beam and four live-spun Silk strands between the cue's points; two crimson lights (the crown, the gem); crimson outline. About 113.15 particles a second before BackRateScale (budget 120).",
+      "Note": "Mythic (brief 2.6), fifth build (coordinator 19:08: red atmosphere, no web sprites): a dense crimson smoke haze and an additive crimson glow round the butt and the crown, red embers off the blades, silk motes, silver glints, sparks, a crimson glint at the gem, red-white glints over the blades, a soft red under-glow behind the crown, dew drips falling from the silk; silk pops (a silk star pop, a crimson pop, silk sparks); one crimson halo beam and four live-spun Silk strands between the cue's points; two crimson lights (the crown, the gem); crimson outline. About 115.15 particles a second before BackRateScale (budget 120).",
       "Emitters": [
         {
           "Name": "Smoke",
@@ -682,6 +682,70 @@
           "Brightness": 3
         },
         {
+          "Name": "CrownGlow",
+          "Texture": "vfx/_shared/glow_soft.png",
+          "Host": {
+            "Kind": "Attachment",
+            "AtStuds": 7.6
+          },
+          "Rate": 2,
+          "Lifetime": [
+            1.2,
+            1.6
+          ],
+          "Speed": 0,
+          "Size": [
+            [
+              0,
+              1.6
+            ],
+            [
+              0.5,
+              2.6
+            ],
+            [
+              1,
+              1.8
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.3,
+              0.55
+            ],
+            [
+              0.7,
+              0.6
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Rotation": [
+            0,
+            360
+          ],
+          "Color": [
+            [
+              0,
+              "#FF2A44"
+            ],
+            [
+              1,
+              "#B0101E"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": true,
+          "Brightness": 1.5
+        },
+        {
           "Name": "SilkGlow",
           "Texture": "vfx/_shared/glow_soft.png",
           "Host": {
@@ -1250,10 +1314,10 @@
       ],
       "Lights": [
         {
-          "AtStuds": 7.8,
+          "AtStuds": 7.7,
           "Color": "#FF2A44",
-          "Brightness": 0.6,
-          "Range": 8,
+          "Brightness": 1.2,
+          "Range": 10,
           "Flicker": {
             "Min": 0.75,
             "Max": 1.05,
@@ -2062,13 +2126,13 @@
       }
     },
     "Budget": {
-      "ParticlesPerSecond": 113.15,
+      "ParticlesPerSecond": 115.15,
       "Beams": 5,
       "Lights": 2,
       "Orbiters": 1,
       "BodyTriangles": 8472,
       "PocketPieceTriangles": 2208,
-      "Note": "Fifth build (2026-10-28, 19:15, coordinator's review of v7): the crown turned forward (blades rooted at the dome's base sweeping toward the tip to d 6.24, the eye dome the exposed end at 7.55-8.21 on a neck, the blades 1.3 studs long, every other one short), no silk threads on the shaft (the Silk beams), 8 parts; the aura piece down to the four droplines; the skin red: denser crimson smoke, an additive crimson haze, 16 embers/s, crimson halo and lights; the web sprites (WebFlecks, WebRing) gone."
+      "Note": "Fifth build (2026-10-28, 19:15, coordinator's review of v7): the crown turned forward (blades rooted at the dome's base sweeping toward the tip to d 6.24, the eye dome the exposed end at 7.55-8.21 on a neck, the blades 1.3 studs long, every other one short), no silk threads on the shaft (the Silk beams), 8 parts; the aura piece down to the four droplines; the skin red: denser crimson smoke, an additive crimson haze, 16 embers/s, crimson halo and lights; the web sprites (WebFlecks, WebRing) gone. Sixth build (19:40, coordinator 19:3x): dome plain glossy black (no reflectance), sixteen big Neon eye hemispheres, four broad bevelled crescent blades and four short ones with the red rim on the outer edge only, no silk lines, red rim rings and a crown under-glow emitter, the crown light 1.2 at 7.7; 7 parts."
     }
   },
   "piece": "spider_aura"

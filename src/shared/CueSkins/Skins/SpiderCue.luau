@@ -326,6 +326,37 @@ return {
 				Brightness = 3,
 			},
 			{
+				Name = "CrownGlow",
+				Texture = "rbxassetid://78860393208560",
+				Host = {
+					Kind = "Attachment",
+					AtStuds = 7.6,
+				},
+				Rate = 2,
+				Lifetime = { 1.2, 1.6 },
+				Speed = 0,
+				Size = {
+					{ 0, 1.6 },
+					{ 0.5, 2.6 },
+					{ 1, 1.8 },
+				},
+				Transparency = {
+					{ 0, 1 },
+					{ 0.3, 0.55 },
+					{ 0.7, 0.6 },
+					{ 1, 1 },
+				},
+				Rotation = { 0, 360 },
+				Color = {
+					{ 0, "#FF2A44" },
+					{ 1, "#B0101E" },
+				},
+				LightEmission = 1,
+				LightInfluence = 0,
+				LockedToPart = true,
+				Brightness = 1.5,
+			},
+			{
 				Name = "SilkGlow",
 				Texture = "rbxassetid://78860393208560",
 				Host = {
@@ -653,10 +684,10 @@ return {
 		},
 		Lights = {
 			{
-				AtStuds = 7.8,
+				AtStuds = 7.7,
 				Color = "#FF2A44",
-				Brightness = 0.6,
-				Range = 8,
+				Brightness = 1.2,
+				Range = 10,
 				Flicker = {
 					Min = 0.75,
 					Max = 1.05,
