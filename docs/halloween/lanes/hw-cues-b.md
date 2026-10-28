@@ -22,6 +22,43 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
   `Index.luau`, `Textures.luau` (regenerate after every merge conflict there).
 
 ## Status
+- 13:25 **Broom remake** (Justin 12:55 through the coordinator: a real broom, not the cue mesh
+  dressed; the bristles far too small; no ribbons on any cue). The body `witch_broom` is rebuilt
+  from scratch in headless Blender (5 parts, 9,144 triangles; the 16,000 ceiling was not
+  needed): one gnarled bark branch that keeps the envelope only where the hands hold it (+0.025
+  of bark), between them a crook, three ridges winding along it, two knot holes, a thick broken
+  branch stub and two twigs, a twisted collar before the binding; thick purple cord wraps closed
+  at both ends with a big silver buckle and the gold crescent; the crystal tip with a silver coil
+  at its base; a bristle head 3.3x the old one (an opaque straw bulb 1.2 across to 1.47 studs
+  past the butt, Aim fade as before; a purple cord round its waist; 70 wide tapered straws
+  splaying to pointed tips up to 1.9 across and 130 thinner ones poking out of the bulb); the
+  hat charm 0.3 tall hung from the buckle below the head. Gate renders went to the coordinator at
+  13:10 (`gate2/broom_model_sheet.jpg`); lab: `broom_remake_stand_v3_lab.jpg`, `_head_close_v3`,
+  `_back_v3`, `broom_remake_side_by_side.jpg`. Finding: the cue's inked outline Highlight draws
+  every part's silhouette, so alpha-cut straw cards drew as outlined rectangles and 220 hair-thin
+  strands as a violet fuzz (`broom_remake_stand_v1_alphacards_lab.jpg`); opaque tapered strips
+  ink like drawn straws instead; a per-part no-outline flag is asked of Cues A below (not a
+  blocker). The aura `witch_broom_aura` has no ribbons (19 parts, 2,392 triangles): moons, stars
+  and bats stay; three spell sigils (a Neon ring with a pentagram and an inner circle; violet,
+  emerald, gold) hover beside the handle on `life` cycles of their own length. Skin: bats burst
+  out of the bristle head, potion smoke and bubbles rise out of the straw, sparks spray from the
+  crystal; the scrolling EmeraldStrip beam is gone (the same strip was on every cue); 169 of 170
+  particles/s, 1 beam, 3 lights. New card picture. RULES and `check_envelope` (this lane's own
+  file) give the remake its room: Side 0.22 and UpMid 0.4 between the hands, HandRadius 0.04,
+  the grip zone ends at 6.2 for the collar, an Aim joint's decor has the Aim room in the butt
+  zone. Commit 22083cd1; uploads listed there. No Meshy or generate_3d (the Blender MCP was not
+  running and the procedural head came out full).
+- 13:25 **Spider without ribbons** (6bca1dd8): `spider_aura` is 13 parts, 1,328 triangles: the
+  two silk helices are gone; the three web wheels spin themselves on `life` cycles (write in
+  with two blinks, hold, dissolve); four silk droplines hang under the cue, each a crossed
+  thread with a dew bead, swinging on two Sways; the crimson hourglasses stay. Skin: dew drips
+  fall from the silk; the SilkStrip beam is gone; the four live-spun Silk strands and the halo
+  stay. 90 of 120 particles/s, 5 beams, 2 lights. Lab: `spider_redo_stand_v3_lab.jpg`,
+  `spider_redo_side_by_side.jpg`.
+- 13:00 **Black Cat handed to Cues A** at eb95993d (a WIP commit of the 12:00 ribbon pass of
+  the Cat and the Spider, so they continue from a sha); the file split is under Requests.
+- 13:19 coordinator: `halloween` @d0b1d604 adds map 656825bf + ee17dc24 (**Boss.Mode "Timed" is ON**: the King visits the roof's middle at UTC :15 and :45 for 12 min) + 092ab2c9 (result-card pumpkin portrait) + 4ebc50cb (winners last in his line), core fa17a763 (visit reward +150 Candy / +$2,500 / +100 XP once a visit, KingVisit save mark, the King timer pill) and cues-a 95325e31 (the Jack's own signature, no ribbons). Reward fairness checked: kept. Lint OK, 1,468 tests, Team Create: :15 arrival, challenge seated, Jack lab, console clean. Merge `origin/halloween` before your next READY.
+- 12:37 coordinator: `halloween` @7be001ed adds map 88e9cceb (throne builds once; Studio: 1 throne, 1 King) + 623d0051 (timed King schedule, Mode Throne), core 1361de6d (ActiveGate, pacing), sys 57bc2b91 (50 badges, v2 icons), cues-a 66af67b0 (painted Jack, Candy rework) + fec0cb91 (deterministic generator; a main-checkout regen is now clean), cues-b 0e3569b6 (Broom redo). Lint OK, 1,465 tests, Team Create play console clean. JUSTIN (12:35): the Pumpkin King becomes a timed visitor (UTC :15 and :45, 12 min, middle of the map, 1.5x size, a top timer, the King's line when tables are full, one paid win a visit: +150 Candy, +$2,500, +100 XP). Map and core build it by 15:00; Throne mode stays the fallback. Run `git fetch && git merge origin/halloween` before your next READY.
 - 12:25 Broom redo (designer, 11:55: the five cues look nothing like the Firework; the
   Broom first, side-by-side before the other two). What changed, same ids and rows: the
   aura piece `witch_broom_aura` rebuilt as the concept's glowing ribbons round the whole
@@ -294,6 +331,34 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
 
 ## Requests
 
+- 13:30 **READY WitchBroomCue remake @ 7bae1ea4** (skin `witch_broom`, same ids and rows; the
+  remake commit is 22083cd1, merged with `halloween` @d0b1d604 as 568de991, then a18478af makes the branch cat-neutral (every Cat change comes from Cues A's branch; asked by Cues A and the coordinator 13:28; `git diff origin/halloween...hw-cues-b` touches only witch_broom*, spider*, Index, the manifest and this file) and 7bae1ea4 marks the straw part `Outline = false` for Cues A's runtime key, cue_skins_data.py
+  clean, lint OK, tests green). Piece ids: `witch_broom` (body rebuilt: 5 parts, 9,144
+  triangles, rigid 81896660220724, HatCharm 113228232691476, atlas 137627713975392 /
+  138814904584787 / 126089154408348), `witch_broom_aura` (no ribbons: 19 parts, 2,392
+  triangles, rigid 95270734621489), `witch_broom_pocket` (unchanged); card 121330247838904.
+  Template build in the Team Create place: `tools/build_cue_templates.luau` with
+  `ONLY = { "WitchBroomCue", "SpiderCue" }` (new body, aura and card ids). Side-by-side for
+  Justin: `~/Desktop/8ball-refs/halloween/shots/hw-cues-b/gate2/broom_remake_side_by_side.jpg`;
+  the model alone: `broom_model_sheet.jpg`.
+- 13:30 **READY SpiderCue without ribbons @ 7bae1ea4** (skin `spider`, same ids and rows; the
+  commit is 6bca1dd8). Piece ids: `spider` (unchanged), `spider_aura` (13 parts, 1,328
+  triangles, rigid 113848511095435), `spider_pocket` (unchanged). Same template build as
+  above. Side-by-side: `gate2/spider_redo_side_by_side.jpg`.
+- **To Cues A (13:00, agreed 13:08):** the Black Cat is yours from eb95993d. You own the
+  `black_cat` and `black_cat_aura` builders, the `black_cat` entries of AIM/KIND/LONG/BUDGET
+  and the cat helpers (`_cat_atlas`, `_cat_tail_path`, `CAT_SIL`, `_cat_loop`,
+  `_plane_polygon`, `_helix_strip` to drop) in `assets/cue/CuePiecesHalloween_B.py`,
+  `assets/cue/pieces/black_cat*/`, `assets/cue/vfx/black_cat/`, `assets/cue/skins/black_cat.json`,
+  `Skins/BlackCatCue.luau`, `Pieces/black_cat*.luau` and your manifest rows. Cues B keeps the
+  broom and spider builders and helpers (`_web_wheel`, `_flat`; `_flat` shared, same body) and
+  everything else. `Index.luau` and the manifest are regenerated by whoever runs the tools. The
+  coordinator confirmed the C2c rule stands (no eyes, no paw prints).
+- **To Cues A (13:22, optional):** a body-part flag that keeps the cue's inked outline Highlight
+  off one part (the Broom's straw: `Bristles_Bark`), e.g. `Outline = false` on the part spec
+  making CuePiece parent it under a sibling Model of the body outside the adornee; the Broom
+  ships with the ink if there is no time.
+- 12:34 **READY WitchBroomCue redo @ 0e3569b6** (skin `witch_broom`, same ids and rows; the redo commit is e8f49f12, merged with `halloween` @f164d356, cue_skins_data.py clean, lint OK, 1,460 tests). Piece ids: `witch_broom` (body, unchanged mesh, crystal tip material), `witch_broom_aura` (rebuilt: 19 parts, 4,600 triangles, rigid 124125704817567), `witch_broom_pocket` (unchanged). Template build: `tools/build_cue_templates.luau` with `ONLY = { "WitchBroomCue" }` in the Team Create place (the aura piece's new id). Side-by-side for Justin: `~/Desktop/8ball-refs/halloween/shots/hw-cues-b/gate2/broom_redo_side_by_side.jpg`. The Cat and the Spider follow the same recipe next.
 - 11:43 **READY WitchBroomCue @ a431419b** (skin `witch_broom`, Secret, the Candy Track's
   7,000 reward). Piece ids: `witch_broom` (body, 6 parts), `witch_broom_aura` (ribbons),
   `witch_broom_pocket` (finisher, 13 parts). Manifest paths: `assets/cue/pieces/witch_broom/`,
@@ -584,3 +649,22 @@ for at 08:55 and 10:08).
   held aim pose at a set elevation needs the live Input instance, which the MCP cannot reach:
   its requires are fresh module copies); the aim view at phone size (the window cannot be
   resized).
+
+Broom remake and the no-ribbon auras (13:25; `gate2/`):
+
+- `broom_model_sheet.jpg`: the new broom body alone, Blender EEVEE preview (side with the tip
+  left, the bristle head close, the gnarled handle close, three-quarter from behind); singles
+  `broom_model_side.png`, `broom_model_side_buckle.png`, `broom_model_three_quarter.png`,
+  `broom_model_head.png`, `broom_model_handle.png`, `broom_model_tip.png`. Sent for Justin's
+  okay before rigging it in.
+- `broom_remake_side_by_side.jpg`: NEW (the remake on its stand in the lab, aura on), BEFORE
+  (this morning's ribbon redo on the old cue-shaped body) and the Firework for the level.
+- `broom_remake_stand_v3_lab.jpg`, `broom_remake_head_close_v3_lab.jpg`,
+  `broom_remake_back_v3_lab.jpg`: the remake on the stand, the head close (the ink on the
+  straws), and on a lab dummy's back (the view other players get).
+- `broom_remake_stand_v1_alphacards_lab.jpg`: why the straw is opaque strips now (the alpha
+  cards and hair strands outlined by the ink Highlight: a violet fuzz).
+- `spider_redo_side_by_side.jpg`, `spider_redo_stand_v3_lab.jpg`: the Spider without ribbons
+  (web wheels, droplines with dew beads, hourglasses, silk strands) against the launch version
+  and the Firework.
+- `cat_redo_*.jpg`: the Cat's ribbon pass as handed to Cues A.
