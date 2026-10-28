@@ -179,4 +179,33 @@ function Quests.claimable(
 	return list
 end
 
+-- The end's claim (PlayerData.hwConvert): `claimable` with the hooks now, and also what was
+-- finished as the event ran with the map lane's King and pickups on. A player converting on a
+-- first join after the map switched them off (their quests read as Alts with higher needs)
+-- keeps what they finished. Each quest once, in board order.
+function Quests.endClaimable(
+	q: { [string]: number },
+	claimed: { [string]: boolean },
+	open: number,
+	hooks: Hooks
+): { Quest }
+	local mapOn: Hooks = { king = true, pickups = true, ult = hooks.ult }
+	local now = Quests.claimable(q, claimed, open, hooks)
+	local ran = Quests.claimable(q, claimed, open, mapOn)
+	local seen: { [string]: boolean } = {}
+	for _, quest in now do
+		seen[quest.key] = true
+	end
+	for _, quest in ran do
+		if not seen[quest.key] then
+			seen[quest.key] = true
+			table.insert(now, quest)
+		end
+	end
+	table.sort(now, function(a: Quest, b: Quest): boolean
+		return if a.board ~= b.board then a.board < b.board else a.slot < b.slot
+	end)
+	return now
+end
+
 return Quests

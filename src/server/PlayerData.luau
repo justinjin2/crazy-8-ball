@@ -3796,7 +3796,8 @@ function PlayerData.hwConvert(player: Player, ctx: HwCtx): HwResult?
 	end
 	local hw = hwField(data)
 	local result: HwResult = { candy = 0, steps = {}, spider = false, quests = {}, money = 0 }
-	for _, quest in Quests.claimable(hw.Q, hw.Claimed, ctx.open, ctx.hooks) do
+	-- Finished quests as the event ran (Quests.endClaimable: even with the map switched off since).
+	for _, quest in Quests.endClaimable(hw.Q, hw.Claimed, ctx.open, ctx.hooks) do
 		hw.Claimed[quest.key] = true
 		result.candy += HwLedger.addCandy(hw, quest.reward, "Earned")
 	end
