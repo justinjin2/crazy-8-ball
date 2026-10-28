@@ -17,7 +17,7 @@ return {
 			{ 50, "Spins", 1 },
 			{ 150, "Cue", "JackOLanternCue" },
 			{ 300, "Money", 2500 },
-			{ 500, "Cue", "CandyCornCue" }, -- holds slot 2 until the designer's pick
+			{ 500, "Cue", "PitchforkCue" },
 			{ 1000, "Spins", 2 },
 			{ 1500, "Money", 5000 },
 			{ 2000, "Cue", "WitchBroomCue" },
