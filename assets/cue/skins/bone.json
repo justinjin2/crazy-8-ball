@@ -3,8 +3,8 @@
   "name": "Bone Cue",
   "tier": "Mythic",
   "catalog_id": "BoneCue",
-  "draft": false,
-  "note": "Halloween 2026 track cue (in the Black Cat's place; coordinator 2026-10-28, concepts mocks/v2/C7_bone.png green and mocks/v3/R3.png red). Drawn by its own body piece (bone): a pale tip, a polished bone shaft, four knobby cartoon bones between the hands with bronze rings, the grip as two long smooth bones, a bronze collar and a big grinning cartoon skull on the butt whose eyes glow. Flame, sparks, tumbling 3D bones and little skulls, in the builder's PALETTE (green or red hellfire: CuePiecesHalloween_Bone.apply_palette writes every colour here); never ghosts (the Phantom's). Lane hw-map, 2026-10-28.",
+  "draft": true,
+  "note": "PARKED 2026-10-28 (the Pitchfork Cue took the 500 slot; no track step, no Catalog row: draft). Was a Halloween 2026 track cue candidate (coordinator 2026-10-28, concepts mocks/v2/C7_bone.png green and mocks/v3/R3.png red). Drawn by its own body piece (bone): a pale tip, a polished bone shaft, four knobby cartoon bones between the hands with bronze rings, the grip as two long smooth bones, a bronze collar and a big grinning cartoon skull on the butt whose eyes glow. Flame, sparks, tumbling 3D bones and little skulls, in the builder's PALETTE (green or red hellfire: CuePiecesHalloween_Bone.apply_palette writes every colour here); never ghosts (the Phantom's). Lane hw-map, 2026-10-28.",
   "body": "bone",
   "maps_from": "classic",
   "look": {

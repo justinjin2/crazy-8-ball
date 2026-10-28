@@ -89,22 +89,6 @@ return {
 			Cap = { 31, 9, 12 },
 		},
 	},
-	BoneCue = {
-		Id = "bone",
-		Name = "Bone Cue",
-		Tier = "Mythic",
-		Thumb = "rbxassetid://131967740072541",
-		Look = {
-			Shaft = { 240, 230, 206 },
-			Forearm = { 240, 230, 206 },
-			Wrap = { 214, 196, 160 },
-			Ring = { 176, 124, 60 },
-			Tip = { 250, 250, 246 },
-			Cap = { 240, 230, 206 },
-			Accent = { 92, 255, 74 },
-		},
-		Body = "bone",
-	},
 	BronzeCue = {
 		Id = "bronze_cue",
 		Name = "Bronze Cue",
