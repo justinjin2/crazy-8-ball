@@ -412,7 +412,13 @@ function HubCorners.new(screen: ScreenGui, deps: any): any
 	end)
 	-- The Halloween event's tile (hw-core): the challenge's spot, or next to the offer tile. Built
 	-- last, once everything its layout reads exists.
-	self.eventTile = EventButton.new(root, self)
+	-- One that fails to build warns and is left out, so the corners still work.
+	local tileOk, tile = pcall(EventButton.new, root, self)
+	if tileOk then
+		self.eventTile = tile
+	else
+		warn(("[8ball] Halloween tile failed to build: %s"):format(tostring(tile)))
+	end
 	self:refreshPlus()
 	self:refreshOffers()
 	self:layout()
@@ -813,7 +819,7 @@ function HubCorners.padStops(self: any): { GuiObject }
 	local stops: { GuiObject } = {}
 	for _, button in
 		{
-			self.eventTile.button, -- the Halloween tile first (hw-core)
+			self.eventTile and self.eventTile.button, -- the Halloween tile first (hw-core)
 			KingTimer.padStop() :: any, -- the timed King's pill, shown only while he counts (hw-core)
 			self.challenge.button,
 			self.offerTile.button,
@@ -865,7 +871,7 @@ function HubCorners.blurPad(self: any)
 			self.inviteTile.button,
 			self.plusTile.button,
 			self.deps.boostPill and self.deps.boostPill.tag, -- the boost pill (hw-gui lane)
-			self.eventTile.button, -- the Halloween tile (hw-core)
+			self.eventTile and self.eventTile.button, -- the Halloween tile (hw-core)
 			KingTimer.padStop() :: any, -- the timed King's pill (hw-core)
 		} :: { GuiObject }
 	do
