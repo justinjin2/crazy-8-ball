@@ -12,7 +12,8 @@
 -- Hovering shows "YOUR BOOSTS" over it (a row per Money.boostParts part, the total, the friend
 -- rule, the Candy line while the event is live, then grey the boosts still to get); a click,
 -- tap or A pins it open for PinSeconds, a second press or B closes it. In a match it still
--- shows (money does) but takes no input and its card shuts. Hidden while the tutorial runs.
+-- shows (money does) but takes no input and its card shuts. Hidden while the tutorial runs
+-- (a VIP's shows, as the VIP tag did).
 --
 -- The Rush chip (R1.10): its shell and place are this module's, its words core's. Once a second
 -- it asks src/client/Halloween/RushChip.luau `RushChip.content(now) -> { text, endsAt }?`
@@ -137,6 +138,7 @@ function BoostPill.new(money: any): any
 	self.chipBreath = nil :: Tween?
 	self.reportedCard = false
 	self.rushWarned = false
+	self.perks = false -- VIP was just bought (showPerks): it shows even while the tutorial runs
 
 	local tag = Instance.new("TextButton")
 	tag.Name = "BoostPill"
@@ -287,13 +289,15 @@ function BoostPill.flags(self: any): Money.Boosts
 	return BoostFlags.of(player, workspace:GetServerTimeNow())
 end
 
--- Whether the pill may show: the save is in, the money HUD shows, the tutorial is over.
-function BoostPill.allowed(self: any): boolean
+-- Whether the pill may show: the save is in, the money HUD shows, the tutorial is over. A VIP's
+-- shows while the tutorial runs too (the VIP tag did), and so does one VIP was just bought on
+-- (the Vip attribute may land a moment after the purchase's message).
+function BoostPill.allowed(self: any, vip: boolean): boolean
 	local player = Players.LocalPlayer
 	if not player then
 		return true
 	end
-	if Steps.active(player:GetAttribute("TutorialStep")) then
+	if Steps.active(player:GetAttribute("TutorialStep")) and not (vip or self.perks) then
 		return false
 	end
 	return self.money.root.Visible
@@ -306,7 +310,7 @@ function BoostPill.refresh(self: any)
 	local vip = flags.vip == true
 	self.crown.Visible = vip
 	self.arrow.Visible = not vip
-	local show = self:allowed() and (total > 0 or P.ShowAtZero)
+	local show = self:allowed(vip) and (total > 0 or P.ShowAtZero)
 	if vip ~= self.vipShown then
 		self.vipShown = vip
 		self:stopLoops()
@@ -809,6 +813,7 @@ end
 --- VIP was just bought: the pill shows its new total and the card slams in, the VIP row
 --- flashing gold.
 function BoostPill.showPerks(self: any)
+	self.perks = true
 	self:refresh()
 	if not self.on then
 		return
