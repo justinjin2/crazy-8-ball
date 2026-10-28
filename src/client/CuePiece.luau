@@ -73,6 +73,7 @@ export type CuePiece = typeof(setmetatable(
 		id: string,
 		model: Model,
 		noInk: Model?, -- parts with Outline = false: a sibling Model the cue's Highlights never adorn
+		missing: number, -- parts the row names that the template did not hold (skipped)
 		rig: Motion.Rig,
 		rigid: { Rigid },
 		skinned: { Skinned },
@@ -271,6 +272,21 @@ function CuePiece.new(
 	-- A part row with Outline = false (a Broom's two hundred straws, 2026-10-28) goes under a
 	-- sibling Model, so the body's inked Highlight (CueSkinLook adorns the piece Model) skips it;
 	-- its weld, motion and fades are the same.
+	-- Parts the row names that the template does not hold (a re-upload that renamed or dropped
+	-- a part): the loop below skips them; a body short of a part falls back to the shared mesh
+	-- in CueSkinLook (robustness pass, 2026-10-28).
+	local missing = 0
+	local checked: { [string]: boolean } = {}
+	for _, p in row.Parts do
+		local name = p.Model or p.Name
+		if not checked[name] then
+			checked[name] = true
+			local src = source:FindFirstChild(name)
+			if not (src and (if p.Model then src:IsA("Model") else src:IsA("BasePart"))) then
+				missing += 1
+			end
+		end
+	end
 	local noInk: Model? = nil
 	for _, p in row.Parts do
 		if p.Model then
@@ -368,6 +384,7 @@ function CuePiece.new(
 		id = id,
 		model = model,
 		noInk = noInk,
+		missing = missing,
 		rig = rig,
 		rigid = rigid,
 		skinned = skinned,

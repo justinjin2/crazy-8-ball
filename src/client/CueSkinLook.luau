@@ -43,6 +43,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local CueShape = require(Shared:WaitForChild("CueShape"))
 local CueSkins = require(Shared:WaitForChild("CueSkins"))
+local CueStickBuilder = require(Shared:WaitForChild("CueStickBuilder"))
 local Motion = require(Shared:WaitForChild("CueSkins"):WaitForChild("Motion"))
 local Pop = require(Shared:WaitForChild("CueSkins"):WaitForChild("Pop"))
 local Catalog = require(Shared:WaitForChild("Progression"):WaitForChild("Catalog"))
@@ -329,6 +330,26 @@ function CueSkinLook.clear(self: Look)
 	self.visible = false -- a rebuilt look appears anew (its aura prefilled, applyVisible)
 end
 
+-- A decor or carrier piece behind pcall: a bad row costs that piece (warned once), not the
+-- whole look (robustness pass, 2026-10-28).
+local warnedPieces: { [string]: boolean } = {}
+local function safePiece(
+	id: string,
+	root: BasePart,
+	folder: Instance,
+	lift: number?
+): CuePiece.CuePiece?
+	local ok, piece = pcall(CuePiece.new, id, root, folder, lift)
+	if ok then
+		return piece
+	end
+	if not warnedPieces[id] then
+		warnedPieces[id] = true
+		warn(("CueSkinLook: piece %s did not build: %s"):format(id, tostring(piece)))
+	end
+	return nil
+end
+
 --- Rebuild for the stick's current cue (nothing happens if it is the one built).
 function CueSkinLook.refresh(self: Look)
 	local id = self.stick:GetAttribute("CueId")
@@ -364,18 +385,38 @@ function CueSkinLook.refresh(self: Look)
 	-- welded to the hidden mesh; it follows the stick, never the aura.
 	local bodyId = self.stick:GetAttribute("Body")
 	if type(bodyId) == "string" then
-		self.body = CuePiece.new(bodyId, mesh, folder, nil, { body = true })
+		-- Behind pcall: a bad row must not stop the look (the mesh is hidden under a body, so a
+		-- body that returns nil, errors, or misses any part its row names drops back to the
+		-- shared mesh; a part short would leave a hole in the stick).
+		local ok, body = pcall(CuePiece.new, bodyId, mesh, folder, nil, { body = true })
+		local built = ok
+			and body ~= nil
+			and body.missing == 0
+			and body.model:FindFirstChildWhichIsA("BasePart", true) ~= nil
+		if built then
+			self.body = body
+		else
+			local reason = if not ok
+				then tostring(body)
+				elseif body == nil then "no piece row or template"
+				elseif body.missing > 0 then ("%d of its parts missing"):format(body.missing)
+				else "no parts"
+			if ok and body then
+				body:destroy()
+			end
+			CueStickBuilder.dropBody(self.stick, reason)
+		end
 	end
 	-- A body wears the outline itself (a Highlight on a hidden mesh draws nothing), unless the
 	-- Bodies.Outline switch is off; the ink ribbons trace a straight stick, so a body skips them.
 	local outlineOn = self.body == nil or C.Bodies.Outline
 	local outlinee: Instance = if self.body then self.body.model else self.stick
 	if row.Piece then
-		self.piece = CuePiece.new(row.Piece, mesh, folder)
+		self.piece = safePiece(row.Piece, mesh, folder, nil)
 	end
 	local carrierRoot = self:carrierRoot()
 	if row.Carrier and carrierRoot and self.opts.aura then
-		self.carrierPiece = CuePiece.new(row.Carrier, carrierRoot, folder, self:carrierLift())
+		self.carrierPiece = safePiece(row.Carrier, carrierRoot, folder, self:carrierLift())
 	end
 	local moving = row.Moving or {}
 	for _, b in moving.Beams or {} do
