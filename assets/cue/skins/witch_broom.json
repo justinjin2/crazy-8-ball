@@ -1,0 +1,57 @@
+{
+  "id": "witch_broom",
+  "name": "Witch's Broom",
+  "tier": "Secret",
+  "catalog_id": "WitchBroomCue",
+  "draft": true,
+  "note": "Halloween 2026 (lane Cues B, docs/prompts/HW_CUES_B_PROMPT.md 2.4, concept C3b_broom.png): a crooked bark branch with a violet crystal tip, a knot hole, twig stubs, a purple binding with a silver buckle and gold crescent, golden straw bristles and a swaying witch-hat charm; purple and emerald magic ribbons, stars, crescents, bats. Draft until the body, aura, trail, finisher and card are done (leaving draft hands the cue to the track's earners).",
+  "body": "witch_broom",
+  "maps_from": "classic",
+  "look": {
+    "Shaft": [
+      107,
+      74,
+      46
+    ],
+    "Forearm": [
+      107,
+      74,
+      46
+    ],
+    "Wrap": [
+      91,
+      42,
+      134
+    ],
+    "Ring": [
+      201,
+      206,
+      216
+    ],
+    "Accent": [
+      168,
+      107,
+      255
+    ],
+    "Tip": [
+      168,
+      107,
+      255
+    ],
+    "Cap": [
+      217,
+      164,
+      65
+    ]
+  },
+  "colours": {
+    "violet": "#9B4DFF",
+    "emerald": "#2EE6A0",
+    "gold": "#FFD36A",
+    "straw": "#D9A441",
+    "crystal": "#A86BFF",
+    "bark": "#6B4A2E",
+    "binding": "#5B2A86",
+    "hat": "#4B2270"
+  }
+}

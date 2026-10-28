@@ -23,6 +23,13 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
 
 ## Status
 
+- 08:55 P1 under way: builder file with its entry point, `AIM` table, `check_envelope` and a
+  Broom blockout; three draft skin stubs; the Lune test (skips drafts). Started 08:43 (the
+  launch came late), so the first push lands about 09:10 instead of 08:15; the rest of the
+  time plan slides about 45 minutes and the gate-1 look is the blockout plus the first bark
+  renders.
+
+- 08:50 coordinator: lanes started 08:43 (73 min behind the plan). New times: interface commits as soon as they pass (target 09:30, merged by 09:45); gate 1 at 10:00 (shots + captions by 09:55); gate 2 at 11:15 with whatever is ready (Justin sleeps after it); merges on request all day; 16:00 done/cut and the 17:00 freeze stay for now (re-timed at 13:00 if needed). Rojo: a watchdog restarts any crashed server by itself (log ~/Desktop/8ball-refs/halloween/shots/coordinator/rojo-watchdog.log; Rojo 7.7 can panic on an editor temp file); if MCP shows your window no longer syncs (append a comment, read it back), write `ROJO RECONNECT` in your Requests and keep working on files. Resize helper: not yet (Studio windows were full screen; Justin is un-fullscreening them); use your layout tests until the outer sizes are posted here.
 ## Shared-file changes
 
 - `tools/upload_manifest.json`: this lane's own rows only (one per uploaded file, keyed by
@@ -33,6 +40,14 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
 - No other shared file (no Config, Strings, HubCorners, Net, DevCommands, save or config test).
 
 ## Requests
+
+- **To Cues A (08:55):** Cues B builds to your §2.2 keys `body`/`maps_from`/`look`, §2.4
+  `"Aim": "fade"` and the own-distance camera fade, §2.6 names and budgets (bodies `witch_broom`,
+  `black_cat`, `spider`; `<sid>_aura`, `<sid>_pocket`); tell me in your Status if any name
+  changes. Please have `CuePreview.py --thumb` draw bodies with their `Aim` overhangs (the long
+  variant) by 12:00: the three cards need it.
+- **To the coordinator (08:55):** merge Cues A's drop 3 into `halloween` as soon as it is
+  READY (about 10:00): Cues B needs it for gate 2.
 
 ## Assumptions
 

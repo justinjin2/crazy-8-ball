@@ -1,0 +1,152 @@
+{
+  "id": "witch_broom",
+  "Frame": "cue",
+  "frame": "Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)",
+  "Triangles": 3500,
+  "Parts": [
+    {
+      "Material": "Glass",
+      "Color": "#A86BFF",
+      "Transparency": 0.25,
+      "Reflectance": 0.0,
+      "Name": "Tip_Crystal",
+      "File": "pieces/witch_broom/Tip_Crystal.obj",
+      "Joint": "Tip",
+      "Offset": [
+        0.0,
+        0.0,
+        3.35
+      ],
+      "Size": [
+        0.0988,
+        0.1141,
+        0.3
+      ],
+      "Triangles": 60
+    },
+    {
+      "Material": "Neon",
+      "Color": "#D9B8FF",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Tip_CrystalCore",
+      "File": "pieces/witch_broom/Tip_CrystalCore.obj",
+      "Joint": "Tip",
+      "Offset": [
+        0.0,
+        0.0,
+        3.345
+      ],
+      "Size": [
+        0.052,
+        0.06,
+        0.25
+      ],
+      "Triangles": 48
+    },
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#6B4A2E",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Body_Bark",
+      "File": "pieces/witch_broom/Body_Bark.obj",
+      "Joint": "Body",
+      "Offset": [
+        0.0,
+        0.0,
+        -0.15
+      ],
+      "Size": [
+        0.36,
+        0.36,
+        6.7
+      ],
+      "Triangles": 3264
+    },
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#D9A441",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Bristles_Straw",
+      "File": "pieces/witch_broom/Bristles_Straw.obj",
+      "Joint": "Bristles",
+      "Offset": [
+        0.0,
+        0.0,
+        -3.65
+      ],
+      "Size": [
+        0.5,
+        0.5,
+        0.3
+      ],
+      "Triangles": 128
+    }
+  ],
+  "Joints": {
+    "Tip": {
+      "Parent": null,
+      "Pivot": [
+        0,
+        0,
+        0
+      ],
+      "PivotRoblox": [
+        0,
+        0,
+        3.5
+      ],
+      "Motion": [],
+      "Visual": [
+        {
+          "Kind": "Glow",
+          "Min": 0.2,
+          "Max": 0.7,
+          "Period": 2.4
+        }
+      ]
+    },
+    "Body": {
+      "Parent": null,
+      "Pivot": [
+        0,
+        -3.5,
+        0
+      ],
+      "PivotRoblox": [
+        0,
+        0,
+        0.0
+      ],
+      "Motion": []
+    },
+    "Bristles": {
+      "Parent": "Body",
+      "Pivot": [
+        0,
+        -7.0,
+        0
+      ],
+      "PivotRoblox": [
+        0,
+        0,
+        -3.5
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            1,
+            0,
+            0
+          ],
+          "Amp": 1.5,
+          "Period": 2.6
+        }
+      ],
+      "Aim": "fade"
+    }
+  }
+}
