@@ -1786,6 +1786,32 @@ def patch_aim(pid):
     print('CUE patch_aim %s: %s' % (pid, ', '.join(AIM.get(pid, ())) or 'no Aim joints'))
 
 
+# Parts the cue's inked outline Highlight must skip (Cues A's runtime key `Outline = false`,
+# agreed 13:28): the Broom's straw, whose 200 strips would each get an ink stroke (a violet fuzz
+# in the lobby, gate2/broom_remake_stand_v1_alphacards_lab.jpg).
+NO_OUTLINE = {'witch_broom': ['Bristles_Bark']}
+
+
+def patch_outline(pid):
+    """Write `Outline: false` on the parts NO_OUTLINE names into the built piece.json."""
+    names = NO_OUTLINE.get(pid, ())
+    if not names:
+        return
+    path = os.path.join(PIECES_DIR, pid, 'piece.json')
+    spec = json.load(open(path))
+    found = {part['Name'] for part in spec['Parts']}
+    for n in names:
+        if n not in found:
+            raise RuntimeError('CUE patch_outline FAIL %s: NO_OUTLINE names part %s, which the piece has not got' % (pid, n))
+    for part in spec['Parts']:
+        if part['Name'] in names:
+            part['Outline'] = False
+    with open(path, 'w') as fh:
+        json.dump(spec, fh, indent=2)
+        fh.write('\n')
+    print('CUE patch_outline %s: %s' % (pid, ', '.join(names)))
+
+
 # =============================================================================================
 # Previews: the body on its own (the plain cue hidden), from the views a gate wants
 # =============================================================================================
@@ -1865,7 +1891,7 @@ def preview_body(pid, t_list=(0.0, 1.3), size=(800, 500)):
 # The entry point
 
 # =============================================================================================
-# The aura decor pieces of the Cat and the Spider (designer, 2026-10-28 11:55: the five cues
+# The aura decor piece of the Spider (designer, 2026-10-28 11:55: the five cues
 # brought up to their concept cards and the Firework's level): ribbons and orbiters wrapping
 # the cue, the Firework's way (narrow saturated Neon strips; see witch_broom_aura).
 # =============================================================================================
@@ -1889,31 +1915,6 @@ def _plane_polygon(bm, origin, u, v, pts, scale=1.0, about=(0.0, 0.0)):
     bmesh.ops.triangulate(bm, faces=bm.faces[:], ngon_method='EAR_CLIP')
     return bm
 
-
-# A leaping cat seen from the side, nose toward +x, standing on y = 0 (the concept's shadow
-# cats: no face, no eyes; a silhouette).
-def _web_wheel(bm, c, u, v, r=0.32, spokes=8, rings=(0.11, 0.21, 0.31), w=0.011):
-    """A spider web in the plane (c, u, v): spokes from the centre and polygon rings, thin quads."""
-    from mathutils import Vector
-    for j in range(spokes):
-        a = 2 * math.pi * j / spokes
-        dirn = u * math.cos(a) + v * math.sin(a)
-        across = u * -math.sin(a) + v * math.cos(a)
-        bm.faces.new((bm.verts.new(c + across * w), bm.verts.new(c - across * w),
-                      bm.verts.new(c + dirn * r - across * w), bm.verts.new(c + dirn * r + across * w)))
-    for rr in rings:
-        pts = []
-        for j in range(spokes):
-            a = 2 * math.pi * j / spokes
-            # a strand sags a little between the spokes: the rings are polygons, not circles
-            pts.append(c + (u * math.cos(a) + v * math.sin(a)) * rr)
-        for j in range(spokes):
-            p, q = pts[j], pts[(j + 1) % spokes]
-            d = (q - p).normalized()
-            n = (u * d.dot(v) - v * d.dot(u)).normalized() if abs(d.dot(u)) + abs(d.dot(v)) > 0 else u
-            n = Vector((0, 0, 0)) + (u * (-(q - p).dot(v)) + v * ((q - p).dot(u))).normalized()
-            bm.faces.new((bm.verts.new(p + n * w), bm.verts.new(p - n * w), bm.verts.new(q - n * w), bm.verts.new(q + n * w)))
-    return bm
 
 
 @piece
@@ -1999,6 +2000,7 @@ def build_checked(pid, render_preview=True):
     check_budget(pid, spec)
     check_envelope(pid, kit)
     patch_aim(pid)
+    patch_outline(pid)
     if render_preview:
         preview_body(pid)
     return spec
