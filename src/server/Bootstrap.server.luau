@@ -46,6 +46,9 @@ end
 
 -- Remotes first: TableService and every client look them up by name.
 Net.build()
+-- The Halloween event's test clock: in Studio and on the test place only, the event starts Live
+-- when this server boots before 19:00 (Halloween/Clock; the live game ignores the offset).
+require(Shared:WaitForChild("Halloween"):WaitForChild("Clock")).boot()
 
 -- Saves next, so each player's save starts loading the moment they arrive (and its
 -- PlayerRemoving is connected before TableService's).
@@ -64,6 +67,7 @@ Trading.start() -- player-to-player trades (TradeRequest, TradeState) and the tr
 Settings.start() -- each player's switches and seen moments (SettingsState, SettingsRequest)
 require(script.Parent:WaitForChild("Friends")).start() -- FriendHere: a Roblox friend in the server
 Leaderboards.start(not isArena) -- the global boards, the country tally and the lobby boards
+require(script.Parent:WaitForChild("Badges")).start() -- Roblox badges (Config.Badges; off = nothing)
 
 -- Then the imported meshes the clients need (a MeshId is plugin-only, so they live in the
 -- place, in ServerStorage), published to ReplicatedStorage.Assets before anything else so they

@@ -1766,6 +1766,7 @@ Config.Save = {
 	MaxTradeHistory = 50, -- Trades.History: the last trades kept (designer, 2026-10-03)
 	MaxAppliedTrades = 100, -- Trades.Applied: trade ids this save already applied
 	MaxTradeSideItems = 8, -- items on one side of a trade (history entries too)
+	MaxBadgeEntries = 500, -- Badges: Roblox badges this save already holds (Config.Badges keys)
 }
 
 ---------------------------------------------------------------------------------------------
@@ -2028,6 +2029,15 @@ Config.Economy = {
 	-- A Roblox Plus (Premium) subscriber (designer, 2026-10-03, C14; the GUI lane): +10% if the
 	-- economy model allows it (tools/economy_model.py), else 0.05. The RobloxPlus attribute.
 	PlusBoost = 0.1,
+	-- The friend boost (Halloween 2026, PLAN §2, designer 2026-10-28; hw-gui lane): +FriendBoost
+	-- per Roblox friend in your server, at most FriendBoostMaxFriends, added to the other boosts
+	-- (never multiplied), permanent, on match money (Money.boost) and on Candy (core reads these
+	-- same lines through Money.friendBoost; Config.Halloween has no copy). A friend check still
+	-- waiting or failed counts 0 (research A4).
+	FriendBoostEnabled = false, -- own switch: true once the Studio pay check passes; false = no friend part in money or Candy
+	FriendBoost = 0.1,
+	FriendBoostMaxFriends = 4, -- +40% at most (24-player servers: no cap would allow +230%)
+	FriendRetrySeconds = 30, -- a failed IsFriendsWithAsync is asked once more after this, then 0
 	-- Anti-farm (3.6): the same opponent in one UTC day. Each row covers matches up to UpTo
 	-- (the last row has no UpTo: every match after). Xp, Bonus and Balls multiply the match's
 	-- XP, its win/loss bonus and its ball pay; Drop says whether the winner's lucky block
@@ -3740,6 +3750,147 @@ Config.SkyBlock = {
 	TickSeconds = 5, -- the server adds active time this often
 	-- The client reports activity (any input) at most this often.
 	ActivityPingSeconds = 20,
+}
+
+---------------------------------------------------------------------------------------------
+-- The Halloween 2026 event (docs/halloween/PLAN.md; src/shared/Halloween, src/server/Halloween,
+-- src/client/Halloween; the hw-core lane). Candy is earned in real matches against people,
+-- quests, the Pumpkin King and lobby pickups (or bought in two packs), is never spent, fills the
+-- track to the Witch's Broom and turns into money once the event ends. Every time is unix
+-- seconds and runs from the server clock (Halloween/Clock): no publish at the start or the end.
+---------------------------------------------------------------------------------------------
+Config.Halloween = {
+	Enabled = true, -- false: no earning and no event UI; saved Candy still converts after EndsAt
+	CountdownAt = 1793226600, -- Wed Oct 28 18:30 EDT: the "HALLOWEEN EVENT IN 29:59" pill
+	StartsAt = 1793228400, -- Wed Oct 28 19:00 EDT (23:00 UTC); no publish at 19:00
+	EndsAt = 1793750400, -- Tue Nov 3 19:00 EST (Nov 4 00:00 UTC); ends by itself
+	-- A new quest board each day: board N opens at StartsAt + (N - 1) * BoardSeconds (19:00 EDT
+	-- Oct 28-31, 18:00 EST Nov 1-2); older boards stay open.
+	Boards = 6,
+	BoardSeconds = 86400,
+	Double = { From = 1793419200, To = 1793505600 }, -- Oct 31 in US Eastern time: 2x all day
+	Rush = { Enabled = true, Minutes = 10 }, -- Candy Rush: UTC minutes 0-9 of every hour
+	EventMultiplier = 2, -- in a Rush or on the double day; the two never stack (never 4x)
+	-- Friends and group: NO keys here. Config.Economy.FriendBoost / FriendBoostMaxFriends /
+	-- FriendBoostEnabled (the GUI lane) and the existing GroupBoost are the only source, read
+	-- through Money.friendBoost / Money.boostParts; added to each other, never multiplied.
+	-- The Candy icon (candy corn, 256 px): map's +1 / +50 billboards, the GUI lane's chip and the
+	-- event menu read it. "" = each uses its own fallback.
+	CandyIcon = "",
+	-- Match Candy at settle (Halloween/CandyMath; real matches against people only): PerBall a
+	-- ball pocketed, Finished for a match the player's side did not forfeit, Win on top for a
+	-- win; times the event multiplier and the friends + group boost.
+	Match = { Enabled = false, PerBall = 3, Finished = 10, Win = 25 },
+	-- Beating the Pumpkin King: the first PaidWinsPerDay wins of a UTC day pay Candy (flat);
+	-- every win starts a personal cooldown of CooldownSeconds (the King's prompt shows it).
+	Boss = { Candy = 50, PaidWinsPerDay = 2, CooldownSeconds = 900 },
+	-- Lobby pickups (map's CandyDrop spawns them): Candy each (flat), at most HourCap per player
+	-- per UTC hour. The ONLY pickup cap: CandyService.pickup enforces it.
+	Pickup = { Candy = 1, HourCap = 40 },
+	-- Quests: four a board, easiest first, paying Rewards[slot] Candy (flat) on CLAIM. Kind
+	-- (Halloween/Quests): Matches, Wins, Balls, NiceShots, TeamMatches, TeamWins (2v2 or 3v3),
+	-- UltMatches (an ability used in the match), King (Pumpkin King wins), Pickups (lobby Candy),
+	-- Active (seconds of active play). Alt replaces a quest while its hook is off (the King or
+	-- the pickups switched off in Config.HalloweenMap, or no ability signal). Icon: a key of
+	-- Config.UI.Halloween.QuestIcons. Order and needs: docs/halloween/lanes/hw-core.md.
+	Quests = {
+		Enabled = false,
+		Rewards = { 60, 100, 150, 250 },
+		Boards = {
+			{ -- 1, Wed Oct 28
+				{ Kind = "Wins", Need = 1, Icon = "Win" },
+				{ Kind = "Balls", Need = 15, Icon = "Ball" },
+				{ Kind = "Matches", Need = 3, Icon = "Match" },
+				{
+					Kind = "Pickups",
+					Need = 15,
+					Icon = "Candy",
+					Alt = { Kind = "Balls", Need = 30 },
+				},
+			},
+			{ -- 2, Thu Oct 29
+				{ Kind = "TeamMatches", Need = 1, Icon = "Team" },
+				{ Kind = "King", Need = 1, Icon = "King", Alt = { Kind = "Wins", Need = 2 } },
+				{ Kind = "Wins", Need = 2, Icon = "Win" },
+				{ Kind = "Balls", Need = 30, Icon = "Ball" },
+			},
+			{ -- 3, Fri Oct 30
+				{ Kind = "NiceShots", Need = 5, Icon = "Nice" },
+				{ Kind = "UltMatches", Need = 3, Icon = "Ult", Alt = { Kind = "Wins", Need = 3 } },
+				{ Kind = "Wins", Need = 3, Icon = "Win" },
+				{
+					Kind = "Pickups",
+					Need = 30,
+					Icon = "Candy",
+					Alt = { Kind = "Balls", Need = 60 },
+				},
+			},
+			{ -- 4, Sat Oct 31 (opens Halloween night)
+				{ Kind = "Active", Need = 30 * 60, Icon = "Clock" },
+				{ Kind = "King", Need = 2, Icon = "King", Alt = { Kind = "Wins", Need = 3 } },
+				{ Kind = "Balls", Need = 50, Icon = "Ball" },
+				{ Kind = "Wins", Need = 5, Icon = "Win" },
+			},
+			{ -- 5, Sun Nov 1
+				{ Kind = "TeamWins", Need = 1, Icon = "Team" },
+				{ Kind = "Wins", Need = 6, Icon = "Win" },
+				{ Kind = "Balls", Need = 75, Icon = "Ball" },
+				{
+					Kind = "Pickups",
+					Need = 50,
+					Icon = "Candy",
+					Alt = { Kind = "Balls", Need = 100 },
+				},
+			},
+			{ -- 6, Mon Nov 2
+				{ Kind = "Active", Need = 45 * 60, Icon = "Clock" },
+				{ Kind = "King", Need = 3, Icon = "King", Alt = { Kind = "Wins", Need = 4 } },
+				{ Kind = "Wins", Need = 8, Icon = "Win" },
+				{ Kind = "Balls", Need = 100, Icon = "Ball" },
+			},
+		} :: {
+			{
+				{
+					Kind: string,
+					Need: number,
+					Icon: string,
+					Alt: { Kind: string, Need: number }?,
+				}
+			}
+		},
+	},
+	-- The track (Earned + Bought Candy): each step is granted the moment the total reaches At,
+	-- once, never a claim. Cue (one copy, skipped if owned), Spins (ability spins) or Money.
+	Track = {
+		Steps = {
+			{ At = 50, Spins = 1 },
+			{ At = 150, Cue = "CandyCornCue" },
+			{ At = 300, Money = 2500 },
+			{ At = 500, Cue = "JackOLanternCue" },
+			{ At = 1000, Spins = 2 },
+			{ At = 1500, Money = 5000 },
+			{ At = 2000, Cue = "BlackCatCue" },
+			{ At = 3000, Spins = 3 },
+			{ At = 4500, Money = 10000 },
+			{ At = 5500, Spins = 5 },
+			{ At = 7000, Cue = "WitchBroomCue" },
+		} :: { { At: number, Cue: string?, Spins: number?, Money: number? } },
+	},
+	-- The playtime cue: Seconds of ACTIVE play while the event is Live (any server; idle time
+	-- does not count: SkyDropService.isActive), 3 h 01 m.
+	Spider = { Enabled = false, Cue = "SpiderCue", Seconds = 10860 },
+	TickSeconds = 5, -- the server adds active time and retries held grants this often
+	PushSeconds = 2, -- at most one event view pushed to a player this often
+	-- The two Candy packs (Config.Products.List Candy500 / Candy2000; flat, fill the whole track,
+	-- not quests).
+	Packs = { Enabled = false, Keys = { "Candy500", "Candy2000" } },
+	-- Once per save, once the event has ended: all Candy (earned + bought) becomes money.
+	Convert = { Enabled = true, MoneyPerCandy = 10 },
+	-- Test time (Halloween/Clock): the workspace attribute HwTimeOffset (seconds added to the
+	-- server clock) counts only in Studio and on the test place (Config.Save.TestPlace), never
+	-- in the live game. BootLive: at boot those servers move the clock to LiveAfter seconds past
+	-- StartsAt when it is earlier, so a playtest before 19:00 sees the event Live (/hw time).
+	Test = { BootLive = true, LiveAfter = 60 },
 }
 
 ---------------------------------------------------------------------------------------------
@@ -8104,6 +8255,10 @@ Config.Multiplayer = {
 		-- 10 studs across and 8 deep, so two neighbours' walls still stand 4 and 2 apart. (tune)
 		RoomStuds = 3,
 		EscapeStuds = 2, -- a participant this far outside (clipped through) is put back inside
+	},
+	Roam = { -- in-match players walk anywhere while they wait (designer, 2026-10-28)
+		Enabled = false, -- true once the roam checks in HW_SYS_PROMPT section 4 pass; false = the fence for all
+		HomeExtraStuds = 2, -- a shooter this far outside the match walls at turn start goes to the pad
 	},
 	-- The shooter's root on the server (TableService). While they aim, the anchored root
 	-- follows ShooterStance, so a late joiner or a far table sees the shooter at the table; at
@@ -17288,6 +17443,81 @@ Config.UI.PlayerList = {
 		Grandmaster = { 630, 2100 },
 		Reyes = { 1500, 3500 },
 	} :: { [string]: { number } },
+}
+
+-- Roblox badges (src/shared/Progression/Badges.luau decides, src/server/Badges.luau awards;
+-- designer, 2026-10-28; docs/halloween/BADGES.md). One row per line, exactly
+-- `{ Key = "<Key>", BadgeId = 0, Rule = {...} },`: tools/roblox_badges.py creates the badge on
+-- Roblox and writes its id over the 0. Keys never change (saves hold them). BadgeId 0 = inert.
+-- Rules: stat (Stats.<name> at least n), peak (PeakDivision reached that tier), seenRarity (a
+-- Block cue of that rarity ever owned), seenGroup (any cue of that Catalog group ever owned),
+-- seenCount (distinct cues ever owned, Classic excluded), seenCue (that cue ever owned), always,
+-- halloween (the Halloween save field: KingWins, or Candy = Earned + Bought), event (only from a
+-- live hook, never the save). Names and descriptions in Strings.Badges.
+Config.Badges = {
+	Enabled = false, -- the award queue; true once HW_SYS_PROMPT section 4's badge checks pass
+	UniverseId = 10767330648, -- awards run only in this experience; Studio and the test place log
+	OwnerUserId = 544959133, -- Painicane: Met the Owner, Beat the Owner
+	StaggerSeconds = 3, -- at most one award per player every 3 s (PLAN section 2)
+	Budget = { Base = 40, PerPlayer = 30 }, -- badge API calls a minute per server (Roblox: 50 + 35 x players)
+	DebounceSeconds = 2, -- re-check a save this long after its last change (PlayerData.read copies it)
+	RevealDelaySeconds = 8, -- no award this long after openLuckyBlock (the big reel is about 7.7 s)
+	Retries = { 5, 20, 60 }, -- seconds before each retry of a failed call; then wait for the next join
+	Paused = {} :: { [string]: boolean }, -- [Key] = true: cut or misbehaving; the row never awards (a one-line publish)
+	List = {
+		{ Key = "Welcome", BadgeId = 0, Rule = { always = true } },
+		{ Key = "FirstWin", BadgeId = 0, Rule = { stat = "Wins", atLeast = 1 } },
+		{ Key = "Wins5", BadgeId = 0, Rule = { stat = "Wins", atLeast = 5 } },
+		{ Key = "Wins10", BadgeId = 0, Rule = { stat = "Wins", atLeast = 10 } },
+		{ Key = "Wins25", BadgeId = 0, Rule = { stat = "Wins", atLeast = 25 } },
+		{ Key = "Wins50", BadgeId = 0, Rule = { stat = "Wins", atLeast = 50 } },
+		{ Key = "Wins100", BadgeId = 0, Rule = { stat = "Wins", atLeast = 100 } },
+		{ Key = "Wins250", BadgeId = 0, Rule = { stat = "Wins", atLeast = 250 } },
+		{ Key = "Wins500", BadgeId = 0, Rule = { stat = "Wins", atLeast = 500 } },
+		{ Key = "Wins1000", BadgeId = 0, Rule = { stat = "Wins", atLeast = 1000 } },
+		{ Key = "RankBronze", BadgeId = 0, Rule = { peak = "Bronze" } },
+		{ Key = "RankSilver", BadgeId = 0, Rule = { peak = "Silver" } },
+		{ Key = "RankGold", BadgeId = 0, Rule = { peak = "Gold" } },
+		{ Key = "RankPlatinum", BadgeId = 0, Rule = { peak = "Platinum" } },
+		{ Key = "RankDiamond", BadgeId = 0, Rule = { peak = "Diamond" } },
+		{ Key = "RankExpert", BadgeId = 0, Rule = { peak = "Expert" } },
+		{ Key = "RankVeteran", BadgeId = 0, Rule = { peak = "Veteran" } },
+		{ Key = "RankMaster", BadgeId = 0, Rule = { peak = "Master" } },
+		{ Key = "RankGrandmaster", BadgeId = 0, Rule = { peak = "Grandmaster" } },
+		{ Key = "RankReyes", BadgeId = 0, Rule = { peak = "Reyes" } },
+		{ Key = "Streak3", BadgeId = 0, Rule = { stat = "BestWinStreak", atLeast = 3 } },
+		{ Key = "Streak5", BadgeId = 0, Rule = { stat = "BestWinStreak", atLeast = 5 } },
+		{ Key = "Streak10", BadgeId = 0, Rule = { stat = "BestWinStreak", atLeast = 10 } },
+		{ Key = "CueRare", BadgeId = 0, Rule = { seenRarity = "Rare" } },
+		{ Key = "CueEpic", BadgeId = 0, Rule = { seenRarity = "Epic" } },
+		{ Key = "CueLegendary", BadgeId = 0, Rule = { seenRarity = "Legendary" } },
+		{ Key = "CueMythic", BadgeId = 0, Rule = { seenRarity = "Mythic" } },
+		{ Key = "CueSecret", BadgeId = 0, Rule = { seenRarity = "Secret" } },
+		{ Key = "CueUnique", BadgeId = 0, Rule = { seenGroup = "Unique" } },
+		{ Key = "Cues5", BadgeId = 0, Rule = { seenCount = 5 } },
+		{ Key = "Cues10", BadgeId = 0, Rule = { seenCount = 10 } },
+		{ Key = "Cues25", BadgeId = 0, Rule = { seenCount = 25 } },
+		{ Key = "Cues50", BadgeId = 0, Rule = { seenCount = 50 } },
+		{ Key = "Balls100", BadgeId = 0, Rule = { stat = "BallsPocketed", atLeast = 100 } },
+		{ Key = "Balls1000", BadgeId = 0, Rule = { stat = "BallsPocketed", atLeast = 1000 } },
+		{ Key = "Balls10000", BadgeId = 0, Rule = { stat = "BallsPocketed", atLeast = 10000 } },
+		{ Key = "Matches10", BadgeId = 0, Rule = { stat = "Matches", atLeast = 10 } },
+		{ Key = "Matches100", BadgeId = 0, Rule = { stat = "Matches", atLeast = 100 } },
+		{ Key = "Matches1000", BadgeId = 0, Rule = { stat = "Matches", atLeast = 1000 } },
+		{ Key = "Nice10", BadgeId = 0, Rule = { stat = "NiceShots", atLeast = 10 } },
+		{ Key = "Nice100", BadgeId = 0, Rule = { stat = "NiceShots", atLeast = 100 } },
+		{ Key = "Money1M", BadgeId = 0, Rule = { stat = "MoneyEarned", atLeast = 1000000 } },
+		{ Key = "Money10M", BadgeId = 0, Rule = { stat = "MoneyEarned", atLeast = 10000000 } },
+		{ Key = "Squad", BadgeId = 0, Rule = { event = "TeamMatch" } },
+		{ Key = "Ability1", BadgeId = 0, Rule = { event = "UltUsed" } },
+		{ Key = "Ability100", BadgeId = 0, Rule = { stat = "UltMatches", atLeast = 100 } },
+		{ Key = "Crew", BadgeId = 0, Rule = { event = "InGroup" } },
+		{ Key = "MetOwner", BadgeId = 0, Rule = { event = "OwnerHere" } },
+		{ Key = "BeatOwner", BadgeId = 0, Rule = { event = "BeatOwner" } },
+		{ Key = "Halloween2026", BadgeId = 0, Rule = { halloween = "Candy", atLeast = 1 } },
+		{ Key = "PumpkinSlayer", BadgeId = 0, Rule = { halloween = "KingWins", atLeast = 1 } },
+		{ Key = "BroomRider", BadgeId = 0 }, -- Rule { seenCue = "WitchBroomCue" } once Cues A's row is merged
+	} :: { { Key: string, BadgeId: number, Rule: { [string]: any }? } },
 }
 
 -- The rare-pull cutscenes (PullCutscene; GUI lane, designer 2026-10-03, C11d). After the reel

@@ -64,6 +64,7 @@ local STAT_KEYS = {
 	"MoneyEarned",
 	"WinStreak",
 	"BestWinStreak",
+	"UltMatches", -- matches in which the player fired at least one ability (2026-10-28, the Ability Master badge)
 }
 
 -- The top-level sub-tables, all string-keyed maps, in the order fixes are reported.
@@ -86,6 +87,7 @@ local MAP_KEYS = {
 	"Trades",
 	"LuckyBlocks",
 	"EmoteFavorites",
+	"Badges",
 }
 
 -- Shop's true/false fields, in the order fixes are reported.
@@ -235,6 +237,10 @@ function SaveSchema.template(): any
 		-- The emote menu's favourites (2026-10-26; Config.EmoteMenu.List ids): [id] = true. A new
 		-- field, so no version bump: Reconcile adds it to an older save.
 		EmoteFavorites = {},
+		-- Roblox badges this save already holds (2026-10-28; Config.Badges keys): [key] = true.
+		-- A new field, so no version bump: Reconcile adds it to an older save. Unknown keys stay,
+		-- so a retired badge never strips anything.
+		Badges = {},
 	}
 end
 
@@ -1422,6 +1428,8 @@ function SaveSchema.validate(data: any): (any, { string })
 	fixLuckyBlocks(data.LuckyBlocks, fixes)
 
 	fixMap(data.EmoteFavorites, "EmoteFavorites", SaveCfg.MaxSmallEntries, onlyTrue, fixes)
+
+	fixMap(data.Badges, "Badges", SaveCfg.MaxBadgeEntries, onlyTrue, fixes)
 
 	return data, fixes
 end

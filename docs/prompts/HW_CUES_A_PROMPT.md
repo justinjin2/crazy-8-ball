@@ -630,7 +630,7 @@ Justin's changes at a gate go straight into the work and into the lane file's St
 
 ## Progress
 
-- [ ] 1. Drop 1 (by 08:15): after section 0 and a look at your window (templates and pieces
+- [x] 1. Drop 1 (by 08:15): after section 0 and a look at your window (templates and pieces
   counted), the five Catalog rows (`eventCue`, Effects, `StandIn`, `Event`, `Catalog.ready`, the
   `ofRarity` hiding, `drawAs` in `paintStick`), the five Strings names, tests; lint, tests, a
   Studio check and a fresh-player run; push; `READY drop 1` and `MERGE drop 1` in the lane file.

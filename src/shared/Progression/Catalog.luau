@@ -24,6 +24,9 @@
 --             Shaft, Forearm, Wrap, Ring, and optional Tip, Cap, Accent (a band in the
 --             forearm) and Rainbow (the forearm in the house rainbow). A skinned cue's comes
 --             from its colour map (CueSkins.Index, generated); its real look is its skin.
+--   Event     an event cue's event ("Halloween2026"): hidden from the Index and from every
+--             per-rarity list until its skin is built (Catalog.ready), never traded or sold
+--   StandIn   the catalog cue an event cue is drawn as until its skin exists (Classic)
 --
 -- The cues are the cue-skins run's (2026-09-30, docs/prompts/CUE_SKINS_REPORT.md): every block,
 -- rank and Exclusive cue has a skin; the Unique cues keep placeholder bands until theirs exist.
@@ -52,6 +55,8 @@ export type Cue = {
 	Tier: string?,
 	Effect: string,
 	Look: Look,
+	Event: string?,
+	StandIn: string?,
 }
 
 local Catalog = {}
@@ -128,8 +133,19 @@ local function specialCue(id: string, group: string, effect: string, look: Look)
 	}
 end
 
+-- The Halloween 2026 event cues (designer, 2026-10-28; docs/halloween/PLAN.md §3): group
+-- Exclusive, one copy each, never traded or sold, never coming back. Effect is the visual
+-- ladder level (Pop.level). Until its skin is built a cue is hidden (Catalog.ready) and drawn
+-- as Classic (StandIn); specialCue takes the skin's Look once the Index has it.
+local function eventCue(id: string, effect: string): Cue
+	local cue = specialCue(id, "Exclusive", effect, skinLook(Catalog.Default))
+	cue.Event = "Halloween2026"
+	cue.StandIn = Catalog.Default
+	return cue
+end
+
 -- The rows, in the Index's order: Classic, then block cues bottom rarity first, then the
--- Exclusive and Unique groups.
+-- Exclusive and Unique groups, then the event cues.
 local CUES: { Cue } = {
 	{
 		-- Shown as a Common (designer, 2026-09-30) but still everyone's free default: owned from
@@ -237,6 +253,13 @@ local CUES: { Cue } = {
 		Ring = { 255, 255, 255 },
 		Accent = { 255, 92, 184 },
 	}),
+	-- Halloween 2026 (Exclusive; the track and the playtime cue, PLAN §2 and §3). The ids
+	-- CandyCue (the Candy Cane invite cue) and PhantomCue are taken: never reused.
+	eventCue("CandyCornCue", "Epic"), -- track 150
+	eventCue("JackOLanternCue", "Legendary"), -- track 500
+	eventCue("BlackCatCue", "Mythic"), -- track 2,000
+	eventCue("SpiderCue", "Mythic"), -- 3 h 01 m of active event play
+	eventCue("WitchBroomCue", "Secret"), -- track 7,000
 }
 
 local byId: { [string]: Cue } = {}
@@ -285,16 +308,46 @@ function Catalog.rarityRank(rarity: string): number
 	return RARITY_ORDER[rarity] or 0
 end
 
+--- True when cue `id` may be shown and granted: any catalog cue that is not an event cue, or
+--- an event cue whose skin is in the Index (a skin JSON with "draft": true is not). The fixed
+--- contract with the event core (docs/prompts/HW_CUES_A_PROMPT.md 2.1): a track cue is granted
+--- only while this is true, held and retried otherwise. Unknown ids are never ready.
+function Catalog.ready(id: any): boolean
+	local cue = Catalog.get(id)
+	if cue == nil then
+		return false
+	end
+	return cue.Event == nil or SkinIndex[cue.Id] ~= nil
+end
+
 --- The cues of one rarity or group, in catalog order ("Common", ..., "Ranked", "Exclusive",
---- "Unique").
+--- "Unique"). An event cue that is not ready is left out, so the Index row, its totals and
+--- every per-rarity pool never show an unbuilt cue (list, get and exists still know it).
 function Catalog.ofRarity(rarity: string): { Cue }
 	local list = {}
 	for _, cue in CUES do
-		if cue.Rarity == rarity then
+		if cue.Rarity == rarity and (cue.Event == nil or Catalog.ready(cue.Id)) then
 			table.insert(list, cue)
 		end
 	end
 	return list
+end
+
+--- The catalog id whose mesh template a stick drawn as `id` wears: its own when `has(id)`,
+--- else its StandIn's (an event cue before its skin exists draws as Classic) when the stick
+--- can have that, else nil (the band cue). `has` says whether a template exists for an id.
+function Catalog.drawAs(id: string, has: (string) -> boolean): string?
+	local cue = Catalog.get(id)
+	if cue == nil then
+		return nil
+	end
+	if has(cue.Id) then
+		return cue.Id
+	end
+	if cue.StandIn and has(cue.StandIn) then
+		return cue.StandIn
+	end
+	return nil
 end
 
 --- The cues an odds row can drop at one rarity, in catalog order: block cues of that rarity
