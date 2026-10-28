@@ -44,8 +44,37 @@ local ShopParts = require(script.Parent.ShopParts)
 local TutorialAnchors = require(script.Parent.TutorialAnchors)
 local UIAnim = require(script.Parent.UIAnim)
 local UISound = require(script.Parent.UISound)
-local EventButton = require(script.Parent.Halloween.EventButton) -- Halloween 2026 (hw-core)
-local KingTimer = require(script.Parent.Halloween.Countdown) -- the timed King's pill (hw-core)
+-- Halloween 2026 (hw-core): the tile (EventButton) and the timed King's pill (Countdown), loaded
+-- when first used and in a pcall, so a module that fails to load leaves the corners working.
+local halloweenModules: { [string]: any } = {}
+local function halloween(name: string): any
+	local cached = halloweenModules[name]
+	if cached == nil then
+		local ok, module = pcall(function(): any
+			return require(script.Parent.Halloween:FindFirstChild(name) :: any) :: any
+		end)
+		if not ok then
+			warn(
+				("[8ball] HubCorners: Halloween.%s failed to load: %s"):format(
+					name,
+					tostring(module)
+				)
+			)
+		end
+		cached = if ok then module else false
+		halloweenModules[name] = cached
+	end
+	return if cached then cached else nil
+end
+-- The timed King's pill as a controller stop, or nil (none, or its module failed).
+local function kingStop(): GuiObject?
+	local KingTimer = halloween("Countdown")
+	if not KingTimer then
+		return nil
+	end
+	local ok, stop = pcall(KingTimer.padStop)
+	return if ok then stop else nil
+end
 
 local C = Config.UI.Corners
 local U = Config.UI.Settings
@@ -413,11 +442,14 @@ function HubCorners.new(screen: ScreenGui, deps: any): any
 	-- The Halloween event's tile (hw-core): the challenge's spot, or next to the offer tile. Built
 	-- last, once everything its layout reads exists.
 	-- One that fails to build warns and is left out, so the corners still work.
-	local tileOk, tile = pcall(EventButton.new, root, self)
-	if tileOk then
-		self.eventTile = tile
-	else
-		warn(("[8ball] Halloween tile failed to build: %s"):format(tostring(tile)))
+	local EventButton = halloween("EventButton") -- nil when it failed to load (warned there)
+	if EventButton then
+		local tileOk, tile = pcall(EventButton.new, root, self)
+		if tileOk then
+			self.eventTile = tile
+		else
+			warn(("[8ball] Halloween tile failed to build: %s"):format(tostring(tile)))
+		end
 	end
 	self:refreshPlus()
 	self:refreshOffers()
@@ -820,7 +852,7 @@ function HubCorners.padStops(self: any): { GuiObject }
 	for _, button in
 		{
 			self.eventTile and self.eventTile.button, -- the Halloween tile first (hw-core)
-			KingTimer.padStop() :: any, -- the timed King's pill, shown only while he counts (hw-core)
+			kingStop() :: any, -- the timed King's pill, shown only while he counts (hw-core)
 			self.challenge.button,
 			self.offerTile.button,
 			self.offerDismiss,
@@ -872,7 +904,7 @@ function HubCorners.blurPad(self: any)
 			self.plusTile.button,
 			self.deps.boostPill and self.deps.boostPill.tag, -- the boost pill (hw-gui lane)
 			self.eventTile and self.eventTile.button, -- the Halloween tile (hw-core)
-			KingTimer.padStop() :: any, -- the timed King's pill (hw-core)
+			kingStop() :: any, -- the timed King's pill (hw-core)
 		} :: { GuiObject }
 	do
 		button.Selectable = false
@@ -888,7 +920,7 @@ end
 --- Whether the controller is on the corner buttons now (focusPad).
 function HubCorners.padFocusedOn(self: any, object: Instance?): boolean
 	local pill = self.deps.boostPill and self.deps.boostPill.tag -- in money's root (hw-gui lane)
-	local king = KingTimer.padStop() -- the timed King's pill, in the HUD's screen (hw-core)
+	local king = kingStop() -- the timed King's pill, in the HUD's screen (hw-core)
 	return self.padFocused
 		and object ~= nil
 		and (
