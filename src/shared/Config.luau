@@ -17389,6 +17389,24 @@ Config.UI.Halloween = {
 		StartedSeconds = 6, -- "THE HALLOWEEN EVENT HAS STARTED!" stays this long
 		StartedWindowSeconds = 120, -- a player busy at 19:00 still gets it this long after
 	},
+	-- The timed Pumpkin King's timer in the same pill while Live (Halloween/Countdown; only with
+	-- Config.HalloweenMap.Boss.Mode "Timed"): "PUMPKIN KING IN 14:22", then in gold "PUMPKIN
+	-- KING IS HERE! 9:41". A tap (or A on the selected pill) shows the guide to him: the
+	-- tutorial arrow's chevrons in one beam from the body and its arrowhead over him.
+	King = {
+		Tag = "PumpkinKing", -- the map lane's CollectionService tag on his figure
+		SpotStuds = 9, -- with no figure in reach: the guide's point over his stage's pivot
+		HeadLiftStuds = 1.5, -- the arrowhead's tip over his head
+		HeadPx = 56, -- the arrowhead's size on screen at any distance (it points down)
+		HeadBobShare = 0.25, -- it bobs up this share of its size...
+		HeadBobSeconds = 1.1, -- ...and back in this long
+		BodyLiftStuds = 0.6, -- the beam's start over the HumanoidRootPart (chest height)
+		FlowPerSecond = -1.6, -- the chevrons' scroll in repeats a second (minus: toward him)
+		FadeShare = 0.12, -- the beam fades in over this share of it at the body
+		ArriveStuds = 16, -- the guide goes off this close to him (flat distance)
+		GuideSeconds = 120, -- or after this long
+		MinHitPx = 40, -- the pill's tap area is at least this tall (phones)
+	},
 	-- The Candy toast and the NEW CUE! card (Halloween/CandyToast).
 	Toast = {
 		ChipPx = 44, -- the "+57" chip's height (a phone's: ShortChipPx)
