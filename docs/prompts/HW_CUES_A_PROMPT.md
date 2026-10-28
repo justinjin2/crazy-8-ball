@@ -658,7 +658,7 @@ Justin's changes at a gate go straight into the work and into the lane file's St
   sway, slit pulse; lab and hands.
 - [x] 11. Jack: trail and finisher (`jack_o_lantern_pocket` with the laughing jaw, fire column,
   seeds and embers, mini jacks), the library laugh proven to load; checked in a match.
-- [ ] 12. Both cards rendered with the body and their final aura (`cue_skin.py <sid> --thumb`)
+- [x] 12. Both cards rendered with the body and their final aura (`cue_skin.py <sid> --thumb`)
   and uploaded; both skins out of draft (2.2: the generator runs clean without
   `--allow-missing`; this is what lets core grant them); checked in the Index, My Cues and the
   power bar; push; a merge Request per cue. If line 11 is not done by 14:00, do Candy Corn's

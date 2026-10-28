@@ -55,6 +55,21 @@ From PLAN §4 (everything else is read-only; ask through Requests):
 
 ## Status (continued)
 
+- 2026-10-28 10:33: **Both cues out of draft: Candy Corn @ 1bd06f55, Jack-o'-Lantern @ ba50947d**
+  (Progress 12; pushed; lint green, the full run 1,409 green, `client_compiles_test` green).
+  Cards: `cue_skin.py <sid> --thumb` for both (the body with its frozen aura), uploaded to the
+  group as Decals, image ids in the manifest (candy 112696270813806, jack 110159550393453);
+  `"draft": false`, the generator clean without `--allow-missing`: the Index has
+  `CandyCornCue`, `JackOLanternCue`, the `candy_corn` and `jack_o_lantern` bodies and
+  `jack_o_lantern_pocket` (Upright); `Catalog.ready` is true for both, so core can grant
+  them. Studio (my window, Play, a fresh mock save, the tutorial skipped, both given with
+  `/givecue`): the Index's Exclusive row reads 3 / 4 with VIP, Starter, Candy Corn Cue and
+  Jack-o'-Lantern Cue and their cards (`index_exclusive_row_candy_jack.jpg`); My Cues shows
+  both cards as NEW beside VIP and the equipped Classic (`my_cues_candy_jack_cards.jpg`); the
+  power bar draws Jack's card with the Jack body in hand in a solo fixture
+  (`jack_power_bar_card_and_hands.jpg`). Console: no cue warnings. The templates for both
+  are built in my window only (`build_cue_templates.luau` `ONLY`); the live place needs them
+  built at integration (Progress 14), not by this lane.
 - 2026-10-28 10:28: **Jack-o'-Lantern complete @ db1a9fdb** (Progress 10 and 11; the `Upright`
   flag it needed @ 73fc00ae, its own commit; both pushed). Aura: dark smoke, flame wisps,
   rising embers, crackle, the mini-jack flipbook (16 frames of the pocket jack laughing,
@@ -178,6 +193,12 @@ Planned (PLAN §7 shared files; own block or line only; add the sha to each as i
 
 ## Requests
 
+- 10:33 **MERGE Jack-o'-Lantern Cue** (`hw-cues-a` @ ba50947d: the Jack content db1a9fdb, the
+  `Upright` flag 73fc00ae, out of draft ba50947d; `assets/cue/CuePieces.py` gets three
+  additive lines). Runtime change: the Index gains the row; CuePiece reads `row.Upright`,
+  unset on every shipped piece.
+- 10:33 **MERGE Candy Corn Cue** (`hw-cues-a` @ 1bd06f55: the content e78636a4, out of draft
+  1bd06f55 with both cards' manifest rows). Runtime change: the Index gains the row.
 - 10:02 **MERGE CuePreview bodies** (`hw-cues-a` @ 5078ac33: `assets/cue/CuePreview.py` only plus
   the Candy Corn card; Cues B needs it for its three cards).
 - 09:45 **MERGE NOW drop 3: Cues B needs it for gate 2 at 11:00** (`hw-cues-a` @ 37573b2c: the
@@ -267,3 +288,8 @@ Gate 2 addition (10:28, `gate2/`): Jack-o'-Lantern complete @ db1a9fdb (+ 73fc00
   jaw in place.
 - `jack_finisher_rise.jpg`: the finisher in Play at its full rise: the jack face-on, mouth
   open, seed embers round it, the laugh playing.
+- `index_exclusive_row_candy_jack.jpg`: the Index's Exclusive row, 3 / 4: VIP, Starter, Candy
+  Corn Cue and Jack-o'-Lantern Cue with their cards (both skins out of draft).
+- `my_cues_candy_jack_cards.jpg`: My Cues: the two new cards beside VIP and the equipped Classic.
+- `jack_power_bar_card_and_hands.jpg`: a solo fixture with Jack equipped: the power bar draws
+  its card, the body in hand.
