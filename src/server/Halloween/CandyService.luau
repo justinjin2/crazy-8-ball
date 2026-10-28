@@ -455,7 +455,12 @@ local function tickPlayer(player: Player): any
 	if Event.over(ctx.now) then
 		local result = PlayerData.hwConvert(player, ctx)
 		if result ~= nil then
-			Funnel.event(player, "HwConvert", result.money, CandyService.band(result.money // 10))
+			Funnel.event(
+				player,
+				"HwConvert",
+				result.money,
+				CandyService.band(result.money // C.Convert.MoneyPerCandy)
+			)
 			CandyService.changed(player)
 		end
 		return nil
@@ -506,8 +511,9 @@ local function onRequest(player: Player, msg: any)
 			CandyService.changed(player) -- a refused claim: the client's view is set right
 		end
 	elseif msg.seen == true then
-		Funnel.event(player, "HwMenu", 1, "Open")
+		-- Logged once a save (the first open), so a client cannot spend the analytics budget.
 		if PlayerData.hwMark(player, "Seen") then
+			Funnel.event(player, "HwMenu", 1, "Open")
 			CandyService.changed(player)
 		end
 	elseif msg.endSeen == true then

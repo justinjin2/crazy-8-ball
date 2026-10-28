@@ -3703,6 +3703,20 @@ function PlayerData.hwClaim(player: Player, key: string, ctx: HwCtx): (number, H
 		refuse("hwClaim", player, "bad key")
 		return 0, nil
 	end
+	-- A claim that cannot pay (not Live, no such quest, unfinished, claimed) commits nothing.
+	local data = peek(player)
+	local saved = if data ~= nil and type(data.Halloween) == "table" then data.Halloween else nil
+	local found = if HwEvent.isLive(ctx.now) then Quests.find(key, ctx.open, ctx.hooks) else nil
+	if
+		saved == nil
+		or found == nil
+		or type(saved.Q) ~= "table"
+		or type(saved.Claimed) ~= "table"
+		or saved.Claimed[key] == true
+		or not Quests.done(saved.Q, found)
+	then
+		return 0, nil
+	end
 	local claimed = 0
 	local result = hwMutate("hwClaim", player, function(_, hw, result)
 		if not HwEvent.isLive(ctx.now) then
