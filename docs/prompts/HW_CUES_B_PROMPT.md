@@ -625,7 +625,7 @@ floor by **15:00**, write a Request to the coordinator at once (Cues A may take 
 - [x] 6. Spider body: segmented chrome shaft, spear ferrule, one crimson hourglass, the skinned
   eight-blade crown with silk webs and breathing blades (compact and long, `Aim` on the crown
   root), one atlas; `check_envelope` passes; uploaded; preview beside `C1b_spider.png`.
-- [ ] 7. Bodies in the game: drops 2 and 3 merged, rows generated, the ONLY build of the three in
+- [x] 7. Bodies in the game: drops 2 and 3 merged, rows generated, the ONLY build of the three in
   your window; each checked in the hands (long wind-up, steep shot), on a back (small R15, tall
   R15, R6, walking and sitting), raised over a rail, and in the aim view at phone and PC sizes.
 - [x] 8. Gate 2 at 11:00: the three bodies on a stand, a back, in the hands and in the aim view
@@ -655,14 +655,14 @@ floor by **15:00**, write a Request to the coordinator at once (Cues A may take 
 - [x] 18. Long overhangs decided, before any card: the aim fade watched in your aim camera at
   phone and PC sizes → long variants on (rebuilt, uploaded, re-checked on a back); otherwise
   the compact ones ship and the cut is logged.
-- [ ] 19. Cards: the three thumbnails with their auras and the overhang variant P18 chose,
+- [x] 19. Cards: the three thumbnails with their auras and the overhang variant P18 chose,
   through `tools/cue_skin.py <id> --thumb` (Cues A's body support), uploaded, ids applied, all
   three skins out of draft (2.8); checked in My Cues, the Index and the event track at phone and
   PC sizes; a `READY` Request per cue to the coordinator (section 3).
-- [ ] 20. Final lineup and devices: all three beside Eclipse, Beta and Firework in the lab (Day
+- [x] 20. Final lineup and devices: all three beside Eclipse, Beta and Firework in the lab (Day
   and Night), the aim view at the four sizes, a rejoin with each cue equipped; the Lune test
   requires all three rows; compile, lint and tests green.
-- [ ] 21. Lane file Status final + all screenshots.
+- [x] 21. Lane file Status final + all screenshots.
 - [ ] 22. Merge halloween, re-test, push.
 
 ## Notes

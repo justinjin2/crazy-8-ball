@@ -274,6 +274,25 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
 
 ## Requests
 
+- 11:43 **READY WitchBroomCue @ a431419b** (skin `witch_broom`, Secret, the Candy Track's
+  7,000 reward). Piece ids: `witch_broom` (body, 6 parts), `witch_broom_aura` (ribbons),
+  `witch_broom_pocket` (finisher, 13 parts). Manifest paths: `assets/cue/pieces/witch_broom/`,
+  `assets/cue/pieces/witch_broom_aura/`, `assets/cue/pieces/witch_broom_pocket/`,
+  `assets/cue/vfx/witch_broom/` (bat_flap_4x4, crescent, straw, witch over the moon),
+  `assets/cue/thumbs/witch_broom.png`; shared sprites under `assets/cue/vfx/_shared/` and
+  `assets/cue/vfx/v2/`; pocket sound is the library id 9125646252 (no upload). All rows `ok`.
+  The Team Create template build includes it (Cues A's Request 3: ONLY with all five ids,
+  ALL = false).
+- 11:43 **READY BlackCatCue @ a431419b** (skin `black_cat`, Mythic, the track's 2,000 reward).
+  Piece id: `black_cat` (body, 4 parts; the leap and the pack are sprites, no pocket piece).
+  Manifest paths: `assets/cue/pieces/black_cat/`, `assets/cue/vfx/black_cat/` (cat_run_4x4,
+  cat_leap_4x4), `assets/cue/thumbs/black_cat.png`; pocket sound 9125645963 (library). All rows
+  `ok`. Same template build line as above.
+- 11:43 **READY SpiderCue @ a431419b** (skin `spider`, Mythic, the Play 3h reward). Piece ids:
+  `spider` (body, 4 parts), `spider_pocket` (web finisher, 3 parts). Manifest paths:
+  `assets/cue/pieces/spider/`, `assets/cue/pieces/spider_pocket/`, `assets/cue/vfx/spider/`
+  (web, silk, web_ring), `assets/cue/thumbs/spider.png`; pocket sound 9125647922 (library).
+  All rows `ok`. Same template build line as above.
 - 11:30 **REQUEST to the coordinator: merge Cues A's drop 3 into `halloween`** (`hw-cues-a`
   @ 37573b2c, Cues A's 09:45 "MERGE NOW"; their 10:45 list also names 5078ac33, 1bd06f55,
   ba50947d, 73fc00ae, d6dccb21 and ed8b7ca3, all on `hw-cues-a`, which already contains
@@ -509,6 +528,22 @@ for at 08:55 and 10:08).
   soft break toward the head rail fouled (ball in hand anywhere), the cue ball placed at the
   head rail, so the shooter stands behind the rail with the bark handle rising over it; the
   shooter is the near-camera ghost (the fade), the crystal tip at the ball.
+- `p19_my_cues_pc.jpg`: My Cues at PC size after the merge and the ONLY build: the Black
+  Cat, Spider and Witch's Broom cards (EXCLUSIVE, NEW) beside the VIP and Classic cues, each
+  with its aura drawn on the card.
+- `p19_index_exclusive_pc.jpg`: the Index's Exclusive rows at PC size: the three cards with
+  the CLAIM! overlay (owned, unclaimed), the Unique section below.
+- `p19_index_exclusive_header_pc.jpg`: the same with the "Exclusive 4/7" header: VIP, Starter,
+  Candy Corn and Jack-o'-Lantern on the first row, the three on the second.
+- `p19_event_track_pc.jpg`: the Halloween event menu at PC size: the Candy Track with the
+  Candy Corn (150), Jack-o'-Lantern (500), Black Cat (2,000) and Witch's Broom (7,000) tiles,
+  the Spider on the Play 3h 01m card.
+- `p19_event_track_phone.jpg`: the event menu with its Root at 844x390: the track scrolls,
+  the Black Cat tile in view, the Broom tile past the right edge (the track's own scroll).
+- `p19_my_cues_phone.jpg`: My Cues at 844x390: the five cards in one row, names and auras
+  readable.
+- `p19_index_phone.jpg`: the Index at 844x390 scrolled to Exclusive 4/7: all seven cards in
+  two rows, the three CLAIM! cards readable.
 - Not yet shot: hands from a watcher's side (the match camera owns the camera on my turn);
   the long wind-up and the steep shot in the hands (fired through the real path at power 1
   and elevation 60, but the stroke lasts half a second and the capture lands after it; the
