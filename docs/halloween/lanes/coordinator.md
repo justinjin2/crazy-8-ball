@@ -35,6 +35,16 @@ From PLAN §4 (lanes ask for these through their own lane file's Requests):
 
 ## Status
 
+- 09:12 interface merge pushed: halloween @808ed389 (+ ticks @792bbb35) = sys 1c9f99b7, core 1c9945a0, cues-a
+  1039f19b, gui b2c51102 (NOT b3bb0288 "Friend boost on": live pay, own review later), map 6d45e218. Reviews: 2
+  workflows (5 lanes), 0 critical; minor findings sent as Requests. lint OK, 1370 passed / 0 failed, Studio
+  Team Create: Rojo synced (Config 984285 bytes both sides), Play solo clean (only the old 203785492 warning).
+- 09:05 new tests/client_compiles_test.luau (14e2d157): every src script compiles; Main.client must keep 8
+  top-level locals of headroom (it had 14; map's block takes 2). Every lane told to wrap Main hooks in do...end.
+- 08:58-09:02 store: originals recorded (store/original.json: "[EMOTES] CRAZY 8 Ball", icon 123614794049673 TN3);
+  icons 5H-1H, LIVE, plain from M6 (512, corners square), uploaded with a copy of today's icon: all 8 APPROVED
+  (store/icons.json). tools/halloween/store_page.py (dry-run default, log store/log.txt), selftest OK.
+  Contract test tests/halloween_contract_test.luau (da021510): skips per lane until merged.
 - 08:52 coordinator (CLI, started 08:44): baseline `halloween` @b16b5544, lint OK, tests 1345 passed / 0 failed.
   Hand-over verified: briefs, lane files, hooks committed and pushed (origin/halloween = local), six worktrees at
   b16b5544 with brief + lane file + hook, six lane Studio windows + the Team Create window in `list_roblox_studios`,
@@ -49,6 +59,8 @@ From PLAN §4 (lanes ask for these through their own lane file's Requests):
 - 07:50 desktop session (hand-over): the briefs, lane files and hooks committed and pushed on
   `halloween`, the six worktrees fast-forwarded to it, the six lane Studio windows opened.
   Verify it at the 07:30 Progress line; do not redo it.
+- 09:21 Gate 1 page published (private): "Halloween Gates" https://claude.ai/artifact/R2zt2CDfJeU5wuJp7VvMXA (slug c2a2bdc0-a441-4a0c-8479-0585a4bd07ad, v 1793193675-635a); builder `~/Desktop/8ball-refs/halloween/shots/coordinator/gate/build.py gate1|gate2`. Five asks to Justin: icons, event text, title, store schedule yes, gui's +0% pill.
+- 09:55 Merged core interface 2 (7f01d27b), sys 4cdf5620, gui f2562efb -> 82ab885c; review workflow wf_209d4f07-82b (9 agents): 18 confirmed findings, none blocking with switches as they are; posted to each lane (core 6, sys 5, gui 5). Hand-resolved additive conflicts: SaveSchema/save_schema_test (core vs sys Badges), Ranking requires. Lint OK, 1,404 tests, Studio play clean (pill +120%). Pushed before the Studio check (order slip; check passed). Release checklist must carry: gui's Soft-step VIP confirmation fix; core's EventButton boot error and pad blur before Halloween.Enabled tiles show at 19:00.
 
 ## Shared-file changes
 

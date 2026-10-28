@@ -240,6 +240,11 @@ return {
 			Store = "The global queue isn't answering. Try again.",
 			Party = "Your party changed, so the search stopped.",
 			Refresh = "Couldn't move to a fresh server. Playing on here.", -- the server refresh
+			-- The Pumpkin King's challenge (Halloween 2026; BossService).
+			KingBusy = "The Pumpkin King is busy. Try again in a moment!",
+			KingNoTable = "No free table for the Pumpkin King right now. Try again soon!",
+			KingCooldown = "The Pumpkin King is resting. Come back when he's ready!",
+			KingNotNow = "You can't challenge the Pumpkin King right now.",
 		},
 	},
 	-- The arena's card while players arrive (ArenaStatus).
@@ -262,6 +267,50 @@ return {
 		NotYours = "That match wasn't yours. Back to the lobby...",
 		Started = "Your match already started. Back to the lobby...",
 		Rejoin = "We couldn't take you back to the lobby. Please join the game again.",
+	},
+	-- The Haunted Rooftop (Halloween 2026; hw-map lane: BossService, CandyDrop, MapClient).
+	HalloweenMap = {
+		KingName = "Pumpkin King", -- the bot's name in the match and over his throne
+		Challenge = "Challenge the Pumpkin King", -- the throne's prompt
+		ChallengeObject = "Pumpkin King", -- the prompt's small line
+		ReadyIn = "Ready in %s", -- the prompt while he rests (a m:ss clock)
+		Resting = "The Pumpkin King is resting. Ready in %s.", -- the note on a press while he rests
+		CandyWon = "+%d CANDY", -- the billboard over the table on a win
+		CandyPickup = "+%d", -- the billboard on a picked-up candy
+		BagFull = "Your candy bag is full until :00", -- a pickup over core's hour cap
+		-- What he says (BotService.say): short, kind, never an insult.
+		Taunts = {
+			Seated = {
+				"Welcome to my table, mortal!",
+				"Ha! Another challenger for the King!",
+				"Let's see if you can beat royalty!",
+			},
+			HisPot = {
+				"Ha! Right in!",
+				"Pumpkin precision!",
+				"Smooth as candy!",
+			},
+			HisFoul = {
+				"Oops! My crown slipped.",
+				"That never happened!",
+				"Even kings miss sometimes.",
+			},
+			YourPot = {
+				"Not bad, mortal!",
+				"Ooh, nice one!",
+				"Lucky shot!",
+			},
+			HisWin = {
+				"The King wins again! Try once more!",
+				"Bow to the Pumpkin King! Come back anytime!",
+				"Good game! I'll be on my throne.",
+			},
+			HisLoss = {
+				"Nooo! You beat the King!",
+				"Well played! Take your candy!",
+				"You win this time, champion!",
+			},
+		},
 	},
 	-- The row under a finished two-sided game (PostMatch, on the result screen).
 	PostMatch = {
@@ -667,6 +716,12 @@ return {
 			StarterCue = "Starter Cue",
 			BetaCue = "Beta Cue",
 			FireworkCue = "Firework Cue",
+			-- Halloween 2026 (docs/halloween/PLAN.md §3)
+			CandyCornCue = "Candy Corn Cue",
+			JackOLanternCue = "Jack-o'-Lantern Cue",
+			BlackCatCue = "Black Cat Cue",
+			SpiderCue = "Spider Cue",
+			WitchBroomCue = "Witch's Broom",
 		},
 		Rarities = {
 			Common = "Common",
@@ -1222,6 +1277,42 @@ return {
 		Title = "Extra luck for the release!",
 		Step = "%s to %s: %s instead of %s",
 		EndsIn = "Ends in %s",
+	},
+	-- The boost pill over the money pill (BoostPill; Halloween 2026, hw-gui lane): "+130%" and
+	-- its "YOUR BOOSTS" card, a row per part (Money.boostParts' kinds).
+	BoostPill = {
+		Title = "YOUR BOOSTS",
+		Percent = "+%d%%",
+		Parts = {
+			Vip = "VIP",
+			Group = "Group",
+			Plus = "Roblox Plus",
+			Friends = "Friends (%d)",
+			Starter = "Starter Pack",
+			Party = "Money Party",
+		},
+		TimeLeft = "%s left", -- after a timed part: "Starter Pack · 42m left"
+		Total = "Total",
+		None = "No boosts yet",
+		FriendRule = "Each friend in your server +%d%% (max %d)",
+		CandyToo = "Friends and Group boost Candy too",
+		Get = {
+			Group = "Join the group: +%d%%",
+			Friends = "Friends here: +%d%% each",
+			Vip = "VIP: +%d%%",
+		},
+	},
+	-- The Cue Preview (CuePreview; R7): the stage behind a framed panel.
+	CuePreview = {
+		Title = "CUE PREVIEW",
+		Tabs = { Model = "MODEL", Trail = "TRAIL", Finisher = "FINISHER" },
+		AuraOn = "AURA ON",
+		AuraOff = "AURA OFF",
+		Equip = "EQUIP",
+		Equipped = "EQUIPPED",
+		Hint = "Drag to rotate",
+		Loading = "Loading...",
+		Button = "Preview",
 	},
 	-- The login days (economy v4 plan 6.1): the first week, then the later weeks.
 	Login = {
@@ -1799,6 +1890,34 @@ return {
 		Value = "x%d VALUE!", -- the Starter Pack's worth over its price
 		Off = "%d%% OFF!", -- VIP's welcome offer against VIP's price
 		Only = 'ONLY <font color="#%s">%s</font>',
+	},
+	-- The Halloween 2026 event (src/client/Halloween; Config.Halloween). Candy is the event's
+	-- currency; the quests' text takes the need ("Win %d matches").
+	Halloween = {
+		Name = "HALLOWEEN", -- the right-side tile
+		Title = "HALLOWEEN EVENT", -- the event menu's header
+		Candy = "Candy",
+		EndsIn = "ENDS IN %s", -- the tile's and the menu's pill, a duration (Halloween.Event.short)
+		-- The Candy Rush chip above the boost pill (the GUI lane's shell): the time left.
+		Chip = {
+			Rush = "2x CANDY %s", -- "2x CANDY 8:12" (mm:ss)
+			Double = "2x CANDY %s", -- Oct 31: "2x CANDY 9:12:44" (h:mm:ss)
+		},
+		Countdown = "HALLOWEEN EVENT IN %s", -- 18:30-19:00, "HALLOWEEN EVENT IN 29:59"
+		Started = "THE HALLOWEEN EVENT HAS STARTED!",
+		Ended = "THE HALLOWEEN EVENT HAS ENDED!",
+		-- The designer's /hw command (DevCommands; CandyService.dev).
+		Dev = {
+			Status = "Halloween: %s at %s UTC (offset %ds). Candy %d, board %d, %dx, active %ds",
+			Usage = "/hw [time ...|candy <n>|quest done|active <s>|kingwin|convert|reset]",
+			TimeUsage = "/hw time before|countdown|live|rush|double|end|real|board <n>|+<seconds>",
+			TimeLiveGame = "Test time only works in Studio and on the test place.",
+			Added = "+%d Candy",
+			QuestsDone = "%d quest(s) moved",
+			KingWin = "King win: +%d Candy, cooldown %ds",
+			Converted = "Converted: $%d",
+			NotConverted = "Nothing to convert (the event is not over, or already done)",
+		},
 	},
 	-- The banner at the top middle (Banner). Names are players' usernames.
 	Banner = {

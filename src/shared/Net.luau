@@ -442,6 +442,12 @@ local REMOTES: { [string]: string } = {
 	-- server -> everyone: { userId, id, at } (someone started a dance) or { userId, stop = true };
 	-- server -> one player: { favorites = { [id] = true } } on load and after each change.
 	EmoteState = "RemoteEvent",
+	-- The Haunted Rooftop (Halloween 2026; src/server/HalloweenMap, src/client/HalloweenMap).
+	-- server -> clients: { kind = "Burst", tableId, at, amount, winner } (the King's candy
+	-- explosion, to everyone), { kind = "Pickup", at } and { kind = "BagFull" } (to one player).
+	HalloweenMapFx = "RemoteEvent",
+	-- client -> server: (no arguments) challenge the Pumpkin King; every check is the server's.
+	KingChallenge = "RemoteEvent",
 }
 
 -- Values per table in an AimBroadcast batch.

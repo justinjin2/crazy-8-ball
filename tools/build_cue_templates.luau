@@ -13,8 +13,13 @@
 --                                            dressed (Material, Color, Transparency,
 --                                            Reflectance, SurfaceAppearance)
 --
--- Classic's own template is never touched. Running it again rebuilds every other template, so
--- it is safe to repeat after the data changes. Returns a report.
+-- Classic's own template is never touched. Set ONLY to rebuild a few skins (the live place:
+-- one failed LoadAsset in a full run would break a shipped cue), or ALL for the old full
+-- rebuild. Returns a report.
+
+local ONLY = nil -- e.g. { "CandyCornCue", "JackOLanternCue" }: rebuild only these skins'
+-- templates and the pieces they use (Piece, Carrier, Body, Pocket.Piece); nothing else is touched
+local ALL = false -- true: the old full rebuild (never on the live place)
 
 local InsertService = game:GetService("InsertService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -39,6 +44,32 @@ local CueSkins = fresh(Shared.CueSkins)
 local report = {}
 local function note(s)
 	table.insert(report, s)
+end
+
+-- The skins this run touches: every one (ALL), or the ONLY list (an id with no row, a draft or
+-- a cut skin, is noted and skipped so a typo never passes silently); neither set refuses.
+if ONLY == nil and not ALL then
+	for _, copy in clones do
+		copy:Destroy()
+	end
+	error(
+		"build_cue_templates: set ONLY = { <catalog ids> } to rebuild only those skins' templates "
+			.. "and the pieces they use, or ALL = true for the full rebuild (never on the live place)"
+	)
+end
+local wanted: { [string]: boolean }? = nil
+if not ALL then
+	wanted = {}
+	for _, id in ONLY :: { string } do
+		if CueSkins.has(id) then
+			wanted[id] = true
+		else
+			note(("only: %s has no skin row (draft, cut or a typo): skipped"):format(tostring(id)))
+		end
+	end
+end
+local function included(id: string): boolean
+	return wanted == nil or wanted[id] == true
 end
 
 local MAP_KEYS = {
@@ -84,9 +115,10 @@ local classic = folder and folder:FindFirstChild("Classic")
 assert(classic and classic.PrimaryPart, "needs ReplicatedStorage.CueSkins.Classic (the cue mesh run's template)")
 
 -- Skins
+local before = #folder:GetChildren()
 local built, missing = 0, {}
 for _, id in CueSkins.ids() do
-	if id ~= "Classic" then
+	if id ~= "Classic" and included(id) then
 		local row = CueSkins.get(id)
 		local old = folder:FindFirstChild(id)
 		if old then
@@ -121,7 +153,23 @@ for _, id in CueSkins.ids() do
 		built += 1
 	end
 end
-note(("skins: %d templates built%s"):format(built, if #missing > 0 then "; no maps yet: " .. table.concat(missing, ", ") else ""))
+if wanted then
+	-- Everything that was in the folder and is not one of the rebuilt ids is untouched.
+	local untouched = 0
+	for _, model in folder:GetChildren() do
+		if not wanted[model.Name] then
+			untouched += 1
+		end
+	end
+	note(("only: %d skins rebuilt; %d other templates untouched (%d before)%s"):format(
+		built,
+		untouched,
+		before,
+		if #missing > 0 then "; no maps yet: " .. table.concat(missing, ", ") else ""
+	))
+else
+	note(("skins: %d templates built%s"):format(built, if #missing > 0 then "; no maps yet: " .. table.concat(missing, ", ") else ""))
+end
 
 -- Pieces
 local pieces = ReplicatedStorage:FindFirstChild(Config.CueSkins.PiecesFolder)
@@ -170,14 +218,19 @@ end
 local pieceIds = {}
 for _, id in CueSkins.ids() do
 	local row = CueSkins.get(id)
-	if row.Piece then
-		pieceIds[row.Piece] = true
-	end
-	if row.Carrier then
-		pieceIds[row.Carrier] = true -- the piece worn by the carrying player (a Secret's engulfing aura)
-	end
-	if row.Pocket and row.Pocket.Piece then
-		pieceIds[row.Pocket.Piece.Piece] = true
+	if included(id) then
+		if row.Piece then
+			pieceIds[row.Piece] = true
+		end
+		if row.Carrier then
+			pieceIds[row.Carrier] = true -- the piece worn by the carrying player (a Secret's engulfing aura)
+		end
+		if row.Body then
+			pieceIds[row.Body] = true -- the cue's own model (Halloween 2026)
+		end
+		if row.Pocket and row.Pocket.Piece then
+			pieceIds[row.Pocket.Piece.Piece] = true
+		end
 	end
 end
 local sorted = {}
@@ -264,6 +317,16 @@ for _, pid in sorted do
 	end
 	out.Parent = pieces
 	note(("piece %s: %d children%s"):format(pid, #out:GetChildren(), if #problems > 0 then " | " .. table.concat(problems, "; ") else ""))
+end
+
+if wanted then
+	local untouched = 0
+	for _, child in pieces:GetChildren() do
+		if not pieceIds[child.Name] then
+			untouched += 1
+		end
+	end
+	note(("only: %d pieces rebuilt; %d other pieces untouched"):format(#sorted, untouched))
 end
 
 for _, copy in clones do

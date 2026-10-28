@@ -143,6 +143,16 @@ return {
 		H.near(s1.ClockTime, last.ClockTime, 1e-9, "the sunset sun")
 	end,
 
+	-- hw-map lane (Halloween 2026): the event's Night preset.
+	["Night has Day's keys, keeps Sunset's bloom and never hazes"] = function()
+		local L = H.require("Config").Lighting
+		sameShape(L.Day, L.Night, "Lighting", "Night")
+		for key, v in L.Sunset.Bloom do
+			H.expect(L.Night.Bloom[key] == v, "Night's Bloom." .. key .. " is Sunset's")
+		end
+		H.expect(L.Night.Atmosphere.Haze == 0, "no haze at night")
+	end,
+
 	["colours mix per channel and the sky's images change only at the swap"] = function()
 		local LC = H.require("LightCycle")
 		local L = H.require("Config").Lighting

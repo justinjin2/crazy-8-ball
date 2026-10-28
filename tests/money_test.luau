@@ -399,6 +399,105 @@ return {
 		H.expect(Money.matchBonus(bonus("Win", { boost = 0 / 0 })) == 500)
 	end,
 
+	-- The friend boost (Halloween 2026, PLAN §2; hw-gui lane): +10% a friend in the server, at
+	-- most 4, added to the rest; its own switch; core's Candy reads the same functions.
+	["friend boost: +10% a friend, max 4, its own switch, a bad count is 0"] = function()
+		local Money = setup()
+		local Config = H.require("Config")
+		local E = Config.Economy
+		H.expect(E.FriendBoost == 0.1 and E.FriendBoostMaxFriends == 4, "PLAN §2 numbers")
+		local saved = E.FriendBoostEnabled
+		E.FriendBoostEnabled = true
+		local ok, err = pcall(function()
+			local cases: { { any } } = {
+				{ nil, 0 },
+				{ 0, 0 },
+				{ 1, 0.1 },
+				{ 2, 0.2 },
+				{ 4, 0.4 },
+				{ 7, 0.4 },
+				{ -1, 0 },
+				{ 0 / 0, 0 },
+				{ math.huge, 0 },
+				{ 2.7, 0.2 },
+				{ "3", 0 },
+			}
+			for _, case in cases do
+				H.near(Money.friendBoost(case[1]), case[2], 1e-9, "friends " .. tostring(case[1]))
+			end
+			H.near(Money.boost({ friends = 2 }), 0.2, 1e-9, "two friends")
+			H.near(Money.boost({ vip = true, friends = 4 }), 1.4, 1e-9, "VIP and 4 friends")
+			H.near(
+				Money.boost({ friends = 2, group = true }),
+				0.3,
+				1e-9,
+				"the part core's Candy reads"
+			)
+			local all =
+				{ vip = true, party = true, starter = true, group = true, plus = true, friends = 9 }
+			H.near(Money.boost(all), 3.6, 1e-9, "all six")
+			H.expect(math.floor(Money.boost({ friends = 3 }) * 100 + 0.5) == 30, "+30%, never +29%")
+		end)
+		E.FriendBoostEnabled = saved
+		H.expect(ok, tostring(err))
+		E.FriendBoostEnabled = false
+		H.expect(Money.friendBoost(4) == 0, "switch off: no friend part")
+		H.expect(Money.boost({ vip = true, friends = 4 }) == 1, "switch off: as today")
+		for _, part in Money.boostParts({ friends = 4 }) do
+			H.expect(part.kind ~= "Friends", "switch off: no Friends row")
+		end
+		E.FriendBoostEnabled = saved
+	end,
+
+	["boost parts: active parts only, in the card's order, and they sum to the boost"] = function()
+		local Money = setup()
+		local Config = H.require("Config")
+		local E = Config.Economy
+		local saved = E.FriendBoostEnabled
+		E.FriendBoostEnabled = true
+		local ok, err = pcall(function()
+			local function words(parts: { any }): string
+				local out = {}
+				for _, part in parts do
+					table.insert(out, ("%s:%d"):format(part.kind, math.floor(part.add * 100 + 0.5)))
+				end
+				return table.concat(out, " ")
+			end
+			local all =
+				{ vip = true, party = true, starter = true, group = true, plus = true, friends = 2 }
+			local parts = Money.boostParts(all)
+			H.expect(
+				words(parts) == "Vip:100 Group:10 Plus:10 Friends:20 Starter:100 Party:100",
+				words(parts)
+			)
+			H.expect(Money.boostParts(all) ~= parts, "a fresh table each call")
+			H.expect(#Money.boostParts({}) == 0 and #Money.boostParts(nil :: any) == 0, "none")
+			H.expect(
+				words(Money.boostParts({ group = true, friends = 0 })) == "Group:10",
+				"no zero rows"
+			)
+			local flagNames = { "vip", "party", "starter", "group", "plus" }
+			for mask = 0, 31 do
+				for _, friends in { nil, 0, 1, 3, 6 } do
+					local flags: { [string]: any } = { friends = friends }
+					for bit, name in flagNames do
+						if bit32.btest(mask, bit32.lshift(1, bit - 1)) then
+							flags[name] = true
+						end
+					end
+					local sum = 0
+					for _, part in Money.boostParts(flags :: any) do
+						H.expect(part.add > 0, "only active parts")
+						sum += part.add
+					end
+					H.near(sum, Money.boost(flags :: any), 1e-9, "parts sum to the boost")
+				end
+			end
+		end)
+		E.FriendBoostEnabled = saved
+		H.expect(ok, tostring(err))
+	end,
+
 	["the solo and PC caps apply after the boosts and count the money paid"] = function()
 		local Money, geometry = setup()
 		local events = bankAndCombo(geometry)

@@ -29,19 +29,42 @@ From PLAN §4 (everything else is read-only; ask below under Requests):
 
 ## Status
 
+- 09:05 coordinator REQUEST (all lanes, blocks a merge): `src/client/Main.client.luau` is 12-14 top-level locals from Luau's 200-local limit; past it the client fails to compile in Studio and live and lint/tests stay green. Put every Main.client addition inside `do ... end` (zero new top-level locals), e.g. `do local ok, err = pcall(...) ... end`. New test `tests/client_compiles_test.luau` (on halloween @HEAD) compiles every src script and fails if Main.client has fewer than 8 locals left; run it before you push.
+- 08:50 **Interface 1 READY to merge** (`4f63cb79` on `hw-core`): `Config.Halloween` (times, numbers,
+  switches, `CandyIcon = ""`), `Strings.Halloween` skeleton, `src/shared/Halloween/Event.luau` (pure:
+  `state/isLive/over/endsIn/startsIn/rushActive/rushEndsAt/nextRushAt/doubleDay/multiplier/boardIndex/
+  boardOpensAt/rushChip/clock/short`) and `Clock.luau` (`Clock.now()` for gates, `Clock.serverNow()` for
+  saves; `HwTimeOffset` only in Studio and on the test place). Bootstrap calls `Clock.boot()`: in Studio
+  and on the test place a server booted before 19:00 starts Live (`Config.Halloween.Test.BootLive`).
+  **Every lane gates on `Event.*(Clock.now())`.** Lint and all 1,354 tests green. Interface 2
+  (save field + real `CandyService`) next.
+- 09:05 **Interface 2 READY to merge** (`06a05a85`, `/hw` in `1bf0e34f`): the additive `Halloween` save
+  field (template, MAP_KEYS, `fixHalloween`, old-save test), PlayerData's Halloween block (one commit per
+  grant: Candy, quests, track steps, Spider; `PlayerData.halloween(player)` read-only copy with stable
+  `KingWins`, `Earned`, `Bought` for hw-sys's badge rules), and the real
+  `src/server/Halloween/CandyService.luau` started in Bootstrap (lobby + arena): `add(player, amount,
+  source, opts?) -> number`, `bossWon(player) -> {granted, amount, cooldownEndsAt}`,
+  `bossCooldown(player) -> unix time or 0`, `pickup(player) -> (ok, "Cap"|"NotLive"|"NotLoaded"|nil)`,
+  `isLive()`. Studio-checked in lane-hw-core through `ServerStorage.HwQA` and `/hw`: boosted add
+  100 -> 220 in a Rush with the group, pickup ok, King 50/50/0 + 900 s cooldown, steps 1 and 3 given,
+  Candy Corn held (no `Catalog.ready` yet), `/hw time` walked Before -> Countdown -> Live -> Rush ->
+  double -> board 4 -> Ended, conversion once ($10 a Candy). Console clean. Lint + 1,365 tests green.
+  `Config.Halloween.Match/Quests/Spider/Packs.Enabled` are still false (flip once verified).
+
+- 08:50 coordinator: lanes started 08:43 (73 min behind the plan). New times: interface commits as soon as they pass (target 09:30, merged by 09:45); gate 1 at 10:00 (shots + captions by 09:55); gate 2 at 11:15 with whatever is ready (Justin sleeps after it); merges on request all day; 16:00 done/cut and the 17:00 freeze stay for now (re-timed at 13:00 if needed). Rojo: a watchdog restarts any crashed server by itself (log ~/Desktop/8ball-refs/halloween/shots/coordinator/rojo-watchdog.log; Rojo 7.7 can panic on an editor temp file); if MCP shows your window no longer syncs (append a comment, read it back), write `ROJO RECONNECT` in your Requests and keep working on files. Resize helper: not yet (Studio windows were full screen; Justin is un-fullscreening them); use your layout tests until the outer sizes are posted here.
 ## Shared-file changes
 
 Shared per PLAN §7 (add only core's own block or line; the coordinator resolves overlaps).
 Planned, each to be confirmed here with its commit when it lands:
 - `Config.luau`: `Config.Halloween` (with `CandyIcon`, no friend/group keys), `Config.UI.Halloween`, product rows.
-- `Strings.luau`: `Strings.Halloween`.
-- `SaveSchema.luau`: `Halloween` template entry, `MAP_KEYS`, `fixHalloween` (hw-sys adds `Badges` at the same spots).
-- `PlayerData.luau`: the Halloween mutation block, `candy` in `GRANT_FIELDS` / `applyPurchase`.
+- `Strings.luau`: `Strings.Halloween` after `Corners` (4f63cb79, `Dev` lines 06a05a85).
+- `SaveSchema.luau`: `freshHalloween()`, `Halloween` template entry after `EmoteFavorites`, `"Halloween"` last in `MAP_KEYS`, `fixHalloween` + its call last in `validate` (06a05a85; hw-sys adds `Badges` at the same spots).
+- `PlayerData.luau`: four `Shared.Halloween` requires after `RankClaim`; the Halloween mutation block after `PlayerData.actingRegular` (06a05a85); later `candy` in `GRANT_FIELDS` / `applyPurchase`.
 - `Ranking.luau`: one `pcall(CandyService.matchSettled, ...)` line in `settleOne`.
 - `HubCorners.luau`: the event tile spec and ONE line, the tile first in `padStops` (GUI adds the pill right after Plus, and `blurPad`/`padFocusedOn`).
 - `Net.luau`: the `Halloween` remote (map adds its remotes, GUI a comment line).
-- `DevCommands.luau`: the `/hw` block (`/hw kingwin`, not map's `/king`).
-- `Bootstrap.server.luau`, client `Progression.luau`, `Shop.luau`, `SkyDropService.luau` (one getter).
+- `DevCommands.luau`: the `/hw` block (`/hw kingwin`, not map's `/king`) after `/funnel` (1bf0e34f); `Config.Debug.Commands.Halloween = "/hw"` after `Funnel`.
+- `Bootstrap.server.luau`: one `Clock.boot()` line after `Net.build()` (4f63cb79) and one `CandyService.start()` line after `Rewards.start()` (06a05a85); client `Progression.luau`, `Shop.luau`, `SkyDropService.luau` (one getter).
 - `tests/save_schema_test.luau`, `tests/config_test.luau`: core's own cases only (sys and map add theirs).
 
 ## Requests

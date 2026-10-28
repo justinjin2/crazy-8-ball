@@ -127,8 +127,104 @@ return {
 		)
 
 		local all = Catalog.list()
-		H.expect(#all == 46 + 1 + 12 + 2, ("%d cues in all, expected 61"):format(#all))
+		-- 46 block cues, Classic, 10 rank cues, VIP and Starter, 2 Unique, 5 Halloween 2026.
+		H.expect(#all == 46 + 1 + 12 + 2 + 5, ("%d cues in all, expected 66"):format(#all))
 		H.expect(Catalog.get("WeekOneCue") == nil, "the Week One Cue is gone (economy v6)")
+	end,
+
+	["the five Halloween 2026 cues: Exclusive, never traded or sold, hidden until built, drawn as Classic meanwhile"] = function()
+		local Catalog, _, Strings = load()
+		local CueSkins = H.require("CueSkins")
+		-- PLAN §3: id, Effect (the visual ladder level).
+		local EVENT = {
+			{ "CandyCornCue", "Epic" },
+			{ "JackOLanternCue", "Legendary" },
+			{ "BlackCatCue", "Mythic" },
+			{ "SpiderCue", "Mythic" },
+			{ "WitchBroomCue", "Secret" },
+		}
+		local ready = 0
+		for _, pair in EVENT do
+			local id, effect = pair[1], pair[2]
+			local cue = Catalog.get(id)
+			H.expect(cue ~= nil, id .. " is in the catalog")
+			assert(cue, "no cue")
+			H.expect(cue.Group == "Exclusive" and cue.Rarity == "Exclusive", id .. " is Exclusive")
+			H.expect(not cue.Tradable and not cue.Sellable, id .. " never trades or sells")
+			H.expect(#cue.Blocks == 0 and not cue.Vaulted, id .. " drops from no block")
+			H.expect(cue.Event == "Halloween2026", id .. " is a Halloween 2026 cue")
+			H.expect(cue.StandIn == Catalog.Default, id .. " stands in as Classic")
+			H.expect(
+				cue.Effect == effect,
+				("%s Effect %s, expected %s"):format(id, cue.Effect, effect)
+			)
+			H.expect(type(Strings.Items.Cues[id]) == "string", id .. " has a name")
+			-- Ready only once its skin is in the Index (a draft skin is not).
+			H.expect(Catalog.ready(id) == CueSkins.has(id), id .. ": ready follows its skin")
+			if Catalog.ready(id) then
+				ready += 1
+			end
+			-- The Look: its skin's once built, Classic's until then (the power-bar cue).
+			local look = if CueSkins.has(id)
+				then CueSkins.index(id).Look
+				else CueSkins.index("Classic").Look
+			H.expect(cue.Look == look, id .. ": its Look")
+		end
+		H.expect(
+			Catalog.get("CandyCue") ~= nil and Catalog.get("PhantomCue") ~= nil,
+			"the Candy Cane and Phantom cues keep their ids"
+		)
+		-- Hidden from every per-rarity list until ready; known to list, get and exists always.
+		local exclusive = Catalog.ofRarity("Exclusive")
+		H.expect(
+			#exclusive == 2 + ready,
+			("%d Exclusive shown, expected %d"):format(#exclusive, 2 + ready)
+		)
+		for _, cue in exclusive do
+			H.expect(cue.Event == nil or Catalog.ready(cue.Id), cue.Id .. " shown only when ready")
+		end
+		local listed = 0
+		for _, cue in Catalog.list() do
+			if cue.Event == "Halloween2026" then
+				listed += 1
+				H.expect(Catalog.exists(cue.Id), cue.Id .. " exists")
+			end
+		end
+		H.expect(listed == 5, "all five in list()")
+		-- Every cue that is not an event cue is ready; unknown ids never are.
+		H.expect(
+			Catalog.ready("Classic") and Catalog.ready("EclipseCue"),
+			"ordinary cues are ready"
+		)
+		H.expect(
+			not Catalog.ready("NoSuchCue") and not Catalog.ready(nil),
+			"unknown ids are not ready"
+		)
+		-- drawAs: its own template, else its stand-in's, else nil (bands).
+		local function has(set: { [string]: boolean }): (string) -> boolean
+			return function(key: string): boolean
+				return set[key] == true
+			end
+		end
+		H.expect(
+			Catalog.drawAs("CandyCornCue", has({ CandyCornCue = true, Classic = true }))
+				== "CandyCornCue",
+			"drawAs: its own template"
+		)
+		H.expect(
+			Catalog.drawAs("CandyCornCue", has({ Classic = true })) == "Classic",
+			"drawAs: the stand-in"
+		)
+		H.expect(Catalog.drawAs("CandyCornCue", has({})) == nil, "drawAs: none, so bands")
+		H.expect(
+			Catalog.drawAs("EclipseCue", has({ Classic = true })) == nil,
+			"drawAs: no stand-in for an ordinary cue"
+		)
+		H.expect(
+			Catalog.drawAs("EclipseCue", has({ EclipseCue = true })) == "EclipseCue",
+			"drawAs: an ordinary cue's own"
+		)
+		H.expect(Catalog.drawAs("NoSuchCue", has({ Classic = true })) == nil, "drawAs: unknown id")
 	end,
 
 	["the reward cues: Chroma (day 7) and Candy Cane (invites) drop from no block, trade and sell"] = function()
