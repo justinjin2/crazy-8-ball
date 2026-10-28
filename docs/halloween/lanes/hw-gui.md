@@ -33,6 +33,20 @@ From PLAN §4 (everything else is read-only; ask below under Requests):
 
 ## Status
 
+- **10:10 FINAL (every Progress line ticked; hw-gui @1dc99f84 after merging halloween @f32c3d1b):**
+  lint OK, `client_compiles` OK, **1405/1405 tests**, Studio boot and console clean (only the
+  usual Studio DataStore lines and two asset ids from the place, not from `src`: 203785492,
+  24797508). Studio pass on the merge: the pill "+140%" (VIP, Group, Plus, 2 friends),
+  `hudOverlap` empty, `Economy.boost` x1.40; the preview (switched on locally only) plays Black
+  Cat through all three tabs and closes clean. **Core's `src/client/Halloween/RushChip.luau` is
+  not in `halloween` yet**, so the chip stays hidden (as designed); it lights up by itself once
+  core's `RushChip.content` and `Config.Halloween.CandyIcon` merge. **Waiting to merge from
+  hw-gui** (since 82ab885c): the Friends.luau review fixes, the Cue Preview's lively screen and
+  checks, the My Cues and Index Preview buttons (hidden while off), the Reduce Motion fix, the
+  card's repeated friend line dropped. **Switches:** `Config.UI.BoostPill.Enabled = true`,
+  `Config.Economy.FriendBoostEnabled = true`, `Config.UI.CuePreview.Enabled = false` (until the
+  sweep below passes on a phone and a pad).
+
 - **10:05 step 17 (preview checks) and 18 (requirements).** **Switch decision: the Cue Preview
   ships OFF** (`Config.UI.CuePreview.Enabled = false`; the brief: ON only if phone and controller
   pass, and neither is reachable from this lane). Everything reachable passes:
@@ -308,3 +322,14 @@ preview switched on locally for the shots; phone: the layout diagram from the te
 - `preview-layout-phone-ipad-from-test.png`: the panel at 844x390, 844x332 and the iPad from
   `CuePreviewMath.panel` (rectangles, not a render).
 - `preview-1523x814-trail-eclipse-oldchrome.jpg`: the first TRAIL look, before the lively chrome.
+
+Final (`~/Desktop/8ball-refs/halloween/shots/hw-gui/final/`, Studio window 1523x814, the
+preview switched on locally for the shots; the Halloween cues show the Classic look and default
+effects until Cues A's bodies and skins land, so re-shoot then):
+- `preview-1523x814-blackcat-model.jpg`, `-trail.jpg`, `-finisher.jpg`: Black Cat Cue
+  (Exclusive) on the three tabs, the note "Track: 2,000 Candy" in EQUIP's place (not owned).
+- `preview-1523x814-witchbroom-model.jpg`: Witch's Broom on MODEL.
+- `preview-layout-phone-ipad-from-test.png`: the four-size check is the layout test (phone
+  844x390 and 844x332, iPad; PC is the shots).
+- Switch decision: **OFF**, reason under Status (10:05): the phone and a real controller cannot
+  be reached from this lane; the coordinator's sweep (Requests) flips it with one line.
