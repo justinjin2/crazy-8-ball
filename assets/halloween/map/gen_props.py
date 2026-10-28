@@ -93,9 +93,10 @@ def paint(bm, faces, name):
             loop[uv].uv = (u, v)
 
 
-def new_object(name, bm, smooth=True):
+def new_object(name, bm, smooth=True, recalc=True):
     me = bpy.data.meshes.new(name)
-    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    if recalc:
+        bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
     bm.to_mesh(me)
     bm.free()
     obj = bpy.data.objects.new(name, me)
@@ -254,6 +255,97 @@ def pumpkin(x):
     at(shell, x)
     at(glow, x)
     return [shell, glow]
+
+
+def pumpkin_small(x):
+    """A low-poly jack-o'-lantern in one piece (the tables' corners, four to a table): 12 ribs,
+    its face laid on the shell's front (-Y) in the glow swatch instead of carved, so it is one
+    MeshPart. Pumpkin's size (2 studs wide, 1.64 tall, centred). About 190 triangles."""
+    from mathutils.bvhtree import BVHTree
+
+    bm = bmesh.new()
+    geom = bmesh.ops.create_uvsphere(bm, u_segments=12, v_segments=6, radius=1.0)
+    for v in geom["verts"]:
+        phi = math.atan2(v.co.y, v.co.x)
+        lobe = 0.92 + 0.08 * abs(math.sin(3 * phi))
+        v.co.x *= lobe
+        v.co.y *= lobe
+        v.co.z *= 0.82
+    shell = list(bm.faces)
+    paint(bm, shell, "orange")
+    bmesh.ops.recalc_face_normals(bm, faces=shell)
+    bm.faces.ensure_lookup_table()
+    tree = BVHTree.FromBMesh(bm)
+    stem = tube(bm, [Vector((0, 0, 0.74)), Vector((0.03, 0, 0.95)), Vector((0.1, 0, 1.06))], [0.13, 0.1, 0.07], 5, "stem")
+    bmesh.ops.recalc_face_normals(bm, faces=stem)
+
+    made = {}
+
+    def on_front(px, pz):
+        key = (round(px, 4), round(pz, 4))
+        if key not in made:
+            hit = tree.ray_cast(Vector((px, -2.0, pz)), Vector((0, 1, 0)))[0]
+            y = hit.y if hit is not None else -0.9
+            made[key] = bm.verts.new((px, y - 0.05, pz))
+        return made[key]
+
+    face = []
+
+    def poly(points2d):
+        f = bm.faces.new([on_front(px, pz) for px, pz in points2d])
+        f.normal_update()
+        if f.normal.y > 0:
+            f.normal_flip()
+        face.append(f)
+
+    def mid(a, b):
+        return ((a[0] + b[0]) / 2, (a[1] + b[1]) / 2)
+
+    def tri(a, b, c):
+        """A face triangle cut in four, so its middle never sinks behind the shell's facets."""
+        ab, bc, ca = mid(a, b), mid(b, c), mid(c, a)
+        for t in ((a, ab, ca), (ab, b, bc), (ca, bc, c), (ab, bc, ca)):
+            poly(list(t))
+
+    for side in (-1, 1):
+        tri((side * 0.18, 0.12), (side * 0.62, 0.42), (side * 0.56, 0.08))
+    tri((-0.08, -0.02), (0.08, -0.02), (0.0, 0.12))
+    cols = 6
+    for k in range(cols):  # the grin in narrow columns and two rows, so each stays on the curve
+        t0, t1 = k / cols, (k + 1) / cols
+        x0, x1 = -0.6 + 1.2 * t0, -0.6 + 1.2 * t1
+        top0, top1 = -0.18 - 0.1 * math.sin(math.pi * t0), -0.18 - 0.1 * math.sin(math.pi * t1)
+        bot0, bot1 = -0.26 - 0.24 * math.sin(math.pi * t0), -0.26 - 0.24 * math.sin(math.pi * t1)
+        mid0, mid1 = (top0 + bot0) / 2, (top1 + bot1) / 2
+        poly([(x0, top0), (x0, mid0), (x1, mid1), (x1, top1)])
+        poly([(x0, mid0), (x0, bot0), (x1, bot1), (x1, mid1)])
+    paint(bm, face, "glow")
+    obj = new_object("PumpkinSmall.Body", bm, recalc=False)
+    return [at(obj, x)]
+
+
+def trim_ring(x):
+    """The tables' glowing trim (TableBuilder.addDecor): a thin band round the apron just under
+    the rail line, at the table's own size (outside 18.24 x 10.24 studs, the body's footprint;
+    0.04 thick, 0.08 tall), so it is one Neon MeshPart a table. The game colours it by kit."""
+    bm = bmesh.new()
+    ox, oy, t, h = 9.12, 5.12, 0.04, 0.08
+
+    def rect(hx, hy, z):
+        return [bm.verts.new(v) for v in ((-hx, -hy, z), (hx, -hy, z), (hx, hy, z), (-hx, hy, z))]
+
+    ob, ot = rect(ox, oy, -h / 2), rect(ox, oy, h / 2)
+    ib, it = rect(ox - t, oy - t, -h / 2), rect(ox - t, oy - t, h / 2)
+    faces = []
+    for k in range(4):
+        j = (k + 1) % 4
+        faces.append(bm.faces.new((ob[k], ob[j], ot[j], ot[k])))
+        faces.append(bm.faces.new((ib[j], ib[k], it[k], it[j])))
+        faces.append(bm.faces.new((ot[k], ot[j], it[j], it[k])))
+        faces.append(bm.faces.new((ob[j], ob[k], ib[k], ib[j])))
+    paint(bm, faces, "glow")
+    obj = new_object("Trim.Glow", bm, smooth=False)
+    return [at(obj, x)]
 
 
 # ---------------------------------------------------------------------------------------------
@@ -494,6 +586,8 @@ def main():
     objects += candy(55, "candyorange", "CandyOrange.Sweet")
     objects += candy(58, "candypurple", "CandyPurple.Sweet")
     objects += bush(62)
+    objects += pumpkin_small(66)
+    objects += trim_ring(80)
     for obj in objects:
         obj.data.materials.clear()
         obj.data.materials.append(MATERIAL)
@@ -510,7 +604,8 @@ def main():
     sun_obj = bpy.data.objects.new("Sun", sun)
     sun_obj.rotation_euler = (math.radians(50), 0, math.radians(30))
     bpy.context.scene.collection.objects.link(sun_obj)
-    for name, target, dist in (("pumpkin", (0, 0, 0), 4.5), ("tree", (10, 0, 6), 22), ("small", (50, 0, 0), 22)):
+    for name, target, dist in (("pumpkin", (0, 0, 0), 4.5), ("tree", (10, 0, 6), 22), ("small", (50, 0, 0), 22),
+                               ("pumpkin_small", (66, 0, 0), 4.5)):
         common.render_preview(os.path.join(HERE, "renders", name + ".png"), size=512, target=target,
                               distance=dist, elevation=15, azimuth=20 if name != "pumpkin" else 15)
 
