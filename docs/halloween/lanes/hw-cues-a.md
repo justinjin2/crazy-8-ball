@@ -60,6 +60,39 @@ From PLAN §4 (everything else is read-only; ask through Requests):
 
 ## Status (continued)
 
+- 13:05: **READY hw-cues-a @ 95325e31: the Jack's signature, no ribbons (Justin 12:55 via the
+  coordinator: the cues all looked identical, the ribbon effect reused; each cue its own
+  hand-made effect).** The painted body stays. The decor piece `jack_o_lantern_aura` is
+  rebuilt as the Jack's own life (18 parts, 3,248 tris, asset 82575724602452): the vine lives,
+  four corkscrew tendrils turning on their axis and waving where they sprout, four leaves
+  swaying; three little pumpkins sprout on the vine and glow from inside (aura joints, Glow
+  beat); the butt pumpkin's jaw (the grin's lower teeth as a hinged plate) snaps open and
+  shut and breathes little flames (JawBreath rides the Jaw joint); embers rise out of the
+  carved holes; the face flickers like a candle (Face Glow shape flicker, Color #FFC040, so
+  it does not go white; two flickering lights). Dark smoke behind the pumpkin only. No beam,
+  no orbiters, the full-length glow/wisp/mini-jack/crackle layers gone (Aura 30/s, was 87).
+  Lower effects keeps the jaw, two tendrils, two leaves and one pumpkin. Same ids, switches,
+  catalog row. Lint OK, 1,465 tests. **Side-by-side:**
+  `shots/hw-cues-a/gate2/side_by_side_jack_signature.jpg` (new / this morning's ribbons /
+  Firework); singles `sig_jack_close_v2.jpg`, `sig_jack_face_v2.jpg` (the face, jaw and
+  embers from above), `sig_jack_back_v2.jpg`. Next: the Candy Corn (candy fountain off the
+  tip, sugar crystals on the bands, the wrapper twist at the butt popping open), then the
+  Black Cat (from Cues B's eb95993d; the C2c rule stands per the coordinator 13:08: no head,
+  face, eyes or paw prints; the living tail with flicks, shadow cats running out of the
+  smoke, gold claw swipes, gold embers and the collar light).
+- 12:49: **READY hw-cues-a @ e128e475: the two 11:55 review minors (coordinator 13:02: do them).**
+  c699fb22 `src/server/Items.luau` (my EquipCue lines): `HalloweenCueEquipped` fires only when
+  the equipped cue changes (the attribute before the equip is compared; a card tapped twice is
+  not a pick-up). e128e475 `src/client/CueAssets.luau`: the body piece warms only with
+  `Config.CueSkins.Bodies.Enabled` (switch off: the model and maps are never fetched). Neither
+  module loads in Lune (Players, PlayerData, ContentProvider), so no Lune test; Studio check in
+  my window instead: Jack equipped twice and Candy twice gave exactly one
+  `Funnel: event HalloweenCueEquipped` line each, the own stick drew its body
+  (`Body=candy_corn`), no error. Lint OK, 1,465 tests. **Spider rework:** offered to Cues B
+  (coordinator 13:02); B keeps it (their redo is built and in their lab, READY within the
+  hour), so I touch no spider file. B's finding, noted: a mesh of strips under about 0.03
+  studs wide (the Cat's 0.022 claw slashes) loads as a solid block of its bounding box; my
+  ribbons are 0.04 to 0.12 wide and render as ribbons.
 - 12:43: **STATUS FINAL (Progress 20, 21). READY hw-cues-a @ 1a17820e** = `halloween`
   @e9b90417 merged (map 88e9cceb + 623d0051, core 1361de6d, sys 57bc2b91, cues-b 0e3569b6 the
   Broom redo, the coordinator's first Team Create ONLY build), lint OK, 1,465 tests pass, the
@@ -448,6 +481,7 @@ From PLAN §4 (everything else is read-only; ask through Requests):
 
 Planned (PLAN §7 shared files; own block or line only; add the sha to each as it lands):
 
+- 12:49 `src/server/Items.luau` (my EquipCue lines only): the re-equip guard on `HalloweenCueEquipped` (c699fb22).
 - 12:38 `tools/cue_skins_data.py` (shared tool): `asset_id` ranks a shipped id first in every checkout; `sample_look` keeps the recorded Look; new `--resample-look` switch (1d554e20).
 - `src/shared/Config.luau` @ 2c205868: own block `Config.CueSkins.Bodies` after `Config.CueSkins` (drop 3).
 - `src/shared/Strings.luau`: the 5 cue names in `Strings.Progress.Cues` (drop 1).
@@ -645,3 +679,7 @@ Gate 2 addition (10:28, `gate2/`): Jack-o'-Lantern complete @ db1a9fdb (+ 73fc00
   fresh-player run on 66af67b0 (12:40).
 - `final_merged_1a17820e_row_five.jpg`: 12:42, the five cues on the lab row on the merged build
   (Candy, Jack, the Broom redo, Cat, Spider), backs and stands.
+- `side_by_side_jack_signature.jpg`, `sig_jack_close_v2.jpg`, `sig_jack_face_v2.jpg`,
+  `sig_jack_back_v2.jpg`: 13:05, the Jack's signature (no ribbons) close, the face/jaw/embers
+  from above, on a back; `sig_jack_close_v1.jpg`, `sig_jack_face_v1.jpg`: the first pass
+  (the face glow went white before Color was set).
