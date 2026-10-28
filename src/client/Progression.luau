@@ -649,6 +649,7 @@ function Progression.update(state: State)
 			and not TutorialAnchors.hidden("Money") -- the guided tutorial still hides the HUD
 	)
 	column:setPadRoute(not state.inMatch and not Menus.isOpen())
+	Portals.setBlocked(state.inMatch or state.afterMatch) -- roaming players get no portal ask
 	money:setPlusShown(not state.inMatch) -- no shop trips during a game (designer, 2026-10-06)
 	money:setTutorialHidden(TutorialAnchors.hidden("Money"))
 	banner:setInMatch(state.inMatch)
