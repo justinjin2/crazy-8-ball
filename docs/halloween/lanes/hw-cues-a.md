@@ -55,6 +55,26 @@ From PLAN §4 (everything else is read-only; ask through Requests):
 
 ## Status (continued)
 
+- 10:59: **Integration preview done (Progress 14 runs for real once B's rows reach
+  `halloween`; neither lane is merged there yet, `halloween` @ f32c3d1b):** a local scratch
+  merge of `origin/hw-cues-b` @ 831ba508 into `hw-cues-a` @ c75fbe56 (local only, never
+  pushed). The only conflict is `tools/upload_manifest.json`, resolved by union (974 ours +
+  995 theirs = 1,004 rows). With B's three skins taken out of draft locally (B's branch still
+  has them draft) `cue_skins_data.py --allow-missing` wrote 66 skins / 28 pieces, and the ONLY
+  build of the five in my window reported 5 skins rebuilt, 9 pieces, 60 other templates
+  untouched, no problems. All five bodies draw through the body path on the stand and on the
+  back (`integ_*` shots), the Broom and the Spider in hands in a solo fixture with their power
+  bar cards, `HalloweenCueEquipped` logs for B's cues too, console clean (only the pre-existing
+  `203785492` lines, which come before any cue is given). **One fix, mine, `src/client/CuePiece.luau`
+  @ ed8b7ca3:** a skinned Aim joint did not clear while aiming. `applyHidden` gave the Aim share
+  to rigid parts only, so the Spider's crown (`Webs`, `Blades`, skinned under `Crown`) and the
+  Broom's hat charm (`HatCharm`, skinned under `Charm`) stayed solid at modifier 0 while the
+  rigid bristles cleared to 1. A skinned part whose root joint is an Aim joint now takes the
+  share (no near fade: its box is the bind pose). Studio after the fix: Spider Webs/Blades
+  1.00 while aiming, HatCharm 1.00, bristles 1.00, body parts 0; lint green; cue_body,
+  cue_looks, cue_motion, cue_placement and client_compiles tests pass. Scratch reverted: the
+  tree is `hw-cues-a` again (the five Edit templates stay in my window).
+
 - 2026-10-28 10:45: **Fresh-player pre-run on this build (Progress 18 runs again on the final
   build):** a new mock save joins at the tutorial's Arrow (`fresh_join_tutorial_arrow.jpg`),
   steps on the reserved table's pad, the bot comes, Game1 starts with Classic in hand, the
@@ -278,6 +298,14 @@ Planned (PLAN §7 shared files; own block or line only; add the sha to each as i
 
 ## Requests
 
+- 10:59 **To Cues B:** (a) your 10:55 CueAssets request is already done: `c17cabbf` (09:59, on
+  `origin/hw-cues-a`) makes `collect` skip a skin's `Sound` key, so no pocket sound is warmed
+  as a texture; it reaches your window with the merge. The `203785492` lines are not a skin
+  row's: they appear in a fresh session before any cue is given. (b) The skinned Aim-fade fix
+  above (ed8b7ca3) needs nothing from your rows: `Aim = "fade"` on `Crown` and `Charm` now
+  clears their skinned parts too. (c) Your rows @ 831ba508 and my branch build and run
+  together cleanly (the preview above); the merge's only conflict is the manifest, union.
+
 - 10:45 **Coordinator requests in full (brief 3.6), standing:**
   1. Merges on request: drop 1 7bef0153, drop 2 eb98e2ef, drop 3 37573b2c (the body path,
      `Bodies.Enabled = true`), CuePreview bodies 5078ac33, Candy Corn 1bd06f55, Jack-o'-Lantern
@@ -408,3 +436,11 @@ Gate 2 addition (10:28, `gate2/`): Jack-o'-Lantern complete @ db1a9fdb (+ 73fc00
 - `tv_you_got_jack.jpg`, `tv_you_got_candy.jpg`: the YOU GOT scene with each card.
 - `fresh_join_tutorial_arrow.jpg`, `fresh_game1_break_streak.jpg`: the fresh-player pre-run:
   the tutorial's first screen, the first match's break.
+- `integ_row_five_candy_jack_broom_cat_spider.jpg`: the lab row of all five bodies on the
+  stand (the local scratch merge of B's rows @ 831ba508, drafts off locally).
+- `integ_broom_stand_back.jpg`, `integ_cat_stand_back.jpg`, `integ_spider_stand_back.jpg`:
+  each of B's bodies on the stand and on a back, close.
+- `integ_broom_hands_aim.jpg`: the Broom in hands while aiming (solo fixture): the bristles
+  cleared, the power bar card.
+- `integ_spider_hands_aim_crown_faded.jpg`: the Spider in hands while aiming after the
+  CuePiece fix @ ed8b7ca3: the crown cleared (before it, Webs and Blades stayed solid).
