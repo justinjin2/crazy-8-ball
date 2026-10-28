@@ -4,7 +4,7 @@
   "tier": "Legendary",
   "draft": false,
   "catalog_id": "JackOLanternCue",
-  "note": "Halloween 2026 track cue (500 Candy). Drawn by its own body piece (jack_o_lantern): a stem tip, ribbed orange shaft, a vine with swaying leaves, wood collars with glowing slits, the carved pumpkin whose face flickers. Lane hw-cues-a, 2026-10-28.",
+  "note": "Halloween 2026 track cue (500 Candy). Drawn by its own body piece (jack_o_lantern, assets/cue/CuePiecesJack.py, lane hw-sys 2026-10-28, to the C4 concept): a green stem tip, a glossy orange shaft with soft wood grain, a chunky vine with leaves spiralling up, a bronze and dark-wood collar with glowing slits, and a big carved pumpkin past the butt (an Aim joint: it clears on the owner's screen while aiming) whose face glows from a flickering core.",
   "body": "jack_o_lantern",
   "maps_from": "classic",
   "look": {
@@ -19,126 +19,57 @@
   "vfx": {
     "Moving": {
       "Kind": "Body motion",
-      "Note": "Body motion plus the decor: the flame vines screw along the cue in opposite senses, three mini pumpkins circle it at three rates, the leaves sway, the carved face flickers, the slits pulse, the halo beam pulses, the lights flicker."
+      "Note": "Body motion: the leaves sway on the vine, the pumpkin wobbles slowly and its stem sways, the core flickers like a candle through the carved face, the slits glow; flames lick round the pumpkin and little jack-o'-lanterns float up round the cue."
     },
     "Aura": {
-      "Note": "The Jack's own life, nothing wrapping the stick (designer 2026-10-28 12:55: no ribbons, a hand-made signature): the carved face flickers like a candle (the body's Face Glow, shape flicker, and two flickering lights at the pumpkin), the jaw snaps open and breathes little flames (JawBreath rides the Jaw joint), embers rise out of the carved holes, a dark smoke behind the pumpkin only, the face's soft glow; the living vine, the sprouting pumpkins and the jaw are the decor piece. No beam, no orbiter.",
+      "Note": "C4 (hw-sys, 2026-10-28): bold cartoon flames licking up off the pumpkin's top and shoulders from six points (never at the tip, never over the face; an opaque painted flipbook, flame_4x4: the lobby floor washes a soft additive flame out), embers rising off them, two flickering lights; four mini 3D jack-o'-lanterns float round the back half of the cue and the pumpkin (the decor piece jack_o_lantern_jacks: no flat cards for a motif, the coordinator 19:08). Lower effects keeps every emitter at its LowRate share and two of the jacks; while quiet (your shot) the skin's own share, Config.CueSkins.Quiet.SkinShares, all but clears the flames where the faded pumpkin was.",
       "BackRateScale": 0.5,
       "Emitters": [
         {
-          "Name": "DarkSmoke",
-          "Texture": "vfx/_shared/smoke_8x8.png",
-          "FlipbookLayout": "Grid8x8",
-          "FlipbookMode": "OneShot",
-          "Host": {
-            "Kind": "Part",
-            "FromStuds": 6.1,
-            "ToStuds": 7.3,
-            "Width": 1.1,
-            "Shape": "Cylinder",
-            "ShapeStyle": "Volume"
-          },
-          "LightInfluence": 0,
-          "LockedToPart": true,
-          "Rate": 8,
-          "Lifetime": [
-            1.2,
-            1.8
-          ],
-          "Speed": [
-            0.1,
-            0.3
-          ],
-          "SpreadAngle": [
-            180,
-            180
-          ],
-          "Drag": 1.2,
-          "Size": [
-            [
-              0,
-              0.5
-            ],
-            [
-              1,
-              1.3
-            ]
-          ],
-          "Transparency": [
-            [
-              0,
-              1
-            ],
-            [
-              0.2,
-              0.5
-            ],
-            [
-              0.7,
-              0.72
-            ],
-            [
-              1,
-              1
-            ]
-          ],
-          "Rotation": [
-            0,
-            360
-          ],
-          "RotSpeed": [
-            -15,
-            15
-          ],
-          "Color": [
-            [
-              0,
-              "#4A2A1A"
-            ],
-            [
-              1,
-              "#2A1030"
-            ]
-          ],
-          "LightEmission": 0
-        },
-        {
-          "Name": "JawBreath",
-          "Texture": "vfx/_shared/fire_4x4.png",
+          "Name": "Flame1",
+          "Texture": "vfx/jack_o_lantern/flame_4x4.png",
+          "FlipbookLayout": "Grid4x4",
+          "FlipbookMode": "Loop",
+          "FlipbookFramerate": 14,
+          "FlipbookStartRandom": true,
           "Host": {
             "Kind": "Attachment",
-            "AtStuds": 6.85,
-            "Up": 0.42,
-            "Joint": "Jaw"
+            "AtStuds": 7.55,
+            "Up": 0.74,
+            "Side": 0.0
           },
-          "Rate": 14,
+          "Rate": 3,
           "Lifetime": [
-            0.35,
-            0.6
+            0.5,
+            0.8
           ],
           "Speed": [
-            0.7,
-            1.4
+            0.5,
+            0.9
           ],
           "SpreadAngle": [
-            18,
-            18
+            28,
+            28
           ],
           "EmissionDirection": "Top",
           "Acceleration": [
             0,
-            0.4,
+            1.0,
             0
           ],
-          "Drag": 0.8,
+          "Drag": 0.5,
           "Size": [
             [
               0,
-              0.12
+              0.14
             ],
             [
-              0.4,
-              0.28
+              0.25,
+              0.42
+            ],
+            [
+              0.7,
+              0.32
             ],
             [
               1,
@@ -148,67 +79,424 @@
           "Transparency": [
             [
               0,
-              0.2
+              0
+            ],
+            [
+              0.85,
+              0.05
+            ],
+            [
+              1,
+              0.8
+            ]
+          ],
+          "Rotation": [
+            -10,
+            10
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 0.05,
+          "LightInfluence": 0
+        },
+        {
+          "Name": "Flame2",
+          "Texture": "vfx/jack_o_lantern/flame_4x4.png",
+          "FlipbookLayout": "Grid4x4",
+          "FlipbookMode": "Loop",
+          "FlipbookFramerate": 14,
+          "FlipbookStartRandom": true,
+          "Host": {
+            "Kind": "Attachment",
+            "AtStuds": 7.25,
+            "Up": 0.62,
+            "Side": 0.34
+          },
+          "Rate": 3,
+          "Lifetime": [
+            0.5,
+            0.8
+          ],
+          "Speed": [
+            0.5,
+            0.9
+          ],
+          "SpreadAngle": [
+            28,
+            28
+          ],
+          "EmissionDirection": "Top",
+          "Acceleration": [
+            0,
+            1.0,
+            0
+          ],
+          "Drag": 0.5,
+          "Size": [
+            [
+              0,
+              0.14
+            ],
+            [
+              0.25,
+              0.42
             ],
             [
               0.7,
-              0.4
+              0.32
             ],
             [
               1,
-              1
+              0.05
             ]
           ],
-          "Color": [
+          "Transparency": [
             [
               0,
-              "#FFE0A0"
+              0
             ],
             [
-              0.4,
-              "#FF8A1A"
+              0.85,
+              0.05
             ],
             [
               1,
-              "#C0200A"
+              0.8
             ]
           ],
-          "LightEmission": 1,
-          "LightInfluence": 0,
-          "Brightness": 1.3
+          "Rotation": [
+            -10,
+            10
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 0.05,
+          "LightInfluence": 0
+        },
+        {
+          "Name": "Flame3",
+          "Texture": "vfx/jack_o_lantern/flame_4x4.png",
+          "FlipbookLayout": "Grid4x4",
+          "FlipbookMode": "Loop",
+          "FlipbookFramerate": 14,
+          "FlipbookStartRandom": true,
+          "Host": {
+            "Kind": "Attachment",
+            "AtStuds": 7.9,
+            "Up": 0.6,
+            "Side": 0.3
+          },
+          "Rate": 3,
+          "Lifetime": [
+            0.5,
+            0.8
+          ],
+          "Speed": [
+            0.5,
+            0.9
+          ],
+          "SpreadAngle": [
+            28,
+            28
+          ],
+          "EmissionDirection": "Top",
+          "Acceleration": [
+            0,
+            1.0,
+            0
+          ],
+          "Drag": 0.5,
+          "Size": [
+            [
+              0,
+              0.14
+            ],
+            [
+              0.25,
+              0.42
+            ],
+            [
+              0.7,
+              0.32
+            ],
+            [
+              1,
+              0.05
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0
+            ],
+            [
+              0.85,
+              0.05
+            ],
+            [
+              1,
+              0.8
+            ]
+          ],
+          "Rotation": [
+            -10,
+            10
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 0.05,
+          "LightInfluence": 0
+        },
+        {
+          "Name": "Flame4",
+          "Texture": "vfx/jack_o_lantern/flame_4x4.png",
+          "FlipbookLayout": "Grid4x4",
+          "FlipbookMode": "Loop",
+          "FlipbookFramerate": 14,
+          "FlipbookStartRandom": true,
+          "Host": {
+            "Kind": "Attachment",
+            "AtStuds": 7.4,
+            "Up": 0.6,
+            "Side": -0.4
+          },
+          "Rate": 3,
+          "Lifetime": [
+            0.5,
+            0.8
+          ],
+          "Speed": [
+            0.5,
+            0.9
+          ],
+          "SpreadAngle": [
+            28,
+            28
+          ],
+          "EmissionDirection": "Top",
+          "Acceleration": [
+            0,
+            1.0,
+            0
+          ],
+          "Drag": 0.5,
+          "Size": [
+            [
+              0,
+              0.14
+            ],
+            [
+              0.25,
+              0.42
+            ],
+            [
+              0.7,
+              0.32
+            ],
+            [
+              1,
+              0.05
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0
+            ],
+            [
+              0.85,
+              0.05
+            ],
+            [
+              1,
+              0.8
+            ]
+          ],
+          "Rotation": [
+            -10,
+            10
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 0.05,
+          "LightInfluence": 0
+        },
+        {
+          "Name": "Flame5",
+          "Texture": "vfx/jack_o_lantern/flame_4x4.png",
+          "FlipbookLayout": "Grid4x4",
+          "FlipbookMode": "Loop",
+          "FlipbookFramerate": 14,
+          "FlipbookStartRandom": true,
+          "Host": {
+            "Kind": "Attachment",
+            "AtStuds": 7.85,
+            "Up": 0.55,
+            "Side": -0.45
+          },
+          "Rate": 3,
+          "Lifetime": [
+            0.5,
+            0.8
+          ],
+          "Speed": [
+            0.5,
+            0.9
+          ],
+          "SpreadAngle": [
+            28,
+            28
+          ],
+          "EmissionDirection": "Top",
+          "Acceleration": [
+            0,
+            1.0,
+            0
+          ],
+          "Drag": 0.5,
+          "Size": [
+            [
+              0,
+              0.14
+            ],
+            [
+              0.25,
+              0.42
+            ],
+            [
+              0.7,
+              0.32
+            ],
+            [
+              1,
+              0.05
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0
+            ],
+            [
+              0.85,
+              0.05
+            ],
+            [
+              1,
+              0.8
+            ]
+          ],
+          "Rotation": [
+            -10,
+            10
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 0.05,
+          "LightInfluence": 0
+        },
+        {
+          "Name": "Flame6",
+          "Texture": "vfx/jack_o_lantern/flame_4x4.png",
+          "FlipbookLayout": "Grid4x4",
+          "FlipbookMode": "Loop",
+          "FlipbookFramerate": 14,
+          "FlipbookStartRandom": true,
+          "Host": {
+            "Kind": "Attachment",
+            "AtStuds": 8.25,
+            "Up": 0.42,
+            "Side": 0.0
+          },
+          "Rate": 3,
+          "Lifetime": [
+            0.5,
+            0.8
+          ],
+          "Speed": [
+            0.5,
+            0.9
+          ],
+          "SpreadAngle": [
+            28,
+            28
+          ],
+          "EmissionDirection": "Top",
+          "Acceleration": [
+            0,
+            1.0,
+            0
+          ],
+          "Drag": 0.5,
+          "Size": [
+            [
+              0,
+              0.14
+            ],
+            [
+              0.25,
+              0.42
+            ],
+            [
+              0.7,
+              0.32
+            ],
+            [
+              1,
+              0.05
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0
+            ],
+            [
+              0.85,
+              0.05
+            ],
+            [
+              1,
+              0.8
+            ]
+          ],
+          "Rotation": [
+            -10,
+            10
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 0.05,
+          "LightInfluence": 0
         },
         {
           "Name": "Embers",
           "Texture": "vfx/_shared/spark.png",
           "Host": {
-            "Kind": "Attachment",
-            "AtStuds": 6.96,
-            "Up": 0.34
+            "Kind": "Part",
+            "FromStuds": 7.0,
+            "ToStuds": 8.3,
+            "Width": 1.1,
+            "Up": 0.75
           },
-          "Rate": 12,
+          "Rate": 10,
           "Lifetime": [
-            0.9,
-            1.5
+            0.8,
+            1.4
           ],
           "Speed": [
-            0.4,
-            0.9
+            0.3,
+            0.8
           ],
           "SpreadAngle": [
-            30,
-            30
+            40,
+            40
           ],
           "EmissionDirection": "Top",
           "Acceleration": [
             0,
-            0.9,
+            1.2,
             0
           ],
           "Drag": 0.6,
           "Size": [
             [
               0,
-              0.05
+              0.07
             ],
             [
               1,
@@ -230,49 +518,15 @@
               "#FF3A1A"
             ]
           ],
-          "LightEmission": 1,
+          "LightEmission": 0.4,
           "LightInfluence": 0,
-          "Brightness": 2.5
-        },
-        {
-          "Name": "FaceGlow",
-          "Texture": "vfx/_shared/glow_soft.png",
-          "Host": {
-            "Kind": "Attachment",
-            "AtStuds": 6.94,
-            "Up": 0.3
-          },
-          "Rate": 1,
-          "Lifetime": 2.6,
-          "Speed": 0,
-          "Size": 0.9,
-          "Transparency": [
-            [
-              0,
-              1
-            ],
-            [
-              0.3,
-              0.5
-            ],
-            [
-              0.7,
-              0.5
-            ],
-            [
-              1,
-              1
-            ]
-          ],
-          "Color": "#FF9A2E",
-          "LightEmission": 1,
-          "LightInfluence": 0
+          "Brightness": 2
         }
       ],
       "Orbiters": [],
       "Lights": [
         {
-          "AtStuds": 6.9,
+          "AtStuds": 7.6,
           "Color": "#FF9A2E",
           "Brightness": 0.9,
           "Range": 8,
@@ -284,7 +538,7 @@
           }
         },
         {
-          "AtStuds": 7.06,
+          "AtStuds": 6.5,
           "Color": "#FF7A1A",
           "Brightness": 0.5,
           "Range": 6,
@@ -304,22 +558,21 @@
         "Colors": [
           [
             255,
-            200,
-            90
+            176,
+            40
           ],
           [
-            220,
-            40,
+            226,
+            58,
             10
           ]
         ],
         "NearTransparency": 0.0,
         "Lifetime": 1.2,
-        "WidthStuds": 0.45,
-        "LightEmission": 0.8,
-        "Texture": "vfx/_shared/wisp_strip.png",
-        "TextureMode": "Wrap",
-        "TextureLength": 1.2,
+        "WidthStuds": 0.5,
+        "LightEmission": 0.15,
+        "Texture": "vfx/_shared/trail_soft.png",
+        "TextureMode": "Stretch",
         "WidthScale": [
           [
             0,
@@ -340,24 +593,24 @@
             0.0
           ],
           [
-            0.6,
-            0.15
+            0.5,
+            0.1
           ],
           [
             1,
             1
           ]
         ],
-        "Brightness": 1.5,
+        "Brightness": 1.2,
         "Core": {
           "Color": [
             255,
-            250,
-            230
+            226,
+            120
           ],
-          "Width": 0.18,
+          "Width": 0.15,
           "NearTransparency": 0.0,
-          "LightEmission": 1,
+          "LightEmission": 0.4,
           "Transparency": [
             [
               0,
@@ -386,7 +639,7 @@
               0.4
             ]
           ],
-          "Brightness": 2.2
+          "Brightness": 1.3
         }
       },
       "Pocket": {
@@ -402,11 +655,15 @@
             77
           ]
         ],
-        "ColorShare": 1
+        "ColorShare": 1,
+        "CoreWhiten": 0.15,
+        "LightEmission": 0.3,
+        "Streaks": 0,
+        "Sparkles": 0
       }
     },
     "Trail": {
-      "Note": "A flame ribbon gold to orange to red with a white-hot core; embers shed and fall, a few mini jack flecks tumble off.",
+      "Note": "A flame ribbon gold to red with a warm core, opaque enough for the bright cloth (hw-sys, 2026-10-28); bold painted flames lick off the ball (flame_4x4), embers shed and fall, little glowing jack-o'-lanterns tumble off.",
       "Emitters": [
         {
           "Name": "Embers",
@@ -414,7 +671,7 @@
           "Host": {
             "Kind": "Point"
           },
-          "Rate": 30,
+          "Rate": 20,
           "Lifetime": [
             0.4,
             0.9
@@ -463,8 +720,73 @@
           "Brightness": 3
         },
         {
+          "Name": "FlameFlecks",
+          "Texture": "vfx/jack_o_lantern/flame_4x4.png",
+          "FlipbookLayout": "Grid4x4",
+          "FlipbookMode": "Loop",
+          "FlipbookFramerate": 14,
+          "FlipbookStartRandom": true,
+          "Host": {
+            "Kind": "Point"
+          },
+          "Rate": 14,
+          "Lifetime": [
+            0.3,
+            0.5
+          ],
+          "Speed": [
+            0.3,
+            0.8
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Drag": 1.0,
+          "Acceleration": [
+            0,
+            3.0,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.32
+            ],
+            [
+              0.5,
+              0.26
+            ],
+            [
+              1,
+              0.05
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0
+            ],
+            [
+              0.7,
+              0.1
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Rotation": [
+            -15,
+            15
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 0.1,
+          "LightInfluence": 0
+        },
+        {
           "Name": "JackFlecks",
-          "Texture": "vfx/jack_o_lantern/jack_4x4.png",
+          "Texture": "vfx/jack_o_lantern/jack_glow_4x4.png",
           "FlipbookLayout": "Grid4x4",
           "FlipbookMode": "Loop",
           "FlipbookFramerate": 8,
@@ -472,7 +794,7 @@
           "Host": {
             "Kind": "Point"
           },
-          "Rate": 4,
+          "Rate": 5,
           "Lifetime": [
             0.5,
             0.8
@@ -494,11 +816,11 @@
           "Size": [
             [
               0,
-              0.16
+              0.22
             ],
             [
               1,
-              0.12
+              0.15
             ]
           ],
           "Rotation": [
@@ -520,13 +842,13 @@
             ]
           ],
           "Color": "#FFFFFF",
-          "LightEmission": 0.5,
-          "LightInfluence": 0.2
+          "LightEmission": 0.25,
+          "LightInfluence": 0
         }
       ]
     },
     "Pocket": {
-      "Note": "About 1.7 s, Infernal's pattern: a dark ring and a flash, a fire column, the laughing jack-o-lantern rising out of the pocket wrapped in flame (its jaw snapping, its head wobbling, the face flaring), a seed-and-ember burst, four mini jacks popping out, a dissolve upward. Roblox library laugh 9116239118. The two fire layers kept dim (Brightness 1.2 / 0.9, 18 sprites each) so the jaw and grin read through the flames (Studio, 2026-10-28).",
+      "Note": "About 1.7 s (hw-sys, 2026-10-28, to C4): a dark ring and a flash, a column of bold painted flames (flame_4x4, opaque: the lobby floor washes the old soft additive fire out), the cue's own carved jack-o'-lantern rising out of the pocket wrapped in flame (jack_o_lantern_rise: its core flickering, nodding as it laughs, three mini 3D jacks circling it), a seed-and-ember burst, then dark smoke (lit, not additive: additive orange smoke stacked into a yellow ball on the bright floor). Of the shared gust only the ring and flash stay: its ribbons, streaks and sparkle crosses read as flat orange cards on the bright floor, and the fire column is the gust. Roblox library laugh 9116239118.",
       "Flash": {
         "Color": [
           255,
@@ -555,7 +877,7 @@
         }
       ],
       "Piece": {
-        "Piece": "jack_o_lantern_pocket",
+        "Piece": "jack_o_lantern_rise",
         "Delay": 0.15,
         "Seconds": 1.5,
         "Rise": [
@@ -614,9 +936,9 @@
       "Layers": [
         {
           "Name": "FireColumn",
-          "Texture": "vfx/_shared/fire_8x8.png",
-          "FlipbookLayout": "Grid8x8",
-          "FlipbookMode": "OneShot",
+          "Texture": "vfx/jack_o_lantern/flame_4x4.png",
+          "FlipbookLayout": "Grid4x4",
+          "FlipbookMode": "Loop",
           "Host": {
             "Kind": "Point",
             "Size": 0.6
@@ -644,54 +966,43 @@
           "Size": [
             [
               0,
-              0.5
+              0.45
             ],
             [
               0.5,
-              0.9
+              0.8
             ],
             [
               1,
-              0.3
+              0.25
             ]
           ],
           "Transparency": [
             [
               0,
-              0.35
+              0
             ],
             [
-              0.6,
-              0.5
+              0.7,
+              0.1
             ],
             [
               1,
               1
             ]
           ],
-          "Color": [
-            [
-              0,
-              "#FFF4C0"
-            ],
-            [
-              0.4,
-              "#FF8A1A"
-            ],
-            [
-              1,
-              "#C0200A"
-            ]
-          ],
-          "LightEmission": 1,
+          "Color": "#FFFFFF",
+          "LightEmission": 0.1,
           "LightInfluence": 0,
-          "Brightness": 1.2
+          "Brightness": 1,
+          "FlipbookFramerate": 14,
+          "FlipbookStartRandom": true
         },
         {
           "Name": "FlameWrap",
-          "Texture": "vfx/_shared/fire_8x8.png",
-          "FlipbookLayout": "Grid8x8",
-          "FlipbookMode": "OneShot",
+          "Texture": "vfx/jack_o_lantern/flame_4x4.png",
+          "FlipbookLayout": "Grid4x4",
+          "FlipbookMode": "Loop",
           "Host": {
             "Kind": "Point",
             "Size": 0.9,
@@ -726,37 +1037,34 @@
               0.4
             ],
             [
+              0.5,
+              0.65
+            ],
+            [
               1,
-              0.7
+              0.2
             ]
           ],
           "Transparency": [
             [
               0,
-              0.5
+              0.05
+            ],
+            [
+              0.7,
+              0.15
             ],
             [
               1,
               1
             ]
           ],
-          "Color": [
-            [
-              0,
-              "#FFF4C0"
-            ],
-            [
-              0.4,
-              "#FF8A1A"
-            ],
-            [
-              1,
-              "#C0200A"
-            ]
-          ],
-          "LightEmission": 1,
+          "Color": "#FFFFFF",
+          "LightEmission": 0.1,
           "LightInfluence": 0,
-          "Brightness": 0.9
+          "Brightness": 1,
+          "FlipbookFramerate": 14,
+          "FlipbookStartRandom": true
         },
         {
           "Name": "SeedEmbers",
@@ -862,79 +1170,6 @@
           "LightInfluence": 0.3
         },
         {
-          "Name": "MiniJacksPop",
-          "Texture": "vfx/jack_o_lantern/jack_4x4.png",
-          "FlipbookLayout": "Grid4x4",
-          "FlipbookMode": "Loop",
-          "FlipbookFramerate": 8,
-          "FlipbookStartRandom": true,
-          "Host": {
-            "Kind": "Point",
-            "Size": 0.5,
-            "Offset": [
-              0,
-              0.6,
-              0
-            ]
-          },
-          "Burst": 4,
-          "Delay": 0.9,
-          "Lifetime": [
-            1.0,
-            1.3
-          ],
-          "Speed": [
-            3,
-            5
-          ],
-          "SpreadAngle": [
-            40,
-            40
-          ],
-          "EmissionDirection": "Top",
-          "Acceleration": [
-            0,
-            -5,
-            0
-          ],
-          "Drag": 0.5,
-          "Size": [
-            [
-              0,
-              0.3
-            ],
-            [
-              1,
-              0.45
-            ]
-          ],
-          "Rotation": [
-            -20,
-            20
-          ],
-          "RotSpeed": [
-            -60,
-            60
-          ],
-          "Transparency": [
-            [
-              0,
-              0
-            ],
-            [
-              0.8,
-              0
-            ],
-            [
-              1,
-              1
-            ]
-          ],
-          "Color": "#FFFFFF",
-          "LightEmission": 0.6,
-          "LightInfluence": 0.2
-        },
-        {
           "Name": "Dissolve",
           "Texture": "vfx/_shared/smoke_8x8.png",
           "FlipbookLayout": "Grid8x8",
@@ -948,7 +1183,7 @@
               0
             ]
           },
-          "Burst": 10,
+          "Burst": 8,
           "Delay": 1.3,
           "Lifetime": [
             0.6,
@@ -981,7 +1216,11 @@
           "Transparency": [
             [
               0,
-              0.5
+              0.35
+            ],
+            [
+              0.6,
+              0.6
             ],
             [
               1,
@@ -991,34 +1230,39 @@
           "Color": [
             [
               0,
-              "#FF8A1A"
+              "#C2561C"
+            ],
+            [
+              0.35,
+              "#5A2A24"
             ],
             [
               1,
               "#2A1030"
             ]
           ],
-          "LightEmission": 0.6,
-          "LightInfluence": 0
+          "LightEmission": 0,
+          "LightInfluence": 0.6
         }
       ],
       "Sound": {
         "Asset": "rbxassetid://9116239118",
         "Volume": 0.6,
         "Note": "Roblox library: Pro Sound Effects \"Laugh Evil Male Various Versions 1\" (3.7 s), loads in Play (PreloadAsync Success, TimeLength 3.73)"
-      }
+      },
+      "KeepRibbons": false
     },
     "Budget": {
-      "ParticlesPerSecond": 35,
-      "Back": 17.5,
+      "ParticlesPerSecond": 28,
+      "Back": 14,
       "Beams": 0,
       "Lights": 2,
       "Orbiters": 0,
-      "Note": "Plus the decor piece (18 parts: 4 tendrils, 4 leaves, 3 sprouting pumpkins with faces and stems, the jaw); trail 34/s while the ball moves; the finisher bursts 140 once. Firework is 214/s, 1 beam, 2 lights."
+      "Note": "Plus the decor piece (4 parts, 4,264 triangles; the body is 5 parts, 8,086); trail 35/s while the ball moves; the finisher bursts 116 once and its piece is 3 parts, 6,552 triangles. Firework is 214/s, 1 beam, 2 lights."
     },
     "Piece": {
-      "Note": "pieces/jack_o_lantern_aura: the vine lives: four corkscrew tendrils (Tendril1-4) turning on their own axis and waving where they sprout, four leaves (Leaf1-4) swaying, three small pumpkins (Pumpkin1-3, aura joints) sprouting on the vine, breathing and glowing from inside (Glow beat), and the butt pumpkin's jaw (Jaw: the grin's lower teeth as a plate hinged at the chin, Hinge 0-26 deg, quick close slow open, 2.4 s). Lower effects keeps the jaw, two tendrils, two leaves and one pumpkin (12:55: no ribbons)."
+      "Note": "pieces/jack_o_lantern_jacks (assets/cue/CuePiecesJack.py): four low-poly carved jacks, the body's pumpkin at a fifth of its size with its inner skin glowing through the face (the body's atlas, no new texture), a stem curling off the top; each an aura joint that bobs, tilts and turns slowly round its stem so its face comes round to every side (Jack1 between the hands, Jack2 behind the grip, Jack3 over the pumpkin, Jack4 behind it). Aim joints; Lower effects hides Jack1 and Jack4."
     }
   },
-  "piece": "jack_o_lantern_aura"
+  "piece": "jack_o_lantern_jacks"
 }
