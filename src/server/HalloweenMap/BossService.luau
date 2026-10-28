@@ -441,6 +441,11 @@ end
 
 local function reward(p: Player, king: King)
 	local amount, granted = 0, false
+	-- Timed: they beat him this visit, paid or not (a repeat win, or one paid on another
+	-- server or before a rejoin): his line puts them behind everyone who hasn't yet.
+	if king.visit then
+		p:SetAttribute(K.BeatAttribute, king.visit)
+	end
 	local CandyService = candyService()
 	if CandyService and CandyService.isLive() then
 		-- Timed: core pays once per visit (the one the challenge was seated in).
@@ -449,9 +454,6 @@ local function reward(p: Player, king: King)
 			granted, amount = r.granted == true, tonumber(r.amount) or 0
 			if type(r.cooldownEndsAt) == "number" then
 				p:SetAttribute(K.ReadyAttribute, r.cooldownEndsAt)
-			end
-			if granted and king.visit then
-				p:SetAttribute(K.BeatAttribute, king.visit)
 			end
 		elseif not ok then
 			warn("[HalloweenMap] bossWon failed: " .. tostring(r))
