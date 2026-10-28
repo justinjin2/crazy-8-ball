@@ -90,20 +90,25 @@ def check_budget(pid, spec, roles, allow):
 
 def asset_id(rel):
     """`vfx/x.png`, `textures/x.png`, `pieces/p/x.glb` or `sounds/x.wav` -> its uploaded id string
-    (an image id for a picture, `rbxassetid://` for a sound, the bare id for a model)."""
+    (an image id for a picture, `rbxassetid://` for a sound, the bare id for a model).
+
+    The manifest is keyed by absolute path, so the same file can have an "ok" row from every
+    worktree that uploaded it (~/Desktop/8ball, 8ball-gui, 8ball-unique, ...). The row whose id
+    the generated rows already carry wins in EVERY checkout (the live id; 2026-10-28, the
+    coordinator: the main checkout's own upload of celestial_dragon's maps used to win there
+    and rewrote a shipped piece), then this checkout's own upload, then the main checkout's,
+    then the path. To move a shipped file to a new upload, delete its old manifest rows (every
+    path) and upload again; a new file has one row and needs nothing."""
     path = os.path.join(CUE, rel)
-    row = manifest.get(path) or {}
-    if not row:
-        # Uploaded from another worktree (~/Desktop/8ball, 8ball-gui, ...): the manifest is keyed
-        # by absolute path, so match the path inside assets/cue instead, the main checkout's
-        # upload first (the rows the game runs on), so every lane generates the same rows.
-        tail = os.sep + os.path.join('assets', 'cue', rel)
-        hits = [(k, r) for k, r in manifest.items() if k.endswith(tail) and r.get('status') == 'ok']
-        hits.sort(key=lambda kr: (
-            0 if (str(kr[1].get('imageId') or '') in shipped_ids or str(kr[1].get('assetId') or '') in shipped_ids) else 1,
-            0 if kr[0].startswith(os.path.join(os.path.expanduser('~'), 'Desktop', '8ball') + os.sep) else 1,
-            kr[0]))
-        row = hits[0][1] if hits else {}
+    tail = os.sep + os.path.join('assets', 'cue', rel)
+    main_root = os.path.join(os.path.expanduser('~'), 'Desktop', '8ball') + os.sep
+    hits = [(k, r) for k, r in manifest.items() if (k == path or k.endswith(tail)) and r.get('status') == 'ok']
+    hits.sort(key=lambda kr: (
+        0 if (str(kr[1].get('imageId') or '') in shipped_ids or str(kr[1].get('assetId') or '') in shipped_ids) else 1,
+        0 if kr[0] == path else 1,
+        0 if kr[0].startswith(main_root) else 1,
+        kr[0]))
+    row = hits[0][1] if hits else (manifest.get(path) or {})
     if row.get('status') == 'ok':
         if rel.endswith('.png') and row.get('imageId'):
             return 'rbxassetid://%s' % row['imageId']
@@ -216,17 +221,29 @@ def given_look(skin_id, look):
     return out
 
 
+# --resample-look <skin id> (repeatable, or `all`): sample that skin's Look from its colour map
+# again instead of keeping the Look the generated rows record.
+RESAMPLE = set()
+for _i, _arg in enumerate(sys.argv):
+    if _arg == '--resample-look' and _i + 1 < len(sys.argv):
+        RESAMPLE.add(sys.argv[_i + 1])
+
+
 def sample_look(skin_id, colours, catalog_id=None):
-    """The cue's flat colours from its colour map: the shaft, forearm and butt strips' middles."""
+    """The cue's flat colours: the Look the generated rows already record wins (a shipped row
+    never changes because a checkout happens to hold a different, git-ignored copy of the
+    colour map: 2026-10-28, Beta's Shaft moved in the main checkout), else sampled from the
+    colour map's shaft, forearm and butt strips' middles (a new skin, or `--resample-look`)."""
     path = os.path.join(CUE, 'textures', skin_id + '_color.png')
+    if skin_id not in RESAMPLE and 'all' not in RESAMPLE:
+        kept = recorded_look(catalog_id or '')
+        if kept:
+            return kept
     try:
         from PIL import Image
     except ImportError:
         sys.exit('needs Pillow (pip3 install pillow)')
     if not os.path.isfile(path):
-        kept = recorded_look(catalog_id or '')
-        if kept:
-            return kept
         sys.exit('no colour map for %s (textures/%s_color.png) and no Look recorded in Index.luau' % (skin_id, skin_id))
     im = Image.open(path).convert('RGB')
     layout = {u['strip']: u for u in json.load(open(os.path.join(CUE, 'Parameters.json')))['uv_layout']}

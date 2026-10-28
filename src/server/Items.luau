@@ -58,6 +58,7 @@ local MONEY = "Money" -- PlayerData's: the save's money
 local QUIET_OPS: { [string]: boolean } = {
 	addPlaySeconds = true,
 	setPlayMinutes = true,
+	hwActive = true, -- Halloween's 5 s active tick ("hwActiveGrant" when it gives a cue)
 	recordShot = true,
 	addMoney = true,
 	addDailyMoney = true,
@@ -282,13 +283,15 @@ end
 
 function HANDLERS.EquipCue(player: Player, r: Requests.Request): Reply
 	local cueId = r.cueId :: string
+	local before = player:GetAttribute("EquippedCue") -- PlayerData keeps it on the player
 	if not PlayerData.equipCue(player, cueId) then
 		return refuse("NotOwned")
 	end
 	Funnel.cueEquipped(player, cueId) -- the lucky block funnel (the tutorial lane)
 	local cue = Catalog.get(cueId)
-	if cue and cue.Event == "Halloween2026" then
-		-- Halloween 2026 (hw-cues-a): how often each event cue is picked up, in Creator Hub.
+	if cue and cue.Event == "Halloween2026" and before ~= cueId then
+		-- Halloween 2026 (hw-cues-a): how often each event cue is picked up, in Creator Hub; a
+		-- re-equip of the cue already in hand (the card tapped twice) is not a pick-up.
 		Funnel.event(player, "HalloweenCueEquipped", 1, cueId)
 	end
 	if onEquipped then

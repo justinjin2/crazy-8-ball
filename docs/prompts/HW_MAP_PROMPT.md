@@ -254,7 +254,7 @@ the coordinator resolves overlaps at the merge.
   (never hard-coded ids). On Ended: `applyLook(model, TableBuilder.lookFor(id))`, or
   `Config.Arena.Look` in an arena. No new table images (ImageBudget 18), no new table mesh.
 - Tints, exactly PLAN's: 1v1 orchid (185, 90, 230), 2v2 charcoal (90, 94, 102), 3v3 toxic green
-  (110, 220, 40). Never an orange cloth (balls 5 and 13 vanish).
+  (88, 176, 32) (was (110, 220, 40), ΔE 16.5 rendered; coordinator 11:41). Never an orange cloth (balls 5 and 13 vanish).
 - **CIEDE2000 ≥ 17 between each cloth and every ball, as rendered under Night and under Sunset.**
   In Play, top-down captures of a racked table of each mode (`/bot` on a 1v1; BotsQA seats for
   2v2 and 3v3), sample the median cloth colour and each ball's lit median, run
@@ -441,7 +441,7 @@ Config.HalloweenMap = {
 	Tables = { Enabled = false, Base = "Blue", MinDeltaE = 17,
 		ByTeamSize = { [1] = { Cloth = { 185, 90, 230 }, Kit = "Orchid" },
 			[2] = { Cloth = { 90, 94, 102 }, Kit = "Pumpkin" },
-			[3] = { Cloth = { 110, 220, 40 }, Kit = "Toxic" } } },
+			[3] = { Cloth = { 88, 176, 32 }, Kit = "Toxic" } } },
 	Decor = { Enabled = false, MaxPartsPerTable = 10, MaxTrianglesPerTable = 1500, Kits = {} },
 	Props = { Enabled = false, Hide = {}, Place = {},
 		Budget = { Triangles = 60000, MeshParts = 130, UniqueMeshes = 8, Textures = 6,
@@ -617,26 +617,26 @@ request: ask in your lane file's Requests when a verified part should land early
 
 ## Progress
 
-- [ ] 1. Interfaces pushed by 08:15: Config.HalloweenMap (all switches off; the `Enabled`, `Boss.Enabled` and `Candy.Enabled` keys; no hour-cap key) and Lighting.Night shape, Strings, the two Net remotes, the Bootstrap and Main blocks with their switched-off modules; lane file Requests and attribute names written; lint and tests green.
-- [ ] 2. `HalloweenMap/Rules.luau` with its Lune tests (kingTier, hideList, decorInside, eligible, teleported, state actions).
-- [ ] 3. EventMap's switch: Event.state with the Studio force, the two workspace attributes, idempotent on and off, a boot during Live.
-- [ ] 4. Night: Lighting.Night tuned in Play, `LightCycle.event` and `mixStates`, DayCycle following the state with preload and crossfade; Night ≥ 0.9 of Day's brightness, measured.
-- [ ] 5. Table looks by mode at run time (black frame + tints, restored at the end); rendered ΔE ≥ 17 under Night and Sunset, table in the lane file; gate 1 shots by 09:00.
-- [ ] 6. First start `bot_duel` in the background for every TierFor row (200 games each, `--no-write`, output to a log outside the repo) so step 9 only reads it; then the BotService boss hooks (description, icon, animations, dress, playBoss, BotsQA "boss"), Body's new arguments, People's icon.
-- [ ] 7. King look (description, head, crown, cape, suit pieces, aura, idle; a placeholder head is fine for gate 2, the real one by 13:00) and the throne at the piano spot with the throne figure; the piano hidden; the Rojo round trip of the first .rbxm checked.
-- [ ] 8. BossService: prompt, server checks, free table with 2 spare, MaxAtOnce 3, notices, taunts, analytics; a King match end to end in Studio.
-- [ ] 9. Difficulty from the background bot_duel runs for every TierFor row (win shares in the lane file; a row under 20% stepped down, re-measured and logged).
-- [ ] 10. The reward: bossWon on every win, bossCooldown into `PumpkinKingReadyAt` and the prompt countdown, `Badges.grant` Pumpkin Slayer, the candy explosion; gate 2 shots by 11:00.
-- [ ] 11. CandyDrop and its client FX: spawning, eligibility, the teleport check, CandyService.pickup's `(ok, reason)`, the bag-full note only for `"Cap"`, analytics; a 5-minute walk test.
-- [ ] 12. The purple night sky: gen_sky night variant (headless), 6 uploads, Night.Sky ids, the Night-to-Sunset swap checked in Play.
-- [ ] 13. `TableBuilder.addDecor` and the three kits (bounds-checked, no collision), on every table, removed at the end.
-- [ ] 14. Props: dead trees, pumpkins, spooky planters, tombstones, string lights, cobwebs (headless Blender, uploads, Assets); the hide list applied and restored; the budget counted.
-- [ ] 15. The full flip test: Before → Countdown → Live → Ended → Live in one Play session, a boot during Live, an arena (lighting and tables only); console clean.
-- [ ] 16. Performance pass: counts against the budget, frame time on vs off, the low-quality path, the server loops' cost.
-- [ ] 17. Every verified part's switch set true in Config, each checked once with its own switch off (before the device and fresh-player runs, so they test what ships).
-- [ ] 18. Devices: prompt, notices, billboards and portrait at the four sizes and with the pad; screenshots.
-- [ ] 19. Fresh-player run during Live (tutorial, Skip, first match, the prompt after the tutorial).
-- [ ] 20. Lane file Status final + all screenshots.
-- [ ] 21. Merge halloween, re-test, push.
+- [x] 1. Interfaces pushed by 08:15: Config.HalloweenMap (all switches off; the `Enabled`, `Boss.Enabled` and `Candy.Enabled` keys; no hour-cap key) and Lighting.Night shape, Strings, the two Net remotes, the Bootstrap and Main blocks with their switched-off modules; lane file Requests and attribute names written; lint and tests green.
+- [x] 2. `HalloweenMap/Rules.luau` with its Lune tests (kingTier, hideList, decorInside, eligible, teleported, state actions).
+- [x] 3. EventMap's switch: Event.state with the Studio force, the two workspace attributes, idempotent on and off, a boot during Live.
+- [x] 4. Night: Lighting.Night tuned in Play, `LightCycle.event` and `mixStates`, DayCycle following the state with preload and crossfade; Night ≥ 0.9 of Day's brightness, measured.
+- [x] 5. Table looks by mode at run time (black frame + tints, restored at the end); rendered ΔE ≥ 17 under Night and Sunset, table in the lane file; gate 1 shots by 09:00.
+- [x] 6. First start `bot_duel` in the background for every TierFor row (200 games each, `--no-write`, output to a log outside the repo) so step 9 only reads it; then the BotService boss hooks (description, icon, animations, dress, playBoss, BotsQA "boss"), Body's new arguments, People's icon.
+- [x] 7. King look (description, head, crown, cape, suit pieces, aura, idle; a placeholder head is fine for gate 2, the real one by 13:00) and the throne at the piano spot with the throne figure; the piano hidden; the Rojo round trip of the first .rbxm checked.
+- [x] 8. BossService: prompt, server checks, free table with 2 spare, MaxAtOnce 3, notices, taunts, analytics; a King match end to end in Studio.
+- [x] 9. Difficulty from the background bot_duel runs for every TierFor row (win shares in the lane file; a row under 20% stepped down, re-measured and logged).
+- [x] 10. The reward: bossWon on every win, bossCooldown into `PumpkinKingReadyAt` and the prompt countdown, `Badges.grant` Pumpkin Slayer, the candy explosion; gate 2 shots by 11:00.
+- [x] 11. CandyDrop and its client FX: spawning, eligibility, the teleport check, CandyService.pickup's `(ok, reason)`, the bag-full note only for `"Cap"`, analytics; a 5-minute walk test.
+- [x] 12. The purple night sky: gen_sky night variant (headless), 6 uploads, Night.Sky ids, the Night-to-Sunset swap checked in Play.
+- [x] 13. `TableBuilder.addDecor` and the three kits (bounds-checked, no collision), on every table, removed at the end.
+- [x] 14. Props: dead trees, pumpkins, spooky planters, tombstones, string lights, cobwebs (headless Blender, uploads, Assets); the hide list applied and restored; the budget counted.
+- [x] 15. The full flip test: Before → Countdown → Live → Ended → Live in one Play session, a boot during Live, an arena (lighting and tables only); console clean.
+- [x] 16. Performance pass: counts against the budget, frame time on vs off, the low-quality path, the server loops' cost.
+- [x] 17. Every verified part's switch set true in Config, each checked once with its own switch off (before the device and fresh-player runs, so they test what ships).
+- [x] 18. Devices: prompt, notices, billboards and portrait at the four sizes and with the pad; screenshots.
+- [x] 19. Fresh-player run during Live (tutorial, Skip, first match, the prompt after the tutorial).
+- [x] 20. Lane file Status final + all screenshots.
+- [x] 21. Merge halloween, re-test, push.
 
 ## Notes

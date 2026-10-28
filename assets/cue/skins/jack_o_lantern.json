@@ -19,10 +19,10 @@
   "vfx": {
     "Moving": {
       "Kind": "Body motion",
-      "Note": "All on the body piece: the five leaves sway (Hinge 7 deg over 2.6 s with a Bob), the carved face flickers like a candle (Glow 1.3 s plus a 3-blink flutter every 2.7 s), the collar slits pulse (Glow 4 s)."
+      "Note": "Body motion plus the decor: the flame vines screw along the cue in opposite senses, three mini pumpkins circle it at three rates, the leaves sway, the carved face flickers, the slits pulse, the halo beam pulses, the lights flicker."
     },
     "Aura": {
-      "Note": "A haunted bonfire: a dark brown-plum smoke body behind, flame wisps licking up the cue, embers rising, floating mini jack-o-lanterns drifting off (the pocket jack rendered headless, its face flickering), crackle sparks falling, two orbiters with flame heads, three flickering orange lights. Legendary: about 110 particles a second, 3 lights, 2 orbiters, no beam.",
+      "Note": "The Jack's own life, nothing wrapping the stick (designer 2026-10-28 12:55: no ribbons, a hand-made signature): the carved face flickers like a candle (the body's Face Glow, shape flicker, and two flickering lights at the pumpkin), the jaw snaps open and breathes little flames (JawBreath rides the Jaw joint), embers rise out of the carved holes, a dark smoke behind the pumpkin only, the face's soft glow; the living vine, the sprouting pumpkins and the jaw are the decor piece. No beam, no orbiter.",
       "BackRateScale": 0.5,
       "Emitters": [
         {
@@ -32,15 +32,15 @@
           "FlipbookMode": "OneShot",
           "Host": {
             "Kind": "Part",
-            "FromStuds": 0.3,
-            "ToStuds": 7.0,
-            "Width": 0.9,
+            "FromStuds": 6.1,
+            "ToStuds": 7.3,
+            "Width": 1.1,
             "Shape": "Cylinder",
             "ShapeStyle": "Volume"
           },
           "LightInfluence": 0,
           "LockedToPart": true,
-          "Rate": 16,
+          "Rate": 8,
           "Lifetime": [
             1.2,
             1.8
@@ -57,11 +57,11 @@
           "Size": [
             [
               0,
-              0.7
+              0.5
             ],
             [
               1,
-              1.7
+              1.3
             ]
           ],
           "Transparency": [
@@ -71,11 +71,11 @@
             ],
             [
               0.2,
-              0.6
+              0.5
             ],
             [
               0.7,
-              0.8
+              0.72
             ],
             [
               1,
@@ -103,59 +103,56 @@
           "LightEmission": 0
         },
         {
-          "Name": "FlameWisps",
-          "Texture": "vfx/_shared/fire_8x8.png",
-          "FlipbookLayout": "Grid8x8",
-          "FlipbookMode": "OneShot",
+          "Name": "JawBreath",
+          "Texture": "vfx/_shared/fire_4x4.png",
           "Host": {
-            "Kind": "Part",
-            "FromStuds": 0.3,
-            "ToStuds": 7.0,
-            "Width": 0.5,
-            "Shape": "Cylinder",
-            "ShapeStyle": "Volume"
+            "Kind": "Attachment",
+            "AtStuds": 6.85,
+            "Up": 0.42,
+            "Joint": "Jaw"
           },
-          "Rate": 30,
+          "Rate": 14,
           "Lifetime": [
-            0.5,
-            0.8
+            0.35,
+            0.6
           ],
           "Speed": [
-            0.4,
-            0.8
+            0.7,
+            1.4
           ],
           "SpreadAngle": [
-            20,
-            20
+            18,
+            18
           ],
           "EmissionDirection": "Top",
           "Acceleration": [
             0,
-            1.6,
+            0.4,
             0
           ],
+          "Drag": 0.8,
           "Size": [
             [
               0,
-              0.35
+              0.12
             ],
             [
               0.4,
-              0.7
+              0.28
             ],
             [
               1,
-              0.2
+              0.05
             ]
           ],
           "Transparency": [
             [
               0,
-              0.3
+              0.2
             ],
             [
               0.7,
-              0.5
+              0.4
             ],
             [
               1,
@@ -165,7 +162,7 @@
           "Color": [
             [
               0,
-              "#FFF4C0"
+              "#FFE0A0"
             ],
             [
               0.4,
@@ -178,32 +175,28 @@
           ],
           "LightEmission": 1,
           "LightInfluence": 0,
-          "LockedToPart": false,
-          "Brightness": 1.4
+          "Brightness": 1.3
         },
         {
           "Name": "Embers",
           "Texture": "vfx/_shared/spark.png",
           "Host": {
-            "Kind": "Part",
-            "FromStuds": 0.3,
-            "ToStuds": 7.0,
-            "Width": 0.46,
-            "Shape": "Cylinder",
-            "ShapeStyle": "Surface"
+            "Kind": "Attachment",
+            "AtStuds": 6.96,
+            "Up": 0.34
           },
-          "Rate": 26,
+          "Rate": 12,
           "Lifetime": [
-            1.0,
-            1.6
+            0.9,
+            1.5
           ],
           "Speed": [
-            0.3,
-            0.7
+            0.4,
+            0.9
           ],
           "SpreadAngle": [
-            35,
-            35
+            30,
+            30
           ],
           "EmissionDirection": "Top",
           "Acceleration": [
@@ -215,7 +208,7 @@
           "Size": [
             [
               0,
-              0.06
+              0.05
             ],
             [
               1,
@@ -242,145 +235,12 @@
           "Brightness": 2.5
         },
         {
-          "Name": "Crackle",
-          "Texture": "vfx/_shared/spark.png",
-          "Host": {
-            "Kind": "Part",
-            "FromStuds": 0.3,
-            "ToStuds": 7.0,
-            "Width": 0.42,
-            "Shape": "Cylinder",
-            "ShapeStyle": "Surface"
-          },
-          "Rate": 14,
-          "Lifetime": [
-            0.5,
-            0.9
-          ],
-          "Speed": [
-            0.6,
-            1.4
-          ],
-          "SpreadAngle": [
-            180,
-            180
-          ],
-          "Drag": 1.5,
-          "Acceleration": [
-            0,
-            -5,
-            0
-          ],
-          "Size": [
-            [
-              0,
-              0.09
-            ],
-            [
-              1,
-              0
-            ]
-          ],
-          "Transparency": 0,
-          "Color": [
-            [
-              0,
-              "#FFFFFF"
-            ],
-            [
-              0.5,
-              "#FFB030"
-            ],
-            [
-              1,
-              "#FF3A1A"
-            ]
-          ],
-          "LightEmission": 1,
-          "LightInfluence": 0,
-          "Brightness": 3
-        },
-        {
-          "Name": "MiniJacks",
-          "Texture": "vfx/jack_o_lantern/jack_4x4.png",
-          "FlipbookLayout": "Grid4x4",
-          "FlipbookMode": "Loop",
-          "FlipbookFramerate": 8,
-          "FlipbookStartRandom": true,
-          "Host": {
-            "Kind": "Part",
-            "FromStuds": 0.3,
-            "ToStuds": 7.0,
-            "Width": 1.0,
-            "Shape": "Cylinder",
-            "ShapeStyle": "Volume"
-          },
-          "Rate": 6,
-          "Lifetime": [
-            2.0,
-            3.0
-          ],
-          "Speed": [
-            0.08,
-            0.2
-          ],
-          "SpreadAngle": [
-            180,
-            180
-          ],
-          "Drag": 0.8,
-          "Acceleration": [
-            0,
-            0.1,
-            0
-          ],
-          "Size": [
-            [
-              0,
-              0.22
-            ],
-            [
-              1,
-              0.3
-            ]
-          ],
-          "Rotation": [
-            -15,
-            15
-          ],
-          "RotSpeed": [
-            -10,
-            10
-          ],
-          "Transparency": [
-            [
-              0,
-              1
-            ],
-            [
-              0.1,
-              0
-            ],
-            [
-              0.85,
-              0
-            ],
-            [
-              1,
-              1
-            ]
-          ],
-          "Color": "#FFFFFF",
-          "LightEmission": 0.5,
-          "LightInfluence": 0.2,
-          "LockedToPart": false
-        },
-        {
           "Name": "FaceGlow",
           "Texture": "vfx/_shared/glow_soft.png",
           "Host": {
             "Kind": "Attachment",
-            "AtStuds": 6.96
+            "AtStuds": 6.94,
+            "Up": 0.3
           },
           "Rate": 1,
           "Lifetime": 2.6,
@@ -409,149 +269,12 @@
           "LightInfluence": 0
         }
       ],
-      "Orbiters": [
-        {
-          "Name": "FlameHead1",
-          "FromStuds": 0.4,
-          "ToStuds": 7.0,
-          "TravelSeconds": 2.2,
-          "Loop": "pingpong",
-          "TurnsPerSecond": 1.0,
-          "Radius": 0.34,
-          "Wobble": 0.06,
-          "WobbleHz": 1.3,
-          "Phase": 0,
-          "Delay": 0,
-          "Trail": {
-            "Lifetime": 0.7,
-            "WidthStuds": 0.22,
-            "Color": [
-              [
-                0,
-                "#FFE0A0"
-              ],
-              [
-                1,
-                "#FF4A10"
-              ]
-            ],
-            "Brightness": 1.8,
-            "Transparency": [
-              [
-                0,
-                0
-              ],
-              [
-                0.6,
-                0.15
-              ],
-              [
-                1,
-                1
-              ]
-            ],
-            "WidthScale": [
-              [
-                0,
-                1
-              ],
-              [
-                0.6,
-                0.7
-              ],
-              [
-                1,
-                0.3
-              ]
-            ],
-            "LightEmission": 1,
-            "Texture": "vfx/_shared/wisp_strip.png",
-            "TextureMode": "Wrap",
-            "TextureLength": 0.8
-          },
-          "Head": {
-            "Texture": "vfx/_shared/glow_soft.png",
-            "Size": 0.32,
-            "Transparency": 0.15,
-            "Color": "#FFB040",
-            "LightEmission": 1,
-            "Brightness": 2.5
-          }
-        },
-        {
-          "Name": "FlameHead2",
-          "FromStuds": 0.4,
-          "ToStuds": 7.0,
-          "TravelSeconds": 2.6,
-          "Loop": "pingpong",
-          "TurnsPerSecond": -0.9,
-          "Radius": 0.3,
-          "Wobble": 0.06,
-          "WobbleHz": 1.3,
-          "Phase": 180,
-          "Delay": 1.1,
-          "Trail": {
-            "Lifetime": 0.7,
-            "WidthStuds": 0.22,
-            "Color": [
-              [
-                0,
-                "#FFE0A0"
-              ],
-              [
-                1,
-                "#FF4A10"
-              ]
-            ],
-            "Brightness": 1.8,
-            "Transparency": [
-              [
-                0,
-                0
-              ],
-              [
-                0.6,
-                0.15
-              ],
-              [
-                1,
-                1
-              ]
-            ],
-            "WidthScale": [
-              [
-                0,
-                1
-              ],
-              [
-                0.6,
-                0.7
-              ],
-              [
-                1,
-                0.3
-              ]
-            ],
-            "LightEmission": 1,
-            "Texture": "vfx/_shared/wisp_strip.png",
-            "TextureMode": "Wrap",
-            "TextureLength": 0.8
-          },
-          "Head": {
-            "Texture": "vfx/_shared/glow_soft.png",
-            "Size": 0.32,
-            "Transparency": 0.15,
-            "Color": "#FFB040",
-            "LightEmission": 1,
-            "Brightness": 2.5
-          }
-        }
-      ],
+      "Orbiters": [],
       "Lights": [
         {
-          "AtStuds": 6.96,
+          "AtStuds": 6.9,
           "Color": "#FF9A2E",
-          "Brightness": 0.7,
+          "Brightness": 0.9,
           "Range": 8,
           "Flicker": {
             "Min": 0.55,
@@ -561,30 +284,20 @@
           }
         },
         {
-          "AtStuds": 3.7,
+          "AtStuds": 7.06,
           "Color": "#FF7A1A",
-          "Brightness": 0.45,
-          "Range": 7,
+          "Brightness": 0.5,
+          "Range": 6,
           "Flicker": {
-            "Min": 0.6,
-            "Max": 1.1,
-            "Period": 0.7,
-            "Shape": "flicker"
-          }
-        },
-        {
-          "AtStuds": 1.2,
-          "Color": "#FFB040",
-          "Brightness": 0.45,
-          "Range": 7,
-          "Flicker": {
-            "Min": 0.6,
-            "Max": 1.1,
-            "Period": 0.6,
+            "Min": 0.5,
+            "Max": 1.2,
+            "Period": 0.37,
             "Shape": "flicker"
           }
         }
-      ]
+      ],
+      "Outline": "#FF8A1C",
+      "Beams": []
     },
     "Style": {
       "Trail": {
@@ -1296,12 +1009,16 @@
       }
     },
     "Budget": {
-      "ParticlesPerSecond": 93,
-      "Back": 46.5,
+      "ParticlesPerSecond": 35,
+      "Back": 17.5,
       "Beams": 0,
-      "Lights": 3,
-      "Orbiters": 2,
-      "Note": "Plus the two orbiter heads; trail 34/s while the ball moves; the finisher bursts 140 once."
+      "Lights": 2,
+      "Orbiters": 0,
+      "Note": "Plus the decor piece (18 parts: 4 tendrils, 4 leaves, 3 sprouting pumpkins with faces and stems, the jaw); trail 34/s while the ball moves; the finisher bursts 140 once. Firework is 214/s, 1 beam, 2 lights."
+    },
+    "Piece": {
+      "Note": "pieces/jack_o_lantern_aura: the vine lives: four corkscrew tendrils (Tendril1-4) turning on their own axis and waving where they sprout, four leaves (Leaf1-4) swaying, three small pumpkins (Pumpkin1-3, aura joints) sprouting on the vine, breathing and glowing from inside (Glow beat), and the butt pumpkin's jaw (Jaw: the grin's lower teeth as a plate hinged at the chin, Hinge 0-26 deg, quick close slow open, 2.4 s). Lower effects keeps the jaw, two tendrils, two leaves and one pumpkin (12:55: no ribbons)."
     }
-  }
+  },
+  "piece": "jack_o_lantern_aura"
 }

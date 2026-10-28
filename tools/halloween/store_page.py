@@ -7,6 +7,7 @@
     python3 tools/halloween/store_page.py icon-schedule [--go]     the 5H..LIVE swaps (run under caffeinate)
     python3 tools/halloween/store_page.py event [--go]             create "Haunted Rooftop", then read it back
     python3 tools/halloween/store_page.py event-get                list the game's events
+    python3 tools/halloween/store_page.py event-times ID [--go]    move an existing event to 19:00 EDT Oct 28 .. 19:00 EST Nov 3
     python3 tools/halloween/store_page.py title TEXT [--go]        rename (needs universe.place:write)
     python3 tools/halloween/store_page.py selftest
 
@@ -47,6 +48,7 @@ SCHEDULE = [
     (1793221200, "2H"),
     (1793224800, "1H"),
     (1793228400, "LIVE"),  # 19:00 EDT, the event goes live
+    (1793314800, "plain"),  # 19:00 EDT Oct 29: the icon without the LIVE pill (designer, 2026-10-28)
 ]
 UPLOADS = ["5H", "4H", "3H", "2H", "1H", "LIVE", "plain", "current"]
 
@@ -314,6 +316,25 @@ def cmd_event_get():
     print(status, json.dumps(result, indent=1, ensure_ascii=False)[:3000])
 
 
+# The event window (Config.Halloween StartsAt / EndsAt): 19:00 EDT Oct 28 to 19:00 EST Nov 3.
+EVENT_TIMES = {"startTime": "2026-10-28T23:00:00.000Z", "endTime": "2026-11-04T00:00:00.000Z"}
+
+
+def cmd_event_times(event_id, go):
+    """Change only the start and end of an event made by hand (designer, 2026-10-28)."""
+    path = f"/virtual-events/v3/game-events/{event_id}"
+    body = json.dumps(EVENT_TIMES).encode()
+    if not go:
+        print("DRY PATCH", path, body.decode())
+        return
+    status, result = call("PATCH", path, "ROBLOX_USER_KEY", body, "application/json")
+    if status == 415:
+        status, result = call("PATCH", path, "ROBLOX_USER_KEY", body, "application/json-patch+json")
+    log(f"event-times {event_id} -> {status} {json.dumps(result)[:500]}")
+    print(status, {k: result.get(k) for k in ("title", "startTime", "endTime")} if isinstance(result, dict) else result)
+    cmd_event_get()
+
+
 def cmd_title(text, go):
     body = json.dumps({"displayName": text}).encode()
     path = f"/cloud/v2/universes/{UNIVERSE}/places/{ROOT_PLACE}?updateMask=displayName"
@@ -332,10 +353,12 @@ def cmd_selftest():
         assert stage_for(at) == name and stage_for(at + hour - 1) == (name if i == len(SCHEDULE) - 1 else name), name
         if i + 1 < len(SCHEDULE):
             assert stage_for(SCHEDULE[i + 1][0] - 1) == name, name
-    assert stage_for(1793750400) == "LIVE"
-    assert [n for _, n in SCHEDULE] == ["5H", "4H", "3H", "2H", "1H", "LIVE"]
-    assert all(b - a == hour for (a, _), (b, _) in zip(SCHEDULE, SCHEDULE[1:])), "one swap an hour"
-    assert SCHEDULE[-1][0] == 1793228400, "LIVE at the go-live time"
+    assert stage_for(1793750400) == "plain"
+    assert [n for _, n in SCHEDULE] == ["5H", "4H", "3H", "2H", "1H", "LIVE", "plain"]
+    countdown = SCHEDULE[:-1]
+    assert all(b - a == hour for (a, _), (b, _) in zip(countdown, countdown[1:])), "one swap an hour"
+    assert countdown[-1] == (1793228400, "LIVE"), "LIVE at the go-live time"
+    assert SCHEDULE[-1][0] - 1793228400 == 24 * hour, "LIVE for a day, then the plain icon"
     fake = {"5H": {"asset_id": "11", "status": "approved"}, "4H": {"asset_id": "12", "status": "moderating"},
             "3H": {"asset_id": "13", "status": "rejected"}, "2H": {"operation": "operations/x", "status": "uploading"}}
     assert resolve("5H", fake) == "11"
@@ -367,6 +390,8 @@ def main():
         cmd_icon_schedule(go)
     elif cmd == "event":
         cmd_event(go)
+    elif cmd == "event-times" and len(args) == 2:
+        cmd_event_times(args[1], go)
     elif cmd == "event-get":
         cmd_event_get()
     elif cmd == "title" and len(args) == 2:

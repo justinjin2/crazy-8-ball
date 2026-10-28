@@ -11,7 +11,13 @@ local CAP = Config.Save.StatCap
 
 local Ledger = {}
 
-export type BossResult = { granted: boolean, amount: number, cooldownEndsAt: number }
+export type BossResult = {
+	granted: boolean,
+	amount: number, -- Candy paid
+	cooldownEndsAt: number,
+	money: number?, -- Timed mode's visit reward (bossVisitWin)
+	xp: number?,
+}
 
 local function whole(x: any): number
 	if type(x) ~= "number" or x ~= x or math.abs(x) == math.huge then
@@ -60,6 +66,31 @@ function Ledger.bossWin(hw: any, now: number): BossResult?
 	return { granted = amount > 0, amount = amount, cooldownEndsAt = hw.KingReadyAt }
 end
 
+-- A Pumpkin King win at `now` in Timed mode, in the visit that started at `visitStart` (Live
+-- only: nil otherwise). Every win counts (KingWins); the first win of a visit pays Boss.Visit
+-- once (KingVisit marks it: a replay or a second win in the same visit pays nothing); no
+-- cooldown. `money` and `xp` are for the caller to give in the same change.
+function Ledger.bossVisitWin(hw: any, now: number, visitStart: number): BossResult?
+	if not Event.isLive(now) then
+		return nil
+	end
+	hw.KingWins = math.min(whole(hw.KingWins) + 1, CAP)
+	local start = whole(visitStart)
+	if start <= 0 or whole(hw.KingVisit) == start then
+		return { granted = false, amount = 0, cooldownEndsAt = 0, money = 0, xp = 0 }
+	end
+	local V = C.Boss.Visit
+	hw.KingVisit = start
+	local amount = Ledger.addCandy(hw, V.Candy, "Earned")
+	return {
+		granted = true,
+		amount = amount,
+		cooldownEndsAt = 0,
+		money = whole(V.Money),
+		xp = whole(V.Xp),
+	}
+end
+
 -- When the player's King cooldown ends (unix seconds), or 0 when none is running.
 function Ledger.bossCooldown(hw: any, now: number): number
 	local readyAt = whole(hw.KingReadyAt)
@@ -89,6 +120,20 @@ end
 function Ledger.addActive(hw: any, seconds: number): number
 	hw.Active = math.min(whole(hw.Active) + whole(seconds), CAP)
 	return hw.Active
+end
+
+-- The active-play gate (Config.Halloween.ActiveGate): a tick's `seconds` count only once the
+-- player has finished a real match today (`played`); until then they wait in `held` (at most
+-- the gate's HoldCapSeconds) and are credited with the first tick after that match. Returns
+-- the seconds to add now and the new held amount. Gate off: everything counts at once.
+function Ledger.gateActive(held: number, seconds: number, played: boolean): (number, number)
+	local G = C.ActiveGate
+	local wait = math.max(0, whole(held))
+	local now = math.max(0, whole(seconds))
+	if G.Enabled ~= true or played then
+		return wait + now, 0
+	end
+	return 0, math.min(wait + now, G.HoldCapSeconds)
 end
 
 -- Whether the Spider Cue is earned and not yet given.

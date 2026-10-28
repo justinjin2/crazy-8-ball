@@ -3543,7 +3543,10 @@ local function hwMutate(
 	if hw.Converted ~= true then
 		hwGrantDue(data, hw, result)
 	end
-	commit(player, data, op)
+	-- The 5 s active tick is quiet (Items.QUIET_OPS, Badges.SKIP_OPS) unless it gave a prize
+	-- (the Spider, a held cue): then the inventory and the badges must see it.
+	local given = #result.steps > 0 or result.spider
+	commit(player, data, if op == "hwActive" and given then "hwActiveGrant" else op)
 	return result
 end
 
@@ -3578,6 +3581,13 @@ function PlayerData.hwCandy(player: Player): number
 	local data = peek(player)
 	local hw = if data ~= nil then data.Halloween else nil
 	return if type(hw) == "table" then HwLedger.total(hw) else 0
+end
+
+--- Whether the player has finished a real match this UTC day (Daily.Matches: PC practice never
+--- counts), for the Halloween active-play gate; false before the save loads.
+function PlayerData.playedToday(player: Player): boolean
+	local data = peek(player)
+	return data ~= nil and dailyOf(data, today()).Matches > 0
 end
 
 --- Adds Candy (`bucket` "Earned" from play, "Bought" from a pack) and counts quest events in the
@@ -3616,12 +3626,24 @@ end
 
 --- A Pumpkin King win (Halloween/Ledger.bossWin): the paid Candy, the cooldown and the King
 --- quests together. (boss result or nil when not Live, the mutation's result or nil.)
-function PlayerData.hwBoss(player: Player, ctx: HwCtx): (HwLedger.BossResult?, HwResult?)
+function PlayerData.hwBoss(
+	player: Player,
+	ctx: HwCtx,
+	visitStart: number?
+): (HwLedger.BossResult?, HwResult?)
 	local boss: HwLedger.BossResult? = nil
-	local result = hwMutate("hwBoss", player, function(_, hw, result)
-		boss = HwLedger.bossWin(hw, ctx.now)
+	local result = hwMutate("hwBoss", player, function(data, hw, result)
+		-- Timed mode (a visit's start given): the visit's first win pays Candy and money here,
+		-- in this one change with the visit's mark, so a replay can never pay twice.
+		boss = if visitStart ~= nil
+			then HwLedger.bossVisitWin(hw, ctx.now, visitStart)
+			else HwLedger.bossWin(hw, ctx.now)
 		if boss ~= nil then
 			result.candy = boss.amount
+			local money = boss.money or 0
+			if money > 0 then
+				addMoneyTo(data, money, true, "HalloweenKing")
+			end
 			hwRoute(hw, ctx, { { kind = "King", amount = 1 } }, result)
 		end
 	end)
