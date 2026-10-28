@@ -565,8 +565,8 @@ conversion with an end screen, the tutorial gate, the tile, the menu.
 - [x] End screen (M5) with count-up, owned cue cards, COLLECT; once per save
 - [x] Countdown pill 18:30-19:00 and the 19:00 start moment, walked with `/hw time`
 - [x] Every switch verified and set true; analytics events seen in the Funnel log
-- [ ] Fresh-player run (tutorial played and skipped): Candy from game 1, no event UI until Done/Skipped, then tile, menu, match, claim; console clean
-- [ ] Four device sizes + pad for the tile, menu, chip text, countdown, toast and end screen; screenshots
+- [x] Fresh-player run (tutorial played and skipped): Candy from game 1, no event UI until Done/Skipped, then tile, menu, match, claim; console clean
+- [x] Four device sizes + pad for the tile, menu, chip text, countdown, toast and end screen; screenshots (10:11: PC + pad in Studio; phone 844x390 and iPad 1024x768 by emulating the menu's Root size since the window helper fails, three cuts fixed; the tile by its layout test; the card and end screen UIScale-fit)
 - [ ] Lane file Status final (what works, switches, shared-file changes, requests) + all screenshots
 - [ ] Merge halloween, re-test (lint, tests, Studio main path), push
 
