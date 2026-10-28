@@ -29,6 +29,7 @@ From PLAN §4 (everything else is read-only; ask below under Requests):
 
 ## Status
 
+- 09:50 hw-core: Spider active clock in (8d501aac): `SkyDropService.isActive(player)` (one getter, the Sky clock's IdleSeconds rule), a 5 s tick in CandyService adding active seconds while Live (Spider + "Play N min" quests), the view re-sent for active time alone every 30 s. `Spider.Enabled = true` (76b0df32): Studio walked 10,855 -> 10,870 s, the Spider due and HELD because `Catalog.ready("SpiderCue")` is false until cues-b builds it; it grants on the next tick after. Quests and Track lines ticked. Next: Candy toast + track reveal, then RushChip.content.
 - 09:36 hw-core: merged halloween @f246f0a7 (Badges/HalloweenMapFx conflicts kept both); lint OK, 1,396 tests. Coordinator's 09:12 requests done: `Event.nextRushAt` returns nil with no Rush to come (5ef20d06; the strip says "No more Rushes this event"), `Event.clock/short` read `Strings.Halloween.Time`, distinct Alts (board 2 King -> Matches 4, board 3 Ult -> Matches 5, dacaaf55; a test checks no board shows a quest twice under any hook mix), solo practice ults ignored (b0ed8e2e). Main.client untouched (client_compiles_test passes). Quests are ON (`Quests.Enabled = true`, fda219c9, incl. the `Quests.claimable` infinite-loop fix that would have hung the end conversion). Event menu committed (f6b25a41, fit fix 76ac2339); art uploaded to the group (afb239f8). Studio: CLAIM 950 -> 1,010 Candy, the 1,000 step (2 spins) given, HwQuest/HwMenu/HwCandy/HwTrack logged, console clean. Next: the Spider active clock + Active quests, then the toast and reveal.
 - 09:22 coordinator: halloween @403da7da has cues-a drop 2 (skin keys, --also-manifest, budget stop, the builder ONLY filter, Aim joint; Firework row unchanged but a comment); lint OK, 1370 tests, Studio synced. Run `git fetch && git merge origin/halloween`. Cues B: you can generate rows now.
 - 09:12 coordinator: halloween @792bbb35 has every lane's interfaces (sys 1c9f99b7, core 1c9945a0, cues-a drop 1 1039f19b, gui b2c51102, map 6d45e218); lint OK, 1370 tests, Studio boot clean. Run `git fetch && git merge origin/halloween` now. Gate 1 is at 10:00: shots + one caption line each in your Gate shots by 09:55.
@@ -75,6 +76,7 @@ Planned, each to be confirmed here with its commit when it lands:
 - `HubCorners.luau`: `EventButton` require, `self.eventTile` after the offer rays, its `layout` call in `layout()`, first `padStops` entry (a8cd46a0).
 - `Net.luau`: `Halloween = "RemoteEvent"` before map's `HalloweenMapFx` (0ba8e9f1).
 - `Ranking.luau`: the `CandyService` require and one guarded `matchSettled` call after the disguised count (12a60faa).
+- `SkyDropService.luau`: one getter `SkyDropService.isActive(player)` before `start` (8d501aac).
 - `tools/upload_manifest.json`: 10 rows for `assets/ui/halloween/*.png` (afb239f8).
 
 ## Requests
