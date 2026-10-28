@@ -401,8 +401,10 @@ local function dress(w: Warm)
 			if row.Piece then
 				hasPiece = addPiece(w, row.Piece, seen)
 			end
-			if row.Body then
-				hasPiece = addPiece(w, row.Body, seen) or hasPiece -- the body, warm before a swap
+			if row.Body and Config.CueSkins.Bodies.Enabled then
+				-- the body, warm before a swap; with the switch off the body never draws, so its
+				-- model and maps are never fetched (review 2026-10-28 11:55)
+				hasPiece = addPiece(w, row.Body, seen) or hasPiece
 			end
 			collect(row.Aura, sprites, seen)
 			collect(row.Moving, sprites, seen)
