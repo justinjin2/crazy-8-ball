@@ -2,48 +2,8 @@
   "id": "candy_corn_aura",
   "Frame": "cue",
   "frame": "Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)",
-  "Triangles": 4872,
+  "Triangles": 808,
   "Parts": [
-    {
-      "Material": "Neon",
-      "Color": "#FFD24D",
-      "Transparency": 0.1,
-      "Reflectance": 0.0,
-      "Name": "Swirl_Swirl",
-      "File": "pieces/candy_corn_aura/Swirl_Swirl.obj",
-      "Joint": "Swirl",
-      "Offset": [
-        0.0002,
-        -0.0002,
-        -0.1133
-      ],
-      "Size": [
-        0.7129,
-        0.7126,
-        6.5739
-      ],
-      "Triangles": 2236
-    },
-    {
-      "Material": "Neon",
-      "Color": "#FFF6D8",
-      "Transparency": 0.3,
-      "Reflectance": 0.0,
-      "Name": "SugarSwirl_SugarSwirl",
-      "File": "pieces/candy_corn_aura/SugarSwirl_SugarSwirl.obj",
-      "Joint": "SugarSwirl",
-      "Offset": [
-        -0.0001,
-        0.0006,
-        -0.1202
-      ],
-      "Size": [
-        0.7923,
-        0.7911,
-        6.5598
-      ],
-      "Triangles": 2236
-    },
     {
       "Material": "SmoothPlastic",
       "Color": "#FFFFFF",
@@ -56,14 +16,14 @@
       "File": "pieces/candy_corn_aura/Kernel1_Kernel.obj",
       "Joint": "Kernel1",
       "Offset": [
-        -0.0062,
-        0.5717,
-        2.2
+        -0.1335,
+        0.2158,
+        2.95
       ],
       "Size": [
-        0.1305,
-        0.2166,
-        0.128
+        0.2767,
+        0.2514,
+        0.176
       ],
       "Triangles": 100
     },
@@ -79,14 +39,14 @@
       "File": "pieces/candy_corn_aura/Kernel2_Kernel.obj",
       "Joint": "Kernel2",
       "Offset": [
-        -0.6162,
-        -0.0142,
-        0.7
+        -0.1349,
+        -0.2403,
+        2.65
       ],
       "Size": [
-        0.1217,
-        0.2084,
-        0.128
+        0.1804,
+        0.2979,
+        0.176
       ],
       "Triangles": 100
     },
@@ -102,14 +62,14 @@
       "File": "pieces/candy_corn_aura/Kernel3_Kernel.obj",
       "Joint": "Kernel3",
       "Offset": [
-        0.0447,
-        -0.6658,
-        -0.8
+        0.2929,
+        -0.0855,
+        2.3
       ],
       "Size": [
-        0.1305,
-        0.2165,
-        0.128
+        0.2915,
+        0.1686,
+        0.176
       ],
       "Triangles": 100
     },
@@ -125,116 +85,263 @@
       "File": "pieces/candy_corn_aura/Kernel4_Kernel.obj",
       "Joint": "Kernel4",
       "Offset": [
-        0.6774,
-        0.0628,
+        -0.3016,
+        0.0601,
+        1.95
+      ],
+      "Size": [
+        0.2973,
+        0.1762,
+        0.176
+      ],
+      "Triangles": 100
+    },
+    {
+      "Material": "Neon",
+      "Color": "#FFF8E0",
+      "Transparency": 0.05,
+      "Reflectance": 0.0,
+      "Name": "Crystal1_Crystal",
+      "File": "pieces/candy_corn_aura/Crystal1_Crystal.obj",
+      "Joint": "Crystal1",
+      "Offset": [
+        -0.0961,
+        0.1891,
+        -0.8
+      ],
+      "Size": [
+        0.0724,
+        0.1053,
+        0.0825
+      ],
+      "Triangles": 8
+    },
+    {
+      "Material": "Neon",
+      "Color": "#FFF8E0",
+      "Transparency": 0.05,
+      "Reflectance": 0.0,
+      "Name": "Crystal2_Crystal",
+      "File": "pieces/candy_corn_aura/Crystal2_Crystal.obj",
+      "Joint": "Crystal2",
+      "Offset": [
+        -0.1089,
+        -0.1911,
+        -1.25
+      ],
+      "Size": [
+        0.074,
+        0.1028,
+        0.0825
+      ],
+      "Triangles": 8
+    },
+    {
+      "Material": "Neon",
+      "Color": "#FFF8E0",
+      "Transparency": 0.05,
+      "Reflectance": 0.0,
+      "Name": "Crystal3_Crystal",
+      "File": "pieces/candy_corn_aura/Crystal3_Crystal.obj",
+      "Joint": "Crystal3",
+      "Offset": [
+        0.2211,
+        -0.0668,
+        -1.8
+      ],
+      "Size": [
+        0.1142,
+        0.0785,
+        0.0825
+      ],
+      "Triangles": 8
+    },
+    {
+      "Material": "Neon",
+      "Color": "#FFF8E0",
+      "Transparency": 0.05,
+      "Reflectance": 0.0,
+      "Name": "Crystal4_Crystal",
+      "File": "pieces/candy_corn_aura/Crystal4_Crystal.obj",
+      "Joint": "Crystal4",
+      "Offset": [
+        -0.2349,
+        -0.0064,
         -2.4
       ],
       "Size": [
-        0.1217,
-        0.2093,
-        0.128
+        0.1199,
+        0.0825,
+        0.0825
       ],
-      "Triangles": 100
+      "Triangles": 8
+    },
+    {
+      "Material": "Neon",
+      "Color": "#FFF8E0",
+      "Transparency": 0.05,
+      "Reflectance": 0.0,
+      "Name": "Crystal5_Crystal",
+      "File": "pieces/candy_corn_aura/Crystal5_Crystal.obj",
+      "Joint": "Crystal5",
+      "Offset": [
+        0.0974,
+        -0.2107,
+        -2.9
+      ],
+      "Size": [
+        0.074,
+        0.1076,
+        0.0825
+      ],
+      "Triangles": 8
+    },
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#FF9A3C",
+      "Transparency": 0.12,
+      "Reflectance": 0.25,
+      "Name": "Wing1_Wrapper",
+      "File": "pieces/candy_corn_aura/Wing1_Wrapper.obj",
+      "Joint": "Wing1",
+      "Offset": [
+        -0.238,
+        0.0,
+        -3.87
+      ],
+      "Size": [
+        0.032,
+        0.42,
+        0.46
+      ],
+      "Triangles": 20
+    },
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#FF9A3C",
+      "Transparency": 0.12,
+      "Reflectance": 0.25,
+      "Name": "Wing2_Wrapper",
+      "File": "pieces/candy_corn_aura/Wing2_Wrapper.obj",
+      "Joint": "Wing2",
+      "Offset": [
+        0.238,
+        0.0,
+        -3.87
+      ],
+      "Size": [
+        0.032,
+        0.42,
+        0.46
+      ],
+      "Triangles": 20
+    },
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#FF9A3C",
+      "Transparency": 0.12,
+      "Reflectance": 0.25,
+      "Name": "Wing3_Wrapper",
+      "File": "pieces/candy_corn_aura/Wing3_Wrapper.obj",
+      "Joint": "Wing3",
+      "Offset": [
+        0.0,
+        0.238,
+        -3.87
+      ],
+      "Size": [
+        0.42,
+        0.032,
+        0.46
+      ],
+      "Triangles": 20
+    },
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#FF9A3C",
+      "Transparency": 0.12,
+      "Reflectance": 0.25,
+      "Name": "Wing4_Wrapper",
+      "File": "pieces/candy_corn_aura/Wing4_Wrapper.obj",
+      "Joint": "Wing4",
+      "Offset": [
+        0.0,
+        -0.238,
+        -3.87
+      ],
+      "Size": [
+        0.42,
+        0.032,
+        0.46
+      ],
+      "Triangles": 20
+    },
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#FF7A12",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Tie_Tie",
+      "File": "pieces/candy_corn_aura/Tie_Tie.obj",
+      "Joint": "Tie",
+      "Offset": [
+        0.0001,
+        0.0,
+        -3.65
+      ],
+      "Size": [
+        0.5838,
+        0.584,
+        0.0381
+      ],
+      "Triangles": 288
     }
   ],
   "Joints": {
-    "Swirl": {
-      "Parent": null,
-      "Pivot": [
-        0,
-        -3.5,
-        0
-      ],
-      "PivotRoblox": [
-        0,
-        0,
-        0.0
-      ],
-      "Motion": [
-        {
-          "Kind": "Spin",
-          "Axis": [
-            0,
-            1,
-            0
-          ],
-          "Rate": 40.0
-        }
-      ],
-      "Visual": [
-        {
-          "Kind": "Glow",
-          "Min": 0.0,
-          "Max": 0.45,
-          "Period": 2.6
-        }
-      ]
-    },
-    "SugarSwirl": {
-      "Parent": null,
-      "Pivot": [
-        0,
-        -3.5,
-        0
-      ],
-      "PivotRoblox": [
-        0,
-        0,
-        0.0
-      ],
-      "Motion": [
-        {
-          "Kind": "Spin",
-          "Axis": [
-            0,
-            1,
-            0
-          ],
-          "Rate": -30.0
-        }
-      ],
-      "Visual": [
-        {
-          "Kind": "Glow",
-          "Min": 0.0,
-          "Max": 0.45,
-          "Period": 1.6
-        }
-      ],
-      "Low": "hide"
-    },
     "Kernel1": {
       "Parent": null,
       "Pivot": [
-        0,
-        -1.3,
-        0
+        0.02136920392513275,
+        -0.550000011920929,
+        0.06908082216978073
       ],
       "PivotRoblox": [
-        0,
-        0,
-        2.2
+        -0.0214,
+        0.0691,
+        2.95
       ],
       "Motion": [
         {
-          "Kind": "Spin",
-          "Axis": [
-            0,
-            1,
-            0
-          ],
-          "Rate": 52.0
-        },
-        {
           "Kind": "Bob",
           "Dir": [
-            0,
-            1,
-            0
+            0.29552021622657776,
+            0.0,
+            0.9553365111351013
           ],
-          "Amp": 0.1,
-          "Period": 2.2,
+          "Amp": 0.07,
+          "Period": 0.8,
+          "Phase": 0,
+          "Shape": "snap"
+        },
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0.9553365111351013,
+            0.0,
+            -0.29552021622657776
+          ],
+          "Amp": 25.0,
+          "Period": 1.6,
           "Phase": 0
+        },
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0.29552021622657776,
+            0.0,
+            0.9553365111351013
+          ],
+          "Rate": 120.0
         }
       ],
       "Aura": true
@@ -242,35 +349,47 @@
     "Kernel2": {
       "Parent": null,
       "Pivot": [
-        0,
-        -2.8,
-        0
+        0.05864397808909416,
+        -0.8500000238418579,
+        -0.052397485822439194
       ],
       "PivotRoblox": [
-        0,
-        0,
-        0.7
+        -0.0586,
+        -0.0524,
+        2.65
       ],
       "Motion": [
         {
-          "Kind": "Spin",
-          "Axis": [
-            0,
-            1,
-            0
-          ],
-          "Rate": -44.0
-        },
-        {
           "Kind": "Bob",
           "Dir": [
-            0,
-            1,
-            0
+            0.7457051873207092,
+            0.0,
+            -0.6662760376930237
           ],
-          "Amp": 0.1,
-          "Period": 2.9,
-          "Phase": 50
+          "Amp": 0.07,
+          "Period": 0.95,
+          "Phase": 90,
+          "Shape": "snap"
+        },
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            -0.6662760376930237,
+            0.0,
+            -0.7457051873207092
+          ],
+          "Amp": 25.0,
+          "Period": 1.9,
+          "Phase": 45
+        },
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0.7457051873207092,
+            0.0,
+            -0.6662760376930237
+          ],
+          "Rate": -120.0
         }
       ],
       "Aura": true,
@@ -279,35 +398,47 @@
     "Kernel3": {
       "Parent": null,
       "Pivot": [
-        0,
-        -4.3,
-        0
+        -0.0749811977148056,
+        -1.2000000476837158,
+        -0.04217687249183655
       ],
       "PivotRoblox": [
-        0,
-        0,
-        -0.8
+        0.075,
+        -0.0422,
+        2.3
       ],
       "Motion": [
         {
-          "Kind": "Spin",
-          "Axis": [
-            0,
-            1,
-            0
-          ],
-          "Rate": 60.0
-        },
-        {
           "Kind": "Bob",
           "Dir": [
-            0,
-            1,
-            0
+            -0.8715757727622986,
+            0.0,
+            -0.4902608096599579
           ],
-          "Amp": 0.1,
-          "Period": 1.7,
-          "Phase": 100
+          "Amp": 0.07,
+          "Period": 0.7,
+          "Phase": 180,
+          "Shape": "snap"
+        },
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            -0.4902608096599579,
+            0.0,
+            0.8715757727622986
+          ],
+          "Amp": 25.0,
+          "Period": 1.4,
+          "Phase": 90
+        },
+        {
+          "Kind": "Spin",
+          "Axis": [
+            -0.8715757727622986,
+            0.0,
+            -0.4902608096599579
+          ],
+          "Rate": 120.0
         }
       ],
       "Aura": true
@@ -315,39 +446,299 @@
     "Kernel4": {
       "Parent": null,
       "Pivot": [
+        0.08706793934106827,
+        -1.5499999523162842,
+        0.03385023772716522
+      ],
+      "PivotRoblox": [
+        -0.0871,
+        0.0339,
+        1.95
+      ],
+      "Motion": [
+        {
+          "Kind": "Bob",
+          "Dir": [
+            0.9320390820503235,
+            0.0,
+            0.3623577654361725
+          ],
+          "Amp": 0.07,
+          "Period": 1.05,
+          "Phase": 270,
+          "Shape": "snap"
+        },
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0.3623577654361725,
+            0.0,
+            -0.9320390820503235
+          ],
+          "Amp": 25.0,
+          "Period": 2.1,
+          "Phase": 135
+        },
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0.9320390820503235,
+            0.0,
+            0.3623577654361725
+          ],
+          "Rate": -120.0
+        }
+      ],
+      "Aura": true,
+      "Low": "hide"
+    },
+    "Crystal1": {
+      "Parent": null,
+      "Pivot": [
+        0.0745147168636322,
+        -4.300000190734863,
+        0.13639827072620392
+      ],
+      "PivotRoblox": [
+        -0.0745,
+        0.1364,
+        -0.8
+      ],
+      "Motion": [],
+      "Visual": [
+        {
+          "Kind": "Glow",
+          "Min": 0.2,
+          "Max": 1.0,
+          "Period": 1.1,
+          "Shape": "flicker",
+          "Color": "#FFFFFF"
+        }
+      ]
+    },
+    "Crystal2": {
+      "Parent": null,
+      "Pivot": [
+        0.08403638750314713,
+        -4.75,
+        -0.13968893885612488
+      ],
+      "PivotRoblox": [
+        -0.084,
+        -0.1397,
+        -1.25
+      ],
+      "Motion": [],
+      "Visual": [
+        {
+          "Kind": "Glow",
+          "Min": 0.2,
+          "Max": 1.0,
+          "Period": 1.6,
+          "Shape": "flicker",
+          "Color": "#FFFFFF"
+        }
+      ]
+    },
+    "Crystal3": {
+      "Parent": null,
+      "Pivot": [
+        -0.1639610379934311,
+        -5.300000190734863,
+        -0.05295345187187195
+      ],
+      "PivotRoblox": [
+        0.164,
+        -0.053,
+        -1.8
+      ],
+      "Motion": [],
+      "Visual": [
+        {
+          "Kind": "Glow",
+          "Min": 0.2,
+          "Max": 1.0,
+          "Period": 1.3,
+          "Shape": "flicker",
+          "Color": "#FFFFFF"
+        }
+      ]
+    },
+    "Crystal4": {
+      "Parent": null,
+      "Pivot": [
+        0.17492537200450897,
+        -5.900000095367432,
+        -0.005109916441142559
+      ],
+      "PivotRoblox": [
+        -0.1749,
+        -0.0051,
+        -2.4
+      ],
+      "Motion": [],
+      "Visual": [
+        {
+          "Kind": "Glow",
+          "Min": 0.2,
+          "Max": 1.0,
+          "Period": 1.9,
+          "Shape": "flicker",
+          "Color": "#FFFFFF"
+        }
+      ]
+    },
+    "Crystal5": {
+      "Parent": null,
+      "Pivot": [
+        -0.07744107395410538,
+        -6.400000095367432,
+        -0.15693272650241852
+      ],
+      "PivotRoblox": [
+        0.0774,
+        -0.1569,
+        -2.9
+      ],
+      "Motion": [],
+      "Visual": [
+        {
+          "Kind": "Glow",
+          "Min": 0.2,
+          "Max": 1.0,
+          "Period": 1.4,
+          "Shape": "flicker",
+          "Color": "#FFFFFF"
+        }
+      ]
+    },
+    "Wing1": {
+      "Parent": null,
+      "Pivot": [
+        0.23999999463558197,
+        -7.139999866485596,
+        0.0
+      ],
+      "PivotRoblox": [
+        -0.24,
+        0.0,
+        -3.64
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0.0,
+            0.0,
+            1.0
+          ],
+          "Base": 26.0,
+          "Amp": -26.0,
+          "Period": 2.8,
+          "Phase": 0,
+          "Shape": "snap"
+        }
+      ]
+    },
+    "Wing2": {
+      "Parent": null,
+      "Pivot": [
+        -0.23999999463558197,
+        -7.139999866485596,
+        0.0
+      ],
+      "PivotRoblox": [
+        0.24,
+        0.0,
+        -3.64
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            -0.0,
+            0.0,
+            -1.0
+          ],
+          "Base": 26.0,
+          "Amp": -26.0,
+          "Period": 2.8,
+          "Phase": 0,
+          "Shape": "snap"
+        }
+      ]
+    },
+    "Wing3": {
+      "Parent": null,
+      "Pivot": [
+        0.0,
+        -7.139999866485596,
+        0.23999999463558197
+      ],
+      "PivotRoblox": [
+        -0.0,
+        0.24,
+        -3.64
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            -1.0,
+            0.0,
+            0.0
+          ],
+          "Base": 26.0,
+          "Amp": -26.0,
+          "Period": 3.4,
+          "Phase": 50,
+          "Shape": "snap"
+        }
+      ],
+      "Low": "hide"
+    },
+    "Wing4": {
+      "Parent": null,
+      "Pivot": [
+        0.0,
+        -7.139999866485596,
+        -0.23999999463558197
+      ],
+      "PivotRoblox": [
+        -0.0,
+        -0.24,
+        -3.64
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "Base": 26.0,
+          "Amp": -26.0,
+          "Period": 3.4,
+          "Phase": 50,
+          "Shape": "snap"
+        }
+      ],
+      "Low": "hide"
+    },
+    "Tie": {
+      "Parent": null,
+      "Pivot": [
         0,
-        -5.9,
+        -7.14,
         0
       ],
       "PivotRoblox": [
         0,
         0,
-        -2.4
+        -3.64
       ],
-      "Motion": [
-        {
-          "Kind": "Spin",
-          "Axis": [
-            0,
-            1,
-            0
-          ],
-          "Rate": -38.0
-        },
-        {
-          "Kind": "Bob",
-          "Dir": [
-            0,
-            1,
-            0
-          ],
-          "Amp": 0.1,
-          "Period": 3.4,
-          "Phase": 150
-        }
-      ],
-      "Aura": true,
-      "Low": "hide"
+      "Motion": []
     }
   }
 }

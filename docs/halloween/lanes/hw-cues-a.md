@@ -34,6 +34,7 @@ From PLAN §4 (everything else is read-only; ask through Requests):
   holds and retries otherwise), so a skin leaves draft only when the cue is complete.
 
 ## Status
+- 13:19 coordinator: `halloween` @d0b1d604 adds map 656825bf + ee17dc24 (**Boss.Mode "Timed" is ON**: the King visits the roof's middle at UTC :15 and :45 for 12 min) + 092ab2c9 (result-card pumpkin portrait) + 4ebc50cb (winners last in his line), core fa17a763 (visit reward +150 Candy / +$2,500 / +100 XP once a visit, KingVisit save mark, the King timer pill) and cues-a 95325e31 (the Jack's own signature, no ribbons). Reward fairness checked: kept. Lint OK, 1,468 tests, Team Create: :15 arrival, challenge seated, Jack lab, console clean. Merge `origin/halloween` before your next READY.
 - 12:37 coordinator: `halloween` @7be001ed adds map 88e9cceb (throne builds once; Studio: 1 throne, 1 King) + 623d0051 (timed King schedule, Mode Throne), core 1361de6d (ActiveGate, pacing), sys 57bc2b91 (50 badges, v2 icons), cues-a 66af67b0 (painted Jack, Candy rework) + fec0cb91 (deterministic generator; a main-checkout regen is now clean), cues-b 0e3569b6 (Broom redo). Lint OK, 1,465 tests, Team Create play console clean. JUSTIN (12:35): the Pumpkin King becomes a timed visitor (UTC :15 and :45, 12 min, middle of the map, 1.5x size, a top timer, the King's line when tables are full, one paid win a visit: +150 Candy, +$2,500, +100 XP). Map and core build it by 15:00; Throne mode stays the fallback. Run `git fetch && git merge origin/halloween` before your next READY.
 - 12:15 coordinator: `halloween` @5dae747d adds map 7fd462cc + 39815514 (night rooftop, King, drops, /king), core d7120fac (the 11:30 review fixed, the Rush chip names what runs) and gui c9f01ea6 (the boost lines restyle, VIP perks in the Soft step). The contract test is now STRICT. Lint OK, 1,460 tests, Team Create play console clean (shots/coordinator/merge_5dae747d_boost_lines.jpg). Known blocker sent to map: the throne builds twice on a server that starts during Live. Run `git fetch && git merge origin/halloween` before your next READY.
 - 11:55 coordinator: 11:30 review of 83e876db: one should-fix for the rework. Toggling Lower effects makes a hidden body stick reappear as a ghost: CuePiece's Quality.Changed handler calls applyHidden() with no args (base 0), CueSkinLook.step skips invisible looks, so the body shows where the cue was last drawn until it is next shown. Fix: keep the last modifier/eye/studs and reuse them in the Quality handler (and setAura). Minor: gate CueAssets' body warm on Config.CueSkins.Bodies.Enabled; HalloweenCueEquipped also fires on re-equipping the same cue.
@@ -60,6 +61,98 @@ From PLAN §4 (everything else is read-only; ask through Requests):
 
 ## Status (continued)
 
+- 14:02 The Cat in a real solo match in my window (the Cat given and equipped, a 1v1 pad, `/solo`,
+  two shots): the break and a long shot play, no rejection, console clean; the trail shows the
+  dark ribbon with the gold core, the new claw-swipe mark and a dropped shadow cat behind the
+  cue ball (`gate2/sig_cat_trail_v2.jpg`). One open point for Justin: from the owner's aiming
+  camera (straight above) the three racing cats foreshorten to dark bars with gold edges
+  (`gate2/sig_cat_aim_above_v1.jpg`); from the side, the back and the lobby they read as cats.
+  Crossed planes fixed that view but read as lumps everywhere else, so I kept the single
+  leaning plane; a sprite-billboard cat would need a new visual kind in CuePiece.
+
+- 13:59 The `Outline = false` runtime (4d759889) checked on the real case: with `halloween`
+  @ b185fdc6 merged, Cues B's remade Broom (`witch_broom`, `Bristles_Bark` with the flag) on my
+  lab stand puts the straw bulb under `Piece_witch_broom_NoOutline` (one child) and the head
+  draws with no outline strokes while the handle keeps its ink:
+  `gate2/outline_broom_head_lab.jpg`. Template build for Team Create: ONLY = WitchBroomCue too.
+
+- **13:58 READY hw-cues-a @ c9594f61: the Black Cat's signature (no ribbons), the third of the
+  designer's 12:55 three, to the coordinator's 13:08 rule (no head, face, eyes or paw prints).**
+  The living tail now flicks every 4.2 s (a pulse down the five bones: it curls up sharply
+  and drops straight; the body is Cues B's eb95993d without the Claws part). The new decor
+  `black_cat_aura` (9 parts, 2,076 tris, asset 103166820594434): three shadow cats (black
+  silhouettes with a thin gold Neon outline band, one plane each leaning 40 degrees out) race
+  along the top of the shaft toward the tip and back under its belly, a lap in 7 s, galloping;
+  three gold claw swipes (three crescent blades each) hang beside the shaft at 1.9, 3.7 and
+  5.4 studs and every 3.6 s one tears through the air (a Hinge pulse with a Fade beat) and
+  fades, its embers left behind. Skin: faint purple-black smoke with the shadow-cat flipbook
+  dissolving in it, gold embers and sparks, a claw glint at the tip, the collar and forearm
+  lights flickering; the beams, orbiter, pops, wisps, glints, glow and ring layers are gone
+  (Aura 58.5/s, Mythic cap 120); the trail gets a claw-swipe sprite for the hit
+  (`vfx/black_cat/claw_swipe.png`, decal 137606027112313 / image 139208403900742). Lower
+  effects keeps two cats and two swipes. Side-by-side for Justin:
+  `~/Desktop/8ball-refs/halloween/shots/hw-cues-a/gate2/side_by_side_cat_signature.jpg` (new /
+  Cues B's ribbon pass / the Firework reference); the tail and swipes `gate2/sig_cat_butt_v5.jpg`,
+  the back `gate2/sig_cat_back_v6.jpg`. Commits b5633adc (the Cat), bea11fbb and 4d759889
+  (runtime, below); merged `origin/halloween` @ b185fdc6 (c9594f61) clean, Cues B's branch
+  being cat-neutral since their a18478af; generator no-op, lint clean, 1,469 tests pass.
+  Two runtime fixes in `src/client/CuePiece.luau` (mine): 4d759889 a part row with
+  `Outline = false` goes under a sibling Model the cue's Highlights never adorn (Cues B's
+  13:27 request for the Broom's straws; their 7bae1ea4 emits it); bea11fbb a skinned rig's
+  invisible RootPart is shrunk to a dot, because a Highlight outlines fully transparent parts
+  too and the Cat's 2x2x1 tail root drew a gold box round the shaft (what Cues B had read as
+  the claw slashes merging into a slab). Template build for Team Create: ONLY = BlackCatCue.
+
+- **13:20 READY hw-cues-a @ 83bcdd4e: the Candy Corn's signature (no ribbons), the second of the
+  designer's 12:55 three.** The old ribbons, haze, full-length kernel sprites, the orbiter and
+  the beam are gone. Its own hand-made effect: a candy fountain pours kernels off the tip
+  (the kernel flipbook, under gravity, tumbling), four real kernels hop on the shaft just
+  behind the tip (a quick drop, a slow rise, a tumble), sugar crystals stand on the orange and
+  yellow bands and twinkle, sugar sparkles ride the surface, and at the butt the cellophane
+  wrapper's crinkled orange wings snap open and ease closed in two pairs behind the dome, with
+  the tie. Decor `candy_corn_aura` 14 parts / 808 tris (asset 78851369686323), Aura 58/s;
+  Lower effects keeps two kernels, two wings and the crystals. Same ids, switches and catalog
+  row; the painted bands body stays. Side-by-side for Justin:
+  `~/Desktop/8ball-refs/halloween/shots/hw-cues-a/gate2/side_by_side_candy_signature.jpg`
+  (new / before with ribbons / the Firework reference); the wrapper close-up
+  `gate2/sig_candy_butt_v3.jpg`. Commit 5be5b0a9, merged `origin/halloween` @ 23e289f4
+  (83bcdd4e); lint clean, 1,466 tests pass, generator no-op. Next: the Black Cat (from Cues B's
+  eb95993d, the coordinator's 13:08 rule: tail flick, shadow cats, gold claw swipe, embers and
+  collar light; no head, face, eyes or paw prints), READY by 16:00.
+
+- 13:05: **READY hw-cues-a @ 95325e31: the Jack's signature, no ribbons (Justin 12:55 via the
+  coordinator: the cues all looked identical, the ribbon effect reused; each cue its own
+  hand-made effect).** The painted body stays. The decor piece `jack_o_lantern_aura` is
+  rebuilt as the Jack's own life (18 parts, 3,248 tris, asset 82575724602452): the vine lives,
+  four corkscrew tendrils turning on their axis and waving where they sprout, four leaves
+  swaying; three little pumpkins sprout on the vine and glow from inside (aura joints, Glow
+  beat); the butt pumpkin's jaw (the grin's lower teeth as a hinged plate) snaps open and
+  shut and breathes little flames (JawBreath rides the Jaw joint); embers rise out of the
+  carved holes; the face flickers like a candle (Face Glow shape flicker, Color #FFC040, so
+  it does not go white; two flickering lights). Dark smoke behind the pumpkin only. No beam,
+  no orbiters, the full-length glow/wisp/mini-jack/crackle layers gone (Aura 30/s, was 87).
+  Lower effects keeps the jaw, two tendrils, two leaves and one pumpkin. Same ids, switches,
+  catalog row. Lint OK, 1,465 tests. **Side-by-side:**
+  `shots/hw-cues-a/gate2/side_by_side_jack_signature.jpg` (new / this morning's ribbons /
+  Firework); singles `sig_jack_close_v2.jpg`, `sig_jack_face_v2.jpg` (the face, jaw and
+  embers from above), `sig_jack_back_v2.jpg`. Next: the Candy Corn (candy fountain off the
+  tip, sugar crystals on the bands, the wrapper twist at the butt popping open), then the
+  Black Cat (from Cues B's eb95993d; the C2c rule stands per the coordinator 13:08: no head,
+  face, eyes or paw prints; the living tail with flicks, shadow cats running out of the
+  smoke, gold claw swipes, gold embers and the collar light).
+- 12:49: **READY hw-cues-a @ e128e475: the two 11:55 review minors (coordinator 13:02: do them).**
+  c699fb22 `src/server/Items.luau` (my EquipCue lines): `HalloweenCueEquipped` fires only when
+  the equipped cue changes (the attribute before the equip is compared; a card tapped twice is
+  not a pick-up). e128e475 `src/client/CueAssets.luau`: the body piece warms only with
+  `Config.CueSkins.Bodies.Enabled` (switch off: the model and maps are never fetched). Neither
+  module loads in Lune (Players, PlayerData, ContentProvider), so no Lune test; Studio check in
+  my window instead: Jack equipped twice and Candy twice gave exactly one
+  `Funnel: event HalloweenCueEquipped` line each, the own stick drew its body
+  (`Body=candy_corn`), no error. Lint OK, 1,465 tests. **Spider rework:** offered to Cues B
+  (coordinator 13:02); B keeps it (their redo is built and in their lab, READY within the
+  hour), so I touch no spider file. B's finding, noted: a mesh of strips under about 0.03
+  studs wide (the Cat's 0.022 claw slashes) loads as a solid block of its bounding box; my
+  ribbons are 0.04 to 0.12 wide and render as ribbons.
 - 12:43: **STATUS FINAL (Progress 20, 21). READY hw-cues-a @ 1a17820e** = `halloween`
   @e9b90417 merged (map 88e9cceb + 623d0051, core 1361de6d, sys 57bc2b91, cues-b 0e3569b6 the
   Broom redo, the coordinator's first Team Create ONLY build), lint OK, 1,465 tests pass, the
@@ -448,6 +541,7 @@ From PLAN §4 (everything else is read-only; ask through Requests):
 
 Planned (PLAN §7 shared files; own block or line only; add the sha to each as it lands):
 
+- 12:49 `src/server/Items.luau` (my EquipCue lines only): the re-equip guard on `HalloweenCueEquipped` (c699fb22).
 - 12:38 `tools/cue_skins_data.py` (shared tool): `asset_id` ranks a shipped id first in every checkout; `sample_look` keeps the recorded Look; new `--resample-look` switch (1d554e20).
 - `src/shared/Config.luau` @ 2c205868: own block `Config.CueSkins.Bodies` after `Config.CueSkins` (drop 3).
 - `src/shared/Strings.luau`: the 5 cue names in `Strings.Progress.Cues` (drop 1).
@@ -466,6 +560,11 @@ Planned (PLAN §7 shared files; own block or line only; add the sha to each as i
   live generated row already had by hand since 10-07; no behaviour change).
 - `src/shared/CueSkins/Skins/FireworkCue.luau` @ d267d8e7: regenerated (the hand comment gone,
   the value the same).
+- 13:58 `assets/cue/CuePiecesHalloween_B.py` (Cues B's builder; the Cat is mine since 13:08): the
+  `black_cat` body builder (eb95993d's version plus the tail-flick Hinge rows), new `_cat_flat`,
+  `_cat_polygon`, `_cat_band`, `CAT_SIL`, `_cat_track`, `_claw_blade` and `black_cat_aura` in
+  one block after the body builder; nothing of the Broom or the Spider touched. Cues B's
+  `_flat`, `_plane_polygon` and `_web_wheel` stay theirs.
 
 ## Requests
 
@@ -543,6 +642,10 @@ Planned (PLAN §7 shared files; own block or line only; add the sha to each as i
   find money (`Config.Index.FindMoney.Exclusive`, $1,000) the first time it is owned: an
   existing rule, no new number.
 - `Catalog.ready` returns false for an unknown id (never grant what the catalog lacks).
+- 13:58 The fresh-player run (Progress 18, 12:40) is not repeated for the Cat: the only runtime
+  changes since are in `CuePiece.luau` (an Outline = false branch no shipped Cues A piece takes,
+  and the skinned-root shrink), which only body cues reach; the Cat body was exercised on the
+  stand, the back and the diagnostics in the lab, console clean.
 
 ## Gate shots
 
@@ -645,3 +748,18 @@ Gate 2 addition (10:28, `gate2/`): Jack-o'-Lantern complete @ db1a9fdb (+ 73fc00
   fresh-player run on 66af67b0 (12:40).
 - `final_merged_1a17820e_row_five.jpg`: 12:42, the five cues on the lab row on the merged build
   (Candy, Jack, the Broom redo, Cat, Spider), backs and stands.
+- `side_by_side_jack_signature.jpg`, `sig_jack_close_v2.jpg`, `sig_jack_face_v2.jpg`,
+  `sig_jack_back_v2.jpg`: 13:05, the Jack's signature (no ribbons) close, the face/jaw/embers
+  from above, on a back; `sig_jack_close_v1.jpg`, `sig_jack_face_v1.jpg`: the first pass
+  (the face glow went white before Color was set).
+- `side_by_side_candy_signature.jpg`, `sig_candy_close_v3.jpg`, `sig_candy_butt_v3.jpg`: 13:20, the
+  Candy's signature (no ribbons) close, and the orange wrapper wings at the butt;
+  `sig_candy_close_v1.jpg`, `sig_candy_close_v2.jpg`, `sig_candy_tip_v2.jpg` (the fountain),
+  `sig_candy_butt_v2.jpg` (the first translucent wrapper), `sig_candy_back_v2.jpg`: the earlier passes.
+- `side_by_side_cat_signature.jpg`, `sig_cat_close_v6.jpg`, `sig_cat_butt_v5.jpg`,
+  `sig_cat_back_v6.jpg`: 13:58, the Cat's signature (no ribbons) close, the tail flick and a
+  swipe at the butt, on a back; `before_cat_aura_stand_lab_cuesb.jpg` is Cues B's ribbon pass
+  (their gate2/cat_aura_stand_lab.jpg); `sig_cat_close_v1.jpg`, `sig_cat_butt_v1.jpg`: the first
+  pass (the tail root's gold box, the rim planes showing through, blades merging).
+- `outline_broom_head_lab.jpg`: 13:59, Cues B's remade Broom head on my stand with the Outline flag live (no strokes on the straws).
+- `sig_cat_trail_v2.jpg`, `sig_cat_aim_above_v1.jpg`: 14:02, the Cat's trail on a real shot (claw mark + shadow cat) and the aiming view from above (the cats as bars).

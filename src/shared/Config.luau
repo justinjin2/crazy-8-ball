@@ -3783,7 +3783,22 @@ Config.Halloween = {
 	Match = { Enabled = true, PerBall = 3, Finished = 10, Win = 25 },
 	-- Beating the Pumpkin King: the first PaidWinsPerDay wins of a UTC day pay Candy (flat);
 	-- every win starts a personal cooldown of CooldownSeconds (the King's prompt shows it).
-	Boss = { Candy = 50, PaidWinsPerDay = 2, CooldownSeconds = 900 },
+	Boss = {
+		Candy = 50,
+		PaidWinsPerDay = 2,
+		CooldownSeconds = 900,
+		-- Timed mode (Config.HalloweenMap.Boss.Mode "Timed": he visits 12 min twice an hour,
+		-- designer 2026-10-28): the first win of each visit pays Visit instead, once per player
+		-- (Candy flat; Money as a reward, never boosted; Xp through the real rank rules, rank-ups
+		-- and their rewards included); later wins in the visit pay nothing but count for the
+		-- King quests; no cooldown. Numbers proposed by the coordinator, about one strong real
+		-- win each (docs/ECONOMY.md).
+		Visit = { Candy = 150, Money = 2500, Xp = 100 },
+		-- A King match (won or lost, Pc against his seat) counts for the Matches and Balls
+		-- quests (not Wins, no match Candy), so chasing him does not leave the quests behind
+		-- (coordinator 13:10); a match the player's side forfeited counts only its balls.
+		CountsForQuests = true,
+	},
 	-- Lobby pickups (map's CandyDrop spawns them): Candy each (flat), at most HourCap per player
 	-- per UTC hour. The ONLY pickup cap: CandyService.pickup enforces it.
 	Pickup = { Candy = 1, HourCap = 40 },
@@ -17383,6 +17398,24 @@ Config.UI.Halloween = {
 		StartedSeconds = 6, -- "THE HALLOWEEN EVENT HAS STARTED!" stays this long
 		StartedWindowSeconds = 120, -- a player busy at 19:00 still gets it this long after
 	},
+	-- The timed Pumpkin King's timer in the same pill while Live (Halloween/Countdown; only with
+	-- Config.HalloweenMap.Boss.Mode "Timed"): "PUMPKIN KING IN 14:22", then in gold "PUMPKIN
+	-- KING IS HERE! 9:41". A tap (or A on the selected pill) shows the guide to him: the
+	-- tutorial arrow's chevrons in one beam from the body and its arrowhead over him.
+	King = {
+		Tag = "PumpkinKing", -- the map lane's CollectionService tag on his figure
+		SpotStuds = 9, -- with no figure in reach: the guide's point over his stage's pivot
+		HeadLiftStuds = 1.5, -- the arrowhead's tip over his head
+		HeadPx = 56, -- the arrowhead's size on screen at any distance (it points down)
+		HeadBobShare = 0.25, -- it bobs up this share of its size...
+		HeadBobSeconds = 1.1, -- ...and back in this long
+		BodyLiftStuds = 0.6, -- the beam's start over the HumanoidRootPart (chest height)
+		FlowPerSecond = -1.6, -- the chevrons' scroll in repeats a second (minus: toward him)
+		FadeShare = 0.12, -- the beam fades in over this share of it at the body
+		ArriveStuds = 16, -- the guide goes off this close to him (flat distance)
+		GuideSeconds = 120, -- or after this long
+		MinHitPx = 40, -- the pill's tap area is at least this tall (phones)
+	},
 	-- The Candy toast and the NEW CUE! card (Halloween/CandyToast).
 	Toast = {
 		ChipPx = 44, -- the "+57" chip's height (a phone's: ShortChipPx)
@@ -17404,6 +17437,15 @@ Config.UI.Halloween = {
 		DimTransparency = 0.45, -- the screen behind it
 		CardDisplayOrder = 45, -- its screen: over the tutorial's popups (40), under the scenes (60)
 		AutoCloseSeconds = 8, -- it closes itself after this long (OK closes it sooner)
+		-- The timed King's win line over the chip ("Pumpkin King beaten! +150 Candy ...").
+		LinePx = 24, -- its text (a phone's: LineShortPx; smaller still, to LineMinPx, if too wide)
+		LineShortPx = 18,
+		LineMinPx = 12,
+		LinePadPx = 10, -- inside the pill
+		LineMarginPx = 16, -- kept from the screen's sides
+		LineGapPx = 12, -- above the chip
+		LineSeconds = 8, -- with no result card it holds this long (with one: until it closes)
+		LineMaxSeconds = 90, -- never longer (a result card left open)
 	},
 	-- The end screen (Halloween/EndScreen; the M5 mock): laid out at WidthPx (a phone's
 	-- ShortWidthPx) and scaled down to fit.

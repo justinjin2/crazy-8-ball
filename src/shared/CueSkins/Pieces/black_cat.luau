@@ -72,35 +72,12 @@ return {
 			Offset = { 0, 0, -1.59 },
 			Size = { 0.458, 0.4533, 3.699 },
 		},
-		{
-			Material = "Neon",
-			Color = "#FFC85A",
-			Transparency = 0,
-			Reflectance = 0,
-			Name = "Claws_Claw",
-			Joint = "Claws",
-			Offset = { -0, 0.1523, -0.5899 },
-			Size = { 0.2202, 0.0535, 0.7472 },
-		},
 	},
 	Joints = {
 		Body = {
 			Parent = nil,
 			PivotRoblox = { 0, 0, 0 },
 			Motion = {},
-		},
-		Claws = {
-			Parent = "Body",
-			PivotRoblox = { 0, 0, -0.5 },
-			Motion = {},
-			Visual = {
-				{
-					Kind = "Glow",
-					Min = 0.1,
-					Max = 0.5,
-					Period = 3,
-				},
-			},
 		},
 		Tail = {
 			Parent = "Body",
@@ -112,6 +89,14 @@ return {
 					Amp = 8,
 					Period = 2.4,
 					Phase = 0,
+				},
+				{
+					Kind = "Hinge",
+					Axis = { 1, 0, 0 },
+					Amp = 12,
+					Period = 4.2,
+					Phase = 0,
+					Shape = "pulse",
 				},
 				{
 					Kind = "Hinge",
@@ -134,6 +119,14 @@ return {
 					Period = 2.4,
 					Phase = 55,
 				},
+				{
+					Kind = "Hinge",
+					Axis = { 1, 0, 0 },
+					Amp = 15,
+					Period = 4.2,
+					Phase = -14,
+					Shape = "pulse",
+				},
 			},
 		},
 		Tail3 = {
@@ -146,6 +139,14 @@ return {
 					Amp = 11,
 					Period = 2.4,
 					Phase = 110,
+				},
+				{
+					Kind = "Hinge",
+					Axis = { 1, 0, 0 },
+					Amp = 18,
+					Period = 4.2,
+					Phase = -28,
+					Shape = "pulse",
 				},
 				{
 					Kind = "Hinge",
@@ -167,6 +168,14 @@ return {
 					Period = 2.4,
 					Phase = 165,
 				},
+				{
+					Kind = "Hinge",
+					Axis = { 1, 0, 0 },
+					Amp = 21,
+					Period = 4.2,
+					Phase = -42,
+					Shape = "pulse",
+				},
 			},
 		},
 		Tail5 = {
@@ -179,6 +188,14 @@ return {
 					Amp = 14,
 					Period = 2.4,
 					Phase = 220,
+				},
+				{
+					Kind = "Hinge",
+					Axis = { 1, 0, 0 },
+					Amp = 24,
+					Period = 4.2,
+					Phase = -56,
+					Shape = "pulse",
 				},
 			},
 		},

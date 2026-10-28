@@ -460,59 +460,105 @@ def candy_corn(k):
 # =============================================================================================
 
 
+def _wing(bm, root, along, side, normal, length, width, pleats=5):
+    """A crinkled wrapper wing (a cellophane fan): rooted at `root`, reaching `length` along
+    `along`, widening to `width` across `side`, zigzag pleats in `normal`; two-sided."""
+    from mathutils import Vector
+    root, along, side, normal = Vector(root), Vector(along).normalized(), Vector(side).normalized(), Vector(normal).normalized()
+    for sign in (1, -1):
+        off = normal * (-0.004 if sign < 0 else 0.0)
+        cols = []
+        for i in range(pleats + 1):
+            u = i / pleats
+            zig = normal * (0.014 * (1 if i % 2 == 0 else -1))
+            a = root + side * ((u - 0.5) * width * 0.18) + off
+            b = root + along * length + side * ((u - 0.5) * width) + zig + off
+            cols.append((bm.verts.new(a), bm.verts.new(b)))
+        for i in range(pleats):
+            (a0, b0), (a1, b1) = cols[i], cols[i + 1]
+            quad = (a0, b0, b1, a1)
+            bm.faces.new(quad if sign > 0 else quad[::-1])
+
+
+def _crystal(bm, centre, up, size):
+    """A sugar crystal: an octahedron standing on `centre`, its long axis along `up`."""
+    from mathutils import Vector
+    c, up = Vector(centre), Vector(up).normalized()
+    a0 = Vector((0, 0, 1)) if abs(up.z) < 0.9 else Vector((1, 0, 0))
+    sx = up.cross(a0).normalized()
+    sy = up.cross(sx).normalized()
+    top = bm.verts.new(c + up * (size * 1.6))
+    bot = bm.verts.new(c)
+    ring = [bm.verts.new(c + up * (size * 0.6) + (sx * math.cos(b) + sy * math.sin(b)) * (size * 0.55)) for b in (0, math.pi / 2, math.pi, 3 * math.pi / 2)]
+    for i in range(4):
+        bm.faces.new((top, ring[(i + 1) % 4], ring[i]))
+        bm.faces.new((bot, ring[i], ring[(i + 1) % 4]))
+
+
 @piece
 def candy_corn_aura(k):
-    """The Candy Corn Cue's decor round the body: a thin Neon gold swirl ribbon winding along the
-    whole cue (0.17 studs off, a turn every 1.8 studs, screwing along at 40 deg/s, breathing)
-    with a thinner white sugar swirl the other way (hidden under Lower effects), and four
-    candy-corn kernels floating round the cue at four heights (aura joints: Spin round the axis
-    at four rates with a Bob), each wearing the tri-colour palette. Lower effects keeps the
-    gold swirl and two kernels."""
+    """The Candy Corn's own candy-shop motion, nothing wrapping a stick (designer 2026-10-28
+    12:55: no ribbons, a hand-made signature): four candy-corn kernels hop on the shaft just
+    behind the tip where the fountain pours (aura joints: Bob snap, a quick drop and a slow
+    rise, and a tumble), five sugar crystals stand on the orange and yellow bands and twinkle
+    (Glow flicker), and the butt's cellophane wrapper, four crinkled wings tied behind the
+    dome, pops open (Hinge, quick open, slow close) in two pairs. The aura rows pour the
+    kernel fountain off the tip and sparkle sugar on the bands. Lower effects keeps two
+    kernels, two wings and the crystals."""
     import bmesh
     from mathutils import Vector
     R = envelope()
-    k.material('Swirl', 'Neon', '#FFD24D', Transparency=0.1)
-    k.material('SugarSwirl', 'Neon', '#FFF6D8', Transparency=0.3)
     k.material('Kernel', 'SmoothPlastic', '#FFFFFF', Reflectance=0.1, SurfaceAppearance={'ColorMap': kernel_palette()})
-    for name, sense, phase, rate, lift, period, low, half0, half1 in (('Swirl', 1, 0.0, 40.0, 0.17, 2.6, None, 0.02, 0.018),
-                                                                     ('SugarSwirl', -1, math.pi, -30.0, 0.21, 1.6, 'hide', 0.014, 0.01)):
-        k.joint(name, pivot=(0, -3.5, 0), motion=[{'Kind': 'Spin', 'Axis': (0, 1, 0), 'Rate': rate}],
-                visual=[{'Kind': 'Glow', 'Min': 0.0, 'Max': 0.45, 'Period': period}], low=low)
-        bm = bmesh.new()
-        n = 280
-        left, right = [], []
-        for i in range(n):
-            d = 0.35 + (6.9 - 0.35) * i / (n - 1)
-            a = sense * 2 * math.pi * d / 1.8 + phase
-            radial = Vector((math.sin(a), 0, math.cos(a)))
-            p = Vector((0, -d, 0)) + radial * (R(d) + lift)
-            d2 = min(d + 0.01, 6.9)
-            a2 = sense * 2 * math.pi * d2 / 1.8 + phase
-            p2 = Vector((0, -d2, 0)) + Vector((math.sin(a2), 0, math.cos(a2))) * (R(d2) + lift)
-            tang = (p2 - p).normalized()
-            across = tang.cross(radial).normalized()
-            half = half0 + half1 * (0.5 + 0.5 * math.sin(d * 5.0 + phase))
-            left.append(bm.verts.new(p - across * half))
-            right.append(bm.verts.new(p + across * half))
-        for i in range(n - 1):
-            bm.faces.new((left[i], right[i], right[i + 1], left[i + 1]))
-        ob = k.mesh_object(name + 'Strip', bm, [name])
-        apply_modifier(k.bpy, ob, 'SOLIDIFY', thickness=0.012, offset=0.0)
-        k.add(name, ob)
-    for i, (d, rate, ang, bob_period, low) in enumerate(((1.3, 52.0, 0.0, 2.2, None), (2.8, -44.0, 1.6, 2.9, 'hide'),
-                                                         (4.3, 60.0, 3.2, 1.7, None), (5.9, -38.0, 4.8, 3.4, 'hide'))):
+    k.material('Crystal', 'Neon', '#FFF8E0', Transparency=0.05)
+    k.material('Wrapper', 'SmoothPlastic', '#FF9A3C', Transparency=0.12, Reflectance=0.25)  # an orange cellophane, it must read on the floor
+    k.material('Tie', 'SmoothPlastic', '#FF7A12')
+
+    # --- the kernels hopping behind the tip -------------------------------------------------
+    for i, (d, ang, period, low) in enumerate(((0.55, 0.3, 0.8, None), (0.85, 2.3, 0.95, 'hide'), (1.2, 4.2, 0.7, None), (1.55, 1.2, 1.05, 'hide'))):
         name = 'Kernel%d' % (i + 1)
-        k.joint(name, pivot=(0, -d, 0), aura=True, low=low,
-                motion=[{'Kind': 'Spin', 'Axis': (0, 1, 0), 'Rate': rate},
-                        {'Kind': 'Bob', 'Dir': (0, 1, 0), 'Amp': 0.1, 'Period': bob_period, 'Phase': 50 * i}])
         radial = Vector((math.sin(ang), 0, math.cos(ang)))
-        centre = Vector((0, -d, 0)) + radial * (R(d) + 0.5) - Vector((0, 0, 0.1))
+        tangent = Vector((math.cos(ang), 0, -math.sin(ang)))
+        base = Vector((0, -d, 0)) + radial * (R(d) + 0.01)
+        k.joint(name, pivot=tuple(base), aura=True, low=low,
+                motion=[{'Kind': 'Bob', 'Dir': tuple(radial), 'Amp': 0.07, 'Period': period, 'Phase': 90 * i, 'Shape': 'snap'},
+                        {'Kind': 'Hinge', 'Axis': tuple(tangent), 'Amp': 25.0, 'Period': period * 2, 'Phase': 45 * i},
+                        {'Kind': 'Spin', 'Axis': tuple(radial), 'Rate': 120.0 * (1 if i % 2 == 0 else -1)}])
         bm = bmesh.new()
         uvl = bm.loops.layers.uv.new('UVMap')
-        _kernel_at(bm, uvl, centre, (0.25 * math.cos(ang), 0, 1), 1.6)
+        _kernel_at(bm, uvl, base + radial * 0.09, tuple(radial * 0.6 + tangent * 0.4), 2.2)
         _finish(bm)
         k.add(name, k.mesh_object(name + 'Kernel', bm, ['Kernel']))
 
+    # --- the sugar crystals on the bands, twinkling ------------------------------------------
+    for i, (d, ang, period) in enumerate(((4.3, 0.5, 1.1), (4.75, 2.6, 1.6), (5.3, 4.4, 1.3), (5.9, 1.6, 1.9), (6.4, 3.6, 1.4))):
+        name = 'Crystal%d' % (i + 1)
+        radial = Vector((math.sin(ang), 0, math.cos(ang)))
+        base = Vector((0, -d, 0)) + radial * (R(d) - 0.005)
+        k.joint(name, pivot=tuple(base), visual=[{'Kind': 'Glow', 'Min': 0.2, 'Max': 1.0, 'Period': period, 'Shape': 'flicker', 'Color': '#FFFFFF'}])
+        bm = bmesh.new()
+        _crystal(bm, base, radial, 0.075)
+        _finish(bm)
+        k.add(name, k.mesh_object(name, bm, ['Crystal']))
+
+    # --- the wrapper at the butt: four crinkled wings tied behind the dome, popping open -----
+    for i, (sx, sz, period, phase, low) in enumerate(((1, 0, 2.8, 0, None), (-1, 0, 2.8, 0, None), (0, 1, 3.4, 50, 'hide'), (0, -1, 3.4, 50, 'hide'))):
+        name = 'Wing%d' % (i + 1)
+        side = Vector((sx, 0, sz))
+        root = Vector((0, -7.14, 0)) + side * 0.24
+        axis = Vector((0, 0, 1)) * sx + Vector((-1, 0, 0)) * sz   # opening swings the wing out toward `side`
+        k.joint(name, pivot=tuple(root), low=low,
+                motion=[{'Kind': 'Hinge', 'Axis': tuple(axis), 'Base': 26.0, 'Amp': -26.0, 'Period': period, 'Phase': phase, 'Shape': 'snap'}])
+        bm = bmesh.new()
+        _wing(bm, root, (0, -1, 0), tuple(side.cross(Vector((0, -1, 0)))), tuple(side), 0.46, 0.42)
+        _finish(bm)
+        k.add(name, k.mesh_object(name, bm, ['Wrapper']))
+    # the twist tie round the wings' roots
+    k.joint('Tie', pivot=(0, -7.14, 0))
+    bm = bmesh.new()
+    pts = [Vector((0.27 * math.cos(b), -7.15, 0.27 * math.sin(b))) for b in [2 * math.pi * j / 24 for j in range(25)]]
+    sweep(bm, pts, [0.022] * 25, segs=6, cap=False)
+    _finish(bm)
+    k.add('Tie', k.mesh_object('Tie', bm, ['Tie']))
 
 # =============================================================================================
 # Jack-o'-Lantern Cue (JackOLanternCue, Legendary, track 500): the body `jack_o_lantern`
@@ -716,7 +762,7 @@ def jack_o_lantern(k):
 
     # --- the carved face on top of the pumpkin (flickers like a candle) ----------------------
     k.joint('Face', pivot=(0, -PUMPKIN_C, 0), visual=[
-        {'Kind': 'Glow', 'Min': 0.1, 'Max': 0.75, 'Period': 1.3},
+        {'Kind': 'Glow', 'Min': 0.25, 'Max': 0.8, 'Period': 0.55, 'Shape': 'flicker', 'Color': '#FFC040'},  # a candle, not a pulse (12:55); Color, else white
         {'Kind': 'Blink', 'Period': 2.7, 'Seconds': 0.37, 'Count': 3, 'Phase': 1.1}])
     bm = bmesh.new()
 
@@ -817,76 +863,109 @@ def _mini_face(bm, centre, radius, out):
 
 @piece
 def jack_o_lantern_aura(k):
-    """The Jack-o'-Lantern Cue's decor round the body: two Neon flame ribbons spiralling the
-    whole cue (0.18 and 0.24 studs off the surface, a turn every 1.4 studs, opposite senses,
-    wavy edges like licking tongues), each turning about the cue's axis so the fire streams
-    along it, breathing with a Glow; and three little carved pumpkins circling the cue at
-    three heights on their own paths (Spin round the axis at three rates with a Bob), their
-    faces glowing. The pumpkins are aura joints (gone on the shooter's own turn); the second
-    ribbon and two pumpkins hide under Lower effects."""
+    """The Jack-o'-Lantern's own life, nothing that wraps a stick (designer 2026-10-28 12:55: no
+    ribbons, a hand-made signature): the vine LIVES, with four corkscrew tendrils that turn and
+    wave where they sprout from it and four leaves that sway; three small pumpkins sprout on the
+    vine and glow from inside (aura joints: they clear on the shooter's own turn); the butt
+    pumpkin's JAW, the grin's lower teeth as its own plate, snaps open and shut (Hinge, quick
+    close, slow open) so the glowing mouth breathes (the aura rows put a little flame and the
+    embers at the mouth). Lower effects keeps the jaw, two tendrils, two leaves and one
+    pumpkin."""
     import bmesh
     from mathutils import Vector
     R = envelope()
-    k.material('FlameA', 'Neon', FLAME['FlameA'], Transparency=0.08)
-    k.material('FlameB', 'Neon', FLAME['FlameB'], Transparency=0.15)
-    k.material('MiniPumpkin', 'SmoothPlastic', FLAME['MiniPumpkin'], Reflectance=0.08)
+    k.material('Vine', 'SmoothPlastic', '#3E8E3A')
+    k.material('Leaf', 'SmoothPlastic', '#5BB04A')
+    k.material('MiniPumpkin', 'SmoothPlastic', FLAME['MiniPumpkin'])
     k.material('MiniFace', 'Neon', FLAME['MiniFace'])
     k.material('MiniStem', 'SmoothPlastic', FLAME['MiniStem'])
+    k.material('Jaw', 'SmoothPlastic', '#C8501A')
 
-    # --- the flame ribbons ---------------------------------------------------------------------
-    for name, sense, phase, rate, lift, period, low in (('FlameA', 1, 0.0, 42.0, 0.18, 1.6, None),
-                                                        ('FlameB', -1, math.pi, -34.0, 0.24, 2.6, 'hide')):
-        k.joint(name, pivot=(0, -3.5, 0), motion=[{'Kind': 'Spin', 'Axis': (0, 1, 0), 'Rate': rate}],
-                visual=[{'Kind': 'Glow', 'Min': 0.0, 'Max': 0.5, 'Period': period}], low=low)
+    def on_vine(d):
+        a = 2 * math.pi * d / 0.8
+        radial = Vector((math.sin(a), 0, math.cos(a)))
+        tangent = Vector((math.cos(a), 0, -math.sin(a)))
+        p0 = Vector((0, -d, 0)) + radial * (R(d) + _vine_offset(d))
+        return p0, radial, tangent
+
+    # --- the tendrils: corkscrews off the vine, turning on their own axis and waving ----------
+    for i, (d, period, rate, low) in enumerate(((1.6, 2.8, 26.0, None), (2.9, 3.4, -22.0, 'hide'),
+                                                (4.3, 2.4, 30.0, None), (5.5, 3.1, -24.0, 'hide'))):
+        name = 'Tendril%d' % (i + 1)
+        p0, radial, tangent = on_vine(d)
+        binorm = radial.cross(tangent).normalized()
+        k.joint(name, pivot=tuple(p0), low=low,
+                motion=[{'Kind': 'Spin', 'Axis': tuple(radial), 'Rate': rate},
+                        {'Kind': 'Hinge', 'Axis': tuple(tangent), 'Amp': 13.0, 'Period': period, 'Phase': 35 * i}])
         bm = bmesh.new()
-        n = 280
-        left, right = [], []
-        for i in range(n):
-            d = 0.35 + (6.9 - 0.35) * i / (n - 1)
-            a = sense * 2 * math.pi * d / 1.4 + phase
-            radial = Vector((math.sin(a), 0, math.cos(a)))
-            p = Vector((0, -d, 0)) + radial * (R(d) + lift)
-            d2 = min(d + 0.01, 6.9)
-            a2 = sense * 2 * math.pi * d2 / 1.4 + phase
-            p2 = Vector((0, -d2, 0)) + Vector((math.sin(a2), 0, math.cos(a2))) * (R(d2) + lift)
-            tang = (p2 - p).normalized()
-            across = tang.cross(radial).normalized()
-            # licking tongues: the width swells and shrinks along the ribbon, more toward the butt
-            half = 0.03 + 0.03 * (0.5 + 0.5 * math.sin(d * 7.0 + phase)) * (0.6 + 0.4 * d / 6.9)
-            left.append(bm.verts.new(p - across * half))
-            right.append(bm.verts.new(p + across * half))
-        for i in range(n - 1):
-            bm.faces.new((left[i], right[i], right[i + 1], left[i + 1]))
-        ob = k.mesh_object(name + 'Strip', bm, [name])
-        apply_modifier(k.bpy, ob, 'SOLIDIFY', thickness=0.014, offset=0.0)
-        k.add(name, ob)
+        pts, rads = [], []
+        n = 44
+        for j in range(n):
+            s_ = j / (n - 1)
+            th = 2 * math.pi * 2.1 * s_
+            coil = 0.052 * (1.0 - 0.55 * s_) * min(1.0, s_ * 4)
+            pts.append(p0 + radial * (0.015 + 0.2 * s_) + (tangent * math.cos(th) + binorm * math.sin(th)) * coil)
+            rads.append(0.013 * (1.0 - 0.7 * s_) + 0.003)
+        sweep(bm, pts, rads, segs=6, cap=True)
+        _finish(bm)
+        k.add(name, k.mesh_object(name, bm, ['Vine']))
 
-    # --- three little pumpkins circling the cue -------------------------------------------------
-    for i, (d, rate, ang, bob_period, low) in enumerate(((1.7, 58.0, 0.0, 2.6, None), (3.7, -46.0, 2.1, 1.9, 'hide'), (5.6, 70.0, 4.2, 3.3, 'hide'))):
+    # --- the leaves on the vine, swaying ----------------------------------------------------
+    for i, (d, side, period, low) in enumerate(((2.0, 1, 2.2, None), (3.6, -1, 2.9, 'hide'), (4.9, 1, 2.5, None), (6.1, -1, 3.2, 'hide'))):
+        name = 'Leaf%d' % (i + 1)
+        p0, radial, tangent = on_vine(d)
+        k.joint(name, pivot=tuple(p0), low=low,
+                motion=[{'Kind': 'Hinge', 'Axis': tuple(tangent), 'Amp': 9.0, 'Period': period, 'Phase': 60 * i},
+                        {'Kind': 'Bob', 'Dir': tuple(radial), 'Amp': 0.01, 'Period': 1.7, 'Phase': 40 * i}])
+        bm = bmesh.new()
+        along = (tangent * (0.75 * side) + Vector((0, -0.55, 0))).normalized()
+        _leaf(bm, tuple(p0 + radial * 0.012), tuple(along), tuple(radial), 0.17, 0.1, 36)
+        _finish(bm)
+        k.add(name, k.mesh_object(name, bm, ['Leaf']))
+
+    # --- the little pumpkins sprouting on the vine, glowing from inside ---------------------
+    for i, (d, period, low) in enumerate(((2.45, 2.0, None), (3.95, 2.7, 'hide'), (5.65, 3.3, 'hide'))):
         name = 'Pumpkin%d' % (i + 1)
-        k.joint(name, pivot=(0, -d, 0), aura=True, low=low,
-                motion=[{'Kind': 'Spin', 'Axis': (0, 1, 0), 'Rate': rate},
-                        {'Kind': 'Bob', 'Dir': (0, 1, 0), 'Amp': 0.12, 'Period': bob_period, 'Phase': 40 * i}],
-                visual=[{'Kind': 'Glow', 'Min': 0.0, 'Max': 0.5, 'Period': 1.3, 'Phase': 0.4 * i}])
-        radius = 0.15
-        orbit = R(d) + 0.62
-        radial = Vector((math.sin(ang), 0, math.cos(ang)))
-        centre = Vector((0, -d, 0)) + radial * orbit
+        p0, radial, tangent = on_vine(d)
+        radius = 0.13
+        centre = p0 + radial * (radius + 0.005)
+        k.joint(name, pivot=tuple(centre), aura=True, low=low,
+                motion=[{'Kind': 'Bob', 'Dir': tuple(radial), 'Amp': 0.02, 'Period': period, 'Phase': 70 * i},
+                        {'Kind': 'Hinge', 'Axis': tuple(tangent), 'Amp': 5.0, 'Period': period * 1.3, 'Phase': 20 * i}],
+                visual=[{'Kind': 'Glow', 'Min': 0.1, 'Max': 0.85, 'Period': period, 'Shape': 'beat', 'Color': '#FFA030'}])
         bm = bmesh.new()
         _mini_pumpkin(bm, centre, radius)
         _finish(bm)
         k.add(name, k.mesh_object(name + 'Body', bm, ['MiniPumpkin']))
-        # the stem on top (+Z)
         bm = bmesh.new()
-        top = centre + Vector((0, 0, radius * 0.8))
-        _curl(bm, [top, top + Vector((0, 0, 0.03)), top + Vector((0.012, 0, 0.055)), top + Vector((0.03, 0, 0.07))], [0.022, 0.02, 0.016, 0.012], segs=6)
-        _finish(bm)
-        k.add(name, k.mesh_object(name + 'Stem', bm, ['MiniStem']))
-        # the face, looking away from the cue
-        bm = bmesh.new()
-        _mini_face(bm, centre, radius, (radial.x, 0, radial.z))
+        _mini_face(bm, centre, radius, radial)
         _finish(bm)
         k.add(name, k.mesh_object(name + 'Face', bm, ['MiniFace']))
+        bm = bmesh.new()
+        top = centre + radial * radius
+        _curl(bm, [tuple(top), tuple(top + radial * 0.03), tuple(top + radial * 0.055 + tangent * 0.015),
+                   tuple(top + radial * 0.065 + tangent * 0.04)], [0.016, 0.014, 0.011, 0.007], segs=6)
+        _finish(bm)
+        k.add(name, k.mesh_object(name + 'Stem', bm, ['MiniStem']))
+
+    # --- the jaw: the grin's lower teeth as a plate hinged at the chin, snapping open --------
+    def surf(x, d, lift):
+        r = _pumpkin_r(d) + lift
+        return Vector((x, -d, math.sqrt(max(1e-4, r * r - x * x))))
+    k.joint('Jaw', pivot=tuple(surf(0, 6.80, 0.0)),
+            motion=[{'Kind': 'Hinge', 'Axis': (-1, 0, 0), 'Base': 13.0, 'Amp': 13.0, 'Period': 2.4, 'Shape': 'snap'}])
+    bm = bmesh.new()
+    poly = [(-0.22, 6.84), (-0.18, 6.78), (-0.11, 6.82), (-0.03, 6.78), (0.05, 6.82), (0.12, 6.78), (0.20, 6.82),
+            (0.22, 6.875), (-0.22, 6.875)]
+    top = [bm.verts.new(surf(x, d, 0.04)) for x, d in poly]
+    bot = [bm.verts.new(surf(x, d, -0.02)) for x, d in poly]
+    bm.faces.new(top)
+    bm.faces.new(bot[::-1])
+    m_ = len(poly)
+    for i in range(m_):
+        bm.faces.new((top[i], bot[i], bot[(i + 1) % m_], top[(i + 1) % m_]))
+    _finish(bm)
+    k.add('Jaw', k.mesh_object('Jaw', bm, ['Jaw']))
 
 # =============================================================================================
 # Jack-o'-Lantern pocket finisher: `jack_o_lantern_pocket` (the laughing jack)

@@ -5,9 +5,9 @@
 return {
 	Id = "witch_broom",
 	Frame = "cue",
-	Rigid = "79787647258778",
+	Rigid = "81896660220724",
 	Models = {
-		HatCharm = "84761573077366",
+		HatCharm = "113228232691476",
 	},
 	Parts = {
 		{
@@ -16,9 +16,9 @@ return {
 			Transparency = 0,
 			Reflectance = 0,
 			SurfaceAppearance = {
-				ColorMap = "rbxassetid://133510963296448",
-				NormalMap = "rbxassetid://96376837202239",
-				EmissiveMask = "rbxassetid://92422786331997",
+				ColorMap = "rbxassetid://137627713975392",
+				NormalMap = "rbxassetid://138814904584787",
+				EmissiveMask = "rbxassetid://126089154408348",
 				EmissiveTint = "#FFD36A",
 				EmissiveStrength = 1.6,
 			},
@@ -27,8 +27,8 @@ return {
 			Joint = "Charm",
 			Skinned = true,
 			Bones = { "Charm", "Chain2", "Hat" },
-			Offset = { -0.2917, -0.2377, -3.6201 },
-			Size = { 0.2391, 0.3345, 0.3883 },
+			Offset = { -0.4901, -0.3522, -3.5534 },
+			Size = { 0.2968, 0.498, 0.377 },
 			Model = "HatCharm",
 		},
 		{
@@ -57,16 +57,16 @@ return {
 			Transparency = 0,
 			Reflectance = 0,
 			SurfaceAppearance = {
-				ColorMap = "rbxassetid://133510963296448",
-				NormalMap = "rbxassetid://96376837202239",
-				EmissiveMask = "rbxassetid://92422786331997",
+				ColorMap = "rbxassetid://137627713975392",
+				NormalMap = "rbxassetid://138814904584787",
+				EmissiveMask = "rbxassetid://126089154408348",
 				EmissiveTint = "#FFD36A",
 				EmissiveStrength = 1.6,
 			},
 			Name = "Body_Bark",
 			Joint = "Body",
-			Offset = { -0.015, 0.0521, -0.15 },
-			Size = { 0.48, 0.5542, 6.7 },
+			Offset = { -0.0219, 0.0844, -0.175 },
+			Size = { 0.7662, 0.8986, 6.75 },
 		},
 		{
 			Material = "SmoothPlastic",
@@ -74,34 +74,17 @@ return {
 			Transparency = 0,
 			Reflectance = 0,
 			SurfaceAppearance = {
-				ColorMap = "rbxassetid://133510963296448",
-				NormalMap = "rbxassetid://96376837202239",
-				EmissiveMask = "rbxassetid://92422786331997",
+				ColorMap = "rbxassetid://137627713975392",
+				NormalMap = "rbxassetid://138814904584787",
+				EmissiveMask = "rbxassetid://126089154408348",
 				EmissiveTint = "#FFD36A",
 				EmissiveStrength = 1.6,
 			},
 			Name = "Bristles_Bark",
 			Joint = "Bristles",
-			Offset = { -0.0057, 0.0128, -3.6675 },
-			Size = { 0.4788, 0.4821, 0.335 },
-		},
-		{
-			Material = "SmoothPlastic",
-			Color = "#FFFFFF",
-			Transparency = 0,
-			Reflectance = 0,
-			SurfaceAppearance = {
-				ColorMap = "rbxassetid://133510963296448",
-				NormalMap = "rbxassetid://96376837202239",
-				EmissiveMask = "rbxassetid://92422786331997",
-				EmissiveTint = "#FFD36A",
-				EmissiveStrength = 1.6,
-				AlphaMode = "Transparency",
-			},
-			Name = "Bristles_Straw",
-			Joint = "Bristles",
-			Offset = { 0.0028, 0.0037, -3.7454 },
-			Size = { 0.8139, 0.8117, 0.4543 },
+			Offset = { 0.0014, -0.0078, -4.2384 },
+			Size = { 1.7545, 1.7372, 1.4768 },
+			Outline = false,
 		},
 	},
 	Joints = {
@@ -130,13 +113,13 @@ return {
 				{
 					Kind = "Hinge",
 					Axis = { 1, 0, 0 },
-					Amp = 1.2,
+					Amp = 1,
 					Period = 2.6,
 				},
 				{
 					Kind = "Hinge",
 					Axis = { 0, 0, 1 },
-					Amp = 0.8,
+					Amp = 0.7,
 					Period = 4,
 					Phase = 90,
 				},
@@ -145,7 +128,7 @@ return {
 		},
 		Charm = {
 			Parent = "Body",
-			PivotRoblox = { -0.235, -0.085, -3.435 },
+			PivotRoblox = { -0.3499, -0.11, -3.39 },
 			Motion = {
 				{
 					Kind = "Sway",
@@ -165,7 +148,7 @@ return {
 		},
 		Chain2 = {
 			Parent = "Charm",
-			PivotRoblox = { -0.244, -0.1198, -3.483 },
+			PivotRoblox = { -0.3738, -0.1775, -3.4257 },
 			Motion = {
 				{
 					Kind = "Sway",
@@ -178,7 +161,7 @@ return {
 		},
 		Hat = {
 			Parent = "Chain2",
-			PivotRoblox = { -0.253, -0.1546, -3.5311 },
+			PivotRoblox = { -0.3976, -0.245, -3.4615 },
 			Motion = {
 				{
 					Kind = "Sway",

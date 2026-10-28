@@ -1931,6 +1931,12 @@ return {
 		Countdown = "HALLOWEEN EVENT IN %s", -- 18:30-19:00, "HALLOWEEN EVENT IN 29:59"
 		Started = "THE HALLOWEEN EVENT HAS STARTED!",
 		Ended = "THE HALLOWEEN EVENT HAS ENDED!",
+		-- The timed Pumpkin King's timer (the same pill while Live): to his visit, then its end.
+		KingIn = "PUMPKIN KING IN %s", -- "PUMPKIN KING IN 14:22"
+		KingHere = "PUMPKIN KING IS HERE! %s", -- "PUMPKIN KING IS HERE! 9:41"
+		-- A timed King win's line (CandyToast): what the visit's first win paid, or a repeat.
+		KingPaid = "Pumpkin King beaten! +%s Candy %s +%s XP", -- "+150 Candy +$2,500 +100 XP"
+		KingRepeat = "Already rewarded this visit. He's back at %s!", -- ":45"
 		-- The event menu (Halloween/EventMenu).
 		TrackTitle = "CANDY TRACK",
 		-- The track cards' short cue names.

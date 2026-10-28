@@ -1841,6 +1841,10 @@ return {
 			fixedPartial.Halloween.KingReadyAt == 0 and fixedPartial.Halloween.Seen == false,
 			""
 		)
+		H.expect(
+			fixedPartial.Halloween.KingVisit == 0,
+			"a save from before the timed King: KingVisit 0"
+		)
 		-- Junk values: clamped, dropped or reset; unknown keys kept.
 		local save = SaveSchema.template()
 		save.Halloween.Earned = -5

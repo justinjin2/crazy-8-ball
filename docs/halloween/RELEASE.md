@@ -13,7 +13,9 @@ On a phone, a PC and a controller where you can:
 2. Play one match. The result shows Candy: 3 a ball, +10 for finishing, +25 for a win.
 3. The **HALLOWEEN** button (right side) opens the menu: the Candy track, quests, the Spider,
    the Candy packs.
-4. The **Pumpkin King** on his throne (where the piano was): challenge him once.
+4. The **Pumpkin King**: he visits the middle of the roof at :15 and :45 past every hour for 12
+   minutes (the top pill counts down, then "PUMPKIN KING IS HERE!"; tap it for the arrow).
+   Challenge him once; a first win in a visit pays +150 Candy, +$2,500 and +100 XP.
 5. Pick up a **lobby Candy**.
 6. The boost text (Money Boost / Candy Boost) and its card.
 7. **Walk around** while it is the other player's turn.
@@ -40,8 +42,9 @@ On a phone, a PC and a controller where you can:
 - **Before 18:30:** nothing new except the boost text.
 - **18:30:** the countdown banner only.
 - **19:00:** night falls on the rooftop; the event tables, trees, pumpkins and lights; the
-  HALLOWEEN button; the King on his throne; Candy in matches and lobby pickups; and a
-  **2x CANDY** chip at once (19:00 EDT is UTC minute 0, the start of a Candy Rush).
+  HALLOWEEN button; the King's timer pill (his first visit is 19:15); Candy in matches and
+  lobby pickups; and a **2x CANDY** chip at once (19:00 EDT is UTC minute 0, the start of a
+  Candy Rush).
 - **The store page (automatic):** the icon counts down 5H at 14:00, 4H, 3H, 2H, 1H, then LIVE
   at 19:00 and the plain icon at 19:00 Oct 29 (`tools/halloween/store_page.py icon-schedule`,
   log in `~/Desktop/8ball-refs/halloween/shots/coordinator/store/log.txt`). Your Experience
@@ -62,6 +65,8 @@ Off = the old behaviour; one line, then publish with the outdated-only restart.
 | `Config.Halloween.Convert.Enabled` | 3894 | Candy does not turn into money after the end |
 | `Config.HalloweenMap.Enabled` | 9219 | the master map switch: no night, tables, decor, props, throne, King, drops |
 | `Config.HalloweenMap` Night / Tables / Decor / Props / Throne / Boss / Candy | 9230-9517 | each part alone (Throne and Boss go off together) |
+| `Config.HalloweenMap.Boss.Mode` | 9422 | `"Throne"`: the King sits on his throne at the piano all event (the old way) instead of visiting |
+| `Config.Halloween.Boss.Visit` | 3796 | the King's visit reward (Candy 150, Money 2500, Xp 100): one line to change |
 | `Config.CueSkins.Bodies.Enabled` | 6560 | the body cues draw the normal stick |
 | `Config.Multiplayer.Roam.Enabled` | 8287 | in-match players stay at their table, as before |
 | `Config.Badges.Enabled` | 17986 | no badge is awarded |
@@ -97,5 +102,6 @@ original back (asset 123614794049673): `python3 tools/halloween/store_page.py ic
 > 🎃 **The HALLOWEEN UPDATE is live!** 🎃
 > The rooftop has gone haunted. Play matches to collect **Candy**, finish daily quests and
 > unlock **5 Halloween cues** that never come back: Candy Corn, Jack-o'-Lantern, Black Cat,
-> Spider and the Witch's Broom. Challenge the **Pumpkin King** on his throne, grab Candy around
-> the lobby, and play in the first 10 minutes of every hour for **2x Candy**. Ends Nov 3!
+> Spider and the Witch's Broom. The **Pumpkin King** visits the middle of the roof at :15 and
+> :45 every hour: beat him for Candy, money and XP! Grab Candy around the lobby, and play in the
+> first 10 minutes of every hour for **2x Candy**. Ends Nov 3!
