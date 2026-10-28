@@ -77,6 +77,21 @@ return {
 		end
 	end,
 
+	["active seconds fill the Play-minutes quests only once their boards open, oldest first"] = function()
+		local Quests = load()
+		local q = {}
+		H.expect(#Quests.route(q, 3, ALL_ON, "Active", 5) == 0, "no Active quest on boards 1-3")
+		local four = keyOf(Quests, 4, "Active", ALL_ON)
+		local six = keyOf(Quests, 6, "Active", ALL_ON)
+		for _ = 1, 360 do
+			Quests.route(q, 6, ALL_ON, "Active", 5) -- the server's 5 s ticks
+		end
+		H.expect(q[four] == 1800, "board 4's 30 minutes: " .. tostring(q[four]))
+		H.expect(q[six] == nil or q[six] == 0, "board 6 waits")
+		local r = Quests.route(q, 6, ALL_ON, "Active", 5)
+		H.expect(#r == 1 and r[1].key == six and q[six] == 5, "then board 6")
+	end,
+
 	["one win counts once, on the oldest open board with that quest unfinished"] = function()
 		local Quests = load()
 		local q = {}

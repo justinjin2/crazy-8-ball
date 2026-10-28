@@ -3886,6 +3886,7 @@ Config.Halloween = {
 	Spider = { Enabled = false, Cue = "SpiderCue", Seconds = 10860 },
 	TickSeconds = 5, -- the server adds active time and retries held grants this often
 	PushSeconds = 2, -- at most one event view pushed to a player this often
+	ActivePushSeconds = 30, -- active time alone re-sends the view this often (the menu shows minutes)
 	-- The two Candy packs (Config.Products.List Candy500 / Candy2000; flat, fill the whole track,
 	-- not quests).
 	Packs = { Enabled = false, Keys = { "Candy500", "Candy2000" } },

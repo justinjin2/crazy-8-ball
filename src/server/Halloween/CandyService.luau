@@ -191,6 +191,8 @@ function CandyService.changed(player: Player)
 	end)
 end
 
+local lastActivePush: { [Player]: number } = setmetatable({}, { __mode = "k" }) :: any
+
 -- After a mutation: the moments the client shows (a Candy chip, a track prize, the Spider),
 -- the quest analytics, and the view.
 local function after(player: Player, result: PlayerData.HwResult?, source: string)
@@ -221,11 +223,21 @@ local function after(player: Player, result: PlayerData.HwResult?, source: strin
 		remote:FireClient(player, { spider = true })
 		Funnel.event(player, "HwSpider", 1)
 	end
+	local news = result.candy > 0 or #result.steps > 0 or result.spider
 	for _, routed in result.quests do
 		if routed.done then
+			news = true
 			local board = tonumber(string.match(routed.key, "^(%d+)")) or 0
 			Funnel.event(player, "HwQuest", board, routed.key, "Done")
 		end
+	end
+	-- Active time alone (every tick) re-sends the view only every ActivePushSeconds.
+	if source == "Active" and not news then
+		local now = os.clock()
+		if now - (lastActivePush[player] or -math.huge) < C.ActivePushSeconds then
+			return
+		end
+		lastActivePush[player] = now
 	end
 	CandyService.changed(player)
 end
@@ -427,6 +439,16 @@ local function listenUlts()
 	ultHeard = connected
 end
 
+-- Whether the player is active now (SkyDropService's idle rule), read late: SkyDropService
+-- requires TutorialService, which reaches Ranking, which requires this module.
+local function activeNow(player: Player): boolean
+	local ok, active = pcall(function(): any
+		local fn = (require(script.Parent.Parent.SkyDropService) :: any).isActive
+		return type(fn) == "function" and fn(player) == true
+	end)
+	return ok and active == true
+end
+
 -- The tick for one player: held grants (a cue that became ready) and the end's conversion.
 local function tickPlayer(player: Player): any
 	local ctx = CandyService.ctx()
@@ -438,7 +460,12 @@ local function tickPlayer(player: Player): any
 		end
 		return nil
 	end
-	after(player, PlayerData.hwRetry(player), "Retry")
+	-- The Spider's clock (and the Active quests): this tick's seconds while the player is active.
+	if Event.isLive(ctx.now) and PlayerData.isLoaded(player) and activeNow(player) then
+		after(player, PlayerData.hwActive(player, C.TickSeconds, ctx), "Active")
+	else
+		after(player, PlayerData.hwRetry(player), "Retry")
+	end
 	return nil
 end
 
