@@ -2,7 +2,7 @@
   "id": "ghost_lantern",
   "Frame": "cue",
   "frame": "Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)",
-  "Triangles": 8616,
+  "Triangles": 7880,
   "Parts": [
     {
       "Material": "SmoothPlastic",
@@ -26,8 +26,8 @@
     },
     {
       "Material": "SmoothPlastic",
-      "Color": "#6FD8F2",
-      "Transparency": 0.3,
+      "Color": "#2FC8F0",
+      "Transparency": 0.25,
       "Reflectance": 0.3,
       "Name": "Body_Glass",
       "File": "pieces/ghost_lantern/Body_Glass.obj",
@@ -46,29 +46,29 @@
     },
     {
       "Material": "Metal",
-      "Color": "#2A2B33",
+      "Color": "#22232B",
       "Transparency": 0.0,
-      "Reflectance": 0.2,
+      "Reflectance": 0.4,
       "Name": "Body_Iron",
       "File": "pieces/ghost_lantern/Body_Iron.obj",
       "Joint": "Body",
       "Offset": [
-        0.0056,
-        0.0019,
-        -0.18
+        0.0,
+        0.0,
+        -1.05
       ],
       "Size": [
-        0.4252,
-        0.4062,
-        5.26
+        0.56,
+        0.56,
+        4.82
       ],
-      "Triangles": 1928,
+      "Triangles": 1192,
       "Outline": false
     },
     {
       "Material": "Neon",
-      "Color": "#45E6FF",
-      "Transparency": 0.05,
+      "Color": "#1FD8FF",
+      "Transparency": 0.0,
       "Reflectance": 0.0,
       "Name": "Core_Core",
       "File": "pieces/ghost_lantern/Core_Core.obj",
@@ -79,29 +79,29 @@
         -0.0822
       ],
       "Size": [
-        0.18,
-        0.18,
+        0.198,
+        0.198,
         6.2657
       ],
       "Triangles": 984
     },
     {
       "Material": "Metal",
-      "Color": "#2A2B33",
+      "Color": "#22232B",
       "Transparency": 0.0,
-      "Reflectance": 0.2,
+      "Reflectance": 0.4,
       "Name": "Lantern_Iron",
       "File": "pieces/ghost_lantern/Lantern_Iron.obj",
       "Joint": "Lantern",
       "Offset": [
         0.0,
         0.0,
-        -3.7715
+        -4.051
       ],
       "Size": [
-        0.708,
-        0.7476,
-        1.103
+        0.96,
+        1.02,
+        1.662
       ],
       "Triangles": 1204
     },
@@ -116,12 +116,12 @@
       "Offset": [
         0.0,
         0.0,
-        -3.69
+        -4.0
       ],
       "Size": [
-        0.1331,
-        0.14,
-        0.46
+        0.1712,
+        0.18,
+        0.72
       ],
       "Triangles": 40
     },
@@ -133,21 +133,21 @@
       "SurfaceAppearance": {
         "ColorMap": "pieces/ghost_lantern/LanternGhost_base_color.png",
         "EmissiveMask": "pieces/ghost_lantern/LanternGhost_emissive.png",
-        "EmissiveTint": "#BFF2FF",
-        "EmissiveStrength": 0.3
+        "EmissiveTint": "#8FE8FF",
+        "EmissiveStrength": 0.25
       },
       "Name": "LanternGhost_LanternGhost",
       "File": "pieces/ghost_lantern/LanternGhost_LanternGhost.obj",
       "Joint": "LanternGhost",
       "Offset": [
-        0.0003,
-        0.0002,
-        -3.6898
+        0.0005,
+        0.0004,
+        -3.9996
       ],
       "Size": [
-        0.0342,
-        0.3608,
-        0.3476
+        0.0589,
+        0.6214,
+        0.5986
       ],
       "Triangles": 2500
     }
@@ -219,13 +219,13 @@
       "Parent": "Lantern",
       "Pivot": [
         0,
-        -7.19,
+        -7.5,
         0
       ],
       "PivotRoblox": [
         0,
         0,
-        -3.69
+        -4.0
       ],
       "Motion": [],
       "Visual": [
@@ -243,13 +243,13 @@
       "Parent": "Lantern",
       "Pivot": [
         0,
-        -7.19,
+        -7.5,
         0
       ],
       "PivotRoblox": [
         0,
         0,
-        -3.69
+        -4.0
       ],
       "Motion": [
         {
@@ -259,7 +259,7 @@
             0,
             1
           ],
-          "Amp": 0.03,
+          "Amp": 0.04,
           "Period": 1.7
         },
         {

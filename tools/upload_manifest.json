@@ -431,7 +431,7 @@
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/ghost_lantern/ghost_lantern_parts.glb": {
-    "assetId": "89776156002763",
+    "assetId": "117104999552064",
     "assetType": "Model",
     "status": "ok"
   },
@@ -471,8 +471,20 @@
     "imageId": "73981308169954",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/ghost_lantern_aura/Ghost4_base_color.png": {
+    "assetId": "94582085984486",
+    "assetType": "Decal",
+    "imageId": "99619027472181",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/ghost_lantern_aura/Ghost4_emissive.png": {
+    "assetId": "85079120701552",
+    "assetType": "Decal",
+    "imageId": "120467933344583",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/ghost_lantern_aura/ghost_lantern_aura_parts.glb": {
-    "assetId": "102583794958098",
+    "assetId": "95352236468083",
     "assetType": "Model",
     "status": "ok"
   },
@@ -525,7 +537,7 @@
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/ghost_lantern_pocket/ghost_lantern_pocket_parts.glb": {
-    "assetId": "71947088190942",
+    "assetId": "138667305501133",
     "assetType": "Model",
     "status": "ok"
   },

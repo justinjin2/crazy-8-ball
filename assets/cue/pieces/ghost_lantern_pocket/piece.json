@@ -2,7 +2,7 @@
   "id": "ghost_lantern_pocket",
   "Frame": "pocket",
   "frame": "Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)",
-  "Triangles": 2800,
+  "Triangles": 3600,
   "Parts": [
     {
       "Material": "SmoothPlastic",
@@ -12,23 +12,23 @@
       "SurfaceAppearance": {
         "ColorMap": "pieces/ghost_lantern_pocket/Ghost1_base_color.png",
         "EmissiveMask": "pieces/ghost_lantern_pocket/Ghost1_emissive.png",
-        "EmissiveTint": "#BFF2FF",
-        "EmissiveStrength": 0.8
+        "EmissiveTint": "#8FE8FF",
+        "EmissiveStrength": 0.6
       },
       "Name": "Ghost1_Ghost1",
       "File": "pieces/ghost_lantern_pocket/Ghost1_Ghost1.obj",
       "Joint": "Ghost1",
       "Offset": [
-        0.0116,
-        -0.0039,
+        0.014,
+        -0.0079,
         0.4504
       ],
       "Size": [
-        0.2696,
-        0.725,
-        0.717
+        0.3236,
+        0.8766,
+        0.8604
       ],
-      "Triangles": 700
+      "Triangles": 900
     },
     {
       "Material": "SmoothPlastic",
@@ -38,23 +38,23 @@
       "SurfaceAppearance": {
         "ColorMap": "pieces/ghost_lantern_pocket/Ghost2_base_color.png",
         "EmissiveMask": "pieces/ghost_lantern_pocket/Ghost2_emissive.png",
-        "EmissiveTint": "#BFF2FF",
-        "EmissiveStrength": 0.8
+        "EmissiveTint": "#8FE8FF",
+        "EmissiveStrength": 0.6
       },
       "Name": "Ghost2_Ghost2",
       "File": "pieces/ghost_lantern_pocket/Ghost2_Ghost2.obj",
       "Joint": "Ghost2",
       "Offset": [
-        -0.4653,
-        0.244,
-        -0.0714
+        -0.4655,
+        0.24,
+        -0.0732
       ],
       "Size": [
-        0.6918,
-        0.7277,
-        0.3096
+        0.8302,
+        0.8799,
+        0.376
       ],
-      "Triangles": 700
+      "Triangles": 900
     },
     {
       "Material": "SmoothPlastic",
@@ -64,23 +64,23 @@
       "SurfaceAppearance": {
         "ColorMap": "pieces/ghost_lantern_pocket/Ghost3_base_color.png",
         "EmissiveMask": "pieces/ghost_lantern_pocket/Ghost3_emissive.png",
-        "EmissiveTint": "#BFF2FF",
-        "EmissiveStrength": 0.8
+        "EmissiveTint": "#8FE8FF",
+        "EmissiveStrength": 0.6
       },
       "Name": "Ghost3_Ghost3",
       "File": "pieces/ghost_lantern_pocket/Ghost3_Ghost3.obj",
       "Joint": "Ghost3",
       "Offset": [
-        0.1562,
-        0.4918,
-        -0.4681
+        0.1601,
+        0.4879,
+        -0.4682
       ],
       "Size": [
-        0.3869,
-        0.7302,
-        0.6506
+        0.4705,
+        0.8828,
+        0.7807
       ],
-      "Triangles": 700
+      "Triangles": 900
     },
     {
       "Material": "SmoothPlastic",
@@ -90,23 +90,23 @@
       "SurfaceAppearance": {
         "ColorMap": "pieces/ghost_lantern_pocket/Ghost4_base_color.png",
         "EmissiveMask": "pieces/ghost_lantern_pocket/Ghost4_emissive.png",
-        "EmissiveTint": "#BFF2FF",
-        "EmissiveStrength": 0.8
+        "EmissiveTint": "#8FE8FF",
+        "EmissiveStrength": 0.6
       },
       "Name": "Ghost4_Ghost4",
       "File": "pieces/ghost_lantern_pocket/Ghost4_Ghost4.obj",
       "Joint": "Ghost4",
       "Offset": [
-        0.416,
-        0.7622,
-        0.3035
+        0.4161,
+        0.7583,
+        0.3072
       ],
       "Size": [
-        0.5632,
-        0.7325,
-        0.5507
+        0.6759,
+        0.8857,
+        0.6677
       ],
-      "Triangles": 700
+      "Triangles": 900
     }
   ],
   "Joints": {

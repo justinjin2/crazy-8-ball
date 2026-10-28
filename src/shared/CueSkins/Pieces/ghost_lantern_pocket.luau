@@ -5,7 +5,7 @@
 return {
 	Id = "ghost_lantern_pocket",
 	Frame = "pocket",
-	Rigid = "71947088190942",
+	Rigid = "138667305501133",
 	Models = {},
 	Parts = {
 		{
@@ -16,13 +16,13 @@ return {
 			SurfaceAppearance = {
 				ColorMap = "rbxassetid://77424934985413",
 				EmissiveMask = "rbxassetid://72447057397964",
-				EmissiveTint = "#BFF2FF",
-				EmissiveStrength = 0.8,
+				EmissiveTint = "#8FE8FF",
+				EmissiveStrength = 0.6,
 			},
 			Name = "Ghost1_Ghost1",
 			Joint = "Ghost1",
-			Offset = { 0.0116, -0.0039, 0.4504 },
-			Size = { 0.2696, 0.725, 0.717 },
+			Offset = { 0.014, -0.0079, 0.4504 },
+			Size = { 0.3236, 0.8766, 0.8604 },
 		},
 		{
 			Material = "SmoothPlastic",
@@ -32,13 +32,13 @@ return {
 			SurfaceAppearance = {
 				ColorMap = "rbxassetid://111454837729003",
 				EmissiveMask = "rbxassetid://109736830302576",
-				EmissiveTint = "#BFF2FF",
-				EmissiveStrength = 0.8,
+				EmissiveTint = "#8FE8FF",
+				EmissiveStrength = 0.6,
 			},
 			Name = "Ghost2_Ghost2",
 			Joint = "Ghost2",
-			Offset = { -0.4653, 0.244, -0.0714 },
-			Size = { 0.6918, 0.7277, 0.3096 },
+			Offset = { -0.4655, 0.24, -0.0732 },
+			Size = { 0.8302, 0.8799, 0.376 },
 		},
 		{
 			Material = "SmoothPlastic",
@@ -48,13 +48,13 @@ return {
 			SurfaceAppearance = {
 				ColorMap = "rbxassetid://120550036848824",
 				EmissiveMask = "rbxassetid://72584101233365",
-				EmissiveTint = "#BFF2FF",
-				EmissiveStrength = 0.8,
+				EmissiveTint = "#8FE8FF",
+				EmissiveStrength = 0.6,
 			},
 			Name = "Ghost3_Ghost3",
 			Joint = "Ghost3",
-			Offset = { 0.1562, 0.4918, -0.4681 },
-			Size = { 0.3869, 0.7302, 0.6506 },
+			Offset = { 0.1601, 0.4879, -0.4682 },
+			Size = { 0.4705, 0.8828, 0.7807 },
 		},
 		{
 			Material = "SmoothPlastic",
@@ -64,13 +64,13 @@ return {
 			SurfaceAppearance = {
 				ColorMap = "rbxassetid://91645521827441",
 				EmissiveMask = "rbxassetid://130247569974202",
-				EmissiveTint = "#BFF2FF",
-				EmissiveStrength = 0.8,
+				EmissiveTint = "#8FE8FF",
+				EmissiveStrength = 0.6,
 			},
 			Name = "Ghost4_Ghost4",
 			Joint = "Ghost4",
-			Offset = { 0.416, 0.7622, 0.3035 },
-			Size = { 0.5632, 0.7325, 0.5507 },
+			Offset = { 0.4161, 0.7583, 0.3072 },
+			Size = { 0.6759, 0.8857, 0.6677 },
 		},
 	},
 	Joints = {

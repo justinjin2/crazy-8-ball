@@ -5,7 +5,7 @@
 return {
 	Id = "ghost_lantern",
 	Frame = "cue",
-	Rigid = "89776156002763",
+	Rigid = "117104999552064",
 	Models = {},
 	Parts = {
 		{
@@ -20,8 +20,8 @@ return {
 		},
 		{
 			Material = "SmoothPlastic",
-			Color = "#6FD8F2",
-			Transparency = 0.3,
+			Color = "#2FC8F0",
+			Transparency = 0.25,
 			Reflectance = 0.3,
 			Name = "Body_Glass",
 			Joint = "Body",
@@ -30,34 +30,34 @@ return {
 		},
 		{
 			Material = "Metal",
-			Color = "#2A2B33",
+			Color = "#22232B",
 			Transparency = 0,
-			Reflectance = 0.2,
+			Reflectance = 0.4,
 			Name = "Body_Iron",
 			Joint = "Body",
-			Offset = { 0.0056, 0.0019, -0.18 },
-			Size = { 0.4252, 0.4062, 5.26 },
+			Offset = { 0, 0, -1.05 },
+			Size = { 0.56, 0.56, 4.82 },
 			Outline = false,
 		},
 		{
 			Material = "Neon",
-			Color = "#45E6FF",
-			Transparency = 0.05,
+			Color = "#1FD8FF",
+			Transparency = 0,
 			Reflectance = 0,
 			Name = "Core_Core",
 			Joint = "Core",
 			Offset = { 0, 0, -0.0822 },
-			Size = { 0.18, 0.18, 6.2657 },
+			Size = { 0.198, 0.198, 6.2657 },
 		},
 		{
 			Material = "Metal",
-			Color = "#2A2B33",
+			Color = "#22232B",
 			Transparency = 0,
-			Reflectance = 0.2,
+			Reflectance = 0.4,
 			Name = "Lantern_Iron",
 			Joint = "Lantern",
-			Offset = { 0, 0, -3.7715 },
-			Size = { 0.708, 0.7476, 1.103 },
+			Offset = { 0, 0, -4.051 },
+			Size = { 0.96, 1.02, 1.662 },
 		},
 		{
 			Material = "Neon",
@@ -66,8 +66,8 @@ return {
 			Reflectance = 0,
 			Name = "LanternGlow_Lantern",
 			Joint = "LanternGlow",
-			Offset = { 0, 0, -3.69 },
-			Size = { 0.1331, 0.14, 0.46 },
+			Offset = { 0, 0, -4 },
+			Size = { 0.1712, 0.18, 0.72 },
 		},
 		{
 			Material = "SmoothPlastic",
@@ -77,13 +77,13 @@ return {
 			SurfaceAppearance = {
 				ColorMap = "rbxassetid://127642772720159",
 				EmissiveMask = "rbxassetid://89315159661323",
-				EmissiveTint = "#BFF2FF",
-				EmissiveStrength = 0.3,
+				EmissiveTint = "#8FE8FF",
+				EmissiveStrength = 0.25,
 			},
 			Name = "LanternGhost_LanternGhost",
 			Joint = "LanternGhost",
-			Offset = { 0.0003, 0.0002, -3.6898 },
-			Size = { 0.0342, 0.3608, 0.3476 },
+			Offset = { 0.0005, 0.0004, -3.9996 },
+			Size = { 0.0589, 0.6214, 0.5986 },
 		},
 	},
 	Joints = {
@@ -120,7 +120,7 @@ return {
 		},
 		LanternGlow = {
 			Parent = "Lantern",
-			PivotRoblox = { 0, 0, -3.69 },
+			PivotRoblox = { 0, 0, -4 },
 			Motion = {},
 			Visual = {
 				{
@@ -135,12 +135,12 @@ return {
 		},
 		LanternGhost = {
 			Parent = "Lantern",
-			PivotRoblox = { 0, 0, -3.69 },
+			PivotRoblox = { 0, 0, -4 },
 			Motion = {
 				{
 					Kind = "Bob",
 					Dir = { 0, 0, 1 },
-					Amp = 0.03,
+					Amp = 0.04,
 					Period = 1.7,
 				},
 				{

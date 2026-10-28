@@ -25,9 +25,9 @@ if HERE not in sys.path:
 from CuePieces import piece, assign_by_region, sweep  # noqa: E402
 from CuePiecesHalloween_A import envelope, check_body, _revolve, _rows, _finish  # noqa: E402
 
-PHANTOM = {'Tip': '#D8D1C2', 'Glass': '#6FD8F2', 'Core': '#45E6FF', 'Iron': '#2A2B33', 'Lantern': '#B5F4FF'}   # a deeper, brighter cyan than the live Rare Phantom's pale tube (coordinator 18:55)
-GHOST_TINT = '#BFF2FF'          # the ghosts' emissive tint (they glow softly so they read on the floor)
-LANTERN_AT = 7.19               # the lantern cage's centre along the cue (the butt is at 7.0)
+PHANTOM = {'Tip': '#D8D1C2', 'Glass': '#2FC8F0', 'Core': '#1FD8FF', 'Iron': '#22232B', 'Lantern': '#B5F4FF'}   # a deep, saturated cyan, nothing like the live Rare Phantom's pale teal tube (coordinator 19:12)
+GHOST_TINT = '#8FE8FF'          # the ghosts' emissive tint: a soft cyan glow so white ghosts never vanish on the white floor
+LANTERN_AT = 7.5                # the lantern cage's centre along the cue (the butt is at 7.0; the cage is past it, an Aim-fade joint)
 
 
 def _ghost_glow(px):
@@ -61,11 +61,11 @@ def _torus(bm, centre, u, v, R, r, nmaj=8, nmin=4):
             bm.faces.new((A[j], B[j], B[(j + 1) % nmin], A[(j + 1) % nmin]))
 
 
-def _chain(bm, R, d0, d1, turns, link_R=0.09, link_r=0.03, pitch=0.15, lift=0.004, tilt=24.0, phase=0.0):
+def _chain(bm, R, d0, d1, turns, link_R=0.1, link_r=0.03, pitch=0.17, lift=0.0, tilt=15.0, phase=0.0):
     """Iron links along a helix round the shaft from d0 to d1 (`turns` round): each link lies on
     the glass tilted `tilt` degrees about the helix tangent, alternately in and out, so the run
     reads as a chain (thick links, coordinator 18:31) while staying inside the side clearance
-    (the link's outward reach is link_R * sin(tilt) + link_r)."""
+    (the link's outward reach is (link_R + link_r) * sin(tilt) + link_r * cos(tilt) + lift: 0.063)."""
     import bisect
     from mathutils import Vector
 
@@ -171,21 +171,22 @@ def _ghost_place(height, basis):
 
 @piece
 def ghost_lantern(k):
-    """The Ghost Lantern Cue's body: a leather tip and pale ferrule (one part), the shaft a translucent
-    cyan glass tube end to end (SmoothPlastic at 0.35, it must read on the bright floor), a
-    Neon core inside it pulsing (the inner light), two iron bands at 2.17 and 4.33 with a thick
-    iron chain spiralling two and a half turns between them (between the hands, inside the
-    side clearance), and past the butt the ghost lantern: an iron neck and cap, a six-bar cage
-    with rings, a Neon glow inside it flickering, a little ghost bobbing in the glow, an iron
-    knob and a hanging ring. The lantern is an Aim-fade joint (it clears for the owner while
-    aiming, everyone else sees it) swaying very slowly. Seven parts."""
+    """The Ghost Lantern Cue's body (v3, coordinator 19:12: everything bigger): a leather tip and
+    pale ferrule (one part), the shaft a deep cyan glass tube end to end with a pure cyan Neon
+    core inside it pulsing, three real iron collars (2.14, 4.18 and 6.80, the butt one widest)
+    with a thick iron chain (0.2-stud links) spiralling between the first two (the hand zones 0.3-2.1 and 4.4-6.75 keep the
+    envelope, brief 2.6: a hand must not sink into links), and past the butt the ghost lantern,
+    an Aim-fade joint about twice the v2 size: an iron neck and cap, a six-bar cage 0.9 studs
+    across with rings, a candle rod flickering, a Meshy ghost 0.62 studs tall bobbing and
+    turning inside, an iron knob and a hanging ring (reaching 1.38 studs past the butt, under
+    the 1.5 an Aim joint may). Seven parts."""
     import bmesh
     from mathutils import Matrix
     R = envelope()
     k.material('Tip', 'SmoothPlastic', PHANTOM['Tip'], Reflectance=0.0)
-    k.material('Glass', 'SmoothPlastic', PHANTOM['Glass'], Transparency=0.3, Reflectance=0.3)
-    k.material('Core', 'Neon', PHANTOM['Core'], Transparency=0.05)
-    k.material('Iron', 'Metal', PHANTOM['Iron'], Reflectance=0.2)
+    k.material('Glass', 'SmoothPlastic', PHANTOM['Glass'], Transparency=0.25, Reflectance=0.3)
+    k.material('Core', 'Neon', PHANTOM['Core'], Transparency=0.0)
+    k.material('Iron', 'Metal', PHANTOM['Iron'], Reflectance=0.4)
     k.material('Lantern', 'Neon', PHANTOM['Lantern'], Transparency=0.3)
 
     # --- the shaft: tip + ferrule (Tip) to 0.30, the glass tube to the lantern neck ----------
@@ -203,22 +204,17 @@ def ghost_lantern(k):
     k.joint('Core', pivot=(0, -3.5, 0), visual=[{'Kind': 'Glow', 'Min': 0.0, 'Max': 0.35, 'Period': 2.8}])
     # the core's rows sit on the tube's rows (check_body samples by 0.1-stud bin: a bin holding
     # only core vertices would read as the hand sinking in)
-    core = [(tube[1][0], 0.0)] + [(d, 0.5 * R(d)) for d, _ in tube[2:-1]] + [(tube[-1][0] - 0.005, 0.0)]
+    core = [(tube[1][0], 0.0)] + [(d, 0.55 * R(d)) for d, _ in tube[2:-1]] + [(tube[-1][0] - 0.005, 0.0)]
     bm = bmesh.new()
     _revolve(bm, core, 12)
     _finish(bm)
     k.add('Core', k.mesh_object('Core', bm, ['Core']))
 
-    # --- the iron bands and the chain between the hands -------------------------------------
+    # --- three iron collars and the chain ---------------------------------------------------
     bm = bmesh.new()
-    for d_a, d_b in ((2.14, 2.20), (4.30, 4.36)):
-        _revolve(bm, [(d_a, R(d_a)), (d_a, R(d_a) + 0.03), (d_b, R(d_b) + 0.03), (d_b, R(d_b))], 20)
-    # thin iron rings along the glass (inside the hand tolerance): dark bands that set the tube
-    # apart from the Rare Phantom's smooth pale one
-    for d_a in (1.05, 1.65, 5.05, 5.65, 6.25):
-        d_b = d_a + 0.06
-        _revolve(bm, [(d_a, R(d_a) - 0.01), (d_a, R(d_a) + 0.018), (d_b, R(d_b) + 0.018), (d_b, R(d_b) - 0.01)], 20)
-    _chain(bm, R, 2.24, 4.26, turns=2.0)
+    for d_a, d_b, proud in ((2.14, 2.32, 0.07), (4.18, 4.36, 0.07), (6.80, 6.96, 0.10)):
+        _revolve(bm, [(d_a, R(d_a) - 0.01), (d_a + 0.02, R(d_a) + proud), (d_b - 0.02, R(d_b) + proud), (d_b, R(d_b) - 0.01)], 20)
+    _chain(bm, R, 2.36, 4.14, turns=1.75)                       # between the hands
     _finish(bm)
     k.add('Body', k.mesh_object('Chain', bm, ['Iron']))
 
@@ -226,15 +222,16 @@ def ghost_lantern(k):
     k.joint('Lantern', pivot=(0, -7.0, 0), aim='fade',
             motion=[{'Kind': 'Hinge', 'Axis': (1, 0, 0), 'Amp': 1.5, 'Period': 3.3}])
     bm = bmesh.new()
-    _revolve(bm, [(6.72, R(6.72)), (6.80, 0.21), (6.84, 0.21), (6.86, 0.30), (6.92, 0.34), (6.95, 0.34), (6.95, 0.30)], 20)
-    _torus(bm, (0, -6.96, 0), (1, 0, 0), (0, 0, 1), 0.33, 0.024, 20, 6)
-    _torus(bm, (0, -7.42, 0), (1, 0, 0), (0, 0, 1), 0.33, 0.024, 20, 6)
+    # the neck (inside the butt zone's +0.2) and the top cap (past the butt, free)
+    _revolve(bm, [(6.72, R(6.72)), (6.80, 0.22), (6.96, 0.24), (6.99, 0.34), (7.06, 0.46), (7.12, 0.46), (7.12, 0.40)], 20)
+    _torus(bm, (0, -7.13, 0), (1, 0, 0), (0, 0, 1), 0.45, 0.03, 20, 6)
+    _torus(bm, (0, -7.87, 0), (1, 0, 0), (0, 0, 1), 0.45, 0.03, 20, 6)
     for i in range(6):
         a = 2 * math.pi * i / 6
-        x, z = 0.33 * math.sin(a), 0.33 * math.cos(a)
-        sweep(bm, [(x, -6.95, z), (x * 1.06, -7.19, z * 1.06), (x, -7.43, z)], [0.022, 0.024, 0.022], segs=6, cap=False)
-    _revolve(bm, [(7.42, 0.30), (7.42, 0.34), (7.47, 0.34), (7.55, 0.18), (7.60, 0.10), (7.64, 0.06), (7.66, 0.0)], 20)
-    _torus(bm, (0, -7.73, 0), (0, 1, 0), (0, 0, 1), 0.075, 0.018, 12, 5)
+        x, z = 0.45 * math.sin(a), 0.45 * math.cos(a)
+        sweep(bm, [(x, -7.12, z), (x * 1.06, -7.5, z * 1.06), (x, -7.88, z)], [0.03, 0.033, 0.03], segs=6, cap=False)
+    _revolve(bm, [(7.87, 0.40), (7.87, 0.46), (7.94, 0.46), (8.04, 0.24), (8.10, 0.13), (8.16, 0.08), (8.18, 0.0)], 20)
+    _torus(bm, (0, -8.27, 0), (0, 1, 0), (0, 0, 1), 0.09, 0.022, 12, 5)
     _finish(bm)
     k.add('Lantern', k.mesh_object('Cage', bm, ['Iron']))
 
@@ -242,17 +239,17 @@ def ghost_lantern(k):
             visual=[{'Kind': 'Glow', 'Min': 0.0, 'Max': 0.4, 'Period': 1.9, 'Shape': 'flicker'}])
     bm = bmesh.new()
     # a thin candle rod up the middle (a full glow cylinder hid the ghost; the ghost glows itself)
-    _revolve(bm, [(6.96, 0.0), (6.97, 0.07), (7.41, 0.07), (7.42, 0.0)], 10)
+    _revolve(bm, [(7.14, 0.0), (7.15, 0.09), (7.85, 0.09), (7.86, 0.0)], 10)
     _finish(bm)
     k.add('LanternGlow', k.mesh_object('LanternGlow', bm, ['Lantern']))
 
     k.joint('LanternGhost', pivot=(0, -LANTERN_AT, 0), parent='Lantern', aim='fade',
-            motion=[{'Kind': 'Bob', 'Dir': (0, 0, 1), 'Amp': 0.03, 'Period': 1.7},
+            motion=[{'Kind': 'Bob', 'Dir': (0, 0, 1), 'Amp': 0.04, 'Period': 1.7},
                     {'Kind': 'Hinge', 'Axis': (0, 0, 1), 'Amp': 14.0, 'Period': 3.4, 'Phase': 30}])
     # facing the side (+X): basis columns side = -Y, front = +X, up = +Z
     basis = Matrix(((0, 1, 0, 0), (-1, 0, 0, -LANTERN_AT), (0, 0, 1, 0), (0, 0, 0, 1)))
-    k.model('LanternGhost', 'LanternGhost', 'ghost', _ghost_place(0.36, basis), target_tris=2500, texture_px=256,
-            emissive=_ghost_glow, emissive_tint=GHOST_TINT, emissive_strength=0.3)
+    k.model('LanternGhost', 'LanternGhost', 'ghost', _ghost_place(0.62, basis), target_tris=2500, texture_px=256,
+            emissive=_ghost_glow, emissive_tint=GHOST_TINT, emissive_strength=0.25)
     check_body(k)
 
 
@@ -262,17 +259,16 @@ def ghost_lantern(k):
 
 @piece
 def ghost_lantern_aura(k):
-    """Three cute ghosts (the Meshy model, 0.9 studs tall, glowing softly) drifting round the
-    shaft on a racetrack 0.5 studs off the glass: along the top toward the tip, under and
-    back, a lap in nine seconds, each bobbing and rolling a little and fading ghostly between
-    0.55 and full. Aura joints (hidden on the owner's shot with the aura); Lower effects
-    keeps the first."""
+    """Four cute ghosts (the Meshy model, a stud tall, glowing soft cyan) drifting round the
+    shaft on a racetrack 0.58 studs off the glass: along the top toward the tip, under and
+    back, a lap in nine seconds, each bobbing and rolling a little, opaque so the faces read. Aura joints (hidden on the owner's shot with the aura); Lower effects
+    keeps two (the first and third)."""
     from mathutils import Matrix, Vector
     R = envelope()
-    frames, step, L = _ghost_track(R, 1.2, 6.3, 0.5)
+    frames, step, L = _ghost_track(R, 1.2, 6.3, 0.58)
     k.path('Drift', frames, step)
     speed = L / 9.0
-    for i, (share, low) in enumerate(((0.05, None), (0.38, 'hide'), (0.71, 'hide'))):
+    for i, (share, low) in enumerate(((0.03, None), (0.28, 'hide'), (0.53, None), (0.78, 'hide'))):
         name = 'Ghost%d' % (i + 1)
         rest = share * L
         F = frames[int(round(rest / step)) % len(frames)]
@@ -280,14 +276,14 @@ def ghost_lantern_aura(k):
         k.joint(name, pivot=tuple(pt), aura=True, low=low,
                 motion=[{'Kind': 'Path', 'Path': 'Drift', 'Rest': rest, 'Speed': speed},
                         {'Kind': 'Bob', 'Dir': tuple(nrm), 'Amp': 0.06, 'Period': 1.6 + 0.3 * i, 'Phase': 110 * i},
-                        {'Kind': 'Hinge', 'Axis': tuple(tang), 'Amp': 10.0, 'Period': 2.3 + 0.2 * i, 'Phase': 60 * i}],
-                visual=[{'Kind': 'Fade', 'Min': 0.55, 'Max': 1.0, 'Period': 3.0 + 0.5 * i, 'Phase': 0.3 * i}])
+                        {'Kind': 'Hinge', 'Axis': tuple(tang), 'Amp': 10.0, 'Period': 2.3 + 0.2 * i, 'Phase': 60 * i}])
+        # opaque: a ghostly Fade washed them to white smears on the bright floor (gl_back_v3)
         basis = Matrix(((side.x, tang.x, nrm.x, pt.x), (side.y, tang.y, nrm.y, pt.y),
                         (side.z, tang.z, nrm.z, pt.z), (0, 0, 0, 1)))
         # 0.9 studs tall: half a stud read as specks from the lobby camera (gl_stand_v1, coordinator
         # 18:31: real 3D ghosts with readable faces, not specks)
-        k.model(name, name, 'ghost', _ghost_place(0.9, basis), target_tris=2500, texture_px=256,
-                emissive=_ghost_glow, emissive_tint=GHOST_TINT, emissive_strength=0.3)
+        k.model(name, name, 'ghost', _ghost_place(1.0, basis), target_tris=1800, texture_px=256,
+                emissive=_ghost_glow, emissive_tint=GHOST_TINT, emissive_strength=0.25)
 
 
 # =============================================================================================
@@ -338,8 +334,8 @@ def ghost_lantern_pocket(k):
                         {'Kind': 'Bob', 'Dir': (0, 0, 1), 'Amp': 0.05, 'Period': 0.7 + 0.1 * i, 'Phase': 90 * i}])
         basis = Matrix(((side.x, tang.x, nrm.x, pt.x), (side.y, tang.y, nrm.y, pt.y),
                         (side.z, tang.z, nrm.z, pt.z), (0, 0, 0, 1)))
-        k.model(name, name, 'ghost', _ghost_place(0.75, basis), target_tris=700, texture_px=256,
-                emissive=_ghost_glow, emissive_tint=GHOST_TINT, emissive_strength=0.8)
+        k.model(name, name, 'ghost', _ghost_place(0.9, basis), target_tris=900, texture_px=256,
+                emissive=_ghost_glow, emissive_tint=GHOST_TINT, emissive_strength=0.6)
 
 
 # =============================================================================================
