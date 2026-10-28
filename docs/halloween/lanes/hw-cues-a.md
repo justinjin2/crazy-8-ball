@@ -61,6 +61,7 @@ From PLAN §4 (everything else is read-only; ask through Requests):
 
 ## Status (continued)
 
+- 19:26: **Ghost Lantern parked @13c484eb** (coordinator 19:2x; Justin 19:18: too close to the live Phantom). v3 committed whole (bigger caged lantern, thick chain, three iron collars, four opaque ghosts with faces, more mist; v4 lights softened to 0.35/0.3), nothing deleted, PhantomCue's files untouched. Captures in gate2: `gl_stand_v4.jpg`, `gl_back_v4.jpg`, `gl_hand_aim_v4.jpg` (the owner's aim view; the trail and the finisher were not reached: the lane's Play session had seated me in a bot match, where the capture camera override does not apply). Open on this branch: the 150 slot (Catalog, Config.Halloween.Track, Strings, the three tests, the tools' ONLY lists) still names `GhostLanternCue` since 8dbd59ec took the Candy Corn rows out; see Requests. **Now: the Halloween Sword** (`HalloweenSwordCue` / skin `halloween_sword` / "Halloween Sword"), from C8 and the two refs in `~/Desktop/8ball-refs/halloween/sword/`.
 - 19:01 GHOST LANTERN (the 150 slot; id GhostLanternCue, skin ghost_lantern, "Ghost Lantern Cue",
   coordinator 18:55: the catalog already has a live Rare PhantomCue, so never "Phantom"). Built to
   C6_phantom.png and in the lab: `gate2/side_by_side_ghost_lantern_v2.jpg` (the card, the stand
@@ -708,6 +709,7 @@ Planned (PLAN §7 shared files; own block or line only; add the sha to each as i
 - 09:05 **MERGE drop 1** (`hw-cues-a` @ 7bef0153): the five cue ids and names, `Catalog.ready`,
   `drawAs`. No runtime behaviour change for existing cues (every shipped cue draws its own
   template as before; only an id with a StandIn falls back).
+- 19:26 REQUEST (coordinator / Core, before my next READY): the 150 track slot on `hw-cues-a` names `GhostLanternCue` (parked). Say which: (a) I restore the Candy Corn rows from `8dbd59ec^` (one revert commit, the Ghost Lantern's skin and pieces stay as a draft with no Catalog row), or (b) Core's Bone / hellfire row replaces it on merge. Until then the slot must not reach `halloween`.
 
 ## Assumptions
 
