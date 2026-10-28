@@ -51,6 +51,11 @@ From PLAN §4 (everything else is read-only to this lane; ask through Requests):
 
 ## Status
 
+- 10:55 hw-map: step 11 done. Candy walk test (5 min, the player walked by Humanoid:MoveTo, core
+  live): 4 candies spawned near the moving player, all 4 picked up by walking over them, core's
+  save PickCount 4 and Earned +4 (+1 each); none while idle. About one per 30 s of eligible
+  lobby time, as the brief sets (a lobby-only player reaches core's 40/hour cap; ~25/hour for a
+  typical player). The lobby candy is the event mesh (`shots/hw-map/candy-lobby.jpg`).
 - 10:45 hw-map: merged halloween @f32c3d1b (core's CandyService, sys's badges; lint OK, 1418
   tests). With core live in Studio (BootLive) the King's whole chain works: prompt, match, a
   staged real win -> `Won`, core's save Earned 50, KingPaid 1, KingWins 1, cooldown 15:00 on

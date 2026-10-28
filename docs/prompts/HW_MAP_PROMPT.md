@@ -627,7 +627,7 @@ request: ask in your lane file's Requests when a verified part should land early
 - [x] 8. BossService: prompt, server checks, free table with 2 spare, MaxAtOnce 3, notices, taunts, analytics; a King match end to end in Studio.
 - [x] 9. Difficulty from the background bot_duel runs for every TierFor row (win shares in the lane file; a row under 20% stepped down, re-measured and logged).
 - [x] 10. The reward: bossWon on every win, bossCooldown into `PumpkinKingReadyAt` and the prompt countdown, `Badges.grant` Pumpkin Slayer, the candy explosion; gate 2 shots by 11:00.
-- [ ] 11. CandyDrop and its client FX: spawning, eligibility, the teleport check, CandyService.pickup's `(ok, reason)`, the bag-full note only for `"Cap"`, analytics; a 5-minute walk test.
+- [x] 11. CandyDrop and its client FX: spawning, eligibility, the teleport check, CandyService.pickup's `(ok, reason)`, the bag-full note only for `"Cap"`, analytics; a 5-minute walk test.
 - [x] 12. The purple night sky: gen_sky night variant (headless), 6 uploads, Night.Sky ids, the Night-to-Sunset swap checked in Play.
 - [ ] 13. `TableBuilder.addDecor` and the three kits (bounds-checked, no collision), on every table, removed at the end.
 - [ ] 14. Props: dead trees, pumpkins, spooky planters, tombstones, string lights, cobwebs (headless Blender, uploads, Assets); the hide list applied and restored; the budget counted.
