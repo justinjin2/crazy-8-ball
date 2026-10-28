@@ -32,6 +32,11 @@ From PLAN §4 (everything else is read-only; ask below under Requests):
   `docs/STATUS.md`, `ROADMAP.md`, `DECISIONS.md`, `ECONOMY.md` (coordinator).
 
 ## Status
+- **18:15 READY (robustness pass): hw-gui @00e8b415** (halloween @d9474296 merged clean on top).
+  Lint OK, `client_compiles` OK, **1469/1469 tests**, Studio console clean in every play (only the
+  known 203785492 ContentId and this place's no-API lines). Fix commits: ffadcd82, 165b809d,
+  2e2cc777 (its Progression part handed back in caedb96d), e5720308, 7ceea455, 3039f3f9,
+  4b27c7c6. Nothing needs cutting by switch. Details below.
 - **18:03 ROBUSTNESS PASS (the coordinator's 17:52 request; base halloween @cb89ebcc merged
   clean).** Area: BoostPill and the boost card, Money.boostParts, and, assigned for this pass
   (hw-core's files), EventMenu, EventButton, CandyToast. A read-only reviewer agent went
