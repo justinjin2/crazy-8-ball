@@ -9911,6 +9911,7 @@ Config.UI.CuePreview = {
 	-- title's icon and the lit tab's icon rock (Lively.IconRockDegrees), the 8-ball flair sits on
 	-- the panel's left edge FlairDownShare of the way down (Lively.Flair*).
 	TitleIconShare = 0.8, -- the title's cue icon, a share of the header's height
+	ThumbMinPx = 60, -- the sheet's card picture shows only this tall or taller (not on a phone)
 	FlairDownShare = 0.85,
 	BackingFadeSeconds = 0.12, -- once unrolled, the solid panel fades off the window's hole
 	FoldTimeoutSeconds = 1, -- a close's fold is gone by then whatever happens

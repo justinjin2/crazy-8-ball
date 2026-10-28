@@ -636,10 +636,11 @@ local function layout(s: Session)
 	end
 	place(parts.equip, p.equip)
 	local below = (if hasNote and not inSlot then p.note.y + p.note.h else p.pill.y + p.pill.h) + 4
-	place(
-		parts.thumb,
-		{ x = p.note.x, y = below, w = p.note.w, h = math.max(0, p.tabs[1].y - 6 - below) }
-	)
+	local thumbH = math.max(0, p.tabs[1].y - 6 - below)
+	place(parts.thumb, { x = p.note.x, y = below, w = p.note.w, h = thumbH })
+	if parts.thumb then
+		parts.thumb.Visible = thumbH >= C.ThumbMinPx -- a phone's sliver of a picture: none
+	end
 	local short = p.short
 	HudParts.setTextSize(parts.title, if short then 20 else 28)
 	HudParts.setTextSize(parts.name, if short then 22 else 34)
