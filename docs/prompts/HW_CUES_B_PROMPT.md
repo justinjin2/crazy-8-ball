@@ -603,56 +603,56 @@ floor by **15:00**, write a Request to the coordinator at once (Cues A may take 
 
 ## Progress
 
-- [ ] 1. First push by 08:15: lane file Requests (section 3), three draft skin stubs,
+- [x] 1. First push by 08:15: lane file Requests (section 3), three draft skin stubs,
   `CuePiecesHalloween_B.py` (entry point, `AIM` table, `check_envelope`, a Broom blockout body
   that passes), `tests/halloween_cues_b_test.luau` (skips drafts); compile, lint and tests
   green, pushed, Status line.
-- [ ] 2. Lane ready: worktree on `hw-cues-b`, Rojo 34885 into `lane-hw-cues-b.rbxl`, the window
+- [x] 2. Lane ready: worktree on `hw-cues-b`, Rojo 34885 into `lane-hw-cues-b.rbxl`, the window
   found by name, the lab showing Eclipse, Beta and Firework.
-- [ ] 3. Witch's Broom body: crystal tip, crooked bark handle straight in both hand zones, knot,
+- [x] 3. Witch's Broom body: crystal tip, crooked bark handle straight in both hand zones, knot,
   twig stubs, binding and buckle, straw bristles (compact and long, `Aim`), skinned hat charm on
   a Sway chain, one atlas; `check_envelope` passes; uploaded; preview and gate-1 renders beside
   `C3b_broom.png`.
-- [ ] 4. Drops 1 and 2 in your branch: `git fetch && git merge halloween` once the coordinator
+- [x] 4. Drops 1 and 2 in your branch: `git fetch && git merge halloween` once the coordinator
   has merged drop 1 (the three rows present) and drop 2 (generator keys, `--also-manifest`, the
   ONLY filter, the guarded import of your file); one plain `CuePieces.py -- <pid>` headless build
   of an existing piece still runs with your file imported (no side effects, `py_compile` clean).
   If drop 2 is not in `halloween` yet, merge what is there, say so in Status and tick: P7 merges
   it with drop 3.
-- [ ] 5. Black Cat body: black shaft, gold rings, claw inlays, knurled wrap, gold claw tip
+- [x] 5. Black Cat body: black shaft, gold rings, claw inlays, knurled wrap, gold claw tip
   inlay, the skinned swaying tail with its gold ForceField shell (compact and long, `Aim`), one
   atlas; `check_envelope` passes; uploaded; preview beside `C2c_black_cat.png`.
-- [ ] 6. Spider body: segmented chrome shaft, spear ferrule, one crimson hourglass, the skinned
+- [x] 6. Spider body: segmented chrome shaft, spear ferrule, one crimson hourglass, the skinned
   eight-blade crown with silk webs and breathing blades (compact and long, `Aim` on the crown
   root), one atlas; `check_envelope` passes; uploaded; preview beside `C1b_spider.png`.
 - [ ] 7. Bodies in the game: drops 2 and 3 merged, rows generated, the ONLY build of the three in
   your window; each checked in the hands (long wind-up, steep shot), on a back (small R15, tall
   R15, R6, walking and sitting), raised over a rail, and in the aim view at phone and PC sizes.
-- [ ] 8. Gate 2 at 11:00: the three bodies on a stand, a back, in the hands and in the aim view
+- [x] 8. Gate 2 at 11:00: the three bodies on a stand, a back, in the hands and in the aim view
   beside Eclipse and their concepts; shots in `gate2/`, lines in the lane file.
-- [ ] 9. Broom sprites: bat flap 4x4, crescent, straw leaf, witch over the moon 4x4, a portal
+- [x] 9. Broom sprites: bat flap 4x4, crescent, straw leaf, witch over the moon 4x4, a portal
   swirl if needed; drawn by `tools/hw_sprites_b.py`, checked from both sides, uploaded, image
   ids applied.
-- [ ] 10. Broom aura: `witch_broom_aura` ribbons, haze, wisps, stars, bats, flecks, charm sparkle,
+- [x] 10. Broom aura: `witch_broom_aura` ribbons, haze, wisps, stars, bats, flecks, charm sparkle,
   crystal and binding lights, violet outline; ≤170/s; Lower effects; judged on the bright floor
   and under Night beside Eclipse.
-- [ ] 11. Broom trail and finisher: violet-emerald trail with stars, crescents, straw and bats;
+- [x] 11. Broom trail and finisher: violet-emerald trail with stars, crescents, straw and bats;
   portal rings, sparkle column, witch over the moon, star burst, ring, library sound; checked in
   a solo match on all three cloths.
-- [ ] 12. Black Cat sprites: run-in-place 4x4 and leap 4x4 (black, thin gold rim), checked from
+- [x] 12. Black Cat sprites: run-in-place 4x4 and leap 4x4 (black, thin gold rim), checked from
   both sides; uploaded, ids applied.
-- [ ] 13. Black Cat aura: black smoke, gold-edged wisps, embers, shadow cats, collar light, gold
+- [x] 13. Black Cat aura: black smoke, gold-edged wisps, embers, shadow cats, collar light, gold
   outline; ≤120/s; Lower effects; Day and Night.
-- [ ] 14. Black Cat trail and finisher: gold-cored dark trail with the pack, smoke and sparks;
+- [x] 14. Black Cat trail and finisher: gold-cored dark trail with the pack, smoke and sparks;
   the leap out of the pocket with smoke, shards, gold ring and sparks, library sound; every ball
   readable on charcoal; solo match.
-- [ ] 15. Spider sprites: radial web, silk strand, web ring decal; uploaded, ids applied.
-- [ ] 16. Spider aura: black smoke, silk beams between blade tips and along the shaft, web
+- [x] 15. Spider sprites: radial web, silk strand, web ring decal; uploaded, ids applied.
+- [x] 16. Spider aura: black smoke, silk beams between blade tips and along the shaft, web
   flecks, glints, the hourglass glint, silver outline; ≤120/s; Lower effects; Day and Night; no
   creature anywhere.
-- [ ] 17. Spider trail and finisher: silk trail with strands and flecks; `spider_pocket` web
+- [x] 17. Spider trail and finisher: silk trail with strands and flecks; `spider_pocket` web
   rising and opening, web ring, smoke, sparks, crimson glint, library sound; solo match.
-- [ ] 18. Long overhangs decided, before any card: the aim fade watched in your aim camera at
+- [x] 18. Long overhangs decided, before any card: the aim fade watched in your aim camera at
   phone and PC sizes → long variants on (rebuilt, uploaded, re-checked on a back); otherwise
   the compact ones ship and the cut is logged.
 - [ ] 19. Cards: the three thumbnails with their auras and the overhang variant P18 chose,

@@ -1,0 +1,489 @@
+{
+  "id": "spider",
+  "Frame": "cue",
+  "frame": "Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)",
+  "Triangles": 5764,
+  "Parts": [
+    {
+      "Material": "Foil",
+      "Color": "#FFFFFF",
+      "Transparency": 0.0,
+      "Reflectance": 0.08,
+      "SurfaceAppearance": {
+        "ColorMap": "pieces/spider/atlas_color.png",
+        "NormalMap": "pieces/spider/atlas_normal.png",
+        "EmissiveMask": "pieces/spider/atlas_emissive.png",
+        "EmissiveTint": "#F2F5FA",
+        "EmissiveStrength": 1.4
+      },
+      "Name": "Blades",
+      "File": "pieces/spider/Crown.glb",
+      "Mesh": "BladesSkin",
+      "Joint": "Crown",
+      "Skinned": true,
+      "Bones": [
+        "Crown",
+        "Blade1",
+        "Blade2",
+        "Blade3",
+        "Blade4",
+        "Blade5",
+        "Blade6",
+        "Blade7",
+        "Blade8"
+      ],
+      "Triangles": 544,
+      "Offset": [
+        0.0,
+        0.1293,
+        -3.6
+      ],
+      "Size": [
+        0.6555,
+        0.3875,
+        0.3
+      ]
+    },
+    {
+      "Material": "Foil",
+      "Color": "#FFFFFF",
+      "Transparency": 0.0,
+      "Reflectance": 0.08,
+      "SurfaceAppearance": {
+        "ColorMap": "pieces/spider/atlas_color.png",
+        "NormalMap": "pieces/spider/atlas_normal.png",
+        "EmissiveMask": "pieces/spider/atlas_emissive.png",
+        "EmissiveTint": "#F2F5FA",
+        "EmissiveStrength": 1.4,
+        "AlphaMode": "Transparency"
+      },
+      "Name": "Webs",
+      "File": "pieces/spider/Crown.glb",
+      "Mesh": "WebsSkin",
+      "Joint": "Crown",
+      "Skinned": true,
+      "Bones": [
+        "Crown",
+        "Blade1",
+        "Blade2",
+        "Blade3",
+        "Blade4",
+        "Blade5",
+        "Blade6",
+        "Blade7",
+        "Blade8"
+      ],
+      "Triangles": 728,
+      "Offset": [
+        0.0,
+        0.1217,
+        -3.6001
+      ],
+      "Size": [
+        0.6042,
+        0.3513,
+        0.2277
+      ]
+    },
+    {
+      "Material": "Foil",
+      "Color": "#FFFFFF",
+      "Transparency": 0.0,
+      "Reflectance": 0.08,
+      "SurfaceAppearance": {
+        "ColorMap": "pieces/spider/atlas_color.png",
+        "NormalMap": "pieces/spider/atlas_normal.png",
+        "EmissiveMask": "pieces/spider/atlas_emissive.png",
+        "EmissiveTint": "#F2F5FA",
+        "EmissiveStrength": 1.4
+      },
+      "Name": "Body_Body",
+      "File": "pieces/spider/Body_Body.obj",
+      "Joint": "Body",
+      "Offset": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "Size": [
+        0.4237,
+        0.4237,
+        7.0
+      ],
+      "Triangles": 4140
+    },
+    {
+      "Material": "Foil",
+      "Color": "#C9CED8",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Body_Ring",
+      "File": "pieces/spider/Body_Ring.obj",
+      "Joint": "Body",
+      "Offset": [
+        0.0,
+        0.0,
+        -3.29
+      ],
+      "Size": [
+        0.452,
+        0.452,
+        0.0312
+      ],
+      "Triangles": 336
+    },
+    {
+      "Material": "Neon",
+      "Color": "#C0142C",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Hourglass_Hourglass",
+      "File": "pieces/spider/Hourglass_Hourglass.obj",
+      "Joint": "Hourglass",
+      "Offset": [
+        0.0,
+        0.2075,
+        -3.38
+      ],
+      "Size": [
+        0.048,
+        0.014,
+        0.0905
+      ],
+      "Triangles": 16
+    }
+  ],
+  "Joints": {
+    "Body": {
+      "Parent": null,
+      "Pivot": [
+        0,
+        -3.5,
+        0
+      ],
+      "PivotRoblox": [
+        0,
+        0,
+        0.0
+      ],
+      "Motion": []
+    },
+    "Hourglass": {
+      "Parent": "Body",
+      "Pivot": [
+        0,
+        -6.88,
+        0
+      ],
+      "PivotRoblox": [
+        0,
+        0,
+        -3.38
+      ],
+      "Motion": [],
+      "Visual": [
+        {
+          "Kind": "Glow",
+          "Min": 0.0,
+          "Max": 0.6,
+          "Period": 1.6
+        }
+      ]
+    },
+    "Crown": {
+      "Parent": "Body",
+      "Pivot": [
+        0,
+        -6.95,
+        0
+      ],
+      "PivotRoblox": [
+        0,
+        0,
+        -3.45
+      ],
+      "Motion": [],
+      "Aim": "fade"
+    },
+    "Blade1": {
+      "Parent": "Crown",
+      "Pivot": [
+        0.1871134638786316,
+        -6.949999809265137,
+        -0.03299315273761749
+      ],
+      "PivotRoblox": [
+        -0.1871,
+        -0.033,
+        -3.45
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            -0.1736481785774231,
+            0.0,
+            -0.9848077297210693
+          ],
+          "Amp": 2.0,
+          "Period": 3.0,
+          "Phase": 0
+        }
+      ],
+      "Visual": [
+        {
+          "Kind": "Glow",
+          "Min": 0.0,
+          "Max": 0.35,
+          "Period": 2.6,
+          "Phase": 0
+        }
+      ]
+    },
+    "Blade2": {
+      "Parent": "Crown",
+      "Pivot": [
+        0.18010619282722473,
+        -6.949999809265137,
+        0.06051246449351311
+      ],
+      "PivotRoblox": [
+        -0.1801,
+        0.0605,
+        -3.45
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0.31848666071891785,
+            0.0,
+            -0.9479273557662964
+          ],
+          "Amp": 3.0,
+          "Period": 3.14,
+          "Phase": 45
+        }
+      ],
+      "Visual": [
+        {
+          "Kind": "Glow",
+          "Min": 0.0,
+          "Max": 0.35,
+          "Period": 2.6,
+          "Phase": 40
+        }
+      ]
+    },
+    "Blade3": {
+      "Parent": "Crown",
+      "Pivot": [
+        0.12923282384872437,
+        -6.949999809265137,
+        0.13927985727787018
+      ],
+      "PivotRoblox": [
+        -0.1292,
+        0.1393,
+        -3.45
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0.7330518960952759,
+            0.0,
+            -0.6801727414131165
+          ],
+          "Amp": 4.0,
+          "Period": 3.2800000000000002,
+          "Phase": 90
+        }
+      ],
+      "Visual": [
+        {
+          "Kind": "Glow",
+          "Min": 0.0,
+          "Max": 0.35,
+          "Period": 2.6,
+          "Phase": 80
+        }
+      ]
+    },
+    "Blade4": {
+      "Parent": "Crown",
+      "Pivot": [
+        0.04688390716910362,
+        -6.949999809265137,
+        0.1841246783733368
+      ],
+      "PivotRoblox": [
+        -0.0469,
+        0.1841,
+        -3.45
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0.9690772891044617,
+            0.0,
+            -0.2467574030160904
+          ],
+          "Amp": 2.0,
+          "Period": 3.42,
+          "Phase": 135
+        }
+      ],
+      "Visual": [
+        {
+          "Kind": "Glow",
+          "Min": 0.0,
+          "Max": 0.35,
+          "Period": 2.6,
+          "Phase": 120
+        }
+      ]
+    },
+    "Blade5": {
+      "Parent": "Crown",
+      "Pivot": [
+        -0.04688390716910362,
+        -6.949999809265137,
+        0.1841246783733368
+      ],
+      "PivotRoblox": [
+        0.0469,
+        0.1841,
+        -3.45
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0.9690772891044617,
+            -0.0,
+            0.2467574030160904
+          ],
+          "Amp": 3.0,
+          "Period": 3.56,
+          "Phase": 180
+        }
+      ],
+      "Visual": [
+        {
+          "Kind": "Glow",
+          "Min": 0.0,
+          "Max": 0.35,
+          "Period": 2.6,
+          "Phase": 160
+        }
+      ]
+    },
+    "Blade6": {
+      "Parent": "Crown",
+      "Pivot": [
+        -0.12923282384872437,
+        -6.949999809265137,
+        0.13927985727787018
+      ],
+      "PivotRoblox": [
+        0.1292,
+        0.1393,
+        -3.45
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0.7330518960952759,
+            -0.0,
+            0.6801727414131165
+          ],
+          "Amp": 4.0,
+          "Period": 3.7,
+          "Phase": 225
+        }
+      ],
+      "Visual": [
+        {
+          "Kind": "Glow",
+          "Min": 0.0,
+          "Max": 0.35,
+          "Period": 2.6,
+          "Phase": 200
+        }
+      ]
+    },
+    "Blade7": {
+      "Parent": "Crown",
+      "Pivot": [
+        -0.18010619282722473,
+        -6.949999809265137,
+        0.06051246449351311
+      ],
+      "PivotRoblox": [
+        0.1801,
+        0.0605,
+        -3.45
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0.31848666071891785,
+            -0.0,
+            0.9479273557662964
+          ],
+          "Amp": 2.0,
+          "Period": 3.84,
+          "Phase": 270
+        }
+      ],
+      "Visual": [
+        {
+          "Kind": "Glow",
+          "Min": 0.0,
+          "Max": 0.35,
+          "Period": 2.6,
+          "Phase": 240
+        }
+      ]
+    },
+    "Blade8": {
+      "Parent": "Crown",
+      "Pivot": [
+        -0.1871134638786316,
+        -6.949999809265137,
+        -0.03299315273761749
+      ],
+      "PivotRoblox": [
+        0.1871,
+        -0.033,
+        -3.45
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            -0.1736481785774231,
+            0.0,
+            0.9848077297210693
+          ],
+          "Amp": 3.0,
+          "Period": 3.98,
+          "Phase": 315
+        }
+      ],
+      "Visual": [
+        {
+          "Kind": "Glow",
+          "Min": 0.0,
+          "Max": 0.35,
+          "Period": 2.6,
+          "Phase": 280
+        }
+      ]
+    }
+  }
+}

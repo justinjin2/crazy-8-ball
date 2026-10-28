@@ -428,6 +428,25 @@ function Progression.resultUp(): boolean
 	return started and (result:isOpen() or ResultCutscene.isPlaying())
 end
 
+-- The Halloween NEW CUE! card and end screen (hw-core), read late (they read Progression);
+-- none if they fail to load, so they can never hold the other popups.
+local halloweenPopups: { any }? = nil
+local function halloweenUp(): boolean
+	if halloweenPopups == nil then
+		local ok, list = pcall(function(): any
+			local folder = script.Parent.Halloween
+			return { require(folder.CandyToast) :: any, require(folder.EndScreen) :: any }
+		end)
+		halloweenPopups = if ok then list else {}
+	end
+	for _, popup in halloweenPopups :: { any } do
+		if popup.busy() then
+			return true
+		end
+	end
+	return false
+end
+
 --- Whether the lobby is quiet: no match or its result, no popup, reel, menu or teleport screen,
 --- and no cutscene, the Gift's included (the tutorial's soft part shows its quest and its
 --- popup only then).
@@ -440,6 +459,7 @@ function Progression.quiet(): boolean
 		and not GiftDrop.isPlaying()
 		and not Menus.isOpen()
 		and not teleportUp()
+		and not halloweenUp()
 end
 
 --- A gold chip worth `amount` flies from `from` (absolute screen pixels) into the money HUD,
