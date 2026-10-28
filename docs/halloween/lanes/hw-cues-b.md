@@ -68,6 +68,18 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
   neighbours), compact = a closed bud 0.3 past the butt; `spider_parts.glb` 134241355070040,
   `Crown.glb` 88297987618252, atlas decals with image ids). Preview beside the concept:
   `gate2/spider_body_vs_C1b.png`. No spider bodies, legs or creatures anywhere.
+- 10:08 P10/P11 drafted and lab-checked, P13/P14 and P16/P17 drafted: all three skins carry
+  their vfx rows (aura, Style, trail emitters, finisher; draft stays true). Lab in my window
+  (local rows from `--allow-missing`, never committed; templates built with ONLY for the three):
+  Broom aura 97/s on the stand and the back beside Eclipse (violet haze, stars, crescents,
+  bats, straw, the two ribbons; `gate2/broom_aura_*_lab.jpg`), trail and finisher fire clean
+  (portal piece rises, witch over the moon; `gate2/broom_finisher_lab.jpg`); the witch was 2x
+  too big against the moon, sprite redrawn and re-uploaded (77938547508430); Cat 63/s (shadow
+  cats run in place in the smoke, embers; `gate2/cat_aura_stand_lab.jpg`) and Spider 53/s (web
+  flecks, silk beams, glints; `gate2/spider_aura_stand_lab.jpg`); their finishers fire with
+  no console errors (leap and web ring seen), judged again once the bodies are in. Sounds:
+  Roblox library only, found with search_asset: Broom 9125646918 (PSE magic whoosh, 0.45),
+  Cat 71522230632243 (Creator Store cat hiss, 0.45), Spider 9120660757 (PSE whip crack, 0.4).
 - 09:50 P3 rework (coordinator REQUEST 09:20, all three points): (1) the bristle bundle has no
   end face any more: the opaque root flares into a low dome of strands, a cone of straw (alpha,
   fraying to the centre) closes it, and three rings of straw cards (40) all round it splay to
@@ -91,6 +103,7 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
   (tileable Beam texture), web ring decal), uploaded with image ids in the manifest. The cats
   run in place and the bat flaps front-on, so no flipbook travels (the moonwalk rule); the
   witch crosses within her own cell. Both-sides check in the lab comes with each aura step.
+- 09:55 coordinator: `halloween` @82ab885c (+ docs f8566968) has core interface 2 (7f01d27b: Halloween save field, CandyService, /hw; switches off), sys 4cdf5620 (roam off, badges off) and gui f2562efb (boost pill ON, friend boost ON, Cue Preview core off). Lint OK, 1,404 tests, Studio play console clean, pill shows +120%. Run `git fetch && git merge origin/halloween` before your next READY. Main.client still has 12 top-level locals to spare: hooks stay inside `do ... end`.
 
 ## Shared-file changes
 

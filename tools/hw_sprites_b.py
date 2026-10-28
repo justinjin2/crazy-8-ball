@@ -321,8 +321,8 @@ def moon_disc(n, c, r):
     for i in range(14):
         px, py = (hash01(i, 1) * 2 - 1) * r * 0.85 + cx, (hash01(i, 2) * 2 - 1) * r * 0.85 + cy
         pr = r * (0.06 + 0.12 * hash01(i, 3))
-        shade = shade * (1 - 0.12 * smooth(np.hypot(x - px, y - py), pr, pr * 0.5))
-    rim_dark = 1 - 0.18 * smooth(d, r - 0.08, r)
+        shade = shade * (1 - 0.08 * smooth(np.hypot(x - px, y - py), pr, pr * 0.5))
+    rim_dark = 1 - 0.1 * smooth(d, r - 0.08, r)
     rgb = np.dstack([np.full_like(d, MOON[0] / 255.0), np.full_like(d, MOON[1] / 255.0), np.full_like(d, MOON[2] / 255.0)]) * (shade * rim_dark)[..., None]
     halo = smooth(d, r + 0.18, r) * 0.35
     return disc, np.clip(halo, 0, 1), rgb
@@ -330,7 +330,7 @@ def moon_disc(n, c, r):
 
 def witch_moon():
     frames = []
-    disc, halo, moon_rgb = moon_disc(CELL, (0.5, 0.52), 0.4)
+    disc, halo, moon_rgb = moon_disc(CELL, (0.5, 0.5), 0.44)
     for i in range(16):
         t = i / 15
         moon_a = smooth(i, 0, 3) * (1 - smooth(i, 12, 15))
@@ -338,12 +338,12 @@ def witch_moon():
         wfade = 0.0
         if 1 <= i <= 14:
             u = (i - 1) / 13
-            x = 0.12 + 0.76 * u
-            y = 0.5 + 0.1 * math.sin(math.pi * u)
-            witch_pose(cv, (x, y), 0.8, 0.12 * math.cos(math.pi * u))
+            x = 0.1 + 0.8 * u
+            y = 0.52 + 0.1 * math.sin(math.pi * u)
+            witch_pose(cv, (x, y), 0.48, 0.12 * math.cos(math.pi * u))
             # two small bats trailing behind
-            for b, (dx, dy, ph) in enumerate(((-0.3, 0.2, 0.0), (-0.36, -0.14, 2.0))):
-                bat_pose(cv, (x + dx, y + dy), 0.22, math.sin(u * 14 + ph))
+            for b, (dx, dy, ph) in enumerate(((-0.2, 0.13, 0.0), (-0.24, -0.1, 2.0))):
+                bat_pose(cv, (x + dx, y + dy), 0.13, math.sin(u * 14 + ph))
             wfade = float(smooth(u, 0.0, 0.18) * (1 - smooth(u, 0.82, 1.0)))
         sil = cv.alpha() * wfade
         witch = rimmed(sil, (12, 6, 24), VIOLET, rim_px=1.2, glow_px=3, glow=0.3)

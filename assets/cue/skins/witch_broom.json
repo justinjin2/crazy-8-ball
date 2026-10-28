@@ -220,7 +220,7 @@
           "Color": [
             [
               0,
-              "#D9B8FF"
+              "#B07CFF"
             ],
             [
               0.5,
@@ -234,7 +234,7 @@
           "LightEmission": 1,
           "LightInfluence": 0,
           "LockedToPart": true,
-          "Brightness": 0.9
+          "Brightness": 0.6
         },
         {
           "Name": "EmeraldWisps",
@@ -1992,37 +1992,37 @@
         "Rise": [
           [
             0,
-            -0.6
+            -0.4
           ],
           [
-            0.25,
-            0.6
+            0.3,
+            0.8
           ],
           [
-            0.7,
-            1.0
+            0.75,
+            1.4
           ],
           [
             1,
-            1.3
+            1.7
           ]
         ],
         "Scale": [
           [
             0,
-            0.5
+            0.6
           ],
           [
             0.3,
-            1.0
+            1.4
           ],
           [
             0.8,
-            1.25
+            1.8
           ],
           [
             1,
-            1.3
+            1.9
           ]
         ],
         "Spin": [
@@ -2038,14 +2038,14 @@
         "Transparency": [
           [
             0,
-            0.4
+            0.3
           ],
           [
-            0.15,
+            0.12,
             0
           ],
           [
-            0.7,
+            0.72,
             0
           ],
           [
@@ -2059,6 +2059,13 @@
         },
         "ShellFade": 0.3,
         "EmissiveScale": 1.0
+      },
+      "Sound": {
+        "Asset": "rbxassetid://9125646918",
+        "Volume": 0.45,
+        "RollOffMinStuds": 8,
+        "RollOffMaxStuds": 60,
+        "Note": "Roblox library: Pro Sound Effects \"Magic Whooshes Pass Bys Metallic Shimmering 7\" (1.8 s), free, no upload"
       }
     },
     "Budget": {
