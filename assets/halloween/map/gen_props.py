@@ -640,6 +640,41 @@ def pumpkin_cluster(x):
     return [at(obj, x)]
 
 
+# The tables' decor in one piece per table (TableBuilder.addDecor; Config.HalloweenMap.Decor):
+# placed at the table's pivot (the cloth's centre on the floor). In Blender terms the table's
+# long axis is X (Roblox's -X), its sides +-Y (Roblox's +-Z); measured from assets/table's Body:
+# the apron's face at +-5.096 from 1.75 to 2.72 up, the footprint's edge at +-5.12, the legs'
+# inner faces at +-8.24 and +-4.24, the cabinet's underside at 1.3.
+
+def bat_pair(x):
+    """A bat on each long apron, 0.022 proud of its face (inside the footprint's edge)."""
+    obj = merged("BatPair.Body", [
+        (lambda: bat(0), place((0, 5.0955, 2.17), 0.75)),
+        (lambda: bat(0), place((0, -5.0955, 2.17), 0.75, yaw=180)),
+    ])
+    return [at(obj, x)]
+
+
+def pumpkin_corners(x):
+    """A small jack-o'-lantern on the floor inside each corner leg, turned a little to the end."""
+    obj = merged("PumpkinCorners.Body", [
+        (lambda: pumpkin_small(0), place((-7.6, 4.5, 0.37), 0.45, yaw=205)),
+        (lambda: pumpkin_small(0), place((7.6, 4.5, 0.37), 0.45, yaw=155)),
+        (lambda: pumpkin_small(0), place((-7.6, -4.5, 0.37), 0.45, yaw=-25)),
+        (lambda: pumpkin_small(0), place((7.6, -4.5, 0.37), 0.45, yaw=25)),
+    ])
+    return [at(obj, x)]
+
+
+def cobweb_pair(x):
+    """Cobwebs hung from the cabinet's underside against the leg, in two opposite corners."""
+    obj = merged("CobwebPair.Web", [
+        (lambda: cobweb(0), place((-8.24, 5.0, 1.3), 0.42)),
+        (lambda: cobweb(0), place((8.24, -5.0, 1.3), 0.42, yaw=180)),
+    ])
+    return [at(obj, x)]
+
+
 def main():
     common.clear_scene()
     global MATERIAL, INNER
@@ -650,18 +685,18 @@ def main():
     objects += pumpkin(0)
     objects += crown(4)
     objects += dead_tree(10)
-    objects += tombstone(18)
     objects += strand(32)
-    objects += bat(46)
     objects += cobweb(50)
     objects += candy(55, "candyorange", "CandyOrange.Sweet")
     objects += candy(58, "candypurple", "CandyPurple.Sweet")
-    objects += bush(62)
     objects += pumpkin_small(66)
     objects += trim_ring(80)
     objects += pot_dressing(96)
     objects += bed_dressing(110)
     objects += pumpkin_cluster(122)
+    objects += bat_pair(135)
+    objects += pumpkin_corners(150)
+    objects += cobweb_pair(170)
     for obj in objects:
         obj.data.materials.clear()
         obj.data.materials.append(MATERIAL)

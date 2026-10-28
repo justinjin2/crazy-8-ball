@@ -608,7 +608,7 @@ local function buildThrone(): Model
 			local pAt = CFrame.new(side * (spot[1] + 1.6), small.Y / 2, z + 1)
 			local scale = small.X / 2
 			local meshed = prop(
-				"Pumpkin",
+				"PumpkinSmall", -- one piece (the event budget); the King's head keeps the carved one
 				pivot() * pAt * CFrame.Angles(0, math.pi + side * 0.4, 0),
 				Vector3.new(scale, scale, scale),
 				nil,

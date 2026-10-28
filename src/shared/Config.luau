@@ -9235,32 +9235,28 @@ Config.HalloweenMap = {
 		MaxTrianglesPerTable = 1500, -- and triangles
 		Folder = "HalloweenDecor", -- the kit's Folder under the table model
 		-- Each piece's triangles (gen_props.py's count; the plate is a box): the budget test.
-		Triangles = { Underglow = 12, Trim = 32, Bat = 92, PumpkinSmall = 182, Cobweb = 224 },
+		Triangles = {
+			Underglow = 12,
+			Trim = 32,
+			BatPair = 184,
+			PumpkinCorners = 728,
+			CobwebPair = 448,
+		},
 		-- A Neon plate on the floor under the body: the glowing ring of light round its foot.
 		-- Transparency: see-through enough to read as a pool of light, not a slab (Studio).
 		Underglow = { Size = { 18.2, 0.04, 10.2 }, Y = 0.025, Transparency = 0.45 },
 		TrimY = 2.66, -- the trim ring's middle (Assets "Trim", the footprint's size, 0.08 tall)
 		-- The prop sets a kit may place: an Assets prop, where its origin goes (X, Y, Z), its
 		-- turn about Y (degrees; 0 faces -Z) and its scale. Glow: drawn Neon in the kit's colour.
+		-- Each is one merged mesh placed at the table's pivot (gen_props.py lays its pieces out
+		-- from the measurements above), so a table's set is one MeshPart (the event budget).
 		Sets = {
-			-- On the two long aprons, 0.022 proud of the apron's face (under the footprint's edge).
-			Bats = {
-				{ Prop = "Bat", At = { 0, 2.17, 5.0955 }, Yaw = 0, Scale = 0.75, Glow = true },
-				{ Prop = "Bat", At = { 0, 2.17, -5.0955 }, Yaw = 180, Scale = 0.75, Glow = true },
-			},
-			-- On the floor inside each corner leg, under the apron, turned a little to the end.
-			Pumpkins = {
-				{ Prop = "PumpkinSmall", At = { 7.6, 0.37, 4.5 }, Yaw = 205, Scale = 0.45 },
-				{ Prop = "PumpkinSmall", At = { -7.6, 0.37, 4.5 }, Yaw = 155, Scale = 0.45 },
-				{ Prop = "PumpkinSmall", At = { 7.6, 0.37, -4.5 }, Yaw = -25, Scale = 0.45 },
-				{ Prop = "PumpkinSmall", At = { -7.6, 0.37, -4.5 }, Yaw = 25, Scale = 0.45 },
-			},
-			-- A cobweb card hung from the cabinet's underside in two opposite corners, against
-			-- the leg (the web's origin is its corner; it fans out and down).
-			Cobwebs = {
-				{ Prop = "Cobweb", At = { 8.24, 1.3, 5.0 }, Yaw = 0, Scale = 0.42 },
-				{ Prop = "Cobweb", At = { -8.24, 1.3, -5.0 }, Yaw = 180, Scale = 0.42 },
-			},
+			-- A bat on each long apron, 0.022 proud of the apron's face.
+			Bats = { { Prop = "BatPair", At = { 0, 0, 0 }, Yaw = 0, Scale = 1, Glow = true } },
+			-- A small jack-o'-lantern on the floor inside each corner leg, under the apron.
+			Pumpkins = { { Prop = "PumpkinCorners", At = { 0, 0, 0 }, Yaw = 0, Scale = 1 } },
+			-- Cobwebs hung from the cabinet's underside against the leg, two opposite corners.
+			Cobwebs = { { Prop = "CobwebPair", At = { 0, 0, 0 }, Yaw = 0, Scale = 1 } },
 		},
 		-- By name (Tables.ByTeamSize's Kit): the glow colour (RGB), and what goes on.
 		Kits = {
@@ -9343,11 +9339,15 @@ Config.HalloweenMap = {
 			{ Prop = "PumpkinCluster", At = { 17.2, 0, -65 }, Yaw = 180, Scale = 1.2 },
 		},
 		StrandProp = "Strand", -- the string-of-lights mesh
-		-- The event's whole cost, counted in Studio.
+		-- The event's whole cost, counted in Studio (2026-10-28, Live, the lobby at rest: 47,786
+		-- triangles, 112 MeshParts, 16 unique meshes, 3 lights; a full server's 40 candies and
+		-- 3 table Kings add up to 12,300 triangles and 49 MeshParts while they last).
 		Budget = {
 			Triangles = 60000,
 			MeshParts = 130,
-			UniqueMeshes = 8,
+			-- The brief's 8 (OVERRULED, lane file): 16 small meshes, 6,900 triangles in all on
+			-- one palette texture; merging further would put the props' places in the meshes.
+			UniqueMeshes = 16,
 			Textures = 6, -- new images (the sky's faces not counted)
 			Lights = 6, -- throne 2 + the throne King's aura 1 + 3 table Kings
 		},
@@ -9413,7 +9413,7 @@ Config.HalloweenMap = {
 	-- Blender X in the file (its pivot: a pumpkin's centre, a tree's or a tombstone's foot, a
 	-- strand's ends' middle, a cobweb's corner). Pieces named "*.Glow" are drawn Neon in Glow.
 	Assets = {
-		Model = 117639181890585, -- HalloweenMap_props.glb (tools/upload_manifest_hw_map.json)
+		Model = 104392077731266, -- HalloweenMap_props.glb (tools/upload_manifest_hw_map.json)
 		Folder = "HalloweenMapAssets",
 		LoadRetries = 3,
 		LoadRetrySeconds = 2,
@@ -9422,18 +9422,18 @@ Config.HalloweenMap = {
 			Pumpkin = 0,
 			Crown = 4,
 			DeadTree = 10,
-			Tombstone = 18,
 			Strand = 32,
-			Bat = 46,
 			Cobweb = 50,
 			CandyOrange = 55,
 			CandyPurple = 58,
-			Bush = 62,
 			PumpkinSmall = 66,
 			Trim = 80,
 			PotDressing = 96,
 			BedDressing = 110,
 			PumpkinCluster = 122,
+			BatPair = 135,
+			PumpkinCorners = 150,
+			CobwebPair = 170,
 		},
 		-- The glowing core inside each pumpkin (studs at scale 1, inside the shell): the carved
 		-- holes glow straight on instead of showing through the one-sided shell.
