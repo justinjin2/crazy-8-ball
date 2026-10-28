@@ -51,7 +51,7 @@ From PLAN §4 (everything else is read-only to this lane; ask through Requests):
 
 ## Status
 
-- 11:35 hw-map: step 15 done (the full flip test, Studio, switches on in the working tree only).
+- 11:20 hw-map: step 15 done (the full flip test, Studio, switches on in the working tree only).
   Lobby, one Play session, server parts and the client's light read at each state: Before (no
   look, kit, prop, throne; the 41 Models and the piano in the map; client Day sky, exposure
   -0.05) -> Countdown (the same; the six Night faces fetched) -> Live (16 looks, 16 kits, 51
@@ -62,7 +62,7 @@ From PLAN §4 (everything else is read-only to this lane; ask through Requests):
   props, hides, throne, prompt or candy, client Night; Ended gives back the Blue look's cloth and
   takes the kit; Live again re-dresses it. Console clean of map lines in both (the only new line,
   asset 1668310 "not approved", is not ours: an avatar asset). Now: performance (16).
-- 11:20 hw-map: step 14 done (68dbca8e meshes, ebfbe1f7 MapProps, d8d0f166 budget). While Live
+- 11:17 hw-map: step 14 done (68dbca8e meshes, ebfbe1f7 MapProps, d8d0f166 budget). While Live
   the lobby hides its 18 palms, 12 fern planters and 9 planter beds (found in the window:
   `Palm_N` x18 Models, `FernPlanter_N` x12, `PlanterBed_N` x11 of which 42 and 48 are the
   portals'; their pots `PalmPlanter_N` and collision twins stay; the piano is the throne's own
