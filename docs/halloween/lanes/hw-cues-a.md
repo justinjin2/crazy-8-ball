@@ -51,9 +51,28 @@ From PLAN §4 (everything else is read-only; ask through Requests):
   come with the final build's run, line 18).
 
 - 08:50 coordinator: lanes started 08:43 (73 min behind the plan). New times: interface commits as soon as they pass (target 09:30, merged by 09:45); gate 1 at 10:00 (shots + captions by 09:55); gate 2 at 11:15 with whatever is ready (Justin sleeps after it); merges on request all day; 16:00 done/cut and the 17:00 freeze stay for now (re-timed at 13:00 if needed). Rojo: a watchdog restarts any crashed server by itself (log ~/Desktop/8ball-refs/halloween/shots/coordinator/rojo-watchdog.log; Rojo 7.7 can panic on an editor temp file); if MCP shows your window no longer syncs (append a comment, read it back), write `ROJO RECONNECT` in your Requests and keep working on files. Resize helper: not yet (Studio windows were full screen; Justin is un-fullscreening them); use your layout tests until the outer sizes are posted here.
+- 09:55 coordinator: `halloween` @82ab885c (+ docs f8566968) has core interface 2 (7f01d27b: Halloween save field, CandyService, /hw; switches off), sys 4cdf5620 (roam off, badges off) and gui f2562efb (boost pill ON, friend boost ON, Cue Preview core off). Lint OK, 1,404 tests, Studio play console clean, pill shows +120%. Run `git fetch && git merge origin/halloween` before your next READY. Main.client still has 12 top-level locals to spare: hooks stay inside `do ... end`.
+
 ## Status (continued)
 
-- 2026-10-28 10:05: **READY drop 3 @ 2c205868** (skins and uploads @ 37573b2c; pushed once the
+- 2026-10-28 09:59: **Candy Corn complete @ e78636a4** (Progress 7; pushed after the `halloween`
+  merge and the full run). Aura: a warm haze behind, the kernel flipbook (16 frames of the
+  body's own kernel tumbling, rendered headless with its real materials:
+  `CuePiecesHalloween_A.py -- --sprites`, then `--sheets` joins it and draws the rods sheet),
+  sugar sparkles white-hot to orange to yellow, crackle sparks, one gold swirl orbiter with a
+  glowing head, one warm light: 72 particles a second, back 36, no beam (Epic). Trail: the
+  gold sparkle strip with a white core, tumbling kernels and sugar dots riding the ball.
+  Finisher (about 1.1 s, no piece): flash, an orange and a yellow ring, a gold fountain, 12
+  kernels, 24 rods in the three colours, a glitter fall, the Roblox library pop 9119669295
+  ("Suction Pop 2", Pro Sound Effects, PreloadAsync Success in my window) at 0.3. Lab beside
+  Eclipse, Beta, Firework, Infernal and Blood Moon; a solo fixture: in hand, two breaks (pots,
+  a streak), a scratch, the finisher at the pocket. Two data mistakes found and fixed on the
+  way (an orbiter Head takes plain numbers; a pocket layer's Host.Offset is a vector); the
+  console is clean after them. Also: CueAssets no longer warms a Sound id as a Decal (that
+  logged "not found" for every pocket sound), and `catalog_test` counts ready event cues in
+  the Exclusive row (the coordinator's 09:12 request). Candy Corn stays `"draft": true` until
+  its card (Progress 12).
+- 2026-10-28 09:45: **READY drop 3 @ 2c205868** (skins and uploads @ 37573b2c; pushed once the
   full test run is green; lint green, `client_compiles_test` green). `CueSkins.bodyOf` is the
   one decision; CueStickBuilder hides the mesh (Transparency 1, no shadow, still the root) and
   writes `Body`/`Mesh` attributes; CueSkinLook builds the body as a CuePiece that follows
@@ -72,7 +91,7 @@ From PLAN §4 (everything else is read-only; ask through Requests):
   Assumptions). Uploads: `candy_corn_parts.glb` 123970008672363, `jack_o_lantern_parts.glb`
   110253384942835, `jack_o_lantern_pocket_parts.glb` 133027458090786, `kernel_palette.png`
   decal 120865108870850 / image 119521496210859; the skin JSONs carry `"draft": true`.
-- **To Cues B (10:05):** a body renders in your Blender design orientation (tip at the tip,
+- **To Cues B (09:45):** a body renders in your Blender design orientation (tip at the tip,
   +X side on the +X side); an aura or pocket decor piece renders turned half about the up axis,
   as every shipped decor piece does (see Assumptions): a pocket face modelled looking toward
   +Z shows looking toward -Z, and left and right swap. Check `<sid>_pocket` and `<sid>_aura`
@@ -124,7 +143,7 @@ Planned (PLAN §7 shared files; own block or line only; add the sha to each as i
 
 ## Requests
 
-- 10:05 **MERGE NOW drop 3: Cues B needs it for gate 2 at 11:00** (`hw-cues-a` @ 37573b2c: the
+- 09:45 **MERGE NOW drop 3: Cues B needs it for gate 2 at 11:00** (`hw-cues-a` @ 37573b2c: the
   body path, `Bodies.Enabled = true`, the two skin drafts and the manifest rows). Live
   behaviour changes only for a skin row with a Body, and no shipped row has one; the switch is
   `Config.CueSkins.Bodies.Enabled`.
@@ -167,3 +186,22 @@ drop 2 @ eb98e2ef (both pushed; `halloween` @ 14e2d157 merged in).
   two wood collars with their slits (Neon in game), the carved pumpkin with its curly stem.
 - `jack_o_lantern_pocket_preview.png`: the pocket jack-o'-lantern (front, three quarter, the
   grin close, the back): the face cut through the shell to the glowing core, the jaw's seam.
+
+Gate 2 (09:59, `gate2/`): Candy Corn complete @ e78636a4; Jack's body through the path (drop 3 @
+2c205868, `03-candy-hands`, `04-jack-hands` in the lane folder).
+
+- `candy_lab_stand.jpg`: the Candy Corn on its stand in the lobby light: cream shaft, orange
+  rings, the barber-pole wrap, orange forearm, yellow handle, the banded bulb; floating
+  kernels, sugar sparkles and the gold swirl round it.
+- `candy_lab_back.jpg`: on an avatar's back: the three kernels at the joint, the swirl's head,
+  kernels and sparkles at half rate.
+- `lab_row_candy_jack_eclipse_beta_firework_infernal_bloodmoon.jpg`: the whole row from the
+  stairs, Candy Corn and Jack at the left, the four reference cues beside them.
+- `firework_lab_stand_reference.jpg`: the Firework (Unique) stand from the same camera, the
+  density to judge Candy Corn's (Epic) against.
+- `candy_hands_aura_quiet.jpg`: in hand in the solo fixture, the aura at its quiet share.
+- `candy_finisher_break_pot.jpg`: the break pots the 5: the flash, the rings, the gold
+  fountain, kernels and glitter at the pocket, the cue ball's gold trail.
+- `candy_trail_kernels_after_scratch.jpg`: ball in hand after a scratch, the shed kernels
+  settling on the felt by the cue.
+- `candy_hands_streak2.jpg`: the second break in hand (streak x2).
