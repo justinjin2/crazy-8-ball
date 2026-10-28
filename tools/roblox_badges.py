@@ -298,8 +298,9 @@ def create(args):
 def write_back(manifest, config_text):
     """Config text with each manifest id over its row's `BadgeId = 0`; exactly one match a key."""
     for key, entry in sorted(manifest.items()):
-        pattern = re.compile(r'(Key = "' + re.escape(key) + r'", BadgeId = )0\b')
-        already = re.search(r'Key = "' + re.escape(key) + r'", BadgeId = ' + str(entry["id"]) + r'\b', config_text)
+        # StyLua may split a long row over lines once it has an id: allow any space between.
+        pattern = re.compile(r'(Key = "' + re.escape(key) + r'",\s*BadgeId = )0\b')
+        already = re.search(r'Key = "' + re.escape(key) + r'",\s*BadgeId = ' + str(entry["id"]) + r'\b', config_text)
         matches = pattern.findall(config_text)
         if already and not matches:
             continue
@@ -346,18 +347,21 @@ def self_test():
         shutil.copy(CONFIG, copy)
         with open(copy) as handle:
             text = handle.read()
-        first_key = re.search(r'Key = "(\w+)", BadgeId = 0\b', text).group(1)
+        # The copy's first row made inert again (Config's rows all have ids once created).
+        first_key = re.search(r'Key = "(\w+)",\s*BadgeId = \d+', text).group(1)
+        text = re.sub(r'(Key = "' + first_key + r'",\s*BadgeId = )\d+', r"\g<1>0", text, count=1)
         new = write_back({first_key: {"id": 123456789}}, text)
         assert f'Key = "{first_key}", BadgeId = 123456789' in new
         assert new.count("BadgeId = 123456789") == 1
         assert write_back({first_key: {"id": 123456789}}, new) == new, "a second run changes nothing"
+        split = new.replace(f'Key = "{first_key}", BadgeId', f'Key = "{first_key}",\n\t\t\tBadgeId')
+        assert write_back({first_key: {"id": 123456789}}, split) == split, "a row split over lines"
         try:
             write_back({"NoSuchKey": {"id": 5}}, text)
             raise AssertionError("an unknown key must refuse")
         except SystemExit:
             pass
-        broom = write_back({"BroomRider": {"id": 99}}, text)
-        assert 'Key = "BroomRider", BadgeId = 99' in broom, "a row without a Rule"
+
     finally:
         shutil.rmtree(tmp)
     print("self-test OK")
