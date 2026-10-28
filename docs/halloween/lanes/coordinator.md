@@ -81,6 +81,9 @@ From PLAN §4 (lanes ask for these through their own lane file's Requests):
 - 12:31 Justin: Q7 all yes (pickup quests 15/30/50 with a pacing check; play-time counts match and lobby: core says it already did; ActiveGate now needs the day's first real match). Badges: sys applied his names, 2 badges off, v2 icons uploaded (moderation).
 - 12:37 Merged + pushed through @7be001ed: map 88e9cceb + 623d0051, core 1361de6d, sys 57bc2b91, cues-a 66af67b0 + fec0cb91, cues-b 0e3569b6. Caught: cue_skins_data.py in the main checkout rewrote shipped Looks (Beta, Kitsune, Dragon); discarded, cues-a made it deterministic (fec0cb91), regen now clean.
 - 12:38 Team Create, Edit: build_cue_templates with ONLY = CandyCornCue, JackOLanternCue, WitchBroomCue on @c55860a6: 3 skins rebuilt, 61 other templates untouched; 8 pieces (candy_corn 4, candy_corn_aura 6, jack_o_lantern 6, jack_o_lantern_aura 11, jack_o_lantern_pocket 4, witch_broom 6, witch_broom_aura 19, witch_broom_pocket 13), no problems, 19 other pieces untouched. Re-run for all five after the Cat/Spider reworks.
+- 12:52 Justin (his words in the transcript): (1) double-check that the King reward is fair to the economy and progression (wf_bb7a015a-674 running); (2) the five cues look alike and reuse the ribbon VFX: no ribbons, a unique hand-made effect per cue (sent to cues-a: Jack, Candy Corn, and now the Black Cat; READY 16:00); (3) the Broom's bristles are far too small: remake the Broom as its own model, not the cue mesh (Blender, generate_3d, ChatGPT images allowed; sent to cues-b with the Spider; Spider 16:00, Broom 16:30); (4) Studio is set to All Desktops. Team Create is still fullscreen, so device resizing waits for Ctrl+Cmd+F.
+- 12:57 10:30 Requests pass 1: no lane asked for an Edit-mode build (map builds the throne, decor, props and table looks in code; `git grep EventProps` in the lane files: none). The only place work is the cue templates (12:38, again after the reworks). Nothing built, so there is no fingerprint to compare.
+- 12:58 Merged map 656825bf alone (c1bc88e1): the timed King behind `Boss.Mode`, Mode still "Throne". **Held: ee17dc24** (Mode = "Timed") until core's `CandyService.bossWon(player, visitStart)` with no cooldown in Timed lands; with the flip but without core's change he pays once and then refuses with KingCooldown (map's 12:54 note). Map also saw the result card show the King as the PC robot portrait (the match bar shows the pumpkin): sent to core/gui.
 
 ## Shared-file changes
 
@@ -88,6 +91,16 @@ None yet. Only if Cues A has no ONLY filter by 14:30: that one small commit to
 `tools/build_cue_templates.luau`, listed here.
 
 ## Requests
+
+**Justin at 16:30** (what only he can do; updated 12:58):
+1. Now, when free: Ctrl+Cmd+F on the "[EMOTES] CRAZY 8 Ball" Studio window (leave full screen) for the device sweep.
+2. Look at and approve the reworked cues (Jack, Candy Corn, Black Cat, Spider) and the new Broom model as their side-by-sides arrive (paths in chat).
+3. The King's reward: the fairness numbers in chat (approve or change).
+4. 17:00: File > Save to File As `place/8ball.rbxl` in Team Create if System Events cannot reach the menu (fullscreen blocks it).
+5. Publish the test place build I hand over (optional), then at 18:30 walk RELEASE.md §1 with me, File > Publish to Roblox, restart servers "outdated only".
+6. 19:00: rename the game with the pumpkin; post the Discord text (RELEASE.md §8).
+
+**My calls until then** (logged under Assumptions as made): merge order and the Timed flip only with core's reward; cut anything unfinished at 16:00 by its switch; the cue template build in Team Create with ONLY; the store icons by the schedule job.
 
 ## Assumptions
 

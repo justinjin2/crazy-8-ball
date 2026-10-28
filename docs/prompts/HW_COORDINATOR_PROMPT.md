@@ -574,9 +574,9 @@ the Experience Event, the 16:00 cut enforcement, the freeze, RELEASE.md, the 19:
 - [x] 09:30 (done 11:54: Justin had made his own event; its times PATCHed by API, nothing else) Experience Event "Haunted Rooftop" (Oct 28 19:00 EDT to Nov 3 19:00 EST) created by API or Justin's clicks and seen on the game page; all icons plus the test copy uploaded, moderation polling.
 - [x] 10:00 (done 11:53: route passed, automatic countdown running; title by hand, no PATCH) Icon route test (identical copy, back at once) and the title no-op PATCH (409 with the window open?); the verdict in your lane file (automatic countdown, or cut with Justin's choice); every icon APPROVED.
 - [x] 10:00-10:20 (done late, 11:36 @537270fd, with core/sys/gui) Merge cues-a drop 3 (`MERGE NOW`, Cues B needs it for gate 2) and the GUI pill if its step is verified (§2.2), pushed, lanes told.
-- [ ] 10:30 Requests pass 1 in the Team Create place (EventProps, table looks, anything listed), version noted, fingerprints before and after, logged.
-- [ ] 11:00 Gate 2 page (same artifact); Justin's answers passed on; the "Justin at 16:30" list and your solo calls written.
-- [ ] 12:00 Merge pass 1: every lane with a verified step merged (§2.2), pushed, lanes told.
+- [x] 10:30 (done 12:57: no lane listed a place build; map builds throne, decor, props and table looks in code; nothing built) Requests pass 1 in the Team Create place (EventProps, table looks, anything listed), version noted, fingerprints before and after, logged.
+- [x] 11:00 (done 11:39 page; answers passed on 11:55-12:52; the 16:30 list and solo calls in the coordinator Requests 12:58) Gate 2 page (same artifact); Justin's answers passed on; the "Justin at 16:30" list and your solo calls written.
+- [x] 12:00 (done 12:15-12:58: @5dae747d, @7be001ed, @5b72fe76, @3083216c) Merge pass 1: every lane with a verified step merged (§2.2), pushed, lanes told.
 - [ ] 13:00 Device sweep 1 and a fresh-player run on the merged build; failures sent as Requests with shots.
 - [ ] 14:00 Store countdown: the 5H icon (if the route passed) and the `[🎃 7PM]` title live and confirmed; the icon schedule job running and logging.
 - [ ] 14:30 Merge pass 2, and the ONLY-filter template build for every finished new cue in the Team Create place, checked in the lab and a match.
