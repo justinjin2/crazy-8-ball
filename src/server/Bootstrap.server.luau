@@ -46,6 +46,9 @@ end
 
 -- Remotes first: TableService and every client look them up by name.
 Net.build()
+-- The Halloween event's test clock: in Studio and on the test place only, the event starts Live
+-- when this server boots before 19:00 (Halloween/Clock; the live game ignores the offset).
+require(Shared:WaitForChild("Halloween"):WaitForChild("Clock")).boot()
 
 -- Saves next, so each player's save starts loading the moment they arrive (and its
 -- PlayerRemoving is connected before TableService's).
