@@ -22,6 +22,24 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
   `Index.luau`, `Textures.luau` (regenerate after every merge conflict there).
 
 ## Status
+- 12:25 Broom redo (designer, 11:55: the five cues look nothing like the Firework; the
+  Broom first, side-by-side before the other two). What changed, same ids and rows: the
+  aura piece `witch_broom_aura` rebuilt as the concept's glowing ribbons round the whole
+  handle the Firework's way (two narrow saturated Neon strips, violet and emerald, 0.2 off
+  the bark, a turn every 1.8 studs, turning like screws in opposite senses, breathing
+  toward a lighter tint of their own hue; a thin gold thread the other way, twinkling),
+  three gold crescent moons, five four-point stars and two flapping bats orbiting the
+  handle (19 parts, 4,600 triangles, uploaded as 124125704817567); the body's crystal tip
+  now Neon with a Glow pulse; the aura's haze darker behind brighter, more saturated glows,
+  a second beam (the emerald strip), three PointLights (the Secret cap), Firework-style spell pops (three
+  star pops in violet, emerald and gold, an expanding spell ring, sparks), 168 particles a
+  second (the Secret cap is 170), the Highlight violet. A first retune (wide pale Neon
+  bands with a Glow toward white) bloomed into a white sheet in daylight
+  (`gate2/broom_redo_stand_v2_white_lab.jpg`) and is gone: CuePiece's Glow pushes a part's
+  colour toward white each frame, so a ribbon's Glow needs its own `Color`. Side-by-side:
+  `gate2/broom_redo_side_by_side.jpg` (new vs before vs the Firework, same lab camera, day).
+  Lower effects keeps the ribbons, the moons and one bat; the stars, the gold thread and
+  the second bat hide. Lint OK; the budget test caught 172/s and the trim is in.
 - 12:15 coordinator: `halloween` @5dae747d adds map 7fd462cc + 39815514 (night rooftop, King, drops, /king), core d7120fac (the 11:30 review fixed, the Rush chip names what runs) and gui c9f01ea6 (the boost lines restyle, VIP perks in the Soft step). The contract test is now STRICT. Lint OK, 1,460 tests, Team Create play console clean (shots/coordinator/merge_5dae747d_boost_lines.jpg). Known blocker sent to map: the throne builds twice on a server that starts during Live. Run `git fetch && git merge origin/halloween` before your next READY.
 - 11:49 coordinator: `halloween` @64085ab2 adds core de236025 (the NEW CUE! card and end screen count in Progression.quiet) and cues-b a431419b (Witch Broom, Black Cat and Spider out of draft). cue_skins_data.py clean on halloween (66 skins, 28 pieces). Lint OK, 1,441 tests, Team Create play console clean. Map's READY 7fd462cc is next. Run `git fetch && git merge origin/halloween` before your next READY.
 - 11:36 coordinator: `halloween` @537270fd has cues-a 83e876db (drop 3 body path, CuePreview bodies, Candy Corn + Jack-o'-Lantern, Upright, analytics, Aim-fade fix), core 3c4b87aa (event menu, tile, quests, Spider, packs, art), sys c5b6b607 and gui 3438ea94 (review fixes). Lint OK, 1,436 tests, Team Create play console clean (only the known 203785492 ContentId lines), tile + 2x chip + pill +120% seen. Review of this merge is running; findings come back as Requests. Run `git fetch && git merge origin/halloween` before your next READY. Main.client still has 12 top-level locals to spare.
@@ -546,6 +564,20 @@ for at 08:55 and 10:08).
   readable.
 - `p19_index_phone.jpg`: the Index at 844x390 scrolled to Exclusive 4/7: all seven cards in
   two rows, the three CLAIM! cards readable.
+- `broom_redo_side_by_side.jpg` (12:20, the Broom redo): three panels from the same lab
+  camera in daylight: NEW (the redo: bark body with the violet and emerald ribbons wrapping
+  it, the gold thread, crescents, stars, bats, a spell ring expanding), BEFORE (the stand
+  as merged at 11:49: a plain stick with a faint halo) and the Firework for the level.
+- `broom_redo_stand_v4_day_lab.jpg`, `broom_redo_stand_v4_dusk_lab.jpg`: the NEW panel's
+  full frames, day and dusk (the dusk one caught a gold star pop by the straw).
+- `broom_redo_back_v4_day_lab.jpg`, `broom_redo_back_v3_dusk_lab.jpg`: the redo on a lab
+  dummy's back (the view other players get): the ribbons and a crescent on the handle, the
+  violet outline, the stand with its bats behind.
+- `broom_redo_stand_v3_dusk_lab.jpg`: the redo before the spell pops went in.
+- `broom_redo_stand_v2_white_lab.jpg`: the first retune's white sheet (why the wide pale
+  bands and the Glow toward white are gone).
+- `firework_stand_day_lab.jpg`, `firework_stand_dusk_lab.jpg`, `firework_back_dusk_lab.jpg`:
+  the Firework from the same cameras, for the level.
 - Not yet shot: hands from a watcher's side (the match camera owns the camera on my turn);
   the long wind-up and the steep shot in the hands (fired through the real path at power 1
   and elevation 60, but the stroke lasts half a second and the capture lands after it; the
