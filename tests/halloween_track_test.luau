@@ -15,7 +15,7 @@ return {
 		H.expect(#steps == 11, "eleven")
 		local want = {
 			{ 50, "Spins", 1 },
-			{ 150, "Cue", "GhostLanternCue" },
+			{ 150, "Cue", "CandyCornCue" },
 			{ 300, "Money", 2500 },
 			{ 500, "Cue", "JackOLanternCue" },
 			{ 1000, "Spins", 2 },

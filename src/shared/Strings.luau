@@ -728,7 +728,7 @@ return {
 			BetaCue = "Beta Cue",
 			FireworkCue = "Firework Cue",
 			-- Halloween 2026 (docs/halloween/PLAN.md §3)
-			GhostLanternCue = "Ghost Lantern Cue",
+			CandyCornCue = "Candy Corn Cue",
 			JackOLanternCue = "Jack-o'-Lantern Cue",
 			BlackCatCue = "Black Cat Cue",
 			SpiderCue = "Spider Cue",
@@ -1941,7 +1941,7 @@ return {
 		TrackTitle = "CANDY TRACK",
 		-- The track cards' short cue names.
 		CueShort = {
-			GhostLanternCue = "Ghost Lantern",
+			CandyCornCue = "Candy Corn",
 			JackOLanternCue = "Jack-o'-Lantern",
 			BlackCatCue = "Black Cat",
 			SpiderCue = "Spider",

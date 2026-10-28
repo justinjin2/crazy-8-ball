@@ -6452,5 +6452,45 @@
     "assetId": "124844921098629",
     "assetType": "Audio",
     "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/candy_corn/candy_corn_parts.glb": {
+    "assetId": "135070490205166",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/candy_corn_aura/candy_corn_aura_parts.glb": {
+    "assetId": "78851369686323",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/thumbs/candy_corn.png": {
+    "assetId": "86620364444680",
+    "assetType": "Decal",
+    "imageId": "112696270813806",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/vfx/candy_corn/bands_512.png": {
+    "assetId": "134639070931625",
+    "assetType": "Decal",
+    "imageId": "91314085676266",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/vfx/candy_corn/kernel_4x4.png": {
+    "assetId": "86802001063942",
+    "assetType": "Decal",
+    "imageId": "107248613281213",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/vfx/candy_corn/kernel_palette.png": {
+    "assetId": "120865108870850",
+    "assetType": "Decal",
+    "imageId": "119521496210859",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/vfx/candy_corn/rods_4x4.png": {
+    "assetId": "118126099688548",
+    "assetType": "Decal",
+    "imageId": "87422541803734",
+    "status": "ok"
   }
 }

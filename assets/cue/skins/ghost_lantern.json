@@ -2,7 +2,7 @@
   "id": "ghost_lantern",
   "name": "Ghost Lantern",
   "tier": "Epic",
-  "draft": false,
+  "draft": true,
   "catalog_id": "GhostLanternCue",
   "note": "Halloween 2026 track cue (150 Candy; it replaced the Candy Corn on Justin's verdict, coordinator 18:45 2026-10-28). Drawn by its own body piece (ghost_lantern): a deep cyan glass shaft lit by a Neon core, three iron collars and a thick iron chain between the hands, a big ghost lantern past the butt with a ghost inside; four cute ghosts drift round the shaft (ghost_lantern_aura). Concept: mocks/v2/C6_phantom.png. Lane hw-cues-a. Id ghost_lantern: named Ghost Lantern, never Phantom: the catalog has a live Rare PhantomCue (coordinator 18:55).",
   "body": "ghost_lantern",
