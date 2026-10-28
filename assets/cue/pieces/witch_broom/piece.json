@@ -130,7 +130,8 @@
         1.7372,
         1.4768
       ],
-      "Triangles": 3040
+      "Triangles": 3040,
+      "Outline": false
     }
   ],
   "Joints": {

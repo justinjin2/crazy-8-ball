@@ -84,6 +84,7 @@ return {
 			Joint = "Bristles",
 			Offset = { 0.0014, -0.0078, -4.2384 },
 			Size = { 1.7545, 1.7372, 1.4768 },
+			Outline = false,
 		},
 	},
 	Joints = {
