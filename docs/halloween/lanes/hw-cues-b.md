@@ -68,6 +68,16 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
   neighbours), compact = a closed bud 0.3 past the butt; `spider_parts.glb` 134241355070040,
   `Crown.glb` 88297987618252, atlas decals with image ids). Preview beside the concept:
   `gate2/spider_body_vs_C1b.png`. No spider bodies, legs or creatures anywhere.
+- 10:36 P10 Broom aura under Night beside the Eclipse (`broom_vs_eclipse_night_before_lab.jpg`,
+  then `broom_vs_eclipse_night_lab.jpg`): the pale lavender halo (#D9B8FF to #9B4DFF, 0.7
+  transparent) vanished against the lilac Night sky and was near white on the day floor; the
+  ribbons, bats, crescents and wisps read. Tuned @ 3b24168c: the halo #9B4DFF to #6A2FD0, 0.6
+  to 0.5 transparent, brightness 2.6 (data only, same particle budget). Now a violet band
+  along the cue at Night and on the day floor (`broom_aura_stand_day_halo_lab.jpg`). Beside
+  the Eclipse the Broom still reads thinner at 12 studs: the Eclipse's mass is its 3D planets
+  and orbits; the Broom's is its body, which this window cannot draw until drop 3 (the stand
+  shows the Classic wood under the ribbons). Judge density again in hands after P7; no more
+  blind changes. Lint OK.
 - 10:29 P16/P17 finishers judged mid-burst (a four-instance phase strip in the lab, bursts 0.45 s
   apart, `cat_finisher_phases_lab.jpg`, `spider_finisher_phases_lab.jpg`). The Cat's reads as
   built: gold flash, the shadow cat leaping out of the pocket, the gold shard burst high and
@@ -245,5 +255,14 @@ drop 3):
   at 0.45 s steps: the silver web disc with its spokes and rings at the mouth, the six Neon
   threads twisting up to the crimson bead, the flat web ring and silk burst on the floor, web
   shards and sparks round the newest; the funnel widens and lifts on the later two.
-- Not yet shot: hands and own-aim views (need drop 3), the Broom aura under Night beside
-  Eclipse.
+- `broom_vs_eclipse_night_before_lab.jpg`: the Broom stand (right) and the Eclipse stand (left)
+  under Night from 12 studs, before the halo tune: the Eclipse's gold orbits and planets read
+  at once; of the Broom only the violet and emerald ribbons, bats and a few wisps do, the pale
+  halo is lost in the lilac sky.
+- `broom_vs_eclipse_night_lab.jpg`: the same after the tune: the halo is a violet band along
+  the cue; the Broom still reads thinner than the Eclipse from here because its 3D mass is its
+  body (needs drop 3; the stand carries the Classic wood under the ribbons).
+- `broom_aura_stand_day_halo_lab.jpg`: the Broom stand side-on on the day floor after the
+  tune: the violet band and the two ribbons along the cue, bats and a crescent at the tip
+  end, wisps and the hat charm at the butt.
+- Not yet shot: hands and own-aim views (need drop 3).
