@@ -579,7 +579,7 @@ the Experience Event, the 16:00 cut enforcement, the freeze, RELEASE.md, the 19:
 - [x] 12:00 (done 12:15-12:58: @5dae747d, @7be001ed, @5b72fe76, @3083216c) Merge pass 1: every lane with a verified step merged (§2.2), pushed, lanes told.
 - [ ] 13:00 Device sweep 1 and a fresh-player run on the merged build; failures sent as Requests with shots.
 - [x] 14:00 (done 14:00: 5H icon 82872198740147 set and confirmed by GET, thumbnail Completed; schedule job running and logging; title by Justin's hand at 19:00, no countdown title, his call 11:50) Store countdown: the 5H icon (if the route passed) and the `[🎃 7PM]` title live and confirmed; the icon schedule job running and logging.
-- [ ] 14:30 Merge pass 2, and the ONLY-filter template build for every finished new cue in the Team Create place, checked in the lab and a match.
+- [x] 14:30 (done 14:10: all five cues merged by @8fdbdd3e, each ONLY-built in Team Create with a fingerprint diff, lab-checked, a real match with the Broom) Merge pass 2, and the ONLY-filter template build for every finished new cue in the Team Create place, checked in the lab and a match.
 - [ ] 15:30 Merge pass 3; each lane's 16:00 cut list collected; every cut switched off and seen invisible.
 - [ ] 16:00 Final lane merges and the last template build; device sweep 2 (every new screen, 4 sizes, pad, the Device presets) and a fresh-player run on the final build.
 - [ ] 16:30 Thumbnail candidates (night map, the Broom, HUD on); the event description fixed for any cut; the "Justin at 16:30" list handed over.
