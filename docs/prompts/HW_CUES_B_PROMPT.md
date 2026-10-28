@@ -622,7 +622,7 @@ floor by **15:00**, write a Request to the coordinator at once (Cues A may take 
 - [x] 5. Black Cat body: black shaft, gold rings, claw inlays, knurled wrap, gold claw tip
   inlay, the skinned swaying tail with its gold ForceField shell (compact and long, `Aim`), one
   atlas; `check_envelope` passes; uploaded; preview beside `C2c_black_cat.png`.
-- [ ] 6. Spider body: segmented chrome shaft, spear ferrule, one crimson hourglass, the skinned
+- [x] 6. Spider body: segmented chrome shaft, spear ferrule, one crimson hourglass, the skinned
   eight-blade crown with silk webs and breathing blades (compact and long, `Aim` on the crown
   root), one atlas; `check_envelope` passes; uploaded; preview beside `C1b_spider.png`.
 - [ ] 7. Bodies in the game: drops 2 and 3 merged, rows generated, the ONLY build of the three in

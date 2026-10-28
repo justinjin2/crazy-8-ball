@@ -381,6 +381,34 @@
     "assetType": "Model",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/pieces/spider/Crown.glb": {
+    "assetId": "88297987618252",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/pieces/spider/atlas_color.png": {
+    "assetId": "112073831259612",
+    "assetType": "Decal",
+    "imageId": "100379192943211",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/pieces/spider/atlas_emissive.png": {
+    "assetId": "80293813989325",
+    "assetType": "Decal",
+    "imageId": "71205341846168",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/pieces/spider/atlas_normal.png": {
+    "assetId": "127619131733472",
+    "assetType": "Decal",
+    "imageId": "100085691510749",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/pieces/spider/spider_parts.glb": {
+    "assetId": "134241355070040",
+    "assetType": "Model",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/pieces/witch_broom/HatCharm.glb": {
     "assetId": "108447719616824",
     "assetType": "Model",

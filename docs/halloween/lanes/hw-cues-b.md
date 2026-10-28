@@ -23,39 +23,49 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
 
 ## Status
 
+- 09:12 coordinator: halloween @792bbb35 has every lane's interfaces (sys 1c9f99b7, core 1c9945a0, cues-a drop 1 1039f19b, gui b2c51102, map 6d45e218); lint OK, 1370 tests, Studio boot clean. Run `git fetch && git merge origin/halloween` now. Gate 1 is at 10:00: shots + one caption line each in your Gate shots by 09:55.
+- 09:12 coordinator: your 7426eca8 (builder, Broom blockout, stubs, lane test) is lane work, merged with your first finished cue; keep pushing to hw-cues-b.
 - 09:05 coordinator REQUEST (all lanes, blocks a merge): `src/client/Main.client.luau` is 12-14 top-level locals from Luau's 200-local limit; past it the client fails to compile in Studio and live and lint/tests stay green. Put every Main.client addition inside `do ... end` (zero new top-level locals), e.g. `do local ok, err = pcall(...) ... end`. New test `tests/client_compiles_test.luau` (on halloween @HEAD) compiles every src script and fails if Main.client has fewer than 8 locals left; run it before you push.
 - 08:55 P1 under way: builder file with its entry point, `AIM` table, `check_envelope` and a
   Broom blockout; three draft skin stubs; the Lune test (skips drafts). Started 08:43 (the
   launch came late), so the first push lands about 09:10 instead of 08:15; the rest of the
   time plan slides about 45 minutes and the gate-1 look is the blockout plus the first bark
   renders.
-- 09:12 P1 pushed @ 7426eca8: `CuePiecesHalloween_B.py` (entry point, `AIM`, `check_envelope`,
+- 08:58 P1 pushed @ 7426eca8: `CuePiecesHalloween_B.py` (entry point, `AIM`, `check_envelope`,
   `check_budget`, a Broom blockout body: 4 parts, 3,500 triangles, hand zones within 0.001 of
   the envelope), draft stubs `witch_broom`/`black_cat`/`spider`, `tests/halloween_cues_b_test.luau`
   (5 checks, skip drafts). Lint and 1,350 tests green.
 
 - 08:50 coordinator: lanes started 08:43 (73 min behind the plan). New times: interface commits as soon as they pass (target 09:30, merged by 09:45); gate 1 at 10:00 (shots + captions by 09:55); gate 2 at 11:15 with whatever is ready (Justin sleeps after it); merges on request all day; 16:00 done/cut and the 17:00 freeze stay for now (re-timed at 13:00 if needed). Rojo: a watchdog restarts any crashed server by itself (log ~/Desktop/8ball-refs/halloween/shots/coordinator/rojo-watchdog.log; Rojo 7.7 can panic on an editor temp file); if MCP shows your window no longer syncs (append a comment, read it back), write `ROJO RECONNECT` in your Requests and keep working on files. Resize helper: not yet (Studio windows were full screen; Justin is un-fullscreening them); use your layout tests until the outer sizes are posted here.
-- 09:25 P2 done: worktree on `hw-cues-b`, Rojo 34885 serving, Studio window `lane-hw-cues-b.rbxl`
+- 09:00 P2 done: worktree on `hw-cues-b`, Rojo 34885 serving, Studio window `lane-hw-cues-b.rbxl`
   found by name (id 876392f5), the lab shows Eclipse, Beta, Firework and Kitsune on backs and
   stands (`shots/hw-cues-b/p2_lab_bar_eclipse_beta_firework_kitsune.jpg`). Starting the real
   Broom body (P3).
-- 09:20 P3 done: the Witch's Broom body built, checked and uploaded (6 parts, 6,534 triangles;
+- 09:06 P3 done: the Witch's Broom body built, checked and uploaded (6 parts, 6,534 triangles;
   `witch_broom_parts.glb` 138086579066996, `HatCharm.glb` 108447719616824, the atlas colour /
   normal / emissive decals with image ids in the manifest). Compact bristles (0.24 past the
   butt); the long variant is a build flag (`LONG['witch_broom']`) for P18. Gate-1 renders in
   `gate1/` (lines under Gate shots). Cues A's drop 2 adds `k.joint(..., aim='fade')`; my
   `patch_aim` writes the same key from the static `AIM` table, so both agree once merged.
-- 09:35 P4: merged `origin/halloween` @ 14e2d157 (the compile and contract tests; both green
+- 09:09 P4: merged `origin/halloween` @ 14e2d157 (the compile and contract tests; both green
   here). Cues A's drops 1 (7bef0153) and 2 (eb98e2ef) are READY on `hw-cues-a` but not in
   `halloween` yet, so P7 merges them with drop 3; until then no generated rows (skins stay
   draft) and the bodies are judged in headless previews.
-- 09:50 P5 done: the Black Cat body built, checked and uploaded (5 parts, 7,652 triangles:
+- 09:12 P5 done: the Black Cat body built, checked and uploaded (5 parts, 7,652 triangles:
   one glossy black atlas lathe tip to butt with the gold claw curve at the ferrule, scratches,
   the diamond knurl 4.4-6.6 as a normal map and gold bands; Foil ring pairs at 3.3 and 4.3, the
   triple collar, the cap ring; three Neon claw slashes on the forearm with a 3 s Glow breath;
   the skinned five-bone tail with a gold ForceField rim shell, compact curl 0.28 past the butt;
   `black_cat_parts.glb` 97976303474135, `Tail.glb` 133878609951821, atlas decals with image
   ids). Preview beside the concept: `gate2/cat_body_vs_C2c.png`. No head, face or eyes anywhere.
+- 09:16 P6 done: the Spider body built, checked and uploaded (5 parts, 5,764 triangles: one Foil
+  black-chrome atlas lathe in 0.5-stud segments with silver chevrons (emissive), a six-facet
+  spear ferrule with silver edges, a ridged collar with a Foil silver ring and one crimson Neon
+  hourglass on +Z (Glow 1.6 s); the crown as two skinned meshes on eight blade bones (fins with
+  silver emissive edges breathing 2-4 degrees over 3-4 s, silk web membranes with alpha between
+  neighbours), compact = a closed bud 0.3 past the butt; `spider_parts.glb` 134241355070040,
+  `Crown.glb` 88297987618252, atlas decals with image ids). Preview beside the concept:
+  `gate2/spider_body_vs_C1b.png`. No spider bodies, legs or creatures anywhere.
 
 ## Shared-file changes
 

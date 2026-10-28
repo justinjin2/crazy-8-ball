@@ -1147,7 +1147,7 @@ def _spider_blade_curve(theta, i, long):
         flare = 0.45 + 0.4 * topness
     else:
         length = 0.3
-        flare = 0.1
+        flare = 0.13
     r0 = 0.19
     pts = []
     n = 9
@@ -1157,7 +1157,7 @@ def _spider_blade_curve(theta, i, long):
         if long:
             out = r0 + flare * (t ** 1.6) - 0.08 * max(0.0, t - 0.85) ** 2 * 40
         else:
-            out = r0 + flare * t
+            out = r0 + flare * math.sin(math.pi * t) - 0.06 * t * t      # a closed bud: out, then back in over the cap
         pts.append(Vector((0, -back, 0)) + rad * out)
     return pts, rad
 
