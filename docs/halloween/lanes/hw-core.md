@@ -84,3 +84,7 @@ Planned, each to be confirmed here with its commit when it lands:
 - OVERRULED (PLAN §6, for Justin): "Play 30 min today" and "Play 45 min today" count ACTIVE minutes (the Spider's idle-gated clock, `SkyDropService.isActive`) while that board is the one routed to, not wall-clock minutes in a calendar day, so standing idle does not finish them and they follow the oldest-unfinished-first order like every other quest.
 
 ## Gate shots
+
+- gate1/tile_pc_under_offer.jpg: PC (Studio 1920x1026), event Live by `/hw time live`, tutorial skipped: the HALLOWEEN tile (pumpkin art, "ENDS IN 6d 0h" pill, NEW badge) right under the Starter Pack offer's price, clear of the Players list. The "Invite a friend?" card in the middle is the game's own join popup.
+- gate1/tile_pc_no_offer.jpg: the same after the offer's X: the tile moves up into the Daily Challenge's spot.
+- Phone size: no shot. `tools/halloween/studio_size.sh` cannot see Studio's windows from this shell (System Events lists 0 windows for every RobloxStudio process; it needs Accessibility for the shell). Phone, iPad and PC placements are proven by `tests/halloween_layout_test.luau` (844x390 and 1024x768 with 36/58 px insets, offer shown and hidden: touch puts the tile above the offer, clear of the jump button; a computer puts it below). Please include the tile in the device sweep.
