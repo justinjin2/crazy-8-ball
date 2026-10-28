@@ -23,6 +23,14 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
 
 ## Status
 
+- 11:14 P11 and P14 cloths: the Broom's trail on the red and charcoal cloths and the Cat's on
+  charcoal, in the solo match (`broom_trail_red_cloth_lab.jpg`,
+  `broom_trail_charcoal_cloth_lab.jpg`, `cat_trail_charcoal_cloth_lab.jpg`). Method: `/solo`
+  only runs at a 1v1 pad, so the 1v1 table's cloth SurfaceAppearance was tinted in my window
+  to `RedWood`'s and `CharcoalWood`'s tints from `Config.TableModel.Looks` (visual only, this
+  window, restored to blue after). Findings: on red the Broom's violet ribbon reads pale
+  pink-white (still clear); on charcoal both trails read and every ball stays readable. The
+  blue cloth was the 10:49 run. Brief 11 and 14 ticked.
 - 11:10 P20 part: the lineup shots are in `gate2/` (`lineup_six_day_lab.jpg`,
   `lineup_six_night_lab.jpg`, `trio_bodies_night_lab.jpg`, `trio_bodies_day_lab.jpg`): the
   three beside Eclipse, Beta and Firework at 37 and 18 studs, Day and Night. Finding: at 37
@@ -440,5 +448,16 @@ for at 08:55 and 10:08).
 - `trio_bodies_day_lab.jpg`: the same four from 18 studs under Day: the Spider's chrome shaft
   and crimson streak, the Cat's black shaft with the gold claw tip and smoke, the Broom's bark
   handle with the halo and ribbons beside the Eclipse's gold orbits.
+- `broom_trail_red_cloth_lab.jpg`: the Broom's trail in the solo match with the 1v1 table's
+  cloth tinted to the 2v2 red (`RedWood`'s tint, this window only: `/solo` runs at a 1v1 pad
+  only, so the real red and charcoal tables cannot host a solo game): the ribbon reads as a
+  pale pink-white band with a bright core on the red, visible on the rail bounce; every ball
+  readable.
+- `broom_trail_charcoal_cloth_lab.jpg`: the same with the 3v3 charcoal tint: the violet ribbon
+  with its pale core on the rail bounce, the emerald wisps, straw and a bat silhouette left
+  along the earlier run, violet smoke puffs; every ball readable, the 8-ball included.
+- `cat_trail_charcoal_cloth_lab.jpg`: the Cat's trail on the charcoal tint: a dark ribbon with
+  a gold-white core from the cue ball's run along the rail, smoke and a shadow cat behind;
+  every ball readable (the 8-ball's white ring keeps it apart from the cloth).
 - Not yet shot: hands from a watcher's side (the match camera owns the camera on my turn);
   tall R15, R6, walking and sitting carriers need other avatars (not in this window).

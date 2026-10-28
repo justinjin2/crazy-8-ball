@@ -636,14 +636,14 @@ floor by **15:00**, write a Request to the coordinator at once (Cues A may take 
 - [x] 10. Broom aura: `witch_broom_aura` ribbons, haze, wisps, stars, bats, flecks, charm sparkle,
   crystal and binding lights, violet outline; ≤170/s; Lower effects; judged on the bright floor
   and under Night beside Eclipse.
-- [ ] 11. Broom trail and finisher: violet-emerald trail with stars, crescents, straw and bats;
+- [x] 11. Broom trail and finisher: violet-emerald trail with stars, crescents, straw and bats;
   portal rings, sparkle column, witch over the moon, star burst, ring, library sound; checked in
   a solo match on all three cloths.
 - [x] 12. Black Cat sprites: run-in-place 4x4 and leap 4x4 (black, thin gold rim), checked from
   both sides; uploaded, ids applied.
 - [x] 13. Black Cat aura: black smoke, gold-edged wisps, embers, shadow cats, collar light, gold
   outline; ≤120/s; Lower effects; Day and Night.
-- [ ] 14. Black Cat trail and finisher: gold-cored dark trail with the pack, smoke and sparks;
+- [x] 14. Black Cat trail and finisher: gold-cored dark trail with the pack, smoke and sparks;
   the leap out of the pocket with smoke, shards, gold ring and sparks, library sound; every ball
   readable on charcoal; solo match.
 - [x] 15. Spider sprites: radial web, silk strand, web ring decal; uploaded, ids applied.
