@@ -320,6 +320,33 @@ return {
 		)
 	end,
 
+	["a King match counts one match and its balls for the quests, never a win or Candy"] = function()
+		local CandyMath, _, Config = load()
+		local B = Config.Halloween.Boss
+		local function kinds(events: { { kind: string, amount: number } }): string
+			local out = {}
+			for _, e in events do
+				table.insert(out, e.kind .. "=" .. e.amount)
+			end
+			return table.concat(out, ",")
+		end
+		H.expect(B.CountsForQuests == true, "on by default")
+		H.expect(kinds(CandyMath.kingEvents(4, false)) == "Matches=1,Balls=4", "a finished match")
+		H.expect(kinds(CandyMath.kingEvents(0, nil)) == "Matches=1", "no balls: no Balls event")
+		-- A surrender (or timeouts) is no match: an instant one cannot farm the Matches quests.
+		H.expect(kinds(CandyMath.kingEvents(3, true)) == "Balls=3", "forfeited: balls only")
+		H.expect(kinds(CandyMath.kingEvents(0, true)) == "", "forfeited at once: nothing")
+		H.expect(kinds(CandyMath.kingEvents(-2, false)) == "Matches=1", "never negative balls")
+		for _, e in CandyMath.kingEvents(7, false) do
+			H.expect(e.kind ~= "Wins" and e.kind ~= "TeamWins", "never a win")
+		end
+		local saved = B.CountsForQuests
+		B.CountsForQuests = false
+		local off = CandyMath.kingEvents(5, false)
+		B.CountsForQuests = saved
+		H.expect(#off == 0, "switched off: nothing")
+	end,
+
 	["the end with no Candy pays nothing; switched off it never runs"] = function()
 		local _, Ledger, Config, SaveSchema = load()
 		local hw = SaveSchema.freshHalloween()

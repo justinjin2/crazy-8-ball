@@ -3794,6 +3794,10 @@ Config.Halloween = {
 		-- King quests; no cooldown. Numbers proposed by the coordinator, about one strong real
 		-- win each (docs/ECONOMY.md).
 		Visit = { Candy = 150, Money = 2500, Xp = 100 },
+		-- A King match (won or lost, Pc against his seat) counts for the Matches and Balls
+		-- quests (not Wins, no match Candy), so chasing him does not leave the quests behind
+		-- (coordinator 13:10); a match the player's side forfeited counts only its balls.
+		CountsForQuests = true,
 	},
 	-- Lobby pickups (map's CandyDrop spawns them): Candy each (flat), at most HourCap per player
 	-- per UTC hour. The ONLY pickup cap: CandyService.pickup enforces it.
@@ -17433,6 +17437,15 @@ Config.UI.Halloween = {
 		DimTransparency = 0.45, -- the screen behind it
 		CardDisplayOrder = 45, -- its screen: over the tutorial's popups (40), under the scenes (60)
 		AutoCloseSeconds = 8, -- it closes itself after this long (OK closes it sooner)
+		-- The timed King's win line over the chip ("Pumpkin King beaten! +150 Candy ...").
+		LinePx = 24, -- its text (a phone's: LineShortPx; smaller still, to LineMinPx, if too wide)
+		LineShortPx = 18,
+		LineMinPx = 12,
+		LinePadPx = 10, -- inside the pill
+		LineMarginPx = 16, -- kept from the screen's sides
+		LineGapPx = 12, -- above the chip
+		LineSeconds = 8, -- with no result card it holds this long (with one: until it closes)
+		LineMaxSeconds = 90, -- never longer (a result card left open)
 	},
 	-- The end screen (Halloween/EndScreen; the M5 mock): laid out at WidthPx (a phone's
 	-- ShortWidthPx) and scaled down to fit.

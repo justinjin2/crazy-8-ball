@@ -75,6 +75,7 @@ return {
 			Cap = { 11, 11, 13 },
 			Accent = { 255, 200, 90 },
 		},
+		Piece = "black_cat_aura",
 		Body = "black_cat",
 	},
 	BlazeCue = {
@@ -807,6 +808,7 @@ return {
 			Cap = { 16, 16, 20 },
 			Accent = { 192, 20, 44 },
 		},
+		Piece = "spider_aura",
 		Body = "spider",
 	},
 	SpliceCue = {
@@ -939,7 +941,7 @@ return {
 		Id = "witch_broom",
 		Name = "Witch's Broom",
 		Tier = "Secret",
-		Thumb = "rbxassetid://114319101783547",
+		Thumb = "rbxassetid://121330247838904",
 		Look = {
 			Shaft = { 107, 74, 46 },
 			Forearm = { 107, 74, 46 },

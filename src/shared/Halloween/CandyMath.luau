@@ -40,6 +40,28 @@ local function factor(x: any): number
 	return if finite(x) and x >= 0 then x else 0
 end
 
+--- The quest events a Pumpkin King match counts (a Pc match against the King's seat, won or
+--- lost; Config.Halloween.Boss.CountsForQuests): one match, unless the player's side forfeited
+--- it (an instant surrender is no match), and its balls. Never a win, Candy or another quest.
+--- None with the switch off.
+function CandyMath.kingEvents(
+	balls: number,
+	forfeited: boolean?
+): { { kind: string, amount: number } }
+	local events: { { kind: string, amount: number } } = {}
+	if C.Boss.CountsForQuests ~= true then
+		return events
+	end
+	if forfeited ~= true then
+		table.insert(events, { kind = "Matches", amount = 1 })
+	end
+	local n = whole(balls)
+	if n > 0 then
+		table.insert(events, { kind = "Balls", amount = n })
+	end
+	return events
+end
+
 -- The match's Candy before any multiplier.
 function CandyMath.base(facts: MatchFacts): number
 	local M = C.Match
