@@ -139,3 +139,9 @@ Quotes are Justin's own words.
 | R8.x | All 52 badges created today (~4,700 R$ group funds, approved). Justin adds badge scopes to the API key. |
 | — | Uploads of images, meshes, skybox, badge icons allowed without asking; no audio uploads. |
 | — | The "Match prize" branch stays out of this update. |
+
+Status updates (07:50): R0.3, R0.4, R0.5 decided (§9). R0.10 done (answered in chat and on the plan page:
+~57 Candy a win, ~22 a loss, 400–475 an hour, $10 each at the end). Superseded by later answers: R2.3's
+"cute, appealing to girls, not another black cue" (Black Cat rev 3 is tough, black, faceless), R5.5's
+"invite button moves aside" (the pill replaces the VIP tag instead; no room on a phone), R1.10's
+"bottom-left chip" (it sits above the pill in that same corner).

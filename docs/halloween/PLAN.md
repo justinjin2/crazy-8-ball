@@ -92,6 +92,9 @@ coordinator merges them into `halloween` around 08:15–08:30. Then every lane r
   - `src/server/Halloween/CandyService.luau`: `CandyService.add(player, amount, source: string, opts?) -> number` (applies the boost only when `opts.boost`), `CandyService.bossWon(player) -> {granted: boolean, amount: number, cooldownEndsAt: number}`, `CandyService.pickup(player) -> boolean` (cap check), `CandyService.isLive()`.
 - **Cues A → core, B, GUI:** the 5 Catalog rows and names, with a fallback look (Classic) until each body exists, so ids are valid from the first merge.
 - **GUI → core:** player attribute `FriendsHere` (number, uncapped count; core caps it) and pure `Money.boostParts(flags) -> {{kind: string, add: number}}`.
+- **Map → core:** `Config.HalloweenMap.Enabled`, `.Boss.Enabled`, `.Candy.Enabled` (core swaps in fallback quests while either is off).
+- **Sys → core:** `UltService.Used` signal (core subscribes; core does not edit UltService).
+- Single sources: friend/group boost numbers only in `Config.Economy` (core reads them through `Money`); the pickup hour cap only in `Config.Halloween.Pickup.HourCap` (`CandyService.pickup` returns `ok, reason`).
 - Until a dependency lands, code against the interface with a guarded `require`, and never ship a stub.
 
 ## 6. Quest drafts (core finalises; only hooks that exist)
@@ -126,10 +129,12 @@ coordinator merges them into `halloween` around 08:15–08:30. Then every lane r
 - **Saves** only gain fields (template + validate + MAP_KEYS pattern, no version bump, an old-save
   test). Never wipe or migrate data destructively.
 - **Shared files** (`Config.luau`, `Strings.luau`, `SaveSchema.luau`, `PlayerData.luau`,
-  `Ranking.luau`, `TableService.luau`, `Main.client.luau`, `Bootstrap.server.luau`, `Progression.luau`):
+  `Ranking.luau`, `TableService.luau`, `Main.client.luau`, `Bootstrap.server.luau`, `Progression.luau`,
+  `HubCorners.luau`, `Net.luau`, `DevCommands.luau`, `UltService.luau`, `tests/save_schema_test.luau`,
+  `tests/config_test.luau`, `tools/upload_manifest.json`, generated `src/shared/CueSkins/*`):
   add your own block; change existing lines only when you must, and list every such change in your
   lane file. `TableService.luau` belongs to Roam + Badges; others request.
-- **Asking Justin:** until 11:00 he answers fast (`touch .git/overnight-waiting`, one clear
+- **Asking Justin:** until 11:00 he answers fast (`touch "$(git rev-parse --absolute-git-dir)/overnight-waiting"`, one clear
   question with a picture, stop). After 11:00 he may be asleep until about 16:30: decide yourself
   the way he would (past decisions, UI style, simple for kids), log it as an assumption in your
   lane file, and keep going.
@@ -149,7 +154,8 @@ coordinator merges them into `halloween` around 08:15–08:30. Then every lane r
 | 08:15–08:30 | Interfaces (§5) merged; every lane merges `halloween` |
 | 09:00 | Gate 1: Candy Corn + Jack in Studio, night lighting + table colours, pill on phone size, roam working, badge list + icons drafted |
 | 11:00 | Gate 2: Broom/Cat/Spider bodies, King at a table, quest board + track, badges created on Roblox |
-| 11:00–16:00 | Finish; coordinator merges each lane as it passes checks (from 12:00), sweeps devices |
+| 08:45–16:00 | Coordinator merges on request (cues-a drop 2 ≈ 08:45, drop 3 + GUI pill ≈ 10:00–10:20, then each lane as it passes checks), sweeps devices |
+| 11:00–16:00 | Lanes finish |
 | 14:00 | Icon countdown starts (5H) if its test passed |
 | 16:00 | Lanes done or cut; final merges |
 | 17:00 | Freeze; merged build on the test place for Justin |

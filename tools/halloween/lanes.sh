@@ -96,7 +96,12 @@ command_of() {
 
 launch() {
 	for lane in "${LANES[@]}"; do
-		local cmd
+		local cmd dir
+		dir="$(dir_of "$lane")"
+		if [ ! -f "$dir/$(hook_of "$lane")" ] || [ ! -f "$dir/docs/prompts/$(brief_of "$lane")" ]; then
+			echo "$lane: brief or hook missing in $dir (merge halloween first); not launched" >&2
+			continue
+		fi
 		cmd="$(command_of "$lane")"
 		osascript -e "tell application \"Terminal\" to do script \"${cmd//\"/\\\"}\"" >/dev/null
 		osascript -e "tell application \"Terminal\" to set custom title of front window to \"$lane\"" >/dev/null 2>&1 || true
