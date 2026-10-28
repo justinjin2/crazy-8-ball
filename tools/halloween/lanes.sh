@@ -88,7 +88,7 @@ command_of() {
 	local lane="$1" dir
 	dir="$(dir_of "$lane")"
 	if [ "$lane" = coordinator ]; then
-		echo "cd '$dir' && rm -f \"\$(git rev-parse --absolute-git-dir)/overnight-stop-count\" && caffeinate -dims claude --resume $SESSION --fork-session --settings tools/overnight/hw_coordinator.json --model opus --effort ultracode --dangerously-skip-permissions"
+		echo "cd '$dir' && rm -f \"\$(git rev-parse --absolute-git-dir)/overnight-stop-count\" && caffeinate -dims claude --resume $SESSION --fork-session --settings tools/overnight/hw_coordinator.json --model opus --effort ultracode --dangerously-skip-permissions \"You are now the coordinator of the Halloween build, running in the CLI. Read docs/halloween/PLAN.md, then docs/prompts/HW_COORDINATOR_PROMPT.md and do everything it says, starting with section 0 and the first unticked Progress line.\""
 		return
 	fi
 	echo "cd '$dir' && rm -f \"\$(git rev-parse --absolute-git-dir)/overnight-stop-count\" && caffeinate -dims claude --settings $(hook_of "$lane") --model $(model_of "$lane") --effort xhigh --dangerously-skip-permissions \"You are the $lane lane of the Halloween build. Read docs/halloween/PLAN.md, then docs/prompts/$(brief_of "$lane") and do everything it says, starting with section 0 and the first unticked Progress line.\""
