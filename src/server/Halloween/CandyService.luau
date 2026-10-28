@@ -396,6 +396,16 @@ end
 
 -- Hears hw-sys's UltService.Used (player, tableId, epoch) for the ability quest, through a
 -- guarded require: missing, the quest's Alt stands in (CandyService.hooks).
+-- Whether table `tableId` is free solo practice (an ability used there is no quest's): read
+-- late, since TableService requires Ranking, which requires this module.
+local function soloTable(tableId: number): boolean
+	local ok, solo = pcall(function(): any
+		local t = require(script.Parent.Parent.TableService).get(tableId) :: any
+		return t ~= nil and t.engine ~= nil and t.engine.solo ~= nil
+	end)
+	return ok and solo == true
+end
+
 local function listenUlts()
 	local ok, UltService = pcall(require, script.Parent.Parent:FindFirstChild("UltService") :: any)
 	local used = if ok and type(UltService) == "table" then (UltService :: any).Used else nil
@@ -408,6 +418,7 @@ local function listenUlts()
 				typeof(player) == "Instance"
 				and type(tableId) == "number"
 				and type(epoch) == "number"
+				and not soloTable(tableId)
 			then
 				ultMatch[player] = ("%d:%d"):format(tableId, epoch)
 			end
