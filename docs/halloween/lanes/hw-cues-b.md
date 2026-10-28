@@ -68,6 +68,10 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
   neighbours), compact = a closed bud 0.3 past the butt; `spider_parts.glb` 134241355070040,
   `Crown.glb` 88297987618252, atlas decals with image ids). Preview beside the concept:
   `gate2/spider_body_vs_C1b.png`. No spider bodies, legs or creatures anywhere.
+- 10:51 P17 in the same solo game, the Spider equipped: the silk trail rides the cue ball
+  (`spider_trail_match_lab.jpg`); the pot attempt missed, so its finisher in a real pocket is
+  not captured (it fired clean in the lab strip after the 10:29 retune); no console errors.
+  Solo game left running at table 3 for the P7 hands check once drop 3 lands.
 - 10:50 P14 in the same solo game, the Cat equipped (EquipCue by request): a pot of the 10 fired
   its finisher at the real pocket (the HUD crossed the 10, $132), no console errors; the
   capture came after its 1.6 s window, so the lab phase strip stands for its look. The own
@@ -242,7 +246,12 @@ Gate 2 (10:05, `~/Desktop/8ball-refs/halloween/shots/hw-cues-b/gate2/`; drop 3 i
 `halloween` yet, so the in-game shots show each body drawn over the shared Classic shaft (a
 local-only row with `piece` pointed at the body, never committed): the Classic wrap shows
 through in the grip zone and the Aim fade cannot run; the hands and own-aim views come with
-drop 3):
+drop 3). Added by 10:51: the Cat and Spider finisher phase strips, the Night and Lower-effects
+stands, the Broom beside the Eclipse at Night, and a real solo game with all three cues (the
+Broom's finisher at two pots, the three trails, the own aim views); the Spider piece and the
+Broom halo were retuned on the way (Status 10:29, 10:34). Still open for the gate: the three
+bodies in hands and in the own aim view, which need drop 3 (`hw-cues-a` @ 37573b2c, asked
+for at 08:55 and 10:08).
 
 - `broom_body_vs_C3b.png`: concept C3b on top, the reworked Broom body below (headless): the
   branch-wave handle with two knots and bigger lumps, the bushy straw head with no end face
@@ -316,4 +325,7 @@ drop 3):
 - `cat_own_view_aim_lab.jpg`: the same game with the Cat equipped, the shooter's own aim view
   at PC size: the cue in hand (Classic wood before drop 3), a shadow cat and the dark smoke
   on the felt by the cue at the quiet share, the PULL card drawing the Cat's card art.
+- `spider_trail_match_lab.jpg`: the same game with the Spider equipped, from the far side:
+  the cue ball's silver silk trail mid-table as it rolls, the cue in hand below with the
+  silver-crimson outline and silk motes (Classic wood before drop 3).
 - Not yet shot: hands and own-aim views with the bodies (need drop 3).
