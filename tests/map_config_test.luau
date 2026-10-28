@@ -164,7 +164,7 @@ return {
 				end
 			end
 		end
-		for _, name in { "Day", "Sunset" } do
+		for _, name in { "Day", "Sunset", "Night" } do
 			local state = L[name]
 			check(state, "Lighting." .. name)
 			H.expect(state.Brightness > 0, name .. ": a lit sun")

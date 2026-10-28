@@ -13,6 +13,7 @@
 local Config = require(script.Parent.Config)
 local Placement = require(script.Parent.Placement)
 local TableGeometry = require(script.Parent.Physics.Table)
+local HalloweenRules = require(script.Parent.HalloweenMap.Rules)
 
 local TableBuilder = {}
 
@@ -1115,6 +1116,169 @@ function TableBuilder.buildFromParts(parent: Instance, p: Placement, id: number)
 	-- Everything above was built around zero; put the finished table where it belongs.
 	model:PivotTo(CFrame.new(p.x, p.y, p.z) * TableBuilder.yawCFrame(p))
 	return model
+end
+
+-- A decor part touches nothing, is never hit by a ray and casts no shadow.
+local function quiet(part: BasePart)
+	part.Anchored = true
+	part.CanCollide = false
+	part.CanQuery = false
+	part.CanTouch = false
+	part.CastShadow = false
+	part.Massless = true
+end
+
+local function glow(part: BasePart, rgb: { number })
+	part.Material = Enum.Material.Neon
+	part.Color = color(rgb)
+	if part:IsA("MeshPart") then
+		part.TextureID = ""
+	end
+end
+
+-- A copy of one of the event's shared meshes (Config.HalloweenMap.Assets: the server's
+-- HalloweenMap/Assets puts one template per prop in ReplicatedStorage), or nil while none is
+-- loaded.
+local function eventMesh(prop: string): Model?
+	local folder = game:GetService("ReplicatedStorage")
+		:FindFirstChild(Config.HalloweenMap.Assets.Folder)
+	local template = folder and folder:FindFirstChild(prop)
+	return if template and template:IsA("Model") then template:Clone() else nil
+end
+
+--- The Halloween decor kit on a table (Config.HalloweenMap.Decor; hw-map lane): clears the
+--- model's Decor.Folder, then, unless `kit` is nil, builds kit `kit` there in the table's own
+--- frame (its pivot, the placement's): a Neon underglow plate on the floor, the trim ring under
+--- the rail line and the kit's prop sets (the event's shared meshes; one not loaded yet is
+--- left out). Every part touches nothing and casts no shadow, and goes on only inside the
+--- Body's footprint with its top under the rail top (Rules.decorInside), else it is left out
+--- with a warning; nothing touches the Cloth, Rails or Pockets. A kit stops at
+--- MaxPartsPerTable. Returns how many parts it added.
+function TableBuilder.addDecor(model: Model, kit: string?): number
+	local D = Config.HalloweenMap.Decor
+	local old = model:FindFirstChild(D.Folder)
+	if old then
+		old:Destroy()
+	end
+	local spec = if kit then D.Kits[kit] else nil
+	if spec == nil then
+		if kit ~= nil then
+			warnOnce(
+				("Halloween decor kit '%s' is not in Config.HalloweenMap.Decor.Kits"):format(kit)
+			)
+		end
+		return 0
+	end
+	local body = model:FindFirstChild("Body")
+	if not (body and body:IsA("BasePart")) then
+		warnOnce("a table without a Body mesh (the parts-built table) gets no Halloween decor")
+		return 0
+	end
+	local frame = model:GetPivot()
+	local bodyAt, bodyHalf = boundsIn(body, frame)
+	local bodyBox = {
+		cx = bodyAt.X,
+		cy = bodyAt.Y,
+		cz = bodyAt.Z,
+		sx = bodyHalf.X * 2,
+		sy = bodyHalf.Y * 2,
+		sz = bodyHalf.Z * 2,
+	}
+	local railTop = Config.Table.SurfaceHeightStuds
+		+ Config.Table.RailTopInches * Config.Table.StudsPerInch
+	local folder = Instance.new("Folder")
+	folder.Name = D.Folder
+	local added = 0
+
+	-- Keeps `parts` (one piece) when every part is inside and the kit has room; else none.
+	local function keep(name: string, parts: { BasePart }, holder: Instance)
+		if added + #parts > D.MaxPartsPerTable then
+			warnOnce(
+				("Halloween decor kit '%s' passes MaxPartsPerTable: %s left out"):format(
+					kit :: string,
+					name
+				)
+			)
+			holder:Destroy()
+			return
+		end
+		for _, part in parts do
+			local at, half = boundsIn(part, frame)
+			local box = {
+				cx = at.X,
+				cy = at.Y,
+				cz = at.Z,
+				sx = half.X * 2,
+				sy = half.Y * 2,
+				sz = half.Z * 2,
+			}
+			if not HalloweenRules.decorInside(box, bodyBox, railTop) then
+				warnOnce(
+					("Halloween decor %s is outside the table's body or above its rail top: left out"):format(
+						name
+					)
+				)
+				holder:Destroy()
+				return
+			end
+		end
+		added += #parts
+		holder.Parent = folder
+	end
+
+	if spec.Underglow then
+		local u = D.Underglow
+		local plate = Instance.new("Part")
+		plate.Name = "Underglow"
+		plate.Size = Vector3.new(u.Size[1], u.Size[2], u.Size[3])
+		plate.CFrame = frame * CFrame.new(0, u.Y, 0)
+		plate.Transparency = u.Transparency
+		plate.TopSurface = Enum.SurfaceType.Smooth
+		plate.BottomSurface = Enum.SurfaceType.Smooth
+		quiet(plate)
+		glow(plate, spec.Color)
+		keep("Underglow", { plate }, plate)
+	end
+
+	-- One prop: a copy of its shared mesh, scaled, its origin at `at` turned `yaw` degrees.
+	local function place(name: string, prop: string, at: CFrame, scale: number, lit: boolean)
+		local copy = eventMesh(prop)
+		if copy == nil then
+			warnOnce(
+				("the event's meshes are not loaded: Halloween decor %s left out"):format(name)
+			)
+			return
+		end
+		copy.Name = name
+		if scale ~= 1 then
+			copy:ScaleTo(scale)
+		end
+		copy:PivotTo(frame * at)
+		local parts: { BasePart } = {}
+		for _, d in copy:GetDescendants() do
+			if d:IsA("BasePart") then
+				quiet(d)
+				if lit then
+					glow(d, spec.Color)
+				end
+				table.insert(parts, d)
+			end
+		end
+		keep(name, parts, copy)
+	end
+
+	if spec.Trim then
+		place("Trim", "Trim", CFrame.new(0, D.TrimY, 0), 1, true)
+	end
+	for _, setName in spec.Sets do
+		for i, row in D.Sets[setName] or {} do
+			local at = CFrame.new(row.At[1], row.At[2], row.At[3])
+				* CFrame.Angles(0, math.rad(row.Yaw), 0)
+			place(("%s%d"):format(row.Prop, i), row.Prop, at, row.Scale, row.Glow == true)
+		end
+	end
+	folder.Parent = model
+	return added
 end
 
 return TableBuilder

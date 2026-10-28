@@ -1700,6 +1700,25 @@ function DevCommands.start()
 			tell(player, line)
 		end
 	end)
+	-- The Pumpkin King (hw-map): /king [tier], a real King match now (BossService.qa).
+	command("King", D.King, function(player: Player, args: { string })
+		local tier: string? = nil
+		local word = args[1]
+		if word then
+			for _, name in Config.Ranks.Tiers do
+				if string.lower(name) == word then
+					tier = name
+				end
+			end
+			if not tier then
+				tell(player, Dev.BotBad:format(word, table.concat(Config.Ranks.Tiers, ", ")))
+				return
+			end
+		end
+		local S = Strings.HalloweenMap
+		local ok, why = require(script.Parent.HalloweenMap.BossService).qa(player, tier)
+		tell(player, if ok then S.KingDevStarted else S.KingDevFailed:format(tostring(why)))
+	end)
 
 	-- Studio only: tests type a command through ServerStorage.DevCommandsQA, since a script
 	-- cannot type into Roblox's chat box: Invoke(userId, "/givecue chalk dust 3") -> (true,

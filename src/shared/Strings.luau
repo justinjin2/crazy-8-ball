@@ -240,11 +240,13 @@ return {
 			Store = "The global queue isn't answering. Try again.",
 			Party = "Your party changed, so the search stopped.",
 			Refresh = "Couldn't move to a fresh server. Playing on here.", -- the server refresh
-			-- The Pumpkin King's challenge (Halloween 2026; BossService).
-			KingBusy = "The Pumpkin King is busy. Try again in a moment!",
-			KingNoTable = "No free table for the Pumpkin King right now. Try again soon!",
-			KingCooldown = "The Pumpkin King is resting. Come back when he's ready!",
-			KingNotNow = "You can't challenge the Pumpkin King right now.",
+			-- The Pumpkin King's challenge (Halloween 2026; BossService). Each fits the queue card's
+			-- 300 px at about its full 18 px (measured in Studio; longer lines shrink to fit).
+			KingBusy = "The King is busy. Try again in a moment!",
+			KingNoTable = "No free table for the King. Try again soon!",
+			KingCooldown = "The King is resting. Come back soon!",
+			KingNotNow = "You can't challenge the King right now.",
+			CandyBagFull = "Your candy bag is full until :00", -- the lobby candy's hour cap (CandyDrop)
 		},
 	},
 	-- The arena's card while players arrive (ArenaStatus).
@@ -277,7 +279,8 @@ return {
 		Resting = "The Pumpkin King is resting. Ready in %s.", -- the note on a press while he rests
 		CandyWon = "+%d CANDY", -- the billboard over the table on a win
 		CandyPickup = "+%d", -- the billboard on a picked-up candy
-		BagFull = "Your candy bag is full until :00", -- a pickup over core's hour cap
+		KingDevStarted = "The Pumpkin King is on his way to a table.", -- /king (designer only)
+		KingDevFailed = "No King match: %s.", -- /king: why (Busy, NoTable, Throttle...)
 		-- What he says (BotService.say): short, kind, never an insult.
 		Taunts = {
 			Seated = {
@@ -1283,6 +1286,11 @@ return {
 	BoostPill = {
 		Title = "YOUR BOOSTS",
 		Percent = "+%d%%",
+		-- The HUD lines over the money pill (no background): Money green, Candy orange.
+		Lines = {
+			Money = "Money Boost: +%d%%",
+			Candy = "Candy Boost: +%d%%", -- while the event is live
+		},
 		Parts = {
 			Vip = "VIP",
 			Group = "Group",
@@ -1291,7 +1299,7 @@ return {
 			Starter = "Starter Pack",
 			Party = "Money Party",
 		},
-		TimeLeft = "%s left", -- after a timed part: "Starter Pack · 42m left"
+		TimeLeft = "%s · %s left", -- a timed part and its time: "Starter Pack · 42m left"
 		Total = "Total",
 		None = "No boosts yet",
 		FriendRule = "Each friend in your server +%d%% (max %d)",

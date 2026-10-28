@@ -73,6 +73,11 @@ export type Bot = {
 	-- Its owner's (TutorialBot): it never leaves by itself after a game; freed from its table
 	-- it stands where it is and this is called.
 	freed: ((any) -> ())?,
+	-- A boss's own look (the Pumpkin King, hw-map lane): its portrait image, its animations
+	-- (Body.build) and a dress(model) run before its body is shown.
+	icon: string?,
+	animations: { [string]: string }?,
+	dress: ((Model) -> ())?,
 }
 
 local bots: { [number]: Bot } = {}
@@ -124,7 +129,7 @@ function BotService.spawn(spec: any): Bot?
 	local division = if tier == "Reyes" then 1 else (spec.division or Rng.int(rng, 1, 5))
 	local avatarUserId, description, name = nil, nil, nil
 	if kind == "Pc" then
-		description = Identity.robot()
+		description = spec.description or Identity.robot()
 		name = spec.name or Look.pcName(tier)
 	else
 		local avatar = spec.avatar or Identity.avatar()
@@ -154,6 +159,9 @@ function BotService.spawn(spec: any): Bot?
 		rematch = spec.rematch or (if kind == "Pc" then "Instant" else "Wait"),
 		visit = 0,
 		shotInVisit = 0,
+		icon = spec.icon,
+		animations = spec.animations,
+		dress = spec.dress,
 	}
 	bots[id] = bot
 	return bot
@@ -173,6 +181,7 @@ local function attributesOf(bot: Bot): { [string]: any }
 		UltEquipped = bot.ult,
 		AvatarUserId = bot.avatarUserId,
 		Money = bot.money,
+		BotIcon = bot.icon,
 	}
 end
 
@@ -184,6 +193,7 @@ local function seatInfo(bot: Bot): any
 		division = bot.division,
 		avatarUserId = bot.avatarUserId,
 		noRematch = bot.rematch == "Never" or nil,
+		icon = bot.icon,
 	}
 end
 
@@ -210,7 +220,8 @@ function BotService.seat(bot: Bot, t: any, options: any?): boolean
 	bot.epoch = nil
 	local at = o.at or Tables.padSpot(t, if t.engine.teamSize == 1 then 2 else 0)
 	if bot.model == nil and bot.description then
-		bot.model = Body.build(bot.description, bot.name, at, attributesOf(bot))
+		bot.model =
+			Body.build(bot.description, bot.name, at, attributesOf(bot), bot.animations, bot.dress)
 	elseif bot.model then
 		Body.place(bot.model, at, true)
 	end
@@ -280,7 +291,8 @@ function BotService.stand(bot: Bot, at: CFrame): boolean
 		return false
 	end
 	if bot.model == nil and bot.description then
-		bot.model = Body.build(bot.description, bot.name, at, attributesOf(bot))
+		bot.model =
+			Body.build(bot.description, bot.name, at, attributesOf(bot), bot.animations, bot.dress)
 	end
 	local model = bot.model
 	if not model then
@@ -654,6 +666,56 @@ function BotService.playPc(t: any, p: Player, tier: string?): boolean
 	return playPc(t, p, nil, tier)
 end
 
+--- A boss at table `t` for its host `p` (the Pumpkin King, hw-map lane): Play against PC with
+--- the boss's own spec ({ name, tier, skill?, cue?, description?, icon?, animations?, dress? }).
+--- Always kind "Pc" (Settle pays it as practice: no rank, no farming) and rematch "Never".
+--- The bot, or nil when the game did not start (nothing left behind).
+function BotService.playBoss(t: any, p: Player, spec: any): Bot?
+	local e = t.engine
+	if
+		e.phase ~= "Waiting"
+		or e.hostId ~= p.UserId
+		or e.teamSize ~= 1
+		or Engine.count(e) ~= 1
+		or e.search
+	then
+		return nil
+	end
+	local bot = BotService.spawn({
+		kind = "Pc",
+		name = spec.name,
+		tier = spec.tier,
+		skill = spec.skill or spec.tier,
+		playerTier = playerTier(p),
+		cue = spec.cue,
+		rematch = "Never",
+		description = spec.description,
+		icon = spec.icon,
+		animations = spec.animations,
+		dress = spec.dress,
+	})
+	if not bot then
+		return nil
+	end
+	if not BotService.seat(bot, t, { breakFor = p.UserId }) then
+		BotService.remove(bot)
+		return nil
+	end
+	-- A person took the seat while the body was built (it yields): no King, they play them.
+	if e.hostId ~= p.UserId or Engine.count(e) ~= 2 or e.phase ~= "Waiting" then
+		BotService.remove(bot)
+		return nil
+	end
+	Tables.advance(t, now())
+	local started =
+		Engine.action(e, p.UserId, { kind = "Start", epoch = e.epoch, turnId = e.turnId }, now(), 1)
+	if not started then
+		BotService.remove(bot)
+		return nil
+	end
+	return bot
+end
+
 -- Studio only: ServerStorage.BotsQA lets a test script make and place bots (no chat command
 -- can). Invoke("spawn", spec) -> bot id (spec as BotService.spawn); ("tutorial") and
 -- ("tutorial2") -> the tutorial's bots' ids; ("stand", id, x, y, z, yaw degrees); ("seat", id,
@@ -679,6 +741,16 @@ local function studioHook()
 			local t = Tables.get(args[1])
 			local p = game:GetService("Players"):GetPlayerByUserId(args[2])
 			return t ~= nil and p ~= nil and BotService.playPc(t, p, args[3])
+		elseif command == "boss" then
+			-- ("boss", userId, tier?): the Pumpkin King challenge for that player now, from
+			-- anywhere, cooldown ignored (BossService.qa; hw-map lane). The reason on a refusal.
+			local p = game:GetService("Players"):GetPlayerByUserId(args[1])
+			local folder = script.Parent.Parent:FindFirstChild("HalloweenMap")
+			local module = folder and folder:FindFirstChild("BossService")
+			if p == nil or module == nil then
+				return false
+			end
+			return (require(module) :: any).qa(p, args[2])
 		elseif command == "list" then
 			local out = {}
 			for _, bot in BotService.list() do
