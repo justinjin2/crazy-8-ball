@@ -22,6 +22,7 @@ local STAT_KEYS = {
 	"MoneyEarned",
 	"WinStreak",
 	"BestWinStreak",
+	"UltMatches",
 }
 
 local MAP_KEYS = {
@@ -362,6 +363,7 @@ local FIELDS = {
 	"Trades",
 	"LuckyBlocks",
 	"EmoteFavorites",
+	"Badges",
 }
 
 -- Sub-fields the fuzz breaks, by table.
@@ -1766,5 +1768,49 @@ return {
 		broken.EmoteFavorites = 7
 		local mended = SaveSchema.validate(broken)
 		H.expect(type(mended.EmoteFavorites) == "table", "mended")
+	end,
+
+	["an older save without badges or UltMatches loads clean, bad entries dropped, capped"] = function()
+		local Config, SaveSchema = setup()
+		-- A save from before the badges (2026-10-28): no Badges map and no Stats.UltMatches.
+		local old = SaveSchema.template()
+		old.Badges = nil
+		old.Stats.UltMatches = nil
+		local out, notes = SaveSchema.migrate(old)
+		H.expect(#notes == 0, "no migration needed")
+		reconcile(out, SaveSchema.template())
+		H.expect(type(out.Badges) == "table" and next(out.Badges) == nil, "added empty")
+		H.expect(out.Stats.UltMatches == 0, "UltMatches added at 0")
+		local _, fixes = SaveSchema.validate(out)
+		H.expect(#fixes == 0, "clean: " .. table.concat(fixes, "; "))
+		assertClean(Config, SaveSchema, out)
+		-- A badge kept (a retired key too), junk values and keys dropped.
+		local save = SaveSchema.template()
+		save.Badges = { Welcome = true, RetiredOne = true, FirstWin = 1, [3] = true }
+		local fixed, why = SaveSchema.validate(save)
+		H.expect(fixed.Badges.Welcome == true and fixed.Badges.RetiredOne == true, "kept")
+		H.expect(fixed.Badges.FirstWin == nil and fixed.Badges[3] == nil, "dropped")
+		H.expect(#why >= 2, "reported")
+		-- Not a table at all: replaced by an empty map.
+		local broken = SaveSchema.template()
+		broken.Badges = "x"
+		H.expect(type(SaveSchema.validate(broken).Badges) == "table", "mended")
+		-- Over the cap: the smallest keys are kept.
+		local cap = Config.Save.MaxBadgeEntries
+		local full = SaveSchema.template()
+		for i = 1, cap + 5 do
+			full.Badges[("B%04d"):format(i)] = true
+		end
+		local trimmed, capNotes = SaveSchema.validate(full)
+		local count = 0
+		for _ in trimmed.Badges do
+			count += 1
+		end
+		H.expect(count == cap, ("kept %d of %d"):format(count, cap + 5))
+		H.expect(
+			trimmed.Badges.B0001 == true and trimmed.Badges[("B%04d"):format(cap + 1)] == nil,
+			"smallest kept"
+		)
+		H.expect(#capNotes == 1, "one note: " .. table.concat(capNotes, "; "))
 	end,
 }
