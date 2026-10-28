@@ -51,6 +51,17 @@ From PLAN §4 (everything else is read-only to this lane; ask through Requests):
 
 ## Status
 
+- 11:35 hw-map: step 15 done (the full flip test, Studio, switches on in the working tree only).
+  Lobby, one Play session, server parts and the client's light read at each state: Before (no
+  look, kit, prop, throne; the 41 Models and the piano in the map; client Day sky, exposure
+  -0.05) -> Countdown (the same; the six Night faces fetched) -> Live (16 looks, 16 kits, 51
+  props, the throne, 39 Models hidden; client Night sky, exposure 0.45, sun at 7.4; the King's
+  prompt on once `HwOn` is set) -> Ended (all back as Before) -> Live (all on again) -> force
+  cleared (core's clock keeps it Live). Boot during Live: every Play start (FlipAt 0, no fade).
+  Arena (`StudioArena` 1): boots Live, its one table orchid (185,90,230) with the Orchid kit, no
+  props, hides, throne, prompt or candy, client Night; Ended gives back the Blue look's cloth and
+  takes the kit; Live again re-dresses it. Console clean of map lines in both (the only new line,
+  asset 1668310 "not approved", is not ours: an avatar asset). Now: performance (16).
 - 11:20 hw-map: step 14 done (68dbca8e meshes, ebfbe1f7 MapProps, d8d0f166 budget). While Live
   the lobby hides its 18 palms, 12 fern planters and 9 planter beds (found in the window:
   `Palm_N` x18 Models, `FernPlanter_N` x12, `PlanterBed_N` x11 of which 42 and 48 are the
