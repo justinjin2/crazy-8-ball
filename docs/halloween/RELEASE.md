@@ -101,8 +101,12 @@ original back (asset 123614794049673): `python3 tools/halloween/store_page.py ic
 - Cues A: `HalloweenCueEquipped` (counts every Equip press, not distinct players).
 - Sys: `RoamHome` (how far players roam), `BadgeAwarded` (Retro back-pay on day one).
 - GUI: `FriendBoost` (friends at leave), `BoostCard` (card opens).
-- Creator Hub: server FPS P10/P50, memory, concurrent users, the error report. Baselines:
-  server FPS P10 about 37-47; DAU 24,887 and 23.1 min per DAU (Oct 26).
+- Creator Hub: server FPS P10/P50, memory, concurrent users, the error report. Baselines
+  before the publish (analytics API, hourly, Oct 27 10:00 to Oct 28 20:00 UTC; query and result
+  in `~/Desktop/8ball-refs/halloween/analytics/watch/base_*.json`): peak concurrent players
+  690-2,270; server FPS P10 swings 27-59 through the day (P50 60); `MemoryUsageP50` 156-168 (one
+  hour 194); DAU 24,887 and 23.1 min per DAU (Oct 26). Alarms: P10 under 20 for an hour, or
+  memory P50 over about 200 two hours running.
 
 ## 8. Discord announcement (draft; you post it)
 
