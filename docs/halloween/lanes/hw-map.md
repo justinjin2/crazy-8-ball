@@ -40,12 +40,24 @@ From PLAN §4 (everything else is read-only to this lane; ask through Requests):
   the bag-full note shows only for `"Cap"`.
 - Consumed from core: `Config.Halloween.CandyIcon`, `CandyService.bossCooldown(player) -> number`
   (unix seconds, 0 if none), `bossWon`, `isLive`, `Event.state(Clock.now())`, player attribute `HwOn`.
-- Attributes (filled in at step 1): `PumpkinKingReadyAt` on players (unix seconds);
-  `HalloweenMapState` and `HalloweenMapFlipAt` on workspace.
+- Attributes: `PumpkinKingReadyAt` on players (unix seconds his cooldown ends, from core's
+  `bossCooldown`/`bossWon`; `Config.HalloweenMap.Boss.ReadyAttribute`); on workspace
+  `HalloweenMapState` (string: "Before" | "Countdown" | "Live" | "Ended") and `HalloweenMapFlipAt`
+  (server time of the last change) (`Config.HalloweenMap.StateAttribute`/`FlipAtAttribute`);
+  Studio-only force: workspace `HalloweenMapForce` (a state name).
+- Net: `HalloweenMapFx` (server -> clients: `{ kind = "Burst" | "Pickup" | "BagFull", ... }`),
+  `KingChallenge` (client -> server, no arguments).
 - `Config.HalloweenMap.Props.Budget.Lights = 6` (throne 2 + the throne King's aura 1 + 3 table Kings).
 
 ## Status
 
+- 08:58 interfaces pushed (step 1; sha in the commit list below): `Config.HalloweenMap` (every
+  switch false; `Enabled`, `Boss.Enabled`, `Candy.Enabled`; no hour-cap key), `Config.Lighting.Night`
+  (first values, Day's keys), `Strings.HalloweenMap` + 4 `GlobalQueue.Failed` keys, Net
+  `HalloweenMapFx`/`KingChallenge`, Bootstrap + Main blocks (pcall-guarded) and the four modules,
+  each returning at once while its switch is off. Late against 08:15 (lane started 08:43).
+
+- 08:50 coordinator: lanes started 08:43 (73 min behind the plan). New times: interface commits as soon as they pass (target 09:30, merged by 09:45); gate 1 at 10:00 (shots + captions by 09:55); gate 2 at 11:15 with whatever is ready (Justin sleeps after it); merges on request all day; 16:00 done/cut and the 17:00 freeze stay for now (re-timed at 13:00 if needed). Rojo: a watchdog restarts any crashed server by itself (log ~/Desktop/8ball-refs/halloween/shots/coordinator/rojo-watchdog.log; Rojo 7.7 can panic on an editor temp file); if MCP shows your window no longer syncs (append a comment, read it back), write `ROJO RECONNECT` in your Requests and keep working on files. Resize helper: not yet (Studio windows were full screen; Justin is un-fullscreening them); use your layout tests until the outer sizes are posted here.
 ## Shared-file changes
 
 Shared files (PLAN §7 plus `HubCorners.luau`, `Net.luau`, `DevCommands.luau`,
@@ -66,6 +78,17 @@ coordinator resolves overlaps. Planned (add the commit sha when each lands):
   (`isPromised`).
 
 ## Requests
+
+- Core: this lane reads `Config.Halloween.CandyIcon` and `CandyService.bossCooldown(player) ->
+  number` (unix seconds, 0 if none), `bossWon`, `pickup`, `isLive`, `Event.state(Clock.now())`
+  and the player attribute `HwOn`. Say if any is missing after the 08:30 merge.
+- Core: please confirm the quest fallbacks read `HM.Enabled and HM.Boss.Enabled` and
+  `HM.Enabled and HM.Candy.Enabled` (`HM = Config.HalloweenMap`, shipped in step 1, all false
+  now), and that `pickup` returns `(ok, reason)` with `"Cap"` for the hour cap.
+- hw-sys: noted your Request: the King's prompt refuses a player in a match and CandyDrop skips
+  players in a match (`Tables.tableOf(p) ~= nil`); BossService calls
+  `Badges.grant(p, "PumpkinSlayer", "Boss")` (guarded require + pcall).
+- Coordinator: please include the step-1 interface commit in the interface merge.
 
 ## Assumptions
 

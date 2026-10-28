@@ -8948,6 +8948,206 @@ Config.Lighting = {
 		Windows = { EmissiveStrength = 0.9, EmissiveTint = "#FFD27A", Color = "#C9A0D2" }, -- 1.6 read all orange
 		Islands = { Color = "#6A5088" }, -- violet silhouettes, as the art's (#673E6D)
 	},
+	-- Night (Halloween 2026, R3.4; hw-map lane): the event's purple night, as readable as day.
+	-- Made from Sunset (the same keys as Day; a Lune test checks) with a violet light: the sun
+	-- stays Sunset's (Config.HalloweenMap.Night.SunPath holds it, the light from the moon's
+	-- side), the haze stays 0 (Sunset's lesson: haze fogs the city into one flat colour) and
+	-- Bloom is exactly Sunset's. Only used while the event is Live (LightCycle.event puts it in
+	-- Day's slot of the cycle). Tuned in Play captures, never Edit's preview. (tune)
+	Night = {
+		Brightness = 3, -- a moonlit roof as bright as the day's floor (Night.MinBrightnessShare)
+		ExposureCompensation = 0.15,
+		EnvironmentDiffuseScale = 0.25, -- as Sunset: the violet sky's fill would tint the roof
+		EnvironmentSpecularScale = 0.6,
+		Ambient = "#000000",
+		OutdoorAmbient = "#A898C8", -- a light lilac shade, so shadows read violet, not black
+		ColorShift_Top = "#E8D4FF", -- the moon's pale lilac on lit faces
+		ColorShift_Bottom = "#000000",
+		Atmosphere = {
+			Density = 0.08, -- as Day and Sunset: the far edge fades, the roof stays crisp
+			Offset = 0.2,
+			Haze = 0, -- never a haze (it fogged Sunset's city into one colour in Play)
+			Glare = 0,
+			Color = "#B48CFF", -- a violet tint
+			Decay = "#5B2A8C",
+		},
+		-- The night sky (gen_sky.py's night faces, hw-map step 12); Sunset's faces until they
+		-- are uploaded, so the event never shows a grey sky.
+		Sky = {
+			SkyboxBk = "rbxassetid://110051239637159",
+			SkyboxDn = "rbxassetid://88040117694749",
+			SkyboxFt = "rbxassetid://96378244528009",
+			SkyboxLf = "rbxassetid://94840130578947",
+			SkyboxRt = "rbxassetid://76832687371860",
+			SkyboxUp = "rbxassetid://139224542954081",
+			SunAngularSize = 0, -- the moon is painted on the sky, never Roblox's
+			MoonAngularSize = 0,
+			StarCount = 0, -- the stars are painted too
+			CelestialBodiesShown = true,
+		},
+		Water = {
+			WaterColor = "#4A3A9A", -- a purple sea
+			WaterTransparency = 0.85,
+			WaterReflectance = 0.2, -- as Sunset: the sea picks up the sky
+			WaterWaveSize = 0.25,
+			WaterWaveSpeed = 12,
+		},
+		ColorCorrection = {
+			Brightness = 0.02,
+			Contrast = 0.1,
+			Saturation = 0.05,
+			TintColor = "#F2EAFF", -- a faint lilac
+		},
+		Bloom = { Intensity = 0.8, Size = 24, Threshold = 2.6 }, -- exactly Sunset's (PLAN: unchanged)
+		SunRays = { Intensity = 0, Spread = 0.5 },
+		DepthOfField = {
+			FarIntensity = 0.5,
+			FocusDistance = 100,
+			InFocusRadius = 160,
+			NearIntensity = 0,
+		},
+		Glow = {
+			Lantern = "#FF7A1A", -- jack-o'-lantern orange
+			LanternTall = "#FF7A1A",
+			GlobeLight = "#FFC070",
+			FirePit = "#E06A20",
+		},
+		Lights = { Brightness = 0.8, Range = 12, Color = "#FFC99A" }, -- as Sunset's amber pools
+		TableGlow = { EmissiveStrength = 0.8, EmissiveTint = "#B26BFF" }, -- a purple rim at each table's foot
+		TableLights = { Brightness = 3 }, -- the lamps over the tables lit, as at sunset
+		Fire = { Intensity = 1 }, -- the fire pit burning
+		Windows = { EmissiveStrength = 0.9, EmissiveTint = "#FFD27A", Color = "#B090D8" }, -- lit windows, violet walls
+		Islands = { Color = "#5A3E88" }, -- violet silhouettes
+	},
+}
+
+---------------------------------------------------------------------------------------------
+-- The Haunted Rooftop (Halloween 2026; hw-map lane, docs/prompts/HW_MAP_PROMPT.md): the event's
+-- Night light, the tables' looks by mode and their decor kit, the props that replace the palms
+-- and planters, the Pumpkin King's throne and challenge, and the lobby's candy drops. On from
+-- the server clock while core's Event.state is "Live" (src/server/HalloweenMap/EventMap), off
+-- by itself at the end. Every part has its own switch under the master Enabled. Keep the keys
+-- Enabled, Boss.Enabled and Candy.Enabled exactly (always booleans): core's quests read them
+-- (HM.Enabled and HM.Boss.Enabled; HM.Enabled and HM.Candy.Enabled) and fall back to their Alt
+-- quest while either is off. The Candy amounts, the King's cooldown and the pickup hour cap are
+-- core's (Config.Halloween), never copied here. Studs, seconds.
+---------------------------------------------------------------------------------------------
+Config.HalloweenMap = {
+	Enabled = false, -- the master switch: off turns every part below off
+	PollSeconds = 1, -- the server reads Event.state this often
+	FlipSeconds = 4, -- a client crossfades the light this long when the state flips
+	-- Studio only: a workspace attribute holding a state name ("Before", "Countdown", "Live",
+	-- "Ended") overrides the clock, so every transition can be tested at once.
+	ForceAttribute = "HalloweenMapForce",
+	-- The server's workspace attributes every client follows (the state and the server time it
+	-- last changed), so server and clients always agree.
+	StateAttribute = "HalloweenMapState",
+	FlipAtAttribute = "HalloweenMapFlipAt",
+	Night = {
+		Enabled = false, -- the Night light while Live (Config.Lighting.Night in Day's slot)
+		-- In Play, Night held vs Day held from one camera: the floor and tables' mean luminance
+		-- at least this share of Day's ("as readable as day").
+		MinBrightnessShare = 0.9,
+		-- The sun all through the event cycle: Sunset's (the light from the moon's side).
+		SunPath = {
+			{ Blend = 0, GeographicLatitude = -30, ClockTime = 7.4 },
+			{ Blend = 0.5, GeographicLatitude = -30, ClockTime = 7.4 },
+		},
+	},
+	Tables = {
+		Enabled = false, -- every table's event look by its mode
+		Base = "Blue", -- the black-frame look (Config.TableModel.Looks; the arena's)
+		-- Every cloth keeps at least this CIEDE2000 from every ball, as rendered under Night and
+		-- Sunset (tools/halloween/hw_map_cloth_check.py).
+		MinDeltaE = 17,
+		-- By the table's team size (Config.Hub.Tables): the cloth's tint (RGB 0-255; never an
+		-- orange cloth: balls 5 and 13 vanish on it) and its decor kit (Decor.Kits).
+		ByTeamSize = {
+			[1] = { Cloth = { 185, 90, 230 }, Kit = "Orchid" }, -- orchid purple
+			[2] = { Cloth = { 90, 94, 102 }, Kit = "Pumpkin" }, -- charcoal, glowing orange trim
+			[3] = { Cloth = { 110, 220, 40 }, Kit = "Toxic" }, -- toxic green
+		},
+	},
+	Decor = {
+		Enabled = false, -- the haunted kit on each table (TableBuilder.addDecor)
+		MaxPartsPerTable = 10, -- the most parts a table's kit may add
+		MaxTrianglesPerTable = 1500, -- and triangles
+		Kits = {}, -- by name: filled at hw-map step 13
+	},
+	Props = {
+		Enabled = false, -- the dead trees, pumpkins, planters, string lights and cobwebs
+		Hide = {}, -- name patterns under workspace.Map put away while Live (step 14)
+		Place = {}, -- the props' placements (step 14)
+		-- The event's whole cost, counted in Studio.
+		Budget = {
+			Triangles = 60000,
+			MeshParts = 130,
+			UniqueMeshes = 8,
+			Textures = 6, -- new images (the sky's faces not counted)
+			Lights = 6, -- throne 2 + the throne King's aura 1 + 3 table Kings
+		},
+	},
+	Throne = {
+		Enabled = false, -- the Pumpkin King's throne where the piano stands
+		Pivot = { 0, 2, -86.05 }, -- the piano's spot at the end of the spawn aisle
+		YawDegrees = 0, -- facing the spawn (+Z)
+		MaxHeightStuds = 18, -- under the pergola's beam and the globe lights
+		PromptAt = { 0, 3, -79 }, -- the challenge prompt's anchor
+	},
+	Boss = {
+		Enabled = false, -- the Pumpkin King's challenge
+		-- A practice bot: Settle pays it as PC (no rank, practice money, the PC cap), so the
+		-- King can't be farmed. Never a new kind.
+		Kind = "Pc",
+		Rematch = "Never",
+		MinTier = "Gold", -- the King plays at least this tier...
+		TiersAbove = 2, -- ...and this many tiers above the player's (Unranked counts as Bronze)
+		-- The King's tier by the player's (Rules.kingTier; measured with tools/bot_duel.luau,
+		-- the win shares in docs/halloween/lanes/hw-map.md). (tune)
+		TierFor = {
+			Bronze = "Gold",
+			Silver = "Platinum",
+			Gold = "Diamond",
+			Platinum = "Expert",
+			Diamond = "Veteran",
+			Expert = "Master",
+			Veteran = "Grandmaster",
+			Master = "Reyes",
+			Grandmaster = "Reyes",
+			Reyes = "Reyes",
+		},
+		MaxAtOnce = 3, -- King matches at once on a server
+		SpareTables = 2, -- free 1v1 tables a King match never takes
+		PromptStuds = 10, -- the prompt shows this close
+		ServerStuds = 14, -- the server accepts a challenge this close to the anchor
+		HoldSeconds = 0.4, -- the prompt's hold
+		ThrottleSeconds = 5, -- one challenge per player this often
+		TauntEverySeconds = 6, -- the King speaks at most this often
+		Cue = "JackOLanternCue", -- his cue (Cues A's row; an existing cue until it lands)
+		ReadyAttribute = "PumpkinKingReadyAt", -- player attribute: unix seconds his cooldown ends
+		Aura = { Rate = 12, LightRange = 10 }, -- flame wisps a second (halved on low quality); studs
+		-- The candy explosion over the table on a win: sprites, sparkles, seconds, drawn this close.
+		Burst = { Candies = 50, Sparkles = 30, Seconds = 2, ShowStuds = 120 },
+	},
+	Candy = {
+		Enabled = false, -- the lobby's candy drops (the hour cap is core's Halloween.Pickup.HourCap)
+		TargetPerHour = 25, -- about this many an hour for an active player
+		SpawnEverySeconds = 30, -- one candy per eligible player this often...
+		JitterSeconds = 10, -- ...give or take this
+		NearStuds = { 10, 30 }, -- this far from them
+		PadClearStuds = 6, -- never this close to a queue or portal pad
+		LifeSeconds = 60, -- an unclaimed candy goes after this
+		MaxAlive = 40, -- on the server
+		MaxAlivePerPlayer = 3,
+		PickupStuds = 5, -- walked over within this
+		PickupTickSeconds = 0.2, -- the server checks pickups this often
+		TeleportStuds = 12.5, -- a root moving more in one tick teleported (20.8 x 0.2 x 3)...
+		TeleportGraceSeconds = 1, -- ...and picks up nothing for this long after
+		IdleSeconds = 60, -- a player who moved less than IdleStuds in this long is idle
+		IdleStuds = 4,
+		FloorWithinStuds = 1.5, -- a spot's floor within this of the player's feet
+		SpotTries = 20, -- random spots tried before skipping a turn
+	},
 }
 
 ---------------------------------------------------------------------------------------------

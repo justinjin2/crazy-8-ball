@@ -240,6 +240,11 @@ return {
 			Store = "The global queue isn't answering. Try again.",
 			Party = "Your party changed, so the search stopped.",
 			Refresh = "Couldn't move to a fresh server. Playing on here.", -- the server refresh
+			-- The Pumpkin King's challenge (Halloween 2026; BossService).
+			KingBusy = "The Pumpkin King is busy. Try again in a moment!",
+			KingNoTable = "No free table for the Pumpkin King right now. Try again soon!",
+			KingCooldown = "The Pumpkin King is resting. Come back when he's ready!",
+			KingNotNow = "You can't challenge the Pumpkin King right now.",
 		},
 	},
 	-- The arena's card while players arrive (ArenaStatus).
@@ -262,6 +267,50 @@ return {
 		NotYours = "That match wasn't yours. Back to the lobby...",
 		Started = "Your match already started. Back to the lobby...",
 		Rejoin = "We couldn't take you back to the lobby. Please join the game again.",
+	},
+	-- The Haunted Rooftop (Halloween 2026; hw-map lane: BossService, CandyDrop, MapClient).
+	HalloweenMap = {
+		KingName = "Pumpkin King", -- the bot's name in the match and over his throne
+		Challenge = "Challenge the Pumpkin King", -- the throne's prompt
+		ChallengeObject = "Pumpkin King", -- the prompt's small line
+		ReadyIn = "Ready in %s", -- the prompt while he rests (a m:ss clock)
+		Resting = "The Pumpkin King is resting. Ready in %s.", -- the note on a press while he rests
+		CandyWon = "+%d CANDY", -- the billboard over the table on a win
+		CandyPickup = "+%d", -- the billboard on a picked-up candy
+		BagFull = "Your candy bag is full until :00", -- a pickup over core's hour cap
+		-- What he says (BotService.say): short, kind, never an insult.
+		Taunts = {
+			Seated = {
+				"Welcome to my table, mortal!",
+				"Ha! Another challenger for the King!",
+				"Let's see if you can beat royalty!",
+			},
+			HisPot = {
+				"Ha! Right in!",
+				"Pumpkin precision!",
+				"Smooth as candy!",
+			},
+			HisFoul = {
+				"Oops! My crown slipped.",
+				"That never happened!",
+				"Even kings miss sometimes.",
+			},
+			YourPot = {
+				"Not bad, mortal!",
+				"Ooh, nice one!",
+				"Lucky shot!",
+			},
+			HisWin = {
+				"The King wins again! Try once more!",
+				"Bow to the Pumpkin King! Come back anytime!",
+				"Good game! I'll be on my throne.",
+			},
+			HisLoss = {
+				"Nooo! You beat the King!",
+				"Well played! Take your candy!",
+				"You win this time, champion!",
+			},
+		},
 	},
 	-- The row under a finished two-sided game (PostMatch, on the result screen).
 	PostMatch = {
