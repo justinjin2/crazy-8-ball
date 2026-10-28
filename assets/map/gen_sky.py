@@ -122,30 +122,34 @@ COLOURS = {
     },
 }
 
-# Halloween 2026's Night (hw-map lane, R3.4; mocks/v2/MAP2_lobby.png): a deep violet zenith to a
-# lilac-pink horizon (never black), a big soft cream full moon with a pink-lilac glow over the
-# sea, its path on the water, stars in the upper half, lavender-pink clouds lit from the moon,
-# the far city's windows lit.
+# Halloween 2026's Night (hw-map lane, R3.4; mocks/v2/MAP2_lobby.png): a deep indigo-violet
+# zenith to a saturated magenta-violet horizon (never black), a big full moon painted from a
+# real crater photo (textures/moon_disc.png) with only a faint violet halo, so it reads as a
+# moon and never a sun (designer, 2026-10-28: "the moon looks like a sun", the night "too
+# dull"), its path on the water, stars in the upper half, violet clouds lit from the moon, the
+# far city's windows lit. Painted deeper than meant: Roblox renders a sky paler (Day's note).
 COLOURS['night'] = {
-    'top': '#3B1D7A',
-    'mid': '#7A3FA8',
-    'horizon': '#E08AD8',
-    'glow': '#FFE6F4',
-    'glow_from': 'night',  # the glow and the sea's path round the moon, not the sunset sun
-    'glow_lobes': ((3.0, 0.35, '#F0A0E0'), (20.0, 0.45, '#F8C8F0'), (160.0, 0.6, '#FFE6F4')),
-    'moon': (3.6, 0.5, '#FFF1D6'),  # (radius and soft edge in degrees, colour): the disc
-    'stars': (0.35, '#FFF6FF'),  # (share of the cells holding a star, colour)
-    'sea': '#3A2A82',
-    'sea_glow': '#D8B8F0',  # the moon's path on the sea
+    'top': '#1C0858',
+    'mid': '#4E16A0',
+    'horizon': '#B03ABE',
+    'glow': '#C890E8',
+    'glow_from': 'night',  # the halo and the sea's path round the moon, not the sunset sun
+    # A broad violet lift on the moon's side of the sky and a faint halo just past its rim.
+    'glow_lobes': ((8.0, 0.22, '#7A3CC8'), (120.0, 0.3, '#C890E8')),
+    # (radius in degrees, image, tint): the photo moon, a touch cool so it never reads warm
+    'moon': (6.0, 'moon_disc.png', (0.9, 0.88, 0.98)),
+    'stars': (0.4, '#FFF6FF'),  # (share of the cells holding a star, colour)
+    'sea': '#24106E',
+    'sea_glow': '#A880E0',  # the moon's path on the sea
     'sea_path': 30.0,
     'sea_path_fade': 0.25,
-    'land': '#3E2E66',
-    'cloud_lit': '#F6D0F2',
-    'cloud_mid': '#C07ACC',
-    'cloud_shade': '#6A3E96',
-    'far_haze': '#9A5AB4',
-    'light_tint_ambient': (0.72, 0.62, 1.0),
-    'light_tint_sun': (1.0, 0.9, 1.15),
+    'land': '#2A1A5A',
+    'cloud_lit': '#D8A0F0',
+    'cloud_mid': '#8E46C0',
+    'cloud_shade': '#3E1A7A',
+    'far_haze': '#6A2EA0',
+    'light_tint_ambient': (0.66, 0.52, 1.0),
+    'light_tint_sun': (0.95, 0.85, 1.2),
     'windows': '#FFD27A',
 }
 
@@ -226,7 +230,7 @@ def world(scene, c):
     if 'stars' in c:
         sky_out = stars(t, coord, sep, c, sky_out)
     if 'moon' in c:
-        sky_out = moon_disc(t, coord, c, sky_out)
+        sky_out = moon_image(t, coord, c, sky_out)
     below = t.nodes.new('ShaderNodeMapRange')
     below.clamp = True
     below.inputs['From Min'].default_value = 0.0
@@ -284,39 +288,58 @@ def sun_glow(t, coord, c, colour):
     return colour
 
 
-def moon_disc(t, coord, c, colour):
-    """The full moon (Night): c['moon'] = (radius, soft edge, colour) in degrees, a disc toward
-    SUN['night'] with a soft rim and faint darker maria, so it reads as a moon."""
-    radius, soft, hue = c['moon']
+def moon_image(t, coord, c, colour):
+    """The full moon (Night): c['moon'] = (radius in degrees, image in textures/, tint). The
+    image (a disc filling its square, alpha outside it) is laid on the sky toward SUN['night']
+    by a gnomonic projection: a ray d lands at (d.right, d.up) / (d.moon) on the plane
+    tangent to the sky there, scaled so the disc's edge is the radius."""
+    radius, image, tint = c['moon']
     moon = Vector(mc.rb(SUN['night'])).normalized()
-    dot = t.nodes.new('ShaderNodeVectorMath')
-    dot.operation = 'DOT_PRODUCT'
-    dot.inputs[1].default_value = moon
-    t.links.new(coord.outputs['Generated'], dot.inputs[0])
-    disc = t.nodes.new('ShaderNodeMapRange')
-    disc.clamp = True
-    disc.inputs['From Min'].default_value = math.cos(math.radians(radius + soft))
-    disc.inputs['From Max'].default_value = math.cos(math.radians(radius))
-    t.links.new(dot.outputs['Value'], disc.inputs['Value'])
-    face = t.nodes.new('ShaderNodeMix')
-    face.data_type = 'RGBA'
-    face.inputs['A'].default_value = linear(hue)
-    face.inputs['B'].default_value = linear('#E2CCC0')
-    noise = t.nodes.new('ShaderNodeTexNoise')
-    noise.inputs['Scale'].default_value = 35.0
-    noise.inputs['Detail'].default_value = 1.0
-    t.links.new(coord.outputs['Generated'], noise.inputs['Vector'])
-    blotch = t.nodes.new('ShaderNodeMapRange')
-    blotch.clamp = True
-    blotch.inputs['From Min'].default_value = 0.52
-    blotch.inputs['From Max'].default_value = 0.62
-    blotch.inputs['To Max'].default_value = 0.3
-    t.links.new(noise.outputs['Fac'], blotch.inputs['Value'])
-    t.links.new(blotch.outputs['Result'], face.inputs['Factor'])
+    right = moon.cross(Vector((0.0, 0.0, 1.0))).normalized()  # the viewer's right, facing the moon
+    up = right.cross(moon)
+    half = math.tan(math.radians(radius))
+
+    def along(axis):
+        dot = t.nodes.new('ShaderNodeVectorMath')
+        dot.operation = 'DOT_PRODUCT'
+        dot.inputs[1].default_value = axis
+        t.links.new(coord.outputs['Generated'], dot.inputs[0])
+        return dot.outputs['Value']
+
+    toward = along(moon)
+    uv = t.nodes.new('ShaderNodeCombineXYZ')
+    for axis, slot in ((right, 'X'), (up, 'Y')):
+        flat = math_node(t, 'DIVIDE')
+        t.links.new(along(axis), flat.inputs[0])
+        t.links.new(toward, flat.inputs[1])
+        scaled = math_node(t, 'MULTIPLY_ADD', b=0.5 / half)
+        scaled.inputs[2].default_value = 0.5
+        t.links.new(flat.outputs[0], scaled.inputs[0])
+        t.links.new(scaled.outputs[0], uv.inputs[slot])
+    tex = t.nodes.new('ShaderNodeTexImage')
+    tex.image = bpy.data.images.load(os.path.join(HERE, 'textures', image))
+    tex.image.alpha_mode = 'STRAIGHT'
+    tex.interpolation = 'Cubic'
+    tex.extension = 'CLIP'
+    t.links.new(uv.outputs['Vector'], tex.inputs['Vector'])
+    front = t.nodes.new('ShaderNodeMapRange')  # only the half of the sky facing the moon
+    front.clamp = True
+    front.inputs['From Min'].default_value = 0.0
+    front.inputs['From Max'].default_value = 0.01
+    t.links.new(toward, front.inputs['Value'])
+    amount = math_node(t, 'MULTIPLY')
+    t.links.new(tex.outputs['Alpha'], amount.inputs[0])
+    t.links.new(front.outputs['Result'], amount.inputs[1])
+    tinted = t.nodes.new('ShaderNodeMix')
+    tinted.data_type = 'RGBA'
+    tinted.blend_type = 'MULTIPLY'
+    tinted.inputs['Factor'].default_value = 1.0
+    tinted.inputs['B'].default_value = (*tint, 1.0)
+    t.links.new(tex.outputs['Color'], tinted.inputs['A'])
     mix = t.nodes.new('ShaderNodeMix')
     mix.data_type = 'RGBA'
-    t.links.new(face.outputs['Result'], mix.inputs['B'])
-    t.links.new(disc.outputs['Result'], mix.inputs['Factor'])
+    t.links.new(tinted.outputs['Result'], mix.inputs['B'])
+    t.links.new(amount.outputs[0], mix.inputs['Factor'])
     t.links.new(colour, mix.inputs['A'])
     return mix.outputs['Result']
 
