@@ -264,6 +264,7 @@ function Progression.start(screen: ScreenGui, hooks: Hooks)
 	UISound.preload()
 	ItemState.start() -- early, so the snapshots sent on load are heard
 	SettingsState.start() -- the switches (sound groups, Lower effects) and the seen moments
+	require(script.Parent.Halloween.State).start() -- the Halloween event's view (hw-core)
 	Music.start() -- the background music (its Settings row: the Music group)
 	money = MoneyHud.new(screen)
 	-- The boost pill over the money pill in the VIP tag's place (Halloween 2026, hw-gui lane;
@@ -327,6 +328,10 @@ function Progression.start(screen: ScreenGui, hooks: Hooks)
 	TradeMenu.new(screen, deps)
 	FreeRewardMenu.new(screen, deps)
 	DailyRewardsMenu.new(screen, deps)
+	require(script.Parent.Halloween.EventMenu).new(screen, deps) -- the Halloween event (hw-core)
+	require(script.Parent.Halloween.CandyToast).new(screen, deps) -- its Candy chips and cue cards
+	require(script.Parent.Halloween.Countdown).new(screen) -- 18:30-19:00 and the start
+	require(script.Parent.Halloween.EndScreen).start(screen) -- the end: Candy became money
 	SettingsMenu.new(screen, deps)
 	-- Held rank rewards: the claim block over the roadmap (the tutorial lane).
 	RankClaimBlock.new(screen, deps, function(): boolean

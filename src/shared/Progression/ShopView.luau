@@ -29,6 +29,7 @@ local LIST: {
 		Deal: string?,
 		Blocks: { Kind: string, Count: number }?,
 		ClaimAll: number?,
+		Candy: number?, -- a Halloween Candy pack (Shop.packsOpen)
 	},
 } =
 	Config.Products.List :: any
@@ -59,6 +60,9 @@ export type Context = {
 	-- The Claim All product for this player's login row today (Daily.claimAllOffer); nil:
 	-- nothing of the row is left. Every other Claim All product is Closed.
 	claimAll: string?,
+	-- The Halloween clock (Halloween/Clock.serverNow: Studio's /hw test time) for the Candy
+	-- packs' window; nil: `now`.
+	hwNow: number?,
 }
 
 -- The restock shown, timed by the real restock's window (a /restock forced one is shown only
@@ -261,6 +265,10 @@ function ShopView.check(key: string, ctx: Context): string?
 	local vip = ShopView.isVip(ctx)
 	-- A deal product (the Grand Opening block) only inside its deal's window.
 	if row.Deal ~= nil and not Shop.deal(row.Deal, ctx.now).open then
+		return "Closed"
+	end
+	-- A Halloween Candy pack only while the packs are on and the event is Live.
+	if row.Candy ~= nil and not Shop.packsOpen(ctx.hwNow or ctx.now) then
 		return "Closed"
 	end
 	-- Blocks need room in the hotbar ("Full": Config.LuckyBlocks.MaxBlocks).

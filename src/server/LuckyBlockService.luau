@@ -917,8 +917,9 @@ local function handle(player: Player, action: any, a: any, b: any): Reply
 		return refuse("Busy")
 	end
 	-- A roaming player (Config.Multiplayer.Roam) can reach a landed block mid-match: no reel
-	-- while their game is on, so it never covers the table when their turn starts.
-	if request.action == "Open" then
+	-- while their game is on, so it never covers the table when their turn starts. Roam off:
+	-- the fence keeps them by their table, and opening works as it did before.
+	if request.action == "Open" and Config.Multiplayer.Roam.Enabled then
 		local tableId = Tables.tableOf(player)
 		local state = if tableId then Tables.get(tableId) else nil
 		local phase = state and state.engine.phase

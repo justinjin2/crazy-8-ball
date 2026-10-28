@@ -131,7 +131,7 @@ local cueStick = CueStickBuilder.build(visuals)
 -- Cue looks: the stick is the player's equipped cue, repainted whenever they equip another.
 CueStickBuilder.wear(cueStick, player)
 -- Its skin's look with the full aura (designer, 2026-10-01: the aura shows in the hands too).
-CueSkinLook.attach(cueStick, { aura = true })
+CueSkinLook.attach(cueStick, { aura = true, own = true }) -- own: a body's Aim joints clear while aiming
 -- Everyone's cue on their back, hidden while it is in their hands (updated after the frame).
 local backCue = BackCue.new(visuals)
 local avatar = Avatar.new()

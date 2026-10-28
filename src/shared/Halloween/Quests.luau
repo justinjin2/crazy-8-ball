@@ -165,8 +165,8 @@ function Quests.claimable(
 ): { Quest }
 	local list: { Quest } = {}
 	for n = 1, math.min(open, Quests.count()) do
-		local list: { Quest } = Quests.board(n, hooks) or {}
-		for _, quest in list do
+		local board: { Quest } = Quests.board(n, hooks) or {}
+		for _, quest in board do
 			if claimed[quest.key] ~= true and Quests.done(q, quest) then
 				table.insert(list, quest)
 			end

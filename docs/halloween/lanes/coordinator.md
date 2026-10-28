@@ -61,6 +61,9 @@ From PLAN §4 (lanes ask for these through their own lane file's Requests):
   Verify it at the 07:30 Progress line; do not redo it.
 - 09:21 Gate 1 page published (private): "Halloween Gates" https://claude.ai/artifact/R2zt2CDfJeU5wuJp7VvMXA (slug c2a2bdc0-a441-4a0c-8479-0585a4bd07ad, v 1793193675-635a); builder `~/Desktop/8ball-refs/halloween/shots/coordinator/gate/build.py gate1|gate2`. Five asks to Justin: icons, event text, title, store schedule yes, gui's +0% pill.
 - 09:55 Merged core interface 2 (7f01d27b), sys 4cdf5620, gui f2562efb -> 82ab885c; review workflow wf_209d4f07-82b (9 agents): 18 confirmed findings, none blocking with switches as they are; posted to each lane (core 6, sys 5, gui 5). Hand-resolved additive conflicts: SaveSchema/save_schema_test (core vs sys Badges), Ranking requires. Lint OK, 1,404 tests, Studio play clean (pill +120%). Pushed before the Studio check (order slip; check passed). Release checklist must carry: gui's Soft-step VIP confirmation fix; core's EventButton boot error and pad blur before Halloween.Enabled tiles show at 19:00.
+- 11:36 Merged cues-a 83e876db (drop 3 37573b2c through ed8b7ca3: cue bodies, Bodies.Enabled, Candy Corn + Jack-o'-Lantern out of draft, Upright, analytics, Aim-fade), core 3c4b87aa (READY 10:16: menu, tile, quests, Spider, packs, art, funnel), sys c5b6b607 (FINAL fe78db7a) and gui 3438ea94 (FINAL 1dc99f84) -> `halloween` @537270fd, pushed. Only conflict: tools/upload_manifest.json (union, 984 rows, sort_keys). Lint OK, Main.client headroom 12, 1,436 tests, Team Create play console clean (only the old 203785492 lines), tile + Rush chip + pill +120% seen (shots/coordinator/merge_537270fd_lobby.jpg). Review workflow wf_055b7a55-6ba runs after the push (see Assumptions). Lanes told (Status line in all six; cues-b by message).
+- 11:39 Gate 2 page published on the same artifact (v 1793201977-1533): 127 lane shots, the six gate-1 asks still open + a 7th (keep the lanes' four OVERRULED calls?). Justin back at 11:33.
+- Late: the coordinator stopped at 09:51 for Justin's gate-1 answers and sat idle until 11:30, so drop 3 (MERGE NOW 09:45) went in 1 h 50 min late and cues-b waited on it. From now on a stop for Justin keeps a background watch on lane READY lines.
 
 ## Shared-file changes
 
@@ -70,5 +73,7 @@ None yet. Only if Cues A has no ONLY filter by 14:30: that one small commit to
 ## Requests
 
 ## Assumptions
+
+- 11:36 Merged and pushed cues-a/core/sys/gui once lint, tests and the Studio check passed, before the review workflow returned. Cues-b had been blocked on drop 3 since 09:45, every new feature sits behind a Config switch, and nothing publishes before Justin's 18:30 walk-through. Review findings go to the owning lane as Requests, and any blocker is fixed and merged before the 17:00 freeze.
 
 ## Gate shots

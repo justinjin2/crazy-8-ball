@@ -1,0 +1,959 @@
+{
+  "id": "candy_corn",
+  "name": "Candy Corn",
+  "tier": "Epic",
+  "draft": false,
+  "catalog_id": "CandyCornCue",
+  "note": "Halloween 2026 track cue (150 Candy). Drawn by its own body piece (candy_corn): a kernel tip, cream shaft, barber-pole wrap, orange forearm, yellow handle, a candy-corn bulb; three kernels turn above the joint. Lane hw-cues-a, 2026-10-28.",
+  "body": "candy_corn",
+  "maps_from": "classic",
+  "look": {
+    "Shaft": "#FFF4E2",
+    "Forearm": "#FF7A12",
+    "Wrap": "#FFD21E",
+    "Ring": "#FF7A12",
+    "Tip": "#FFFFFF",
+    "Cap": "#FFD21E",
+    "Accent": "#FFFFFF"
+  },
+  "vfx": {
+    "Moving": {
+      "Kind": "Body motion",
+      "Note": "All on the body piece: the barber-pole wrap turns (Spin 90 deg/s, 4 s a turn), the three kernels orbit the joint (Spin 138 deg/s, 2.6 s), the kernel tip glows (Glow 1.6 s)."
+    },
+    "Aura": {
+      "Note": "A candy-shop sparkle: a dim warm haze behind, floating candy corns tumbling slowly round the cue (the kernel flipbook rendered from the body kernel), sugar sparkles white-hot to orange to yellow, crackle sparks falling, one gold swirl riding round the shaft with a glowing head, one warm light. Epic: about 70 particles a second, 1 light, 1 orbiter, no beam.",
+      "BackRateScale": 0.5,
+      "Emitters": [
+        {
+          "Name": "WarmHaze",
+          "Texture": "vfx/_shared/smoke_8x8.png",
+          "FlipbookLayout": "Grid8x8",
+          "FlipbookMode": "OneShot",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.3,
+            "ToStuds": 7.0,
+            "Width": 0.8,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Volume"
+          },
+          "LightInfluence": 0,
+          "LockedToPart": true,
+          "Rate": 10,
+          "Lifetime": [
+            1.2,
+            1.8
+          ],
+          "Speed": [
+            0.1,
+            0.3
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Drag": 1.2,
+          "Size": [
+            [
+              0,
+              0.6
+            ],
+            [
+              1,
+              1.5
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.2,
+              0.72
+            ],
+            [
+              0.7,
+              0.84
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Rotation": [
+            0,
+            360
+          ],
+          "RotSpeed": [
+            -15,
+            15
+          ],
+          "Color": [
+            [
+              0,
+              "#6A3410"
+            ],
+            [
+              1,
+              "#3A1A06"
+            ]
+          ],
+          "LightEmission": 0
+        },
+        {
+          "Name": "SugarGlow",
+          "Texture": "vfx/v2/dust.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.3,
+            "ToStuds": 7.0,
+            "Width": 0.5,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Surface"
+          },
+          "Rate": 12,
+          "Lifetime": [
+            0.8,
+            1.3
+          ],
+          "Speed": [
+            0.05,
+            0.2
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Drag": 1,
+          "Size": [
+            [
+              0,
+              0.25
+            ],
+            [
+              1,
+              0.5
+            ]
+          ],
+          "Rotation": [
+            0,
+            360
+          ],
+          "Transparency": [
+            [
+              0,
+              0.35
+            ],
+            [
+              0.5,
+              0.45
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": [
+            [
+              0,
+              "#FFFFFF"
+            ],
+            [
+              0.5,
+              "#FFC040"
+            ],
+            [
+              1,
+              "#FF8A1A"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": true,
+          "Brightness": 0.9
+        },
+        {
+          "Name": "Kernels",
+          "Texture": "vfx/candy_corn/kernel_4x4.png",
+          "FlipbookLayout": "Grid4x4",
+          "FlipbookMode": "Loop",
+          "FlipbookFramerate": 10,
+          "FlipbookStartRandom": true,
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.3,
+            "ToStuds": 7.0,
+            "Width": 0.95,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Volume"
+          },
+          "Rate": 14,
+          "Lifetime": [
+            1.6,
+            2.4
+          ],
+          "Speed": [
+            0.1,
+            0.25
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Drag": 0.8,
+          "Acceleration": [
+            0,
+            0.12,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.2
+            ],
+            [
+              1,
+              0.26
+            ]
+          ],
+          "Rotation": [
+            0,
+            360
+          ],
+          "RotSpeed": [
+            -40,
+            40
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.1,
+              0
+            ],
+            [
+              0.85,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 0.35,
+          "LightInfluence": 0.2,
+          "LockedToPart": false
+        },
+        {
+          "Name": "Sugar",
+          "Texture": "vfx/_shared/star4.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.3,
+            "ToStuds": 7.0,
+            "Width": 0.4,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Surface"
+          },
+          "Rate": 20,
+          "Lifetime": [
+            0.3,
+            0.6
+          ],
+          "Speed": [
+            0,
+            0.1
+          ],
+          "Size": [
+            [
+              0,
+              0
+            ],
+            [
+              0.5,
+              0.2
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0
+            ]
+          ],
+          "Color": [
+            [
+              0,
+              "#FFFFFF"
+            ],
+            [
+              0.5,
+              "#FFB030"
+            ],
+            [
+              1,
+              "#FFD21E"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": true,
+          "Brightness": 1.8
+        },
+        {
+          "Name": "Crackle",
+          "Texture": "vfx/_shared/spark.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.3,
+            "ToStuds": 7.0,
+            "Width": 0.42,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Surface"
+          },
+          "Rate": 12,
+          "Lifetime": [
+            0.5,
+            0.9
+          ],
+          "Speed": [
+            0.6,
+            1.4
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Drag": 1.5,
+          "Acceleration": [
+            0,
+            -5,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.1
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Transparency": 0,
+          "Color": [
+            [
+              0,
+              "#FFFFFF"
+            ],
+            [
+              0.5,
+              "#FFC030"
+            ],
+            [
+              1,
+              "#FF7A1A"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "Brightness": 3
+        }
+      ],
+      "Orbiters": [
+        {
+          "Name": "GoldSwirl",
+          "FromStuds": 0.3,
+          "ToStuds": 7.0,
+          "TravelSeconds": 2.4,
+          "Loop": "pingpong",
+          "TurnsPerSecond": 1.4,
+          "Radius": 0.32,
+          "Phase": 0,
+          "Trail": {
+            "Lifetime": 0.9,
+            "WidthStuds": 0.14,
+            "Color": [
+              [
+                0,
+                "#FFF2C0"
+              ],
+              [
+                1,
+                "#FFB020"
+              ]
+            ],
+            "Transparency": [
+              [
+                0,
+                0.05
+              ],
+              [
+                0.7,
+                0.35
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "WidthScale": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                0.5
+              ]
+            ],
+            "LightEmission": 1,
+            "Texture": "vfx/firework/sparkle_strip.png",
+            "TextureMode": "Wrap",
+            "TextureLength": 0.5
+          },
+          "Head": {
+            "Texture": "vfx/_shared/glow_soft.png",
+            "Size": 0.26,
+            "Transparency": 0.2,
+            "Color": "#FFE0A0",
+            "LightEmission": 1,
+            "Brightness": 2.5
+          }
+        }
+      ],
+      "Lights": [
+        {
+          "Color": "#FFB347",
+          "Brightness": 0.45,
+          "Range": 7
+        }
+      ]
+    },
+    "Style": {
+      "Trail": {
+        "Colors": [
+          [
+            255,
+            214,
+            120
+          ],
+          [
+            255,
+            150,
+            40
+          ]
+        ],
+        "NearTransparency": 0.0,
+        "Lifetime": 1.1,
+        "WidthStuds": 0.4,
+        "LightEmission": 0.6,
+        "Texture": "vfx/firework/sparkle_strip.png",
+        "TextureMode": "Wrap",
+        "TextureLength": 1.0,
+        "WidthScale": [
+          [
+            0,
+            0.7
+          ],
+          [
+            0.3,
+            1.0
+          ],
+          [
+            1,
+            0.6
+          ]
+        ],
+        "Transparency": [
+          [
+            0,
+            0.0
+          ],
+          [
+            0.6,
+            0.15
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "Brightness": 1.3,
+        "Core": {
+          "Color": [
+            255,
+            250,
+            235
+          ],
+          "Width": 0.16,
+          "NearTransparency": 0.0,
+          "LightEmission": 1,
+          "Transparency": [
+            [
+              0,
+              0.0
+            ],
+            [
+              0.5,
+              0.15
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "WidthScale": [
+            [
+              0,
+              1
+            ],
+            [
+              0.6,
+              0.75
+            ],
+            [
+              1,
+              0.4
+            ]
+          ],
+          "Brightness": 2.0
+        }
+      },
+      "Pocket": {
+        "Colors": [
+          [
+            255,
+            122,
+            18
+          ],
+          [
+            255,
+            210,
+            30
+          ]
+        ],
+        "ColorShare": 1
+      }
+    },
+    "Trail": {
+      "Note": "A gold sparkle streamer with a thin white core (smaller than Jack's); the ball sheds tumbling kernels that fall, and white, yellow and orange sugar dots.",
+      "Emitters": [
+        {
+          "Name": "TumblingKernels",
+          "Texture": "vfx/candy_corn/kernel_4x4.png",
+          "FlipbookLayout": "Grid4x4",
+          "FlipbookMode": "Loop",
+          "FlipbookFramerate": 12,
+          "FlipbookStartRandom": true,
+          "Host": {
+            "Kind": "Point"
+          },
+          "Rate": 10,
+          "Lifetime": [
+            0.5,
+            0.9
+          ],
+          "Speed": [
+            0.8,
+            1.8
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Drag": 1.2,
+          "Acceleration": [
+            0,
+            -7,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.14
+            ],
+            [
+              1,
+              0.12
+            ]
+          ],
+          "Rotation": [
+            0,
+            360
+          ],
+          "RotSpeed": [
+            -200,
+            200
+          ],
+          "Transparency": [
+            [
+              0,
+              0
+            ],
+            [
+              0.8,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 0.15,
+          "LightInfluence": 0.3
+        },
+        {
+          "Name": "SugarDots",
+          "Texture": "vfx/_shared/spark.png",
+          "Host": {
+            "Kind": "Point"
+          },
+          "Rate": 18,
+          "Lifetime": [
+            0.3,
+            0.7
+          ],
+          "Speed": [
+            0.5,
+            1.5
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Drag": 2,
+          "Acceleration": [
+            0,
+            -4,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.06
+            ],
+            [
+              1,
+              0.03
+            ]
+          ],
+          "Transparency": 0,
+          "Color": [
+            [
+              0,
+              "#FFFFFF"
+            ],
+            [
+              0.5,
+              "#FFD21E"
+            ],
+            [
+              1,
+              "#FF7A12"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "Brightness": 2
+        }
+      ]
+    },
+    "Pocket": {
+      "Note": "About 1.1 s, no piece (Epic): a warm flash and an orange then a yellow ring on the cloth, a gold spark fountain, a dozen kernels tumbling up and falling, sprinkle rods in the three colours, a short glitter fall.",
+      "Flash": {
+        "Color": [
+          255,
+          170,
+          60
+        ]
+      },
+      "Rings": [
+        {
+          "Texture": "vfx/_shared/ring.png",
+          "Color": "#FF7A12",
+          "Start": 0.6,
+          "End": 3.4,
+          "Seconds": 0.45,
+          "Delay": 0.0
+        },
+        {
+          "Texture": "vfx/_shared/ring.png",
+          "Color": "#FFD21E",
+          "Start": 0.6,
+          "End": 2.6,
+          "Seconds": 0.4,
+          "Delay": 0.12
+        }
+      ],
+      "Layers": [
+        {
+          "Name": "Fountain",
+          "Texture": "vfx/_shared/spark.png",
+          "Host": {
+            "Kind": "Point",
+            "Size": 0.3
+          },
+          "Burst": 40,
+          "Delay": 0.0,
+          "Lifetime": [
+            0.6,
+            0.9
+          ],
+          "Speed": [
+            6,
+            11
+          ],
+          "SpreadAngle": [
+            20,
+            20
+          ],
+          "EmissionDirection": "Top",
+          "Drag": 1.0,
+          "Acceleration": [
+            0,
+            -14,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.1
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Transparency": 0,
+          "Color": [
+            [
+              0,
+              "#FFFFFF"
+            ],
+            [
+              0.3,
+              "#FFD040"
+            ],
+            [
+              1,
+              "#FF7A1A"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "Brightness": 4
+        },
+        {
+          "Name": "Kernels",
+          "Texture": "vfx/candy_corn/kernel_4x4.png",
+          "FlipbookLayout": "Grid4x4",
+          "FlipbookMode": "Loop",
+          "FlipbookFramerate": 12,
+          "FlipbookStartRandom": true,
+          "Host": {
+            "Kind": "Point",
+            "Size": 0.3
+          },
+          "Burst": 12,
+          "Delay": 0.05,
+          "Lifetime": [
+            0.9,
+            1.2
+          ],
+          "Speed": [
+            5,
+            8
+          ],
+          "SpreadAngle": [
+            30,
+            30
+          ],
+          "EmissionDirection": "Top",
+          "Drag": 0.6,
+          "Acceleration": [
+            0,
+            -16,
+            0
+          ],
+          "Size": 0.22,
+          "Rotation": [
+            0,
+            360
+          ],
+          "RotSpeed": [
+            -300,
+            300
+          ],
+          "Transparency": [
+            [
+              0,
+              0
+            ],
+            [
+              0.85,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 0.2,
+          "LightInfluence": 0.3
+        },
+        {
+          "Name": "Rods",
+          "Texture": "vfx/candy_corn/rods_4x4.png",
+          "FlipbookLayout": "Grid4x4",
+          "FlipbookMode": "Loop",
+          "FlipbookFramerate": 0,
+          "FlipbookStartRandom": true,
+          "Host": {
+            "Kind": "Point",
+            "Size": 0.3
+          },
+          "Burst": 24,
+          "Delay": 0.08,
+          "Lifetime": [
+            0.7,
+            1.0
+          ],
+          "Speed": [
+            4,
+            8
+          ],
+          "SpreadAngle": [
+            40,
+            40
+          ],
+          "EmissionDirection": "Top",
+          "Drag": 0.6,
+          "Acceleration": [
+            0,
+            -14,
+            0
+          ],
+          "Size": 0.16,
+          "Rotation": [
+            0,
+            360
+          ],
+          "RotSpeed": [
+            -400,
+            400
+          ],
+          "Transparency": [
+            [
+              0,
+              0
+            ],
+            [
+              0.85,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 0.3,
+          "LightInfluence": 0.3
+        },
+        {
+          "Name": "Glitter",
+          "Texture": "vfx/v2/dust.png",
+          "Host": {
+            "Kind": "Point",
+            "Size": 0.6,
+            "Offset": [
+              0,
+              2.4,
+              0
+            ]
+          },
+          "Burst": 30,
+          "Delay": 0.25,
+          "Lifetime": [
+            0.6,
+            0.9
+          ],
+          "Speed": [
+            0.5,
+            2
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Drag": 1,
+          "Acceleration": [
+            0,
+            -3,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.2
+            ],
+            [
+              1,
+              0.35
+            ]
+          ],
+          "Rotation": [
+            0,
+            360
+          ],
+          "Transparency": [
+            [
+              0,
+              0.2
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": [
+            [
+              0,
+              "#FFFFFF"
+            ],
+            [
+              1,
+              "#FFD21E"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0
+        }
+      ],
+      "Sound": {
+        "Asset": "rbxassetid://9119669295",
+        "Volume": 0.3,
+        "Note": "Roblox library: Pro Sound Effects \"Suction Pop 2\" (0.6 s), loads in Studio (PreloadAsync Success)"
+      }
+    },
+    "Budget": {
+      "ParticlesPerSecond": 72,
+      "Back": 36,
+      "Beams": 0,
+      "Lights": 1,
+      "Orbiters": 1,
+      "Note": "Trail 28/s while the ball moves; the finisher bursts 106 once."
+    }
+  }
+}

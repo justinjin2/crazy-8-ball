@@ -44,6 +44,7 @@ local ShopParts = require(script.Parent.ShopParts)
 local TutorialAnchors = require(script.Parent.TutorialAnchors)
 local UIAnim = require(script.Parent.UIAnim)
 local UISound = require(script.Parent.UISound)
+local EventButton = require(script.Parent.Halloween.EventButton) -- Halloween 2026 (hw-core)
 
 local C = Config.UI.Corners
 local U = Config.UI.Settings
@@ -300,7 +301,6 @@ function HubCorners.new(screen: ScreenGui, deps: any): any
 		rays.Rotation = (clock * K.Motion.RaysDegreesPerSecond) % 360
 	end)
 	self.offerRays = rays
-
 	-- The soft part's click-once "!" (setFresh): a red dot on the challenge's top-right corner.
 	-- The offer tile has none (designer, 2026-10-10: busy enough with its timer and X).
 	self.fresh = {} :: { [string]: Frame }
@@ -409,6 +409,9 @@ function HubCorners.new(screen: ScreenGui, deps: any): any
 			task.wait(1)
 		end
 	end)
+	-- The Halloween event's tile (hw-core): the challenge's spot, or next to the offer tile. Built
+	-- last, once everything its layout reads exists.
+	self.eventTile = EventButton.new(root, self)
 	self:refreshPlus()
 	self:refreshOffers()
 	self:layout()
@@ -683,6 +686,28 @@ function HubCorners.layout(self: any)
 		round(offerY - offerPx / 2 + dismissPx * C.DismissInShare)
 	)
 	self.offerDismiss.Visible = offer.button.Visible
+	if self.eventTile then
+		-- The Halloween tile (hw-core): placed against the offer tile's whole box while it shows.
+		local absX = size.X + centreX
+		local offerTop = offerY
+			- offerPx / 2
+			+ C.TimerPillAt[2] * offerPx
+			- (if short then C.ShortTimerPillPx else C.TimerPillPx) / 2
+		local offerBottom = offerY - offerPx / 2 + wordBottom + dealPx + pricePx + 6
+		self.eventTile:layout(
+			size,
+			short,
+			absX,
+			if offer.button.Visible
+				then {
+					x = absX - 1.2 * offerPx,
+					y = offerTop,
+					w = 2.4 * offerPx,
+					h = offerBottom - offerTop,
+				}
+				else nil
+		)
+	end
 	for _, dot in self.fresh do
 		dot.Size = UDim2.fromOffset(wordPx + 12, wordPx + 8)
 	end
@@ -787,6 +812,7 @@ function HubCorners.padStops(self: any): { GuiObject }
 	local stops: { GuiObject } = {}
 	for _, button in
 		{
+			self.eventTile.button, -- the Halloween tile first (hw-core)
 			self.challenge.button,
 			self.offerTile.button,
 			self.offerDismiss,
@@ -837,6 +863,7 @@ function HubCorners.blurPad(self: any)
 			self.inviteTile.button,
 			self.plusTile.button,
 			self.deps.boostPill and self.deps.boostPill.tag, -- the boost pill (hw-gui lane)
+			self.eventTile.button, -- the Halloween tile (hw-core)
 		} :: { GuiObject }
 	do
 		button.Selectable = false

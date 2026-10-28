@@ -3776,11 +3776,11 @@ Config.Halloween = {
 	-- through Money.friendBoost / Money.boostParts; added to each other, never multiplied.
 	-- The Candy icon (candy corn, 256 px): map's +1 / +50 billboards, the GUI lane's chip and the
 	-- event menu read it. "" = each uses its own fallback.
-	CandyIcon = "",
+	CandyIcon = "rbxassetid://75949906210202",
 	-- Match Candy at settle (Halloween/CandyMath; real matches against people only): PerBall a
 	-- ball pocketed, Finished for a match the player's side did not forfeit, Win on top for a
 	-- win; times the event multiplier and the friends + group boost.
-	Match = { Enabled = false, PerBall = 3, Finished = 10, Win = 25 },
+	Match = { Enabled = true, PerBall = 3, Finished = 10, Win = 25 },
 	-- Beating the Pumpkin King: the first PaidWinsPerDay wins of a UTC day pay Candy (flat);
 	-- every win starts a personal cooldown of CooldownSeconds (the King's prompt shows it).
 	Boss = { Candy = 50, PaidWinsPerDay = 2, CooldownSeconds = 900 },
@@ -3794,7 +3794,7 @@ Config.Halloween = {
 	-- the pickups switched off in Config.HalloweenMap, or no ability signal). Icon: a key of
 	-- Config.UI.Halloween.QuestIcons. Order and needs: docs/halloween/lanes/hw-core.md.
 	Quests = {
-		Enabled = false,
+		Enabled = true,
 		Rewards = { 60, 100, 150, 250 },
 		Boards = {
 			{ -- 1, Wed Oct 28
@@ -3810,14 +3810,19 @@ Config.Halloween = {
 			},
 			{ -- 2, Thu Oct 29
 				{ Kind = "TeamMatches", Need = 1, Icon = "Team" },
-				{ Kind = "King", Need = 1, Icon = "King", Alt = { Kind = "Wins", Need = 2 } },
+				{ Kind = "King", Need = 1, Icon = "King", Alt = { Kind = "Matches", Need = 4 } },
 				{ Kind = "Wins", Need = 2, Icon = "Win" },
 				{ Kind = "Balls", Need = 30, Icon = "Ball" },
 			},
 			{ -- 3, Fri Oct 30
-				{ Kind = "NiceShots", Need = 5, Icon = "Nice" },
-				{ Kind = "UltMatches", Need = 3, Icon = "Ult", Alt = { Kind = "Wins", Need = 3 } },
+				{
+					Kind = "UltMatches",
+					Need = 3,
+					Icon = "Ult",
+					Alt = { Kind = "Matches", Need = 5 },
+				},
 				{ Kind = "Wins", Need = 3, Icon = "Win" },
+				{ Kind = "NiceShots", Need = 5, Icon = "Nice" },
 				{
 					Kind = "Pickups",
 					Need = 30,
@@ -3878,12 +3883,13 @@ Config.Halloween = {
 	},
 	-- The playtime cue: Seconds of ACTIVE play while the event is Live (any server; idle time
 	-- does not count: SkyDropService.isActive), 3 h 01 m.
-	Spider = { Enabled = false, Cue = "SpiderCue", Seconds = 10860 },
+	Spider = { Enabled = true, Cue = "SpiderCue", Seconds = 10860 },
 	TickSeconds = 5, -- the server adds active time and retries held grants this often
 	PushSeconds = 2, -- at most one event view pushed to a player this often
+	ActivePushSeconds = 30, -- active time alone re-sends the view this often (the menu shows minutes)
 	-- The two Candy packs (Config.Products.List Candy500 / Candy2000; flat, fill the whole track,
 	-- not quests).
-	Packs = { Enabled = false, Keys = { "Candy500", "Candy2000" } },
+	Packs = { Enabled = true, Keys = { "Candy500", "Candy2000" } },
 	-- Once per save, once the event has ended: all Candy (earned + bought) becomes money.
 	Convert = { Enabled = true, MoneyPerCandy = 10 },
 	-- Test time (Halloween/Clock): the workspace attribute HwTimeOffset (seconds added to the
@@ -4096,8 +4102,8 @@ Config.Shop = {
 ---------------------------------------------------------------------------------------------
 Config.Products = {
 	-- Everything Robux buys (economy v4, 2026-10-08; tools/products_spec.json holds the names,
-	-- prices and descriptions): 3 game passes and 40 developer products (8 retired; Claim All's
-	-- 6 not made yet), made
+	-- prices and descriptions): 3 game passes and 44 developer products (9 retired; the two
+	-- Halloween Candy packs made 2026-10-28), made
 	-- through Open Cloud by tools/roblox_products.py (managed pricing off; --sync updates them). Id 0 would show "Coming soon" and prompt
 	-- nothing. Robux is the fallback price; the live price
 	-- is read from Roblox. Random = true: a paid random item, refused where PolicyService
@@ -4377,6 +4383,12 @@ Config.Products = {
 			SaleOf = "Mystery10",
 			Retired = true,
 		},
+		-- The Halloween 2026 Candy packs (Config.Halloween.Packs; made 2026-10-28): Candy is the
+		-- Halloween Candy one purchase adds to the save's Halloween.Bought, flat (no Rush, double
+		-- day, friends or group; no quest). Sold only while Packs.Enabled and the event is Live;
+		-- a receipt outside that pays Shop.fallbackMoney.
+		Candy500 = { Kind = "Product", Id = 3723285204, Robux = 49, Candy = 500 },
+		Candy2000 = { Kind = "Product", Id = 3723285208, Robux = 149, Candy = 2000 },
 	},
 }
 
@@ -6539,6 +6551,21 @@ Config.CueSkins = {
 	},
 }
 
+-- Halloween 2026 (lane hw-cues-a, 2026-10-28): cues drawn by their own model. A skin's Body
+-- (a ReplicatedStorage.CuePieces template) replaces the shared cue mesh, which is hidden; the
+-- body follows the stick's visibility and camera fade (never AuraOff, Lower effects or the
+-- quiet share), wears the outline and skips the ink ribbons. A missing body template draws
+-- the shared mesh in the skin's maps (Classic's) instead.
+Config.CueSkins.Bodies = {
+	Enabled = true, -- false: every body cue draws the shared mesh (switch; true only once verified)
+	Outline = true, -- false: body cues wear no outline Highlight (cut switch)
+	MaxParts = 8, -- a body's MeshParts, hard limit (tests/cue_body_test.luau; A's own aim at 6)
+	MaxOverhangStuds = 1.5, -- an Aim-fade joint's reach past the butt, cap (tests)
+	AimFadeSeconds = 0.25, -- an Aim-fade joint eases to clear and back over this (tune)
+	PastButtStuds = 0.3, -- how far a body may reach past the butt (tests)
+	TipSlackStuds = 0.01, -- a body must reach this close to the pivot (tests)
+}
+
 Config.Effects = {
 	-- Seconds for a pocketed ball to drop out of sight.
 	SinkDropSeconds = 0.35,
@@ -8257,7 +8284,7 @@ Config.Multiplayer = {
 		EscapeStuds = 2, -- a participant this far outside (clipped through) is put back inside
 	},
 	Roam = { -- in-match players walk anywhere while they wait (designer, 2026-10-28)
-		Enabled = false, -- true once the roam checks in HW_SYS_PROMPT section 4 pass; false = the fence for all
+		Enabled = true, -- in-match roaming (checks passed 2026-10-28); false = the fence for all, as before
 		HomeExtraStuds = 2, -- a shooter this far outside the match walls at turn start goes to the pad
 	},
 	-- The shooter's root on the server (TableService). While they aim, the anchored root
@@ -10099,7 +10126,7 @@ Config.UI.CuePreview = {
 	Tabs = { -- the camera per tab: focus offset from the stage centre, distance, pitch
 		Model = { Focus = { 0, 2, 0 }, Distance = 15, Pitch = 14 }, -- the cue (about 9 studs) floats over the cloth
 		Trail = { Focus = { 0, 0.5, 0 }, Distance = 8, Pitch = 30 },
-		Finisher = { Focus = { 0, 0.5, 0 }, Distance = 4.5, Pitch = 25 },
+		Finisher = { Focus = { 0, 1.5, 0 }, Distance = 9, Pitch = 28 }, -- a big finisher (Eclipse) fits whole
 	},
 	StrokeBackSeconds = 0.35,
 	StrokeHitSeconds = 0.1,
@@ -10112,6 +10139,40 @@ Config.UI.CuePreview = {
 	Backdrop = { 18, 22, 44 },
 	KeyLight = { Brightness = 3, Range = 30, Angle = 60 },
 	RimLight = { Color = { 150, 120, 255 }, Brightness = 2, Range = 20 },
+	-- The lively chrome, built by hand (not a LivelyMenus frame: its blur would blur the stage):
+	-- the header's 8-balls scroll and the sheet takes the dots (Config.UI.Menu.Lively), the
+	-- title's icon and the lit tab's icon rock (Lively.IconRockDegrees), the 8-ball flair sits on
+	-- the panel's left edge FlairDownShare of the way down (Lively.Flair*).
+	TitleIconShare = 0.8, -- the title's cue icon, a share of the header's height
+	ThumbMinPx = 60, -- the sheet's card picture shows only this tall or taller (not on a phone)
+	FlairDownShare = 0.85,
+	BackingFadeSeconds = 0.12, -- once unrolled, the solid panel fades off the window's hole
+	FoldTimeoutSeconds = 1, -- a close's fold is gone by then whatever happens
+	EntryShare = 0.42, -- My Cues' Preview button: this share of the Equip row (Equip the rest)
+	-- The open (Stage, Config.UI.Motion tokens): the veil fades, the panel unrolls, then its
+	-- pieces pop in; the flair drops on last. About 0.7 s; a close folds it back (0.15 s).
+	Open = {
+		OpenSeconds = 0.7,
+		Steps = {
+			{ Ids = { "Panel" }, Kind = "Unroll", At = 0 }, -- first: the fewest fields (the type)
+			{ Ids = { "Veil" }, Kind = "Fade", At = 0, Length = 0.15 },
+			{ Ids = { "Header" }, Kind = "Fade", At = 0.12, Length = 0.15 }, -- its 8-balls scroll
+			{ Ids = { "Icon", "Title", "Close" }, Kind = "Pop", At = 0.18 },
+			{ Ids = { "Name" }, Kind = "Pop", At = 0.2 },
+			{ Ids = { "Pill" }, Kind = "Pop", At = 0.24 },
+			{ Ids = { "Thumb" }, Kind = "Grow", At = 0.22 },
+			{ Ids = { "Note" }, Kind = "Fade", At = 0.3, Length = 0.12 },
+			{
+				Ids = { "TabModel", "TabTrail", "TabFinisher" },
+				Kind = "Pop",
+				At = 0.3,
+				Stagger = 1.25,
+			},
+			{ Ids = { "Equip" }, Kind = "Pop", At = 0.42 },
+			{ Ids = { "Hint" }, Kind = "Fade", At = 0.45, Length = 0.15 },
+			{ Ids = { "Flair" }, Kind = "Drop", At = 0.5 },
+		},
+	},
 }
 
 -- The economy's menus (2026-09-28, docs/prompts/ECONOMY_UI_PROMPT.md sections 5 and 5.1): the
@@ -10351,7 +10412,15 @@ Config.UI.Menu = {
 	-- 8-balls scroll, the white sheet has the still dots and an 8-ball sits on the top edge.
 	-- Menus not listed keep the kit frame (pop in, still pattern). Names as Menus.register.
 	-- "Inventory": the Cues menu (concept 2, 2026-10-08); "Ranked": the roadmap (pick "ranked A").
-	LivelyMenus = { "Shop", "Inventory", "FreeReward", "Ranked", "Settings", "DailyRewards" },
+	LivelyMenus = {
+		"Shop",
+		"Inventory",
+		"FreeReward",
+		"Ranked",
+		"Settings",
+		"DailyRewards",
+		"Halloween",
+	},
 	-- One thing at a time (HudFocus; designer, 2026-10-06): while a full menu is open every
 	-- other screen of ours is off. These ScreenGuis stay on (a "...Menu" screen always does):
 	-- popups that must still reach the player and invisible probes. KeepWith: more per menu.
@@ -16370,6 +16439,7 @@ Config.Tutorial = {
 			PathR = "FunnelR",
 			Game2 = "FunnelG2",
 			Social = "FunnelSocial",
+			Halloween = "FunnelHw", -- the Halloween event (hw-core)
 		},
 		ThirdMatch = 3, -- the onboarding funnel's ThirdMatch: this many matches played
 		EventGapSeconds = 0.5, -- a client's funnel report of one kind counts at most this often
@@ -17182,6 +17252,181 @@ Config.UI.Corners = {
 }
 
 ---------------------------------------------------------------------------------------------
+-- The Halloween event's screens (hw-core; src/client/Halloween; Config.Halloween; words in
+-- Strings.Halloween). Pixels for a computer, Short* for a phone on its side
+-- (Config.Multiplayer.Style.ShortHeight).
+---------------------------------------------------------------------------------------------
+Config.UI.Halloween = {
+	-- The event tile on the hub's right side (HubCorners, Halloween/TileLayout): as big as the
+	-- offer tile, its word in the offer's size, an "ENDS IN 5d 23h" pill over its top edge.
+	Tile = {
+		Px = 94,
+		ShortPx = 62,
+		WordPx = 21,
+		ShortWordPx = 15,
+		PillPx = 22,
+		ShortPillPx = 18,
+		PillTextPx = 13,
+		ShortPillTextPx = 11,
+		GapPx = 10, -- kept from the offer tile
+		BadgePx = 24, -- the red "!" (a claim waits, or a new board) and the NEW badge
+		ShortBadgePx = 20,
+		Icon = "rbxassetid://109690179795075", -- the pumpkin with candy (256 px); "" = the Candy icon
+		GlowTint = { 255, 140, 30 }, -- the pumpkin's soft glow behind it
+	},
+	-- The event menu (Halloween/EventMenu): the lively frame round the Candy pill, the track,
+	-- the quest board, the Spider panel and Get Candy, with the Rush strip pinned at its foot. A
+	-- computer shows the quests and the Spider side by side; a phone one scrolling column.
+	Menu = {
+		WidthShare = 0.72, -- of a computer's screen (the track's 11 nodes need the room)
+		PhoneWidthShare = 0.94,
+		PadPx = 12,
+		GapPx = 10,
+		TextPx = 18, -- body text (a phone's: ShortTextPx)
+		ShortTextPx = 14,
+		HeadPx = 22, -- section titles
+		ShortHeadPx = 17,
+		PillPx = 36, -- the Candy pill and the ends pill
+		ShortPillPx = 30,
+		-- The track: nodes evenly spaced on a bar filled by share between them; on a phone each
+		-- node at least NodeMinPx wide, scrolling sideways.
+		NodePx = 84, -- a node's card (a computer)
+		ShortNodePx = 70,
+		NodeMinPx = 78, -- a phone's slot at least this wide
+		NodeGapPx = 4, -- between two cards at least
+		NodeLabelMinPx = 8, -- a card's name shrinks down to this to fit ("Jack-o'-Lantern")
+		GrandScale = 1.25, -- the Witch's Broom's card
+		BarPx = 12,
+		ShortBarPx = 9,
+		TrackColor = { 255, 140, 30 }, -- the bar's fill
+		BarBack = { 60, 40, 90 },
+		CardTint = { 70, 40, 110 }, -- a cue node's card (night purple)
+		GiftTint = { 255, 255, 255 },
+		GivenTint = { 255, 207, 64 }, -- a reached node's gold frame
+		-- The quest board: four rows, each this tall.
+		RowPx = 46,
+		ShortRowPx = 40,
+		TabPx = 30,
+		ShortTabPx = 26,
+		QuestShare = 0.6, -- of a computer's width (the Spider and Get Candy take the rest)
+		-- The Rush strip at the foot.
+		StripPx = 40,
+		ShortStripPx = 32,
+		StripTint = { 46, 20, 82 },
+		RushTint = { 255, 140, 30 },
+		SpiderTint = { 46, 20, 82 },
+		HeadTint = { 255, 140, 30 }, -- the section titles' orange
+		ClaimBounceSeconds = 1.2, -- a waiting CLAIM bounces this often
+		MaxHeightShare = 0.86, -- of the screen's height at most
+	},
+	-- Pictures (image ids; "" = the fallback named): the cue cards until the cue lanes' thumbnails
+	-- exist (the approved concept art), the gift boxes, the end screen's candy pile and cash.
+	Art = {
+		CandyCornCue = "rbxassetid://99907004080834",
+		JackOLanternCue = "rbxassetid://114487013205177",
+		BlackCatCue = "rbxassetid://95439931834328",
+		SpiderCue = "rbxassetid://134067061693157",
+		WitchBroomCue = "rbxassetid://83442214439619",
+		Header = "rbxassetid://100823591958466", -- the menu header's jack-o'-lantern ("" = the Candy icon)
+		Gift = "rbxassetid://130940237317316", -- "" = Kit icon Gift
+		CandyPile = "rbxassetid://100770056241444",
+		CashStack = "rbxassetid://103851828700645", -- "" = Kit icon CashStack (this is ShopMoney's Pack2 stack)
+	},
+	-- The countdown pill 18:30-19:00 and the start message (Halloween/Countdown; SkyBanner's look).
+	Countdown = {
+		TextPx = 18, -- a phone's: ShortTextPx
+		ShortTextPx = 14,
+		PadPx = 8,
+		GapPx = 6, -- the icon to the words
+		IconShare = 1.1, -- the Candy icon, of the pill's height
+		GapBelowPx = 6, -- kept under the Banner, the queue's card and the tutorial's quest line
+		ZIndex = 20,
+		StartedSeconds = 6, -- "THE HALLOWEEN EVENT HAS STARTED!" stays this long
+		StartedWindowSeconds = 120, -- a player busy at 19:00 still gets it this long after
+	},
+	-- The Candy toast and the NEW CUE! card (Halloween/CandyToast).
+	Toast = {
+		ChipPx = 44, -- the "+57" chip's height (a phone's: ShortChipPx)
+		ShortChipPx = 36,
+		ChipTint = { 255, 140, 30 }, -- the "+57" (the track's orange)
+		TagPx = 22, -- its "2x" tag
+		ShortTagPx = 18,
+		StartYShare = 0.62, -- a chip with no button to fly from starts here (of the screen's height)
+		HoldSeconds = 0.45, -- the chip pops in and waits this long
+		FlySeconds = 0.6, -- then flies to the tile (or the menu's Candy pill) this long
+		StillSeconds = 1.6, -- with nowhere to fly it stays this long, then fades
+		ClaimFromSeconds = 3, -- a claim's Candy flies out of the CLAIM pressed this recently
+		MaxWaitSeconds = 300, -- a match's chip waits for the result screen at most this long
+		PollSeconds = 0.25, -- how often a waiting chip or card checks the player is free
+		-- The NEW CUE! card.
+		CardWidthPx = 340,
+		ShortCardWidthPx = 280,
+		CardHeightShare = 0.86, -- of the screen's height at most (it scales down to fit)
+		DimTransparency = 0.45, -- the screen behind it
+		CardDisplayOrder = 45, -- its screen: over the tutorial's popups (40), under the scenes (60)
+		AutoCloseSeconds = 8, -- it closes itself after this long (OK closes it sooner)
+	},
+	-- The end screen (Halloween/EndScreen; the M5 mock): laid out at WidthPx (a phone's
+	-- ShortWidthPx) and scaled down to fit.
+	End = {
+		WidthPx = 640,
+		ShortWidthPx = 560,
+		HeightShare = 0.92, -- of the screen's height at most
+		RibbonTint = { 112, 48, 190 }, -- the title ribbon's purple
+		CandyTint = { 255, 140, 30 }, -- the Candy pill
+		ArrowTint = { 255, 160, 40 },
+		MaxCues = 5, -- the event cues the player owns, as cards
+		CountUpSeconds = 1.2, -- the two numbers count up this long
+		DisplayOrder = 45, -- its screen: as the NEW CUE! card's
+		DimTransparency = 0.45,
+	},
+	-- A quest row's icon by its Icon key (Config.Halloween.Quests): Kit icon keys; "Candy" is the
+	-- Candy icon.
+	QuestIcons = {
+		Win = "Trophy",
+		Match = "Play",
+		Ball = "Target",
+		Nice = "Star",
+		Team = "People",
+		Ult = "Lightning",
+		King = "Crown",
+		Clock = "Stopwatch",
+	},
+	-- The menu's open (the lively frame's schedule; Stage ids from EventMenu).
+	Open = {
+		OpenSeconds = 0.9,
+		Steps = {
+			{ Ids = { "Panel" }, Kind = "Unroll", At = 0 },
+			{ Ids = { "Header" }, Kind = "Fade", At = 0.12, Length = 0.15 },
+			{ Ids = { "Basket", "Title", "Close" }, Kind = "Pop", At = 0.18 },
+			{ Ids = { "HwCandy", "HwEnds" }, Kind = "Pop", At = 0.2 },
+			{ Ids = { "HwTrack" }, Kind = "Grow", At = 0.22 },
+			{
+				Ids = {
+					"HwNode1",
+					"HwNode2",
+					"HwNode3",
+					"HwNode4",
+					"HwNode5",
+					"HwNode6",
+					"HwNode7",
+					"HwNode8",
+					"HwNode9",
+					"HwNode10",
+				},
+				Kind = "Pop",
+				At = 0.26,
+				Stagger = 1.25,
+			},
+			{ Ids = { "HwNode11" }, Kind = "Pop", At = 0.4, Burst = "Gold" },
+			{ Ids = { "HwQuests", "HwSpider", "HwPacks" }, Kind = "Grow", At = 0.36 },
+			{ Ids = { "HwRush" }, Kind = "Fade", At = 0.46, Length = 0.15 },
+			{ Ids = { "Flair" }, Kind = "Drop", At = 0.6, Length = 0.25 },
+		},
+	},
+}
+
+---------------------------------------------------------------------------------------------
 -- The owner's admin panel (designer, 2026-10-11; src/shared/Admin.luau, AdminService, the panel
 -- src/server/Admin/AdminPanel.client.luau): only the accounts in Config.Debug.Commands.UserIds
 -- (Painicane) ever get it, and the server checks every request. Off: no panel, nothing listens.
@@ -17738,68 +17983,127 @@ Config.UI.PlayerList = {
 -- halloween (the Halloween save field: KingWins, or Candy = Earned + Bought), event (only from a
 -- live hook, never the save). Names and descriptions in Strings.Badges.
 Config.Badges = {
-	Enabled = false, -- the award queue; true once HW_SYS_PROMPT section 4's badge checks pass
+	Enabled = true, -- the award queue (checks passed 2026-10-28); false = no badge is awarded or logged
 	UniverseId = 10767330648, -- awards run only in this experience; Studio and the test place log
 	OwnerUserId = 544959133, -- Painicane: Met the Owner, Beat the Owner
 	StaggerSeconds = 3, -- at most one award per player every 3 s (PLAN section 2)
 	Budget = { Base = 40, PerPlayer = 30 }, -- badge API calls a minute per server (Roblox: 50 + 35 x players)
 	DebounceSeconds = 2, -- re-check a save this long after its last change (PlayerData.read copies it)
-	RevealDelaySeconds = 8, -- no award this long after openLuckyBlock (the big reel is about 7.7 s)
+	-- No award from openLuckyBlock until the longest pull has shown its card: the rise, the big
+	-- spin and its settle, the longest scene to its flash (Secret, 16.85 s), then this margin,
+	-- about 28 s in all (Badges.revealSeconds). A toast before the card would spoil the pull.
+	RevealMarginSeconds = 2,
 	Retries = { 5, 20, 60 }, -- seconds before each retry of a failed call; then wait for the next join
 	Paused = {} :: { [string]: boolean }, -- [Key] = true: cut or misbehaving; the row never awards (a one-line publish)
 	List = {
-		{ Key = "Welcome", BadgeId = 0, Rule = { always = true } },
-		{ Key = "FirstWin", BadgeId = 0, Rule = { stat = "Wins", atLeast = 1 } },
-		{ Key = "Wins5", BadgeId = 0, Rule = { stat = "Wins", atLeast = 5 } },
-		{ Key = "Wins10", BadgeId = 0, Rule = { stat = "Wins", atLeast = 10 } },
-		{ Key = "Wins25", BadgeId = 0, Rule = { stat = "Wins", atLeast = 25 } },
-		{ Key = "Wins50", BadgeId = 0, Rule = { stat = "Wins", atLeast = 50 } },
-		{ Key = "Wins100", BadgeId = 0, Rule = { stat = "Wins", atLeast = 100 } },
-		{ Key = "Wins250", BadgeId = 0, Rule = { stat = "Wins", atLeast = 250 } },
-		{ Key = "Wins500", BadgeId = 0, Rule = { stat = "Wins", atLeast = 500 } },
-		{ Key = "Wins1000", BadgeId = 0, Rule = { stat = "Wins", atLeast = 1000 } },
-		{ Key = "RankBronze", BadgeId = 0, Rule = { peak = "Bronze" } },
-		{ Key = "RankSilver", BadgeId = 0, Rule = { peak = "Silver" } },
-		{ Key = "RankGold", BadgeId = 0, Rule = { peak = "Gold" } },
-		{ Key = "RankPlatinum", BadgeId = 0, Rule = { peak = "Platinum" } },
-		{ Key = "RankDiamond", BadgeId = 0, Rule = { peak = "Diamond" } },
-		{ Key = "RankExpert", BadgeId = 0, Rule = { peak = "Expert" } },
-		{ Key = "RankVeteran", BadgeId = 0, Rule = { peak = "Veteran" } },
-		{ Key = "RankMaster", BadgeId = 0, Rule = { peak = "Master" } },
-		{ Key = "RankGrandmaster", BadgeId = 0, Rule = { peak = "Grandmaster" } },
-		{ Key = "RankReyes", BadgeId = 0, Rule = { peak = "Reyes" } },
-		{ Key = "Streak3", BadgeId = 0, Rule = { stat = "BestWinStreak", atLeast = 3 } },
-		{ Key = "Streak5", BadgeId = 0, Rule = { stat = "BestWinStreak", atLeast = 5 } },
-		{ Key = "Streak10", BadgeId = 0, Rule = { stat = "BestWinStreak", atLeast = 10 } },
-		{ Key = "CueRare", BadgeId = 0, Rule = { seenRarity = "Rare" } },
-		{ Key = "CueEpic", BadgeId = 0, Rule = { seenRarity = "Epic" } },
-		{ Key = "CueLegendary", BadgeId = 0, Rule = { seenRarity = "Legendary" } },
-		{ Key = "CueMythic", BadgeId = 0, Rule = { seenRarity = "Mythic" } },
-		{ Key = "CueSecret", BadgeId = 0, Rule = { seenRarity = "Secret" } },
-		{ Key = "CueUnique", BadgeId = 0, Rule = { seenGroup = "Unique" } },
-		{ Key = "Cues5", BadgeId = 0, Rule = { seenCount = 5 } },
-		{ Key = "Cues10", BadgeId = 0, Rule = { seenCount = 10 } },
-		{ Key = "Cues25", BadgeId = 0, Rule = { seenCount = 25 } },
-		{ Key = "Cues50", BadgeId = 0, Rule = { seenCount = 50 } },
-		{ Key = "Balls100", BadgeId = 0, Rule = { stat = "BallsPocketed", atLeast = 100 } },
-		{ Key = "Balls1000", BadgeId = 0, Rule = { stat = "BallsPocketed", atLeast = 1000 } },
-		{ Key = "Balls10000", BadgeId = 0, Rule = { stat = "BallsPocketed", atLeast = 10000 } },
-		{ Key = "Matches10", BadgeId = 0, Rule = { stat = "Matches", atLeast = 10 } },
-		{ Key = "Matches100", BadgeId = 0, Rule = { stat = "Matches", atLeast = 100 } },
-		{ Key = "Matches1000", BadgeId = 0, Rule = { stat = "Matches", atLeast = 1000 } },
-		{ Key = "Nice10", BadgeId = 0, Rule = { stat = "NiceShots", atLeast = 10 } },
-		{ Key = "Nice100", BadgeId = 0, Rule = { stat = "NiceShots", atLeast = 100 } },
-		{ Key = "Money1M", BadgeId = 0, Rule = { stat = "MoneyEarned", atLeast = 1000000 } },
-		{ Key = "Money10M", BadgeId = 0, Rule = { stat = "MoneyEarned", atLeast = 10000000 } },
-		{ Key = "Squad", BadgeId = 0, Rule = { event = "TeamMatch" } },
-		{ Key = "Ability1", BadgeId = 0, Rule = { event = "UltUsed" } },
-		{ Key = "Ability100", BadgeId = 0, Rule = { stat = "UltMatches", atLeast = 100 } },
-		{ Key = "Crew", BadgeId = 0, Rule = { event = "InGroup" } },
-		{ Key = "MetOwner", BadgeId = 0, Rule = { event = "OwnerHere" } },
-		{ Key = "BeatOwner", BadgeId = 0, Rule = { event = "BeatOwner" } },
-		{ Key = "Halloween2026", BadgeId = 0, Rule = { halloween = "Candy", atLeast = 1 } },
-		{ Key = "PumpkinSlayer", BadgeId = 0, Rule = { halloween = "KingWins", atLeast = 1 } },
-		{ Key = "BroomRider", BadgeId = 0 }, -- Rule { seenCue = "WitchBroomCue" } once Cues A's row is merged
+		{ Key = "Welcome", BadgeId = 3774850189892880, Rule = { always = true } },
+		{ Key = "FirstWin", BadgeId = 3575671673255502, Rule = { stat = "Wins", atLeast = 1 } },
+		{ Key = "Wins5", BadgeId = 1783364137353474, Rule = { stat = "Wins", atLeast = 5 } },
+		{ Key = "Wins10", BadgeId = 927047773955007, Rule = { stat = "Wins", atLeast = 10 } },
+		{ Key = "Wins25", BadgeId = 4233206622630547, Rule = { stat = "Wins", atLeast = 25 } },
+		{ Key = "Wins50", BadgeId = 376201506130396, Rule = { stat = "Wins", atLeast = 50 } },
+		{ Key = "Wins100", BadgeId = 831874640123472, Rule = { stat = "Wins", atLeast = 100 } },
+		{ Key = "Wins250", BadgeId = 3973719596541883, Rule = { stat = "Wins", atLeast = 250 } },
+		{ Key = "Wins500", BadgeId = 4153607260909108, Rule = { stat = "Wins", atLeast = 500 } },
+		{ Key = "Wins1000", BadgeId = 4209400550247267, Rule = { stat = "Wins", atLeast = 1000 } },
+		{ Key = "RankBronze", BadgeId = 2329095724540517, Rule = { peak = "Bronze" } },
+		{ Key = "RankSilver", BadgeId = 4398852937714373, Rule = { peak = "Silver" } },
+		{ Key = "RankGold", BadgeId = 155480003848566, Rule = { peak = "Gold" } },
+		{ Key = "RankPlatinum", BadgeId = 2829693839225343, Rule = { peak = "Platinum" } },
+		{ Key = "RankDiamond", BadgeId = 4229037065586405, Rule = { peak = "Diamond" } },
+		{ Key = "RankExpert", BadgeId = 3574464846773739, Rule = { peak = "Expert" } },
+		{ Key = "RankVeteran", BadgeId = 53445696872777, Rule = { peak = "Veteran" } },
+		{ Key = "RankMaster", BadgeId = 1165688399912031, Rule = { peak = "Master" } },
+		{ Key = "RankGrandmaster", BadgeId = 1393315583078416, Rule = { peak = "Grandmaster" } },
+		{ Key = "RankReyes", BadgeId = 4069284758940460, Rule = { peak = "Reyes" } },
+		{
+			Key = "Streak3",
+			BadgeId = 1928096058793175,
+			Rule = { stat = "BestWinStreak", atLeast = 3 },
+		},
+		{
+			Key = "Streak5",
+			BadgeId = 3859711772126671,
+			Rule = { stat = "BestWinStreak", atLeast = 5 },
+		},
+		{
+			Key = "Streak10",
+			BadgeId = 2179885669728373,
+			Rule = { stat = "BestWinStreak", atLeast = 10 },
+		},
+		{ Key = "CueRare", BadgeId = 207940625235143, Rule = { seenRarity = "Rare" } },
+		{ Key = "CueEpic", BadgeId = 2207389274593671, Rule = { seenRarity = "Epic" } },
+		{ Key = "CueLegendary", BadgeId = 494978037344337, Rule = { seenRarity = "Legendary" } },
+		{ Key = "CueMythic", BadgeId = 832024187830975, Rule = { seenRarity = "Mythic" } },
+		{ Key = "CueSecret", BadgeId = 1923791243743351, Rule = { seenRarity = "Secret" } },
+		{ Key = "CueUnique", BadgeId = 1800047869806584, Rule = { seenGroup = "Unique" } },
+		{ Key = "Cues5", BadgeId = 2409084780202428, Rule = { seenCount = 5 } },
+		{ Key = "Cues10", BadgeId = 3048335140968827, Rule = { seenCount = 10 } },
+		{ Key = "Cues25", BadgeId = 1158904462514818, Rule = { seenCount = 25 } },
+		{ Key = "Cues50", BadgeId = 112973040839564, Rule = { seenCount = 50 } },
+		{
+			Key = "Balls100",
+			BadgeId = 2473617397250925,
+			Rule = { stat = "BallsPocketed", atLeast = 100 },
+		},
+		{
+			Key = "Balls1000",
+			BadgeId = 1277347348028555,
+			Rule = { stat = "BallsPocketed", atLeast = 1000 },
+		},
+		{
+			Key = "Balls10000",
+			BadgeId = 7174693576307,
+			Rule = { stat = "BallsPocketed", atLeast = 10000 },
+		},
+		{ Key = "Matches10", BadgeId = 823038805053890, Rule = { stat = "Matches", atLeast = 10 } },
+		{
+			Key = "Matches100",
+			BadgeId = 729958242555812,
+			Rule = { stat = "Matches", atLeast = 100 },
+		},
+		{
+			Key = "Matches1000",
+			BadgeId = 2829128822759859,
+			Rule = { stat = "Matches", atLeast = 1000 },
+		},
+		{ Key = "Nice10", BadgeId = 4410726107997015, Rule = { stat = "NiceShots", atLeast = 10 } },
+		{
+			Key = "Nice100",
+			BadgeId = 2851523231108112,
+			Rule = { stat = "NiceShots", atLeast = 100 },
+		},
+		{
+			Key = "Money1M",
+			BadgeId = 2699082964518478,
+			Rule = { stat = "MoneyEarned", atLeast = 1000000 },
+		},
+		{
+			Key = "Money10M",
+			BadgeId = 217838342274579,
+			Rule = { stat = "MoneyEarned", atLeast = 10000000 },
+		},
+		{ Key = "Squad", BadgeId = 432657693674846, Rule = { event = "TeamMatch" } },
+		{ Key = "Ability1", BadgeId = 97386214196697, Rule = { event = "UltUsed" } },
+		{
+			Key = "Ability100",
+			BadgeId = 2989268570496762,
+			Rule = { stat = "UltMatches", atLeast = 100 },
+		},
+		{ Key = "Crew", BadgeId = 2950008037199385, Rule = { event = "InGroup" } },
+		{ Key = "MetOwner", BadgeId = 3300678702313834, Rule = { event = "OwnerHere" } },
+		{ Key = "BeatOwner", BadgeId = 4060031209370529, Rule = { event = "BeatOwner" } },
+		{
+			Key = "Halloween2026",
+			BadgeId = 919572845897837,
+			Rule = { halloween = "Candy", atLeast = 1 },
+		},
+		{
+			Key = "PumpkinSlayer",
+			BadgeId = 3371654715960934,
+			Rule = { halloween = "KingWins", atLeast = 1 },
+		},
+		{ Key = "BroomRider", BadgeId = 89437091380909, Rule = { seenCue = "WitchBroomCue" } },
 	} :: { { Key: string, BadgeId: number, Rule: { [string]: any }? } },
 }
 

@@ -38,6 +38,7 @@ local PlayerData = require(script.Parent.PlayerData)
 local Counters = require(script.Parent.Counters)
 local Announce = require(script.Parent.Announce)
 local TutorialHints = require(script.Parent.TutorialHints)
+local CandyService = require(script.Parent.Halloween.CandyService) -- Halloween 2026 (hw-core)
 local Badges = require(script.Parent.Badges) -- Roblox badges (hw-sys lane, 2026-10-28)
 
 local E = Config.Economy
@@ -445,6 +446,26 @@ local function settleOne(m: Match, entry: Entry, paid: Paid)
 	-- A disguised bot's win counts toward the day's hidden limit (Config.Economy.DisguisedDailyWins).
 	if won and disguised then
 		PlayerData.countDaily(p, "Disguised")
+	end
+	-- The Halloween event's Candy and quests (hw-core; CandyService.matchSettled pays only real
+	-- matches against people, never a disguised bot). An error never blocks the settle.
+	local okCandy, candyErr = pcall(function(): any
+		local tally = Economy.tally(m.key, p.UserId)
+		return CandyService.matchSettled(p, {
+			balls = tally.balls,
+			nice = tally.nice,
+			won = won,
+			real = real,
+			forfeited = entry.forfeited,
+			payKind = payKind,
+			botKind = Settle.botKind(m.e),
+			teamSize = m.e.teamSize,
+			farm = farm,
+			matchKey = m.key,
+		})
+	end)
+	if not okCandy then
+		warn("[8ball] Ranking: Halloween Candy failed: " .. tostring(candyErr))
 	end
 
 	-- The winner's lucky block: the day's win track (economy v4 plan section 5; ECONOMY 3.6),
