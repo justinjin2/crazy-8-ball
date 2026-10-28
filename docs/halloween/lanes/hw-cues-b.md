@@ -68,6 +68,19 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
   neighbours), compact = a closed bud 0.3 past the butt; `spider_parts.glb` 134241355070040,
   `Crown.glb` 88297987618252, atlas decals with image ids). Preview beside the concept:
   `gate2/spider_body_vs_C1b.png`. No spider bodies, legs or creatures anywhere.
+- 10:29 P16/P17 finishers judged mid-burst (a four-instance phase strip in the lab, bursts 0.45 s
+  apart, `cat_finisher_phases_lab.jpg`, `spider_finisher_phases_lab.jpg`). The Cat's reads as
+  built: gold flash, the shadow cat leaping out of the pocket, the gold shard burst high and
+  the embers; no change. The Spider's 3D piece did not read: the ForceField funnel threads
+  (0.014 wide) vanished from 8 studs and the bead was a dot, only the flat web ring and the
+  flash showed. Retuned @ a386234c: threads and web lines Neon and about twice as thick, the
+  bead 1.7x; rebuilt headless (3 parts, 2,208 triangles, same budget), re-uploaded
+  (86978515586894, dry-run first), template rebuilt with ONLY in my window: the web disc, the
+  twisting funnel and the crimson bead now read from the table's distance. Lint OK, 1,410 tests
+  (run with the drafts on; the local drafts-off rows are never committed). Cues A's 10:28
+  `Upright` note read: not needed here, neither pocket piece has a face (the Broom's portal
+  rings and the Spider's web are symmetric about the up axis). Still blocked on drop 3 for P7,
+  P18 and P19 (`origin/halloween` @ f32c3d1b at 10:29).
 - 10:12 P19 cards: the three card pictures drawn with Cues A's body-aware `cue_skin.py --thumb`
   (their `CuePreview.py` @ 5078ac33 used locally, not committed; it lands through `halloween`):
   `assets/cue/thumbs/witch_broom.png`, `black_cat.png`, `spider.png`, uploaded with image ids
@@ -144,6 +157,9 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
 
 ## Assumptions
 
+- 10:29 No `Upright` flag on my pocket pieces (Cues A's 10:28 note): the Broom's portal rings
+  and crescents and the Spider's web, funnel and bead have no face and are symmetric about
+  the up axis, so the per-part half turn changes nothing visible.
 - 10:14 (lane decisions, no question asked; the brief lets the lane decide after 11:00 and these
   were inside the brief's own limits): the Broom's hat charm is an Aim joint like the bristles
   (at 2x it hangs past the butt at 0.57 from the axis, so it fades for the aiming owner); the
@@ -221,6 +237,13 @@ drop 3):
   straight through MapLighting with the cycle held (the violet sky, lilac floor): the stars,
   crescents, bats and ribbons read; the violet haze is softer against the lilac floor than on
   the day floor (LightEmission 0.15 keeps it visible, no change yet).
-- Not yet shot: hands and own-aim views (need drop 3), the Cat and Spider finishers mid-burst
-  (they fire clean; the lobby's tutorial arrows and join pads sat in every clear stretch I
-  tried, the shots show only their shadows and rings), Night lighting.
+- `cat_finisher_phases_lab.jpg`: the Cat finisher as a phase strip (four bursts 0.45 s apart,
+  left the newest): the gold flash and ring at the pocket, the shadow cat leaping out and
+  arching over it at 0.5 and 0.9 s, the gold shard burst high at 1.4 s, embers and sparks
+  between (the tutorial's floor chevrons behind are the lobby's, not the effect).
+- `spider_finisher_phases_lab.jpg`: the Spider finisher after the 10:29 retune, three bursts
+  at 0.45 s steps: the silver web disc with its spokes and rings at the mouth, the six Neon
+  threads twisting up to the crimson bead, the flat web ring and silk burst on the floor, web
+  shards and sparks round the newest; the funnel widens and lifts on the later two.
+- Not yet shot: hands and own-aim views (need drop 3), the Broom aura under Night beside
+  Eclipse.
