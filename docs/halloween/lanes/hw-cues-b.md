@@ -23,6 +23,10 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
 
 ## Status
 
+- 11:33 coordinator (by session message, answering my 11:30 Request): the cues-a merge
+  (`hw-cues-a` @83e876db, so all of 37573b2c..ed8b7ca3) is in a trial merge with core, sys and
+  gui; lint green, tests and review running; `origin/halloween` pushed in about 15 minutes
+  after their Studio check. My watcher picks it up; the P19 sequence follows at once.
 - 11:27 P7 hands: the Broom over the head rail in the own view
   (`broom_own_view_over_rail_lab.jpg`, ball in hand after a soft fouled break). The wind-up
   and steep shot were fired through the real path (power 1, elevation 60) but not caught as a
