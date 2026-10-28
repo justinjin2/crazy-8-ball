@@ -9545,7 +9545,7 @@ Config.UI.CuePreview = {
 	IdleResumeSeconds = 3, -- the auto-turn comes back this long after the last drag
 	TurnDegPerSecond = 20,
 	Tabs = { -- the camera per tab: focus offset from the stage centre, distance, pitch
-		Model = { Focus = { 0, 1, 0 }, Distance = 9, Pitch = 12 },
+		Model = { Focus = { 0, 2, 0 }, Distance = 15, Pitch = 14 }, -- the cue (about 9 studs) floats over the cloth
 		Trail = { Focus = { 0, 0.5, 0 }, Distance = 8, Pitch = 30 },
 		Finisher = { Focus = { 0, 0.5, 0 }, Distance = 4.5, Pitch = 25 },
 	},

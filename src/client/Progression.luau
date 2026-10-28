@@ -34,6 +34,7 @@ local OwnerMessage = require(script.Parent.OwnerMessage)
 local InventoryMenu = require(script.Parent.InventoryMenu)
 local ItemState = require(script.Parent.ItemState)
 local BoostPill = require(script.Parent.BoostPill)
+local CuePreview = require(script.Parent.CuePreview)
 local LuckClover = require(script.Parent.LuckClover)
 local MenuColumn = require(script.Parent.MenuColumn)
 local Menus = require(script.Parent.Menus)
@@ -185,6 +186,7 @@ end
 local function closeScreens()
 	LuckyClient.close()
 	Menus.close()
+	CuePreview.close() -- even when a popup took the menus over (hw-gui lane)
 end
 
 -- Whether reaching division `index` came from a ladder change's catch-up as the save loaded
