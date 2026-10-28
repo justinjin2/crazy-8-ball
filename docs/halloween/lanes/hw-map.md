@@ -50,6 +50,31 @@ From PLAN §4 (everything else is read-only to this lane; ask through Requests):
 - `Config.HalloweenMap.Props.Budget.Lights = 6` (throne 2 + the throne King's aura 1 + 3 table Kings).
 
 ## Status
+- 11:59 hw-map: **Status final** (step 20). Everything below is on (`Config.HalloweenMap`, all
+  eight switches true), follows core's Event.state and was checked in my Studio window:
+  - **Night**: while Live the event light takes Day's slot of the cycle (Countdown preloads the
+    sky, a flip fades over FlipSeconds, a mid-event join sees it at once); after Live, Config's
+    own light. Roof brightness L* 0.91 of Day's.
+  - **Tables**: orchid 1v1 (185,90,230), charcoal 2v2 (90,94,102), toxic green 3v3 (88,176,32)
+    on black frames; rendered ΔE 24.6 / 28.4 / 19.9 (all ≥ 17); decor kits Orchid, Pumpkin,
+    Toxic inside the body footprint; arenas get the look and the kit; all restored after.
+  - **Props**: dead trees in the palms' pots, spooky planters, 6 strands, 4 cobwebs, 2 pumpkin
+    clusters; 18 palms, 12 fern planters and 9 beds put away and back. Budget: 47,786 of 60,000
+    triangles, 112 of 130 MeshParts, 3 of 6 lights.
+  - **The Pumpkin King**: the throne at the piano spot, his own look and portrait, the prompt
+    (hold E, tap, X; "Ready in m:ss" on cooldown), real King matches by tier (won, lost, left
+    logged; a win pays core's Candy and starts the cooldown), the +50 CANDY burst, the
+    designer's `/king [tier]`; he skips tables a local search promised.
+  - **Candy**: pieces near eligible players (HwOn, the lobby), +1 on pickup to core's
+    CandyService (its hour cap), animated within 160 studs (60 on Lower effects).
+  - Checked on: PC in my window; the fresh-player run (tutorial, Skip, first match, the prompt
+    after). Phone, iPad, TV and the pad: nothing I add depends on the screen size (step 18), so
+    the four-size screenshots and the X glyph are the coordinator's sweep.
+  - Shared files: the list under Shared-file changes (all landed lines with their commits).
+  - Needs: Justin's gate 2 throne answer (staying at the piano spot until then, see
+    Assumptions); the coordinator's device sweep. Not mine, seen while testing: `RequestLeave`
+    has no server handler (cleanup list); the King's Jack-o'-Lantern Cue body piece is not in
+    my window's CuePieces (cues-a's asset; drawn with the shared mesh here).
 - 11:54 hw-map: step 19 done (fresh-player run, Studio, a new save each Play). Core's BootLive
   puts the clock at Live + 60 s: the join shows the Night sky, orchid tables, dead trees and
   strands (fresh `01`). In the tutorial `HwOn` is false: the King prompt exists but is off (no
@@ -219,6 +244,15 @@ Landed (only my own blocks unless said):
   `Bots/BotService.luau` (spawn takes description/icon/animations/dress, seatInfo/attributesOf
   carry icon, `playBoss`, BotsQA "boss"), `Bots/Body.luau` (build takes animations, dress),
   `People.luau` (portrait: bot.icon / BotIcon first) — ccb73403, 0498b301.
+- `TableBuilder.luau`: `addDecor` and its helpers (new functions only) — fa43df20.
+- `Main.client.luau`: the MapClient block moved inside `do ... end` (coordinator) — 4c0e3895.
+- `Config.luau`: the 3v3 cloth (88,176,32) — 7fd462cc; `Config.Debug.Commands.King = "/king"`
+  after core's `Halloween` line — b86b9142.
+- `tests/halloween_contract_test.luau:252`: the 3v3 tint, as the coordinator asked — 7fd462cc.
+- `Strings.luau`: the four King notices shortened to fit the queue card — aaaffdbe;
+  `KingDevStarted`, `KingDevFailed` in `Strings.HalloweenMap` — b86b9142.
+- `DevCommands.luau`: the designer-only `/king [tier]` block after core's `/hw` — b86b9142.
+- `LocalSearch.luau`: `isPromised(t)`, read-only (one new function) — 10489ad6.
 
 Shared files (PLAN §7 plus `HubCorners.luau`, `Net.luau`, `DevCommands.luau`,
 `tests/save_schema_test.luau`, `tests/config_test.luau`): only your own block or line; the
@@ -269,6 +303,11 @@ coordinator resolves overlaps. Planned (add the commit sha when each lands):
 - Coordinator: please include the step-1 interface commit in the interface merge.
 
 ## Assumptions
+
+- The throne stays at the piano spot (gate 2 option (c)) until Justin answers the gate 2 question
+  (`gate2/05`): from the spawn it reads as a glow between the two lobby boards, and the prompt
+  and the glow lead players there. Option (a) is a two-line change (`Throne.Pivot` z about -66
+  and `PromptAt` with it), to be checked in Studio against the boards and the last table row.
 
 - OVERRULED: the top three TierFor rows play a Grandmaster King, not Reyes (PLAN: two ranks
   above, at most Reyes). Measured: a Reyes King left the model player 11.5% (Master), 13.5%
@@ -344,6 +383,10 @@ Gate 1 (`~/Desktop/8ball-refs/halloween/shots/hw-map/gate1/`, Play captures, lan
   Night up (Brightness/Exposure, the purple kept).
 - `night-sky-cross.png`: the Night sky's six faces (gen_sky night: moon, stars, violet
   gradient), uploaded as the six ids in `Config.Lighting.Night.Sky`.
+- `12-dE-3v3-88-176-32.jpg`: the 3v3 cloth at (88,176,32), the CONTRACT CHANGE tint (the same
+  hue at 80% lightness): renders (139,219,32), **19.9** from the yellow balls under Night.
+- `13-3v3-88-176-32-merged.jpg`: Table 15 with that tint and the Toxic kit while Live, after
+  merging halloween @070893de (7fd462cc).
 
 
 Gate 2 (`~/Desktop/8ball-refs/halloween/shots/hw-map/gate2/`, Play captures, lane window, Live forced):
@@ -374,5 +417,43 @@ Gate 2 (`~/Desktop/8ball-refs/halloween/shots/hw-map/gate2/`, Play captures, lan
 - Difficulty table: under Assumptions (all ten rows measured; the top three play a
   Grandmaster King).
 - The PC-kind King pays a Pc match's money for balls (the staged win: +$66 for one ball), as
-  PLAN chose ("Pc" so no farming); his portrait is still the PC robot (Config King.Icon empty:
-  next).
+  PLAN chose ("Pc" so no farming). His portrait was the PC robot here; it is now his own
+  (`Config.HalloweenMap.King.Icon`, devices `04`).
+
+Decor kits (`decor/`, step 13, Live forced):
+
+- `01-pumpkin-2v2.jpg`: the Pumpkin kit on a 2v2 table: orange underglow, the trim ring, bats,
+  the small jack-o'-lanterns by the legs.
+- `02-toxic-3v3-cobweb.jpg`: a low view of a 3v3 table's corner (Toxic kit): the green trim
+  ring and underglow, the cobweb at a leg.
+- `03-orchid-1v1.jpg`: the Orchid kit on a 1v1 table: purple underglow and the two bats.
+- `04-pumpkin-2v2-merged.jpg`: the 2v2 kit after merging each table's pairs into one mesh (the
+  MeshParts fix, 159 -> 112).
+
+Props (`props/`, step 14, Live forced):
+
+- `01-pergola-strands-webs-clusters.jpg`: the pergola's strings of lights (orange, purple), the
+  cobwebs in its front corners, the pumpkin clusters at the throne's lanterns.
+- `02-corner-trees-planters.jpg`: dead trees in the palms' pots and the dark planter boxes with
+  their dressings.
+- `03-fern-planter-from-spawn-side.jpg`: a fern planter's spooky twin (the dressing at 1.39x).
+
+Candy (step 11): `candy-lobby.jpg`: a lobby candy, the event's wrapped candy mesh.
+
+Devices (`devices/`, step 18, my window's size, 1523x814 viewport; captures at 1920 wide):
+
+- `01_prompt_ready_in.jpg`: the King's prompt on cooldown, "Ready in 11:11", key E.
+- `02_prompt_challenge.jpg`: the prompt when ready, "Challenge the Pumpkin King".
+- `03_notice_king_no_table.jpg`: the KingNoTable notice on the queue card, one line.
+- `04_king_match_portrait.jpg`: a King match: his pumpkin-and-crown portrait in the match bar.
+- `05_billboards_plus1_plus50.jpg`: the +1 pickup and the +50 CANDY burst risers, the candy
+  burst on the floor.
+
+Fresh player (`fresh/`, step 19, a new save, core's BootLive):
+
+- `01-join-tutorial-night.jpg`: the join: Night sky, orchid tables, dead trees, strands; the
+  tutorial's "Join a table!" arrow; no prompt, no candy.
+- `02-tutorial-first-match-orchid.jpg`: the tutorial's first match on table 2, orchid, balls
+  readable.
+- `03-prompt-after-tutorial-result-card.jpg`: after Skip and the match, the King's prompt at the
+  throne (behind the result card until Continue).

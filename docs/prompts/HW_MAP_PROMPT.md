@@ -636,7 +636,7 @@ request: ask in your lane file's Requests when a verified part should land early
 - [x] 17. Every verified part's switch set true in Config, each checked once with its own switch off (before the device and fresh-player runs, so they test what ships).
 - [x] 18. Devices: prompt, notices, billboards and portrait at the four sizes and with the pad; screenshots.
 - [x] 19. Fresh-player run during Live (tutorial, Skip, first match, the prompt after the tutorial).
-- [ ] 20. Lane file Status final + all screenshots.
+- [x] 20. Lane file Status final + all screenshots.
 - [ ] 21. Merge halloween, re-test, push.
 
 ## Notes
