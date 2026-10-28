@@ -265,17 +265,13 @@ return {
 				H.expect(typeof(v) == "boolean", ("%s.%s is a boolean"):format(label, k))
 			end
 		end
-		check(
-			"Config.Halloween",
-			Config.Halloween,
-			{
-				"Match.Enabled",
-				"Quests.Enabled",
-				"Spider.Enabled",
-				"Packs.Enabled",
-				"Convert.Enabled",
-			}
-		)
+		check("Config.Halloween", Config.Halloween, {
+			"Match.Enabled",
+			"Quests.Enabled",
+			"Spider.Enabled",
+			"Packs.Enabled",
+			"Convert.Enabled",
+		})
 		check(
 			"Config.HalloweenMap",
 			Config.HalloweenMap,
