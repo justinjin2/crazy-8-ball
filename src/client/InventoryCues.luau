@@ -38,7 +38,9 @@ local BlockOdds = require(Progression:WaitForChild("BlockOdds"))
 local Catalog = require(Progression:WaitForChild("Catalog"))
 local Format = require(Progression:WaitForChild("Format"))
 local CueAssets = require(script.Parent.CueAssets)
+local CuePreview = require(script.Parent.CuePreview)
 local CueThumb = require(script.Parent.CueThumb)
+local GuiQA = require(script.Parent.GuiQA)
 local HudParts = require(script.Parent.HudParts)
 local InventoryCard = require(script.Parent.InventoryCard)
 local MenuFrame = require(script.Parent.MenuFrame)
@@ -466,6 +468,18 @@ function InventoryCues.buildDetail(self: any, page: Frame)
 	self.sellDupes.Name = "SellDuplicates"
 	self.sellDupes.ZIndex = 4
 	HudParts.setMinHit(self.sellDupes, TOUCH)
+	-- Preview (hw-gui lane): the Cue Preview, beside Equip; only while it is switched on.
+	self.preview = HudParts.candy(scroll, Strings.CuePreview.Button, function()
+		self:openPreview()
+	end, "Blue")
+	self.preview.Name = "Preview"
+	self.preview.ZIndex = 4
+	self.preview.Visible = CuePreview.enabled()
+	HudParts.setMinHit(self.preview, TOUCH)
+	GuiQA.add("cuesPreview", function() -- Studio only: press Preview (the button's own call)
+		self:openPreview()
+		return CuePreview.isOpen()
+	end)
 	local chooser = HudParts.frame(scroll, "Chooser")
 	chooser.ZIndex = 4
 	chooser.Visible = false
@@ -652,6 +666,14 @@ function InventoryCues.arrangeDetail(self: any)
 			button.Position = UDim2.fromOffset(inset, y)
 			button.Size = UDim2.fromOffset(buttonW, buttonH)
 			HudParts.setButtonTextSize(button, buttonText)
+			if button == self.equip and self.preview.Visible then
+				-- Preview takes the row's right end (hw-gui lane).
+				local previewW = round((buttonW - gap) * Config.UI.CuePreview.EntryShare)
+				button.Size = UDim2.fromOffset(buttonW - gap - previewW, buttonH)
+				self.preview.Position = UDim2.fromOffset(inset + buttonW - previewW, y)
+				self.preview.Size = UDim2.fromOffset(previewW, buttonH)
+				HudParts.setButtonTextSize(self.preview, buttonText)
+			end
 			y += buttonH + gap
 		end
 	end
@@ -690,6 +712,7 @@ function InventoryCues.arrangeDetail(self: any)
 			self.ownedLabel,
 			self.lockRow,
 			self.equip,
+			self.preview,
 			self.sellDupes,
 			self.chooserRow,
 			self.sellConfirm,
@@ -885,6 +908,24 @@ function InventoryCues.choose(self: any, id: string, pressed: boolean)
 	end
 end
 
+--- The chosen cue in the Cue Preview (hw-gui lane); closing it comes back to this big card,
+--- unless another menu has taken over meanwhile.
+function InventoryCues.openPreview(self: any)
+	local id: string? = self.chosen
+	if not id then
+		return
+	end
+	UISound.play("Click")
+	CuePreview.open(id, {
+		from = "Cues",
+		onClose = function()
+			if Menus.current() == nil and Menus.open("Inventory", "Cues") then
+				self:show(id)
+			end
+		end,
+	})
+end
+
 --- Open cue `id`'s big card (a Studio check through GuiQA "cuesDetail"); false if not owned.
 function InventoryCues.show(self: any, id: string): boolean
 	if not self.rows[id] then
@@ -940,7 +981,7 @@ function InventoryCues.openDetail(self: any)
 	end
 	self:arrange()
 	if self.ctx.gamepad() then
-		for _, button in { self.equip, self.sellDupes, self.closeButton } do
+		for _, button in { self.equip, self.preview, self.sellDupes, self.closeButton } do
 			if button.Visible and button.Selectable then
 				GuiService.SelectedObject = button
 				return

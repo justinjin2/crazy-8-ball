@@ -38,12 +38,15 @@ local Progression = Shared:WaitForChild("Progression")
 local Catalog = require(Progression:WaitForChild("Catalog"))
 local Format = require(Progression:WaitForChild("Format"))
 local Inventory = require(Progression:WaitForChild("Inventory"))
+local CuePreview = require(script.Parent.CuePreview)
 local CueThumb = require(script.Parent.CueThumb)
+local GuiQA = require(script.Parent.GuiQA)
 local HudParts = require(script.Parent.HudParts)
 local InventoryCard = require(script.Parent.InventoryCard)
 local InventoryCues = require(script.Parent.InventoryCues)
 local ItemState = require(script.Parent.ItemState)
 local MenuFrame = require(script.Parent.MenuFrame)
+local Menus = require(script.Parent.Menus)
 local UIAnim = require(script.Parent.UIAnim)
 local UISound = require(script.Parent.UISound)
 
@@ -231,6 +234,18 @@ function InventoryIndex.buildDetail(self: any, page: Frame)
 	self.rarityLabel = HudParts.text(scroll, "Rarity", D.RarityTextPx[2], "")
 	self.rarityLabel.TextWrapped = false
 	self.rarityLabel.ZIndex = 3
+	-- Preview (hw-gui lane): the Cue Preview, under the name; only while it is switched on.
+	self.preview = HudParts.candy(scroll, Strings.CuePreview.Button, function()
+		self:openPreview()
+	end, "Blue")
+	self.preview.Name = "Preview"
+	self.preview.ZIndex = 3
+	self.preview.Visible = CuePreview.enabled()
+	HudParts.setMinHit(self.preview, TOUCH)
+	GuiQA.add("indexPreview", function() -- Studio only: press Preview (the button's own call)
+		self:openPreview()
+		return CuePreview.isOpen()
+	end)
 	self.stateLabel = HudParts.note(scroll, "State", D.LineTextPx[2], "")
 	self.stateLabel.ZIndex = 3
 	self.existLabel = HudParts.note(scroll, "Exist", D.LineTextPx[2], "")
@@ -805,6 +820,25 @@ function InventoryIndex.choose(self: any, id: string)
 	self:refreshDetail()
 end
 
+--- The chosen cue in the Cue Preview (hw-gui lane); closing it comes back to the Index on that
+--- cue, unless another menu has taken over meanwhile.
+function InventoryIndex.openPreview(self: any)
+	local id: string? = self.chosen
+	if not id then
+		return
+	end
+	UISound.play("Click")
+	CuePreview.open(id, {
+		from = "Index",
+		onClose = function()
+			if Menus.current() == nil and Menus.open("Inventory", "Index") then
+				self.chosen = nil
+				self:choose(id)
+			end
+		end,
+	})
+end
+
 -- Copies in existence of a cue (ReplicatedStorage.CueCounts, from the server's counters), or
 -- nil while unknown or not caught up yet (0).
 local function copiesOf(id: string): number?
@@ -870,6 +904,14 @@ function InventoryIndex.arrangeDetail(self: any)
 	end
 	place(self.nameLabel, math.ceil(textHeight(self.nameLabel.Text, nameSize, inner - 4)) + 4)
 	place(self.rarityLabel, raritySize + 6)
+	if self.preview.Visible then
+		local buttonH = span(D.ButtonPx)
+		local previewW = math.min(inner, round(inner * Config.UI.CuePreview.EntryShare) + 2 * gap)
+		self.preview.Position = UDim2.fromOffset(pad + round((inner - previewW) / 2), y + 2)
+		self.preview.Size = UDim2.fromOffset(previewW, buttonH)
+		HudParts.setButtonTextSize(self.preview, span(D.ButtonTextPx))
+		y += buttonH + gap
+	end
 	place(self.stateLabel, math.ceil(textHeight(self.stateLabel.Text, lineSize, inner - 4)) + 4)
 	if self.existLabel.Visible then
 		place(self.existLabel, lineSize + 4)

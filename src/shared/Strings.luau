@@ -1298,7 +1298,6 @@ return {
 		CandyToo = "Friends and Group boost Candy too",
 		Get = {
 			Group = "Join the group: +%d%%",
-			Friends = "Friends here: +%d%% each",
 			Vip = "VIP: +%d%%",
 		},
 	},

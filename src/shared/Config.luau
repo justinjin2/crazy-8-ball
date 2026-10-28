@@ -9920,7 +9920,7 @@ Config.UI.CuePreview = {
 	Tabs = { -- the camera per tab: focus offset from the stage centre, distance, pitch
 		Model = { Focus = { 0, 2, 0 }, Distance = 15, Pitch = 14 }, -- the cue (about 9 studs) floats over the cloth
 		Trail = { Focus = { 0, 0.5, 0 }, Distance = 8, Pitch = 30 },
-		Finisher = { Focus = { 0, 0.5, 0 }, Distance = 4.5, Pitch = 25 },
+		Finisher = { Focus = { 0, 1.5, 0 }, Distance = 9, Pitch = 28 }, -- a big finisher (Eclipse) fits whole
 	},
 	StrokeBackSeconds = 0.35,
 	StrokeHitSeconds = 0.1,
@@ -9933,6 +9933,40 @@ Config.UI.CuePreview = {
 	Backdrop = { 18, 22, 44 },
 	KeyLight = { Brightness = 3, Range = 30, Angle = 60 },
 	RimLight = { Color = { 150, 120, 255 }, Brightness = 2, Range = 20 },
+	-- The lively chrome, built by hand (not a LivelyMenus frame: its blur would blur the stage):
+	-- the header's 8-balls scroll and the sheet takes the dots (Config.UI.Menu.Lively), the
+	-- title's icon and the lit tab's icon rock (Lively.IconRockDegrees), the 8-ball flair sits on
+	-- the panel's left edge FlairDownShare of the way down (Lively.Flair*).
+	TitleIconShare = 0.8, -- the title's cue icon, a share of the header's height
+	ThumbMinPx = 60, -- the sheet's card picture shows only this tall or taller (not on a phone)
+	FlairDownShare = 0.85,
+	BackingFadeSeconds = 0.12, -- once unrolled, the solid panel fades off the window's hole
+	FoldTimeoutSeconds = 1, -- a close's fold is gone by then whatever happens
+	EntryShare = 0.42, -- My Cues' Preview button: this share of the Equip row (Equip the rest)
+	-- The open (Stage, Config.UI.Motion tokens): the veil fades, the panel unrolls, then its
+	-- pieces pop in; the flair drops on last. About 0.7 s; a close folds it back (0.15 s).
+	Open = {
+		OpenSeconds = 0.7,
+		Steps = {
+			{ Ids = { "Panel" }, Kind = "Unroll", At = 0 }, -- first: the fewest fields (the type)
+			{ Ids = { "Veil" }, Kind = "Fade", At = 0, Length = 0.15 },
+			{ Ids = { "Header" }, Kind = "Fade", At = 0.12, Length = 0.15 }, -- its 8-balls scroll
+			{ Ids = { "Icon", "Title", "Close" }, Kind = "Pop", At = 0.18 },
+			{ Ids = { "Name" }, Kind = "Pop", At = 0.2 },
+			{ Ids = { "Pill" }, Kind = "Pop", At = 0.24 },
+			{ Ids = { "Thumb" }, Kind = "Grow", At = 0.22 },
+			{ Ids = { "Note" }, Kind = "Fade", At = 0.3, Length = 0.12 },
+			{
+				Ids = { "TabModel", "TabTrail", "TabFinisher" },
+				Kind = "Pop",
+				At = 0.3,
+				Stagger = 1.25,
+			},
+			{ Ids = { "Equip" }, Kind = "Pop", At = 0.42 },
+			{ Ids = { "Hint" }, Kind = "Fade", At = 0.45, Length = 0.15 },
+			{ Ids = { "Flair" }, Kind = "Drop", At = 0.5 },
+		},
+	},
 }
 
 -- The economy's menus (2026-09-28, docs/prompts/ECONOMY_UI_PROMPT.md sections 5 and 5.1): the
