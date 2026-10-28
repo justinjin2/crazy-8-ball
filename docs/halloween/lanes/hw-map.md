@@ -80,6 +80,7 @@ From PLAN §4 (everything else is read-only to this lane; ask through Requests):
   Night sky preview: `~/Desktop/8ball-refs/halloween/shots/hw-map/gate1/night-sky-cross.png`.
 - 08:50 coordinator: lanes started 08:43 (73 min behind the plan). New times: interface commits as soon as they pass (target 09:30, merged by 09:45); gate 1 at 10:00 (shots + captions by 09:55); gate 2 at 11:15 with whatever is ready (Justin sleeps after it); merges on request all day; 16:00 done/cut and the 17:00 freeze stay for now (re-timed at 13:00 if needed). Rojo: a watchdog restarts any crashed server by itself (log ~/Desktop/8ball-refs/halloween/shots/coordinator/rojo-watchdog.log; Rojo 7.7 can panic on an editor temp file); if MCP shows your window no longer syncs (append a comment, read it back), write `ROJO RECONNECT` in your Requests and keep working on files. Resize helper: not yet (Studio windows were full screen; Justin is un-fullscreening them); use your layout tests until the outer sizes are posted here.
 - 09:55 coordinator: `halloween` @82ab885c (+ docs f8566968) has core interface 2 (7f01d27b: Halloween save field, CandyService, /hw; switches off), sys 4cdf5620 (roam off, badges off) and gui f2562efb (boost pill ON, friend boost ON, Cue Preview core off). Lint OK, 1,404 tests, Studio play console clean, pill shows +120%. Run `git fetch && git merge origin/halloween` before your next READY. Main.client still has 12 top-level locals to spare: hooks stay inside `do ... end`.
+- 09:56 coordinator: your Rojo server on 34886 is up (pid 20013, since the 08:47 watchdog restart); only the plugin dropped. Asked Justin to click Connect in lane-hw-map (terminal + notification). Until then keep going on headless work (props, decor kits, Rules tests) and queue the Studio steps. Your ea730d46 (Grandmaster King rows) is noted; I merge map once steps 3-5 are Studio-checked.
 
 ## Shared-file changes
 
@@ -117,6 +118,13 @@ coordinator resolves overlaps. Planned (add the commit sha when each lands):
 
 ## Requests
 
+- **CONTRACT CHANGE** (10:05, coordinator, and Justin for the colour): the 3v3 toxic green
+  (110,220,40) renders (167,243,23) at the table and sits **ΔE 16.5** from the yellow balls (1
+  and 9) under Night and Sunset alike, under PLAN's 17. Proposed (70,210,55): renders
+  (95,240,47), **ΔE 23.9**, still a vivid toxic green, a little less lime (gate1 `07` vs `08`).
+  It needs PLAN §2 Tables and `tests/halloween_contract_test.luau:214` changed (yours); say go
+  and I change Config, my tests and the cloth tool in one commit, or change the contract line
+  yourself and I follow.
 - **ROJO CONNECT AGAIN** (09:50): the `lane-hw-map.rbxl` window's plugin shows `[Rojo-Warn]
   Disconnected from an error: WebSocket error: 400` and has none of this branch's code. Rojo on
   34886 is up (pid 20013 since 08:47). Please click Connect to `localhost:34886` once more
@@ -174,7 +182,16 @@ Gate 1 (`~/Desktop/8ball-refs/halloween/shots/hw-map/gate1/`, Play captures, lan
   / 110,220,40; forcing Before clears them and restores Blue. Note for gate 2: the lobby boards
   stand in front of the throne, which half-hides it from the spawn.
 - ΔE (CIEDE2000, closest ball), raw tints: 1v1 23.2 (ball 4), 2v2 20.4 (ball 2), 3v3 29.4
-  (cue ball); all >= 17. Rendered under Night and Sunset: next (needs racked top-down shots).
+  (cue ball).
+- Rendered ΔE (`05`-`10`: the 16 balls in a 4x4 grid on a table of each mode, a fixed camera
+  2.4 studs over the cloth, cloth and ball centres sampled with hw_map_cloth_check's medians):
+  Night 1v1 **24.6** (ball 12), 2v2 **28.4** (ball 2), 3v3 **16.5 (ball 9 yellow), UNDER 17**.
+  Sunset reads the same to the unit up close (the table lamps light the cloth and balls; `11`
+  shows the Sunset hold took). The 3v3 tint (70,210,55) renders (95,240,47): **23.9** under both
+  (`08`, `09`). See Requests: CONTRACT CHANGE.
+- Brightness after tuning (`04-night-spawn-tuned.jpg` vs `02`, exposure 0.45, shade #B8A8D8):
+  L* floor **0.91**, lobby band **0.93**, whole frame 0.89 (the purple sky is darker than the
+  blue one by design). The roof meets the 0.9 target.
 - Brightness, Night vs Day, same camera (01 vs 02): perceived lightness L* 0.81 whole frame,
   0.84 floor, 0.83 lobby band; linear luminance 0.66. **Under the 0.9 target**: step 4 tunes
   Night up (Brightness/Exposure, the purple kept).
