@@ -1845,6 +1845,17 @@ return {
 			fixedPartial.Halloween.KingVisit == 0,
 			"a save from before the timed King: KingVisit 0"
 		)
+		-- A save from before the cue shop (2026-10-29): no Spent. Reconcile adds 0, clean.
+		local noSpent = SaveSchema.template()
+		noSpent.Halloween = SaveSchema.freshHalloween()
+		noSpent.Halloween.Spent = nil
+		noSpent.Halloween.Earned, noSpent.Halloween.Bought = 900, 300
+		reconcile(noSpent, SaveSchema.template())
+		local fixedNoSpent, why1 = SaveSchema.validate(noSpent)
+		H.expect(#why1 == 0, "no Spent: clean: " .. table.concat(why1, "; "))
+		H.expect(fixedNoSpent.Halloween.Spent == 0, "Spent added as 0")
+		H.expect(fixedNoSpent.Halloween.Earned == 900, "Candy kept")
+		assertClean(Config, SaveSchema, fixedNoSpent)
 		-- Junk values: clamped, dropped or reset; unknown keys kept.
 		local save = SaveSchema.template()
 		save.Halloween.Earned = -5
@@ -1854,9 +1865,11 @@ return {
 		save.Halloween.Q = { ["1.1"] = 3, ["1.2"] = -1, ["1.3"] = "x" }
 		save.Halloween.Claimed = 7
 		save.Halloween.Later = 1
+		save.Halloween.Spent = 9
 		local fixed, why = SaveSchema.validate(save)
 		local f = fixed.Halloween
 		H.expect(f.Earned == 0 and f.Bought == 2 and f.Spider == false, "counters and marks")
+		H.expect(f.Spent == 2, "Spent at most the Candy ever got")
 		H.expect(f.Given["2"] == true and f.Given["3"] == nil and f.Given[4] == nil, "Given")
 		H.expect(f.Q["1.1"] == 3 and f.Q["1.2"] == nil and f.Q["1.3"] == nil, "Q")
 		H.expect(type(f.Claimed) == "table" and f.Later == 1, "Claimed mended, unknown kept")
@@ -1866,5 +1879,13 @@ return {
 		broken.Halloween = 7
 		local mended = SaveSchema.validate(broken)
 		H.expect(type(mended.Halloween) == "table" and mended.Halloween.Earned == 0, "mended")
+		-- Junk Spent: a fraction floored, a negative or NaN 0.
+		for _, pair in { { 2.7, 2 }, { -4, 0 }, { 0 / 0, 0 }, { "x", 0 } } do
+			local junk = SaveSchema.template()
+			junk.Halloween.Earned = 10
+			junk.Halloween.Spent = pair[1]
+			local j = SaveSchema.validate(junk)
+			H.expect(j.Halloween.Spent == pair[2], "Spent " .. tostring(pair[1]))
+		end
 	end,
 }

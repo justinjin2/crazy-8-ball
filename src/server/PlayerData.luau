@@ -3583,11 +3583,12 @@ function PlayerData.halloween(player: Player): any?
 	return copyOf(data.Halloween, true)
 end
 
---- The save's Candy (earned + bought; 0 when not loaded), without copying the field.
+--- The save's Candy balance (Earned + Bought - Spent; 0 when not loaded), without copying the
+--- field.
 function PlayerData.hwCandy(player: Player): number
 	local data = peek(player)
 	local hw = if data ~= nil then data.Halloween else nil
-	return if type(hw) == "table" then HwLedger.total(hw) else 0
+	return if type(hw) == "table" then HwLedger.balance(hw) else 0
 end
 
 --- Whether the player has finished a real match this UTC day (Daily.Matches: PC practice never
@@ -3799,8 +3800,9 @@ function PlayerData.hwMark(player: Player, mark: "Seen" | "EndSeen"): boolean
 	end) ~= nil
 end
 
---- The end (once per save, after EndsAt): finished unclaimed quests are claimed, then all the
---- Candy becomes money (Convert.MoneyPerCandy each, reason "HalloweenCandy"), and the save is
+--- The end (once per save, after EndsAt): finished unclaimed quests are claimed, then the Candy
+--- balance (Earned + Bought - Spent) becomes money (Convert.MoneyPerCandy each, reason
+--- "HalloweenCandy"; spent Candy came out of Earned first, Ledger.convertSplit), and the save is
 --- marked converted. No track prizes are granted any more. A save with no Candy is only marked
 --- (no end screen). The result's money (nil when not due or not loaded).
 function PlayerData.hwConvert(player: Player, ctx: HwCtx): HwResult?

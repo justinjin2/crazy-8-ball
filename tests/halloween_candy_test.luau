@@ -244,6 +244,45 @@ return {
 		H.expect(Ledger.total(hw) == 559, "total")
 	end,
 
+	["the balance is Earned + Bought - Spent; a spend takes only what the balance covers"] = function()
+		local _, Ledger, _, SaveSchema = load()
+		local hw = SaveSchema.freshHalloween()
+		H.expect(hw.Spent == 0 and Ledger.balance(hw) == 0, "a fresh save: nothing")
+		hw.Earned, hw.Bought = 400, 300
+		H.expect(Ledger.balance(hw) == 700, "700")
+		H.expect(Ledger.spend(hw, 300) and hw.Spent == 300, "300 spent")
+		H.expect(Ledger.balance(hw) == 400 and Ledger.total(hw) == 700, "400 left, 700 ever")
+		H.expect(not Ledger.spend(hw, 401) and hw.Spent == 300, "more than the balance: refused")
+		H.expect(not Ledger.spend(hw, 0) and not Ledger.spend(hw, -5), "nothing or less")
+		H.expect(not Ledger.spend(hw, 0 / 0) and not Ledger.spend(hw, 2.5), "NaN, a fraction")
+		H.expect(hw.Spent == 300, "unchanged by a refusal")
+		H.expect(Ledger.spend(hw, 400) and Ledger.balance(hw) == 0, "all of it")
+		-- A broken save (Spent past what was ever got) never goes below 0.
+		hw.Spent = 5000
+		H.expect(Ledger.balance(hw) == 0, "never below 0")
+		hw.Spent = nil
+		H.expect(Ledger.balance(hw) == 700, "a save without Spent: all of it")
+	end,
+
+	["the end converts the balance; spent Candy comes out of Earned first"] = function()
+		local _, Ledger, _, SaveSchema = load()
+		local hw = SaveSchema.freshHalloween()
+		hw.Earned, hw.Bought = 1240, 500
+		H.expect(Ledger.spend(hw, 300), "a 300 cue")
+		H.expect(Ledger.convertMoney(hw) == 14400, "$14,400 for 1,440")
+		local earned, bought = Ledger.convertSplit(hw)
+		H.expect(earned == 9400 and bought == 5000, "earned 940, bought 500 untouched")
+		H.expect(earned + bought == Ledger.convertMoney(hw), "the two make the whole")
+		-- Spent past Earned: the rest comes out of Bought.
+		H.expect(Ledger.spend(hw, 1200), "1,200 more")
+		earned, bought = Ledger.convertSplit(hw)
+		H.expect(earned == 0 and bought == 2400, "earned all spent, 240 bought left")
+		H.expect(Ledger.convertMoney(hw) == 2400, "$2,400")
+		H.expect(Ledger.spend(hw, 240), "the last 240")
+		earned, bought = Ledger.convertSplit(hw)
+		H.expect(earned == 0 and bought == 0 and Ledger.convertMoney(hw) == 0, "nothing left")
+	end,
+
 	["the Spider at 3 h 01 m of active play, once"] = function()
 		local _, Ledger, Config, SaveSchema = load()
 		local S = Config.Halloween.Spider

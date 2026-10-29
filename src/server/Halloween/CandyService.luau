@@ -141,10 +141,10 @@ local function tutorialOver(player: Player): boolean
 	return type(step) == "string" and Steps.Ends[step] == true
 end
 
--- The player attributes the client and other lanes read: Candy (earned + bought) and HwOn
--- (the save loaded, the event switched on, the tutorial over).
+-- The player attributes the client and other lanes read: Candy (the balance, Earned + Bought -
+-- Spent) and HwOn (the save loaded, the event switched on, the tutorial over).
 local function setAttributes(player: Player, hw: any?)
-	local candy = if hw then hw.Earned + hw.Bought else 0
+	local candy = if hw then Ledger.balance(hw) else 0
 	local on = hw ~= nil and C.Enabled == true and tutorialOver(player)
 	if player:GetAttribute("Candy") ~= candy then
 		player:SetAttribute("Candy", candy)
@@ -182,9 +182,10 @@ local function viewOf(player: Player, hw: any): any
 	end
 	table.sort(given)
 	return {
-		candy = hw.Earned + hw.Bought,
+		candy = Ledger.balance(hw),
 		earned = hw.Earned,
 		bought = hw.Bought,
+		spent = hw.Spent or 0,
 		given = given,
 		active = hw.Active,
 		spider = hw.Spider,
@@ -861,7 +862,7 @@ function CandyService.dev(player: Player, args: { string }): { string }
 			Event.state(now),
 			os.date("!%a %H:%M:%S", now) :: string,
 			Clock.offset(),
-			if hw then hw.Earned + hw.Bought else 0,
+			if hw then Ledger.balance(hw) else 0,
 			Event.boardIndex(now),
 			Event.multiplier(now),
 			if hw then hw.Active else 0
