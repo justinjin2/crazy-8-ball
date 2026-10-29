@@ -9,7 +9,9 @@
 -- colour with its word inside, upper case; a rank cue's bar says RANKED with its tier's badge
 -- whole over the bar's left end, and the card wears its tier's colours. Top left: the chance
 -- chip (only on cues that drop from a block), then NEW and Equipped under it; top right the
--- count ("x3") and the padlock on Exclusive and Unique cues; a copy number ("#412") is a dark
+-- count ("x3") and the padlock on Exclusive and Unique cues; an event cue wears its event's
+-- emblem top left ("Halloween 2026", Config.UI.EventEmblem; not on a never-found card), NEW and
+-- Equipped under it; a copy number ("#412") is a dark
 -- chip with gold words just above the name, on the right (concept 2). A bare card (the big
 -- card, whose words beside it say all that) shows no pills and no padlock. The card is filled in its
 -- look's colours, rimmed by the rarity edge, with faint 8-balls drifting up-left behind the
@@ -34,6 +36,7 @@ local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local Catalog = require(Shared:WaitForChild("Progression"):WaitForChild("Catalog"))
 local CardMath = require(Shared:WaitForChild("CardMath"))
+local EventEmblem = require(Shared:WaitForChild("EventEmblem"))
 local CueCardFx = require(script.Parent.CueCardFx)
 local CueThumb = require(script.Parent.CueThumb)
 local HudParts = require(script.Parent.HudParts)
@@ -45,6 +48,7 @@ local IC = Config.UI.Inventory.Card
 local CC = Config.UI.CueCard
 local L = CC.Layout
 local LOCKED = CC.Locked
+local EMBLEM = Config.UI.EventEmblem
 local UNITS = CC.Units
 local CARD = Config.UI.Menu.Card
 local K = Config.UI.Kit
@@ -107,6 +111,7 @@ export type Card = {
 	badge: ImageLabel,
 	chancePill: Frame,
 	chanceText: TextLabel,
+	emblem: ImageLabel, -- an event cue's emblem (EventEmblem), top left
 	newPill: Frame,
 	newText: TextLabel,
 	equipPill: Frame,
@@ -337,6 +342,14 @@ function InventoryCard.layout(card: Card)
 	local left, top = px(P[1]), px(P[2])
 	local stepY = px(L.SecondPillTopUnits - P[2])
 	local row = 0
+	-- An event cue's emblem first, in the chance chip's place (no block drops an event cue).
+	if card.emblem.Visible then
+		local EU = EMBLEM.CardUnits
+		local ew, eh = EventEmblem.size(math.max(pillH, px(EU[3])))
+		card.emblem.Position = UDim2.fromOffset(px(EU[1]), px(EU[2]))
+		card.emblem.Size = UDim2.fromOffset(math.min(ew, w - 2 * left), eh)
+		row += 1
+	end
 	for _, entry in
 		{
 			{ card.chancePill, card.chanceText, chancePx },
@@ -525,6 +538,13 @@ function InventoryCard.new(parent: Instance, opts: Options): Card
 	chanceText.TextWrapped = false
 	chanceText.Size = UDim2.fromScale(1, 1)
 	chanceText.ZIndex = 2
+	local emblem = Instance.new("ImageLabel")
+	emblem.Name = "Emblem"
+	emblem.BackgroundTransparency = 1
+	emblem.ScaleType = Enum.ScaleType.Fit
+	emblem.ZIndex = 5
+	emblem.Visible = false
+	emblem.Parent = body
 	local newPill, newText = InventoryCard.pill(body, "New", tone("Gold"), WORDS.New)
 	pillShape(newPill)
 	newPill.ZIndex = 5
@@ -614,6 +634,7 @@ function InventoryCard.new(parent: Instance, opts: Options): Card
 		badge = badge,
 		chancePill = chancePill,
 		chanceText = chanceText,
+		emblem = emblem,
 		newPill = newPill,
 		newText = newText,
 		equipPill = equipPill,
@@ -803,6 +824,10 @@ function InventoryCard.set(card: Card, fields: Fields)
 	local chance = if pills then fields.chance or "" else ""
 	card.chanceText.Text = chance
 	card.chancePill.Visible = chance ~= ""
+	-- An event cue's emblem, on every card but a never-found one (the big card and YOU GOT too).
+	local emblem = if locked then nil else EventEmblem.image(id)
+	card.emblem.Visible = emblem ~= nil
+	card.emblem.Image = emblem or ""
 	InventoryCard.layout(card)
 end
 

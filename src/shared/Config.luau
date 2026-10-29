@@ -17633,6 +17633,7 @@ Config.UI.Halloween = {
 				RibbonUnits = 118,
 				RibbonTextUnits = 26,
 				HeightUnits = 436,
+				EmblemUnits = { 4, 8, 38 }, -- the Halloween 2026 emblem: in from the left (past the pad), top, height
 			},
 			-- A phone's card: a smaller picture, taller buttons (a thumb's touch).
 			ShortCard = {
@@ -17654,6 +17655,7 @@ Config.UI.Halloween = {
 				RibbonUnits = 164,
 				RibbonTextUnits = 30,
 				HeightUnits = 440,
+				EmblemUnits = { 4, 6, 50 }, -- bigger on a phone, so its "2026" reads
 			},
 			SectionGapUnits = 16, -- the cue row to the boxes under it
 			QuestsWidthUnits = 690, -- TODAY'S QUESTS (GET CANDY takes the rest)
@@ -18007,6 +18009,23 @@ Config.UI.Halloween = {
 			{ Ids = { "Flair" }, Kind = "Drop", At = 0.6, Length = 0.25 },
 		},
 	},
+}
+
+-- The event emblem (designer, 2026-10-29: "a small Halloween 2026 emblem (a Halloween icon and
+-- 2026)"): a small badge on an event cue's card, chosen by its Catalog row's Event, so a new
+-- event's cues need only a picture here. Shown on the event menu's cards, My Cues, the Index
+-- (only once found: a locked card shows none) and the YOU GOT card (InventoryCard; EventMenu;
+-- shared/EventEmblem). Flat vector art (tools/gui/hw_emblem.py), an Image asset (its id is the
+-- image id). Off: no emblem anywhere.
+Config.UI.EventEmblem = {
+	Enabled = true,
+	Images = {
+		Halloween2026 = "rbxassetid://91473013507424", -- assets/ui/halloween/Emblem2026.png (320 x 128)
+	},
+	Aspect = 2.5, -- the pictures' width over their height
+	-- On a cue card (Config.UI.CueCard.Units): left, top, height. Top left, where the chance
+	-- chip would be (no block drops an event cue); NEW and Equipped go under it.
+	CardUnits = { 5.25, 6.1, 20 },
 }
 
 ---------------------------------------------------------------------------------------------

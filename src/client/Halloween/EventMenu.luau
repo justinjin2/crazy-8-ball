@@ -6,7 +6,8 @@
 --     Pitchfork, the Witch's Broom, the Jack-o'-Lantern, the Halloween Sword; designer
 --     2026-10-29), each with the Cues inventory's faint 8-balls drifting up-left, the cue's
 --     picture (its skin Thumb through CueThumb) with its own effects playing over it in 2D
---     (Halloween/CardFx, richer up the ladder), a big green Robux button (the purple gift square inside its left end; it
+--     (Halloween/CardFx, richer up the ladder), the "Halloween 2026" emblem top left
+--     (EventEmblem), a big green Robux button (the purple gift square inside its left end; it
 --     shines) over a smaller orange Candy button (a first press says BUY?, a second buys:
 --     State.send({ buy = cue }), the answer comes as the bought moment). An owned cue's card
 --     says OWNED. (With the Pumpkin King's drop switched on, a drop cue not on sale gets the
@@ -31,6 +32,7 @@ local HwMenuMath = require(Shared:WaitForChild("HwMenuMath"))
 local CardMath = require(Shared:WaitForChild("CardMath"))
 local Clock = require(Shared.Halloween.Clock)
 local Event = require(Shared.Halloween.Event)
+local EventEmblem = require(Shared:WaitForChild("EventEmblem"))
 local CueThumb = require(script.Parent.Parent.CueThumb)
 local GuiQA = require(script.Parent.Parent.GuiQA)
 local HudParts = require(script.Parent.Parent.HudParts)
@@ -196,6 +198,7 @@ type Card = {
 	art: Frame,
 	thumb: Frame,
 	fx: CardFx.Fx?, -- its cue's live effects (none: no CardFx row)
+	emblem: ImageLabel?, -- the Halloween 2026 emblem (none: no event picture)
 	ballsPhase: number, -- where its 8-balls' drift starts (0..1)
 	landed: boolean, -- its reveal is over: its effects may play
 	name: TextLabel,
@@ -460,6 +463,13 @@ function EventMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		thumb.Position = UDim2.fromScale(0.5, 0.5)
 		-- Its own effects behind and over the picture (built hidden; the menu's loop plays them).
 		local fx = CardFx.new(art, entry.cue, thumb)
+		local emblemImage = EventEmblem.image(entry.cue)
+		local emblem: ImageLabel? = nil
+		if emblemImage then
+			local e = picture(root, "Emblem", emblemImage)
+			e.ZIndex = 6
+			emblem = e
+		end
 		local name = HudParts.text(root, "Name", 18, CueThumb.cueName(entry.cue))
 		name.TextWrapped = false
 		name.ZIndex = 6
@@ -508,6 +518,7 @@ function EventMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 			art = art,
 			thumb = thumb,
 			fx = fx,
+			emblem = emblem,
 			ballsPhase = (index * 0.31) % 1,
 			landed = false,
 			name = name,
@@ -886,6 +897,15 @@ function EventMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		local fx = card.fx
 		if fx then
 			CardFx.layout(fx, side)
+		end
+		-- The Halloween 2026 emblem top left, clear of the cue (its picture runs bottom left to
+		-- top right).
+		local emblem = card.emblem
+		if emblem then
+			local E = C.EmblemUnits
+			local ew, eh = EventEmblem.size(math.max(L.MinTextPx + 4, y(E[3])))
+			emblem.Position = UDim2.fromOffset(pad + round(E[1] * plan.kx), y(E[2]))
+			emblem.Size = UDim2.fromOffset(ew, eh)
 		end
 		local namePx = tp(C.NameTextUnits)
 		local nameW = w - 2 * pad
