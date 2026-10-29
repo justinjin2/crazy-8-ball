@@ -133,12 +133,26 @@ local function specialCue(id: string, group: string, effect: string, look: Look)
 	}
 end
 
+-- The event cues sold on the Halloween Limited card (Config.Shop.Limited rows with Event
+-- "Halloween2026", while Config.Shop.HalloweenLimited is on): numbered Unique copies (so
+-- tradable, like every Unique cue), never a Candy track or Spider reward.
+local LIMITED_EVENT_CUES: { [string]: boolean } = {}
+if (Config.Shop :: any).HalloweenLimited.Enabled == true then
+	for _, row in Config.Shop.Limited do
+		if row.Event == "Halloween2026" then
+			LIMITED_EVENT_CUES[row.Cue] = true
+		end
+	end
+end
+
 -- The Halloween 2026 event cues (designer, 2026-10-28; docs/halloween/PLAN.md §3): group
--- Exclusive, one copy each, never traded or sold, never coming back. Effect is the visual
--- ladder level (Pop.level). Until its skin is built a cue is hidden (Catalog.ready) and drawn
--- as Classic (StandIn); specialCue takes the skin's Look once the Index has it.
+-- Exclusive, one copy each, never traded or sold, never coming back; a cue on the Limited
+-- card is Unique instead (above). Effect is the visual ladder level (Pop.level). Until its
+-- skin is built a cue is hidden (Catalog.ready) and drawn as Classic (StandIn); specialCue
+-- takes the skin's Look once the Index has it.
 local function eventCue(id: string, effect: string): Cue
-	local cue = specialCue(id, "Exclusive", effect, skinLook(Catalog.Default))
+	local group = if LIMITED_EVENT_CUES[id] then "Unique" else "Exclusive"
+	local cue = specialCue(id, group, effect, skinLook(Catalog.Default))
 	cue.Event = "Halloween2026"
 	cue.StandIn = Catalog.Default
 	return cue

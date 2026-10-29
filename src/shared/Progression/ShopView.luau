@@ -125,6 +125,7 @@ export type DealView = {
 	endsAt: number,
 	vaulted: boolean, -- ended, the "Vaulted" card still shows
 	vaultedUntil: number,
+	offShop: boolean, -- taken off the Shop (Config.Shop.HalloweenLimited): hide its card
 }
 
 -- A block kind's guarantee for this player (Config.LuckyBlocks.Kinds[kind].Guarantee).
@@ -204,14 +205,10 @@ local function whole(x: any): number
 	return math.floor(x)
 end
 
--- The Limited shelf row sold as developer product `key`, or nil.
+-- The Limited row sold as developer product `key` (scheduled or off: an off row is closed, so
+-- its product never prompts, even once it has an id), or nil.
 local function limitedRow(key: string): Shop.LimitedRow?
-	for _, row in Shop.limited() do
-		if row.Product == key then
-			return row
-		end
-	end
-	return nil
+	return Shop.limitedForProduct(key)
 end
 
 -- Whether a pass other than Vip (an ult slot) is owned.
@@ -471,6 +468,7 @@ function ShopView.build(ctx: Context): Payload
 			endsAt = window.endsAt,
 			vaulted = window.vaulted,
 			vaultedUntil = window.vaultedUntil,
+			offShop = window.offShop,
 		}
 	end
 

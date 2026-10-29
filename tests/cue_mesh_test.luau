@@ -17,7 +17,7 @@ return {
 		for _, cue in Catalog.list() do
 			if awaitingArt[cue.Id] then
 				H.expect(not CueSkins.has(cue.Id), cue.Id .. ": its skin is not built yet")
-			elseif cue.Group == "Unique" and not built[cue.Id] then
+			elseif cue.Group == "Unique" and not built[cue.Id] and cue.Event == nil then
 				H.expect(
 					not CueSkins.has(cue.Id),
 					cue.Id .. ": a Unique cue's skin is not built yet"

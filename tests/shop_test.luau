@@ -73,6 +73,22 @@ local function withSoftLaunch(on: boolean, fn: () -> ())
 	end
 end
 
+-- A test of the old Shop (the Grand Opening block on sale): runs it with the Halloween Limited
+-- card's switch (Config.Shop.HalloweenLimited) off, and puts the switch back even if it fails.
+-- tests/halloween_limited_test.luau covers the card on.
+local function oldShop(fn: () -> ()): () -> ()
+	return function()
+		local switch = Config.Shop.HalloweenLimited :: any
+		local was = switch.Enabled
+		switch.Enabled = false
+		local ok, err = pcall(fn)
+		switch.Enabled = was
+		if not ok then
+			error(err, 0)
+		end
+	end
+end
+
 local function newShop(overrides: { [string]: any }?): any
 	local shop: { [string]: any } = {
 		FirstJoin = JOIN,
@@ -276,7 +292,7 @@ local function offerEndsAt(payload: any, now: number): number?
 	return found
 end
 
-return {
+local tests = {
 	["every money pack matches ECONOMY 11.1"] = function()
 		local packs = Shop.packs()
 		H.expect(#packs == #PACKS, ("%d packs, expected %d"):format(#packs, #PACKS))
@@ -379,11 +395,23 @@ return {
 	end,
 
 	["every pass and product is made: a real id, each once"] = function()
+		-- The Halloween Limited card's products are made once its two cues are picked: they
+		-- need their ids from the moment the card is on (Config.Shop.HalloweenLimited).
+		local later: { [string]: boolean } = {}
+		if not Shop.halloweenLimitedOn() then
+			for _, row in Config.Shop.Limited do
+				if row.Event == "Halloween2026" and row.Product ~= nil then
+					later[row.Product] = true
+				end
+			end
+		end
 		local seen = {}
 		for key, product in Config.Products.List do
-			H.expect(product.Id > 0, key .. " has its id (tools/roblox_products.py)")
-			H.expect(seen[product.Id] == nil, key .. ": id used once")
-			seen[product.Id] = key
+			if not later[key] then
+				H.expect(product.Id > 0, key .. " has its id (tools/roblox_products.py)")
+				H.expect(seen[product.Id] == nil, key .. ": id used once")
+				seen[product.Id] = key
+			end
 		end
 	end,
 
@@ -702,10 +730,15 @@ return {
 		local live = Config.Shop.Deals.GrandOpening
 		H.expect(live.StartsAt == 1791634500 and live.Seconds == 46 * DAY, "live: 46 days from now")
 		beforeStart(function()
-			H.expect(#Shop.limited() == 0 and #Config.Shop.Limited == 0, "no Limited shelf now")
+			-- The shelf holds only the Halloween Limited card's rows, off with the card; the
+			-- Firework and Beta cues come from the block, never a shelf row.
+			H.expect(#Shop.limited() == 0, "no Limited on sale in the old Shop")
+			for _, row in Config.Shop.Limited do
+				H.expect(row.Event == "Halloween2026", row.Cue .. ": a Halloween card row")
+			end
 			H.expect(Shop.limitedFor("FireworkCue") == nil, "the cue comes from the block")
 			H.expect(Shop.limitedFor("BetaCue") == nil, "no Beta row")
-			H.expect(Config.Products.List.FireworkCue == nil, "no Robux Limited product")
+			H.expect(Config.Products.List.FireworkCue == nil, "no Robux Firework product")
 			local row = Shop.dealRow("GrandOpening")
 			H.expect(row ~= nil and row.Kind == "GrandOpening" and row.StartsAt == 0, "off")
 			H.expect(
@@ -1557,3 +1590,17 @@ return {
 		H.expect(restricted.products.StarterPack.canBuy == fresh.products.StarterPack.canBuy, "")
 	end,
 }
+
+-- The tests of the Grand Opening block on sale run on the old Shop (oldShop).
+for _, name in
+	{
+		"the Grand Opening block deal: 45 days, vaulted 7 more, off until its date (before its start)",
+		"Mystery blocks grant paid blocks; the Starter Pack adds an hour of 2x money",
+		"paid random items are refused where restricted; the page order and Roblox Plus",
+	}
+do
+	assert(tests[name], name)
+	tests[name] = oldShop(tests[name])
+end
+
+return tests

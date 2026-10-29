@@ -81,6 +81,7 @@ export type LimitedRow = {
 	Price: number?, -- money; nil for a Robux one
 	Product: string?, -- a Config.Products key for a Robux one
 	Cap: number?, -- copies at most; nil for no cap
+	Event: string?, -- an event's Limited card ("Halloween2026"): off while its switch is off
 	StartsAt: number,
 	Seconds: number,
 }
@@ -156,6 +157,7 @@ export type DealWindow = {
 	endsAt: number,
 	vaultedUntil: number, -- the end of the Vaulted card (endsAt when none)
 	vaulted: boolean, -- ended, and still inside VaultedSeconds
+	offShop: boolean, -- taken off the Shop (Config.Shop.HalloweenLimited): closed, card hidden
 }
 
 -- The products whose grant is more than their Money (ECONOMY 11.3-11.5).
@@ -336,19 +338,44 @@ end
 -- cue id), over Config's. Only the server sets them (Shop.setWindow).
 local windows: { [string]: { StartsAt: number, Seconds: number } } = {}
 
--- A row with this server's window applied (a copy when one is set).
+--- Whether the Halloween Limited card is on (Config.Shop.HalloweenLimited.Enabled): its rows
+--- sell and the Grand Opening block is off the Shop.
+function Shop.halloweenLimitedOn(): boolean
+	local switch = (S :: any).HalloweenLimited
+	return type(switch) == "table" and switch.Enabled == true
+end
+
+-- Whether a Limited row's event switch lets it sell: a row of no event always; a Halloween
+-- card row while Config.Shop.HalloweenLimited is on; any other event never.
+local function eventOn(row: LimitedRow): boolean
+	if row.Event == nil then
+		return true
+	end
+	return row.Event == "Halloween2026" and Shop.halloweenLimitedOn()
+end
+
+-- A row with this server's window applied (a copy when one is set), and off (StartsAt 0) while
+-- its event's switch is off.
 local function effective(row: LimitedRow): LimitedRow
 	local window = windows[row.Cue]
-	if window == nil then
+	local on = eventOn(row)
+	if window == nil and on then
 		return row
 	end
 	local copy = table.clone(row)
-	copy.StartsAt = window.StartsAt
-	copy.Seconds = window.Seconds
+	if window ~= nil then
+		copy.StartsAt = window.StartsAt
+		copy.Seconds = window.Seconds
+	end
+	if not on then
+		copy.StartsAt = 0
+	end
 	return copy
 end
 
-local function limitedForProduct(key: string): LimitedRow?
+--- The Limited row sold as developer product `key` (scheduled or off, with this server's
+--- window and its event switch applied), or nil.
+function Shop.limitedForProduct(key: string): LimitedRow?
 	for _, row in LIMITED do
 		if row.Product == key then
 			return effective(row)
@@ -356,6 +383,7 @@ local function limitedForProduct(key: string): LimitedRow?
 	end
 	return nil
 end
+local limitedForProduct = Shop.limitedForProduct
 
 -- Whether a receipt at `now` still counts as bought inside a window that closes at `endsAt`:
 -- open, or closed less than OfferGraceSeconds ago (a prompt shown just before the end).
@@ -412,10 +440,15 @@ function Shop.setDeal(key: string, startsAt: number?, seconds: number?): boolean
 	return true
 end
 
---- Deal `key`'s window at unix time `now` (see DealWindow). An unknown key is closed.
+--- Deal `key`'s window at unix time `now` (see DealWindow). An unknown key is closed. The deal
+--- the Halloween Limited card replaces (Config.Shop.HalloweenLimited.OffShop) is closed and off
+--- the Shop while the card is on: no money or Robux buy (a late receipt pays the fallback);
+--- owned blocks still open (opening never asks the deal). The launch bonus and the release
+--- sale read the deal's row, not this window, so they do not change.
 function Shop.deal(key: string, now: number): DealWindow
 	local row = effectiveDeal(key)
-	if row == nil then
+	local switch = (S :: any).HalloweenLimited
+	if row == nil or (Shop.halloweenLimitedOn() and key == switch.OffShop) then
 		return {
 			open = false,
 			timed = true,
@@ -423,6 +456,7 @@ function Shop.deal(key: string, now: number): DealWindow
 			endsAt = 0,
 			vaultedUntil = 0,
 			vaulted = false,
+			offShop = row ~= nil,
 		}
 	end
 	if row.StartsAt == nil or (row.SoftLaunch == true and whole(row.StartsAt) <= 0) then
@@ -433,6 +467,7 @@ function Shop.deal(key: string, now: number): DealWindow
 			endsAt = 0,
 			vaultedUntil = 0,
 			vaulted = false,
+			offShop = false,
 		}
 	end
 	local startsAt = whole(row.StartsAt)
@@ -445,6 +480,7 @@ function Shop.deal(key: string, now: number): DealWindow
 		endsAt = endsAt,
 		vaultedUntil = vaultedUntil,
 		vaulted = startsAt > 0 and now >= endsAt and now < vaultedUntil,
+		offShop = false,
 	}
 end
 

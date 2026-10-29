@@ -4083,15 +4083,50 @@ Config.Shop = {
 	-- scheduled; there is no Founder's Cue (designer, 2026-10-05).
 	-- (Designer, 2026-10-04: the $149,000 Firework Cue shelf is gone; the cue comes from
 	-- the Grand Opening block only. The shelf code stays for a later Limited.)
-	Limited = {} :: {
+	-- Event: the row belongs to that event's Limited card (Config.Shop.HalloweenLimited for
+	-- "Halloween2026"): off (not shown, not sold) while its switch is off, and its cue is
+	-- Unique only while it is on (Catalog).
+	Limited = {
+		-- The Halloween Limited card's two cues (designer, 2026-10-28 ~23:05: 299 R$ and
+		-- 1,499 R$, numbered, no cap, from the event's start to its end). Which two is the
+		-- designer's pick after seeing all five in game: change only Cue (placeholders: the
+		-- Witch's Broom and the Halloween Sword); the products are named by price.
+		{
+			Cue = "WitchBroomCue",
+			Product = "HwLimited299",
+			Event = "Halloween2026",
+			StartsAt = Config.Halloween.StartsAt,
+			Seconds = Config.Halloween.EndsAt - Config.Halloween.StartsAt,
+		},
+		{
+			Cue = "HalloweenSwordCue",
+			Product = "HwLimited1499",
+			Event = "Halloween2026",
+			StartsAt = Config.Halloween.StartsAt,
+			Seconds = Config.Halloween.EndsAt - Config.Halloween.StartsAt,
+		},
+	} :: {
 		{
 			Cue: string,
 			Price: number?,
 			Product: string?,
 			Cap: number?,
+			Event: string?,
 			StartsAt: number,
 			Seconds: number,
 		}
+	},
+	-- The Halloween Limited card (designer, 2026-10-28 ~23:05, docs/DECISIONS.md): the Grand
+	-- Opening block comes off the Shop (no buy path, its card hidden; owned blocks still open)
+	-- and its top slot sells the Limited rows with Event "Halloween2026". Enabled false: the
+	-- old Shop (the block on sale, those rows not sold, their cues Exclusive). Turn it on only
+	-- with the final Candy track: a Limited cue is then Unique, and a Unique cue can never be a
+	-- Candy track or Spider reward (tests/halloween_limited_test.luau fails while on and one
+	-- is). Once on in a published game keep it on: off again, owners' numbered copies read as
+	-- not owned (the save keeps them; on again shows them). To stop selling, end the rows.
+	HalloweenLimited = {
+		Enabled = false,
+		OffShop = "GrandOpening", -- the Deals key it takes off the Shop while on
 	},
 	-- The release sale (designer, 2026-10-03, D5; the GUI lane): money packs 4-7, VIP and 10
 	-- Mystery blocks at Percent off for Seconds, as their own developer products (Config.Products
@@ -4415,6 +4450,12 @@ Config.Products = {
 		-- a receipt outside that pays Shop.fallbackMoney.
 		Candy500 = { Kind = "Product", Id = 3723285204, Robux = 49, Candy = 500 },
 		Candy2000 = { Kind = "Product", Id = 3723285208, Robux = 149, Candy = 2000 },
+		-- The Halloween Limited card's two cues (Config.Shop.Limited rows with Event
+		-- "Halloween2026"; designer, 2026-10-28). Named by price, so the designer's pick changes
+		-- only the rows' Cue. Id 0 until tools/roblox_products.py makes them, once the two cues
+		-- are picked ("Coming soon" until then: nothing prompts).
+		HwLimited299 = { Kind = "Product", Id = 0, Robux = 299 },
+		HwLimited1499 = { Kind = "Product", Id = 0, Robux = 1499 },
 	},
 }
 

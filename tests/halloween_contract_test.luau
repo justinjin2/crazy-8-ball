@@ -266,6 +266,7 @@ return {
 	["halloween: the five cues are Exclusive rows with names"] = function()
 		local Catalog = H.require("Progression.Catalog")
 		local Strings = H.require("Strings")
+		local Config = H.require("Config")
 		if not present("the five Catalog rows (cues-a)", Catalog.get("JackOLanternCue")) then
 			return
 		end
@@ -273,11 +274,18 @@ return {
 			local cue = Catalog.get(id)
 			H.expect(cue ~= nil, id .. " is in the Catalog")
 			if cue then
-				H.expect(cue.Group == "Exclusive", id .. " is group Exclusive")
-				H.expect(
-					cue.Tradable == false and cue.Sellable == false,
-					id .. " is never traded or sold"
-				)
+				-- A cue on the Halloween Limited card is Unique (numbered, traded) while the card
+				-- is on (Config.Shop.HalloweenLimited).
+				local limited = false
+				if Config.Shop.HalloweenLimited.Enabled == true then
+					for _, row in Config.Shop.Limited do
+						limited = limited or (row.Event == "Halloween2026" and row.Cue == id)
+					end
+				end
+				local group = if limited then "Unique" else "Exclusive"
+				H.expect(cue.Group == group, id .. " is group " .. group)
+				H.expect(cue.Tradable == limited, id .. " trades only as a Limited")
+				H.expect(cue.Sellable == false, id .. " is never sold")
 			end
 			H.expect(typeof(Strings.Items.Cues[id]) == "string", id .. " has a name in Strings")
 			H.expect(id ~= "CandyCue" and id ~= "PhantomCue", "never reuse CandyCue or PhantomCue")

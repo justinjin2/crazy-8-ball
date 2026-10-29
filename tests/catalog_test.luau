@@ -8,6 +8,20 @@ local function load()
 	return H.require("Progression.Catalog"), H.require("Config"), H.require("Strings")
 end
 
+-- The event cues on the Halloween Limited card while it is on (Config.Shop.HalloweenLimited):
+-- Unique (numbered, tradable) instead of Exclusive.
+local function limitedEventCues(Config: any): { [string]: boolean }
+	local set: { [string]: boolean } = {}
+	if Config.Shop.HalloweenLimited.Enabled == true then
+		for _, row in Config.Shop.Limited do
+			if row.Event == "Halloween2026" then
+				set[row.Cue] = true
+			end
+		end
+	end
+	return set
+end
+
 -- The cue skins' plan (designer, 2026-09-30): the block cues per rarity. Classic is shown as
 -- an eighth Common but is in no block.
 local CASE_CUES = {
@@ -59,11 +73,17 @@ return {
 
 	["10 Ranked (the rank cues), 2 Exclusive (VIP, Starter), 2 Unique, Classic, nothing else"] = function()
 		local Catalog, Config = load()
-		-- Plus every Halloween 2026 event cue whose skin has left draft (Catalog.ready).
-		local ready = 0
+		-- Plus every Halloween 2026 event cue whose skin has left draft (Catalog.ready): Unique
+		-- while it is on the Halloween Limited card, else Exclusive.
+		local limited = limitedEventCues(Config)
+		local ready, readyLimited = 0, 0
 		for _, cue in Catalog.list() do
 			if cue.Event ~= nil and Catalog.ready(cue.Id) then
-				ready += 1
+				if limited[cue.Id] then
+					readyLimited += 1
+				else
+					ready += 1
+				end
 			end
 		end
 		local exclusive = Catalog.ofRarity("Exclusive")
@@ -78,7 +98,14 @@ return {
 		local ranked = Catalog.ofRarity("Ranked")
 		H.expect(#ranked == 10, ("%d Ranked, expected 10"):format(#ranked))
 		local unique = Catalog.ofRarity("Unique")
-		H.expect(#unique == 2, ("%d Unique, expected 2"):format(#unique))
+		H.expect(
+			#unique == 2 + readyLimited,
+			("%d Unique, expected %d (Beta, Firework and %d ready Limited event cues)"):format(
+				#unique,
+				2 + readyLimited,
+				readyLimited
+			)
+		)
 		H.expect(
 			Catalog.get("BetaCue") ~= nil and Catalog.get("FireworkCue") ~= nil,
 			"the Beta and Grand Opening cues"
@@ -147,7 +174,7 @@ return {
 	end,
 
 	["the five Halloween 2026 cues: Exclusive, never traded or sold, hidden until built, drawn as Classic meanwhile"] = function()
-		local Catalog, _, Strings = load()
+		local Catalog, Config, Strings = load()
 		local CueSkins = H.require("CueSkins")
 		-- PLAN §3: id, Effect (the visual ladder level).
 		local EVENT = {
@@ -163,8 +190,12 @@ return {
 			local cue = Catalog.get(id)
 			H.expect(cue ~= nil, id .. " is in the catalog")
 			assert(cue, "no cue")
-			H.expect(cue.Group == "Exclusive" and cue.Rarity == "Exclusive", id .. " is Exclusive")
-			H.expect(not cue.Tradable and not cue.Sellable, id .. " never trades or sells")
+			-- Exclusive, never traded; a cue on the Halloween Limited card is Unique (numbered,
+			-- traded like every Unique cue) while the card is on. Never sold back.
+			local group = if limitedEventCues(Config)[id] then "Unique" else "Exclusive"
+			H.expect(cue.Group == group and cue.Rarity == group, id .. " is " .. group)
+			H.expect(cue.Tradable == (group == "Unique"), id .. " trades only as a Limited")
+			H.expect(not cue.Sellable, id .. " never sells")
 			H.expect(#cue.Blocks == 0 and not cue.Vaulted, id .. " drops from no block")
 			H.expect(cue.Event == "Halloween2026", id .. " is a Halloween 2026 cue")
 			H.expect(cue.StandIn == Catalog.Default, id .. " stands in as Classic")
@@ -189,10 +220,17 @@ return {
 			"the Candy Cane and Phantom cues keep their ids"
 		)
 		-- Hidden from every per-rarity list until ready; known to list, get and exists always.
+		-- (A ready cue on the Halloween Limited card is listed as Unique instead.)
+		local readyLimited = 0
+		for id in limitedEventCues(Config) do
+			if Catalog.ready(id) then
+				readyLimited += 1
+			end
+		end
 		local exclusive = Catalog.ofRarity("Exclusive")
 		H.expect(
-			#exclusive == 2 + ready,
-			("%d Exclusive shown, expected %d"):format(#exclusive, 2 + ready)
+			#exclusive == 2 + ready - readyLimited,
+			("%d Exclusive shown, expected %d"):format(#exclusive, 2 + ready - readyLimited)
 		)
 		for _, cue in exclusive do
 			H.expect(cue.Event == nil or Catalog.ready(cue.Id), cue.Id .. " shown only when ready")
