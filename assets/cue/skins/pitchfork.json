@@ -6,7 +6,7 @@
   "note": "Halloween 2026 track cue, 500 Candy (the designer's slot-2 pick, coordinator 2026-10-28 19:40; concept mocks/v3/R2.png). Only ever \"Pitchfork Cue\", never \"devil\". Built by lane hw-map (assets/cue/CuePiecesHalloween_Pitchfork.py); core owns its Catalog, Track, Strings and Art rows.",
   "body": "pitchfork",
   "maps_from": "classic",
-  "thumb_margin": 1.75,
+  "thumb_margin": 2.2,
   "thumb_shift": 0.3,
   "look": {
     "Shaft": "#D81E1E",
@@ -118,9 +118,9 @@
           "FlipbookMode": "OneShot",
           "Host": {
             "Kind": "Attachment",
-            "AtStuds": 8.34,
-            "Up": 0.31,
-            "Side": -0.537,
+            "AtStuds": 8.37,
+            "Up": 0.37,
+            "Side": -0.641,
             "Joint": "Fork"
           },
           "Rate": 8,
@@ -199,9 +199,9 @@
           "FlipbookMode": "OneShot",
           "Host": {
             "Kind": "Attachment",
-            "AtStuds": 8.34,
-            "Up": -0.31,
-            "Side": 0.537,
+            "AtStuds": 8.37,
+            "Up": -0.37,
+            "Side": 0.641,
             "Joint": "Fork"
           },
           "Rate": 8,
@@ -838,7 +838,7 @@
       "Beams": 0,
       "Lights": 0,
       "Orbiters": 0,
-      "BodyTriangles": 8442,
+      "BodyTriangles": 9440,
       "PocketPieceTriangles": 0,
       "Note": "No decor or pocket piece: the body (3 parts, 8,442 triangles, one 256 x 1024 atlas: the lathe with the horns and the coil, the tail's swaying tip, the fork) carries the look; the aura 29/s (three tip flames and sparks); the trail 79/s while the ball moves (lifetimes halved by TrailEmitterLifetimeScale: about 20 flames alive, overlapping into a streak); the finisher bursts 96 particles once."
     }

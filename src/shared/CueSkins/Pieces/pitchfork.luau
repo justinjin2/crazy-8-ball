@@ -5,7 +5,7 @@
 return {
 	Id = "pitchfork",
 	Frame = "cue",
-	Rigid = "128205977328929",
+	Rigid = "115767821399612",
 	Models = {},
 	Parts = {
 		{
@@ -14,12 +14,15 @@ return {
 			Transparency = 0,
 			Reflectance = 0,
 			SurfaceAppearance = {
-				ColorMap = "rbxassetid://123262479656006",
+				ColorMap = "rbxassetid://120878614434492",
+				RoughnessMap = "rbxassetid://109325063007596",
+				UseRoughness = true,
 			},
 			Name = "Body_Pitchfork",
 			Joint = "Body",
 			Offset = { 0, 0.0192, -0.004 },
 			Size = { 0.496, 0.5343, 7.008 },
+			Smooth = true,
 		},
 		{
 			Material = "SmoothPlastic",
@@ -27,12 +30,15 @@ return {
 			Transparency = 0,
 			Reflectance = 0,
 			SurfaceAppearance = {
-				ColorMap = "rbxassetid://123262479656006",
+				ColorMap = "rbxassetid://120878614434492",
+				RoughnessMap = "rbxassetid://109325063007596",
+				UseRoughness = true,
 			},
 			Name = "TailTip_Pitchfork",
 			Joint = "TailTip",
-			Offset = { 0.0251, 0.2544, -0.4863 },
-			Size = { 0.2048, 0.2177, 0.3815 },
+			Offset = { 0.0249, 0.2438, -0.3888 },
+			Size = { 0.3585, 0.1684, 0.5443 },
+			Smooth = true,
 		},
 		{
 			Material = "SmoothPlastic",
@@ -40,12 +46,15 @@ return {
 			Transparency = 0,
 			Reflectance = 0,
 			SurfaceAppearance = {
-				ColorMap = "rbxassetid://123262479656006",
+				ColorMap = "rbxassetid://120878614434492",
+				RoughnessMap = "rbxassetid://109325063007596",
+				UseRoughness = true,
 			},
 			Name = "Fork_Pitchfork",
 			Joint = "Fork",
 			Offset = { 0, 0, -4.2325 },
-			Size = { 1.5118, 0.8983, 1.495 },
+			Size = { 1.8107, 1.0762, 1.495 },
+			Smooth = true,
 		},
 	},
 	Joints = {
@@ -56,7 +65,7 @@ return {
 		},
 		TailTip = {
 			Parent = nil,
-			PivotRoblox = { -0, 0.1812, -0.3 },
+			PivotRoblox = { -0, 0.2105, -0.12 },
 			Motion = {
 				{
 					Kind = "Hinge",

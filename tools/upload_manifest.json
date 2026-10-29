@@ -627,7 +627,7 @@
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball-hw-map/assets/cue/pieces/pitchfork/pitchfork_parts.glb": {
-    "assetId": "128205977328929",
+    "assetId": "115767821399612",
     "assetType": "Model",
     "status": "ok"
   },
@@ -638,9 +638,9 @@
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball-hw-map/assets/cue/thumbs/pitchfork.png": {
-    "assetId": "103149636237619",
+    "assetId": "134522209376353",
     "assetType": "Decal",
-    "imageId": "121098110131668",
+    "imageId": "109608018268838",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball-hw-map/assets/cue/vfx/bone/bone_512.png": {
@@ -674,9 +674,15 @@
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball-hw-map/assets/cue/vfx/pitchfork/pitchfork_atlas.png": {
-    "assetId": "82327787563256",
+    "assetId": "117373388408489",
     "assetType": "Decal",
-    "imageId": "123262479656006",
+    "imageId": "120878614434492",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-map/assets/cue/vfx/pitchfork/pitchfork_rough.png": {
+    "assetId": "80729479119260",
+    "assetType": "Decal",
+    "imageId": "109325063007596",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball-refs/emotes/birdbrain_loop.flac": {

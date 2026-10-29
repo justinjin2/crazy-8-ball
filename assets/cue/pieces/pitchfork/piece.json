@@ -2,7 +2,7 @@
   "id": "pitchfork",
   "Frame": "cue",
   "frame": "Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)",
-  "Triangles": 8442,
+  "Triangles": 9440,
   "Parts": [
     {
       "Material": "SmoothPlastic",
@@ -10,7 +10,9 @@
       "Transparency": 0.0,
       "Reflectance": 0.0,
       "SurfaceAppearance": {
-        "ColorMap": "vfx/pitchfork/pitchfork_atlas.png"
+        "ColorMap": "vfx/pitchfork/pitchfork_atlas.png",
+        "RoughnessMap": "vfx/pitchfork/pitchfork_rough.png",
+        "UseRoughness": true
       },
       "Name": "Body_Pitchfork",
       "File": "pieces/pitchfork/Body_Pitchfork.obj",
@@ -25,7 +27,8 @@
         0.5343,
         7.008
       ],
-      "Triangles": 5164
+      "Triangles": 5392,
+      "Smooth": true
     },
     {
       "Material": "SmoothPlastic",
@@ -33,22 +36,25 @@
       "Transparency": 0.0,
       "Reflectance": 0.0,
       "SurfaceAppearance": {
-        "ColorMap": "vfx/pitchfork/pitchfork_atlas.png"
+        "ColorMap": "vfx/pitchfork/pitchfork_atlas.png",
+        "RoughnessMap": "vfx/pitchfork/pitchfork_rough.png",
+        "UseRoughness": true
       },
       "Name": "TailTip_Pitchfork",
       "File": "pieces/pitchfork/TailTip_Pitchfork.obj",
       "Joint": "TailTip",
       "Offset": [
-        0.0251,
-        0.2544,
-        -0.4863
+        0.0249,
+        0.2438,
+        -0.3888
       ],
       "Size": [
-        0.2048,
-        0.2177,
-        0.3815
+        0.3585,
+        0.1684,
+        0.5443
       ],
-      "Triangles": 550
+      "Triangles": 628,
+      "Smooth": true
     },
     {
       "Material": "SmoothPlastic",
@@ -56,7 +62,9 @@
       "Transparency": 0.0,
       "Reflectance": 0.0,
       "SurfaceAppearance": {
-        "ColorMap": "vfx/pitchfork/pitchfork_atlas.png"
+        "ColorMap": "vfx/pitchfork/pitchfork_atlas.png",
+        "RoughnessMap": "vfx/pitchfork/pitchfork_rough.png",
+        "UseRoughness": true
       },
       "Name": "Fork_Pitchfork",
       "File": "pieces/pitchfork/Fork_Pitchfork.obj",
@@ -67,11 +75,12 @@
         -4.2325
       ],
       "Size": [
-        1.5118,
-        0.8983,
+        1.8107,
+        1.0762,
         1.495
       ],
-      "Triangles": 2728
+      "Triangles": 3420,
+      "Smooth": true
     }
   ],
   "Joints": {
@@ -93,13 +102,13 @@
       "Parent": null,
       "Pivot": [
         0.0,
-        -3.799999952316284,
-        0.1812385618686676
+        -3.619999885559082,
+        0.21050488948822021
       ],
       "PivotRoblox": [
         -0.0,
-        0.1812,
-        -0.3
+        0.2105,
+        -0.12
       ],
       "Motion": [
         {
