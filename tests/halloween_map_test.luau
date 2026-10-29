@@ -76,7 +76,9 @@ local function who(over: { [string]: any }?): any
 		live = true,
 		hwOn = true,
 		freecam = false,
+		queued = false,
 		inMatch = false,
+		roams = false,
 		sitting = false,
 		movedStuds = 20,
 	}
@@ -169,9 +171,14 @@ return {
 	["candy goes only to a free, active lobby player with HwOn"] = function()
 		local R = H.require("HalloweenMap.Rules")
 		H.expect(R.eligible(who()) == true, "an active lobby player")
+		-- In a running match, free to roam while they wait their turn: they collect.
+		H.expect(R.eligible(who({ inMatch = true, roams = true })) == true, "a roamer in a match")
 		local cases: { [string]: { [string]: any } } = {
 			NotOn = { hwOn = false },
 			Freecam = { freecam = true },
+			-- Waiting on a pad (the match not started): never, even where roaming is on.
+			Queued = { queued = true, roams = true },
+			-- In a running match but fenced at the table (Roam off, the tutorial's match).
 			InMatch = { inMatch = true },
 			Sitting = { sitting = true },
 			Idle = { movedStuds = 1 },
@@ -182,6 +189,8 @@ return {
 			local ok, why = R.eligible(who(over))
 			H.expect(ok == false and why == reason, reason)
 		end
+		local still, stillWhy = R.eligible(who({ inMatch = true, roams = true, movedStuds = 0 }))
+		H.expect(still == false and stillWhy == "Idle", "a roamer standing still is idle")
 		local missing = who()
 		missing.hwOn = nil
 		local ok, why = R.eligible(missing)

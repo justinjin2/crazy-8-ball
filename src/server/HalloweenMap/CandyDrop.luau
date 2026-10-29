@@ -1,7 +1,8 @@
 --!strict
 -- CandyDrop (Halloween 2026, hw-map lane; a copy of MoneyRain): while the event is Live, candy
 -- pieces pop up on the roof near each eligible player (Rules.eligible: a lobby, HwOn, not
--- filming, not in a match, not sitting, not idle), one every SpawnEverySeconds (give or take
+-- filming, not queued on a pad, in a running match only while free to roam, not sitting, not
+-- idle), one every SpawnEverySeconds (give or take
 -- JitterSeconds) on a floor spot NearStuds from them, never on a queue or portal pad nor in a
 -- table's match area. Each is an invisible anchored part in workspace[Folder] (attribute Kind:
 -- the wrapper's colour); every client's MapClient draws, spins and pops it. The server checks
@@ -25,6 +26,8 @@ local Placement = require(Shared:WaitForChild("Placement"))
 -- test-place offset (HwTimeOffset; 0 in the live game).
 local Clock = require(Shared:WaitForChild("Halloween"):WaitForChild("Clock"))
 local Rules = require(Shared:WaitForChild("HalloweenMap"):WaitForChild("Rules"))
+local Roam = require(Shared:WaitForChild("Matchmaking"):WaitForChild("Roam"))
+local Settle = require(Shared:WaitForChild("Progression"):WaitForChild("Settle"))
 
 local Server = script.Parent.Parent
 local Tables = require(Server:WaitForChild("TableService"))
@@ -141,12 +144,28 @@ local function eligible(p: Player, w: Who, now: number): boolean
 		w.anchor = pos
 		w.movedAt = now
 	end
+	-- At a table: only queued on its pad until its match starts (the server's phase, not where
+	-- they stand); in the running match they collect while they roam (TableService's rule).
+	local freecam = p:GetAttribute(Config.Freecam.Attribute) == true
+	local tableId = Tables.tableOf(p)
+	local t = if tableId ~= nil then Tables.get(tableId) else nil
+	local e = t and t.engine
+	local running = e ~= nil and e.phase ~= "Waiting"
 	local ok = Rules.eligible({
 		isLobby = true,
 		live = EventMap.isLive(),
 		hwOn = p:GetAttribute("HwOn"),
-		freecam = p:GetAttribute(Config.Freecam.Attribute) == true,
-		inMatch = Tables.tableOf(p) ~= nil,
+		freecam = freecam,
+		queued = tableId ~= nil and not running,
+		inMatch = running,
+		roams = running and Roam.allowed({
+			enabled = Config.Multiplayer.Roam.Enabled,
+			arena = false, -- CandyDrop runs only in a lobby
+			engineTutorial = e.tutorial,
+			botKind = Settle.botKind(e),
+			tutorialActive = p:GetAttribute("TutorialActive") :: any,
+			freecam = freecam,
+		}),
 		sitting = humanoid.SeatPart ~= nil,
 		movedStuds = if now - w.movedAt < C.IdleSeconds then C.IdleStuds else 0,
 	})

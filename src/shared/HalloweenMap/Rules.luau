@@ -127,12 +127,18 @@ export type Who = {
 	live: boolean,
 	hwOn: any, -- core's player attribute: only true counts
 	freecam: boolean,
-	inMatch: boolean, -- Tables.tableOf(p) ~= nil (roaming or not)
+	-- At a table (Tables.tableOf) whose match has not started (TableService phase Waiting):
+	-- waiting on its pad.
+	queued: boolean,
+	inMatch: boolean, -- at a table whose match is running (any phase after Waiting)
+	roams: boolean, -- ...and free to walk off it while they wait (Matchmaking/Roam.allowed)
 	sitting: boolean, -- Humanoid.SeatPart
 	movedStuds: number, -- how far the root moved in the last Candy.IdleSeconds
 }
 
---- May this player be targeted by a candy drop and pick one up? (true, or false and why)
+--- May this player be targeted by a candy drop and pick one up? (true, or false and why) A
+--- player in a running match collects while they roam waiting for their turn (designer,
+--- 2026-10-29); one only queued on a pad, or held by the old fence (Roam off), does not.
 function Rules.eligible(who: Who): (boolean, string?)
 	if not who.isLobby then
 		return false, "Arena"
@@ -142,7 +148,9 @@ function Rules.eligible(who: Who): (boolean, string?)
 		return false, "NotOn"
 	elseif who.freecam then
 		return false, "Freecam"
-	elseif who.inMatch then
+	elseif who.queued then
+		return false, "Queued"
+	elseif who.inMatch and who.roams ~= true then
 		return false, "InMatch"
 	elseif who.sitting then
 		return false, "Sitting"
