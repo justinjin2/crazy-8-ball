@@ -58,7 +58,7 @@ On a phone, a PC and a controller where you can:
 
 Off = the old behaviour; one line, then publish with the outdated-only restart.
 
-| Switch | Line (17:50) | Off does |
+| Switch | Line (21:15) | Off does |
 |---|---|---|
 | `Config.Halloween.Enabled` | 3763 | no Candy, no event UI; saved Candy still converts after the end |
 | `Config.Halloween.Rush.Enabled` | 3772 | no 2x Candy minutes |
@@ -67,17 +67,17 @@ Off = the old behaviour; one line, then publish with the outdated-only restart.
 | `Config.Halloween.Boss.CountsForQuests` | 3800 | King matches stop counting for the Matches/Balls quests |
 | `Config.Halloween.Quests.Enabled` | 3812 | no quest boards |
 | `Config.Halloween.Spider.Enabled` | 3901 | no Spider active-time cue |
-| `Config.Halloween.Packs.Enabled` | 3917 | Candy packs not sold |
-| `Config.Halloween.Convert.Enabled` | 3919 | Candy does not turn into money after the end |
-| `Config.HalloweenMap.Enabled` | 9244 | the master map switch: no night, tables, decor, props, throne, King, drops |
-| `Config.HalloweenMap` Night / Tables / Decor / Props / Throne / Boss / Candy | 9254-9564 | each part alone (Throne and Boss go off together) |
-| `Config.HalloweenMap.Boss.Mode` | 9426 | `"Throne"`: the King sits on his throne at the piano all event (the old way) instead of visiting |
-| `Config.CueSkins.Bodies.Enabled` | 6585 | the body cues draw the normal stick |
-| `Config.Multiplayer.Roam.Enabled` | 8312 | in-match players stay at their table, as before |
-| `Config.Badges.Enabled` | 18067 | no badge is awarded |
+| `Config.Halloween.Packs.Enabled` | 3918 | Candy packs not sold |
+| `Config.Halloween.Convert.Enabled` | 3920 | Candy does not turn into money after the end |
+| `Config.HalloweenMap.Enabled` | 9257 | the master map switch: no night, tables, decor, props, throne, King, drops |
+| `Config.HalloweenMap` Night / Tables / Decor / Props / Throne / Boss / Candy | 9267-9578 | each part alone (Throne and Boss go off together) |
+| `Config.HalloweenMap.Boss.Mode` | 9440 | `"Throne"`: the King sits on his throne at the piano all event (the old way) instead of visiting |
+| `Config.CueSkins.Bodies.Enabled` | 6590 | the body cues draw the normal stick |
+| `Config.Multiplayer.Roam.Enabled` | 8317 | in-match players stay at their table, as before |
+| `Config.Badges.Enabled` | 18081 | no badge is awarded |
 | `Config.Economy.FriendBoostEnabled` | 2037 | no +10% per friend |
-| `Config.UI.BoostPill.Enabled` | 10064 | the old VIP tag instead of the boost text |
-| `Config.UI.CuePreview.Enabled` | 10132 | already off |
+| `Config.UI.BoostPill.Enabled` | 10078 | the old VIP tag instead of the boost text |
+| `Config.UI.CuePreview.Enabled` | 10146 | already off |
 
 ## 5. If something breaks
 

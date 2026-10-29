@@ -50,6 +50,120 @@ From PLAN §4 (everything else is read-only to this lane; ask through Requests):
 - `Config.HalloweenMap.Props.Budget.Lights = 6` (throne 2 + the throne King's aura 1 + 3 table Kings).
 
 ## Status
+- 21:12 hw-map: **PITCHFORK CARD popped for the dark track tile** (core: at about 62x50 px the slim fork read as
+  a thin red line on the purple). The round halo (`tools/thumb_pop.py`, the Sword's) sat in the
+  middle and missed the fork in the corner, so the tool gained an opt-in `--rim`: a soft light
+  that hugs the cue's silhouette, under it. The Pitchfork's card is re-rendered at
+  `thumb_margin` 2.4 (room for the rim) and run through
+  `python3 tools/thumb_pop.py pitchfork --rim 9 --rim-color FFDDBE --rim-alpha 0.85 --halo-alpha 0 --glow 1.25 --lift 0.9 --zoom 1.0`.
+  Re-run it after any re-render. New card id 139633646140924, sent to core. The Sword's pop
+  output is byte-identical with `--rim` at its default 0.
+- 21:04 hw-map: **PITCHFORK CUE slimmed** (Justin via the coordinator 20:58: "make pitchfork skinnier
+  all around including the horns and the width of the cue, it's too wide").
+  - SHAFT: the whole lathe at 0.82 of the shared cue's envelope (it was ON the envelope: 0.36
+    across at the butt, now 0.295), under a new named `Slim` exception to the hand rule, so the
+    hands rest at most 0.032 off the grip and 0.014 off the bridge. Raised bands at 0.6 of their
+    rise, the ferrule ring +0.008. Body bounding box 0.38 across (was 0.50).
+  - HORNS: smaller and slimmer (reach 0.15, was 0.21; base radius 0.037, was 0.06).
+  - FORK: the span is kept (2.08 across the barbs, 1.04 off the axis). Prongs 0.12 x 0.14 (were
+    0.19 x 0.23); arrowheads 1.15x wide (were 1.45x) and 0.7 of that thick, so flat blades; the
+    yoke at 0.75. Outer prongs spread to 0.80 (were 0.74) to hold the span. Tip flames moved to
+    the new points (Side +-0.693, Up +-0.40).
+  - TAIL: tube 0.04 (was 0.052), still visible from the stand and the back; tip arrowhead 0.75x.
+  - Gloss and gold work unchanged (same atlas and roughness map: their ids did not change).
+    3 parts / 9,440 tris; `check_body` passes. New GLB 136051344252950, new card 108749630308384.
+  - LAB, same cameras as the 20:40 pass: stand Night (full and fork), back carry 7 Day and 15
+    Night, hand at aim (solo game, clear). Console: only Studio's usual lines. The hands' gap
+    was checked by numbers, not a close-up (the match camera overrides the capture camera).
+    Before/after: `~/Desktop/8ball-refs/halloween/shots/hw-map/pitchfork/pitchfork_before_after.jpg`
+    (and `blender_before_after.jpg`); R2 side-by-side: `pitchfork_vs_R2.jpg`; the 20:40 pass in `v2/`.
+- 20:40 hw-map: **PITCHFORK CUE refined** (coordinator 20:4x: detail and polish before Justin sees it).
+  - FORK about 20% bigger: prong centres 0.74 off the axis (were 0.62), prongs 0.19 x 0.23 with
+    a rounded-square (superellipse) section so their edges catch light, arrowheads 1.45x (were
+    1.2x) and longer. 2.08 across the barbs (was 1.74), 1.04 off the axis (Aim cap 1.1), still
+    1.48 past the butt. The gold yoke is bevelled: two rims and a groove, then the dome.
+  - GLOSS, painted in the atlas: a sheen, a near-white streak with a thinner one each side, and a
+    rim light underneath. The gold and black bands are bevelled (a dark edge, then a bright line
+    just inside), with dark-red hairlines at the band edges. The tail's shadow is painted on the
+    shaft round the coil. The swatches have rim lights (a red rim on the black horns). A 64x256
+    roughness map (red 0.22, black 0.26, gold 0.34): in an Edit A/B the sun draws a crisper white
+    line with it (`roughness_ab_edit.jpg`). No Reflectance.
+  - TAIL: tube 0.052 (was 0.036), riding higher on top; the coil ends at 3.62 and the tip lifts
+    0.035 to a 0.9x arrowhead laid nearly flat (the up rule's 45-degree cone: tipped more, its
+    lower barb reads as "sideways"). 3 parts / 9,440 tris; `check_body` passes, hand zones flush.
+    The tip flames moved to the new points.
+  - LAB (lane window, Play): stand Night (fork close and full), back carry 7 studs Day and 15
+    Night, hand at aim in a solo game (clear: the fork fades, shaft glossy), finisher Day.
+    Console: only Studio's DataStore/MemoryStore lines and an avatar asset "being generated"
+    (114949053813201, not in src, the manifest or the place). Shots and the R2 side-by-side:
+    `~/Desktop/8ball-refs/halloween/shots/hw-map/pitchfork/pitchfork_vs_R2.jpg` (first build's in `v1/`).
+  - CARD re-rendered (`thumb_margin` 2.2: the bigger fork met the edge at 1.75): new image id
+    109608018268838 (was 121098110131668). I sent it only to the coordinator, not to core; core
+    took it from the merged skin's Thumb and pointed `Art.PitchforkCue` at it (hw-core a45d8c6e).
+- 20:22 hw-map: **PITCHFORK CUE built and labbed** (coordinator 19:40, concept R2; never "devil").
+  `assets/cue/CuePiecesHalloween_Pitchfork.py`, `skins/pitchfork.json`, `pieces/pitchfork`,
+  `vfx/pitchfork`, `thumbs/pitchfork.png`. Core's rows merged (Legendary, track 500); core set
+  `Art.PitchforkCue` to my card id 121098110131668 (hw-core 8317597d).
+  - BODY: 3 parts / 8,442 tris on one painted 256x1024 atlas (a 512 atlas's pixels): candy-apple
+    red with a painted gloss, cream tip, gold ferrule; the horn collar (gold, black, gold) with two
+    broad curved black horns; a red tail coiling 1.75 loose turns from under the collar to 3.8,
+    its arrowhead tip lifting off the top on a swaying joint; a gold-black-gold band at 4.2-4.4;
+    a painted black band on the grip; a black butt cap with a gold ring; past the butt on an
+    Aim-fade joint the pitchfork: a gold yoke, three thick red prongs (0.16 x 0.19), the outer
+    ones in a round U, R2's barbed arrowheads with rounded points. 1.48 past the butt, 1.74
+    across the barbs (prong centres 1.24 apart), 0.87 off the axis (AimRadius 1.1: no exception
+    needed). `check_body` passes; hand zones flush.
+  - VFX, all opaque painted (`vfx/pitchfork/flame_4x4.png`: red, dark-red rim, warmer core,
+    orange only on each tongue's top third): flames rising off the three arrowhead points and a
+    few sparks (aura 29/s); the trail is a row of those flames plus sparks, no ribbon (79/s while
+    the ball moves); the finisher is a red flash and rings, a column of flame, a ring of flame,
+    gold sparkles and sparks, and a library fire whoosh (Pro Sound Effects "Fire Whoosh 13").
+  - LAB at (-80, 0, 68), Night and Day: stand, back carry at 7 and 15 studs (reads as a
+    pitchfork at 15), hand at aim in a solo game (the fork and its flames clear for the owner),
+    the finisher at table 4's side pocket, the trail on a moving test ball. Console clean.
+- 19:50 hw-map: **BONE CUE PARKED, PITCHFORK CUE started** (coordinator 19:40: Justin picked the
+  Pitchfork for the 500 slot). The Bone WIP is committed as parked (5450b579), origin/halloween
+  is merged with halloween's side for every Track, Catalog, Strings and Art row (10d228f9), and
+  the Bone is off the track: a draft skin, no generated rows (3e785650). Nothing of the Bone
+  goes live. The opt-in `Smooth` part key in `cue_pieces_glb.py` is approved (856430e4).
+  Lint clean, 1,477 tests pass. Next: the Pitchfork builder (`CuePiecesHalloween_Pitchfork.py`).
+- 19:27 hw-map: **BONE CUE rework per the 19:05 review**, and the flame colour made one switch
+  (coordinator 19:2x: the Bone is a candidate for the 500 slot, Ghost out; green C7 or red R3).
+  Captures (Blender, the lab's views): `shots/hw-map/bone/blender2_skull.png`,
+  `blender2_body.png`, `blender2_pocket.png`.
+  - SKULL: the Meshy skull is gone. It is now a clean cartoon skull modelled from a distance
+    function and meshed by OpenVDB in headless Blender: a smooth round cranium, big round
+    sockets with Neon eyes, a small nose hole, a wide grin with 13 chunky teeth. Painted by a
+    bake from the fine mesh: zone colours plus ambient occlusion in one warm-ivory map. The face
+    looks three ways at once (up/out for the back view, -X for the stand side, a little past
+    the butt as in C7) and the crown leans to the tip, so the cue enters the back of the head
+    (C7 and R3). Body: 3 parts / 8,006 tris, `check_body` passes, reaches 1.14 past the butt.
+  - SPINE: four knobby cartoon bones between the hands (wide two-lobed knuckles, a waist), a
+    bronze ring between the middle two and at both ends; the tall spines dropped. The grip is
+    two long smooth bones with a flush ring (the hand rule allows only +-0.02). Painted
+    occlusion in the hollows, hairline cracks, a bronze collar under the skull.
+  - FINISHER: the same skull split at the grin (a real jaw part on a chattering hinge), six
+    3D bones and two mini skulls; Lower effects hides three bones and the minis.
+    13 parts / 9,200 tris.
+  - PALETTE: `PALETTE = 'green' | 'red'` in `CuePiecesHalloween_Bone.py`. The build writes
+    every flame, spark, smoke, light, ring, trail and outline colour into `skins/bone.json`
+    (red = R3's swatches); the eyes follow it.
+  - Lab uploads only (no card, nothing final): new maps and meshes uploaded, ids filled, data
+    tool clean. The Meshy model and its maps were deleted (unused); their manifest rows were
+    dropped. Next: the lab in Night and Day (stand, back, hand at aim) side by side with C7.
+- 19:06 hw-map: **BONE CUE in progress** (coordinator 18:45/18:50/19:08). Concept
+  `mocks/v2/C7_bone.png` approved (no ghosts). Built in my own files
+  (`assets/cue/CuePiecesHalloween_Bone.py`, `skins/bone.json`, `pieces/bone*`, `vfx/bone/`):
+  a Meshy skull (`models/bone_skull`, 35 credits) on the butt, real 3D vertebrae between the
+  hands, the grip carved flush, a neck vertebra, Neon green eyes; body 4 parts / 8,692 tris,
+  passes `check_body`; the pocket piece is the skull (skinned chattering jaw) with six 3D bones
+  and two mini skulls whirling round it (9 parts / 11,496 tris). Uploaded to the group,
+  image ids filled, `cue_skins_data.py bone` clean. Slot swap done locally (Catalog, track
+  2,000, Strings, Art, four tests, BlackCatCue rows/files/builder block/sprites out, as Cues A
+  asked), not committed yet. Lab (Night light, `shots/hw-map/bone/`): first pass read pale
+  lavender (cream + 0.06 reflectance under the violet Night; maps also loaded late) and the
+  skull's inner edges inked green: fixed (tan ivory, no reflectance, skull Outline off, skull
+  turned face-up as on M3), re-lab next. Flat bone/skull cards removed (19:08 rule).
 - 18:40 hw-map: **READY night sky @9e8cbcf5: NIGHT SKY AND MOON** (coordinator 18:45, Justin's
   verdict: night "too dull", the moon "looks like a sun"). Shots in `~/Desktop/8ball-refs/halloween/shots/hw-map/night2/`:
   `before_lobby_moon.jpg` vs `after_lobby_moon.jpg` (same lobby camera), `after_moon_view.jpg`
@@ -359,6 +473,20 @@ From PLAN §4 (everything else is read-only to this lane; ask through Requests):
 ## Shared-file changes
 
 Landed (only my own blocks unless said):
+- `tools/cue_pieces_glb.py`: my opt-in `"Smooth"` part key (856430e4) is superseded by cues-b's
+  identical one (the coordinator, 20:0x); hw-map took halloween's file whole (22ddeeaf), no diff left.
+- `assets/cue/CuePreview.py`: two opt-in skin keys for the card picture, `thumb_margin` (studs of
+  frame) and `thumb_shift` (studs toward the tip); absent = the house framing, so every other card
+  renders as before (the Pitchfork's fork, thickened 1.45x with the rest, met the corner).
+- `assets/cue/CuePieces.py`: a guarded `import CuePiecesHalloween_Pitchfork` beside the Bone's.
+- `tools/thumb_pop.py` (cues-a's): opt-in `--rim`, `--rim-color`, `--rim-alpha`, a silhouette glow under the
+  cue. With the default `--rim 0` the output is unchanged (checked byte for byte on the Sword).
+- `assets/cue/CuePiecesHalloween_A.py`: a named `Slim` body exception (a factor under 1): the hand
+  rule holds against that share of the envelope. Only the Pitchfork sets it (0.82); other bodies
+  are unchanged.
+- `tools/build_cue_templates.luau`: `dress()` applies a piece part's `RoughnessMap` when its row
+  says `UseRoughness = true` (the Pitchfork's lacquer). Opt-in because Infernal's skull already
+  carries Meshy roughness and metalness maps this never applied; its look stays put.
 - `Config.luau`: `Config.Lighting.Night` (after Sunset), `Config.HalloweenMap` (after Lighting) — 0b5ef756, ccb73403, 0498b301.
 - `Strings.luau`: `Strings.HalloweenMap` (after `Arena`); 5 keys in `GlobalQueue.Failed` (`KingBusy`,
   `KingNoTable`, `KingCooldown`, `KingNotNow`, `CandyBagFull`: the bag-full note reuses the queue
@@ -439,6 +567,43 @@ coordinator resolves overlaps. Planned (add the commit sha when each lands):
 - Coordinator: please include the step-1 interface commit in the interface merge.
 
 ## Assumptions
+
+- Pitchfork Cue, decided here (2026-10-28):
+  - The fork's prongs spread along (cos 150, 0, sin 150) in the cue's Blender frame. The card's
+    camera looks from +X and the top, a back's from the top toward the tip, the stand's from
+    -X: the card sees it face-on, a back about 90%, the stand 50%. At 30 degrees (the plan) the
+    card saw it edge-on.
+  - "Err bigger": spread 0.62 and arrowheads 1.2x after the first back-carry capture read slim.
+    It reads as a pitchfork at 15 studs; bigger pushes the lower prong further into the legs on
+    a back (its -Z reach is already about 0.43), so I stopped there.
+  - "No ribbons" for the trail: `Style.Trail` stays on but draws nothing (fully clear, 0.02 wide,
+    0.05 s). `Effects.attachTrail` attaches a skin's TrailEmitters only when the trail is on, and
+    a data-only clear ribbon keeps the shared runtime untouched. A cleaner code fix (emitters
+    without a ribbon) is core's call.
+  - No pocket piece: R2's finisher is flame and sparkles, and the opaque painted particles read
+    on the bright table. A 3D flame mesh can be added later if wanted.
+  - Horns at 30 degrees off the top: the up rule's +0.25 is a 45-degree cone and a horn's flank
+    reaches about 13 degrees more.
+  - Refinement (coordinator 20:4x): the fork went from 0.87 to 1.04 off the axis, which uses most
+    of the Aim cap's 1.1 and pushes the lower prong further into the legs on a back. The
+    coordinator asked for it; it still reads cleanly at 7 and 15 studs.
+  - Painted streaks are wide (main sigma 0.035 of the way round, sides 0.022): a hairline streak
+    vanished on the floor at 7 studs.
+  - Slim (Justin 20:58): 0.82 rather than the envelope with flatter bands. The shaft already
+    sat on the shared envelope, and he asked for "the width of the cue". 0.82 reads as a slim
+    pool cue and keeps the hands' gap to about a tenth of a hand's thickness. The fork keeps
+    its span; only its parts got slimmer.
+  - The tail tip's arrowhead stays nearly flat (face tipped 0.2 toward the stand side). The up
+    cone leaves no room to show it face-on from the side, so from the stand it reads as a
+    hooked tip and from above (back carry) as an arrowhead.
+
+- Cue labs, 2026-10-28: the lab spot moved to (-80, 0, 68). At (-40, 0, 70) the SoloPortal's
+  cyan PointLight (range 14, brightness 2) tints every cue mint (cues-a and cues-b told). Body
+  cues carry no large coloured PointLight of their own: by day it dyes the body (the Bone read lime).
+- Which way a body piece faces, measured on the lab: on the stand Blender -X faces the camera
+  and Z is up; on a back carry Blender +Z faces the camera behind and -X and past-the-butt point
+  at the floor. A butt piece is posed between the two (the Pitchfork's fork is tilted 30 degrees
+  from X toward +Z).
 
 - Night readability, 2026-10-28: Justin's richer night is a touch darker, so the floor rule is
   0.8 of Day's (was 0.9; measured 0.84). The moon stays painted into the skybox (works at every

@@ -1,0 +1,177 @@
+{
+  "id": "halloween_sword",
+  "Frame": "cue",
+  "frame": "Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)",
+  "Triangles": 7708,
+  "Parts": [
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#FFFFFF",
+      "Transparency": 0.0,
+      "Reflectance": 0.05,
+      "SurfaceAppearance": {
+        "ColorMap": "pieces/halloween_sword/Sword_base_color.png",
+        "EmissiveMask": "pieces/halloween_sword/Sword_emissive.png",
+        "EmissiveTint": "#B05CFF",
+        "EmissiveStrength": 0.5
+      },
+      "Name": "Body_Steel",
+      "File": "pieces/halloween_sword/Body_Steel.obj",
+      "Joint": "Body",
+      "Offset": [
+        0.0287,
+        0.0106,
+        1.3025
+      ],
+      "Size": [
+        1.4854,
+        0.4838,
+        4.3928
+      ],
+      "Triangles": 3300
+    },
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#FFFFFF",
+      "Transparency": 0.0,
+      "Reflectance": 0.04,
+      "SurfaceAppearance": {
+        "ColorMap": "pieces/halloween_sword/Sword_base_color.png",
+        "EmissiveMask": "pieces/halloween_sword/Sword_emissive.png",
+        "EmissiveTint": "#B05CFF",
+        "EmissiveStrength": 0.9
+      },
+      "Name": "Body_Guard",
+      "File": "pieces/halloween_sword/Body_Guard.obj",
+      "Joint": "Body",
+      "Offset": [
+        -0.0088,
+        0.0555,
+        -1.0082
+      ],
+      "Size": [
+        1.8047,
+        0.3493,
+        0.6653
+      ],
+      "Triangles": 2000
+    },
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#FFFFFF",
+      "Transparency": 0.0,
+      "Reflectance": 0.06,
+      "SurfaceAppearance": {
+        "ColorMap": "pieces/halloween_sword/Sword_base_color.png",
+        "EmissiveMask": "pieces/halloween_sword/Sword_emissive.png",
+        "EmissiveTint": "#B05CFF",
+        "EmissiveStrength": 1.0
+      },
+      "Name": "Body_Pommel",
+      "File": "pieces/halloween_sword/Body_Pommel.obj",
+      "Joint": "Body",
+      "Offset": [
+        0.009,
+        0.0018,
+        -3.5447
+      ],
+      "Size": [
+        0.4037,
+        0.3098,
+        0.4693
+      ],
+      "Triangles": 382
+    },
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#FFFFFF",
+      "Transparency": 0.0,
+      "Reflectance": 0.02,
+      "SurfaceAppearance": {
+        "ColorMap": "vfx/halloween_sword/wrap_256.png"
+      },
+      "Name": "Body_Wrap",
+      "File": "pieces/halloween_sword/Body_Wrap.obj",
+      "Joint": "Body",
+      "Offset": [
+        0.0,
+        0.0,
+        -2.335
+      ],
+      "Size": [
+        0.3545,
+        0.36,
+        1.93
+      ],
+      "Triangles": 756
+    },
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#FFFFFF",
+      "Transparency": 0.12,
+      "Reflectance": 0.0,
+      "SurfaceAppearance": {
+        "ColorMap": "pieces/halloween_sword/Sword_base_color.png",
+        "EmissiveMask": "pieces/halloween_sword/Sword_emissive.png",
+        "EmissiveTint": "#D9C2FF",
+        "EmissiveStrength": 1.1
+      },
+      "Name": "Flames_Flame",
+      "File": "pieces/halloween_sword/Flames_Flame.obj",
+      "Joint": "Flames",
+      "Offset": [
+        0.0258,
+        0.0012,
+        1.3327
+      ],
+      "Size": [
+        1.4908,
+        0.1421,
+        3.3679
+      ],
+      "Triangles": 1270
+    }
+  ],
+  "Joints": {
+    "Body": {
+      "Parent": null,
+      "Pivot": [
+        0,
+        -3.5,
+        0
+      ],
+      "PivotRoblox": [
+        0,
+        0,
+        0.0
+      ],
+      "Motion": []
+    },
+    "Flames": {
+      "Parent": "Body",
+      "Pivot": [
+        0,
+        -1.9,
+        0
+      ],
+      "PivotRoblox": [
+        0,
+        0,
+        1.6
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0,
+            1,
+            0
+          ],
+          "Amp": 1.2,
+          "Period": 1.6
+        }
+      ],
+      "Aim": "fade"
+    }
+  }
+}

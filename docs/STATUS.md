@@ -20,16 +20,16 @@ entry of `docs/archive/STATUS_HISTORY.md`.
   the Spider play-time cue, Candy packs, the timed Pumpkin King (:15 and :45, +150 Candy,
   +$2,500, +100 XP a visit), the night rooftop, roaming during the other player's turn, the
   friend boost and boost text, badges v2. Ends Nov 3 19:00 EST and turns Candy into money.
-- **Verified:** 1,469 Lune tests, lint; the fresh-player run on `16784c7c` (no Halloween text
-  in the tutorial, Candy after the first match, popups in order, console clean); Team Create
-  synced byte for byte, no test objects in the place, all five cue templates and 13 pieces in.
-- **The cue redo (designer 18:20-19:18; the release waits for it):** the lineup is now Jack
-  (150 Candy), a red cue (500: the Bone or a red/hellfire cue, four concept sheets with the
-  designer), Witch's Broom (2,000), the new Halloween Sword (7,000, his purple concept C8 as the
-  cue body) and the Spider (3 h of play). Candy Corn, Black Cat and the Ghost are out. In
-  `halloween` now: the Broom without sigils, the night sky and crater moon, Spider v11 (v12
-  reworks its crown). Building: the Jack (hw-sys), the Sword (hw-cues-a), the red cue (hw-map),
-  the Track reorder (hw-core). Template builds in Team Create wait until the designer leaves Play.
+- **Verified:** 1,477 Lune tests, lint (21:20); the fresh-player run on `16784c7c` (no
+  Halloween text in the tutorial, Candy after the first match, popups in order, console clean).
+- **The cue redo (designer 18:20-21:28; the release waits for it):** the lineup is Jack (150
+  Candy), Pitchfork Cue (500), Witch's Broom (2,000), Halloween Sword (7,000, the top prize,
+  his purple concept C8 as the body) and the Spider (3 h of play). Candy Corn, Black Cat and
+  the Ghost are out; the Bone is parked. **Done and built in Team Create:** the Jack (C4), the
+  Broom, the Pitchfork (slimmed, approved 21:28). **Building:** the Sword v5 (hw-cues-a: a slim
+  grip, the purple flame border as animated VFX instead of mesh) and the Spider redone to its
+  black-and-silver concept C1b (hw-cues-b, from the judged mesh candidate D). Each gets a
+  template build in Team Create (`tools/build_cue_templates.luau`, ONLY = that cue) after merge.
 - **Open:** a real phone/iPad/controller sweep (only emulated so far); badge icons waiting on
   Roblox moderation (a placeholder until then); Cue Preview ships off.
 - **Store page:** the plain Halloween icon is up (the countdown badge removed 17:46); the LIVE
