@@ -612,7 +612,7 @@ return {
 		for _, key in { "Enabled" } do
 			H.expect(type((C :: any)[key]) == "boolean", key)
 		end
-		for _, part in { "Match", "Quests", "Spider", "Packs", "Convert", "Rush" } do
+		for _, part in { "Match", "Quests", "Cues", "Packs", "Convert", "Rush" } do
 			H.expect(type((C :: any)[part].Enabled) == "boolean", part .. ".Enabled")
 		end
 		for key in C :: any do

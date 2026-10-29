@@ -1,7 +1,7 @@
 --!strict
 -- Halloween Candy (Halloween/CandyMath and Halloween/Ledger; Config.Halloween): a match's Candy,
 -- the friends and group parts through Money and through the fallback, the King's paid wins and
--- cooldown, the pickup cap, the Spider and the end's conversion.
+-- cooldown, the pickup cap, the balance and the end's conversion.
 
 local H = require("./harness")
 
@@ -49,7 +49,7 @@ return {
 		H.expect(C.Boss.Candy == 50 and C.Boss.PaidWinsPerDay == 2, "King")
 		H.expect(C.Boss.CooldownSeconds == 900, "15:00")
 		H.expect(C.Pickup.Candy == 1 and C.Pickup.HourCap == 40, "pickups")
-		H.expect(C.Spider.Seconds == 10860 and C.Convert.MoneyPerCandy == 10, "Spider, $10")
+		H.expect(C.Convert.MoneyPerCandy == 10, "$10")
 	end,
 
 	["a match's base Candy: 3 a ball, 10 finished, 25 a win"] = function()
@@ -283,24 +283,15 @@ return {
 		H.expect(earned == 0 and bought == 0 and Ledger.convertMoney(hw) == 0, "nothing left")
 	end,
 
-	["the Spider at 3 h 01 m of active play, once"] = function()
+	["active play adds whole seconds, up to the stat cap"] = function()
 		local _, Ledger, Config, SaveSchema = load()
-		local S = Config.Halloween.Spider
-		local saved = S.Enabled
-		S.Enabled = true
 		local hw = SaveSchema.freshHalloween()
-		Ledger.addActive(hw, 10855)
-		H.expect(not Ledger.spiderDue(hw), "5 s short")
-		Ledger.addActive(hw, 5)
-		H.expect(Ledger.spiderDue(hw), "due at 10,860")
-		hw.Spider = true
-		Ledger.addActive(hw, 5)
-		H.expect(not Ledger.spiderDue(hw), "once")
-		S.Enabled = false
-		local other = SaveSchema.freshHalloween()
-		Ledger.addActive(other, 20000)
-		H.expect(not Ledger.spiderDue(other), "switched off")
-		S.Enabled = saved
+		H.expect(Ledger.addActive(hw, 10855) == 10855, "added")
+		H.expect(Ledger.addActive(hw, 5.7) == 10860, "floored")
+		H.expect(Ledger.addActive(hw, -30) == 10860, "never less")
+		hw.Active = Config.Save.StatCap - 1
+		H.expect(Ledger.addActive(hw, 50) == Config.Save.StatCap, "capped")
+		H.expect(Ledger.spiderDue == nil, "no Spider any more")
 	end,
 
 	["active play counts only after a real match today, the time before it credited"] = function()

@@ -7,8 +7,6 @@
 --     With nowhere to fly (no tile, as in an arena) it stays a moment and fades. A match's chip
 --     waits until the player is free again (its result screen closed, back in the lobby);
 --     quests, the King and packs show at once. The server never sends "+0".
---   { spider = true }: the Spider Cue's small NEW CUE! card (its thumbnail, name, tier tag, OK)
---     once the player is free (no match, result, menu, popup or lucky-block reel).
 --   { king = { paid, candy, money, xp, back } }: a timed King win's line over the chip, at once
 --     (over the result card, which shows a Pc match's $0 and no XP): "Pumpkin King beaten! +150
 --     Candy +$2,500 +100 XP" in gold, or "Already rewarded this visit. He's back at :45!".
@@ -145,10 +143,6 @@ function CandyToast.moment(self: any, msg: any)
 				self:chip(candy, x2, from)
 			end)
 		end
-	elseif msg.spider == true then
-		self:push("card", function()
-			self:showCard(H.Spider.Cue, W.FromSpider)
-		end)
 	elseif type(msg.king) == "table" then
 		local king = msg.king
 		local function count(x: any): number

@@ -196,7 +196,7 @@ function Ledger.pickup(hw: any, now: number): (boolean, string?)
 	return true, nil
 end
 
--- Adds `seconds` of active play (the Spider's clock). Returns the new total.
+-- Adds `seconds` of active play (the "Play N min" quests count it too). Returns the new total.
 function Ledger.addActive(hw: any, seconds: number): number
 	hw.Active = math.min(whole(hw.Active) + whole(seconds), CAP)
 	return hw.Active
@@ -214,12 +214,6 @@ function Ledger.gateActive(held: number, seconds: number, played: boolean): (num
 		return wait + now, 0
 	end
 	return 0, math.min(wait + now, G.HoldCapSeconds)
-end
-
--- Whether the Spider Cue is earned and not yet given.
-function Ledger.spiderDue(hw: any): boolean
-	local S = C.Spider
-	return S.Enabled == true and hw.Spider ~= true and whole(hw.Active) >= S.Seconds
 end
 
 -- The money the end turns the save's Candy into (the balance, MoneyPerCandy each).

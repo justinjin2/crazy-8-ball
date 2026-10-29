@@ -6,8 +6,7 @@
 --   State.view()     the last view pushed (nil before the first)
 --   State.phase()    Event.state(Clock.now()), "Before" while State.on() is false
 --   State.Changed    fires (view) when a new view arrives or HwOn changes
---   State.Moment     fires (moment) for { toast = {...} }, { spider = true },
---                    { king = {...} }, { bought = { cue, ok, reason } } (the answer to a buy;
+--   State.Moment     fires (moment) for { toast = {...} }, { king = {...} }, { bought = { cue, ok, reason } } (the answer to a buy;
 --                    reason "Poor", "Owned", "Closed" or "Busy"; the view follows at once)
 --   State.send(msg)  { claim = key } | { seen = true } | { endSeen = true } | { buy = cueId }
 local Players = game:GetService("Players")
@@ -70,7 +69,6 @@ function State.start()
 			changedEvent:Fire(current)
 		elseif
 			type(msg.toast) == "table"
-			or msg.spider == true
 			or type(msg.king) == "table"
 			or type(msg.bought) == "table"
 		then

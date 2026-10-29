@@ -3456,7 +3456,7 @@ end
 ---------------------------------------------------------------------------------------------
 -- Mutations: the Halloween 2026 event (hw-core; src/server/Halloween/CandyService.luau).
 -- Every change to the save's Halloween field is ONE commit: the Candy, the quest progress, a cue
--- bought with Candy and the Spider land together. The rules are Halloween/Ledger
+-- bought with Candy land together. The rules are Halloween/Ledger
 -- and Halloween/Quests (pure); `ctx` comes from CandyService: the server's now, the newest open
 -- board and the quest hooks.
 ---------------------------------------------------------------------------------------------
@@ -3468,11 +3468,10 @@ export type HwCtx = {
 	hooks: Quests.Hooks,
 }
 
---- What a Halloween mutation did: Candy added, the Spider given, quest progress that changed,
---- and money paid (the conversion).
+--- What a Halloween mutation did: Candy added, quest progress that changed, and money paid
+--- (the conversion).
 export type HwResult = {
 	candy: number,
-	spider: boolean,
 	quests: { Quests.Routed },
 	money: number,
 }
@@ -3496,18 +3495,8 @@ local function hwField(data: any): any
 	return data.Halloween
 end
 
--- Grants the Spider once earned (only when ready: held otherwise), noting it in `result`.
-local function hwGrantDue(data: any, hw: any, result: HwResult)
-	local spider = Config.Halloween.Spider
-	if HwLedger.spiderDue(hw) and hwCueReady(spider.Cue) then
-		giveReward(data, { cues = { spider.Cue } }, "Halloween")
-		hw.Spider = true
-		result.spider = true
-	end
-end
-
--- Runs `fn` on the live save's Halloween field, grants what came due, commits once. nil when
--- the save is not loaded.
+-- Runs `fn` on the live save's Halloween field and commits once. nil when the save is not
+-- loaded.
 local function hwMutate(
 	op: string,
 	player: Player,
@@ -3524,15 +3513,10 @@ local function hwMutate(
 	if hw.Converted == true and (op :: string) ~= "hwMark" then
 		return nil
 	end
-	local result: HwResult = { candy = 0, spider = false, quests = {}, money = 0 }
+	local result: HwResult = { candy = 0, quests = {}, money = 0 }
 	fn(data, hw, result)
-	-- Once converted (the end) no prize is given any more, whatever the client sends.
-	if hw.Converted ~= true then
-		hwGrantDue(data, hw, result)
-	end
-	-- The 5 s active tick is quiet (Items.QUIET_OPS, Badges.SKIP_OPS) unless it gave a prize
-	-- (the Spider): then the inventory and the badges must see it.
-	commit(player, data, if op == "hwActive" and result.spider then "hwActiveGrant" else op)
+	-- The 5 s active tick ("hwActive") is quiet (Items.QUIET_OPS, Badges.SKIP_OPS).
+	commit(player, data, op)
 	return result
 end
 
@@ -3692,7 +3676,7 @@ function PlayerData.hwPickup(player: Player, ctx: HwCtx): (boolean, string?, HwR
 	return ok, reason, result
 end
 
---- Adds active seconds (Live only): the Spider's clock and the "Play N min" quests.
+--- Adds active seconds (Live only): the "Play N min" quests.
 function PlayerData.hwActive(player: Player, seconds: number, ctx: HwCtx): HwResult?
 	return hwMutate("hwActive", player, function(_, hw, result)
 		if HwEvent.isLive(ctx.now) then
@@ -3700,21 +3684,6 @@ function PlayerData.hwActive(player: Player, seconds: number, ctx: HwCtx): HwRes
 			hwRoute(hw, ctx, { { kind = "Active", amount = seconds } }, result)
 		end
 	end)
-end
-
---- Tries the held Spider grant again (its cue became ready). nil when nothing was held or the
---- save is not loaded; never commits for nothing.
-function PlayerData.hwRetry(player: Player): HwResult?
-	local data = peek(player)
-	if data == nil or type(data.Halloween) ~= "table" then
-		return nil
-	end
-	local hw = data.Halloween
-	local held = HwLedger.spiderDue(hw) and hwCueReady(Config.Halloween.Spider.Cue)
-	if not held then
-		return nil
-	end
-	return hwMutate("hwRetry", player, function() end)
 end
 
 --- Claims a finished quest (Live only): its reward into Earned, flat. The Candy claimed (0 when
@@ -3828,7 +3797,7 @@ function PlayerData.hwConvert(player: Player, ctx: HwCtx): HwResult?
 		return nil
 	end
 	local hw = hwField(data)
-	local result: HwResult = { candy = 0, spider = false, quests = {}, money = 0 }
+	local result: HwResult = { candy = 0, quests = {}, money = 0 }
 	-- Finished quests as the event ran (Quests.endClaimable: even with the map switched off since).
 	for _, quest in Quests.endClaimable(hw.Q, hw.Claimed, ctx.open, ctx.hooks) do
 		hw.Claimed[quest.key] = true
@@ -4059,7 +4028,7 @@ function PlayerData.applyPurchase(
 	local pack: HwResult? = nil
 	if grant.candy ~= nil then
 		local hw = hwField(data)
-		local result: HwResult = { candy = 0, spider = false, quests = {}, money = 0 }
+		local result: HwResult = { candy = 0, quests = {}, money = 0 }
 		result.candy = HwLedger.addCandy(hw, grant.candy, "Bought")
 		pack = result
 	end

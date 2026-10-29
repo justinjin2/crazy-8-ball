@@ -3885,11 +3885,8 @@ Config.Halloween = {
 			}
 		},
 	},
-	-- The playtime cue: Seconds of ACTIVE play while the event is Live (any server; idle time
-	-- does not count: SkyDropService.isActive), 3 h 01 m.
-	-- Off: the Spider is removed (designer, 2026-10-29); the full removal follows the menu redo.
-	Spider = { Enabled = false, Cue = "SpiderCue", Seconds = 10860 },
-	-- Active play (the Spider and the "Play N min" quests) counts in a match and in the lobby
+	-- Active play (the "Play N min" quests; the Spider Cue's clock until the designer removed it,
+	-- 2026-10-29) counts in a match and in the lobby
 	-- alike, idle time never (SkyDropService.isActive), and only once the player has finished a
 	-- real match that UTC day, like the Sky clock: before it the time is held (in memory, at most
 	-- HoldCapSeconds) and credited when that match is done, so no real play is lost and standing

@@ -178,8 +178,6 @@ local function viewOf(player: Player, hw: any): any
 		earned = hw.Earned,
 		bought = hw.Bought,
 		spent = hw.Spent or 0,
-		active = hw.Active,
-		spider = hw.Spider,
 		open = ctx.open,
 		boards = boards,
 		hooks = ctx.hooks,
@@ -193,7 +191,6 @@ local function viewOf(player: Player, hw: any): any
 			quests = C.Quests.Enabled == true,
 			packs = C.Packs.Enabled == true,
 			cues = C.Cues.Enabled == true,
-			spider = C.Spider.Enabled == true,
 		},
 	}
 end
@@ -268,8 +265,8 @@ local function funnelCues(player: Player)
 	end
 end
 
--- After a mutation: the moments the client shows (a Candy chip, the Spider), the quest
--- analytics, and the view.
+-- After a mutation: the moment the client shows (a Candy chip), the quest analytics, and the
+-- view.
 local function after(player: Player, result: PlayerData.HwResult?, source: string)
 	if result == nil then
 		return
@@ -287,11 +284,7 @@ local function after(player: Player, result: PlayerData.HwResult?, source: strin
 			},
 		})
 	end
-	if result.spider then
-		remote:FireClient(player, { spider = true })
-		Funnel.event(player, "HwSpider", 1)
-	end
-	local news = result.candy > 0 or result.spider
+	local news = result.candy > 0
 	for _, routed in result.quests do
 		if routed.done then
 			news = true
@@ -652,8 +645,8 @@ local function tickPlayer(player: Player): any
 		buttonTried[player] = true
 		Funnel.once(player, "Halloween", "1_Button")
 	end
-	-- The Spider's clock (and the Active quests): this tick's seconds while the player is active,
-	-- held until they have finished a real match today (Ledger.gateActive, C.ActiveGate).
+	-- The Active quests' clock: this tick's seconds while the player is active, held until they
+	-- have finished a real match today (Ledger.gateActive, C.ActiveGate).
 	local credit = 0
 	if Event.isLive(ctx.now) and PlayerData.isLoaded(player) and activeNow(player) then
 		credit, heldActive[player] = Ledger.gateActive(
@@ -670,8 +663,6 @@ local function tickPlayer(player: Player): any
 		and os.clock() - (activeCommitAt[player] or -math.huge) >= C.ActiveCommitSeconds
 	then
 		commitActive(player, ctx)
-	else
-		after(player, PlayerData.hwRetry(player), "Retry")
 	end
 	return nil
 end

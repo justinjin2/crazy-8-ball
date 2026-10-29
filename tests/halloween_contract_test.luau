@@ -12,8 +12,7 @@ local GO_LIVE = 1793228400 -- Wed Oct 28 19:00 EDT
 local COUNTDOWN = 1793226600 -- 18:30 EDT
 local ENDS = 1793750400 -- Tue Nov 3 19:00 EST
 local DOUBLE_FROM, DOUBLE_TO = 1793419200, 1793505600 -- Oct 31, US Eastern
-local EVENT_CUES =
-	{ "JackOLanternCue", "PitchforkCue", "WitchBroomCue", "SpiderCue", "HalloweenSwordCue" }
+local EVENT_CUES = { "JackOLanternCue", "PitchforkCue", "WitchBroomCue", "HalloweenSwordCue" }
 
 local function tryRequire(path: string): any
 	local ok, mod = pcall(H.require, path)
@@ -106,10 +105,7 @@ return {
 			"King 50 x2/day, 900 s"
 		)
 		H.expect(C.Pickup.HourCap == 40, "pickup cap 40 a player a UTC hour")
-		H.expect(
-			C.Spider.Seconds == 10860 and C.Spider.Cue == "SpiderCue",
-			"Spider at 3 h 01 m active"
-		)
+		H.expect((C :: any).Spider == nil, "no Spider (designer, 2026-10-29)")
 		H.expect(C.Convert.MoneyPerCandy == 10, "$10 a Candy at the end")
 		H.expect(typeof(C.CandyIcon) == "string", "CandyIcon is a string")
 		for _, banned in
@@ -273,7 +269,7 @@ return {
 		check("Config.Halloween", Config.Halloween, {
 			"Match.Enabled",
 			"Quests.Enabled",
-			"Spider.Enabled",
+			"Cues.Enabled",
 			"Packs.Enabled",
 			"Convert.Enabled",
 		})
