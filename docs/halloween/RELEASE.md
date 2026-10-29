@@ -55,6 +55,14 @@ On a phone, a PC and a controller where you can:
 11. The **abilities** screen says "USE CODES 5KLIKES & 10KLIKES FOR FREE SPINS". 10KLIKES gives
    10 spins and $10,000, 5KLIKES 5 spins and $5,000, 2KLIKES 10 spins and $10,000; 1KLIKES is
    expired.
+12. **The personal Candy Rush**: the moment Halloween turns on for you (after the guided part,
+   or a join on an old account), the "CANDY RUSH 9:59" chip shows and your pots pay 2x for 10
+   minutes. Then the Candy card says "2x CANDY starts in ..." and the next one comes 45 minutes
+   after the first began. Leave and rejoin inside those 45 minutes: no fresh 2x (the chip
+   comes back only if the 10 minutes are still running).
+13. **The boost cards**: the friends row says "Friend Boost" with +0% when no friend is in the
+   server, rising +10% a friend, on the Money and the Candy cards. In the guided tutorial the
+   money pill shows without its gold "+" (it comes back with the Shop at the soft part).
 
 ## 2. Publishing
 
@@ -77,26 +85,26 @@ Off = the old behaviour; one line, then publish with the outdated-only restart.
 | Switch | Line | Off does |
 |---|---|---|
 | `Config.Halloween.Enabled` | 3771 | no Candy, no event UI; saved Candy still converts after the end |
-| `Config.Halloween.Rush.Enabled` | 3780 | no 2x Candy minutes (UTC :00-:09) |
-| `Config.Halloween.Match.Enabled` | 3798 | no match Candy at all |
-| `Config.Halloween.Match.PerPocketEnabled` | 3799 | the old settle-time Candy (3 a ball, +10 finished, +25 a win, no flying chips) |
-| `Config.Halloween.Pickup` | 3836 | ground candy: 1 a pickup, 150 pickups an hour at most |
-| `Config.Halloween.Quests.Enabled` | 3848 | no quest boards |
-| `Config.Halloween.Cues.Enabled` | 3952 | the four cues cannot be bought (Candy or Robux) |
-| `Config.Halloween.Packs.Enabled` | 3962 | Candy packs not sold |
-| `Config.Halloween.Convert.Enabled` | 3965 | Candy does not turn into money ($10 each) after the end |
-| `Config.HalloweenMap.Enabled` | 9319 | the master map switch: no night, tables, decor, props, drops |
-| `Config.HalloweenMap.Boss.Enabled` | 9529 | false for this release: no Pumpkin King |
-| `Config.HalloweenMap.Candy.Enabled` | 9783 | no ground candy (`SpawnEverySeconds` 9787 sets how often) |
-| `Config.Multiplayer.Roam.Enabled` | 8379 | in-match players stay at their table, as before |
-| `Config.UI.Halloween.CardFx.Enabled` | 18046 | the menu cards' live effects off (still pictures) |
-| `Config.UI.Halloween.Menu.Theme` | 17879 | `""`: the plain menu frame instead of Haunted night |
-| `Config.UI.CuePreview.Event.Enabled` | 10415 | no PREVIEW buttons on the event cards (the Cue Preview itself stays off, line 10409) |
-| `Config.UI.CuePreview.Showcase.Enabled` | 10564 | PREVIEW opens the tabbed preview on TRAIL instead of the video-style loop |
-| `Config.UI.BoostPill.ShortBesideColumn` | 10304 | `true`: a phone's boost lines and Candy pill go back beside the left column |
-| `Config.UI.EventEmblem.Enabled` | 18362 | no "2026" badge on the event cues' cards |
-| `Config.UI.Inventory.ExistOwnerOnly` | 12723 | false: everyone sees "N exist" again (it is permanent, not an event switch) |
-| `Config.Badges.Enabled` | 18930 | no badge is awarded |
+| `Config.Halloween.Rush.Enabled` | 3785 | no Candy Rush at all (`Rush.Personal` false on the same line: the old clock Rush, UTC :00-:09 for everyone) |
+| `Config.Halloween.Match.Enabled` | 3803 | no match Candy at all |
+| `Config.Halloween.Match.PerPocketEnabled` | 3804 | the old settle-time Candy (3 a ball, +10 finished, +25 a win, no flying chips) |
+| `Config.Halloween.Pickup` | 3841 | ground candy: 1 a pickup, 150 pickups an hour at most |
+| `Config.Halloween.Quests.Enabled` | 3853 | no quest boards |
+| `Config.Halloween.Cues.Enabled` | 3957 | the four cues cannot be bought (Candy or Robux) |
+| `Config.Halloween.Packs.Enabled` | 3967 | Candy packs not sold |
+| `Config.Halloween.Convert.Enabled` | 3970 | Candy does not turn into money ($10 each) after the end |
+| `Config.HalloweenMap.Enabled` | 9324 | the master map switch: no night, tables, decor, props, drops |
+| `Config.HalloweenMap.Boss.Enabled` | 9534 | false for this release: no Pumpkin King |
+| `Config.HalloweenMap.Candy.Enabled` | 9788 | no ground candy (`SpawnEverySeconds` 9792 sets how often) |
+| `Config.Multiplayer.Roam.Enabled` | 8384 | in-match players stay at their table, as before |
+| `Config.UI.Halloween.CardFx.Enabled` | 18051 | the menu cards' live effects off (still pictures) |
+| `Config.UI.Halloween.Menu.Theme` | 17884 | `""`: the plain menu frame instead of Haunted night |
+| `Config.UI.CuePreview.Event.Enabled` | 10420 | no PREVIEW buttons on the event cards (the Cue Preview itself stays off, line 10414) |
+| `Config.UI.CuePreview.Showcase.Enabled` | 10569 | PREVIEW opens the tabbed preview on TRAIL instead of the video-style loop |
+| `Config.UI.BoostPill.ShortBesideColumn` | 10309 | `true`: a phone's boost lines and Candy pill go back beside the left column |
+| `Config.UI.EventEmblem.Enabled` | 18367 | no "2026" badge on the event cues' cards |
+| `Config.UI.Inventory.ExistOwnerOnly` | 12728 | false: everyone sees "N exist" again (it is permanent, not an event switch) |
+| `Config.Badges.Enabled` | 18935 | no badge is awarded |
 | `Config.Economy.FriendBoostEnabled` | 2037 | no +10% per friend |
 
 ## 4. If something breaks
@@ -139,6 +147,6 @@ original back (asset 123614794049673):
 > The rooftop has gone haunted. Every ball you pot pays **Candy**, candy drops all over the
 > lobby (grab it while you wait for your turn), and daily quests pay more. Spend it on four
 > Halloween cues that never come back: the **Pitchfork**, the **Witch's Broom**, the
-> **Jack-o'-Lantern** and the **Halloween Sword**. Play in the first 10 minutes of every hour
-> for **2x Candy**, and all day on Oct 31! Codes **5KLIKES** and **10KLIKES** for free spins.
+> **Jack-o'-Lantern** and the **Halloween Sword**. Your pots pay **2x Candy** for your first
+> 10 minutes, then 10 minutes again every 45 minutes you play, and all day on Oct 31! Codes **5KLIKES** and **10KLIKES** for free spins.
 > Ends Nov 3!

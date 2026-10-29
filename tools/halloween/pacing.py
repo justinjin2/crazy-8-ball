@@ -20,7 +20,7 @@ BOARDS = {
 }
 PER_POCKET = 3
 POTS_H = 60 / 6.3 * 5.75 * 0.85  # eligible pots an hour
-RUSH = 1 + 1 / 6
+RUSH = 1 + 10 / 45  # the personal Rush: 10 of every 45 minutes (Config.Halloween.Rush)
 BOOST = 1.05
 GROUND_H = 130
 DOUBLE_DAY = 3  # day 3 = board 4 (Oct 31 evening EDT)

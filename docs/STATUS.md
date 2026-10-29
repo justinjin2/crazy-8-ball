@@ -11,7 +11,7 @@ entry of `docs/archive/STATUS_HISTORY.md`.
 ## Halloween 2026 (branch `halloween`, pushed, waiting for the designer to publish tonight)
 
 - **Ready to publish** (Oct 29 evening): v3 (the designer's ~12:00 list), **v4, the 14:20
-  GUI round**, and **v5, the 17:30 fixes**. The checklist and every switch are in `docs/halloween/RELEASE.md`. Use the
+  GUI round**, **v5, the 17:30 fixes**, and **v6, the 19:20 Rush and Friend Boost round**. The checklist and every switch are in `docs/halloween/RELEASE.md`. Use the
   outdated-only restart. Nothing of Halloween is live yet (the live build `7c4d85aa` has none).
 - **v4 (designer 14:20, with an interview):**
   - The Sword's soft pre-v3 aura is back, also on its menu card. Its dark purple trail has
@@ -36,6 +36,15 @@ entry of `docs/archive/STATUS_HISTORY.md`.
   - Verified (18:30-18:50): lint and 1,564 tests; Studio at a phone-sized 750x323 HUD: the boost
     lines and pill under FREE REWARD, the event menu with the new Jack card, the Sword's and the
     Jack's model shots on black, the Jack in the PULL bar of a solo game (centred, round).
+- **v6 (designer ~19:20) and the release sweep:**
+  - The boost cards' friends row is "Friend Boost", +0% until a friend joins.
+  - The Candy Rush is personal: 2x for 10 minutes when Halloween turns on for the player, then
+    every 45 minutes; the start is saved, so a rejoin keeps the cycle (`Rush.Personal`).
+  - Sweep fixes: the boost lines and the Candy pill show at the soft part (they waited for
+    Done); the money pill's "+" hides in the guided tutorial; the Sky banner waits for the soft
+    part again.
+  - Verified: lint and 1,567 tests. The Studio check of v6 waits on the Rojo reconnect (Studio
+    reopened at ~19:45 and its Rojo plugin is not connected to port 34872).
 - **In it from v3:**
   - No Pumpkin King.
   - Four cues for Candy or Robux: Pitchfork 300 / 49 R$, Broom 2,500 / 249 R$, Jack 4,500 /
