@@ -33,24 +33,6 @@ return {
 		end
 	end,
 
-	["the Halloween funnel names each track cue's slot from step 4 (CandyService's rule)"] = function()
-		local Track = load()
-		local names = H.require("Tutorial.Steps").Funnels.Halloween
-		local want = { "1_Button", "2_Opened", "3_FirstCandy" }
-		for _, step in Track.steps() do
-			if step.Cue ~= nil then
-				table.insert(want, ("%d_Cue%d"):format(#want + 1, step.At))
-			end
-		end
-		H.expect(#names == #want, ("%d steps, expected %d"):format(#names, #want))
-		for i, name in want do
-			H.expect(
-				names[i] == name,
-				("step %d is %s, expected %s"):format(i, tostring(names[i]), name)
-			)
-		end
-	end,
-
 	["due: every step reached and not given, in order"] = function()
 		local Track = load()
 		H.expect(#Track.due(49, {}) == 0, "none under 50")

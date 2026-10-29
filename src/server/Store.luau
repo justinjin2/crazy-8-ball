@@ -1348,6 +1348,7 @@ local SHOP_OPS: { [string]: boolean } = {
 	winBlock = true,
 	giveVipCue = true,
 	buyLimited = true,
+	hwBuyCue = true, -- an event cue bought with Candy: its Robux product shows OWNED
 	clearInventory = true,
 	reset = true,
 }

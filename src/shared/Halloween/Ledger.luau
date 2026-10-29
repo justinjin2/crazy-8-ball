@@ -21,6 +21,10 @@ export type BossResult = {
 	drop: string?, -- the cue it dropped
 }
 
+-- A cue the event's shop sells (Config.Halloween.Cues.List): its price in Candy and the
+-- Config.Products key that sells it for Robux.
+export type CueRow = { Cue: string, Candy: number, Product: string }
+
 local function whole(x: any): number
 	if type(x) ~= "number" or x ~= x or math.abs(x) == math.huge then
 		return 0
@@ -60,6 +64,53 @@ function Ledger.addCandy(hw: any, amount: number, bucket: "Earned" | "Bought"): 
 	local before = whole(hw[bucket])
 	hw[bucket] = math.min(before + n, CAP)
 	return hw[bucket] - before
+end
+
+-- The Config.Halloween.Cues row selling cue `cueId`, or nil when the shop does not sell it.
+function Ledger.cueRow(cueId: any): CueRow?
+	for _, row in C.Cues.List do
+		if row.Cue == cueId then
+			return row
+		end
+	end
+	return nil
+end
+
+-- Why cue `cueId` cannot be bought with Candy at `now` (`owned`: the player has it; `ready`:
+-- Catalog.ready), or nil when it can: "Closed" (not Live, Cues switched off, not a shop cue, or
+-- not ready to give), "Owned", "Poor" (the balance is below its price).
+function Ledger.buyCheck(hw: any, cueId: any, now: number, owned: boolean, ready: boolean): string?
+	local row = Ledger.cueRow(cueId)
+	if C.Cues.Enabled ~= true or row == nil or not Event.isLive(now) then
+		return "Closed"
+	elseif owned then
+		return "Owned"
+	elseif not ready then
+		return "Closed"
+	elseif Ledger.balance(hw) < row.Candy then
+		return "Poor"
+	end
+	return nil
+end
+
+-- Buys cue `cueId` with Candy (Ledger.buyCheck, then Spent grows by its price; the caller gives
+-- the cue in the same change). (true) or (false, buyCheck's reason).
+function Ledger.buyCue(
+	hw: any,
+	cueId: any,
+	now: number,
+	owned: boolean,
+	ready: boolean
+): (boolean, string?)
+	local why = Ledger.buyCheck(hw, cueId, now, owned, ready)
+	if why ~= nil then
+		return false, why
+	end
+	local row = Ledger.cueRow(cueId) :: CueRow
+	if not Ledger.spend(hw, row.Candy) then
+		return false, "Poor"
+	end
+	return true, nil
 end
 
 -- A Pumpkin King win at `now` (Live only: nil otherwise). Every win counts (KingWins); the

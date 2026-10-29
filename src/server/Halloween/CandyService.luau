@@ -124,15 +124,12 @@ function CandyService.ctx(): PlayerData.HwCtx
 	return { now = now, open = Event.boardIndex(now), hooks = CandyService.hooks() }
 end
 
--- The event's cues (the track's and the Spider: the end screen shows the ones owned) and the
--- King's drop (the event menu's pill shows it OWNED).
+-- The event's cues: the shop's (Config.Halloween.Cues) and the King's drop (the view's `owned`:
+-- the menu's OWNED and the end screen's cards).
 local EVENT_CUES: { string } = {}
-for _, step in Config.Halloween.Track.Steps do
-	if step.Cue ~= nil then
-		table.insert(EVENT_CUES, step.Cue)
-	end
+for _, row in C.Cues.List do
+	table.insert(EVENT_CUES, row.Cue)
 end
-table.insert(EVENT_CUES, C.Spider.Cue)
 table.insert(EVENT_CUES, C.KingDrop.Cue)
 
 -- Whether the player's tutorial is over (Done or Skipped): nothing Halloween shows before.
@@ -201,6 +198,7 @@ local function viewOf(player: Player, hw: any): any
 		on = {
 			quests = C.Quests.Enabled == true,
 			packs = C.Packs.Enabled == true,
+			cues = C.Cues.Enabled == true,
 			spider = C.Spider.Enabled == true,
 		},
 	}
@@ -248,26 +246,30 @@ end
 
 local lastActivePush: { [Player]: number } = setmetatable({}, { __mode = "k" }) :: any
 
--- The Halloween funnel (Funnel.once; Steps.Funnels.Halloween): the Candy of each track cue,
--- named by slot from step 4 ("4_Cue500"; tests/halloween_track_test.luau keeps Steps' names
--- the same).
-local FUNNEL_CUES: { { at: number, name: string } } = {}
-do
-	for _, step in C.Track.Steps do
-		if step.Cue ~= nil then
-			local name = ("%d_Cue%d"):format(#FUNNEL_CUES + 4, step.At)
-			table.insert(FUNNEL_CUES, { at = step.At, name = name })
-		end
+-- The Halloween funnel's cue steps (Funnel.once; Steps.Funnels.Halloween): one for each shop
+-- cue in Cues.List order from step 4, named by its product key without "Hw" ("4_Pitchfork";
+-- tests/halloween_buy_test.luau keeps Steps' names the same). Logged once the player owns the
+-- cue, however they got it (Candy, Robux, a gift).
+function CandyService.funnelCueSteps(): { { cue: string, name: string } }
+	local steps = {}
+	for i, row in C.Cues.List do
+		local short = string.gsub(row.Product, "^Hw", "")
+		table.insert(steps, { cue = row.Cue, name = ("%d_%s"):format(i + 3, short) })
 	end
+	return steps
+end
+local FUNNEL_CUES = CandyService.funnelCueSteps()
+local FUNNEL_IDS: { string } = {}
+for _, step in FUNNEL_CUES do
+	table.insert(FUNNEL_IDS, step.cue)
 end
 
--- The funnel's Candy steps after Candy landed (each logs once a save).
-local function funnelCandy(player: Player)
-	Funnel.once(player, "Halloween", "3_FirstCandy")
-	local total = PlayerData.hwCandy(player)
-	for _, mark in FUNNEL_CUES do
-		if total >= mark.at then
-			Funnel.once(player, "Halloween", mark.name)
+-- The funnel's cue steps the player has reached (each logs once a save).
+local function funnelCues(player: Player)
+	local owned = PlayerData.hwOwned(player, FUNNEL_IDS)
+	for _, step in FUNNEL_CUES do
+		if owned[step.cue] then
+			Funnel.once(player, "Halloween", step.name)
 		end
 	end
 end
@@ -280,7 +282,7 @@ local function after(player: Player, result: PlayerData.HwResult?, source: strin
 	end
 	local remote = Net.get("Halloween")
 	if result.candy > 0 then
-		funnelCandy(player)
+		Funnel.once(player, "Halloween", "3_FirstCandy")
 	end
 	if result.candy > 0 and source ~= "Pickup" and source ~= "Dev" then
 		remote:FireClient(player, {
@@ -722,11 +724,47 @@ local function takeRequest(player: Player): boolean
 	return true
 end
 
-local function onRequest(player: Player, msg: any)
-	if type(msg) ~= "table" or not takeRequest(player) then
+-- A Buy with Candy (`{ buy = cueId }`): answered at once with the moment `{ bought = { cue, ok,
+-- reason } }` (reason "Poor", "Owned", "Closed" or "Busy"), then the attributes and the view
+-- (not held back by PushSeconds: the menu shows the new balance and OWNED at once).
+local function buyCue(player: Player, cueId: string, allowed: boolean)
+	local row = Ledger.cueRow(cueId)
+	local ok, reason = false, "Busy" :: string?
+	if allowed then
+		if row == nil then
+			reason = "Closed"
+		else
+			ok, reason = PlayerData.hwBuyCue(player, cueId, CandyService.ctx())
+		end
+	end
+	Net.get("Halloween"):FireClient(player, {
+		bought = { cue = if #cueId <= 64 then cueId else nil, ok = ok, reason = reason },
+	})
+	if not allowed then
 		return
 	end
-	if type(msg.claim) == "string" then
+	if ok and row ~= nil then
+		-- HwBuy: an event cue bought (value: its price; a: the cue; b: how, "Candy").
+		Funnel.event(player, "HwBuy", row.Candy, cueId, "Candy")
+		funnelCues(player)
+	end
+	send(player)
+end
+
+local function onRequest(player: Player, msg: any)
+	if type(msg) ~= "table" then
+		return
+	end
+	if not takeRequest(player) then
+		-- A dropped Buy is still answered, so the menu's button never waits for nothing.
+		if type(msg.buy) == "string" then
+			buyCue(player, msg.buy, false)
+		end
+		return
+	end
+	if type(msg.buy) == "string" then
+		buyCue(player, msg.buy, true)
+	elseif type(msg.claim) == "string" then
 		local key = msg.claim
 		local amount, result = PlayerData.hwClaim(player, key, CandyService.ctx())
 		if amount > 0 then
@@ -876,6 +914,7 @@ end
 --   ("add", userId, amount, source, boost?) -> CandyService.add
 --   ("pickup", userId) -> (ok, reason)     ("boss", userId) -> bossWon
 --   ("cooldown", userId) -> seconds left    ("save", userId) -> the Halloween field (a copy)
+--   ("buy", userId, cueId) -> as a client's { buy = cueId } (the answer moment and the view)
 --   ("kingdrop", userId) -> the next rolled King win drops his cue
 --   ("now") -> { now, state, multiplier, board }
 local function startQA()
@@ -913,6 +952,9 @@ local function startQA()
 		elseif op == "cooldown" then
 			local at = CandyService.bossCooldown(player)
 			return if at > 0 then at - Clock.serverNow() else 0
+		elseif op == "buy" then
+			buyCue(player, tostring(a), true)
+			return PlayerData.halloween(player)
 		elseif op == "save" then
 			return PlayerData.halloween(player)
 		elseif op == "played" then
@@ -983,7 +1025,8 @@ function CandyService.start()
 			warnOnce("leave", err)
 		end
 	end)
-	-- The tutorial's end (its save flag) turns the event on for the player.
+	-- The tutorial's end (its save flag) turns the event on for the player; a purchase (an event
+	-- cue for Robux, the buyer's or a gift's) moves the funnel's cue steps and the view's OWNED.
 	PlayerData.Changed:Connect(function(player: Player, op: string)
 		if op == "setFlag" and player:GetAttribute("HwOn") ~= true then
 			local ok, err = pcall(function(): any
@@ -993,6 +1036,18 @@ function CandyService.start()
 			if not ok then
 				warnOnce("HwOn", err)
 			end
+		elseif op == "applyPurchase" then
+			-- After the purchase's commit has finished (the funnel writes a save flag).
+			task.defer(function()
+				local ok, err = pcall(function(): any
+					funnelCues(player)
+					CandyService.changed(player)
+					return nil
+				end)
+				if not ok then
+					warnOnce("purchase", err)
+				end
+			end)
 		end
 	end)
 	task.spawn(function()

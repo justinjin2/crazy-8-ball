@@ -7,8 +7,9 @@
 --   State.phase()    Event.state(Clock.now()), "Before" while State.on() is false
 --   State.Changed    fires (view) when a new view arrives or HwOn changes
 --   State.Moment     fires (moment) for { toast = {...} }, { step = n }, { spider = true },
---                    { king = {...} }
---   State.send(msg)  { claim = key } | { seen = true } | { endSeen = true }
+--                    { king = {...} }, { bought = { cue, ok, reason } } (the answer to a buy;
+--                    reason "Poor", "Owned", "Closed" or "Busy"; the view follows at once)
+--   State.send(msg)  { claim = key } | { seen = true } | { endSeen = true } | { buy = cueId }
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -44,7 +45,7 @@ function State.phase(): Event.State
 	return Event.state(Clock.now())
 end
 
--- The player's Candy (the Candy attribute: earned + bought).
+-- The player's Candy (the Candy attribute: the balance, earned + bought - spent).
 function State.candy(): number
 	local player = Players.LocalPlayer
 	local candy = player and player:GetAttribute("Candy")
@@ -72,6 +73,7 @@ function State.start()
 			or type(msg.step) == "number"
 			or msg.spider == true
 			or type(msg.king) == "table"
+			or type(msg.bought) == "table"
 		then
 			momentEvent:Fire(msg)
 		end

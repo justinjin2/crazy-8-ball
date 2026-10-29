@@ -3785,6 +3785,50 @@ function PlayerData.hwClaim(player: Player, key: string, ctx: HwCtx): (number, H
 	return claimed, result
 end
 
+--- Buys an event cue with Candy (Config.Halloween.Cues; Halloween/Ledger.buyCue): the event Live,
+--- the cue shop on, the cue sold and ready, not owned, the balance at least its price; then
+--- Spent grows by the price and the cue is given the normal way (giveCue: the Index, NEW, the
+--- badges), in ONE commit. (true) or (false, reason): "Closed", "Owned", "Poor", or "Busy" (the
+--- save not loaded or already converted). A refusal commits nothing.
+function PlayerData.hwBuyCue(player: Player, cueId: string, ctx: HwCtx): (boolean, string?)
+	if not isPlayer(player) or type(cueId) ~= "string" then
+		refuse("hwBuyCue", player, "bad player or cue")
+		return false, "Closed"
+	end
+	local data = peek(player)
+	if data == nil then
+		return false, "Busy"
+	end
+	local saved = if type(data.Halloween) == "table" then data.Halloween else nil
+	if saved ~= nil and saved.Converted == true then
+		return false, "Closed"
+	end
+	local why = HwLedger.buyCheck(
+		saved or SaveSchema.freshHalloween(),
+		cueId,
+		ctx.now,
+		Inventory.count(data, cueId) > 0,
+		hwCueReady(cueId)
+	)
+	if why ~= nil then
+		return false, why
+	end
+	local ok, reason = false, "Busy" :: string?
+	local result = hwMutate("hwBuyCue", player, function(live, hw)
+		local owned = Inventory.count(live, cueId) > 0
+		ok, reason = HwLedger.buyCue(hw, cueId, ctx.now, owned, hwCueReady(cueId))
+		if ok and not giveCue(live, cueId) then
+			-- Not given after all (a cap): the Candy is not taken.
+			hw.Spent -= (HwLedger.cueRow(cueId) :: HwLedger.CueRow).Candy
+			ok, reason = false, "Closed"
+		end
+	end)
+	if result == nil then
+		return false, "Busy"
+	end
+	return ok, reason
+end
+
 --- Sets one of the save's Halloween marks ("Seen": the menu was opened; "EndSeen": the end
 --- screen was shown). True when it changed.
 function PlayerData.hwMark(player: Player, mark: "Seen" | "EndSeen"): boolean
