@@ -21,6 +21,7 @@ local Config = require(Shared:WaitForChild("Config"))
 local Net = require(Shared:WaitForChild("Net"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local Steps = require(Shared.Tutorial.Steps)
+local Admin = require(Shared.Admin)
 local Clock = require(Shared.Halloween.Clock)
 local Event = require(Shared.Halloween.Event)
 local CandyMath = require(Shared.Halloween.CandyMath)
@@ -103,6 +104,7 @@ local SOURCES: { [string]: boolean } = {
 	Boss = true,
 	Pickup = true,
 	Dev = true,
+	Admin = true, -- the owner panel's Give Candy (AdminService)
 }
 
 -- Whether UltService.Used is heard (the ability quest; else its Alt). Set at start.
@@ -293,7 +295,13 @@ local function after(player: Player, result: PlayerData.HwResult?, source: strin
 	if result.candy > 0 then
 		Funnel.once(player, "Halloween", "3_FirstCandy")
 	end
-	if result.candy > 0 and source ~= "Pickup" and source ~= "Dev" and source ~= "Pot" then
+	if
+		result.candy > 0
+		and source ~= "Pickup"
+		and source ~= "Dev"
+		and source ~= "Admin"
+		and source ~= "Pot"
+	then
 		remote:FireClient(player, {
 			toast = {
 				candy = result.candy,
@@ -965,7 +973,7 @@ end
 -- lines to tell. `time` moves the test clock (Studio and the test place only):
 --   /hw                          the state, Candy, board, multiplier, active time
 --   /hw time before|countdown|live|rush|double|end|real, /hw time board <n>, /hw time +<seconds>
---   /hw candy <n>   /hw quest done   /hw active <seconds>   /hw kingwin   /hw convert   /hw reset
+--   /hw candy <n> [player]   /hw quest done   /hw active <seconds>   /hw kingwin   /hw convert   /hw reset
 function CandyService.dev(player: Player, args: { string }): { string }
 	local D = Strings.Halloween.Dev
 	local verb, arg = args[1] or "", args[2]
@@ -1007,8 +1015,25 @@ function CandyService.dev(player: Player, args: { string }): { string }
 		Clock.setOffset(target - real)
 	elseif verb == "candy" then
 		local n = tonumber(arg or "")
-		if n == nil or n < 1 then
+		if n == nil or n < 1 or n > Config.Admin.Candy.MaxAmount then
 			say(D.Usage)
+			return lines
+		end
+		-- the designer's own, or any player in the server (part of a name, as the owner panel)
+		local typed = args[3]
+		if typed ~= nil then
+			local people, byName = {}, {}
+			for _, other in Players:GetPlayers() do
+				table.insert(people, { name = other.Name, displayName = other.DisplayName })
+				byName[other.Name] = other
+			end
+			local found = Admin.match(typed, people)
+			local target: Player? = if found then byName[found.name] else nil
+			if target == nil then
+				say(D.NoPlayer:format(typed))
+				return lines
+			end
+			say(D.AddedTo:format(CandyService.add(target, n, "Dev"), target.Name))
 			return lines
 		end
 		say(D.Added:format(CandyService.add(player, n, "Dev")))

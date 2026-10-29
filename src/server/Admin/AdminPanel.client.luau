@@ -3,7 +3,7 @@
 -- clones this LocalScript into the owner's PlayerGui only, with the AdminRequest remote beside
 -- it; it lives in ServerScriptService otherwise, so it never reaches anyone else. Plain on
 -- purpose: an ADMIN button in the bottom-right corner opens and closes a scrolling window
--- of rows (Announce, Player, Ability, Money, Lucky blocks, Money rain) with the server's answer on the
+-- of rows (Announce, Player, Ability, Money, Candy, Lucky blocks, Money rain) with the server's answer on the
 -- status line at the bottom. The player box fills in from part of a name (Admin.match: Tab,
 -- Enter or a tap on the suggestion). Backspace, when not typing, drops the block in the
 -- owner's hands for anyone to grab; Drop does the same from the panel (phone, gamepad, a
@@ -371,6 +371,14 @@ button(moneyRow, W.SetMoney, "Blue", wide(0.5, 2), function()
 end)
 button(moneyRow, W.AddMoney, "Green", wide(0.5, 2), function()
 	send("AddMoney", { target = who.Text, amount = amountOf(amount.Text) })
+end)
+
+-- Candy (the Halloween event's, to the player above)
+heading(W.Candy)
+local candyRow = row()
+local candy = box(W.AmountHint, candyRow, wide(0.5, 2))
+button(candyRow, W.GiveCandy, "Gold", wide(0.5, 2), function()
+	send("AddCandy", { target = who.Text, amount = amountOf(candy.Text) })
 end)
 
 -- Lucky blocks

@@ -2014,10 +2014,12 @@ return {
 		-- The designer's /hw command (DevCommands; CandyService.dev).
 		Dev = {
 			Status = "Halloween: %s at %s UTC (offset %ds). Candy %d, board %d, %dx, active %ds",
-			Usage = "/hw [time ...|candy <n>|quest done|active <s>|kingwin|convert|reset]",
+			Usage = "/hw [time ...|candy <n> [player]|quest done|active <s>|kingwin|convert|reset]",
 			TimeUsage = "/hw time before|countdown|live|rush|double|end|real|board <n>|+<seconds>",
 			TimeLiveGame = "Test time only works in Studio and on the test place.",
 			Added = "+%d Candy",
+			AddedTo = "+%d Candy to %s", -- /hw candy <n> <player>: the Candy, the player
+			NoPlayer = 'Nobody here matches "%s"',
 			QuestsDone = "%d quest(s) moved",
 			KingWin = "King win: +%d Candy, cooldown %ds",
 			Converted = "Converted: $%d",
@@ -2697,6 +2699,8 @@ return {
 		AmountHint = "Amount",
 		SetMoney = "Set to",
 		AddMoney = "Add",
+		Candy = "Candy (Halloween)",
+		GiveCandy = "Give Candy",
 		Blocks = "Lucky blocks",
 		CountHint = "Count",
 		GiveMe = "Give me",
@@ -2714,6 +2718,8 @@ return {
 			MoneySet = "%s now has %s.", -- the player, the money
 			MoneyAdded = "Gave %s to %s (now %s).",
 			MoneyTaken = "Took %s from %s (now %s).",
+			CandyAdded = "Gave %d Candy to %s.", -- the Candy, the player
+			NoEvent = "The Halloween event is not on, so no Candy can be given.",
 			BlocksGiven = "Gave you %d %s.", -- the count, the block's name
 			Dropped = "Dropped %d %s.",
 			DroppedShort = "Dropped %d of %d %s: %s",

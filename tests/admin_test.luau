@@ -107,6 +107,17 @@ return {
 				== nil
 		)
 
+		local candy = Admin.check("AddCandy", { target = "pai", amount = 500 })
+		H.expect(candy and candy.amount == 500 and candy.target == "pai", "Candy to a player")
+		H.expect(Admin.check("AddCandy", { target = "pai", amount = 0 }) == nil, "no Candy")
+		H.expect(Admin.check("AddCandy", { target = "pai", amount = -5 }) == nil, "never takes")
+		H.expect(Admin.check("AddCandy", { target = "pai", amount = 2.5 }) == nil, "whole only")
+		H.expect(
+			Admin.check("AddCandy", { target = "pai", amount = A.Candy.MaxAmount + 1 }) == nil,
+			"at most MaxAmount"
+		)
+		H.expect(Admin.check("AddCandy", { target = "", amount = 5 }) == nil, "no player")
+
 		local give = Admin.check("GiveBlocks", { kind = "Legendary", count = 3 })
 		H.expect(give and give.kind == "Legendary" and give.count == 3, "give blocks")
 		for _, kind in Config.LuckyBlocks.Order do

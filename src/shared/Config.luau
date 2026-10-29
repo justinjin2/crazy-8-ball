@@ -18446,6 +18446,11 @@ Config.Admin = {
 	Money = {
 		MaxAmount = 1e9, -- Set and Add take at most this (PlayerData's own caps still apply)
 	},
+	-- The Halloween event's Candy (designer, 2026-10-29): the panel's Give Candy and
+	-- "/hw candy <n> <player>" add at most this at once (as earned Candy, no boost; Live only).
+	Candy = {
+		MaxAmount = 100000,
+	},
 	-- Money rain (src/server/MoneyRain.luau; the fall src/client/MoneyRainFx.luau).
 	Rain = {
 		MaxTotal = 10000000, -- one rain pays out at most this in all

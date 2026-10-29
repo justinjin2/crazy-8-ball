@@ -153,6 +153,14 @@ function Admin.check(action: any, args: any): (Request?, string?)
 			return nil, "BadAmount"
 		end
 		return { action = action, target = target, amount = amount }
+	elseif action == "AddCandy" then
+		local target, amount = name(a.target), whole(a.amount, 1, A.Candy.MaxAmount)
+		if target == nil then
+			return nil, "BadPlayer"
+		elseif amount == nil then
+			return nil, "BadAmount"
+		end
+		return { action = action, target = target, amount = amount }
 	elseif action == "GiveBlocks" or action == "DropBlocks" then
 		local kind, count = blockKind(a.kind), whole(a.count, 1, B.MaxCount)
 		if kind == nil then

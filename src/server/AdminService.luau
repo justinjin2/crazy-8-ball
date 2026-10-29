@@ -13,7 +13,7 @@
 -- - Actions: Announce (Roblox's text filter, then Announce.owner: this server or every
 --   server), SetAbility (PlayerData.setUlt: that player's selected slot, as /abilitysetup),
 --   SetMoney and AddMoney (PlayerData.setMoney / addMoney, a gain with the flying cash; a
---   negative Add takes money, never below 0), GiveBlocks (into the owner's own hotbar, ready at
+--   negative Add takes money, never below 0), AddCandy (CandyService.add, Halloween), GiveBlocks (into the owner's own hotbar, ready at
 --   once), DropBlocks and DropHeld (LuckyBlockService.dropForAll, lobby only) and Rain
 --   (MoneyRain, lobby only; All servers: the same rain in every other lobby server too, round
 --   its spawn, through Announce.ownerRain). The player for SetAbility and the money is whoever in this
@@ -31,6 +31,7 @@ local Format = require(Shared.Progression.Format)
 local Requests = require(Shared.Progression.Requests)
 local UltCatalog = require(Shared.Ults.Catalog)
 local Announce = require(script.Parent.Announce)
+local CandyService = require(script.Parent.Halloween.CandyService)
 local LuckyBlockService = require(script.Parent.LuckyBlockService)
 local MoneyRain = require(script.Parent.MoneyRain)
 local PlayerData = require(script.Parent.PlayerData)
@@ -145,6 +146,23 @@ function ACTIONS.SetMoney(owner: Player, r: any): Answer
 	end
 	print(("[8ball] Admin: %s set %s's money to %d"):format(owner.Name, target.Name, r.amount))
 	return answer(true, "MoneySet", target.Name, Format.money(r.amount))
+end
+
+-- The Halloween event's Candy (designer, 2026-10-29): added as earned Candy, no boost, only
+-- while the event is Live (CandyService.add).
+function ACTIONS.AddCandy(owner: Player, r: any): Answer
+	local target = playerFor(r.target)
+	if target == nil then
+		return answer(false, "NoPlayer", r.target)
+	elseif not CandyService.isLive() then
+		return answer(false, "NoEvent")
+	end
+	local added = CandyService.add(target, r.amount, "Admin")
+	if added <= 0 then
+		return answer(false, "NotLoaded")
+	end
+	print(("[8ball] Admin: %s gave %s %d Candy"):format(owner.Name, target.Name, added))
+	return answer(true, "CandyAdded", added, target.Name)
 end
 
 function ACTIONS.AddMoney(owner: Player, r: any): Answer
