@@ -3,7 +3,7 @@
 For Justin. Tonight's build (Oct 29 evening): branch `halloween`, the commit the coordinator
 names in STATUS. The code reads the clock: the event has been Live since 19:00 EDT Oct 28, so a
 server with this update boots straight into Live. It ends by itself Nov 3 19:00 EST. Config line
-numbers re-read 09:15 Oct 29.
+numbers re-read 09:45 Oct 29.
 
 ## 1. Check by hand (Studio Play or the test place first, then the live game after the publish)
 
@@ -12,8 +12,9 @@ On a phone, a PC and a controller where you can:
 1. Join on a **new account** and an **old account**. The tutorial shows nothing of Halloween
    until it is done or skipped.
 2. Play one match. The result shows Candy: 3 a ball, +10 for finishing, +25 for a win.
-3. **Walk around** while it is the other player's turn, and pick up a **ground candy** (+5).
-   Candy spawns near you about every 20 seconds, in a match too.
+3. **Walk around** while it is the other player's turn, and pick up **ground candy** (+1 each).
+   A candy spawns near you about every 4 seconds, in a match too, so there are always a few
+   around you.
 4. The **HALLOWEEN** button opens the menu: the Candy balance, today's 4 quests, the three cues
    (Pitchfork 300 Candy or 49 R$, Witch's Broom 2,500 or 249 R$, Halloween Sword 7,500 or 599 R$)
    and the two Candy packs (300 for 49 R$, 1,200 for 149 R$). No Candy track, no Spider.
@@ -24,8 +25,8 @@ On a phone, a PC and a controller where you can:
    lobby see a short black-bar cutscene of him rising out of the roof on his throne (a tap
    skips). Check his **cape**: smooth and swaying, also while he shoots. Beat him once: +150
    Candy, +$2,500, +100 XP, and the 5% Jack-o'-Lantern roll.
-7. The **Pitchfork** in your hand while aiming: a compact fork at the tip. The **Witch's Broom**
-   is thinner than before.
+7. The **Pitchfork** is the slim model again (the big fork past the butt, approved Oct 28), with
+   its big card picture. The **Witch's Broom** is thinner than before.
 8. Settings > **Lower effects** on and off with a Halloween cue.
 
 ## 2. Publishing
@@ -50,19 +51,19 @@ Off = the old behaviour; one line, then publish with the outdated-only restart.
 | `Config.Halloween.Enabled` | 3764 | no Candy, no event UI; saved Candy still converts after the end |
 | `Config.Halloween.Rush.Enabled` | 3773 | no 2x Candy minutes (UTC :00-:09) |
 | `Config.Halloween.Match` | 3784 | match Candy (3 a ball, 10, 25) |
-| `Config.Halloween.Pickup` | 3814 | ground candy: 5 a pickup, 80 pickups an hour at most |
-| `Config.Halloween.Quests.Enabled` | 3822 | no quest boards |
-| `Config.Halloween.Cues.Enabled` | 3916 | the three cues cannot be bought (Candy or Robux) |
-| `Config.Halloween.Packs.Enabled` | 3925 | Candy packs not sold |
-| `Config.Halloween.Convert.Enabled` | 3928 | Candy does not turn into money ($10 each) after the end |
-| `Config.HalloweenMap.Enabled` | 9280 | the master map switch: no night, tables, decor, props, throne, King, drops |
-| `Config.HalloweenMap.Boss.Enabled` | 9487 | no Pumpkin King |
-| `Config.HalloweenMap.Boss.Entrance.Enabled` | 9562 | he appears at once with the burst (no rise, no cutscene) |
-| `Config.HalloweenMap.Boss.Entrance.Cutscene` | 9563 | the rise without the camera, bars and title |
-| `Config.HalloweenMap.King.Cloth.Enabled` | 9709 | the old cape (three rigid boxes) |
-| `Config.HalloweenMap.Candy.Enabled` | 9740 | no ground candy (`SpawnEverySeconds` 9741 sets how often) |
-| `Config.Multiplayer.Roam.Enabled` | 8340 | in-match players stay at their table, as before |
-| `Config.Badges.Enabled` | 18338 | no badge is awarded |
+| `Config.Halloween.Pickup` | 3815 | ground candy: 1 a pickup, 400 pickups an hour at most |
+| `Config.Halloween.Quests.Enabled` | 3823 | no quest boards |
+| `Config.Halloween.Cues.Enabled` | 3917 | the three cues cannot be bought (Candy or Robux) |
+| `Config.Halloween.Packs.Enabled` | 3926 | Candy packs not sold |
+| `Config.Halloween.Convert.Enabled` | 3929 | Candy does not turn into money ($10 each) after the end |
+| `Config.HalloweenMap.Enabled` | 9281 | the master map switch: no night, tables, decor, props, throne, King, drops |
+| `Config.HalloweenMap.Boss.Enabled` | 9488 | no Pumpkin King |
+| `Config.HalloweenMap.Boss.Entrance.Enabled` | 9563 | he appears at once with the burst (no rise, no cutscene) |
+| `Config.HalloweenMap.Boss.Entrance.Cutscene` | 9564 | the rise without the camera, bars and title |
+| `Config.HalloweenMap.King.Cloth.Enabled` | 9710 | the old cape (three rigid boxes) |
+| `Config.HalloweenMap.Candy.Enabled` | 9742 | no ground candy (`SpawnEverySeconds` 9743 sets how often, `MaxAlive` the most at once) |
+| `Config.Multiplayer.Roam.Enabled` | 8341 | in-match players stay at their table, as before |
+| `Config.Badges.Enabled` | 18344 | no badge is awarded |
 | `Config.Economy.FriendBoostEnabled` | 2037 | no +10% per friend |
 
 ## 4. If something breaks

@@ -13,14 +13,15 @@ entry of `docs/archive/STATUS_HISTORY.md`.
 - **Ready to publish** (Oct 29 ~09:30): the evening release (`docs/prompts/HW_EVENING_PROMPT.md`),
   checklist and switches in `docs/halloween/RELEASE.md`. Outdated-only restart.
 - **In it:** Candy saved and spent (balance = Earned + Bought - Spent) from matches (3 a ball,
-  10, 25), ground candy (5 a pickup about every 20 s, also while roaming in a match, 80 an hour
-  at most; about half of all Candy), daily quests (today's board only), the King's visits; the
+  10, 25), ground candy (1 a candy, one spawning near each player about every 4 s, also while
+  roaming in a match, 400 an hour at most; about half of all Candy), daily quests (today's board only), the King's visits; the
   menu redone to mock A with the three cues for Candy or Robux: Pitchfork 300 / 49 R$, Witch's
   Broom 2,500 / 249 R$, Halloween Sword 7,500 / 599 R$ (gifts too); Candy packs 300 for 49 R$
   and 1,200 for 149 R$. The Candy track and the Spider are gone. The Pumpkin King rises out of
   the roof on his throne with a letterboxed cutscene for players free in the lobby (every
   visit, a tap skips); his cape is cloth (17 parts) and sways, also while he shoots. The
-  Pitchfork has a compact fork at the tip; the Witch's Broom is thinner. "One of a Kind" counts
+  Pitchfork is back to the slim model approved Oct 28 (the fork past the butt; the compact tip
+  fork read too small, designer ~09:20); the Witch's Broom is thinner. "One of a Kind" counts
   the Halloween cues; the Broom badge says Get. Roaming during a match and the 50 badges ship in
   this update (both already on the branch since Oct 28).
 - **Verified (Oct 29, 08:55-09:15):** lint and the full Lune tests; the Pitchfork and Broom
@@ -28,10 +29,12 @@ entry of `docs/archive/STATUS_HISTORY.md`.
   join, tutorial skip, the Daily popup, the menu owned and unowned, a Candy buy (ok and Poor),
   a Robux receipt (grant, and the money fallback when owned), ground candy +5 and spawns in a
   match, roaming, the King's rise, cutscene and cape, the Pitchfork in aim view, a first match,
-  console clean. Products and prices on Roblox checked (`tools/roblox_products.py --sync`
+  console clean. ~09:45: the Pitchfork restored and ground candy at 1 each, 5x as many
+  (see the commits after 6d8a31ed). Products and prices on Roblox checked (`tools/roblox_products.py --sync`
   dry run: nothing to change; Studio shows the account's discounted prices).
 - **Open:** a real phone, iPad and controller check (only emulated); on phone the 8-ball flair
-  overlaps the left end of the Pitchfork's Candy button; the end screen's Candy-to-money line
+  overlaps the left end of the Pitchfork's Candy button; the denser ground candy's client cost
+  (up to 150 candies in a full server) to watch in client memory and FPS after the publish; the end screen's Candy-to-money line
   never shows for a player who spent all their Candy ($0); the throne may show for one frame
   before it sinks; the arrival banner is hidden under the cutscene; the share of matches
   against disguised bots (0 Candy) is not measured; stale comments (`Net.luau:457`, the
