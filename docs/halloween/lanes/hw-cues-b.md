@@ -22,6 +22,31 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
   `Index.luau`, `Textures.luau` (regenerate after every merge conflict there).
 
 ## Status
+- 21:46 **Spider v2e: candidate D in the compact frame (coordinator 21:3x, option B).** Built,
+  uploaded, in my lab; session cut by the usage limit right after the stand capture. The judged
+  mesh's kit (D's faceted crescent with silver bevels and a fuller strip, petal root plates,
+  stacked-ring lathes, hex bezel + faceted hourglass, spearhead ferrule) is ported into
+  `assets/cue/spider_geo.py` and driven from the lane builder; the silver is baked into the one
+  512 atlas as per-facet UV swatches (BLACK / SILVER regions), no silver parts. Layout like
+  ref_side: the dome (r 0.40, pole 8.38) in a stacked silver-bevel socket with eight beads and
+  the hourglass emblem; the teardrop hub (6.94-7.6) with eight petal plates; three swept-back
+  blade tiers, tips pointing at the butt (rear tier on the axes 6.55 to 8.14 framing the dome,
+  middle on the diagonals 5.65 to 7.16, spurs 5.05 to 6.05; max radius 0.93); a slim flush
+  collar with three low hex bezels and gems at the crown's FRONT (4.74-5.16); spine ridges
+  under every blade root; no mesh webs (the silk is the skin's effects). The named exception
+  SpiderCrownInGrip (CLEAR: zone 4.4-6.9, radius 0.55 the knuckle reach, outer 0.95; inside the
+  cylinder only thin sheets on the blades' radial planes) replaces the 0.85 cylinder; others
+  may see the hand's box corners graze a blade root at some pulls (accepted, coordinator
+  21:3x). 6 parts, 9,708 tris, envelope OK. A one-mesh skinned file imports with no RootPart
+  (the blades fell away in the lab), so the spurs are a second skinned mesh. Ids: body
+  78705204807430, Crown.glb 135800150443063, atlas 88729431213170 / 76435438525324 /
+  99626463555454 (images 124630570825061 / 106107774148591 / 106850133991111). Shots: gate2/
+  spider_v2e_compare.jpg (render_views --keep-materials side, 3/4, crown close under TARGET,
+  ref_side and cand_D side), spider_v2e_crown_lab.jpg, spider_v2e_stand_lab.jpg. NOT done:
+  the back and hand-at-aim lab shots, lint/tests, the origin/halloween merge (the Black Cat
+  removal hunks), the aura's silk beams re-aimed at the new blade tips, READY. v2d (the
+  splayed v2c frame, rejected as a whisk) is in this branch's history only as the uncommitted
+  step before this.
 - 21:00 **Spider v2a/v2b: the C1b pass that doesn't wait on the mesh** (coordinator 20:16, Justin
   rejected v13; the target is C1b). Done and committed (6d01ff89): 1. Materials: black chrome
   painted the way cues-a's Sword is (SmoothPlastic, Reflectance 0.06, no skybox mirror): a

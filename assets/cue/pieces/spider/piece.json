@@ -2,13 +2,20 @@
   "id": "spider",
   "Frame": "cue",
   "frame": "Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)",
-  "Triangles": 9460,
+  "Triangles": 9708,
   "Parts": [
     {
       "Material": "SmoothPlastic",
-      "Color": "#0B0B10",
+      "Color": "#FFFFFF",
       "Transparency": 0.0,
-      "Reflectance": 0.0,
+      "Reflectance": 0.06,
+      "SurfaceAppearance": {
+        "ColorMap": "pieces/spider/atlas_color.png",
+        "NormalMap": "pieces/spider/atlas_normal.png",
+        "EmissiveMask": "pieces/spider/atlas_emissive.png",
+        "EmissiveTint": "#F2F5FA",
+        "EmissiveStrength": 0.0
+      },
       "Name": "Blades",
       "File": "pieces/spider/Crown.glb",
       "Mesh": "BladesSkin",
@@ -25,26 +32,34 @@
         "Blade7",
         "Blade8"
       ],
-      "Triangles": 1776,
+      "Triangles": 3360,
       "Offset": [
         0.0,
         0.0,
-        -2.81
+        -3.395
       ],
       "Size": [
-        2.6257,
-        2.6257,
-        2.62
-      ]
+        1.86,
+        1.86,
+        2.49
+      ],
+      "Smooth": true
     },
     {
       "Material": "SmoothPlastic",
-      "Color": "#C9CED8",
+      "Color": "#FFFFFF",
       "Transparency": 0.0,
-      "Reflectance": 0.28,
-      "Name": "BladeEdges",
+      "Reflectance": 0.06,
+      "SurfaceAppearance": {
+        "ColorMap": "pieces/spider/atlas_color.png",
+        "NormalMap": "pieces/spider/atlas_normal.png",
+        "EmissiveMask": "pieces/spider/atlas_emissive.png",
+        "EmissiveTint": "#F2F5FA",
+        "EmissiveStrength": 0.0
+      },
+      "Name": "Spurs",
       "File": "pieces/spider/Crown.glb",
-      "Mesh": "BladeEdgesSkin",
+      "Mesh": "SpursSkin",
       "Joint": "Crown",
       "Skinned": true,
       "Bones": [
@@ -58,50 +73,18 @@
         "Blade7",
         "Blade8"
       ],
-      "Triangles": 2000,
+      "Triangles": 672,
       "Offset": [
         0.0,
         0.0,
-        -2.8345
+        -2.05
       ],
       "Size": [
-        2.6769,
-        2.6769,
-        2.6689
-      ]
-    },
-    {
-      "Material": "Neon",
-      "Color": "#F2F5FA",
-      "Transparency": 0.12,
-      "Reflectance": 0.0,
-      "Name": "Webs",
-      "File": "pieces/spider/Crown.glb",
-      "Mesh": "WebsSkin",
-      "Joint": "Crown",
-      "Skinned": true,
-      "Bones": [
-        "Crown",
-        "Blade1",
-        "Blade2",
-        "Blade3",
-        "Blade4",
-        "Blade5",
-        "Blade6",
-        "Blade7",
-        "Blade8"
+        0.8619,
+        0.8619,
+        1.0
       ],
-      "Triangles": 1280,
-      "Offset": [
-        0.0,
-        0.0,
-        -2.7949
-      ],
-      "Size": [
-        2.5023,
-        2.5023,
-        2.171
-      ]
+      "Smooth": true
     },
     {
       "Material": "SmoothPlastic",
@@ -121,35 +104,14 @@
       "Offset": [
         0.0,
         0.0,
-        0.02
+        0.015
       ],
       "Size": [
-        0.8,
-        0.6928,
-        6.96
+        0.412,
+        0.412,
+        6.97
       ],
-      "Triangles": 2132,
-      "Smooth": true
-    },
-    {
-      "Material": "SmoothPlastic",
-      "Color": "#C9CED8",
-      "Transparency": 0.0,
-      "Reflectance": 0.28,
-      "Name": "Body_Silver",
-      "File": "pieces/spider/Body_Silver.obj",
-      "Joint": "Body",
-      "Offset": [
-        0.0,
-        0.0,
-        0.0996
-      ],
-      "Size": [
-        0.39,
-        0.396,
-        5.3562
-      ],
-      "Triangles": 1440,
+      "Triangles": 3588,
       "Smooth": true
     },
     {
@@ -162,35 +124,42 @@
       "Joint": "Gem",
       "Offset": [
         0.0,
-        0.0559,
-        -2.97
+        0.0291,
+        -1.45
       ],
       "Size": [
-        0.7876,
-        0.6821,
-        0.32
+        0.3777,
+        0.3328,
+        0.056
       ],
-      "Triangles": 48
+      "Triangles": 60
     },
     {
       "Material": "SmoothPlastic",
-      "Color": "#0B0B10",
+      "Color": "#FFFFFF",
       "Transparency": 0.0,
-      "Reflectance": 0.0,
-      "Name": "Crown_Blade",
-      "File": "pieces/spider/Crown_Blade.obj",
+      "Reflectance": 0.06,
+      "SurfaceAppearance": {
+        "ColorMap": "pieces/spider/atlas_color.png",
+        "NormalMap": "pieces/spider/atlas_normal.png",
+        "EmissiveMask": "pieces/spider/atlas_emissive.png",
+        "EmissiveTint": "#F2F5FA",
+        "EmissiveStrength": 0.0
+      },
+      "Name": "Crown_Body",
+      "File": "pieces/spider/Crown_Body.obj",
       "Joint": "Crown",
       "Offset": [
         0.0,
         0.0,
-        -4.165
+        -4.1589
       ],
       "Size": [
-        0.96,
-        0.96,
-        1.37
+        1.06,
+        1.06,
+        1.4378
       ],
-      "Triangles": 768,
+      "Triangles": 2008,
       "Smooth": true
     },
     {
@@ -204,14 +173,14 @@
       "Offset": [
         0.0,
         0.0,
-        -4.85
+        -4.8694
       ],
       "Size": [
-        0.24,
-        0.4,
-        0.05
+        0.139,
+        0.258,
+        0.0408
       ],
-      "Triangles": 16
+      "Triangles": 20
     }
   ],
   "Joints": {
@@ -233,13 +202,13 @@
       "Parent": "Body",
       "Pivot": [
         0,
-        -6.47,
+        -4.95,
         0
       ],
       "PivotRoblox": [
         0,
         0,
-        -2.97
+        -1.45
       ],
       "Motion": [],
       "Visual": [
@@ -271,13 +240,13 @@
       "Parent": "Crown",
       "Pivot": [
         0,
-        -8.35,
+        -8.38,
         0
       ],
       "PivotRoblox": [
         0,
         0,
-        -4.85
+        -4.88
       ],
       "Motion": [],
       "Visual": [
@@ -294,13 +263,13 @@
       "Parent": "Crown",
       "Pivot": [
         0.0,
-        -7.619999885559082,
-        -0.5
+        -6.550000190734863,
+        -0.18000000715255737
       ],
       "PivotRoblox": [
         -0.0,
-        -0.5,
-        -4.12
+        -0.18,
+        -3.05
       ],
       "Motion": [
         {
@@ -310,7 +279,7 @@
             0.0,
             0.0
           ],
-          "Amp": 0.8,
+          "Amp": 0.6,
           "Period": 3.1,
           "Phase": 0
         }
@@ -319,14 +288,14 @@
     "Blade2": {
       "Parent": "Crown",
       "Pivot": [
-        0.3535533845424652,
-        -7.619999885559082,
-        -0.3535533845424652
+        0.12727922201156616,
+        -5.650000095367432,
+        -0.12727922201156616
       ],
       "PivotRoblox": [
-        -0.3536,
-        -0.3536,
-        -4.12
+        -0.1273,
+        -0.1273,
+        -2.15
       ],
       "Motion": [
         {
@@ -336,7 +305,7 @@
             0.0,
             -0.7071067690849304
           ],
-          "Amp": 1.05,
+          "Amp": 0.8,
           "Period": 3.27,
           "Phase": 45
         }
@@ -345,14 +314,14 @@
     "Blade3": {
       "Parent": "Crown",
       "Pivot": [
-        0.5,
-        -7.619999885559082,
-        -3.0616171314629196e-17
+        0.18000000715255737,
+        -6.550000190734863,
+        -1.1021821838702633e-17
       ],
       "PivotRoblox": [
-        -0.5,
+        -0.18,
         -0.0,
-        -4.12
+        -3.05
       ],
       "Motion": [
         {
@@ -362,7 +331,7 @@
             0.0,
             -1.0
           ],
-          "Amp": 1.3,
+          "Amp": 1.0,
           "Period": 3.44,
           "Phase": 90
         }
@@ -371,14 +340,14 @@
     "Blade4": {
       "Parent": "Crown",
       "Pivot": [
-        0.3535533845424652,
-        -7.619999885559082,
-        0.3535533845424652
+        0.12727922201156616,
+        -5.650000095367432,
+        0.12727922201156616
       ],
       "PivotRoblox": [
-        -0.3536,
-        0.3536,
-        -4.12
+        -0.1273,
+        0.1273,
+        -2.15
       ],
       "Motion": [
         {
@@ -388,7 +357,7 @@
             0.0,
             -0.7071067690849304
           ],
-          "Amp": 0.8,
+          "Amp": 0.6,
           "Period": 3.6100000000000003,
           "Phase": 135
         }
@@ -397,14 +366,14 @@
     "Blade5": {
       "Parent": "Crown",
       "Pivot": [
-        6.123234262925839e-17,
-        -7.619999885559082,
-        0.5
+        2.2043643677405266e-17,
+        -6.550000190734863,
+        0.18000000715255737
       ],
       "PivotRoblox": [
         -0.0,
-        0.5,
-        -4.12
+        0.18,
+        -3.05
       ],
       "Motion": [
         {
@@ -414,7 +383,7 @@
             0.0,
             -1.2246468525851679e-16
           ],
-          "Amp": 1.05,
+          "Amp": 0.8,
           "Period": 3.7800000000000002,
           "Phase": 180
         }
@@ -423,14 +392,14 @@
     "Blade6": {
       "Parent": "Crown",
       "Pivot": [
-        -0.3535533845424652,
-        -7.619999885559082,
-        0.3535533845424652
+        -0.12727922201156616,
+        -5.650000095367432,
+        0.12727922201156616
       ],
       "PivotRoblox": [
-        0.3536,
-        0.3536,
-        -4.12
+        0.1273,
+        0.1273,
+        -2.15
       ],
       "Motion": [
         {
@@ -440,7 +409,7 @@
             -0.0,
             0.7071067690849304
           ],
-          "Amp": 1.3,
+          "Amp": 1.0,
           "Period": 3.95,
           "Phase": 225
         }
@@ -449,14 +418,14 @@
     "Blade7": {
       "Parent": "Crown",
       "Pivot": [
-        -0.5,
-        -7.619999885559082,
-        9.184850732644269e-17
+        -0.18000000715255737,
+        -6.550000190734863,
+        3.306546303456606e-17
       ],
       "PivotRoblox": [
-        0.5,
+        0.18,
         0.0,
-        -4.12
+        -3.05
       ],
       "Motion": [
         {
@@ -466,7 +435,7 @@
             -0.0,
             1.0
           ],
-          "Amp": 0.8,
+          "Amp": 0.6,
           "Period": 4.12,
           "Phase": 270
         }
@@ -475,14 +444,14 @@
     "Blade8": {
       "Parent": "Crown",
       "Pivot": [
-        -0.3535533845424652,
-        -7.619999885559082,
-        -0.3535533845424652
+        -0.12727922201156616,
+        -5.650000095367432,
+        -0.12727922201156616
       ],
       "PivotRoblox": [
-        0.3536,
-        -0.3536,
-        -4.12
+        0.1273,
+        -0.1273,
+        -2.15
       ],
       "Motion": [
         {
@@ -492,7 +461,7 @@
             0.0,
             0.7071067690849304
           ],
-          "Amp": 1.05,
+          "Amp": 0.8,
           "Period": 4.29,
           "Phase": 315
         }

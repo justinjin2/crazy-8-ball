@@ -1541,20 +1541,23 @@ SPIDER = {
     'steel': '#2A2A32', 'white': '#F2F5FA', 'grey': '#3A3A46',
 }
 SPIDER_BLADES = 8
-SPIDER_COLLAR = (6.28, 6.62)          # the joint: a six-flat collar in the butt zone, the gem on its top flat
-SPIDER_BANDS = (0.75, 1.35, 1.95, 2.55, 3.15, 3.75, 4.35, 4.95, 5.55, 6.05)   # the red chevron bands (d)
-# the collar and the neck, (d, r): the shaft flares into a six-flat prism, steps down to a neck the
-# crown roots on; None = the envelope. The eye dome (SPIDER_DOME) is a crown part past the neck, the
-# exposed end of the cue (coordinator 19:08: C1's dome is the first thing seen from behind).
-SPIDER_CAP = ((6.28, None), (6.32, 0.26), (6.38, 0.36), (6.44, 0.40), (6.56, 0.40), (6.62, 0.34), (6.72, 0.30),
-              (6.90, 0.30), (6.96, 0.28))
-# the crown's neck and the butt cap, (d, r), one lathe on the Crown joint (v2, C1b): the neck
-# carries on from the body's (which stops at 6.96) into a socket cup opening to r 0.48 at 7.60-7.64
-# with silver rings on it, and a glossy black ball (r 0.40 about d 7.95, pole at 8.35, Aim room
-# 8.5) sitting in the cup; the red hourglass emblem is on the pole. The blades root at the cup.
-SPIDER_DOME = ((6.98, 0.30), (7.3, 0.30), (7.42, 0.34), (7.52, 0.44), (7.60, 0.48), (7.64, 0.48), (7.65, 0.30),
-               (7.70, 0.31), (7.78, 0.36), (7.88, 0.395), (7.95, 0.40), (8.05, 0.39), (8.15, 0.35), (8.25, 0.28),
-               (8.31, 0.18), (8.35, 0.0))
+SPIDER_BANDS = (0.75, 1.35, 1.95, 2.55, 3.15, 3.75, 4.35, 4.95, 5.55, 6.05)   # the painted chevron plates (d)
+SPIDER_SHAFT_END = 6.94               # the shaft lathe runs on the envelope to the hub
+# the collar (v2e: at the crown's FRONT like ref_side, d 4.74-5.16 in the grip zone, so flush:
+# envelope + 0.04): slim stacked rings with silver bevels, a band carrying three low hex
+# bezels; (d, r or None = the envelope, material of the band starting at this ring) in
+# spider_geo's CH / SV
+SPIDER_COLLAR = ((4.74, None, 0), (4.77, 0.190, 1), (4.80, 0.205, 0), (4.86, 0.205, 1), (4.88, 0.190, 0),
+                 (5.02, 0.190, 1), (5.04, 0.205, 0), (5.10, 0.205, 1), (5.13, 0.190, 0), (5.16, None, 0))
+SPIDER_GEM = (4.95, 0.19)             # the bezel band's centre and radius
+SPIDER_GEM_ANGLES = (math.pi / 2, math.pi / 2 + 2 * math.pi / 3, math.pi / 2 - 2 * math.pi / 3)   # top, two lower sides
+# the crown (Aim fade, past the butt on the Aim room's 1.1): the teardrop hub (d, r), the
+# stacked-ring socket (d, r, band material), the dome (centre d, radius; pole at 8.38, Aim cap 8.5).
+# The hub starts past 6.9 so its first 0.1 slice sits outside the CLEAR zone (its cap centre is on the axis).
+SPIDER_HUB = ((6.94, 0.195), (7.00, 0.270), (7.12, 0.350), (7.26, 0.420), (7.40, 0.465), (7.52, 0.485), (7.60, 0.490))
+SPIDER_SOCKET = ((7.60, 0.490, 1), (7.65, 0.530, 1), (7.74, 0.530, 0), (7.77, 0.490, 1), (7.83, 0.490, 0),
+                 (7.86, 0.520, 1), (7.92, 0.520, 0), (7.95, 0.470, 1), (7.99, 0.440, 0), (8.02, 0.410, 0))
+SPIDER_DOME = (7.98, 0.40)
 
 
 def _spider_atlas(k):
@@ -1568,7 +1571,9 @@ def _spider_atlas(k):
     A = Atlas('spider')
     A.region('SHAFT', 0.0, 0.0, 0.5, 1.0)
     A.region('TIP', 0.5, 0.0, 1.0, 0.25)
-    A.region('CAP', 0.5, 0.25, 1.0, 1.0)
+    A.region('CAP', 0.5, 0.25, 1.0, 0.5)
+    A.region('BLACK', 0.5, 0.5, 0.75, 1.0)    # v2d: the facets' black chrome (a swatch per facet)
+    A.region('SILVER', 0.75, 0.5, 1.0, 1.0)   # v2d: the silver edges, bevels, rings and fuller strips
     black, black_light, silver, grey, steel = (_rgb(SPIDER[x]) for x in ('black', 'black_light', 'silver', 'grey', 'steel'))
     bright = _rgb(SPIDER['silver_bright'])
 
@@ -1621,6 +1626,20 @@ def _spider_atlas(k):
     ccol = _lerp(ccol, black_light, 0.25 * _fbm(U, V, 4.0, octaves=2, seed=64) * _smooth(V, 0.35, 0.5))
     A.paint('CAP', ccol, height=cedge * 0.5, emissive=np.zeros_like(U))
 
+    # v2d swatches (candidate D's facets): BLACK is near-black with a soft sheen and one specular
+    # streak along u (a facet's u is its angle round the cue, so the streak runs down one side
+    # of the chrome); SILVER runs dark steel-silver to bright along u (a facet's u is how much
+    # it faces up, so the tops of the bevels catch the light)
+    U, V = A.grid('BLACK')
+    bcol = _lerp(black, black_light, 0.35 * _fbm(U, V, 3.0, octaves=2, seed=71))
+    streak = np.exp(-((U - 0.32) ** 2) / (2 * 0.07 ** 2))
+    bcol = _lerp(bcol, grey, 0.5 * streak)
+    A.paint('BLACK', bcol, height=np.zeros_like(U), emissive=np.zeros_like(U), bump=0.6)
+    U, V = A.grid('SILVER')
+    scol = _lerp(_lerp(_rgb('#5A6070'), _rgb('#B4BAC6'), U), bright, np.clip((U - 0.82) * 5.0, 0, 1))
+    scol = _lerp(scol, _rgb('#B4BAC6'), 0.12 * _fbm(U, V, 4.0, octaves=2, seed=72))   # muted: it is lit in game
+    A.paint('SILVER', scol, height=np.zeros_like(U), emissive=np.zeros_like(U), bump=0.6)
+
     A.materials(k, opaque='Body', emissive_tint=SPIDER['white'], emissive_strength=0.0,
                 Material='SmoothPlastic', Reflectance=0.06)   # painted chrome (cues-a's Sword): no skybox mirror
     return A
@@ -1632,226 +1651,228 @@ def _sstep(a, b, t):
     return t * t * (3 - 2 * t)
 
 
-def _spider_blade_curve(theta, long=True):
-    """A blade's centreline (Vectors) and its radial direction, v2 frame (coordinator 21:0x: the
-    crown is a third of the cue in C1b): rooted at the socket cup's rim (d 7.62, out 0.5),
-    sweeping FORWARD over the grip zone and flaring out as it goes, the long tier to d 5.0 at
-    out 1.21, the short tier to d 5.8 at out 1.21. Over the grip (CLEAR 4.4-6.9, the measured
-    hand rests at d 5.57-6.81) the fin's inner edge stays outside the hand's clear cylinder
-    (0.85) and its outer edge inside 1.35; between 6.9 and the cup it stays inside the Aim
-    room (1.1). A cubic in the (d, out) plane (control points from a grid search over the
-    width profile below); the strip takes 0.55 of its width inward and 0.45 outward."""
-    from mathutils import Vector
-    rad = Vector((math.sin(theta), 0, -math.cos(theta)))      # out from the axis at this angle
-    if long:
-        P = ((7.62, 0.5), (7.3, 1.2), (5.8, 1.07), (5.0, 1.21))
-    else:
-        P = ((7.62, 0.5), (7.3, 1.0), (5.8, 1.17), (5.8, 1.21))
-    pts = []
-    n = 13
-    for s in range(n):
-        t = s / (n - 1)
-        b = ((1 - t) ** 3, 3 * (1 - t) ** 2 * t, 3 * (1 - t) * t * t, t ** 3)
-        d = sum(w * p[0] for w, p in zip(b, P))
-        out = sum(w * p[1] for w, p in zip(b, P))
-        pts.append(Vector((0, -d, 0)) + rad * out)
-    return pts, rad
+SPIDER_TIERS = {
+    # v2e (coordinator 21:3x, option B: ref_side's silhouette): each blade is a swept-back
+    # sickle, its root sunk in a spine ridge on the body at the FRONT (small d), sweeping BACK
+    # toward the butt and outward to a hooked point (the tips point at the butt, like ref_side's
+    # three tiers): the OUTER edge bulges outward (a crescent), the INNER edge runs nearly
+    # straight from the root to the hook, so the belly sits toward the root. Two chains of
+    # (d, r), outer and inner, root to tip. The rear tier (the axes) frames the dome past the
+    # butt; the middle tier (the diagonals) and the small spurs ahead of it sit over the grip
+    # inside the hand's reach, as the concept has them (CLEAR: thin sheets on their radial
+    # planes, the owner never sees them at aim).
+    'rear': (((6.55, 0.16), (6.62, 0.26), (6.78, 0.46), (6.98, 0.64), (7.25, 0.80), (7.55, 0.90), (7.80, 0.93), (8.00, 0.90), (8.14, 0.83)),
+             ((6.55, 0.16), (6.62, 0.19), (6.78, 0.27), (6.98, 0.37), (7.25, 0.50), (7.55, 0.65), (7.80, 0.79), (8.00, 0.86), (8.14, 0.83))),
+    'mid': (((5.65, 0.16), (5.72, 0.25), (5.88, 0.43), (6.08, 0.59), (6.33, 0.73), (6.60, 0.82), (6.84, 0.86), (7.02, 0.84), (7.16, 0.77)),
+            ((5.65, 0.16), (5.72, 0.18), (5.88, 0.26), (6.08, 0.35), (6.33, 0.46), (6.60, 0.59), (6.84, 0.72), (7.02, 0.80), (7.16, 0.77))),
+    'spur': (((5.05, 0.16), (5.11, 0.22), (5.24, 0.35), (5.40, 0.47), (5.60, 0.56), (5.80, 0.60), (5.95, 0.58), (6.05, 0.53)),
+             ((5.05, 0.16), (5.11, 0.17), (5.24, 0.23), (5.40, 0.31), (5.60, 0.41), (5.80, 0.51), (5.95, 0.56), (6.05, 0.53))),
+}
+
+
+def _catmull(P, per=2):
+    """Resample a chain of (d, r) with a Catmull-Rom pass, `per` samples a segment."""
+    out = []
+    n = len(P)
+    for i in range(n - 1):
+        p0 = P[max(0, i - 1)]
+        p1, p2 = P[i], P[i + 1]
+        p3 = P[min(n - 1, i + 2)]
+        for k in range(per):
+            t = k / per
+            vals = []
+            for c in range(2):
+                a0, a1, a2, a3 = p0[c], p1[c], p2[c], p3[c]
+                vals.append(0.5 * ((2 * a1) + (-a0 + a2) * t + (2 * a0 - 5 * a1 + 4 * a2 - a3) * t * t
+                                   + (-a0 + 3 * a1 - 3 * a2 + a3) * t * t * t))
+            out.append(tuple(vals))
+    out.append(tuple(P[-1]))
+    return out
+
+
+def _spider_blade_chains(tier):
+    """A tier's outer and inner edge chains as (a, r) with a = -d (spider_geo's frame),
+    root to tip, smoothed."""
+    O, I = SPIDER_TIERS[tier]
+    per = 1 if tier == 'spur' else 2   # the spurs are small: the control stations are enough
+    O, I = _catmull(O, per), _catmull(I, per)
+    return [(-d, r) for d, r in O], [(-d, r) for d, r in I]
 
 
 @piece
 def spider(k):
-    """The Spider body, the fourth build (Justin 18:45: redone to C1_spider.jpg / C1b_spider.png,
-    real 3D geometry): a glossy black shaft (Foil, one atlas) with a red crystal spear in the tip
-    limits; ten Neon red angular chevron bands standing 0.012 proud, each turned a little
-    further round so they spiral up the shaft;
-    at the joint a six-flat collar (d 6.28-6.62, the butt zone) with a red Neon hourglass gem on
-    three of its flats (Glow); and the crown (joint Crown, Aim fade, the fifth build after the
-    coordinator's 19:08 review): the glossy black eye dome as the exposed END of the cue (d
-    7.55-8.21, past the butt on the Aim room, on a neck from 6.98) studded with twelve glowing red eyes (Neon
-    hemispheres: one at the pole, seven filling the end face, eight smaller round the rim; Glow
-    kept red), and EIGHT curved black blades rooted at the dome's base sweeping FORWARD along
-    the butt like splayed legs, their tips toward the shaft at d 6.24 just behind the grip
-    hand's rest: four broad bevelled crescents on the diagonals (0.32 wide at the bulge, 0.06
-    thick) and four short ones between, each with a Neon red rim along its OUTER edge only, each
-    a skinned fin on its own bone breathing on a Hinge; Neon red rim rings where the crown meets
-    the dome and the neck (the sixth build, coordinator 19:3x: no silk lines on the crown, the
-    dome plain glossy black, big eyes, broad solid blades, red under-glow). Seven parts: Shaft,
-    Bands, Gem and the crown's Dome, Eyes, Blades, BladeEdges. Everything that must read on the
-    bright floor is Neon geometry; the silk is the skin's live beams."""
+    """The Spider body, v2d (the judged mesh: candidate D's procedural kit in spider_geo.py,
+    fitted to the v2c frame; Justin 20:16: C1b, black chrome with cold silver edges, red only
+    on the hourglass gems). Black chrome is one 512 atlas (SmoothPlastic, Reflectance 0.06, no
+    skybox mirror); every silver facet is a UV swatch in that atlas, so the silver adds no part.
+    Body joint: a dark steel tip spear, D's four-flanged spearhead ferrule with barbs, a silver
+    ring and rear spikes (0.20 across), the shaft on the envelope painted with overlapping
+    chevron armour plates (silver edges, a specular streak), and a stacked-ring collar in the
+    grip zone at the crown's front (d 4.74-5.16, flush) with three low hex bezels, and a spine
+    ridge under every blade root; Gem joint: a faceted red hourglass in each bezel (Glow). Crown joint (Aim fade, past the butt): a teardrop hub (d
+    6.9-7.6, r 0.2 to 0.49) with eight silver-walled petal root plates converging forward, a
+    stacked-ring socket (silver bevels), eight black beads, a glossy black dome (r 0.40, pole
+    at d 8.38) with the red hourglass emblem on its end face (Emblem joint, Glow); EIGHT
+    faceted crescent blades (D's cross-section: razor edge, two silver bevels, black face, a
+    silver fuller strip on the centre ridge) rooted in the hub's rim with a rear horn beside
+    the socket, in three swept-back tiers like ref_side (v2e, option B): four rear blades on
+    the axes rooted at d 6.55 sweeping back to hooked points at 8.05 framing the dome, four
+    middle blades on the diagonals rooted at 5.65 over the grip hooking back to 7.15, and a
+    small spur ahead of each (5.05 to 5.95); the tips point at the butt; max radius 0.9; the
+    sheets lie on their radial planes inside the hand's reach (the named exception
+    SpiderCrownInGrip, CLEAR). No mesh webs: the silk is the skin's effects. The blades are
+    skinned to Blade1..8 bones breathing on small hinges. Six parts: Body_Body, Gem_Red,
+    Crown_Body, Emblem_Red, Blades, Spurs."""
     import bmesh
     import numpy as np
     from mathutils import Vector, Matrix
+    import spider_geo as SG
+    from spider_geo import CH, SV
     R = _radius()
     A = _spider_atlas(k)
     k.material('Red', 'Neon', SPIDER['red'])
-    k.material('Blade', 'SmoothPlastic', '#0B0B10')   # no Reflectance: 0.15 mirrored the skybox as a purple checker (v11 lab)
-    k.material('Silver', 'SmoothPlastic', SPIDER['silver'], Reflectance=0.28)   # the chrome's sharp silver edges
-    k.material('Web', 'Neon', SPIDER['white'], Transparency=0.12)               # the white webs between the blades (thin threads)
 
-    # --- the shaft: crystal spear, the shaft on the envelope, the collar and the eye cap ----------
+    def swatch(mat, c, n):
+        """A facet's atlas UV: black chrome keyed to its angle round the cue (the painted
+        specular streak runs along the cue), silver keyed to how much it faces up (brighter on
+        top, like a key light)."""
+        if mat == SV:
+            return A.uv('SILVER', 0.5 + 0.42 * max(-1.0, min(1.0, n.z)), 0.5)
+        phi = (math.atan2(c.z, c.x) / (2 * math.pi)) % 1.0
+        return A.uv('BLACK', 0.06 + 0.88 * phi, 0.5)
+
+    def geo(name, mb, mats=('Body',), textured=True, smooth=True, split=30.0, extra=None):
+        bm = bmesh.new()
+        uvl = bm.loops.layers.uv.new('UVMap') if textured else None
+        SG.to_bmesh(mb, bm, uvl, swatch)
+        if extra:
+            extra(bm, uvl)
+        ob = k.mesh_object(name, bm, list(mats), smooth=smooth)
+        if split:
+            apply_modifier(k.bpy, ob, 'EDGE_SPLIT', split_angle=math.radians(split), use_edge_angle=True,
+                           use_edge_sharp=False)
+        return ob
+
+    # --- the shaft: the tip spear, a thin core under the ferrule, the envelope from the spikes
+    # back to the collar; D's spearhead ferrule round the core ---------------------------------
     k.joint('Body', pivot=(0, -3.5, 0))
     bm = bmesh.new()
     uvl = bm.loops.layers.uv.new('UVMap')
-    _lathe_uv(bm, uvl, [0.0, 0.05, 0.14, 0.24, 0.3], [0.004, 0.028, 0.048, 0.057, R(0.3)], 6,
+    _lathe_uv(bm, uvl, [0.0, 0.05, 0.14, 0.22, 0.26], [0.004, 0.028, 0.044, 0.048, 0.048], 6,
               lambda u, v: A.uv('TIP', u, v), close=True, cap_uv=A.uv('TIP', 0.5, 0.02))
-    c0 = SPIDER_COLLAR[0]
-    n = int(round((c0 - 0.3) / 0.15)) + 1   # v2: 0.15 rings, the plates are painted
-    ds = [0.3 + (c0 - 0.3) * i / (n - 1) for i in range(n)]
-    _lathe_uv(bm, uvl, ds, [R(d) for d in ds], 20, lambda u, v: A.uv('SHAFT', u, (0.3 + (c0 - 0.3) * v) / 7.0),
+    c0 = SPIDER_SHAFT_END
+    ds = [0.26, 0.45, 0.70, 0.82, 0.95]
+    rs = [0.048, 0.052, 0.056, 0.064, R(0.95)]
+    n = int(round((c0 - 0.95) / 0.2)) + 1
+    ds += [0.95 + (c0 - 0.95) * i / (n - 1) for i in range(1, n)]
+    rs += [R(d) for d in ds[5:]]
+    _lathe_uv(bm, uvl, ds, rs, 20, lambda u, v: A.uv('SHAFT', u, (0.26 + (c0 - 0.26) * v) / 7.0),
               close=True, cap_uv=A.uv('SHAFT', 0.5, 0.5))
-    cap_ds = [p[0] for p in SPIDER_CAP]
-    cap_rs = [p[1] if p[1] is not None else R(p[0]) for p in SPIDER_CAP]
-
-    def hexshape(a, i):
-        if 0 < i and cap_ds[i] < SPIDER_COLLAR[1] - 1e-6:
-            # a six-flat prism inscribed in the ring, a flat centred on +Z (the gem sits on it)
-            delta = ((a - math.pi + math.pi / 6) % (math.pi / 3)) - math.pi / 6
-            return math.cos(math.pi / 6) / math.cos(delta)
-        return 1.0
-    _lathe_uv(bm, uvl, cap_ds, cap_rs, 24, lambda u, v: A.uv('CAP', u, v), shape=hexshape, close=True,
-              cap_uv=A.uv('CAP', 0.5, 0.98))
     k.add('Body', k.mesh_object('Shaft', bm, ['Body']))
+    mb = SG.MB()
+    SG.ferrule(mb, y0=-0.25, rscale=0.98)
+    k.add('Body', geo('Ferrule', mb))
 
-    # --- the bands: Neon red zigzag rings, six teeth each, turned 0.24 of a tooth further each band
-    bm = bmesh.new()
-    N = 18
-    for bi, d in enumerate(SPIDER_BANDS):
-        phase = 0.24 * bi
-        rr = R(d) + 0.012
-        L, Rt = [], []
-        for j in range(N):
-            a = 2 * math.pi * j / N
-            tri = abs(((a * 6 / (2 * math.pi) + phase) % 1.0) - 0.5) * 2.0
-            off = 0.064 * (tri - 0.5)
-            for lst, half in ((L, -0.017), (Rt, 0.017)):
-                dd = d + off + half
-                lst.append(bm.verts.new(Vector((rr * math.sin(a), -dd, -rr * math.cos(a)))))
-        for j in range(N):
-            bm.faces.new((L[j], Rt[j], Rt[(j + 1) % N], L[(j + 1) % N]))
-    k.add('Body', _flat(k, bm, 'Bands', 'Silver', 0.012))   # v2: the plates' silver chevron edges
-
-    # --- the gem: a red hourglass (two triangles point to point, 0.05 thick, 0.32 tall) on three of
-    # the collar's flats (the top and the two lower sides, so one faces every view), pulsing
-    k.joint('Gem', pivot=(0, -6.47, 0), parent='Body',
-            visual=[{'Kind': 'Glow', 'Min': 0.0, 'Max': 0.6, 'Period': 1.7, 'Color': '#FF9AA0'}])
-    bm = bmesh.new()
-    for phi in (math.pi, math.pi / 3, 5 * math.pi / 3):      # the top flat and the two lower side flats
-        nrm = Vector((math.sin(phi), 0, -math.cos(phi)))      # out through the flat's centre
-        tg = Vector((math.cos(phi), 0, math.sin(phi)))        # round the collar
-        c = nrm * 0.372 + Vector((0, -6.47, 0))
-        for sgn in (1, -1):
-            a = bm.verts.new(c + Vector((0, sgn * 0.006, 0)))
-            b = bm.verts.new(c + Vector((0, sgn * 0.16, 0)) - tg * 0.1)
-            d = bm.verts.new(c + Vector((0, sgn * 0.16, 0)) + tg * 0.1)
-            bm.faces.new((a, b, d) if sgn > 0 else (a, d, b))
-    ob = k.mesh_object('Gem', bm, ['Red'], smooth=False)
-    apply_modifier(k.bpy, ob, 'SOLIDIFY', thickness=0.05, offset=0.0)
-    k.add('Gem', ob)
-
-    # --- the crown: the eye dome at the end, the eyes, four broad and four short skinned
-    # crescent blades with a red rim on the outer edge, red rim rings (coordinator 19:3x) ----------
-    k.joint('Crown', pivot=(0, -7.62, 0), parent='Body', aim='fade')
-    bm = bmesh.new()
-    _lathe(bm, [q[0] for q in SPIDER_DOME], [q[1] for q in SPIDER_DOME], 24, close=True)
-    k.add('Crown', k.mesh_object('Dome', bm, ['Blade']))
-    # the butt emblem (C1b): a red Neon hourglass on the ball's pole, two triangles point to point,
-    # pulsing; the only red on the crown
-    k.joint('Emblem', pivot=(0, -8.35, 0), parent='Crown',
-            visual=[{'Kind': 'Glow', 'Min': 0.0, 'Max': 0.6, 'Period': 1.7, 'Color': '#FF9AA0'}])
-    bm = bmesh.new()
-    c = Vector((0, -8.35, 0))
-    for sgn in (1, -1):
-        a = bm.verts.new(c + Vector((0, 0, sgn * 0.006)))
-        b = bm.verts.new(c + Vector((-0.12, 0, sgn * 0.2)))
-        e = bm.verts.new(c + Vector((0.12, 0, sgn * 0.2)))
-        bm.faces.new((a, b, e) if sgn > 0 else (a, e, b))
-    ob = k.mesh_object('Emblem', bm, ['Red'], smooth=False)
-    apply_modifier(k.bpy, ob, 'SOLIDIFY', thickness=0.05, offset=0.0)
-    k.add('Emblem', ob)
-    thetas = [i * math.pi / 4 for i in range(SPIDER_BLADES)]       # the broad ones on the diagonals
-    curves = []
-    bm_b = bmesh.new()
-    uvl_b = bm_b.loops.layers.uv.new('UVMap')
-    bm_e = bmesh.new()
-    uvl_e = bm_e.loops.layers.uv.new('UVMap')
-    flat_uv = lambda u, v: (u, v)  # noqa: E731
-    for i, theta in enumerate(thetas):
-        big = i % 2 == 1
-        pts, rad = _spider_blade_curve(theta, long=big)
-        curves.append((pts, rad))
-        k.joint('Blade%d' % (i + 1), pivot=tuple(pts[0]), parent='Crown', motion=[
-            {'Kind': 'Hinge', 'Axis': tuple(Vector((0, 1, 0)).cross(rad)), 'Amp': 0.8 + 0.5 * (i % 3) / 2,
-             'Period': 3.1 + 0.17 * i, 'Phase': 45 * i}])   # small: the tips are 2.6 studs out over the hand
-        # a crescent: the outer rim follows the centreline's convex sweep, the inner edge takes
-        # most of the width so it bows back toward the shaft; broad at the bulge, a point at the tip
-        wmax = 0.30 if big else 0.26
-        inner, outer = [], []
-        for s, p in enumerate(pts):
-            t = s / (len(pts) - 1)
-            # narrow at the root (over the cup and the Aim room's 1.1), broad over the grip, a point
-            w = 0.05 + wmax * _sstep(0.3, 0.6, t) * (1 - _sstep(0.8, 1.0, t)) + 0.012
-            inner.append(p - rad * (w * 0.55))   # the inner edge stays outside the hand's cylinder (CLEAR)
-            outer.append(p + rad * (w * 0.45))
-        _strip_uv(bm_b, uvl_b, inner, outer, flat_uv)
-        eo = [o + rad * 0.004 for o in outer]
-        _strip_uv(bm_e, uvl_e, [o - rad * 0.012 for o in eo], [o + rad * 0.02 for o in eo], flat_uv)
-    blades = k.mesh_object('Blades', bm_b, ['Blade'])
-    apply_modifier(k.bpy, blades, 'SOLIDIFY', thickness=0.06, offset=0.0)
-    try:
-        apply_modifier(k.bpy, blades, 'BEVEL', width=0.012, segments=1, limit_method='ANGLE')
-    except Exception as e:  # noqa: BLE001
-        print('CUE spider: no bevel on the blades (%s)' % e)
-    k.add('Crown', blades)
-    # silver rings on the socket cup and the neck (C1b's ringed socket), with the blades' silver edge
-    _torus(bm_e, (0, -7.62, 0), (0, 1, 0), 0.49, 0.022, segs=20, minor=5)
-    _torus(bm_e, (0, -7.45, 0), (0, 1, 0), 0.40, 0.02, segs=20, minor=5)
-    _torus(bm_e, (0, -7.0, 0), (0, 1, 0), 0.33, 0.02, segs=20, minor=5)
-    edges = k.mesh_object('BladeEdges', bm_e, ['Silver'], smooth=False)
-    apply_modifier(k.bpy, edges, 'SOLIDIFY', thickness=0.06, offset=0.0)
-    k.add('Crown', edges)
-
-    # --- the webs (C1b): white Neon strands stretched between adjacent blades, four rungs a gap
-    # sagging toward the axis, two radial threads a gap from the socket to the rungs; crossed
-    # quads so they read from every side, skinned with the blades so they follow the breathing
-    def strand(bm, a, b, sag, width, segs=5):
-        pts = []
-        for s in range(segs + 1):
-            t = s / segs
-            p = a.lerp(b, t)
-            axis_pt = Vector((0, p.y, 0))
-            pull = (axis_pt - p).normalized() * (sag * (a - b).length * math.sin(math.pi * t))
-            pts.append(p + pull)
-        for i in range(segs):
-            p, q = pts[i], pts[i + 1]
-            dirv = (q - p).normalized()
-            n1 = dirv.cross(Vector((0, 1, 0)))
-            if n1.length < 1e-4:
-                n1 = dirv.cross(Vector((1, 0, 0)))
-            n1.normalize()
-            n2 = dirv.cross(n1).normalized()
-            w0 = width * (0.6 + 0.4 * math.sin(math.pi * i / segs))
-            w1 = width * (0.6 + 0.4 * math.sin(math.pi * (i + 1) / segs))
-            for nrm in (n1, n2):
-                bm.faces.new((bm.verts.new(p - nrm * w0), bm.verts.new(q - nrm * w1),
-                              bm.verts.new(q + nrm * w1), bm.verts.new(p + nrm * w0)))
-        return pts
-    bm_w = bmesh.new()
-    nweb = 0
+    # --- the collar at the crown's front (d 4.74-5.16, the grip zone: flush, env + 0.04):
+    # slim stacked rings with silver bevels, three low hex bezels; then the spine: a ridge on
+    # the body under every blade root (D's petal, flush) that the blade sinks into ------------
+    mb = SG.MB()
+    SG.lathe(mb, [(-d, r if r is not None else R(d)) for d, r, _m in SPIDER_COLLAR], 24,
+             mats=[m for _d, _r, m in SPIDER_COLLAR[:-1]])
+    gem_d, gem_r = SPIDER_GEM
+    for phi0 in SPIDER_GEM_ANGLES:
+        SG.bezel(mb, SG.cyl_map(gem_r, -gem_d, phi0), SG.HEX_SMALL, 0.84, 0.005)
     for i in range(SPIDER_BLADES):
-        pa, ra = curves[i]
-        pb, rb = curves[(i + 1) % SPIDER_BLADES]
-        # eight rungs a gap, two by the cup and six over the grip (from t 0.45, d 6.4, where the
-        # fins are out far enough that a rung's middle clears the hand's cylinder); a small sag;
-        # no radial threads: a thread from the cup rim cuts through the cylinder near d 6.7
-        for t in (0.14, 0.26, 0.45, 0.56, 0.67, 0.78, 0.88, 0.95):
-            s = int(round(t * (len(pa) - 1)))
-            a = pa[s] + ra * 0.05
-            b = pb[s] + rb * 0.05
-            strand(bm_w, a, b, 0.06, 0.008)
-            nweb += 1
-    webs = k.mesh_object('Webs', bm_w, ['Web'], smooth=False)
-    k.add('Crown', webs)
-    print('CUE spider webs: %d strands' % nweb)
+        phi = i * math.pi / 4 - math.pi / 2
+        for tier in (('mid', 'spur') if i % 2 == 1 else ('rear',)):
+            d0 = SPIDER_TIERS[tier][0][0][0]   # the outer chain's root d
+            SG.petal(mb, phi, -(d0 + 0.42), -(d0 - 0.22), 0.07, lambda a: R(-a), n=6, sweep=0.0,
+                     h_wall=0.014, h_top=0.020, h_crest=0.026)
+    k.add('Body', geo('Collar', mb))
+
+    # --- the gems: a faceted red hourglass in each bezel (the top and the two lower sides, so
+    # one faces every view), pulsing ------------------------------------------------------------
+    k.joint('Gem', pivot=(0, -gem_d, 0), parent='Body',
+            visual=[{'Kind': 'Glow', 'Min': 0.0, 'Max': 0.6, 'Period': 1.7, 'Color': '#FF9AA0'}])
+    mb = SG.MB()
+    for phi0 in SPIDER_GEM_ANGLES:
+        SG.hourglass(mb, SG.cyl_map(gem_r, -gem_d, phi0), 0.105, 0.056, 0.005, 0.009, 0.006)
+    k.add('Gem', geo('Gem', mb, mats=('Red',), textured=False, smooth=False, split=None))
+
+    # --- the crown: the teardrop hub with its petal root plates, the stacked-ring socket, the
+    # beads and the dome; then the blades and the webs ------------------------------------------
+    k.joint('Crown', pivot=(0, -7.62, 0), parent='Body', aim='fade')
+    thetas = [i * math.pi / 4 for i in range(SPIDER_BLADES)]        # the lane's angle: rad = (sin, 0, -cos)
+    phis = [t - math.pi / 2 for t in thetas]                         # spider_geo's polar angle
+
+    def hub_r(a):
+        d = -a
+        pts = SPIDER_HUB
+        if d <= pts[0][0]:
+            return pts[0][1]
+        for (d0, r0), (d1, r1) in zip(pts, pts[1:]):
+            if d0 <= d <= d1:
+                return r0 + (d - d0) / (d1 - d0) * (r1 - r0)
+        return pts[-1][1]
+    mb = SG.MB()
+    prof = [(-d, r) for d, r in SPIDER_HUB] + [(-d, r) for d, r, _m in SPIDER_SOCKET]
+    mats = [CH] * (len(SPIDER_HUB) - 1) + [m for _d, _r, m in SPIDER_SOCKET]
+    SG.lathe(mb, prof, 20, mats=mats[:len(prof) - 1])
+    for phi in phis:
+        SG.petal(mb, phi, -7.56, -6.96, 0.085, hub_r, n=7, sweep=math.radians(14))
+    dome_d, dome_r = SPIDER_DOME
+    dprof = []
+    for deg in (-12, 0, 14, 28, 42, 56, 70, 84):
+        t = math.radians(deg)
+        dprof.append((-(dome_d + dome_r * math.sin(t)), dome_r * math.cos(t)))
+    SG.lathe(mb, dprof, 24)
+
+    def beads(bm, uvl):
+        for i in range(SPIDER_BLADES):
+            a = phis[i] + math.pi / 8
+            c = Vector((0.455 * math.cos(a), -7.99, 0.455 * math.sin(a)))
+            ret = bmesh.ops.create_uvsphere(bm, u_segments=6, v_segments=4, radius=0.035,
+                                            matrix=Matrix.Translation(c))
+            faces = {f for v in ret['verts'] for f in v.link_faces}
+            for f in faces:
+                for lp in f.loops:
+                    lp[uvl].uv = swatch(CH, f.calc_center_median(), f.normal)
+    k.add('Crown', geo('Hub', mb, extra=beads))
+    # the butt emblem: a faceted red hourglass on the dome's end face, pulsing (the only red
+    # on the crown)
+    k.joint('Emblem', pivot=(0, -(dome_d + dome_r), 0), parent='Crown',
+            visual=[{'Kind': 'Glow', 'Min': 0.0, 'Max': 0.6, 'Period': 1.7, 'Color': '#FF9AA0'}])
+    mb = SG.MB()
+    SG.hourglass(mb, SG.dome_map(-dome_d, dome_r), 0.26, 0.14, 0.008, 0.018, 0.011)
+    k.add('Emblem', geo('Emblem', mb, mats=('Red',), textured=False, smooth=False, split=None))
+
+    # the blades: D's faceted crescent (razor edge, silver bevels, black face, silver fuller)
+    # in three swept-back tiers: four rear blades on the axes framing the dome, four middle
+    # blades on the diagonals over the grip, a small spur ahead of each of those; every blade's
+    # root sinks into a spine ridge on the body; the sheets lie in their radial planes (no
+    # curl: CLEAR's sheet rule); each angle's blades ride one hinge bone (Blade1..8)
+    # Two skinned meshes (the eight blades, the four spurs): Roblox's importer only makes the
+    # RootPart the runtime welds when a skinned file holds more than one mesh (a one-mesh file
+    # made the mesh itself the root and the blades fell away, lab 21:45)
+    mb_b, mb_s = SG.MB(), SG.MB()
+    tipd, wide = 99.0, 0.0
+    for i, (theta, phi) in enumerate(zip(thetas, phis)):
+        big = i % 2 == 1
+        rad = Vector((math.sin(theta), 0, -math.cos(theta)))
+        for tier in (('mid', 'spur') if big else ('rear',)):
+            O, I = _spider_blade_chains(tier)
+            SG.crescent(mb_s if tier == 'spur' else mb_b, O, I, phi, scale=1.1 if tier != 'spur' else 0.9, thick=1.6, curl=0.0)
+            tipd = min(tipd, min(-a for a, _r in O))
+            wide = max(wide, max(r for _a, r in O))
+        root_d = SPIDER_TIERS['mid' if big else 'rear'][0][0][0]
+        root = Vector((0, -root_d, 0)) + rad * 0.18
+        k.joint('Blade%d' % (i + 1), pivot=tuple(root), parent='Crown', motion=[
+            {'Kind': 'Hinge', 'Axis': tuple(Vector((0, 1, 0)).cross(rad)), 'Amp': 0.6 + 0.4 * (i % 3) / 2,
+             'Period': 3.1 + 0.17 * i, 'Phase': 45 * i}])   # small: the blades sit round the hand
+    blades = geo('Blades', mb_b, split=20.0)
+    k.add('Crown', blades)
+    spurs = geo('Spurs', mb_s, split=20.0)
+    k.add('Crown', spurs)
 
     # bone weights: tents round each blade's angle (wrapping), each bone taking its absolute share
     # of what the bones before it left (skin_weights hands each bone a share of its parent's remainder)
@@ -1871,11 +1892,9 @@ def spider(k):
             left = 1 - H[:, :i].sum(1)
             return np.where(left > 1e-6, H[:, i] / np.maximum(left, 1e-6), 0.0)
         return fn
-    k.skins['Crown'] = {'root': 'Crown', 'meshes': [blades, edges, webs],
+    k.skins['Crown'] = {'root': 'Crown', 'meshes': [blades, spurs],
                         'bones': {'Blade%d' % (i + 1): bone_fn(i) for i in range(SPIDER_BLADES)}}
-    tipd = min(-pts[-1].y for pts, _ in curves)
-    wide = max(math.hypot(p.x, p.z) for pts, _ in curves for p in pts)
-    print('CUE spider crown: %d blades forward to d %.2f, out %.2f, dome to %.2f' % (SPIDER_BLADES, tipd, wide, SPIDER_DOME[-1][0]))
+    print('CUE spider crown: 12 blades on %d bones, forward to d %.2f, out %.2f, dome to %.2f' % (SPIDER_BLADES, tipd, wide, dome_d + dome_r))
 
 
 # =============================================================================================
@@ -1962,9 +1981,16 @@ def check_envelope(pid, kit):
                     continue
                 clear = CLEAR.get(pid)
                 if aim and clear and clear['Zone'][0] <= dm <= clear['Zone'][1]:
-                    # the named exception: the crown over the grip, outside the hand's cylinder
-                    if rad.min() < clear['Radius'] - 1e-4:
-                        fail("inside the grip hand's clear cylinder (d %.2f)" % dm, clear['Radius'] - rad.min())
+                    # the named exception (SpiderCrownInGrip): the crown over the grip; inside the
+                    # hand's cylinder only thin sheets on the blades' radial planes
+                    inside = rad < clear['Radius'] - 1e-4
+                    if inside.any():
+                        ang = np.arctan2(sx[inside], -sz[inside])
+                        step = 2 * math.pi / clear['Angles']
+                        off = np.abs(rad[inside] * np.sin(ang - np.round(ang / step) * step))
+                        if off.max() > clear['SheetHalfWidth'] + 1e-4:
+                            fail("inside the grip hand's clear cylinder off a blade plane (d %.2f)" % dm,
+                                 off.max() - clear['SheetHalfWidth'])
                     if rad.max() > clear['Outer'] + 1e-4:
                         fail('too wide over the grip (d %.2f)' % dm, rad.max() - clear['Outer'])
                     continue
@@ -2059,14 +2085,16 @@ def spider_pocket(k):
     k.add('Bead', k.mesh_object('BeadHourglass', bm, ['Crimson'], smooth=False))
 
 
-# A named exception (coordinator 21:0x, the way cues-a's Sword guard has one): this body's
-# Aim-joint crown may pass FORWARD over the grip zone, as long as inside Zone every vertex stays
-# OUTSIDE a clear cylinder of Radius round the axis and inside Outer. The grip hand wraps the
-# shaft inside the cylinder: measured 2026-10-28 21:15 in the fixture solo game, the grip hand's
-# box corners reach 0.77 from the axis (d 5.57-6.81 at aim, sliding toward 4.4 in the stroke),
-# so Radius 0.85 leaves 0.08. Outer 1.35 (above the Aim room's 1.1) lets the fins keep a radial
-# width there; both numbers are the coordinator's to confirm.
-CLEAR = {'spider': {'Zone': (4.4, 6.9), 'Radius': 0.85, 'Outer': 1.35}}
+# A named exception, SpiderCrownInGrip (coordinator 21:3x, option B, the way cues-a's Sword
+# guard has one; the designer's newer ask, match the concept, wins over the hand rule): this
+# body's Aim-joint crown sits over the grip zone like ref_side's. Inside Zone every vertex of
+# an Aim part stays inside Outer, and any vertex inside the hand's clear cylinder (Radius, the
+# knuckle reach; the hand PART's box corners reach 0.77, measured 21:15) must be a thin sheet
+# on one of the blades' radial planes (within SheetHalfWidth of a plane at one of Angles
+# round the axis), so the roots read attached to the body and nothing wraps round the hand.
+# The owner never sees them at aim (Aim fade); others see the hand's box corners graze a
+# blade root at some pulls: accepted (coordinator 21:3x).
+CLEAR = {'spider': {'Zone': (4.4, 6.9), 'Radius': 0.55, 'Outer': 0.95, 'Angles': 8, 'SheetHalfWidth': 0.05}}
 
 # The part(s) that are the shaft itself in the hand zones (checked for the centreline and the
 # exact radius); any other part there is decor and only has to stay flush.
@@ -2121,7 +2149,7 @@ def patch_outline(pid):
 # The rigid parts the GLB packer smooth-shades (tools/cue_pieces_glb.py rebuilds every rigid
 # part from its OBJ flat, so a lathe's dome showed its 24 facets like a disco ball, coordinator
 # 19:5x; the key is opt-in, every other piece packs as before). Faceted by design: the gem.
-SMOOTH = {'spider': ['Body_Body', 'Body_Silver', 'Crown_Blade']}
+SMOOTH = {'spider': ['Body_Body', 'Crown_Body', 'Blades', 'Spurs']}   # v2d: creases are edge-split in the builder
 
 
 def patch_smooth(pid):
