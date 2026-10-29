@@ -279,6 +279,8 @@ return {
 	-- The Haunted Rooftop (Halloween 2026; hw-map lane: BossService, CandyDrop, MapClient).
 	HalloweenMap = {
 		KingName = "Pumpkin King", -- the bot's name in the match and over his throne
+		KingDropBeat = "BEAT ME!", -- the drop sign over him (KingDropSign)
+		KingDropChance = "%s CHANCE", -- the sign's chance line ("5%")
 		Challenge = "Challenge the Pumpkin King", -- the throne's prompt
 		ChallengeObject = "Pumpkin King", -- the prompt's small line
 		ReadyIn = "Ready in %s", -- the prompt while he rests (a m:ss clock)

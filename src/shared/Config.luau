@@ -9431,6 +9431,28 @@ Config.HalloweenMap = {
 		-- piano and its bench, their collision boxes, the bench's seat).
 		Hide = { "^Piano_", "^PianoBench_", "^piano_%d+$", "^piano_bench_%d+$", "^Seat_11$" },
 	},
+	-- The drop sign over the Pumpkin King on his stage (designer, 2026-10-29: "a popup near him
+	-- showing the drop rate"): the drop cue's card art, BEAT ME!, its chance and its name. Built
+	-- on the client (KingDropSign) on his throne figure, so it goes when he leaves; shown only
+	-- while Config.Halloween.KingDrop is on (hw-core's) and hidden for a player who owns the cue.
+	KingSign = {
+		Enabled = true, -- off: no sign (the drop itself is hw-core's switch)
+		SizeStuds = { 7, 2.6 }, -- grows as you walk up...
+		MinPx = { 110, 40 }, -- ...plus this many px, so it stays readable far away on a phone
+		AboveHeadStuds = 7, -- over his head, above his name (KingName sits at 3.4)
+		MaxDistance = 140, -- studs: not drawn past this
+		Card = { 48, 20, 78 }, -- the panel (the event's purple), shaded darker downward
+		Shade = { 150, 140, 165 }, -- the panel's gradient at its bottom (white at the top)
+		Edge = { 255, 140, 30 }, -- the inner edge line (the event's orange)
+		ArtTile = { 112, 62, 160 }, -- the tile under the cue's card art
+		Beat = { 255, 255, 255 }, -- BEAT ME!
+		Chance = { 255, 205, 60 }, -- 5% CHANCE (gold)
+		CueName = { 255, 150, 50 }, -- the cue's name (orange)
+		-- outlines in px (a BillboardGui's strokes stay this thick at any distance)
+		Strokes = { Card = 5, Edge = 2.5, ArtTile = 3, Beat = 3, Chance = 3.5, CueName = 2 },
+		PulseScale = 1.05, -- the art tile breathes to this size and back (one looped tween)
+		PulseSeconds = 1.1, -- each way; none with Reduce Motion
+	},
 	Boss = {
 		Enabled = true, -- the Pumpkin King's challenge
 		-- Where and when he plays (designer, 2026-10-28, gate 2 option 2): "Timed": he visits the

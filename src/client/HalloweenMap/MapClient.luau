@@ -24,6 +24,7 @@ local Strings = require(Shared:WaitForChild("Strings"))
 local Clock = require(Shared:WaitForChild("Halloween"):WaitForChild("Clock"))
 local Rules = require(Shared:WaitForChild("HalloweenMap"):WaitForChild("Rules"))
 local MapFx = require(script.Parent:WaitForChild("MapFx"))
+local KingDropSign = require(script.Parent:WaitForChild("KingDropSign"))
 
 local HM = Config.HalloweenMap
 local K = HM.Boss
@@ -199,6 +200,7 @@ function MapClient.start(dayCycle: any, hub: any?)
 	follow()
 	MapFx.start()
 	if K.Enabled then
+		KingDropSign.start()
 		local seatedAt: number? = nil
 		if hub then
 			hub:onSeatChanged(function(id: number?)
