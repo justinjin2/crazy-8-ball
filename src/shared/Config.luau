@@ -3842,13 +3842,14 @@ Config.Halloween = {
 					Alt = { Kind = "Matches", Need = 5 },
 				},
 				{ Kind = "Wins", Need = 3, Icon = "Win" },
-				{ Kind = "NiceShots", Need = 5, Icon = "Nice" },
+				-- Before the nice shots since ground candy comes about 3x as often (2026-10-29).
 				{
 					Kind = "Pickups",
 					Need = 30,
 					Icon = "Candy",
 					Alt = { Kind = "Balls", Need = 60 },
 				},
+				{ Kind = "NiceShots", Need = 5, Icon = "Nice" },
 			},
 			{ -- 4, Sat Oct 31 (opens Halloween night)
 				{ Kind = "Active", Need = 30 * 60, Icon = "Clock" },
