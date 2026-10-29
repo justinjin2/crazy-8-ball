@@ -413,6 +413,11 @@
     "imageId": "100823591958466",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/black_cat_aura/black_cat_aura_parts.glb": {
+    "assetId": "103166820594434",
+    "assetType": "Model",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/candy_corn/candy_corn_parts.glb": {
     "assetId": "135070490205166",
     "assetType": "Model",
@@ -420,11 +425,6 @@
   },
   "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/candy_corn_aura/candy_corn_aura_parts.glb": {
     "assetId": "78851369686323",
-    "assetType": "Model",
-    "status": "ok"
-  },
-  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/jack_o_lantern/jack_o_lantern_parts.glb": {
-    "assetId": "120351810341434",
     "assetType": "Model",
     "status": "ok"
   },
@@ -448,6 +448,12 @@
     "assetId": "107861865998214",
     "assetType": "Decal",
     "imageId": "110159550393453",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/vfx/black_cat/claw_swipe.png": {
+    "assetId": "137606027112313",
+    "assetType": "Decal",
+    "imageId": "139208403900742",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/vfx/candy_corn/bands_512.png": {
@@ -484,6 +490,39 @@
     "assetId": "87025522416082",
     "assetType": "Decal",
     "imageId": "100529744606848",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/pieces/black_cat/Tail.glb": {
+    "assetId": "133878609951821",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/pieces/black_cat/atlas_color.png": {
+    "assetId": "95747904436181",
+    "assetType": "Decal",
+    "imageId": "70872651253415",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/pieces/black_cat/atlas_emissive.png": {
+    "assetId": "71056628970591",
+    "assetType": "Decal",
+    "imageId": "125549519255659",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/pieces/black_cat/atlas_normal.png": {
+    "assetId": "80592588137888",
+    "assetType": "Decal",
+    "imageId": "77812296800419",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/pieces/black_cat/black_cat_parts.glb": {
+    "assetId": "97976303474135",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/pieces/black_cat_aura/black_cat_aura_parts.glb": {
+    "assetId": "108664970112629",
+    "assetType": "Model",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/pieces/spider/Crown.glb": {
@@ -562,6 +601,12 @@
     "assetType": "Model",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/thumbs/black_cat.png": {
+    "assetId": "115496115118704",
+    "assetType": "Decal",
+    "imageId": "139545705429939",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/thumbs/spider.png": {
     "assetId": "94647986969002",
     "assetType": "Decal",
@@ -572,6 +617,18 @@
     "assetId": "101208766181525",
     "assetType": "Decal",
     "imageId": "109752689782479",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/vfx/black_cat/cat_leap_4x4.png": {
+    "assetId": "98170765493066",
+    "assetType": "Decal",
+    "imageId": "114540965456482",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/vfx/black_cat/cat_run_4x4.png": {
+    "assetId": "105454913916499",
+    "assetType": "Decal",
+    "imageId": "120281480144576",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/vfx/spider/silk.png": {
@@ -683,6 +740,51 @@
     "assetId": "80729479119260",
     "assetType": "Decal",
     "imageId": "109325063007596",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-sys/assets/cue/pieces/jack_o_lantern/atlas_color.png": {
+    "assetId": "114826661142008",
+    "assetType": "Decal",
+    "imageId": "99927700415602",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-sys/assets/cue/pieces/jack_o_lantern/atlas_emissive.png": {
+    "assetId": "119585681233240",
+    "assetType": "Decal",
+    "imageId": "124556134573112",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-sys/assets/cue/pieces/jack_o_lantern/atlas_normal.png": {
+    "assetId": "91838199538777",
+    "assetType": "Decal",
+    "imageId": "85285431244146",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-sys/assets/cue/pieces/jack_o_lantern/jack_o_lantern_parts.glb": {
+    "assetId": "139022797831052",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-sys/assets/cue/pieces/jack_o_lantern_jacks/jack_o_lantern_jacks_parts.glb": {
+    "assetId": "100772326272910",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-sys/assets/cue/pieces/jack_o_lantern_rise/jack_o_lantern_rise_parts.glb": {
+    "assetId": "78928292515647",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-sys/assets/cue/vfx/jack_o_lantern/flame_4x4.png": {
+    "assetId": "129544477349079",
+    "assetType": "Decal",
+    "imageId": "85236741743985",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-sys/assets/cue/vfx/jack_o_lantern/jack_glow_4x4.png": {
+    "assetId": "75419368492673",
+    "assetType": "Decal",
+    "imageId": "119617994978170",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball-refs/emotes/birdbrain_loop.flac": {

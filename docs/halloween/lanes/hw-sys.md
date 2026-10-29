@@ -20,6 +20,36 @@ New files the brief adds for these: `src/shared/Matchmaking/Roam.luau`, `tests/r
 `tools/badges_manifest.json`, `assets/ui/badges/`.
 
 ## Status
+- 20:05 hw-sys **JACK READY @ eabe64f7** (the coordinator's 19:4x polish; `halloween` @4c03454e merged in, lint OK, 1,477 passed, 0 failed; this lane file commit on top). Side-by-side `shots/hw-sys/jack/jack_side_by_side_v6.jpg` (stand, in hand at aim as others see it, back carry, finisher, all lobby light).
+  - **Polish:**
+    - The pumpkin is 17% bigger (1.70 across). Its near flank sinks into the collar's last ring and the stem curl is tighter along the cue, so it passes the Aim cap at d 8.39 of 8.5.
+    - The face is brighter: emissive 2.6 (was 1.7), a yellower tint and Neon core, a hotter flicker.
+    - The shaft is a deeper orange and the vine a darker olive.
+    - All four mini jacks are between d 4.75 and 6.5 and off to the sides, so none shows in the owner's aim view (`jack_lab_v6_own_aim.jpg`: clean).
+    - Lower effects: 23 to 8 particles/s, Jack1 and Jack2 hide.
+    - The flames and embers move out with the pumpkin. The trail's little jacks stay a flipbook (coordinator 19:4x).
+  - **New ids** (rows regenerated): body GLB 139022797831052, mini jacks GLB 100772326272910, colour atlas 114826661142008 (image 99927700415602). The rising jack's model 78928292515647 is unchanged; it wears the new atlas and glow.
+  - **Coordinator:** the Team Create template build with `ONLY = {"JackOLanternCue"}` rebuilds `jack_o_lantern` (5 parts), `jack_o_lantern_jacks` (4) and `jack_o_lantern_rise` (3). My lane window built all three from these rows; the console was clean.
+  - **Gaps vs C4 left:**
+    1. C4's fire wraps the whole cue; ours is a crown on the pumpkin, because the shaft is in the aim view.
+    2. C4's finisher is a fire-spirit face; ours is the carved 3D jack in fire.
+    3. On the back carry, two mini jacks hover by the carrying arm. They read, but a bulky avatar might touch them.
+- 19:40 hw-sys JACK REMAKE DONE (to C4), committed: e737506d builder, e8b2e05d source pieces + flame sheets, 0a60ee4b the cue rows + manifest, 2a115d16 Config quiet share. Side-by-side `shots/hw-sys/jack/jack_side_by_side_v5.jpg` (C4 beside the stand, in hand at aim, back carry and the finisher, all in the lobby light). Since 19:20:
+  - **Trail:** the ribbon was nearly invisible (the shared `wisp_strip` is 12% alpha). It is now a solid gold-to-red ribbon (`trail_soft`) with painted flames licking off the ball (`flame_4x4`) and embers (`jack_lab_v5_trail.jpg`).
+  - **Finisher** (`jack_lab_v5_finisher.jpg`): the cue's own carved jack rises out of the pocket in a column of bold flame, with three 3D mini jacks circling it. Two flat-card looks are gone. The additive orange end smoke stacked into a bright yellow ball on the floor; it is now dark, lit smoke. The shared gust's ribbons, streaks and sparkle crosses read as flat orange X cards; the Jack keeps only the ring and flash (`KeepRibbons = false`, `Streaks`/`Sparkles` 0, `CoreWhiten` 0.15).
+  - **Checks:** Lower effects cuts the aura from 23 to 8 particles/s and hides Jack1 and Jack4. The owner's aim view stays clear (`jack_lab_v4_own_aim.jpg`). The back carry reads (`jack_lab_v5_back.jpg`). Lint OK, 1,477 passed, 0 failed; console clean (only Studio DataStore/MemoryStore lines and the known 203785492).
+  - **Budget:** body 5 parts, 8,086 tris; decor 4 parts, 4,264; finisher 3 parts, 6,552; aura 28 particles/s (back 14).
+  - **Gaps vs C4 (honest):**
+    1. C4's fire wraps the whole cue; ours is a crown of flames on the pumpkin plus embers. The shaft carries no flames, because the shaft is in the aim view.
+    2. Our pumpkin is a little smaller against the shaft than C4's.
+    3. C4's vine is darker olive with loops; ours is thinner and brighter green.
+    4. C4's shaft is a deeper orange.
+    5. The trail's little jacks are still a flat flipbook (`jack_glow_4x4`), because a trail cannot carry a 3D piece. Coordinator: keep them, or drop them for flames only?
+    6. The finisher is a carved 3D jack in fire, where C4 shows a fire-spirit face.
+    7. The decor jacks do not Aim-fade (only the body calls `setAim`); Jack1 at d 3.5 can show at the bottom of the aim view (request to cues-a below).
+  - **Coordinator:** rebuild the Team Create template with `ONLY = {"JackOLanternCue"}`. It now builds `jack_o_lantern` (5 parts), `jack_o_lantern_jacks` (4) and `jack_o_lantern_rise` (3). The rigid ids are in the rows: 129795433809453, 87126774561040 and 78928292515647.
+- 19:20 hw-sys JACK, in the lab (lobby light, `shots/hw-sys/jack/jack_lab_v4_stand.jpg`): the new body is uploaded and built in my lane window (`piece jack_o_lantern: 5 children`). The VFX are in. Bold painted cartoon flames lick up off the pumpkin's top and shoulders from six points, never over the face or at the tip. The old soft fire flipbook and an additive glow vanished on the bright floor; the new sheet is `vfx/jack_o_lantern/flame_4x4.png`, opaque, LightEmission 0.05. Embers rise off them. Four 3D mini jacks float round the back half (the new decor piece `jack_o_lantern_jacks`, per the 19:08 no-flat-cards rule): 4 parts, 4,264 tris, sharing the body's atlas, so no new texture. The old aura piece (tendrils, jaw at d 6.8) and its JawBreath, smoke and face-glow rows are gone, because they were built for the old small pumpkin. Not committed yet; next: the in-hand view, the trail, the finisher, the side-by-side.
+- 18:45 hw-sys JACK REMAKE (coordinator 18:30, to C4): new builder `assets/cue/CuePiecesJack.py` (Broom pattern: one painted atlas, Cues B's body rules, the pumpkin an Aim-fade joint past the butt; cues-a agreed, their old builder is stale for this id). Round 3 in Blender, lobby-like light (`shots/hw-sys/jack/jack_blender_v3.png`): pumpkin 1.45 across (4x the butt) with ten upright ribs and gloss streaks, the face carved through the rind (slanted eyes, a grin with three teeth) over a flickering Neon core, a curly stem, three big leaves at its base; dark wood collars with glowing slits and a bronze band; fluted glossy orange shaft; a chunky vine (flush in the hand zones) with five leaves between the hands. 5 parts, 7,986 tris, rules pass. Next: the stem base, then upload and the lab (stand, hand, back).
 - 18:22 hw-sys: badge icons: all 50 v2 icons approved by Roblox moderation (thumbnails API: 50 Completed, 0 Pending or Blocked).
 - 18:20 hw-sys **READY @ b7696894** (robustness pass; `halloween` @d9474296 merged in, lint OK, 1,470 passed, 0 failed; this lane file commit on top). Commits: 78ca56e6, 1b67eeef, 2cbf45cb, 4bd7e117, 57e5bead, ae16f727.
 - 18:15 hw-sys ROBUSTNESS PASS (coordinator 17:52), base `halloween` @d9474296. Found and fixed (one commit each, lint OK, 1,470 tests):
@@ -133,11 +163,18 @@ below with file:line and the commit. The coordinator resolves overlaps.
 - `src/shared/Progression/Inventory.luau:193-194` `Inventory.everOwned = everOwned` (public alias, two lines) — 21b78f79
 - `tests/config_test.luau`: `Badges.check` line inside this lane's own test — 21b78f79
 - `src/server/DevCommands.luau`: none (the `/badges` readout was cut; BadgesQA covers Studio)
+- `src/shared/Config.luau:6436` `JackOLanternCue = 0.1` in `Config.CueSkins.Quiet.SkinShares` (one line + comment, after `CelestialDragonCue`) — 2a115d16
+- `src/shared/CueSkins/Index.luau:510` (generated by `cue_skins_data.py`) the Jack's `Piece = "jack_o_lantern_jacks"`; every other skin byte-identical — 0a60ee4b
+- `src/shared/CueSkins/Skins/JackOLanternCue.luau`, `Pieces/jack_o_lantern.luau` (generated), new `Pieces/jack_o_lantern_jacks.luau` and `Pieces/jack_o_lantern_rise.luau`; `Pieces/jack_o_lantern_aura.luau` and `Pieces/jack_o_lantern_pocket.luau` dropped out because no skin wears them now (cues-a's source assets stay) — 0a60ee4b
+- `assets/cue/skins/jack_o_lantern.json` (cues-a's row, the coordinator's Jack job) — 0a60ee4b
+- `tools/upload_manifest.json`: the Jack body GLB 129795433809453 and its three atlases, `jack_o_lantern_jacks` 87126774561040, `jack_o_lantern_rise` 78928292515647, `flame_4x4` 85236741743985, `jack_glow_4x4` 119617994978170; the old Jack GLB row removed — 0a60ee4b; the polish's body GLB 139022797831052, mini jacks GLB 100772326272910, colour atlas 114826661142008 / 99927700415602 replace their rows — eabe64f7
 - `src/server/TableService.luau` (owned): requires `Roam`, `Settle`; `:66` `ROAMER = "PoolRoamer"`; `outsideArea` moved above `constrain` (`:787`, now via `Roam.needsHome`); new `roams` (`:796`) and `sendHome` (`:810`); `constrain`'s locked branch (seat weld release, home move), waiting branch (ROAMER group, rescue only on a fall for roamers); the poll's rematch walk-off exemption (`:1085-1101`); `Service.start` registers PoolRoamer before the fence loop (`:1985-1991`) — 1d0625a2
 - `src/client/Portals.luau` (owned guard): `blocked` flag, `step()` returns while blocked, `Portals.setBlocked` — 19854675
 - `src/server/LuckyBlockService.luau` (owned guard): requires TableService; Open refused "Busy" while the player's table is not Waiting/Result and `Roam.Enabled` (`:919-929`) — 19854675, a6e31f2b
 
 ## Requests
+
+- To cues-a (minor, later; the coordinator said not to wait): a decor piece's `Aim = "fade"` joints do not fade while aiming, because only the body calls `piece:setAim`. The Jack's mini jacks were moved out of the aim view instead (eabe64f7), so nothing waits on it. Note also: the Jack no longer wears `jack_o_lantern_aura` or `jack_o_lantern_pocket`, so their rows drop out of `cue_skins_data.py` output (sources untouched).
 
 - To map: in `BossService`, on a King win call
   `pcall(function() require(ServerScriptService.Server.Badges).grant(p, "PumpkinSlayer", "Boss") end)`

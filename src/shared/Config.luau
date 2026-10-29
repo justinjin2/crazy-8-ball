@@ -6430,6 +6430,10 @@ Config.CueSkins = {
 		SkinShares = {
 			KitsuneCue = 0.07,
 			CelestialDragonCue = 0.07,
+			-- The Jack's flames burn on its pumpkin, which clears on your screen while you aim
+			-- (an Aim joint): nearly none while quiet, so no fire floats where it was (hw-sys,
+			-- 2026-10-28). (tune)
+			JackOLanternCue = 0.1,
 		},
 		FadeSeconds = 0.4, -- (tune)
 		CheckSeconds = 0.2, -- how often the match state is looked at (internal)
@@ -17387,10 +17391,10 @@ Config.UI.Halloween = {
 	-- exist (the approved concept art), the gift boxes, the end screen's candy pile and cash.
 	Art = {
 		JackOLanternCue = "rbxassetid://114487013205177",
-		PitchforkCue = "", -- TODO: its card art (hw-map's card id); "" = a blank card
+		PitchforkCue = "rbxassetid://121098110131668", -- hw-map's card (the whole pitchfork, face-on)
 		SpiderCue = "rbxassetid://134067061693157",
 		WitchBroomCue = "rbxassetid://83442214439619",
-		HalloweenSwordCue = "", -- TODO: its card art (cues-a's thumbnail); "" = a blank card
+		HalloweenSwordCue = "rbxassetid://77260527077254", -- cues-a's card (its skin's Thumb)
 		Header = "rbxassetid://100823591958466", -- the menu header's jack-o'-lantern ("" = the Candy icon)
 		Gift = "rbxassetid://130940237317316", -- "" = Kit icon Gift
 		CandyPile = "rbxassetid://100770056241444",
