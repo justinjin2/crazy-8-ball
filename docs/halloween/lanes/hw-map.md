@@ -71,7 +71,8 @@ From PLAN §4 (everything else is read-only to this lane; ask through Requests):
     (114949053813201, not in src, the manifest or the place). Shots and the R2 side-by-side:
     `~/Desktop/8ball-refs/halloween/shots/hw-map/pitchfork/pitchfork_vs_R2.jpg` (first build's in `v1/`).
   - CARD re-rendered (`thumb_margin` 2.2: the bigger fork met the edge at 1.75): new image id
-    109608018268838, sent to core for `Art.PitchforkCue` (was 121098110131668).
+    109608018268838 (was 121098110131668). I sent it only to the coordinator, not to core; core
+    took it from the merged skin's Thumb and pointed `Art.PitchforkCue` at it (hw-core a45d8c6e).
 - 20:22 hw-map: **PITCHFORK CUE built and labbed** (coordinator 19:40, concept R2; never "devil").
   `assets/cue/CuePiecesHalloween_Pitchfork.py`, `skins/pitchfork.json`, `pieces/pitchfork`,
   `vfx/pitchfork`, `thumbs/pitchfork.png`. Core's rows merged (Legendary, track 500); core set
