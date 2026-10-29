@@ -348,6 +348,13 @@ local function payOne(e: any, player: Player, team: number, isShooter: boolean, 
 		-- pill at the amount before them until each chip lands), nil when they paid none.
 		candyBalance = candyBalance,
 	})
+	-- The Candy attribute only now, after the grant: the client knows the chips are coming
+	-- before the pill's number could move (else it showed the new balance, dropped back, then
+	-- counted up).
+	local CandyService = if candyBalance ~= nil then candyService() else nil
+	if CandyService ~= nil then
+		pcall(CandyService.showBalance, player, candyBalance)
+	end
 end
 
 --- Pays the shot the engine of table `t` just accepted from `player` (ShotService calls this

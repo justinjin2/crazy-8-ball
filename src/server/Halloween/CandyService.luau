@@ -483,10 +483,11 @@ export type PotFacts = {
 --- A shot's pocket Candy (Economy.payOne, right after the shot's money went into the save; in a
 --- pcall there): PerPocket a pot (Halloween/PotCandy), only while the event is Live, Candy per
 --- pocket is on and the player sees Halloween (HwOn: the tutorial over), in a match against
---- people or a disguised bot. One save commit for the shot ("hwPot", quiet); the HUD's Candy
---- attribute at once (the client's CandyFlyer holds the pill's number back until each chip
---- lands); the view and the one HwCandy "Match" event wait for the settle. Returns each pot's
---- Candy in order (empty when it pays none) and the balance after it (nil when none).
+--- people or a disguised bot. One save commit for the shot ("hwPot", quiet); the view and the
+--- one HwCandy "Match" event wait for the settle. Returns each pot's Candy in order (empty when
+--- it pays none) and the balance after it (nil when none), which the caller sets as the Candy
+--- attribute only after its MoneyGrant went out (CandyService.showBalance), so the client's
+--- CandyFlyer holds the pill's number back from the start.
 function CandyService.pots(player: Player, f: PotFacts): ({ number }, number?)
 	local none: { number } = {}
 	if not isPlayer(player) or not PotCandy.on() or not CandyService.isLive() then
@@ -524,11 +525,14 @@ function CandyService.pots(player: Player, f: PotFacts): ({ number }, number?)
 		return none
 	end
 	keep()
-	local candy = PlayerData.hwCandy(player)
-	if player:GetAttribute("Candy") ~= candy then
-		player:SetAttribute("Candy", candy)
+	return amounts, PlayerData.hwCandy(player)
+end
+
+--- The HUD's Candy attribute set to `balance` (a shot's pots, after their MoneyGrant).
+function CandyService.showBalance(player: Player, balance: number)
+	if isPlayer(player) and player:GetAttribute("Candy") ~= balance then
+		player:SetAttribute("Candy", balance)
 	end
-	return amounts, candy
 end
 
 -- The last match each player used an ability in ("tableId:epoch", from UltService.Used).
