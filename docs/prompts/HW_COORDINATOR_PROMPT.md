@@ -595,7 +595,7 @@ the Experience Event, the 16:00 cut enforcement, the freeze, RELEASE.md, the 19:
 
 - [x] 07:30 Read the brief and the code (six readers, `~/Desktop/8ball-refs/halloween/evening/`), the live numbers, the designer's answers; the prices and the three products in Config and on Roblox (d7ebf89d); five lanes started.
 - [ ] Merge the lanes (buy, drops, king, cues, menu) into `halloween`; lint and the full tests green.
-- [ ] Team Create: the Pitchfork and Witch's Broom templates rebuilt (ONLY), the Spider templates removed.
+- [x] Team Create: the Pitchfork and Witch's Broom templates rebuilt (ONLY), the Spider templates removed (08:45: pitchfork 3 parts with Tines, witch_broom 5, aura 19, pocket 13, no problems; SpiderCue, spider, spider_aura, spider_pocket deleted).
 - [ ] Studio: the main paths (buy with Candy, the Robux prompt, ground candy while roaming, the King's rise, cutscene and cape, the menu on PC and phone emulation), console clean.
 - [ ] Fresh-player run (join, tutorial or skip, first match, the popups, the event menu).
 - [ ] Docs: STATUS, RELEASE, ROADMAP, the lane notes; pushed; the publish handoff to the designer.
