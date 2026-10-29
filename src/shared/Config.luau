@@ -17391,7 +17391,7 @@ Config.UI.Halloween = {
 	-- exist (the approved concept art), the gift boxes, the end screen's candy pile and cash.
 	Art = {
 		JackOLanternCue = "rbxassetid://114487013205177",
-		PitchforkCue = "", -- TODO: its card art (hw-map's card id); "" = a blank card
+		PitchforkCue = "rbxassetid://121098110131668", -- hw-map's card (the whole pitchfork, face-on)
 		SpiderCue = "rbxassetid://134067061693157",
 		WitchBroomCue = "rbxassetid://83442214439619",
 		HalloweenSwordCue = "", -- TODO: its card art (cues-a's thumbnail); "" = a blank card
