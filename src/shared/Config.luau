@@ -6430,6 +6430,10 @@ Config.CueSkins = {
 		SkinShares = {
 			KitsuneCue = 0.07,
 			CelestialDragonCue = 0.07,
+			-- The Jack's flames burn on its pumpkin, which clears on your screen while you aim
+			-- (an Aim joint): nearly none while quiet, so no fire floats where it was (hw-sys,
+			-- 2026-10-28). (tune)
+			JackOLanternCue = 0.1,
 		},
 		FadeSeconds = 0.4, -- (tune)
 		CheckSeconds = 0.2, -- how often the match state is looked at (internal)
