@@ -16,13 +16,18 @@ On a phone, a PC and a controller where you can:
    the Candy packs.
 4. The **Pumpkin King**: he visits the middle of the roof at :15 and :45 past every hour for 12
    minutes (the top pill counts down, then "PUMPKIN KING IS HERE!"; tap it for the arrow).
-   Challenge him once; a first win in a visit pays +150 Candy, +$2,500 and +100 XP.
+   Challenge him once; a first win in a visit pays +150 Candy, +$2,500 and +100 XP, and rolls
+   the **5% Jack-o'-Lantern Cue drop** (the sign over him shows the chance; it is hidden once you
+   own the cue, and a drop shows a "From the Pumpkin King" card).
 5. Pick up a **lobby Candy**.
 6. The boost text (Money Boost / Candy Boost) and its card.
 7. **Walk around** while it is the other player's turn.
 8. A **Candy pack** prompt opens (cancel it; don't buy).
-9. Each new cue: Jack-o'-Lantern, Pitchfork, Witch's Broom, Halloween Sword, Spider (My Cues and
-   the Index, in hand, one pot).
+9. Each new cue (My Cues and the Index, in hand, one pot; `/givecue <Id>` to check quickly):
+   Pitchfork (500 Candy), Witch's Broom (2,000), Halloween Sword (7,000), the Spider (3 h of
+   play) and the Jack-o'-Lantern (the Pumpkin King's 5% drop).
+11. The **Shop** opens on Blocks: the Grand Opening block is gone (blocks already owned still
+    open from the inventory).
 10. Settings > **Lower effects** on and off with a Halloween cue.
 
 ## 2. Publishing (tonight, after the robustness pass; target about 20:30)
@@ -112,7 +117,8 @@ original back (asset 123614794049673): `python3 tools/halloween/store_page.py ic
 
 > 🎃 **The HALLOWEEN UPDATE is live!** 🎃
 > The rooftop has gone haunted. Play matches to collect **Candy**, finish daily quests and
-> unlock **5 Halloween cues** that never come back: the Jack-o'-Lantern, the Pitchfork, the
-> Witch's Broom, the **Halloween Sword** and the Spider. The **Pumpkin King** visits the middle of the roof at :15 and
-> :45 every hour: beat him for Candy, money and XP! Grab Candy around the lobby, and play in the
-> first 10 minutes of every hour for **2x Candy**. Ends Nov 3!
+> unlock Halloween cues that never come back: the **Pitchfork**, the **Witch's Broom** and the
+> **Halloween Sword** on the Candy track, and the **Spider** for 3 hours of play. The **Pumpkin
+> King** visits the middle of the roof at :15 and :45 every hour: beat him for Candy, money and
+> XP, and a **5% chance at the Jack-o'-Lantern Cue**! Grab Candy around the lobby, and play in
+> the first 10 minutes of every hour for **2x Candy**. Ends Nov 3!
