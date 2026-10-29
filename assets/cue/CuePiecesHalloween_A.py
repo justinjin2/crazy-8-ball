@@ -49,8 +49,12 @@ MAX_PARTS, MAX_TRIS = 8, 10000
 #   'GuardInGripZone': (d0, d1) at the front of the grip hand zone where a sword's guard may
 #            sit: the hand rules are off there and the +Z allowance runs to d1 (coordinator
 #            20:4x: the hilt reads as a stick when the guard stops at 4.4; the grip hand's
-#            full wind-up was measured in Studio to reach 4.92 from the tip, so 4.9 is the
-#            back edge that stays clear of the fingers).
+#            full wind-up was measured in Studio to reach 4.92 from the tip, so 4.9 was the
+#            back edge clear of the fingers; designer 20:5x: the handle is way too big, the
+#            guard goes to 5.0-5.55 just in front of the hand at rest, and the hand passing
+#            through it for an instant at a full-power wind-up is accepted).
+#   'SlimGrip': r, a handle slimmer than the cue envelope: in the grip hand zone the radius may
+#            come down to r (designer 20:5x: a sword handle, thinner than the cue is fine).
 BODY_EXCEPTIONS = {}   # the hard budget (the data tool stops over it); aim at 6 and 6,000
 
 
@@ -141,8 +145,9 @@ def check_body(kit, step=0.1):
         if in_hand:
             if r_max > r_env + HAND_TOL + 1e-6:
                 problems.append('%.1f (hand zone): radius %.3f, envelope %.3f (+%.2f at most)' % (d0, r_max, r_env, HAND_TOL))
-            if r_max < r_env - HAND_TOL - 1e-6:
-                problems.append('%.1f (hand zone): radius %.3f, envelope %.3f (the hand would sink in)' % (d0, r_max, r_env))
+            r_low = min(r_env, ex.get('SlimGrip', r_env))
+            if r_max < r_low - HAND_TOL - 1e-6:
+                problems.append('%.1f (hand zone): radius %.3f, envelope %.3f (the hand would sink in)' % (d0, r_max, r_low))
             # centred: the bin's outline (its box) is centred on the axis
             xs = [x for _, x, _, _, _ in vs]
             zs = [z for _, _, z, _, _ in vs]
