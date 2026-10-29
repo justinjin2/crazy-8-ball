@@ -173,17 +173,11 @@ local function viewOf(player: Player, hw: any): any
 		end
 		table.insert(boards, { n = n, opensAt = Event.boardOpensAt(n), quests = quests })
 	end
-	local given = {}
-	for key in hw.Given do
-		table.insert(given, tonumber(key))
-	end
-	table.sort(given)
 	return {
 		candy = Ledger.balance(hw),
 		earned = hw.Earned,
 		bought = hw.Bought,
 		spent = hw.Spent or 0,
-		given = given,
 		active = hw.Active,
 		spider = hw.Spider,
 		open = ctx.open,
@@ -274,8 +268,8 @@ local function funnelCues(player: Player)
 	end
 end
 
--- After a mutation: the moments the client shows (a Candy chip, a track prize, the Spider),
--- the quest analytics, and the view.
+-- After a mutation: the moments the client shows (a Candy chip, the Spider), the quest
+-- analytics, and the view.
 local function after(player: Player, result: PlayerData.HwResult?, source: string)
 	if result == nil then
 		return
@@ -293,21 +287,11 @@ local function after(player: Player, result: PlayerData.HwResult?, source: strin
 			},
 		})
 	end
-	for _, index in result.steps do
-		remote:FireClient(player, { step = index })
-		local step = Config.Halloween.Track.Steps[index]
-		Funnel.event(
-			player,
-			"HwTrack",
-			step.At,
-			step.Cue or (if step.Spins then "Spins" else "Money")
-		)
-	end
 	if result.spider then
 		remote:FireClient(player, { spider = true })
 		Funnel.event(player, "HwSpider", 1)
 	end
-	local news = result.candy > 0 or #result.steps > 0 or result.spider
+	local news = result.candy > 0 or result.spider
 	for _, routed in result.quests do
 		if routed.done then
 			news = true
@@ -998,7 +982,7 @@ function CandyService.start()
 		end
 	end)
 	-- A Candy pack landed (PlayerData.applyPurchase, the receipt's one change): HwPack (value: the
-	-- Robux; a: the product key), HwCandy, and its moments, track prizes and view like any Candy.
+	-- Robux; a: the product key), HwCandy, and its moments and view like any Candy.
 	PlayerData.HwPack:Connect(function(player: Player, key: string, result: PlayerData.HwResult)
 		local ok, err = pcall(function(): any
 			local row = (Config.Products.List :: any)[key]

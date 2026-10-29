@@ -73,7 +73,7 @@ export type Grant = {
 	-- works the days out from the save as it applies the grant (Daily.claimAll).
 	claimAll: number?,
 	-- Halloween Candy to add to the save's Halloween.Bought, flat (a Candy pack, Config.Halloween
-	-- .Packs), with the track's prizes it reaches, in the same save mutation (PlayerData).
+	-- .Packs), in the same save mutation as the receipt id (PlayerData).
 	candy: number?,
 }
 

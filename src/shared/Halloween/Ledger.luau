@@ -1,7 +1,7 @@
 --!strict
 -- Ledger: the rules behind every change to a save's Halloween field (SaveSchema.freshHalloween;
 -- Config.Halloween). Pure: PlayerData calls these on the live save inside one mutation, so the
--- Candy, the track's prizes and the marks land in one commit; `now` is the server's
+-- Candy, a cue bought with it and the marks land in one commit; `now` is the server's
 -- (Halloween/Clock.serverNow), never read here.
 local Config = require(script.Parent.Parent.Config)
 local Event = require(script.Parent.Event)

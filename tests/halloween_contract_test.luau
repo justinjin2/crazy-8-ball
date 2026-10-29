@@ -30,28 +30,6 @@ local function present(part: string, thing: any): boolean
 	return false
 end
 
--- Finds a value in a step row whatever the lane named its keys: the number `need` and the
--- reward (a cue id, a money amount or a spin count) among its fields.
-local function stepHas(step: { [string]: any }, need: number, reward: any): boolean
-	local hasNeed, hasReward = false, false
-	for _, v in step do
-		if v == need then
-			hasNeed = true
-		end
-		if v == reward then
-			hasReward = true
-		end
-		if typeof(v) == "table" then
-			for _, w in v do
-				if w == reward then
-					hasReward = true
-				end
-			end
-		end
-	end
-	return hasNeed and hasReward
-end
-
 return {
 	["halloween: the event clock steps at the plan's times"] = function()
 		local Event = tryRequire("Halloween.Event")
@@ -142,30 +120,19 @@ return {
 				"no second copy of the boost numbers: Config.Halloween." .. banned
 			)
 		end
-		local steps = C.Track.Steps
-		if
-			present("Config.Halloween.Track.Steps rows (core)", if #steps > 0 then steps else nil)
-		then
-			local want = {
-				{ 50, 1 },
-				{ 150, 2 },
-				{ 300, 2500 },
-				{ 500, "PitchforkCue" },
-				{ 1000, 2 },
-				{ 1500, 5000 },
-				{ 2000, "WitchBroomCue" },
-				{ 3000, 3 },
-				{ 4500, 10000 },
-				{ 5500, 5 },
-				{ 7000, "HalloweenSwordCue" },
-			}
-			H.expect(#steps == #want, ("track has %d steps, want 11"):format(#steps))
-			for i, w in want do
-				H.expect(
-					steps[i] ~= nil and stepHas(steps[i], w[1], w[2]),
-					("track step %d: %s at %d"):format(i, tostring(w[2]), w[1])
-				)
-			end
+		H.expect(
+			(C :: any).Track == nil,
+			"no Candy track (designer, 2026-10-29: the cue shop instead)"
+		)
+		local want =
+			{ { "PitchforkCue", 300 }, { "WitchBroomCue", 2500 }, { "HalloweenSwordCue", 7500 } }
+		H.expect(#C.Cues.List == #want, "three cues in the shop")
+		for i, w in want do
+			local r = C.Cues.List[i]
+			H.expect(
+				r ~= nil and r.Cue == w[1] and r.Candy == w[2],
+				("shop cue %d: %s for %d Candy"):format(i, w[1], w[2])
+			)
 		end
 	end,
 

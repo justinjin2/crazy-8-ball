@@ -37,14 +37,12 @@ local CLOSE_ACTION = "HalloweenEndScreen"
 
 local EndScreen = {}
 
--- The event cues in the track's order, then the Spider.
+-- The event cues: the cue shop's in its order (Config.Halloween.Cues), then the King's drop.
 local EVENT_CUES: { string } = {}
-for _, step in H.Track.Steps do
-	if step.Cue ~= nil then
-		table.insert(EVENT_CUES, step.Cue)
-	end
+for _, row in H.Cues.List do
+	table.insert(EVENT_CUES, row.Cue)
 end
-table.insert(EVENT_CUES, H.Spider.Cue)
+table.insert(EVENT_CUES, H.KingDrop.Cue)
 
 local function progression(): any?
 	local ok, P = pcall(require, script.Parent.Parent.Progression)
@@ -154,7 +152,7 @@ function EndScreen.build(
 		return math.floor(w * share)
 	end
 
-	-- The cues the player owns (track order, then the Spider), up to MaxCues.
+	-- The cues the player owns (the shop's order, then the King's drop), up to MaxCues.
 	local cues: { string } = {}
 	for _, id in EVENT_CUES do
 		if owned[id] == true and #cues < E.MaxCues then

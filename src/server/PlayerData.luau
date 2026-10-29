@@ -56,7 +56,6 @@ local SpinView = require(Shared.Ults.SpinView)
 local RankClaim = require(Shared.Tutorial.RankClaim)
 local HwEvent = require(Shared.Halloween.Event)
 local HwLedger = require(Shared.Halloween.Ledger)
-local HwTrack = require(Shared.Halloween.Track)
 local Quests = require(Shared.Halloween.Quests)
 local ProfileStore = require(script.Parent.Vendor.ProfileStore)
 
@@ -3456,8 +3455,8 @@ end
 
 ---------------------------------------------------------------------------------------------
 -- Mutations: the Halloween 2026 event (hw-core; src/server/Halloween/CandyService.luau).
--- Every change to the save's Halloween field is ONE commit: the Candy, the quest progress, the
--- track's prizes (Halloween/Track) and the Spider land together. The rules are Halloween/Ledger
+-- Every change to the save's Halloween field is ONE commit: the Candy, the quest progress, a cue
+-- bought with Candy and the Spider land together. The rules are Halloween/Ledger
 -- and Halloween/Quests (pure); `ctx` comes from CandyService: the server's now, the newest open
 -- board and the quest hooks.
 ---------------------------------------------------------------------------------------------
@@ -3469,11 +3468,10 @@ export type HwCtx = {
 	hooks: Quests.Hooks,
 }
 
---- What a Halloween mutation did: Candy added, track steps granted (indices), the Spider given,
---- quest progress that changed, and money paid (the conversion).
+--- What a Halloween mutation did: Candy added, the Spider given, quest progress that changed,
+--- and money paid (the conversion).
 export type HwResult = {
 	candy: number,
-	steps: { number },
 	spider: boolean,
 	quests: { Quests.Routed },
 	money: number,
@@ -3498,26 +3496,8 @@ local function hwField(data: any): any
 	return data.Halloween
 end
 
--- Grants every track step the save's Candy has reached (a cue only when ready: a held step
--- stays ungiven) and the Spider once earned, noting them in `result`. `bought`: reached by a
--- Candy pack, so a money step is not earned money (Stats.MoneyEarned).
-local function hwGrantDue(data: any, hw: any, result: HwResult, bought: boolean?)
-	local steps = HwTrack.steps()
-	for _, index in HwTrack.due(HwLedger.total(hw), hw.Given) do
-		local step = steps[index]
-		if step.Cue ~= nil then
-			if not hwCueReady(step.Cue) then
-				continue
-			end
-			giveReward(data, { cues = { step.Cue } }, "Halloween")
-		elseif step.Spins ~= nil then
-			addSpinsTo(data, step.Spins, nil)
-		elseif step.Money ~= nil then
-			addMoneyTo(data, step.Money, bought ~= true, "Halloween")
-		end
-		hw.Given[HwTrack.key(index)] = true
-		table.insert(result.steps, index)
-	end
+-- Grants the Spider once earned (only when ready: held otherwise), noting it in `result`.
+local function hwGrantDue(data: any, hw: any, result: HwResult)
 	local spider = Config.Halloween.Spider
 	if HwLedger.spiderDue(hw) and hwCueReady(spider.Cue) then
 		giveReward(data, { cues = { spider.Cue } }, "Halloween")
@@ -3544,16 +3524,15 @@ local function hwMutate(
 	if hw.Converted == true and (op :: string) ~= "hwMark" then
 		return nil
 	end
-	local result: HwResult = { candy = 0, steps = {}, spider = false, quests = {}, money = 0 }
+	local result: HwResult = { candy = 0, spider = false, quests = {}, money = 0 }
 	fn(data, hw, result)
 	-- Once converted (the end) no prize is given any more, whatever the client sends.
 	if hw.Converted ~= true then
 		hwGrantDue(data, hw, result)
 	end
 	-- The 5 s active tick is quiet (Items.QUIET_OPS, Badges.SKIP_OPS) unless it gave a prize
-	-- (the Spider, a held cue): then the inventory and the badges must see it.
-	local given = #result.steps > 0 or result.spider
-	commit(player, data, if op == "hwActive" and given then "hwActiveGrant" else op)
+	-- (the Spider): then the inventory and the badges must see it.
+	commit(player, data, if op == "hwActive" and result.spider then "hwActiveGrant" else op)
 	return result
 end
 
@@ -3723,8 +3702,8 @@ function PlayerData.hwActive(player: Player, seconds: number, ctx: HwCtx): HwRes
 	end)
 end
 
---- Tries the held track and Spider grants again (a cue that became ready). nil when nothing
---- was held or the save is not loaded; never commits for nothing.
+--- Tries the held Spider grant again (its cue became ready). nil when nothing was held or the
+--- save is not loaded; never commits for nothing.
 function PlayerData.hwRetry(player: Player): HwResult?
 	local data = peek(player)
 	if data == nil or type(data.Halloween) ~= "table" then
@@ -3733,23 +3712,13 @@ function PlayerData.hwRetry(player: Player): HwResult?
 	local hw = data.Halloween
 	local held = HwLedger.spiderDue(hw) and hwCueReady(Config.Halloween.Spider.Cue)
 	if not held then
-		local steps = HwTrack.steps()
-		for _, index in HwTrack.due(HwLedger.total(hw), hw.Given) do
-			local cue = steps[index].Cue
-			if cue == nil or hwCueReady(cue) then
-				held = true
-				break
-			end
-		end
-	end
-	if not held then
 		return nil
 	end
 	return hwMutate("hwRetry", player, function() end)
 end
 
---- Claims a finished quest (Live only): its reward into Earned, flat, and the track's prizes.
---- The Candy claimed (0 when refused).
+--- Claims a finished quest (Live only): its reward into Earned, flat. The Candy claimed (0 when
+--- refused).
 function PlayerData.hwClaim(player: Player, key: string, ctx: HwCtx): (number, HwResult?)
 	if type(key) ~= "string" or #key > 8 then
 		refuse("hwClaim", player, "bad key")
@@ -3847,8 +3816,7 @@ end
 --- The end (once per save, after EndsAt): finished unclaimed quests are claimed, then the Candy
 --- balance (Earned + Bought - Spent) becomes money (Convert.MoneyPerCandy each, reason
 --- "HalloweenCandy"; spent Candy came out of Earned first, Ledger.convertSplit), and the save is
---- marked converted. No track prizes are granted any more. A save with no Candy is only marked
---- (no end screen). The result's money (nil when not due or not loaded).
+--- marked converted. A save with no Candy left is only marked (no end screen). The result's money (nil when not due or not loaded).
 function PlayerData.hwConvert(player: Player, ctx: HwCtx): HwResult?
 	local data = peek(player)
 	if data == nil or not HwLedger.convertDue(hwField(data), ctx.now) then
@@ -3860,7 +3828,7 @@ function PlayerData.hwConvert(player: Player, ctx: HwCtx): HwResult?
 		return nil
 	end
 	local hw = hwField(data)
-	local result: HwResult = { candy = 0, steps = {}, spider = false, quests = {}, money = 0 }
+	local result: HwResult = { candy = 0, spider = false, quests = {}, money = 0 }
 	-- Finished quests as the event ran (Quests.endClaimable: even with the map switched off since).
 	for _, quest in Quests.endClaimable(hw.Q, hw.Claimed, ctx.open, ctx.hooks) do
 		hw.Claimed[quest.key] = true
@@ -3901,7 +3869,7 @@ end
 
 local hwPackEvent = Instance.new("BindableEvent")
 --- (player, key, result: HwResult) A Candy pack landed (applyPurchase, after its commit): the
---- Candy, the track steps it reached and the Spider, for CandyService's moments and the view.
+--- Candy, for CandyService's moments and the view.
 PlayerData.HwPack = hwPackEvent.Event
 
 ---------------------------------------------------------------------------------------------
@@ -4009,8 +3977,8 @@ end
 --- while Shop.VipCueGiven is false; an Exclusive cue already owned is not given twice), its
 --- Limited cue with copy number `copy` (required with grant.limited: the caller's Limited
 --- counter handed it out; refused, logged, when the player already owns that cue, so the
---- Store must not prompt then), its Halloween Candy (grant.candy into Halloween.Bought with the
---- track's prizes it reaches; PlayerData.HwPack fires after the commit) and its Shop flags
+--- Store must not prompt then), its Halloween Candy (grant.candy into Halloween.Bought;
+--- PlayerData.HwPack fires after the commit) and its Shop flags
 --- (Shop.markGrant). grant.party is the caller's (this server's Money Party). A purchase id
 --- already recorded grants nothing and answers true (it was granted before). The caller then
 --- waits for saveNow.
@@ -4086,15 +4054,13 @@ function PlayerData.applyPurchase(
 		end
 	end
 	-- A Candy pack (Shop.grantFor gives grant.candy only while the packs are sold): flat into
-	-- Halloween.Bought (no Rush, double day, friends or group; no quest), and every track step
-	-- and the Spider it reaches, in this same change, so the receipt id, the Candy and the
-	-- prizes land together and a replayed receipt gives none of them again.
+	-- Halloween.Bought (no Rush, double day, friends or group; no quest), in this same change, so
+	-- the receipt id and the Candy land together and a replayed receipt never adds it again.
 	local pack: HwResult? = nil
 	if grant.candy ~= nil then
 		local hw = hwField(data)
-		local result: HwResult = { candy = 0, steps = {}, spider = false, quests = {}, money = 0 }
+		local result: HwResult = { candy = 0, spider = false, quests = {}, money = 0 }
 		result.candy = HwLedger.addCandy(hw, grant.candy, "Bought")
-		hwGrantDue(data, hw, result, true)
 		pack = result
 	end
 	Shop.markGrant(shop, grant)

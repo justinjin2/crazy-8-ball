@@ -3755,9 +3755,10 @@ Config.SkyBlock = {
 ---------------------------------------------------------------------------------------------
 -- The Halloween 2026 event (docs/halloween/PLAN.md; src/shared/Halloween, src/server/Halloween,
 -- src/client/Halloween; the hw-core lane). Candy is earned in real matches against people,
--- quests, the Pumpkin King and lobby pickups (or bought in two packs), is never spent, fills the
--- track to the Witch's Broom and turns into money once the event ends. Every time is unix
--- seconds and runs from the server clock (Halloween/Clock): no publish at the start or the end.
+-- quests, the Pumpkin King and lobby pickups (or bought in two packs), is spent on the event's
+-- cues (Cues; designer, 2026-10-29), and what is left turns into money once the event ends.
+-- Every time is unix seconds and runs from the server clock (Halloween/Clock): no publish at
+-- the start or the end.
 ---------------------------------------------------------------------------------------------
 Config.Halloween = {
 	Enabled = true, -- false: no earning and no event UI; saved Candy still converts after EndsAt
@@ -3884,27 +3885,6 @@ Config.Halloween = {
 			}
 		},
 	},
-	-- The track (Earned + Bought Candy): each step is granted the moment the total reaches At,
-	-- once, never a claim. Cue (one copy, skipped if owned), Spins (ability spins) or Money.
-	Track = {
-		Steps = {
-			-- The lineup (designer, 2026-10-29 04:0x): the Pitchfork, the Witch's Broom and the
-			-- Sword on the track; the Jack-o'-Lantern is the Pumpkin King's drop
-			-- (Config.Halloween.KingDrop); the Spider stays the playtime cue. Given is keyed by
-			-- index: final before the publish.
-			{ At = 50, Spins = 1 },
-			{ At = 150, Spins = 2 }, -- was the Jack-o'-Lantern
-			{ At = 300, Money = 2500 },
-			{ At = 500, Cue = "PitchforkCue" },
-			{ At = 1000, Spins = 2 },
-			{ At = 1500, Money = 5000 },
-			{ At = 2000, Cue = "WitchBroomCue" },
-			{ At = 3000, Spins = 3 },
-			{ At = 4500, Money = 10000 },
-			{ At = 5500, Spins = 5 },
-			{ At = 7000, Cue = "HalloweenSwordCue" }, -- the top prize
-		} :: { { At: number, Cue: string?, Spins: number?, Money: number? } },
-	},
 	-- The playtime cue: Seconds of ACTIVE play while the event is Live (any server; idle time
 	-- does not count: SkyDropService.isActive), 3 h 01 m.
 	-- Off: the Spider is removed (designer, 2026-10-29); the full removal follows the menu redo.
@@ -3915,7 +3895,7 @@ Config.Halloween = {
 	-- HoldCapSeconds) and credited when that match is done, so no real play is lost and standing
 	-- in the lobby with an auto-clicker earns nothing. Off: every active second counts at once.
 	ActiveGate = { Enabled = true, HoldCapSeconds = 1800 },
-	TickSeconds = 5, -- the server adds active time and retries held grants this often
+	TickSeconds = 5, -- the server adds active time (and checks for the end) this often
 	ActiveCommitSeconds = 30, -- the active time credited goes into the save this often (and on leave)
 	PushSeconds = 2, -- at most one event view pushed to a player this often
 	ActivePushSeconds = 30, -- active time alone re-sends the view this often (the menu shows minutes)
@@ -3938,10 +3918,11 @@ Config.Halloween = {
 			{ Cue = "HalloweenSwordCue", Candy = 7500, Product = "HwSword" },
 		} :: { { Cue: string, Candy: number, Product: string } },
 	},
-	-- The two Candy packs (Config.Products.List Candy500 / Candy2000; flat, fill the whole track,
-	-- not quests).
+	-- The two Candy packs (Config.Products.List Candy500 / Candy2000): flat Candy into Bought, to
+	-- spend on the cues; never quest progress.
 	Packs = { Enabled = true, Keys = { "Candy500", "Candy2000" } },
-	-- Once per save, once the event has ended: all Candy (earned + bought) becomes money.
+	-- Once per save, once the event has ended: the Candy left (Earned + Bought - Spent) becomes
+	-- money, spent Candy counted out of Earned first (Halloween/Ledger.convertSplit).
 	Convert = { Enabled = true, MoneyPerCandy = 10 },
 	-- Test time (Halloween/Clock): the workspace attribute HwTimeOffset (seconds added to the
 	-- server clock) counts only in Studio and on the test place (Config.Save.TestPlace), never

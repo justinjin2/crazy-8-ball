@@ -7,11 +7,8 @@
 --     With nowhere to fly (no tile, as in an arena) it stays a moment and fades. A match's chip
 --     waits until the player is free again (its result screen closed, back in the lobby);
 --     quests, the King and packs show at once. The server never sends "+0".
---   { step = index }: a track prize. Spins and money fly to their HUD targets (Progression's
---     RewardsFlyer: the Ults button, the money HUD); a cue gets a small NEW CUE! card (its
---     thumbnail, name, tier tag, OK) once the player is free (no match, result, menu, popup or
---     lucky-block reel). A step reached in a match waits with that match's chip.
---   { spider = true }: the Spider Cue's NEW CUE! card the same way.
+--   { spider = true }: the Spider Cue's small NEW CUE! card (its thumbnail, name, tier tag, OK)
+--     once the player is free (no match, result, menu, popup or lucky-block reel).
 --   { king = { paid, candy, money, xp, back } }: a timed King win's line over the chip, at once
 --     (over the result card, which shows a Pc match's $0 and no XP): "Pumpkin King beaten! +150
 --     Candy +$2,500 +100 XP" in gold, or "Already rewarded this visit. He's back at :45!".
@@ -96,7 +93,6 @@ function CandyToast.new(screen: ScreenGui, deps: any): any
 	self.queue = {} :: { Item }
 	self.pumping = false
 	self.card = nil :: Frame?
-	self.matchUntil = 0 -- steps arriving with a match's chip wait with it
 	local gui = Instance.new("ScreenGui")
 	gui.Name = "HalloweenToast"
 	gui.ResetOnSpawn = false
@@ -139,7 +135,6 @@ function CandyToast.moment(self: any, msg: any)
 		end
 		local x2 = msg.toast.x2 == true
 		if msg.toast.source == "Match" then
-			self.matchUntil = os.clock() + 1
 			self:push("free", function()
 				chipUntil = os.clock() + T.HoldSeconds + math.max(T.FlySeconds, T.StillSeconds)
 				self:chip(candy, x2, nil)
@@ -148,28 +143,6 @@ function CandyToast.moment(self: any, msg: any)
 			local from = self:claimFrom(msg.toast.source)
 			self:push("now", function()
 				self:chip(candy, x2, from)
-			end)
-		end
-	elseif type(msg.step) == "number" then
-		local step = H.Track.Steps[msg.step]
-		if step == nil then
-			return
-		end
-		local gate: Gate = if os.clock() < self.matchUntil then "free" else "now"
-		if step.Cue then
-			self:push("card", function()
-				self:showCard(step.Cue :: string, W.FromTrack)
-			end)
-		else
-			local from = self:claimFrom("Quest")
-			self:push(gate, function()
-				local P = progression()
-				if P then
-					P.flyReward(
-						{ spins = step.Spins or 0, money = step.Money or 0 },
-						from or self:centre()
-					)
-				end
 			end)
 		end
 	elseif msg.spider == true then

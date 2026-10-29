@@ -567,20 +567,17 @@ return {
 	end,
 
 	-- The Halloween event's config (hw-core; Config.Halloween).
-	["halloween: times in order, track ascending, quests and switches valid"] = function()
+	["halloween: times in order, the cue shop, quests and switches valid"] = function()
 		local Config = H.require("Config")
 		local C = Config.Halloween
 		H.expect(C.CountdownAt < C.StartsAt and C.StartsAt < C.EndsAt, "times in order")
 		H.expect(C.Double.From < C.Double.To and C.Double.From >= C.StartsAt, "the double day")
 		H.expect(C.Double.To <= C.EndsAt, "inside the event")
-		local last = 0
-		for _, step in C.Track.Steps do
-			H.expect(step.At > last, "track ascending")
-			last = step.At
-			local prizes = (if step.Cue then 1 else 0)
-				+ (if step.Spins then 1 else 0)
-				+ (if step.Money then 1 else 0)
-			H.expect(prizes == 1, "one prize a step")
+		local seen = {}
+		for _, r in C.Cues.List do
+			H.expect(r.Candy >= 1 and r.Candy == math.floor(r.Candy), r.Cue .. ": a whole price")
+			H.expect(not seen[r.Cue], r.Cue .. " once")
+			seen[r.Cue] = true
 		end
 		local kinds = {
 			Matches = true,
