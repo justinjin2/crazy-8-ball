@@ -922,7 +922,7 @@ return {
 		Id = "witch_broom",
 		Name = "Witch's Broom",
 		Tier = "Secret",
-		Thumb = "rbxassetid://82560329966868",
+		Thumb = "rbxassetid://131711880887023",
 		Look = {
 			Shaft = { 107, 74, 46 },
 			Forearm = { 107, 74, 46 },

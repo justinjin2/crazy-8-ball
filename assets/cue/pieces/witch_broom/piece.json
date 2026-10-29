@@ -2,7 +2,7 @@
   "id": "witch_broom",
   "Frame": "cue",
   "frame": "Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)",
-  "Triangles": 9144,
+  "Triangles": 9096,
   "Parts": [
     {
       "Material": "SmoothPlastic",
@@ -121,16 +121,16 @@
       "File": "pieces/witch_broom/Bristles_Bark.obj",
       "Joint": "Bristles",
       "Offset": [
-        0.0011,
+        -0.0103,
         -0.0142,
-        -4.2384
+        -4.076
       ],
       "Size": [
-        1.3685,
+        1.3458,
         1.3499,
-        1.4768
+        1.1519
       ],
-      "Triangles": 3040,
+      "Triangles": 2992,
       "Outline": false
     }
   ],

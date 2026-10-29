@@ -4,8 +4,9 @@
 -- Jack-o'-Lantern's finisher laugh is quiet and heard only near the table, its rising head
 -- has no circling mini jacks; the Witch's Broom's finisher has nothing ring-like (the Beta
 -- cue's look: ring decals, a flat swirl disc, the gust's ribbons, rings turning round the
--- pocket) and its witch flies alone (no moon) on a 64-frame flipbook. Read from the generated
--- skin and piece rows.
+-- pocket) and its witch flies alone (no moon) on a 64-frame flipbook; its bristle head is short
+-- enough not to stab the floor from a normal character's back. Read from the generated skin and
+-- piece rows.
 
 local H = require("./harness")
 
@@ -132,5 +133,20 @@ return {
 			type(witch.Texture) == "string" and witch.Texture:sub(1, 13) == "rbxassetid://",
 			"an uploaded flipbook"
 		)
+	end,
+
+	["the Broom's bristle head ends at most 1.2 studs past the butt"] = function()
+		local CueSkins = H.require("CueSkins")
+		local piece = CueSkins.piece(CueSkins.get("WitchBroomCue").Body)
+		-- the cue MeshPart frame: the butt at z = -3.5 (7 studs long, centred)
+		local far = 0
+		for _, part in piece.Parts do
+			if part.Joint == "Bristles" then
+				far = math.max(far, -3.5 - (part.Offset[3] - part.Size[3] / 2))
+			end
+		end
+		H.expect(far > 0.8, ("the bristles reach %.2f past the butt (a real head)"):format(far))
+		-- 1.48 clipped into the ground on a normal character's back (designer 2026-10-29)
+		H.expect(far <= 1.2, ("the bristles reach %.2f past the butt (at most 1.2)"):format(far))
 	end,
 }

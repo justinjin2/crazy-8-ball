@@ -1394,21 +1394,10 @@
     "assetType": "Model",
     "status": "ok"
   },
-  "/Users/justinjin/Desktop/8ball/.claude/worktrees/agent-adf8a5316b308e556/assets/cue/pieces/witch_broom/witch_broom_parts.glb": {
-    "assetId": "106017662921644",
-    "assetType": "Model",
-    "status": "ok"
-  },
   "/Users/justinjin/Desktop/8ball/.claude/worktrees/agent-adf8a5316b308e556/assets/cue/thumbs/pitchfork.png": {
     "assetId": "110284560248397",
     "assetType": "Image",
     "imageId": "110284560248397",
-    "status": "ok"
-  },
-  "/Users/justinjin/Desktop/8ball/.claude/worktrees/agent-adf8a5316b308e556/assets/cue/thumbs/witch_broom.png": {
-    "assetId": "82560329966868",
-    "assetType": "Image",
-    "imageId": "82560329966868",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/abilities/BlackFlash/BlackFlash.glb": {
@@ -6704,6 +6693,17 @@
     "assetId": "124879285784866",
     "assetType": "Image",
     "imageId": "124879285784866",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/.claude/worktrees/wf_a0729e1c-dc8-3/assets/cue/pieces/witch_broom/witch_broom_parts.glb": {
+    "assetId": "119274159538699",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/.claude/worktrees/wf_a0729e1c-dc8-3/assets/cue/thumbs/witch_broom.png": {
+    "assetId": "131711880887023",
+    "assetType": "Image",
+    "imageId": "131711880887023",
     "status": "ok"
   }
 }

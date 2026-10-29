@@ -436,7 +436,22 @@ HANDLE = (0.3, 6.75)      # the bark handle's run (d from the tip)
 # lengths, the crook, the crystal tip, the buckle and the hat charm as they were. In the hand
 # zones the handle then sits 0.01-0.02 inside the envelope (RULES HandRadius allows 0.04).
 BROOM_SLIM = 0.78
-BINDING = (6.75, 7.0)     # the purple wraps
+# The bristle head's length past the binding at this share, and its straws' splay (v3, the
+# designer 2026-10-29: "a little too long", it clipped into the ground on a normal character's
+# back): d = 7 + (d - 7) * BRISTLE_LEN for the bulb, its waist cord and every straw, so the head
+# ends at 8.15 (was 8.47) and its lowest straw on a back (36 degrees, Config.Cue.Back) sits
+# about 0.28 studs higher; the straws' tips splay BRISTLE_SPLAY as wide. The binding, the
+# buckle and the hat charm do not move.
+BRISTLE_LEN = 0.78
+BRISTLE_SPLAY = 0.92
+
+
+def _head_d(d):
+    """A bristle-head distance from the tip, shortened by BRISTLE_LEN past the binding (7.0)."""
+    return 7.0 + (d - 7.0) * BRISTLE_LEN
+
+
+BINDING = (6.75, 7.0)    # the purple wraps
 KNOTS = ((2.6, math.pi * 0.86, 0.5), (3.95, math.pi * 1.14, 0.42))  # (d, angle: pi = up, bump) the knot holes between the hand zones
 TWIGS = ((2.35, 0.14, 0.55), (3.0, 0.18, -0.35), (4.05, 0.17, 0.2))   # (d, length, lean (rad, +X))
 
@@ -600,8 +615,8 @@ def witch_broom(k):
     bark lumps, a thick broken branch stub and two twigs) and before the binding it swells into
     a twisted collar. Binding (6.55-7.05): thick purple cord wraps closed at both ends, a big
     silver buckle on the +X side carrying the gold crescent (emissive). Bristles (joint
-    Bristles, Aim fade, 3.3x the first head): an opaque straw bulb from the binding to d 8.47
-    (0.9 across at its widest since the slim pass, BROOM_SLIM; fuller on top, flatter
+    Bristles, Aim fade, 3.3x the first head): an opaque straw bulb from the binding to d 8.15
+    (8.47 until v3's BRISTLE_LEN; 0.9 across at its widest since the slim pass, BROOM_SLIM; fuller on top, flatter
     underneath), a purple cord round its waist, three layers of opaque tapered straws (70, double-sided) splaying past it to pointed
     tips up to 1.5 across, the lower ones drooping, and 130 thinner straws poking out of the
     bulb, most near its end (opaque, never alpha cards: the outline inks each straw).
@@ -744,7 +759,7 @@ def witch_broom(k):
             motion=[{'Kind': 'Hinge', 'Axis': (1, 0, 0), 'Amp': 1.0, 'Period': 2.6},
                     {'Kind': 'Hinge', 'Axis': (0, 0, 1), 'Amp': 0.7, 'Period': 4.0, 'Phase': 90}],
             aim='fade')
-    bulb_ds = [7.0, 7.12, 7.3, 7.55, 7.85, 8.1, 8.3, 8.42, 8.47]
+    bulb_ds = [_head_d(d) for d in (7.0, 7.12, 7.3, 7.55, 7.85, 8.1, 8.3, 8.42, 8.47)]
     bulb_rs = [BROOM_SLIM * r for r in (0.3, 0.42, 0.5, 0.56, 0.58, 0.52, 0.38, 0.22, 0.1)]
 
     def bulb_r(d):
@@ -761,7 +776,7 @@ def witch_broom(k):
     _lathe_uv(bm, uvl, bulb_ds, bulb_rs, 24, lambda u, v: A.uv('ROOT', u, v), shape=bulb_shape, close=True,
               cap_uv=A.uv('ROOT', 0.5, 0.95))
     # the purple cord round the bulb's waist
-    cds = [7.28, 7.31, 7.36, 7.41, 7.44]
+    cds = [_head_d(d) for d in (7.28, 7.31, 7.36, 7.41, 7.44)]
     crs = [bulb_r(d) * 1.0 + BROOM_SLIM * (0.0, 0.03, 0.035, 0.03, 0.0)[i] for i, d in enumerate(cds)]
     _lathe_uv(bm, uvl, cds, crs, 24, lambda u, v: A.uv('BIND', u, 0.3 + 0.4 * v), shape=bulb_shape, close=False)
     k.add('Bristles', k.mesh_object('BristleRoot', bm, ['Bark']))
@@ -775,10 +790,10 @@ def witch_broom(k):
     bm = bmesh.new()
     uvl = bm.loops.layers.uv.new('UVMap')
     layers = ((0.92, 0.78, 26), (0.72, 1.0, 24), (0.5, 1.18, 20))   # (start share of the binding's radius, tip scale, count)
-    tip_r0 = 0.68 * BROOM_SLIM
+    tip_r0 = 0.68 * BROOM_SLIM * BRISTLE_SPLAY
     seg = 5
     for li, (share, tscale, cards) in enumerate(layers):
-        d0 = 7.02 + 0.05 * li
+        d0 = _head_d(7.02 + 0.05 * li)
         for c in range(cards):
             frac = (c + 0.5 + 0.37 * li) / cards
             ang = 2 * math.pi * frac
@@ -787,8 +802,8 @@ def witch_broom(k):
             hc = c + 31 * li
             width = 0.16 * BROOM_SLIM * (0.75 + 0.5 * _hash(hc, 7))
             r0 = 0.34 * BROOM_SLIM * share * (0.85 + 0.15 * (0.5 - 0.5 * math.cos(ang)))
-            end = d0 + (8.48 - d0) * (0.78 + 0.22 * _hash(hc, 5))
-            tr = min(0.98 * BROOM_SLIM, tip_r0 * tscale * (0.85 + 0.3 * _hash(hc, 8)))
+            end = d0 + (_head_d(8.48) - d0) * (0.78 + 0.22 * _hash(hc, 5))
+            tr = min(0.98 * BROOM_SLIM * BRISTLE_SPLAY, tip_r0 * tscale * (0.85 + 0.3 * _hash(hc, 8)))
             under = max(0.0, math.cos(ang))
             left, right = [], []
             for s in range(seg + 1):
@@ -804,7 +819,7 @@ def witch_broom(k):
             _strip_uv(bm, uvl, left, right, lambda u, v, u0=u0: A.uv('ROOT', u0 + u * 0.06, 0.15 + 0.8 * v))
     for i in range(130):
         h = lambda j: _hash(i + 400, j)
-        d = 7.2 + 1.2 * (h(1) ** 0.7)   # more of them toward the end, where the bundle frays
+        d = _head_d(7.2 + 1.2 * (h(1) ** 0.7))   # more of them toward the end, where the bundle frays
         ang = 2 * math.pi * h(2)
         rad = Vector((math.sin(ang), 0, -math.cos(ang)))
         tang = Vector((math.cos(ang), 0, math.sin(ang)))
@@ -814,8 +829,8 @@ def witch_broom(k):
         yaw = math.radians(-25 + 50 * h(4))
         dirv = (rad * math.cos(tilt) + Vector((0, -1, 0)) * math.sin(tilt) + tang * math.sin(yaw) * 0.5).normalized()
         L = (0.22 + 0.25 * h(5)) * BROOM_SLIM
-        if d - dirv.y * L > 8.46:
-            L = (8.46 - d) / max(1e-3, -dirv.y)
+        if d - dirv.y * L > _head_d(8.46):
+            L = (_head_d(8.46) - d) / max(1e-3, -dirv.y)
         if L < 0.1:
             continue
         side = dirv.cross(rad).normalized() if abs(dirv.dot(rad)) < 0.98 else tang

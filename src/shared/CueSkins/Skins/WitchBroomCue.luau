@@ -1372,7 +1372,7 @@ return {
 	},
 	Piece = "witch_broom_aura",
 	Body = "witch_broom",
-	Thumb = "rbxassetid://82560329966868",
+	Thumb = "rbxassetid://131711880887023",
 	Look = {
 		Shaft = { 107, 74, 46 },
 		Forearm = { 107, 74, 46 },
