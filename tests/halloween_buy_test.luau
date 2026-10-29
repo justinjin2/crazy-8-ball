@@ -155,10 +155,15 @@ local function receipt(playerId: number, productId: number, purchaseId: string):
 end
 
 return {
-	["the cue shop: three cues with a Candy price and a Robux product that sells that cue"] = function()
+	["the cue shop: four cues with a Candy price and a Robux product that sells that cue"] = function()
 		H.expect(type(C.Cues.Enabled) == "boolean", "Cues.Enabled is a switch")
-		H.expect(#C.Cues.List == 3, "three cues")
-		local want = { PitchforkCue = 300, WitchBroomCue = 2500, HalloweenSwordCue = 7500 }
+		H.expect(#C.Cues.List == 4, "four cues")
+		local want = {
+			PitchforkCue = 300,
+			WitchBroomCue = 2500,
+			JackOLanternCue = 4500,
+			HalloweenSwordCue = 7500,
+		}
 		for _, r in C.Cues.List do
 			H.expect(want[r.Cue] == r.Candy, r.Cue .. "'s price")
 			local product = (Config.Products.List :: any)[r.Product]
@@ -168,7 +173,8 @@ return {
 			H.expect(cue ~= nil and cue.Group == "Exclusive", r.Cue .. " is Exclusive")
 			H.expect(Ledger.cueRow(r.Cue) == r, "cueRow finds " .. r.Cue)
 		end
-		H.expect(Ledger.cueRow(C.KingDrop.Cue) == nil, "the King's drop is not sold")
+		-- The King's drop is a shop cue since the King went (designer, 2026-10-29).
+		H.expect(Ledger.cueRow(C.KingDrop.Cue) ~= nil, "the Jack is sold")
 		H.expect(Ledger.cueRow("SpiderCue") == nil and Ledger.cueRow(nil) == nil, "nor others")
 	end,
 
@@ -210,7 +216,14 @@ return {
 				"before"
 			)
 			H.expect(Ledger.buyCheck(hw, "PitchforkCue", END, false, true) == "Closed", "the end")
-			H.expect(Ledger.buyCheck(hw, "JackOLanternCue", LIVE, false, true) == "Closed", "Jack")
+			H.expect(
+				Ledger.buyCheck(hw, "JackOLanternCue", LIVE, false, true) == nil,
+				"the Jack: a shop cue"
+			)
+			H.expect(
+				Ledger.buyCheck(hw, "Classic", LIVE, false, true) == "Closed",
+				"not a shop cue"
+			)
 			H.expect(Ledger.buyCheck(hw, 7, LIVE, false, true) == "Closed", "not a cue id")
 			H.expect(Ledger.buyCheck(hw, "PitchforkCue", LIVE, false, false) == "Closed", "unready")
 			H.expect(Ledger.buyCheck(hw, "PitchforkCue", LIVE, true, true) == "Owned", "owned")
@@ -355,7 +368,10 @@ return {
 			local short = string.gsub(r.Product, "^Hw", "")
 			table.insert(want, ("%d_%s"):format(i + 3, short))
 		end
-		H.expect(want[4] == "4_Pitchfork" and want[6] == "6_Sword", "the names")
+		H.expect(
+			want[4] == "4_Pitchfork" and want[6] == "6_Jack" and want[7] == "7_Sword",
+			"the names"
+		)
 		H.expect(#names == #want, ("%d steps, expected %d"):format(#names, #want))
 		for i, name in want do
 			H.expect(

@@ -3804,7 +3804,7 @@ Config.Halloween = {
 	-- mode, Ledger.bossVisitWin) rolls Chance once for Cue, in the same change as the visit's
 	-- pay (a replay never rolls again); never rolled once owned. The map lane's sign and the
 	-- event menu's pill read Chance. Enabled false: no drop.
-	KingDrop = { Enabled = true, Cue = "JackOLanternCue", Chance = 0.05 },
+	KingDrop = { Enabled = false, Cue = "JackOLanternCue", Chance = 0.05 }, -- off with the King (2026-10-29)
 	-- Ground candy (map's CandyDrop spawns it): Candy each pickup (flat), at most HourCap
 	-- pickups per player per UTC hour (the save counts pickups; the Pickups quests count them
 	-- too, not Candy). The ONLY pickup cap: CandyService.pickup enforces it. About half of all
@@ -3911,13 +3911,15 @@ Config.Halloween = {
 	-- the Config.Products.List key that sells it straight for Robux. Timed to the event's five
 	-- days from the release (docs/ECONOMY.md, Halloween): about 25 min of play for the Pitchfork,
 	-- about 4 h for the Broom, about 13-15 h for the Sword, at about 280 match + 280 ground
-	-- Candy an hour plus the quests. The Jack-o'-Lantern is the King's drop only (KingDrop).
-	-- Enabled false: no buying (the cards show without buttons).
+	-- Candy an hour plus the quests. Easiest first (the menu's order): the Jack-o'-Lantern is
+	-- the second hardest since the King went (designer, 2026-10-29 ~12:00: 4,500 Candy or
+	-- 399 R$). Enabled false: no buying (the cards show without buttons).
 	Cues = {
 		Enabled = true,
 		List = {
 			{ Cue = "PitchforkCue", Candy = 300, Product = "HwPitchfork" },
 			{ Cue = "WitchBroomCue", Candy = 2500, Product = "HwBroom" },
+			{ Cue = "JackOLanternCue", Candy = 4500, Product = "HwJack" },
 			{ Cue = "HalloweenSwordCue", Candy = 7500, Product = "HwSword" },
 		} :: { { Cue: string, Candy: number, Product: string } },
 	},
@@ -4439,6 +4441,7 @@ Config.Products = {
 		HwPitchfork = { Kind = "Product", Id = 3723520924, Robux = 49, Cue = "PitchforkCue" },
 		HwBroom = { Kind = "Product", Id = 3723520925, Robux = 249, Cue = "WitchBroomCue" },
 		HwSword = { Kind = "Product", Id = 3723520926, Robux = 599, Cue = "HalloweenSwordCue" },
+		HwJack = { Kind = "Product", Id = 3723584090, Robux = 399, Cue = "JackOLanternCue" },
 	},
 }
 
@@ -9485,7 +9488,10 @@ Config.HalloweenMap = {
 		PulseSeconds = 1.1, -- each way; none with Reduce Motion
 	},
 	Boss = {
-		Enabled = true, -- the Pumpkin King's challenge
+		-- the Pumpkin King's challenge: off for the release (designer, 2026-10-29 ~12:00: playing
+		-- safe at 3K players; the Jack-o'-Lantern is bought instead). Off also hides his throne,
+		-- timer, banners, sign and cutscene; his quests read as their Alts.
+		Enabled = false,
 		-- Where and when he plays (designer, 2026-10-28, gate 2 option 2): "Timed": he visits the
 		-- middle of the roof on a schedule every server shares (Timed below) and is challenged at
 		-- his stage there, a line forming when the tables are full; "Throne": always on his
@@ -18352,7 +18358,9 @@ Config.Badges = {
 	-- about 28 s in all (Badges.revealSeconds). A toast before the card would spoil the pull.
 	RevealMarginSeconds = 2,
 	Retries = { 5, 20, 60 }, -- seconds before each retry of a failed call; then wait for the next join
-	Paused = {} :: { [string]: boolean }, -- [Key] = true: cut or misbehaving; the row never awards (a one-line publish)
+	-- [Key] = true: cut or misbehaving; the row never awards (a one-line publish). PumpkinSlayer:
+	-- the King is off for the release (2026-10-29).
+	Paused = { PumpkinSlayer = true } :: { [string]: boolean },
 	-- The designer cut Tycoon (Money10M, out of reach) and Part of the Crew (Crew) on 2026-10-28:
 	-- their rows are gone and the two badges are disabled on Roblox (they cannot be deleted;
 	-- tools/badges_manifest.json keeps their ids). 50 rows.

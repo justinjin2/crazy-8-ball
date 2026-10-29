@@ -430,7 +430,8 @@ Steps.Funnels = {
 		"3_FirstCandy",
 		"4_Pitchfork",
 		"5_Broom",
-		"6_Sword",
+		"6_Jack",
+		"7_Sword",
 	},
 }
 

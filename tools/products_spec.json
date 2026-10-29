@@ -354,6 +354,13 @@
    "description": "The Witch's Broom Cue, a Unique Halloween 2026 cue. Sold only during the Halloween event; it can be gifted to a player in your server."
   },
   {
+   "key": "HwJack",
+   "kind": "Product",
+   "name": "Jack-o'-Lantern Cue",
+   "robux": 399,
+   "description": "The Jack-o'-Lantern Cue, a Unique Halloween 2026 cue. Sold only during the Halloween event; it can be gifted to a player in your server."
+  },
+  {
    "key": "HwSword",
    "kind": "Product",
    "name": "Halloween Sword Cue",

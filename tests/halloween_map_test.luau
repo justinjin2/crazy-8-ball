@@ -513,14 +513,17 @@ return {
 	["the Throne switch off stops the timed King's visits (no throne anywhere)"] = function()
 		local R = H.require("HalloweenMap.Rules")
 		local HM = H.require("Config").HalloweenMap
-		local mode, throne = HM.Boss.Mode, HM.Throne.Enabled
-		HM.Boss.Mode, HM.Throne.Enabled = "Timed", true
+		local mode, throne, boss = HM.Boss.Mode, HM.Throne.Enabled, HM.Boss.Enabled
+		HM.Boss.Enabled = false
+		local bossOff = R.kingVisits()
+		HM.Boss.Mode, HM.Throne.Enabled, HM.Boss.Enabled = "Timed", true, true
 		H.expect(R.kingVisits(), "Timed with the throne on: he visits")
 		HM.Throne.Enabled = false
 		local off = R.kingVisits()
 		HM.Boss.Mode = "Throne"
 		local throneMode = R.kingVisits()
-		HM.Boss.Mode, HM.Throne.Enabled = mode, throne
+		HM.Boss.Mode, HM.Throne.Enabled, HM.Boss.Enabled = mode, throne, boss
+		H.expect(not bossOff, "the King switched off (the release, 2026-10-29): no visits")
 		H.expect(not off, "Timed with the Throne switch off: no visits, no stage")
 		H.expect(not throneMode, "Throne mode never runs the visits")
 	end,

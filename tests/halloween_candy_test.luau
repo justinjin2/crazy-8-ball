@@ -197,6 +197,9 @@ return {
 		local _, Ledger, Config = load()
 		local D: any = Config.Halloween.KingDrop
 		H.expect(D.Cue == "JackOLanternCue" and D.Chance == 0.05, "the Jack at 5%")
+		H.expect(D.Enabled == false, "off for the release, with the King (2026-10-29)")
+		local released = D.Enabled
+		D.Enabled = true -- the rules as they run when it is on
 		H.expect(Ledger.kingDrop(0, false, true) == "Drop", "a low roll drops")
 		H.expect(Ledger.kingDrop(D.Chance - 1e-9, false, true) == "Drop", "just under")
 		H.expect(Ledger.kingDrop(D.Chance, false, true) == "NoDrop", "at Chance: no drop")
@@ -208,6 +211,7 @@ return {
 		D.Enabled = false
 		local off = Ledger.kingDrop(0, false, true)
 		D.Enabled = saved
+		D.Enabled = released
 		H.expect(off == nil, "switched off: no roll")
 	end,
 

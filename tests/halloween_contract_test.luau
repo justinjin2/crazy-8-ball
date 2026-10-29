@@ -123,9 +123,13 @@ return {
 			(C :: any).Track == nil,
 			"no Candy track (designer, 2026-10-29: the cue shop instead)"
 		)
-		local want =
-			{ { "PitchforkCue", 300 }, { "WitchBroomCue", 2500 }, { "HalloweenSwordCue", 7500 } }
-		H.expect(#C.Cues.List == #want, "three cues in the shop")
+		local want = {
+			{ "PitchforkCue", 300 },
+			{ "WitchBroomCue", 2500 },
+			{ "JackOLanternCue", 4500 },
+			{ "HalloweenSwordCue", 7500 },
+		}
+		H.expect(#C.Cues.List == #want, "four cues in the shop")
 		for i, w in want do
 			local r = C.Cues.List[i]
 			H.expect(
