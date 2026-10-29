@@ -8,8 +8,14 @@
 --
 --   MODEL     the cue level and tilted in its full aura, the camera turning round it
 --   TRAIL     the stroke, the ball rolling into a pocket with the cue's trail, the pocket burst
---             and the cue's finisher, again and again
+--             and the cue's finisher, again and again; the camera eases from the roll up to the
+--             finisher as the ball nears the pocket, and back for the next stroke
 --   FINISHER  the camera close on the pocket: the roll's last part, the burst and the finisher
+--
+-- The camera's distance is fitted to the window's real size (CuePreviewMath.fitDistance): the
+-- whole cue as drawn (a body reaching past the butt, its 3D piece), and the finisher's whole
+-- height (finisherReach, read from the skin row), stay in view all round the orbit; the loop
+-- holds a long finisher its own length.
 --
 -- Drag the window (mouse or finger) or push the right stick to turn the view; LB/RB switch the
 -- tabs; A presses the selected button; B, Escape and the red X close it (Menus' close action).
@@ -41,6 +47,7 @@ local Config = require(Shared:WaitForChild("Config"))
 local Net = require(Shared:WaitForChild("Net"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local CuePreviewMath = require(Shared:WaitForChild("CuePreviewMath"))
+local CueSkins = require(Shared:WaitForChild("CueSkins"))
 local CueStickBuilder = require(Shared:WaitForChild("CueStickBuilder"))
 local Placement = require(Shared:WaitForChild("Placement"))
 local Catalog = require(Shared:WaitForChild("Progression"):WaitForChild("Catalog"))
@@ -90,9 +97,9 @@ type Session = {
 	look: any,
 	effects: any,
 	ball: BasePart?,
-	pocket: Vector3?,
-	start: Vector3?,
-	tableTop: number,
+	pocket: Vector3?, -- the ball's centre over the pocket (the roll's end)
+	start: Vector3?, -- the ball's centre where the stroke hits it
+	cloth: number, -- the cloth's height (world Y): the burst rises from the pocket there
 	connections: { RBXScriptConnection },
 	camera: any,
 	held: any,
@@ -108,7 +115,14 @@ type Session = {
 	dragging: boolean,
 	lastDrag: Vector2?,
 	lastDragAt: number,
-	stickLength: number,
+	span: CuePreviewMath.Span, -- the cue as drawn, along it from the tip (its body counted in)
+	body: string?, -- the body the span was measured with (the stick's Body attribute)
+	reach: CuePreviewMath.Reach, -- how high, wide and long the cue's finisher is
+	hold: number, -- the loop holds the finisher this long
+	fits: { [string]: { focus: Vector3, distance: number } }, -- the camera's framings (refit)
+	fitKey: string, -- what they were fitted for: the tab, the window, the body
+	phase: string?, -- the loop's phase now, and how far through it (TRAIL's camera follows)
+	progress: number,
 	focus: Vector3,
 	burstDone: boolean,
 	reveal: Stage.Stage?, -- the open (Config.UI.CuePreview.Open)
@@ -266,9 +280,9 @@ local function buildStage(s: Session)
 	s.stage = stage
 	local dark = rgb(C.Backdrop)
 	-- The room: a floor, a ceiling and four walls round the table, its own lights inside (it
-	-- must read under any lighting preset).
-	local room = 70
-	local h = 30
+	-- must read under any lighting preset), big enough for the farthest fitted camera.
+	local room = C.Room.SideStuds
+	local h = C.Room.HeightStuds
 	bare(
 		"Floor",
 		Vector3.new(room, 1, room),
@@ -302,7 +316,8 @@ local function buildStage(s: Session)
 			target = p
 		end
 	end
-	local radius = Config.Balls.RadiusInches
+	-- The ball rests its drawn radius over the cloth, as the game's do.
+	local radius = Config.Balls.RenderRadiusInches
 	local px, py, pz = Placement.toWorld(placement, target.x, target.y, radius)
 	s.pocket = Vector3.new(px, py, pz)
 	-- The ball starts this far back along the pocket's diagonal.
@@ -310,9 +325,11 @@ local function buildStage(s: Session)
 	local sx, sy, sz =
 		Placement.toWorld(placement, target.x * (1 - back), target.y * (1 - back), radius)
 	s.start = Vector3.new(sx, sy, sz)
-	s.tableTop = py
+	-- The burst rises from the pocket's centre at cloth height, as Main's (its rings lie on it).
+	local _, clothY = Placement.toWorld(placement, target.x, target.y, 0)
+	s.cloth = clothY
 	if not cloneTable(stage, placement) then
-		slab(stage, placement, s.pocket :: Vector3)
+		slab(stage, placement, Vector3.new(px, clothY + 0.03, pz))
 	end
 	-- Lights: a key spot from above the pocket's side, a violet rim behind.
 	local mid = ((s.start :: Vector3) + (s.pocket :: Vector3)) / 2
@@ -346,7 +363,7 @@ local function buildStage(s: Session)
 	rim.Shadows = false
 	rim.Parent = rimHost
 	-- The ball, at the game's drawn size.
-	local d = 2 * radius * Config.Balls.RenderScale * Config.Table.StudsPerInch
+	local d = 2 * radius * Config.Table.StudsPerInch
 	local ball = bare(
 		"Ball",
 		Vector3.new(d, d, d),
@@ -357,6 +374,27 @@ local function buildStage(s: Session)
 	ball.Shape = Enum.PartType.Ball
 	s.ball = ball
 	stage.Parent = workspace
+end
+
+-- The cue as drawn (CuePreviewMath.cueSpan): the shared stick, its body when it wears one (the
+-- stick's Body attribute: CueStickBuilder's decision, cleared if the body fails to build) and
+-- its 3D piece. Measured again whenever the body changes; the camera refits then.
+local function measure(s: Session)
+	local stick = s.stick
+	local body = if stick then stick:GetAttribute("Body") else nil
+	local rows = {}
+	local bodyRow = if type(body) == "string" then CueSkins.piece(body) else nil
+	if bodyRow then
+		table.insert(rows, bodyRow)
+	end
+	local row = CueSkins.get(s.id)
+	local pieceRow = if row and row.Piece then CueSkins.piece(row.Piece) else nil
+	if pieceRow then
+		table.insert(rows, pieceRow)
+	end
+	s.body = if type(body) == "string" then body else nil
+	s.span = CuePreviewMath.cueSpan(Config.Cue.CueLengthStuds, rows)
+	s.fitKey = ""
 end
 
 -- The cue's stick, look and effects (again when the cue changes).
@@ -379,8 +417,15 @@ local function buildCue(s: Session)
 	s.look = CueSkinLook.attach(stick, { aura = true })
 	s.effects = Effects.new(stage, Effects.styleOfCue(s.id))
 	s.effects:attachTrail(s.ball :: BasePart)
-	local size = stick:GetExtentsSize()
-	s.stickLength = math.max(size.X, size.Y, size.Z)
+	-- Its finisher's reach and length, from its skin row (a plain cue's burst: the least).
+	local row = CueSkins.get(s.id)
+	local pocket = if row then row.Pocket else nil
+	local creature = if type(pocket) == "table" and type(pocket.Piece) == "table"
+		then CueSkins.piece(pocket.Piece.Piece)
+		else nil
+	s.reach = CuePreviewMath.finisherReach(pocket, creature)
+	s.hold = CuePreviewMath.holdSeconds(s.reach.seconds)
+	measure(s)
 	-- Hidden until its assets are in (or the timeout), with the spinner up.
 	s.ready = false
 	s.readyAt = os.clock() + C.LoadTimeoutSeconds
@@ -397,15 +442,27 @@ end
 -- The loop and the camera (one render step while open)
 --------------------------------------------------------------------------------------------
 
--- The cue for MODEL: level, tilted, its middle at the focus.
+-- MODEL's cue: level, tilted, the middle of the cue as drawn (its body past the butt counted in)
+-- over the stage's centre.
+local MODEL_AXIS = (CFrame.Angles(0, 0, math.rad(12)) * Vector3.new(1, 0, 0)).Unit
+
+local function modelCentre(s: Session): Vector3
+	local f = C.Tabs.Model.Focus
+	return (s.start :: Vector3):Lerp(s.pocket :: Vector3, 0.5) + Vector3.new(f[1], f[2], f[3])
+end
+
+-- The drawn cue's middle, along it from the tip.
+local function spanMiddle(s: Session): number
+	return (s.span.from + s.span.to) / 2
+end
+
 local function poseModel(s: Session)
 	local stick = s.stick
 	if not stick then
 		return
 	end
-	local axis = (CFrame.Angles(0, 0, math.rad(12)) * Vector3.new(1, 0, 0)).Unit
-	local tip = s.focus - axis * (s.stickLength / 2)
-	stick:PivotTo(CFrame.lookAt(tip, tip - axis))
+	local tip = modelCentre(s) - MODEL_AXIS * spanMiddle(s)
+	stick:PivotTo(CFrame.lookAt(tip, tip - MODEL_AXIS))
 end
 
 local function setTrail(s: Session, rolling: boolean, pocketed: boolean)
@@ -428,12 +485,13 @@ local function playLoop(s: Session, dt: number)
 		return
 	end
 	s.loopAt += dt
-	local timeline = CuePreviewMath.timeline(s.tab, nil)
+	local timeline = CuePreviewMath.timeline(s.tab, s.hold) -- the cue's finisher, held whole
 	local phase, progress = CuePreviewMath.phaseAt(timeline, s.loopAt)
+	s.phase, s.progress = phase, progress
 	local from, to = s.start :: Vector3, s.pocket :: Vector3
 	local dir = (to - from).Unit
-	local gap = 0.25
-	local pullStuds = 1.6
+	local gap = C.Stroke.GapStuds
+	local pullStuds = C.Stroke.PullStuds
 	if phase == "back" or phase == "hit" then
 		s.burstDone = false
 		ball.Transparency = 0
@@ -454,7 +512,7 @@ local function playLoop(s: Session, dt: number)
 		if not s.burstDone then
 			s.burstDone = true
 			pcall(function()
-				s.effects:pocketBurst(Vector3.new(to.X, s.tableTop, to.Z), 1)
+				s.effects:pocketBurst(Vector3.new(to.X, s.cloth, to.Z), 1)
 			end)
 		end
 	else
@@ -472,24 +530,158 @@ local function windowCentre(s: Session): Vector2?
 	return window.AbsolutePosition + window.AbsoluteSize / 2 + inset
 end
 
+-- The middle of a set of points' box.
+local function boxCentre(points: { Vector3 }): Vector3
+	local lo, hi = points[1], points[1]
+	for _, p in points do
+		lo, hi = lo:Min(p), hi:Max(p)
+	end
+	return (lo + hi) / 2
+end
+
+-- What each framing keeps in view (world points) and the point it turns round:
+--   Model     MODEL's cue as drawn, both ends a little off its axis
+--   Roll      TRAIL's stroke and roll: the ball from where it is hit to the pocket
+--   Rise      TRAIL's finisher: its column over the pocket (finisherReach)
+--   Trail     TRAIL whole, held still with Reduce Motion
+--   Finisher  FINISHER's end of the roll and the finisher
+local function framingPoints(s: Session, name: string): ({ Vector3 }, Vector3)
+	local start, pocket = s.start :: Vector3, s.pocket :: Vector3
+	if name == "Model" then
+		local centre = modelCentre(s)
+		local side = MODEL_AXIS:Cross(Vector3.yAxis).Unit
+		local up = side:Cross(MODEL_AXIS).Unit
+		local mid = spanMiddle(s)
+		local points = {}
+		for _, at in { s.span.from, s.span.to } do
+			local p = centre + MODEL_AXIS * (at - mid)
+			for _, off in { up, -up, side, -side } do
+				table.insert(points, p + off * s.span.across)
+			end
+		end
+		return points, centre
+	end
+	local lift = Vector3.yAxis * (2 * Config.Balls.RenderRadiusInches * Config.Table.StudsPerInch)
+	local dir = (pocket - start).Unit
+	local roll = {
+		start,
+		start + lift,
+		pocket,
+		pocket + lift,
+		start - dir * (C.Stroke.GapStuds + C.Fit.StrokeStuds),
+	}
+	local column = { pocket }
+	local floor = Vector3.new(pocket.X, s.cloth, pocket.Z)
+	local r = s.reach.radius
+	for _, h in { 0, s.reach.top } do
+		for _, off in { Vector3.xAxis, -Vector3.xAxis, Vector3.zAxis, -Vector3.zAxis } do
+			table.insert(column, floor + off * r + Vector3.yAxis * h)
+		end
+	end
+	if name == "Roll" then
+		return roll, boxCentre(roll)
+	elseif name == "Rise" then
+		return column, floor + Vector3.yAxis * (s.reach.top / 2)
+	end
+	local points = table.clone(column)
+	if name == "Finisher" then
+		table.insert(points, start:Lerp(pocket, 1 - C.FinisherRollShare))
+	else
+		for _, p in roll do
+			table.insert(points, p)
+		end
+	end
+	return points, boxCentre(points)
+end
+
+local FRAMINGS: { [string]: { string } } = {
+	Model = { "Model" },
+	Trail = { "Roll", "Rise", "Trail" },
+	Finisher = { "Finisher" },
+}
+
+-- Fit the tab's framings to the window now (CuePreviewMath.fitDistance): at the tab's own
+-- pitch, all round the orbit, clamped to Fit.Distance. Again only when the tab, the window or
+-- the cue's body changes.
+local function refit(s: Session, at: Vector2, size: Vector2, viewport: Vector2)
+	local spec = C.Tabs[s.tab]
+	local range = C.Fit.Distance[s.tab]
+	local keep = 1 - C.Fit.MarginShare
+	table.clear(s.fits)
+	for _, name in FRAMINGS[s.tab] do
+		local points, focus = framingPoints(s, name)
+		local list = {}
+		for i, p in points do
+			list[i] = vec(p)
+		end
+		local d = CuePreviewMath.fitDistance(
+			list,
+			vec(focus),
+			spec.Pitch,
+			C.FovDeg,
+			{ w = viewport.X, h = viewport.Y },
+			{ x = at.X, y = at.Y },
+			{ w = size.X / 2 * keep, h = size.Y / 2 * keep },
+			C.Fit.YawStepDeg
+		)
+		s.fits[name] = { focus = focus, distance = math.clamp(d, range[1], range[2]) }
+	end
+end
+
+-- Where the camera looks and from how far now: the tab's framing, or on TRAIL the stroke's
+-- easing over to the finisher's as the ball nears the pocket and back in the gap
+-- (CuePreviewMath.follow); held on the whole of it with Reduce Motion.
+local function framing(s: Session): (Vector3, number)
+	local fits = s.fits
+	if s.tab ~= "Trail" then
+		local fit = fits[s.tab]
+		return fit.focus, fit.distance
+	end
+	if UIAnim.reduced() then
+		return fits.Trail.focus, fits.Trail.distance
+	end
+	local w = CuePreviewMath.follow(s.phase, s.progress)
+	local a, b = fits.Roll, fits.Rise
+	return a.focus:Lerp(b.focus, w), a.distance + (b.distance - a.distance) * w
+end
+
 local function frameCamera(s: Session)
 	local cam = workspace.CurrentCamera
 	local at = windowCentre(s)
-	if not at then
+	if not at or not s.start or not s.pocket then
 		return
 	end
-	local spec = C.Tabs[s.tab]
-	local f = spec.Focus
-	local base = if s.tab == "Finisher"
-		then s.pocket :: Vector3
-		else (s.start :: Vector3):Lerp(s.pocket :: Vector3, 0.5)
-	s.focus = base + Vector3.new(f[1], f[2], f[3])
 	local viewport = cam.ViewportSize
+	local size = (s.parts.window :: GuiObject).AbsoluteSize
+	local stick = s.stick
+	local body = if stick then stick:GetAttribute("Body") else nil
+	if (if type(body) == "string" then body else nil) ~= s.body then
+		measure(s) -- the body was drawn (or dropped): the cue's length changed
+	end
+	local key = ("%s|%.0f|%.0f|%.0f|%.0f|%.0f|%.0f"):format(
+		s.tab,
+		at.X,
+		at.Y,
+		size.X,
+		size.Y,
+		viewport.X,
+		viewport.Y
+	)
+	if key ~= s.fitKey then
+		s.fitKey = key
+		refit(s, at, size, viewport)
+	end
+	local focus, distance = framing(s)
+	s.focus = focus
+	-- Never under the room's floor: a far camera dragged low looks up from just over it.
+	local floorY = C.Origin[2] + C.Room.EyeOverFloorStuds
+	local lowest =
+		math.deg(math.asin(math.clamp((floorY - focus.Y) / math.max(distance, 1e-3), -1, 1)))
 	local eye, target = CuePreviewMath.camera(
-		vec(s.focus),
+		vec(focus),
 		s.yaw,
-		s.pitch,
-		spec.Distance,
+		math.max(s.pitch, lowest),
+		distance,
 		C.FovDeg,
 		{ w = viewport.X, h = viewport.Y },
 		{ x = at.X, y = at.Y }
@@ -1230,7 +1422,7 @@ local function openNow()
 		ball = nil,
 		pocket = nil,
 		start = nil,
-		tableTop = 0,
+		cloth = 0,
 		connections = {},
 		camera = nil,
 		held = nil,
@@ -1246,7 +1438,14 @@ local function openNow()
 		dragging = false,
 		lastDrag = nil,
 		lastDragAt = 0,
-		stickLength = 5,
+		span = CuePreviewMath.cueSpan(Config.Cue.CueLengthStuds, {}),
+		body = nil,
+		reach = CuePreviewMath.finisherReach(nil, nil),
+		hold = C.FinisherHoldSeconds,
+		fits = {},
+		fitKey = "",
+		phase = nil,
+		progress = 0,
 		focus = Vector3.zero,
 		burstDone = false,
 		reveal = nil,
@@ -1385,7 +1584,7 @@ local function start()
 			look = s.ready,
 			shot = CueAssets.shotReady(s.id),
 			spinner = s.parts.spinner ~= nil and s.parts.spinner.Visible,
-			stickShown = stick ~= nil and stick:GetPivot().Position.Y > s.tableTop - 100,
+			stickShown = stick ~= nil and stick:GetPivot().Position.Y > s.cloth - 100,
 			timeoutIn = math.max(0, s.readyAt - os.clock()),
 		}
 	end)
