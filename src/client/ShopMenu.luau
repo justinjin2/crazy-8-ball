@@ -28,6 +28,7 @@
 -- refusal shows the server's reason as a notice. The purple gift square beside a Robux button
 -- opens the Gift Player popup (ShopGift; StoreRequest "Gift").
 local GuiService = game:GetService("GuiService")
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
@@ -57,6 +58,7 @@ local NAME = "Shop"
 local P = Config.UI.Shop.Page
 local K = Config.UI.Kit
 local SB = Config.UI.ShopBlocks
+local HB = Config.UI.Shop.HwBanner
 local COPY: { [string]: any } = Strings.Menus.Shop :: any
 local JUMPS: { { Key: string, Icon: string, Sections: { string } } } = P.Jump :: any
 local round = ShopParts.round
@@ -146,6 +148,44 @@ function ShopMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 	local blocks = HudParts.frame(scroll, "Blocks")
 	blocks.ZIndex = 2
 	self.blocks = blocks
+	-- The Halloween banner over the Blocks group (HwBanner): a press anywhere on it, or its OPEN
+	-- button, opens the event menu.
+	local function openEvent()
+		UISound.play("Click")
+		Menus.open("Halloween")
+	end
+	local banner =
+		HudParts.pill(scroll, "HwBanner", Color3.fromRGB(HB.Tint[1], HB.Tint[2], HB.Tint[3]))
+	banner.Visible = false
+	HudParts.corner(banner, 14)
+	local bannerHit = Instance.new("TextButton")
+	bannerHit.Name = "Hit"
+	bannerHit.BackgroundTransparency = 1
+	bannerHit.Text = ""
+	bannerHit.Size = UDim2.fromScale(1, 1)
+	bannerHit.Selectable = false -- a pad lands on the OPEN button
+	bannerHit.Parent = banner
+	bannerHit.Activated:Connect(openEvent)
+	local bannerIcon = Instance.new("ImageLabel")
+	bannerIcon.Name = "Icon"
+	bannerIcon.BackgroundTransparency = 1
+	bannerIcon.ScaleType = Enum.ScaleType.Fit
+	bannerIcon.Image = Config.UI.Halloween.Tile.Icon
+	bannerIcon.Parent = banner
+	local bannerTitle = HudParts.text(banner, "Title", 20, COPY.HwBannerTitle)
+	bannerTitle.TextXAlignment = Enum.TextXAlignment.Left
+	local bannerSub = HudParts.text(banner, "Sub", 14, COPY.HwBannerSub)
+	bannerSub.TextXAlignment = Enum.TextXAlignment.Left
+	local bannerGo = HudParts.candy(banner, COPY.HwBannerGo, openEvent, HB.GoTone)
+	bannerGo.Name = "Go"
+	self.hwBanner =
+		{ root = banner, icon = bannerIcon, title = bannerTitle, sub = bannerSub, go = bannerGo }
+	local player = Players.LocalPlayer
+	if player then
+		player:GetAttributeChangedSignal("HwOn"):Connect(function()
+			self:layout()
+		end)
+	end
 	self.blocksHead = GrandOpeningCard.header(blocks, COPY.BlocksHeader)
 	local function buyProduct(key: string)
 		self:buyProduct(key)
@@ -259,6 +299,7 @@ function ShopMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 			frame:idle(handle)
 		end
 		self.featured:register(stage, keep)
+		stage:add("HwBanner", self.hwBanner.root)
 		stage:add("BlocksHead", self.blocksHead.word)
 		stage:add("BlocksLines", self.blocksHead.lines)
 		self.mystery:register(stage, keep)
@@ -288,7 +329,11 @@ function ShopMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		pageW -= self.scroll.ScrollBarThickness
 		if self.offShop then
 			local k = GrandOpeningCard.scaleFor(pageW)
-			return GrandOpeningCard.headerHeight(k)
+			local banner = if self:bannerShown()
+				then round((HB.TopUnits + HB.HeightUnits + HB.GapUnits) * k)
+				else 0
+			return banner
+				+ GrandOpeningCard.headerHeight(k)
 				+ round(SB.HeaderGapUnits * k)
 				+ ShopMystery.heightFor(k)
 				+ P.PeekPx
@@ -404,9 +449,12 @@ function ShopMenu.layout(self: any)
 	local height = if self.offShop then 0 else self.featured:layout(pageW)
 	-- Below the card the Blocks group: its header, the Mystery block, the restock, the offers.
 	local k = GrandOpeningCard.scaleFor(pageW)
+	-- The Halloween banner tops the page; the Blocks jump (and opening on Blocks) shows it too.
+	local blocksTop = height
+	height += self:layoutBanner(pageW, k)
 	local headH = GrandOpeningCard.headerHeight(k)
 	self.tops.Featured = if self.offShop then nil else 0
-	self.tops.Blocks = height
+	self.tops.Blocks = blocksTop
 	GrandOpeningCard.layoutHeader(self.blocksHead, round(pageW / 2), round(headH / 2), k)
 	local y = headH + round(SB.HeaderGapUnits * k)
 	y += self.mystery:layout(pageW, k, y)
@@ -457,6 +505,49 @@ function ShopMenu.layout(self: any)
 	if on and os.clock() - self.openedAt <= P.JumpSettleSeconds then
 		self.jumpRail:scrollTo(if self.tops[on] then on else groupOf(on) or on, true)
 	end
+end
+
+--- Whether the Halloween banner shows: on, off the Shop, and the event showing for the player.
+function ShopMenu.bannerShown(self: any): boolean
+	local player = Players.LocalPlayer
+	return HB.Enabled == true
+		and self.offShop
+		and player ~= nil
+		and player:GetAttribute("HwOn") == true
+end
+
+--- The Halloween banner at the page's top; returns the height it takes (0 when hidden).
+function ShopMenu.layoutBanner(self: any, pageW: number, k: number): number
+	local b = self.hwBanner
+	local on = self:bannerShown()
+	b.root.Visible = on
+	if not on then
+		return 0
+	end
+	local side, top = round(HB.SideUnits * k), round(HB.TopUnits * k)
+	local w, h = pageW - 2 * side, round(HB.HeightUnits * k)
+	b.root.Position = UDim2.fromOffset(side, top)
+	b.root.Size = UDim2.fromOffset(w, h)
+	local pad = round(h * 0.12)
+	local iconPx = h - 2 * pad
+	b.icon.Position = UDim2.fromOffset(pad, pad)
+	b.icon.Size = UDim2.fromOffset(iconPx, iconPx)
+	local goW, goH = round(h * 1.5), round(h * 0.55)
+	b.go.AnchorPoint = Vector2.new(1, 0.5)
+	b.go.Position = UDim2.new(1, -pad, 0.5, 0)
+	b.go.Size = UDim2.fromOffset(goW, goH)
+	HudParts.setButtonTextSize(b.go, math.max(12, round(HB.GoUnits * k)))
+	local textX = pad + iconPx + pad
+	local textW = w - textX - goW - 2 * pad
+	local titlePx = math.max(14, round(HB.TitleUnits * k))
+	local subPx = math.max(12, round(HB.SubUnits * k))
+	b.title.Position = UDim2.fromOffset(textX, round(h / 2 - titlePx - 2))
+	b.title.Size = UDim2.fromOffset(textW, titlePx + 4)
+	HudParts.setTextSize(b.title, titlePx)
+	b.sub.Position = UDim2.fromOffset(textX, round(h / 2 + 2))
+	b.sub.Size = UDim2.fromOffset(textW, subPx + 4)
+	HudParts.setTextSize(b.sub, subPx)
+	return top + h + round(HB.GapUnits * k)
 end
 
 -- What makes a group "new": the restock slot (Blocks), the open Limited rows and offers

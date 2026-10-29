@@ -893,6 +893,10 @@ return {
 			},
 			MoreBelow = "More deals coming soon!", -- the white sheet below the Grand Opening card
 			BlocksHeader = "BLOCKS", -- the next section's header under the card ("- BLOCKS -")
+			-- The Halloween banner at the Shop's top (designer, 2026-10-29): opens the event menu.
+			HwBannerTitle = "HALLOWEEN EVENT",
+			HwBannerSub = "Halloween cues, quests and Candy",
+			HwBannerGo = "OPEN",
 			-- The Blocks group's cards (ShopMystery, ShopRestock, ShopOffers; the designer's picks,
 			-- 2026-10-08). Numbers come from Config and the server's shop state.
 			Blocks = {

@@ -11152,6 +11152,23 @@ Config.UI.Motion = {
 -- A step lists its pieces in `Ids`, each `Stagger` (x
 -- Config.UI.Motion.Stagger) after the one before. `Kind` picks the curve; `Length` overrides the
 -- kind's own length from Config.UI.Motion. `Badge` pops a NEW badge `BadgeAfter` s after its tab.
+-- The Halloween banner at the top of the Shop while the Grand Opening block is off it
+-- (designer, 2026-10-29: no Halloween lucky blocks, so the Shop points to the event menu). In
+-- the page's units (GrandOpeningCard.scaleFor); shown only while the event shows for the
+-- player (the HwOn attribute). false: no banner.
+Config.UI.Shop.HwBanner = {
+	Enabled = true,
+	HeightUnits = 130, -- the banner's height (the card is 1275 units wide)
+	SideUnits = 30, -- from the page's sides
+	TopUnits = 18, -- over it
+	GapUnits = 14, -- under it, before the Blocks header
+	TitleUnits = 50, -- the title's text
+	SubUnits = 32, -- the line under it
+	GoUnits = 40, -- the OPEN button's text
+	Tint = { 120, 46, 190 }, -- a Halloween purple
+	GoTone = "Green", -- the OPEN button (HudParts.tone)
+}
+
 Config.UI.Shop.Open = {
 	OpenSeconds = 0.91, -- the whole open, first piece to the flair landing (faster 2026-10-06, 2026-10-07)
 	Steps = {
@@ -11194,6 +11211,7 @@ Config.UI.Shop.Open = {
 		-- 2026-10-08), with the same rhythm. Opened on Featured they play below the first screen,
 		-- unseen; opened on Blocks (the restock banner's Shop button) or jumped to, they are what
 		-- shows (a jump squeezes them into Config.UI.Motion.TabSeconds).
+		{ Ids = { "HwBanner" }, Kind = "Pop", At = 0.14 }, -- the Halloween banner (Shop.HwBanner)
 		{ Ids = { "BlocksHead" }, Kind = "Pop", At = 0.18 },
 		{ Ids = { "BlocksLines" }, Kind = "Grow", At = 0.22 },
 		{ Ids = { "MysteryPanel" }, Kind = "Grow", At = 0.20 },
