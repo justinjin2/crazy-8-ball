@@ -51,6 +51,9 @@ MAX_PARTS, MAX_TRIS = 8, 10000
 #            20:4x: the hilt reads as a stick when the guard stops at 4.4; the grip hand's
 #            full wind-up was measured in Studio to reach 4.92 from the tip, so 4.9 is the
 #            back edge that stays clear of the fingers).
+#   'Slim': a factor under 1 for a body slimmer than the shared cue (the designer 2026-10-28:
+#            the Pitchfork "too wide"): the hand rule holds against this share of the
+#            envelope (+-HAND_TOL), so the hands rest at most (1 - Slim) x 0.18 off the grip.
 BODY_EXCEPTIONS = {}   # the hard budget (the data tool stops over it); aim at 6 and 6,000
 
 
@@ -139,10 +142,11 @@ def check_body(kit, step=0.1):
                     problems.append('%.1f (hand zone): the core off the centreline by %.3f up or down' % (d0, cz))
             continue
         if in_hand:
-            if r_max > r_env + HAND_TOL + 1e-6:
-                problems.append('%.1f (hand zone): radius %.3f, envelope %.3f (+%.2f at most)' % (d0, r_max, r_env, HAND_TOL))
-            if r_max < r_env - HAND_TOL - 1e-6:
-                problems.append('%.1f (hand zone): radius %.3f, envelope %.3f (the hand would sink in)' % (d0, r_max, r_env))
+            r_hand = r_env * ex.get('Slim', 1.0)
+            if r_max > r_hand + HAND_TOL + 1e-6:
+                problems.append('%.1f (hand zone): radius %.3f, envelope %.3f (+%.2f at most)' % (d0, r_max, r_hand, HAND_TOL))
+            if r_max < r_hand - HAND_TOL - 1e-6:
+                problems.append('%.1f (hand zone): radius %.3f, envelope %.3f (the hand would sink in)' % (d0, r_max, r_hand))
             # centred: the bin's outline (its box) is centred on the axis
             xs = [x for _, x, _, _, _ in vs]
             zs = [z for _, _, z, _, _ in vs]
