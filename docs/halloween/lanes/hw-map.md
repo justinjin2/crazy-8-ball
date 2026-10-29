@@ -50,6 +50,9 @@ From PLAN §4 (everything else is read-only to this lane; ask through Requests):
 - `Config.HalloweenMap.Props.Budget.Lights = 6` (throne 2 + the throne King's aura 1 + 3 table Kings).
 
 ## Status
+- 21:29 hw-map: **PITCHFORK CUE APPROVED** (Justin 21:28: "yes pitchfork is thin enough", via the
+  coordinator). Merged: card aed00b8d, core's Art id f0257a2c, decision 73d60f6e. Team Create's
+  template is built from 0136f90b's ids. HELD: no more Pitchfork changes unless Justin asks.
 - 21:12 hw-map: **PITCHFORK CARD popped for the dark track tile** (core: at about 62x50 px the slim fork read as
   a thin red line on the purple). The round halo (`tools/thumb_pop.py`, the Sword's) sat in the
   middle and missed the fork in the corner, so the tool gained an opt-in `--rim`: a soft light
