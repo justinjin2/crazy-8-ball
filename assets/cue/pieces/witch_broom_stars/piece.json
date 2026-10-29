@@ -1,0 +1,628 @@
+{
+  "id": "witch_broom_stars",
+  "Frame": "pocket",
+  "frame": "Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)",
+  "Triangles": 652,
+  "Parts": [
+    {
+      "Material": "Neon",
+      "Color": "#FFF6D0",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Tip_Pale",
+      "File": "pieces/witch_broom_stars/Tip_Pale.obj",
+      "Joint": "Tip",
+      "Offset": [
+        0.34,
+        1.6191,
+        0.0
+      ],
+      "Size": [
+        0.3804,
+        0.3618,
+        0.05
+      ],
+      "Triangles": 40
+    },
+    {
+      "Material": "Neon",
+      "Color": "#FFD36A",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Bend_Gold",
+      "File": "pieces/witch_broom_stars/Bend_Gold.obj",
+      "Joint": "Bend",
+      "Offset": [
+        -0.2,
+        1.14,
+        0.0
+      ],
+      "Size": [
+        0.22,
+        0.22,
+        0.05
+      ],
+      "Triangles": 32
+    },
+    {
+      "Material": "Neon",
+      "Color": "#2EE6A0",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Cone_Emerald",
+      "File": "pieces/witch_broom_stars/Cone_Emerald.obj",
+      "Joint": "Cone",
+      "Offset": [
+        0.24,
+        1.04,
+        0.0
+      ],
+      "Size": [
+        0.2,
+        0.2,
+        0.05
+      ],
+      "Triangles": 32
+    },
+    {
+      "Material": "Neon",
+      "Color": "#FFD36A",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Band1_Gold",
+      "File": "pieces/witch_broom_stars/Band1_Gold.obj",
+      "Joint": "Band1",
+      "Offset": [
+        0.38,
+        0.6315,
+        0.0
+      ],
+      "Size": [
+        0.2283,
+        0.2171,
+        0.05
+      ],
+      "Triangles": 40
+    },
+    {
+      "Material": "Neon",
+      "Color": "#FFD36A",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Band2_Gold",
+      "File": "pieces/witch_broom_stars/Band2_Gold.obj",
+      "Joint": "Band2",
+      "Offset": [
+        -0.36,
+        0.6115,
+        0.0
+      ],
+      "Size": [
+        0.2283,
+        0.2171,
+        0.05
+      ],
+      "Triangles": 40
+    },
+    {
+      "Material": "Neon",
+      "Color": "#2EE6A0",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Brim1_Emerald",
+      "File": "pieces/witch_broom_stars/Brim1_Emerald.obj",
+      "Joint": "Brim1",
+      "Offset": [
+        0.9,
+        0.52,
+        0.0
+      ],
+      "Size": [
+        0.2,
+        0.2,
+        0.05
+      ],
+      "Triangles": 32
+    },
+    {
+      "Material": "Neon",
+      "Color": "#FFF6D0",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Brim2_Pale",
+      "File": "pieces/witch_broom_stars/Brim2_Pale.obj",
+      "Joint": "Brim2",
+      "Offset": [
+        -0.9,
+        0.48,
+        0.0
+      ],
+      "Size": [
+        0.2,
+        0.2,
+        0.05
+      ],
+      "Triangles": 32
+    },
+    {
+      "Material": "Neon",
+      "Color": "#FFD36A",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Buckle_Gold",
+      "File": "pieces/witch_broom_stars/Buckle_Gold.obj",
+      "Joint": "Buckle",
+      "Offset": [
+        0.0,
+        0.4124,
+        0.0
+      ],
+      "Size": [
+        0.2473,
+        0.2352,
+        0.05
+      ],
+      "Triangles": 40
+    },
+    {
+      "Material": "Neon",
+      "Color": "#A86BFF",
+      "Transparency": 0.05,
+      "Reflectance": 0.0,
+      "Name": "Lines_Line",
+      "File": "pieces/witch_broom_stars/Lines_Line.obj",
+      "Joint": "Lines",
+      "Offset": [
+        -0.0006,
+        0.9498,
+        0.0
+      ],
+      "Size": [
+        1.6535,
+        1.131,
+        0.035
+      ],
+      "Triangles": 108
+    },
+    {
+      "Material": "Neon",
+      "Color": "#FFF6D0",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Dust1_Pale",
+      "File": "pieces/witch_broom_stars/Dust1_Pale.obj",
+      "Joint": "Dust1",
+      "Offset": [
+        -0.06,
+        1.38,
+        0.0
+      ],
+      "Size": [
+        1.46,
+        1.14,
+        0.03
+      ],
+      "Triangles": 128
+    },
+    {
+      "Material": "Neon",
+      "Color": "#FFF6D0",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Dust2_Pale",
+      "File": "pieces/witch_broom_stars/Dust2_Pale.obj",
+      "Joint": "Dust2",
+      "Offset": [
+        0.3265,
+        1.2735,
+        0.0
+      ],
+      "Size": [
+        1.5636,
+        1.0436,
+        0.03
+      ],
+      "Triangles": 128
+    }
+  ],
+  "Joints": {
+    "Tip": {
+      "Parent": null,
+      "Pivot": [
+        -0.34,
+        0.0,
+        1.6
+      ],
+      "PivotRoblox": [
+        0.34,
+        1.6,
+        0.0
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0,
+            1,
+            0
+          ],
+          "Rate": 70.0
+        }
+      ],
+      "Visual": [
+        {
+          "Kind": "Fade",
+          "Min": 0.45,
+          "Max": 1.0,
+          "Period": 0.77,
+          "Phase": 0
+        },
+        {
+          "Kind": "Glow",
+          "Min": 0.0,
+          "Max": 0.75,
+          "Period": 0.55,
+          "Phase": 45,
+          "Color": "#FFFFFF"
+        }
+      ]
+    },
+    "Bend": {
+      "Parent": null,
+      "Pivot": [
+        0.2,
+        0.0,
+        1.14
+      ],
+      "PivotRoblox": [
+        -0.2,
+        1.14,
+        0.0
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0,
+            1,
+            0
+          ],
+          "Rate": -50.0
+        }
+      ],
+      "Visual": [
+        {
+          "Kind": "Fade",
+          "Min": 0.45,
+          "Max": 1.0,
+          "Period": 0.9799999999999999,
+          "Phase": 60
+        },
+        {
+          "Kind": "Glow",
+          "Min": 0.0,
+          "Max": 0.75,
+          "Period": 0.7,
+          "Phase": 105,
+          "Color": "#FFFFFF"
+        }
+      ]
+    },
+    "Cone": {
+      "Parent": null,
+      "Pivot": [
+        -0.24,
+        0.0,
+        1.04
+      ],
+      "PivotRoblox": [
+        0.24,
+        1.04,
+        0.0
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0,
+            1,
+            0
+          ],
+          "Rate": 45.0
+        }
+      ],
+      "Visual": [
+        {
+          "Kind": "Fade",
+          "Min": 0.45,
+          "Max": 1.0,
+          "Period": 1.1199999999999999,
+          "Phase": 130
+        },
+        {
+          "Kind": "Glow",
+          "Min": 0.0,
+          "Max": 0.75,
+          "Period": 0.8,
+          "Phase": 175,
+          "Color": "#FFFFFF"
+        }
+      ]
+    },
+    "Band1": {
+      "Parent": null,
+      "Pivot": [
+        -0.38,
+        0.0,
+        0.62
+      ],
+      "PivotRoblox": [
+        0.38,
+        0.62,
+        0.0
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0,
+            1,
+            0
+          ],
+          "Rate": -40.0
+        }
+      ],
+      "Visual": [
+        {
+          "Kind": "Fade",
+          "Min": 0.45,
+          "Max": 1.0,
+          "Period": 0.9099999999999999,
+          "Phase": 200
+        },
+        {
+          "Kind": "Glow",
+          "Min": 0.0,
+          "Max": 0.75,
+          "Period": 0.65,
+          "Phase": 245,
+          "Color": "#FFFFFF"
+        }
+      ]
+    },
+    "Band2": {
+      "Parent": null,
+      "Pivot": [
+        0.36,
+        0.0,
+        0.6
+      ],
+      "PivotRoblox": [
+        -0.36,
+        0.6,
+        0.0
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0,
+            1,
+            0
+          ],
+          "Rate": 40.0
+        }
+      ],
+      "Visual": [
+        {
+          "Kind": "Fade",
+          "Min": 0.45,
+          "Max": 1.0,
+          "Period": 1.0499999999999998,
+          "Phase": 260
+        },
+        {
+          "Kind": "Glow",
+          "Min": 0.0,
+          "Max": 0.75,
+          "Period": 0.75,
+          "Phase": 305,
+          "Color": "#FFFFFF"
+        }
+      ]
+    },
+    "Brim1": {
+      "Parent": null,
+      "Pivot": [
+        -0.9,
+        0.0,
+        0.52
+      ],
+      "PivotRoblox": [
+        0.9,
+        0.52,
+        0.0
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0,
+            1,
+            0
+          ],
+          "Rate": 60.0
+        }
+      ],
+      "Visual": [
+        {
+          "Kind": "Fade",
+          "Min": 0.45,
+          "Max": 1.0,
+          "Period": 1.26,
+          "Phase": 310
+        },
+        {
+          "Kind": "Glow",
+          "Min": 0.0,
+          "Max": 0.75,
+          "Period": 0.9,
+          "Phase": 355,
+          "Color": "#FFFFFF"
+        }
+      ]
+    },
+    "Brim2": {
+      "Parent": null,
+      "Pivot": [
+        0.9,
+        0.0,
+        0.48
+      ],
+      "PivotRoblox": [
+        -0.9,
+        0.48,
+        0.0
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0,
+            1,
+            0
+          ],
+          "Rate": -60.0
+        }
+      ],
+      "Visual": [
+        {
+          "Kind": "Fade",
+          "Min": 0.45,
+          "Max": 1.0,
+          "Period": 0.84,
+          "Phase": 20
+        },
+        {
+          "Kind": "Glow",
+          "Min": 0.0,
+          "Max": 0.75,
+          "Period": 0.6,
+          "Phase": 65,
+          "Color": "#FFFFFF"
+        }
+      ]
+    },
+    "Buckle": {
+      "Parent": null,
+      "Pivot": [
+        0.0,
+        0.0,
+        0.4
+      ],
+      "PivotRoblox": [
+        -0.0,
+        0.4,
+        0.0
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0,
+            1,
+            0
+          ],
+          "Rate": 30.0
+        }
+      ],
+      "Visual": [
+        {
+          "Kind": "Fade",
+          "Min": 0.45,
+          "Max": 1.0,
+          "Period": 0.7,
+          "Phase": 90
+        },
+        {
+          "Kind": "Glow",
+          "Min": 0.0,
+          "Max": 0.75,
+          "Period": 0.5,
+          "Phase": 135,
+          "Color": "#FFFFFF"
+        }
+      ]
+    },
+    "Lines": {
+      "Parent": null,
+      "Pivot": [
+        0,
+        0,
+        1.0
+      ],
+      "PivotRoblox": [
+        0,
+        1.0,
+        0.0
+      ],
+      "Motion": [],
+      "Visual": [
+        {
+          "Kind": "Glow",
+          "Min": 0.0,
+          "Max": 0.45,
+          "Period": 1.1,
+          "Color": "#E8D6FF"
+        }
+      ]
+    },
+    "Dust1": {
+      "Parent": null,
+      "Pivot": [
+        0,
+        0,
+        1.0
+      ],
+      "PivotRoblox": [
+        0,
+        1.0,
+        0.0
+      ],
+      "Motion": [],
+      "Visual": [
+        {
+          "Kind": "Fade",
+          "Min": 0.0,
+          "Max": 1.0,
+          "Period": 0.6,
+          "Phase": 0
+        }
+      ]
+    },
+    "Dust2": {
+      "Parent": null,
+      "Pivot": [
+        0,
+        0,
+        1.0
+      ],
+      "PivotRoblox": [
+        0,
+        1.0,
+        0.0
+      ],
+      "Motion": [],
+      "Visual": [
+        {
+          "Kind": "Fade",
+          "Min": 0.0,
+          "Max": 1.0,
+          "Period": 0.8,
+          "Phase": 180
+        }
+      ]
+    }
+  },
+  "Upright": true
+}

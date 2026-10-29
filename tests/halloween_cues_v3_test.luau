@@ -2,7 +2,10 @@
 -- The Halloween 2026 cues' v3 effect rules (lane cuesA, designer 2026-10-29): the Pitchfork's
 -- outer prongs stay solid while aiming and its two tip flames burn small and steady; the
 -- Jack-o'-Lantern's finisher laugh is quiet and heard only near the table, its rising head
--- has no circling mini jacks. Read from the generated skin and piece rows.
+-- has no circling mini jacks; the Witch's Broom's finisher has nothing ring-like (the Beta
+-- cue's look: ring decals, a flat swirl disc, the gust's ribbons, rings turning round the
+-- pocket) and its witch flies alone (no moon) on a 64-frame flipbook. Read from the generated
+-- skin and piece rows.
 
 local H = require("./harness")
 
@@ -86,5 +89,48 @@ return {
 			burst += layer.Burst or 0
 		end
 		H.expect(burst <= 60, ("finisher bursts %d particles (at most 60)"):format(burst))
+	end,
+
+	["the Broom's finisher has nothing ring-like"] = function()
+		local CueSkins = H.require("CueSkins")
+		local row = CueSkins.get("WitchBroomCue")
+		local pocket = row.Pocket
+		H.expect(#(pocket.Rings or {}) == 0, "no ring decals")
+		H.expect(pocket.KeepRibbons == false, "no shared gust ribbons")
+		for _, layer in pocket.Layers do
+			H.expect(
+				layer.Orientation ~= "VelocityPerpendicular",
+				layer.Name .. ": a flat disc or ring layer"
+			)
+		end
+		local piece = CueSkins.piece(pocket.Piece.Piece)
+		H.expect(piece ~= nil and #piece.Parts > 0, "the finisher piece " .. pocket.Piece.Piece)
+		for name, joint in piece.Joints do
+			for _, m in joint.Motion or {} do
+				-- a spin about the pocket's up axis (Z in the piece frame) turns a ring round it
+				local vertical = m.Kind == "Spin" and m.Axis and m.Axis[3] ~= 0
+				H.expect(not vertical, name .. ": spins round the pocket like a ring")
+			end
+		end
+	end,
+
+	["the Broom's witch flies alone on a smooth flipbook"] = function()
+		local CueSkins = H.require("CueSkins")
+		local row = CueSkins.get("WitchBroomCue")
+		local witch = nil
+		for _, layer in row.Pocket.Layers do
+			H.expect(layer.Name ~= "WitchMoon", "the witch-and-moon layer is gone")
+			if layer.Name == "Witch" then
+				witch = layer
+			end
+		end
+		H.expect(witch ~= nil, "the witch layer")
+		H.expect(witch.FlipbookLayout == "Grid8x8", "64 frames")
+		H.expect(witch.FlipbookMode == "OneShot", "one fly-by a burst")
+		H.expect(witch.Lifetime[2] <= 1.3, "a fast fly-by (at most 1.3 s)")
+		H.expect(
+			type(witch.Texture) == "string" and witch.Texture:sub(1, 13) == "rbxassetid://",
+			"an uploaded flipbook"
+		)
 	end,
 }

@@ -48,7 +48,7 @@ AIM = {
 # Which rules a piece follows: a body fits the envelope, an aura piece only keeps off the tip
 # and inside the overhang cap, a pocket piece is free (its own frame).
 KIND = {
-    'witch_broom': 'body', 'witch_broom_aura': 'aura', 'witch_broom_pocket': 'pocket',
+    'witch_broom': 'body', 'witch_broom_aura': 'aura', 'witch_broom_stars': 'pocket',
     'spider': 'body', 'spider_aura': 'aura', 'spider_pocket': 'pocket',
 }
 
@@ -1030,57 +1030,99 @@ def witch_broom_aura(k):
             bm.faces.new((centre, inner[j], inner[(j + 1) % 8]))
         k.add(name, flat(bm, name + 'Star', mat, 0.02))
 
+# The Witch's Broom's finisher constellation (v3, designer 2026-10-29: the portal piece's two
+# turning Neon rings read like the Beta cue's wire funnel and its rings): a witch's hat drawn in
+# stars. (name, x, z, outer radius, points, material, twinkle period s, phase degrees, spin deg/s);
+# the pocket frame, X across, Z up, the face toward -Y (the camera: the piece is Upright).
+HAT_STARS = (
+    ('Tip', -0.34, 1.6, 0.2, 5, 'Pale', 0.55, 0, 70.0),       # the crooked tip, the brightest
+    ('Bend', 0.2, 1.14, 0.11, 4, 'Gold', 0.7, 60, -50.0),      # where the cone bends back
+    ('Cone', -0.24, 1.04, 0.1, 4, 'Emerald', 0.8, 130, 45.0),  # the cone's near side
+    ('Band1', -0.38, 0.62, 0.12, 5, 'Gold', 0.65, 200, -40.0),  # the hat band's two ends
+    ('Band2', 0.36, 0.6, 0.12, 5, 'Gold', 0.75, 260, 40.0),
+    ('Brim1', -0.9, 0.52, 0.1, 4, 'Emerald', 0.9, 310, 60.0),   # the brim's two points
+    ('Brim2', 0.9, 0.48, 0.1, 4, 'Pale', 0.6, 20, -60.0),
+    ('Buckle', 0.0, 0.4, 0.13, 5, 'Gold', 0.5, 90, 30.0),       # the front of the brim
+)
+# the lines joining them (star names), drawn the way a sky chart joins a constellation
+HAT_LINES = (('Brim1', 'Band1'), ('Band1', 'Band2'), ('Band2', 'Brim2'), ('Brim1', 'Buckle'), ('Buckle', 'Brim2'),
+             ('Band1', 'Cone'), ('Cone', 'Tip'), ('Band2', 'Bend'), ('Bend', 'Tip'))
+# small dust stars twinkling round the hat (x, z, radius), two groups out of step
+HAT_DUST = (((-0.62, 1.05, 0.05), (0.55, 1.36, 0.045), (-0.05, 1.9, 0.05), (0.75, 0.85, 0.04)),
+            ((-0.78, 1.45, 0.045), (0.12, 0.78, 0.04), (0.42, 1.76, 0.05), (-1.08, 0.82, 0.04)))
+
+
 @piece
-def witch_broom_pocket(k):
-    """The Broom's pocket finisher piece (brief 2.4; pocket frame, origin at the mouth, Z up):
-    two Neon portal rings, violet and emerald, lying flat and turning in opposite senses (the
-    finisher's Rise/Scale/Spin curves lift and widen them), each a fat torus with a thin pale
-    rim; a ForceField violet disc inside the lower ring that the swirl layer sits on; six
-    small Neon crescents and four-point stars riding the rings, bobbing."""
+def witch_broom_stars(k):
+    """The Broom's pocket finisher piece since v3 (designer 2026-10-29: its two Neon portal rings
+    and the swirl disc read like the Beta cue's rings): a witch's-hat constellation rising out of
+    the pocket, the finisher's Rise and Scale curves lifting and growing it while it faces the
+    camera (Upright, a gentle Spin sway). Eight Neon stars (four- and five-point prisms, gold,
+    pale gold and emerald) each on its own joint, twinkling (Fade 0.45-1 and a Glow toward white
+    at their own pace) and turning in their plane; violet Neon lines join them like a sky chart
+    (one joint, breathing); eight dust stars twinkle round it in two groups out of step. The
+    witch flying past, the star bursts and the sparkle trails are the skin's layers. Pocket
+    frame (origin at the mouth, Z up)."""
     import bmesh
     from mathutils import Vector
     k.frame = 'pocket'
-    k.material('Violet', 'Neon', BROOM['violet'])
-    k.material('Emerald', 'Neon', BROOM['emerald'])
-    k.material('Pale', 'Neon', '#F0E4FF')
+    k.upright = True
     k.material('Gold', 'Neon', BROOM['gold'])
-    k.material('Disc', 'ForceField', BROOM['violet'], Transparency=0.45)
-    k.joint('Portal', pivot=(0, 0, 0), motion=[{'Kind': 'Spin', 'Axis': (0, 0, 1), 'Rate': 90.0}],
-            visual=[{'Kind': 'Glow', 'Min': 0.0, 'Max': 0.4, 'Period': 0.7}])
-    k.joint('Counter', pivot=(0, 0, 0.55), parent='Portal', motion=[{'Kind': 'Spin', 'Axis': (0, 0, 1), 'Rate': -200.0}],
-            visual=[{'Kind': 'Glow', 'Min': 0.0, 'Max': 0.5, 'Period': 0.5, 'Phase': 90}])
-    for joint, z, Rr, mat in (('Portal', 0.0, 0.9, 'Violet'), ('Counter', 0.55, 0.7, 'Emerald')):
+    k.material('Pale', 'Neon', '#FFF6D0')
+    k.material('Emerald', 'Neon', BROOM['emerald'])
+    k.material('Line', 'Neon', '#A86BFF', Transparency=0.05)
+
+    def flat(bm, ob_name, mat, thickness):
+        ob = k.mesh_object(ob_name, bm, [mat], smooth=False)
+        apply_modifier(k.bpy, ob, 'SOLIDIFY', thickness=thickness, offset=0.0)
+        return ob
+
+    def star(bm, x, z, r, points, inner=0.42, turn=0.0):
+        c = Vector((x, 0.0, z))
+        centre = bm.verts.new(c)
+        rim = []
+        for j in range(points * 2):
+            a = math.pi / 2 + turn + math.pi * j / points
+            rr = r if j % 2 == 0 else r * inner
+            rim.append(bm.verts.new(c + Vector((rr * math.cos(a), 0.0, rr * math.sin(a)))))
+        for j in range(points * 2):
+            bm.faces.new((centre, rim[(j + 1) % (points * 2)], rim[j]))
+
+    at = {}
+    for name, x, z, r, points, mat, period, phase, rate in HAT_STARS:
+        at[name] = (x, z, r)
+        k.joint(name, pivot=(x, 0.0, z),
+                motion=[{'Kind': 'Spin', 'Axis': (0, 1, 0), 'Rate': rate}],
+                visual=[{'Kind': 'Fade', 'Min': 0.45, 'Max': 1.0, 'Period': period * 1.4, 'Phase': phase},
+                        {'Kind': 'Glow', 'Min': 0.0, 'Max': 0.75, 'Period': period, 'Phase': phase + 45, 'Color': '#FFFFFF'}])
         bm = bmesh.new()
-        _torus(bm, (0, 0, z), (0, 0, 1), Rr, 0.06, segs=40, minor=10)
-        k.add(joint, k.mesh_object(joint + 'Ring', bm, [mat]))
-        bm = bmesh.new()
-        _torus(bm, (0, 0, z + 0.07), (0, 0, 1), Rr + 0.02, 0.014, segs=40, minor=6)
-        _torus(bm, (0, 0, z - 0.07), (0, 0, 1), Rr - 0.02, 0.014, segs=40, minor=6)
-        k.add(joint, k.mesh_object(joint + 'Rim', bm, ['Pale']))
+        star(bm, x, z, r, points, 0.42 if points == 5 else 0.3)
+        k.add(name, flat(bm, name + 'Star', mat, 0.05))
+
+    # the chart lines: 0.05 wide (thinner strips load as a solid block), stopping short of the stars
+    k.joint('Lines', pivot=(0, 0, 1.0),
+            visual=[{'Kind': 'Glow', 'Min': 0.0, 'Max': 0.45, 'Period': 1.1, 'Color': '#E8D6FF'}])
     bm = bmesh.new()
-    _lathe(bm, [0.004, -0.004], [0.86, 0.86], 40, close=True)
-    bmesh.ops.transform(bm, matrix=__import__('mathutils').Matrix.Rotation(math.radians(-90), 4, 'X'), verts=bm.verts[:])
-    k.add('Portal', k.mesh_object('PortalDisc', bm, ['Disc']))
-    # charms riding the rings: crescents (gold) and stars (pale), bobbing
-    for i in range(8):
-        a = 2 * math.pi * i / 8
-        joint = 'Portal' if i % 2 == 0 else 'Counter'
-        z = 0.0 if i % 2 == 0 else 0.55
-        Rr = 0.9 if i % 2 == 0 else 0.7
-        name = 'Charm%d' % (i + 1)
-        k.joint(name, pivot=(Rr * math.cos(a), Rr * math.sin(a), z + 0.12), parent=joint,
-                motion=[{'Kind': 'Bob', 'Dir': (0, 0, 1), 'Amp': 0.06, 'Period': 0.9, 'Phase': 45 * i}])
+    w = 0.05
+    for a_name, b_name in HAT_LINES:
+        ax, az, ar = at[a_name]
+        bx, bz, br = at[b_name]
+        p, q = Vector((ax, 0.0, az)), Vector((bx, 0.0, bz))
+        along = (q - p).normalized()
+        p, q = p + along * (ar * 0.8), q - along * (br * 0.8)
+        across = Vector((-along.z, 0.0, along.x)) * (w / 2)
+        bm.faces.new((bm.verts.new(p - across), bm.verts.new(p + across), bm.verts.new(q + across), bm.verts.new(q - across)))
+    k.add('Lines', flat(bm, 'ChartLines', 'Line', 0.035))
+
+    # the dust: two groups of small four-point stars twinkling out of step
+    for g, group in enumerate(HAT_DUST):
+        name = 'Dust%d' % (g + 1)
+        k.joint(name, pivot=(0, 0, 1.0),
+                visual=[{'Kind': 'Fade', 'Min': 0.0, 'Max': 1.0, 'Period': 0.6 + 0.2 * g, 'Phase': 180 * g}])
         bm = bmesh.new()
-        c = Vector((Rr * math.cos(a), Rr * math.sin(a), z + 0.12))
-        if i % 2 == 0:
-            # a crescent: a ring with a bite (a thin torus arc)
-            _torus(bm, c, (math.cos(a), math.sin(a), 0), 0.09, 0.02, segs=24, minor=6)
-            k.add(name, k.mesh_object(name + 'Crescent', bm, ['Gold']))
-        else:
-            # a four-point star: two thin crossed boxes
-            _box(bm, c, (0.2, 0.03, 0.03))
-            _box(bm, c, (0.03, 0.03, 0.2))
-            k.add(name, k.mesh_object(name + 'Star', bm, ['Pale'], smooth=False))
+        for x, z, r in group:
+            star(bm, x, z, r, 4, 0.28, turn=math.pi / 4 * g)
+        k.add(name, flat(bm, name + 'Stars', 'Pale', 0.03))
 
 
 # =============================================================================================
@@ -1733,7 +1775,7 @@ VIEWS = {
     'spider': [((4.4, -3.3, 2.4), (0, -3.7, 0.0), 24), ((1.0, -0.2, 0.6), (0, -0.9, 0.0), 50),
                ((1.7, -8.3, 0.8), (0, -7.05, 0.12), 45), ((-1.3, -8.4, 1.0), (0, -7.05, 0.12), 45)],
     # pocket pieces sit at the origin of the preview (the pocket frame), Z up
-    'witch_broom_pocket': [((2.6, -3.0, 2.2), (0, 0, 0.5), 35), ((0.0, -3.6, 0.9), (0, 0, 0.5), 40)],
+    'witch_broom_stars': [((0.6, -4.6, 1.8), (0, 0, 1.0), 35), ((2.2, -3.4, 1.2), (0, 0, 1.0), 40)],
     'spider_pocket': [((2.6, -3.0, 2.2), (0, 0, 0.8), 35), ((0.0, -3.6, 0.9), (0, 0, 0.8), 40)],
 }
 

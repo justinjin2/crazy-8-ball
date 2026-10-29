@@ -6688,5 +6688,22 @@
     "assetId": "124844921098629",
     "assetType": "Audio",
     "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/.claude/worktrees/wf_a0729e1c-dc8-3/assets/cue/pieces/witch_broom_stars/witch_broom_stars_parts.glb": {
+    "assetId": "95267594206877",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/.claude/worktrees/wf_a0729e1c-dc8-3/assets/cue/vfx/witch_broom/star5.png": {
+    "assetId": "111229449430002",
+    "assetType": "Image",
+    "imageId": "111229449430002",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/.claude/worktrees/wf_a0729e1c-dc8-3/assets/cue/vfx/witch_broom/witch_fly_8x8.png": {
+    "assetId": "124879285784866",
+    "assetType": "Image",
+    "imageId": "124879285784866",
+    "status": "ok"
   }
 }
