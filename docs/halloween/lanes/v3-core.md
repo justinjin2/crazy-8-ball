@@ -11,13 +11,15 @@ uploads (only the menu lane uses Studio). Numbers and their sources: `docs/ECONO
    (`Money.farmRow().Balls`), x the event multiplier (Rush UTC :00-:09, Oct 31) and friends +
    group (`CandyMath.multiplier`), rounded over the match (round of the running sum). Against
    people and **disguised bots** (the team pads' "Fill with PC" seats disguised bots, so those
-   pay too, like their money); never PC practice, solo, the King's seat or the tutorial's bot; a
+   pay too, like their money; past the day's 20 disguised wins at the practice share x0.3, hidden
+   like their money's PC rows); never PC practice, solo, the King's seat or the tutorial's bot; a
    pot money pays at the flat short-match rate pays none. Only while Live and HwOn.
    - Pure rules: `src/shared/Halloween/PotCandy.luau` (eligible, shot, settle).
    - Server: `Economy.payOne` asks `CandyService.pots` right after the shot's money commit
      (pcall, warned once); one save commit a shot, `PlayerData.hwPot` (op "hwPot", in
-     `Items.QUIET_OPS` and `Badges.SKIP_OPS`); the Candy attribute set at once; each pot's Candy
-     rides on its MoneyGrant grant (`candy`) with the balance after it (`candyBalance`).
+     `Items.QUIET_OPS` and `Badges.SKIP_OPS`); each pot's Candy rides on its MoneyGrant grant
+     (`candy`) with the balance after it (`candyBalance`); the Candy attribute is set only after
+     that grant went out (`CandyService.showBalance`), so the pill never runs ahead of the chips.
      Replay-safe: money is paid once per accepted or late-judged shot (ShotService.judged,
      Engine.takeLateShot once, Rewind shots never); on top, PotCandy pays a shot's seq once.
    - **No Candy at settle** (Finished 10 and Win 25 folded into the pots). At settle
@@ -81,6 +83,8 @@ Creator Hub (read 2026-10-29 12:30, 2-day lag): 21.9 min of play a day per DAU, 
   number, the end chip, the console. Lune tests and lint only.
 - `src/client/BoostPill.luau` (no lane owns it this run) got one guarded read of
   `CandyFlyer.shown`; `src/server/Badges.luau`, `src/server/Items.luau` one op each.
+- Commit 747fdc74 holds two small King-off follow-ups together (bossWon refusing with the King
+  off, and the Jack-o'-Lantern listed once): revert them together if either misbehaves.
 - `BossService.qa` (the designer's `/king`) still seats a King match with the King off (map
   file, designer account only); not changed.
 - A player who leaves mid-match keeps their pots' Candy, but that match's `HwCandy` "Match" is not
