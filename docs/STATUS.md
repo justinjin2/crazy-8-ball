@@ -4,47 +4,67 @@ Current state only, rewritten in place. Keep it to about two screens (under 100 
 step is finished and verified, move its dated entry to the top of
 `docs/archive/STATUS_HISTORY.md` and keep only what is still true or still open here.
 
-Updated 2026-10-29 14:15 (**published by the designer 2026-10-27: everything up to `7c4d85aa`**: the emote system, 2KLIKES, the 1v1 result cutscene off; the emote audio update rides with the Halloween publish). **The game is live** (officially released 2026-10-10). Work goes on
+Updated 2026-10-29 17:15 (**published by the designer 2026-10-27: everything up to `7c4d85aa`**: the emote system, 2KLIKES, the 1v1 result cutscene off; the emote audio update rides with the Halloween publish). **The game is live** (officially released 2026-10-10). Work goes on
 in `~/Desktop/8ball`, branch `halloween` (it holds all of `gui-v4`). The STATUS from just before launch, in full, is the top
 entry of `docs/archive/STATUS_HISTORY.md`.
 
 ## Halloween 2026 (branch `halloween`, pushed, waiting for the designer to publish tonight)
 
-- **Ready to publish** (Oct 29 ~14:15): the v3 update (the designer's ~12:00 list), checklist
-  and switches in `docs/halloween/RELEASE.md`. Outdated-only restart. Nothing of Halloween is
-  live yet (the live build `7c4d85aa` has none).
-- **In it:** no Pumpkin King (`HalloweenMap.Boss.Enabled` false; the drop off, his quests read
-  as their Alts, Pumpkin Slayer paused). Four cues for Candy or Robux, in this order: Pitchfork
-  300 / 49 R$, Witch's Broom 2,500 / 249 R$, **Jack-o'-Lantern 4,500 / 399 R$** (product HwJack
-  3723584090), Halloween Sword 7,500 / 599 R$; all Unique, their effects climb like rarities.
-  Candy about a third each from **pockets** (+3 a pot that pays money, people and disguised
-  bots, flying into the Candy pill; `Match.PerPocketEnabled`), **quests** (boards 2-6 reshaped,
-  rewards 60/100/150/250) and the **ground** (1 each, a spawn every 4.5 s, 150 an hour at most).
-  The tutorial's real match pays its pots quietly (no chips before HwOn). The menu: the cards'
-  8-balls drift, each card plays its cue's effects live in 2D, the edges are whole, a "2026"
-  pumpkin badge on the event cues (menu, My Cues, the Index once found, YOU GOT). Cues: the
-  Pitchfork's outer prongs stay and its tip flames are calm; the Jack's laugh 58% quieter and
-  near only, no circling jacks; the Broom's star finisher (a witch's-hat constellation and a
-  64-frame witch, no rings or moon), a shorter head, a calmer aura; the Sword's toon edge flames
-  and violet glow band, a deep-purple flaming trail, a laughing purple fire face finisher. Codes
-  5KLIKES (5 spins, $5,000), 10KLIKES (10 spins, $10,000; the tutorial types it), 2KLIKES lowered
-  to 10 spins and $10,000, 1KLIKES and 250LIKES expired. Roaming and the badges ship with it.
-- **Verified (Oct 29, 13:30-14:00):** lint and 1,536 Lune tests on the merge; the Broom
-  templates rebuilt in Team Create (1 skin, 3 pieces); Studio PC: the menu owned and unowned,
-  a match against a disguised bot (pots +3/+4, the balance after each grant, the "+17" end
-  chip), the Sword and Broom finishers, the Sword in aim view, the Pitchfork equipped; a
-  fresh-player run on a new Studio store (join, tutorial skip, Daily, Invite, the first match
-  17 Candy, BRONZE!, Daily, the abilities code line, 10KLIKES 10 spins + $10,000, 1KLIKES
-  refused, the event menu); console clean. Products on Roblox match Config (sync dry run).
-- **Open:** a real phone, iPad and controller check (only PC here); by hand: the Pitchfork's
-  bridge hand against its curving prongs on a short bridge, the Broom on a small avatar's back,
-  the Sword's trail in a break; on phone the hero Sword card's glow is cut on its right edge;
-  after the publish, client memory on phones (the cards' effects use the cues' 512-1024 px
-  sheets; ~30 sprites); the end screen's $0 convert line; stale comments (`Net.luau:457`, the
-  HalloweenMap budget comment).
-- **After the publish:** update the game description (the codes) and set the LIVE store icon;
-  save the place to `place/8ball.rbxl`; watch the funnel 3_FirstCandy -> 4_Pitchfork, `HwCandy`
-  Match vs `CandyPickups` vs `HwQuest`, `HwMatch`, `HwBuy`, FPS and memory (RELEASE 6).
+- **Ready to publish** (Oct 29 evening): v3 (the designer's ~12:00 list) plus **v4, the 14:20
+  GUI round**. The checklist and every switch are in `docs/halloween/RELEASE.md`. Use the
+  outdated-only restart. Nothing of Halloween is live yet (the live build `7c4d85aa` has none).
+- **v4 (designer 14:20, with an interview):**
+  - The Sword's soft pre-v3 aura is back, also on its menu card. Its dark purple trail has
+    glowing embers instead of painted flames, and its finisher is a purple energy burst standing
+    on the hole (no fire face).
+  - The Broom's finisher keeps its stars only (no witch, no bats).
+  - The event menu: bigger cue pictures, with the Pitchfork's fork 2.2x and the Jack's pumpkin
+    1.5x (new art 130408256165091, 103301193919705). The Robux button is the Candy button's
+    size. The "2026" badge sits bottom right above the name everywhere.
+  - The menu has its **Haunted night** look (`Menu.Theme`). A **PREVIEW** button on each card
+    opens the Cue Preview on TRAIL for the four event cues only (`CuePreview.Event`); on a phone
+    it is the icon alone.
+  - Permanently, only Painicane sees "N exist" (`Inventory.ExistOwnerOnly`).
+- **In it from v3:**
+  - No Pumpkin King.
+  - Four cues for Candy or Robux: Pitchfork 300 / 49 R$, Broom 2,500 / 249 R$, Jack 4,500 /
+    399 R$, Sword 7,500 / 599 R$.
+  - Candy about a third each from pockets (+3 a paying pot), quests (60/100/150/250) and the
+    ground (1 each, a spawn every 4.5 s, 150 an hour at most). The tutorial's real match pays
+    quietly.
+  - The Pitchfork's prongs stay and its flames are calm. The Jack's laugh is quieter and near
+    only. The Broom's head is shorter.
+  - Codes: 5KLIKES and 10KLIKES (10 spins, $10,000; the tutorial types it) and 2KLIKES lowered.
+  - Roaming and the badges.
+- **Verified for v4 (Oct 29, 16:00-16:35):**
+  - Lint and 1,556 Lune tests on the merge, including new tests that the Broom finisher has no
+    bats and that the Sword's burst holds its column and fire past 1 s.
+  - Studio PC: the menu owned and unowned (Haunted night, the bigger art, equal buttons, the
+    badge, four PREVIEW buttons) and the menu at phone size 844x390. PREVIEW opened the Cue
+    Preview on TRAIL with the Sword's loop, and closing it came back to the menu.
+  - The Sword and Broom finishers fired at real pockets: on the hole; the Broom's stars only.
+    The Sword's burst was first too small (all but gone by 1 s), so it was scaled up (`bb2334d7`):
+    about half the v3 face, the body held to ~1.5 s, a dark violet smoke core so it reads violet,
+    not white, on the magenta lobby cloth (checked in Studio). 116 particles once.
+  - "1 exists" on the owner's big card.
+  - A fresh-player run on a new Studio store: join, tutorial skip, Daily, the event menu
+    unowned, a first match against a disguised bot won to its result (7 Candy).
+  - Console clean apart from the known 203785492 line. No uploads in v4 but the menu's four
+    theme pictures; no template rebuild.
+- **Open:**
+  - A real phone, iPad and controller check (only PC here).
+  - The non-owner "exist" line is checked by test only (Studio plays as the owner).
+  - On a phone the 2026 badge touches the right side of the Jack's pumpkin.
+  - By hand: the Pitchfork's bridge hand on a short bridge, the Broom on a small avatar's back.
+  - After the publish, client memory on phones.
+  - Stale comments (`Net.luau:457`, the HalloweenMap budget comment). Now-unused art for a later
+    cleanup: the Sword's fire_face and toon_flame sheets and `tools/hw_sword_fx.py`, the Broom's
+    witch_fly sheet, the old Pitchfork and Jack thumbs.
+- **After the publish:**
+  - Update the game description (the codes) and set the LIVE store icon.
+  - Save the place to `place/8ball.rbxl`.
+  - Watch 3_FirstCandy -> 4_Pitchfork, `HwCandy` vs `CandyPickups` vs `HwQuest`, `HwBuy`, the
+    new `CuePreview` "Halloween" opens, FPS and memory (RELEASE 6).
 - **Parked:** Robux Limited cues (branch `hw-core-limited`). The Grand Opening block stays off
   the Shop (it was ~37% of dev product revenue before; earlier decision).
 
