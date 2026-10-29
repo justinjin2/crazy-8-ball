@@ -291,6 +291,10 @@ return {
 		Beaten = "You beat him! Next visit %s", -- the prompt's small line after a paid win (":45")
 		KingDevStarted = "The Pumpkin King is on his way to a table.", -- /king (designer only)
 		KingDevFailed = "No King match: %s.", -- /king: why (Busy, NoTable, Throttle...)
+		-- His rise cutscene (KingEntrance): the title in its bottom bar as he lands, and under
+		-- it, for a player without his drop's cue, its chance ("5%") and the cue's name.
+		KingRisen = "THE PUMPKIN KING HAS RISEN!",
+		KingRisenDrop = "Beat him for a %s chance at the %s!",
 		-- What he says (BotService.say): short, kind, never an insult.
 		Taunts = {
 			Seated = {
