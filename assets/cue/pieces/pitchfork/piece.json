@@ -2,7 +2,7 @@
   "id": "pitchfork",
   "Frame": "cue",
   "frame": "Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)",
-  "Triangles": 9440,
+  "Triangles": 8912,
   "Parts": [
     {
       "Material": "SmoothPlastic",
@@ -23,11 +23,12 @@
         -0.004
       ],
       "Size": [
-        0.3768,
+        0.4767,
         0.4002,
         7.008
       ],
-      "Triangles": 5392
+      "Triangles": 5540,
+      "Smooth": true
     },
     {
       "Material": "SmoothPlastic",
@@ -52,7 +53,8 @@
         0.1923,
         0.539
       ],
-      "Triangles": 628
+      "Triangles": 628,
+      "Smooth": true
     },
     {
       "Material": "SmoothPlastic",
@@ -64,20 +66,21 @@
         "RoughnessMap": "vfx/pitchfork/pitchfork_rough.png",
         "UseRoughness": true
       },
-      "Name": "Fork_Pitchfork",
-      "File": "pieces/pitchfork/Fork_Pitchfork.obj",
-      "Joint": "Fork",
+      "Name": "Tines_Pitchfork",
+      "File": "pieces/pitchfork/Tines_Pitchfork.obj",
+      "Joint": "Tines",
       "Offset": [
         0.0,
         0.0,
-        -4.2325
+        2.5725
       ],
       "Size": [
-        1.8001,
-        1.0564,
-        1.495
+        2.0764,
+        0.1606,
+        1.215
       ],
-      "Triangles": 3420
+      "Triangles": 2744,
+      "Smooth": true
     }
   ],
   "Joints": {
@@ -131,17 +134,17 @@
         }
       ]
     },
-    "Fork": {
+    "Tines": {
       "Parent": null,
       "Pivot": [
         0.0,
-        -7.0,
+        -1.38,
         0.0
       ],
       "PivotRoblox": [
         -0.0,
         0.0,
-        -3.5
+        2.12
       ],
       "Motion": [],
       "Aim": "fade"
