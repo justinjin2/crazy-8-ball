@@ -5,8 +5,9 @@
 --   PerPocketEnabled  the switch: false is the old settle-time Candy (CandyMath.base at settle)
 --   PerPocket         Candy for each pot that paid the player money (a "Ball" grant)
 --
--- A pot's Candy = PerPocket x the anti-farm factor money's ball pay uses (Money.farmRow().Balls)
--- x the Candy multiplier (CandyMath.multiplier: the Rush or Oct 31 x (1 + friends + group)).
+-- A pot's Candy = PerPocket x the anti-farm factor money's ball pay uses (Money.farmRow().Balls;
+-- and the practice share once a disguised bot pays the PC rows: PotCandy.factor) x the Candy
+-- multiplier (CandyMath.multiplier: the Rush or Oct 31 x (1 + friends + group)).
 -- The exact amounts add up over the match and each pot pays what the rounded running total
 -- grew by, so the match's Candy is round(sum), never a rounding up on every pot (a +10% boost
 -- on 3 is 3.3, not 4).
@@ -22,6 +23,7 @@ local Config = require(script.Parent.Parent.Config)
 local Money = require(script.Parent.Parent.Progression.Money)
 
 local M = Config.Halloween.Match
+local E = Config.Economy
 
 local PotCandy = {}
 
@@ -63,6 +65,15 @@ end
 --- of `botKind` (Settle.botKind: "Tutorial", "Disguised", "Pc" or nil) pays Candy per pocket.
 function PotCandy.eligible(opponent: string?, botKind: string?): boolean
 	return opponent == "Player" and (botKind == nil or botKind == "Disguised")
+end
+
+--- The factor a pot's Candy takes from the money rules for one player (`moneyKind`:
+--- Economy.moneyKind; `farmBalls`: Money.farmRow().Balls, 1 when missing): money's anti-farm ball
+--- factor, and the practice share (Config.Economy.SoloShare) once a disguised bot pays the PC
+--- rows (past Config.Economy.DisguisedDailyWins disguised wins today), hidden like its money.
+function PotCandy.factor(moneyKind: string?, farmBalls: number?): number
+	local farm = if farmBalls == nil then 1 elseif finite(farmBalls) then farmBalls :: number else 0
+	return if moneyKind == "PC" then farm * E.SoloShare else farm
 end
 
 --- The Candy of each of a shot's pots, and the State after it (the caller keeps it only once

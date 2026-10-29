@@ -86,6 +86,21 @@ return {
 		H.expect(PotCandy.sum(zero) == 0, "a farm factor of 0 pays nothing")
 	end,
 
+	["past the day's disguised wins a disguised bot pays the practice share, hidden like its money"] = function()
+		local PotCandy = load()
+		local E = H.require("Config").Economy
+		H.expect(PotCandy.factor("Player", 1) == 1, "people: the farm factor alone")
+		H.expect(PotCandy.factor("Player", 0.5) == 0.5, "the anti-farm row")
+		H.expect(PotCandy.factor(nil, nil) == 1, "nothing known: 1")
+		H.near(PotCandy.factor("PC", 1), E.SoloShare, 1e-9, "the PC rows: the practice share")
+		-- Still a chip on most pots (0.9 a pot: +1, +1, +1 ...), so the bot is not outed.
+		local amounts = PotCandy.shot(
+			PotCandy.new(),
+			{ pots = 3, farm = PotCandy.factor("PC", 1), multiplier = 1 }
+		)
+		H.expect(PotCandy.sum(amounts) == 3 and amounts[1] == 1, "0.9 a pot")
+	end,
+
 	["the event multiplier and the friends + group boost, never rounded up on every pot"] = function()
 		local PotCandy, _, CandyMath = load()
 		local rush = PotCandy.shot(PotCandy.new(), { pots = 2, multiplier = 2, event = 2, seq = 1 })

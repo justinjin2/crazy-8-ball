@@ -297,8 +297,15 @@ local function payOne(e: any, player: Player, team: number, isShooter: boolean, 
 	local tally = byUser[player.UserId] or newTally()
 	byUser[player.UserId] = tally
 	-- The Halloween Candy of the shot's pots (one per "Ball" grant), in drop order.
-	local candy, candyBalance =
-		potCandy(e, player, shortCapped, pay.balls, farm.Balls, tally, shot.seq)
+	local candy, candyBalance = potCandy(
+		e,
+		player,
+		shortCapped,
+		pay.balls,
+		PotCandy.factor(kind, farm.Balls),
+		tally,
+		shot.seq
+	)
 	local pot = 0
 	local grants = {}
 	for _, g in pay.grants do
