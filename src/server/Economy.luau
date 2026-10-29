@@ -18,6 +18,10 @@
 --   that total is full, balls potted before the one-minute mark pay the flat short rate (3.6).
 -- - Anti-farm (3.6): the ball pay follows the same-opponent row of this match's number against
 --   the most-played account on the other side today.
+-- - Halloween Candy per pocket (Config.Halloween.Match.PerPocket; Halloween/PotCandy): every
+--   pot money pays also pays Candy (CandyService.pots, its own save commit right after the
+--   money's), sent on the pot's grant (`candy`) so the client's CandyFlyer flies it from the
+--   same pocket; the match's Candy is kept in the tally for the settle.
 --
 -- Nothing here listens to a client: the only caller is ShotService, right after the engine
 -- accepted a shot, so every amount comes from the server's own simulation and judgement.
@@ -31,10 +35,12 @@ local Engine = require(Shared.Rules.MatchEngine)
 local BoostFlags = require(Shared.Progression.BoostFlags)
 local Money = require(Shared.Progression.Money)
 local Settle = require(Shared.Progression.Settle)
+local PotCandy = require(Shared.Halloween.PotCandy)
 local PlayerData = require(script.Parent.PlayerData)
 
 -- What a player's pots paid in a match: balls, nice shots, and the ball streak's bonus (its
--- count, money and the best level it paid at; Rules/Streak).
+-- count, money and the best level it paid at; Rules/Streak); the Halloween Candy they paid
+-- (`hw`, PotCandy's state; `candy` and `candyX2` copied out of it by Economy.tally).
 export type Tally = {
 	balls: number,
 	ballMoney: number,
@@ -43,6 +49,9 @@ export type Tally = {
 	ballStreak: number,
 	ballStreakMoney: number,
 	bestStreak: number,
+	hw: PotCandy.State,
+	candy: number,
+	candyX2: boolean,
 }
 
 local function newTally(): Tally
@@ -54,7 +63,62 @@ local function newTally(): Tally
 		ballStreak = 0,
 		ballStreakMoney = 0,
 		bestStreak = 0,
+		hw = PotCandy.new(),
+		candy = 0,
+		candyX2 = false,
 	}
+end
+
+-- CandyService, read late and once (it requires Ranking's neighbours); nil when it fails.
+local candyModule: any = nil
+local candyTried = false
+local candyWarned = false
+local function candyService(): any?
+	if not candyTried then
+		candyTried = true
+		local ok, module = pcall(function(): any
+			return require(script.Parent.Halloween.CandyService) :: any
+		end)
+		candyModule = if ok and type(module) == "table" then module else nil
+	end
+	return candyModule
+end
+
+-- The Candy of each of a shot's `pots` for `player` (CandyService.pots), or {} on any failure
+-- (warned once a server: the money is never held up by the Candy).
+local function potCandy(
+	e: any,
+	player: Player,
+	shortCapped: boolean,
+	pots: number,
+	farm: number,
+	tally: Tally,
+	seq: number?
+): ({ number }, number?)
+	local CandyService = candyService()
+	if CandyService == nil or pots < 1 or not PotCandy.on() then
+		return {}, nil
+	end
+	local ok, amounts, balance = pcall(CandyService.pots, player, {
+		opponent = Settle.opponentKind(e),
+		botKind = Settle.botKind(e),
+		shortCapped = shortCapped,
+		pots = pots,
+		farm = farm,
+		seq = seq,
+		state = tally.hw,
+	})
+	if not ok then
+		if not candyWarned then
+			candyWarned = true
+			warn("[8ball] Economy: the pots' Candy failed: " .. tostring(amounts))
+		end
+		return {}, nil
+	end
+	if type(amounts) ~= "table" then
+		return {}, nil
+	end
+	return amounts, if type(balance) == "number" then balance else nil
 end
 
 local E = Config.Economy
@@ -142,11 +206,18 @@ function Economy.farmRow(player: Player, opponentIds: { number }): Money.FarmRow
 	return Money.farmRow(Settle.matchNumber(matches))
 end
 
---- What `userId`'s pots paid in match `key` so far (zeros when nothing).
+--- What `userId`'s pots paid in match `key` so far (zeros when nothing), with `candy` and
+--- `candyX2` (the Halloween Candy its pots paid).
 function Economy.tally(key: string, userId: number): Tally
 	local byUser = tallies[key]
 	local t = byUser and byUser[userId]
-	return if t then table.clone(t) else newTally()
+	if t == nil then
+		return newTally()
+	end
+	local copy = table.clone(t)
+	copy.candy = t.hw.paid
+	copy.candyX2 = t.hw.x2
+	return copy
 end
 
 --- Forget a finished match's tallies (Ranking, once its result is paid).
@@ -179,6 +250,8 @@ local function payOne(e: any, player: Player, team: number, isShooter: boolean, 
 	local farm = if kind == "Player"
 		then Economy.farmRow(player, Economy.opponentIds(e, team))
 		else Money.farmRow(1)
+	local shortCapped = kind ~= "Solo"
+		and Settle.shortCapped(PlayerData.dailyMoney(player, "Short"), sinceBreak)
 	local pay = Money.shotPay({
 		events = pending.outcome.events,
 		drops = j.drops,
@@ -199,8 +272,7 @@ local function payOne(e: any, player: Player, team: number, isShooter: boolean, 
 		pcEarnedToday = if kind == "Solo" or kind == "PC"
 			then PlayerData.dailyMoney(player, "Pc")
 			else 0,
-		shortCapped = kind ~= "Solo"
-			and Settle.shortCapped(PlayerData.dailyMoney(player, "Short"), sinceBreak),
+		shortCapped = shortCapped,
 		boost = Economy.boost(player),
 		vipBoost = if player:GetAttribute("Vip") == true then Money.boost({ vip = true }) else 0,
 		farmBalls = farm.Balls,
@@ -224,8 +296,18 @@ local function payOne(e: any, player: Player, team: number, isShooter: boolean, 
 	tallies[key] = byUser
 	local tally = byUser[player.UserId] or newTally()
 	byUser[player.UserId] = tally
+	-- The Halloween Candy of the shot's pots (one per "Ball" grant), in drop order.
+	local candy, candyBalance =
+		potCandy(e, player, shortCapped, pay.balls, farm.Balls, tally, shot.seq)
+	local pot = 0
 	local grants = {}
 	for _, g in pay.grants do
+		local potCandyAmount: number? = nil
+		if g.kind == "Ball" then
+			pot += 1
+			local n = candy[pot]
+			potCandyAmount = if type(n) == "number" and n > 0 then n else nil
+		end
 		if g.kind == "Ball" then
 			tally.balls += 1
 			tally.ballMoney += g.amount
@@ -246,6 +328,7 @@ local function payOne(e: any, player: Player, team: number, isShooter: boolean, 
 			kind = g.kind,
 			level = g.level, -- a ball streak chip's level (its colour)
 			at = shot.startedAt + g.t, -- when the replay drops the ball
+			candy = potCandyAmount, -- the pot's Halloween Candy (CandyFlyer), nil for none
 		})
 	end
 	Net.get("MoneyGrant"):FireClient(player, {
@@ -254,6 +337,9 @@ local function payOne(e: any, player: Player, team: number, isShooter: boolean, 
 		seq = shot.seq,
 		total = pay.total,
 		grants = grants,
+		-- The Candy balance once this shot's pots were saved (CandyFlyer holds the HUD's Candy
+		-- pill at the amount before them until each chip lands), nil when they paid none.
+		candyBalance = candyBalance,
 	})
 end
 

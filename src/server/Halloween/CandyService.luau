@@ -6,6 +6,7 @@
 --
 -- The interface other lanes call (each call in a pcall at its call site):
 --   CandyService.add(player, amount, source, opts?) -> number   Candy added (0 when refused)
+--   CandyService.pots(player, facts) -> { number }   a shot's pocket Candy (Economy, per shot)
 --   CandyService.bossWon(player, visitStart?) -> { granted, amount, cooldownEndsAt }   the King
 --   CandyService.bossCooldown(player) -> number   unix time the King is ready again (0: now)
 --   CandyService.pickup(player) -> (ok, reason)   reason "Cap" | "NotLive" | "NotLoaded" | nil
@@ -23,6 +24,7 @@ local Steps = require(Shared.Tutorial.Steps)
 local Clock = require(Shared.Halloween.Clock)
 local Event = require(Shared.Halloween.Event)
 local CandyMath = require(Shared.Halloween.CandyMath)
+local PotCandy = require(Shared.Halloween.PotCandy)
 local Quests = require(Shared.Halloween.Quests)
 local Ledger = require(Shared.Halloween.Ledger)
 local PlayerData = require(script.Parent.Parent.PlayerData)
@@ -276,7 +278,7 @@ local function after(player: Player, result: PlayerData.HwResult?, source: strin
 	if result.candy > 0 then
 		Funnel.once(player, "Halloween", "3_FirstCandy")
 	end
-	if result.candy > 0 and source ~= "Pickup" and source ~= "Dev" then
+	if result.candy > 0 and source ~= "Pickup" and source ~= "Dev" and source ~= "Pot" then
 		remote:FireClient(player, {
 			toast = {
 				candy = result.candy,
@@ -324,11 +326,14 @@ function CandyService.multiplier(player: Player): number
 	return CandyMath.multiplier(Event.multiplier(Clock.serverNow()), friends, group)
 end
 
--- The HwCandy event (value: the Candy; a: its source; b: "x1" or "x2", the event multiplier;
--- c: the device). Never per pickup (up to 40 an hour): pickups are counted by HwQuest instead.
-local function logCandy(player: Player, amount: number, source: string)
-	if amount > 0 and source ~= "Pickup" then
-		local x = ("x%d"):format(Event.multiplier(Clock.serverNow()))
+-- The HwCandy event (value: the Candy; a: its source; b: "x1" or "x2", the event multiplier,
+-- or `x2` when given: a match's pots, some in a Rush; c: the device). Never per pickup or per
+-- pot (pickups are counted by CandyPickups and HwQuest; a match's pots once, at its settle).
+local function logCandy(player: Player, amount: number, source: string, x2: boolean?)
+	if amount > 0 and source ~= "Pickup" and source ~= "Pot" then
+		local x = if x2 ~= nil
+			then (if x2 then "x2" else "x1")
+			else ("x%d"):format(Event.multiplier(Clock.serverNow()))
 		Funnel.event(player, "HwCandy", amount, source, x, Funnel.device(player))
 	end
 end
@@ -462,7 +467,71 @@ export type MatchFacts = {
 	teamSize: number?,
 	farm: { Balls: number, Bonus: number }?, -- the anti-farm row (Money.farmRow)
 	matchKey: string, -- Economy.matchKey ("tableId:epoch")
+	opponent: string?, -- Settle.opponentKind: "Player", "PC" or "Solo" (per-pocket Candy)
+	candy: number?, -- the Candy the match's pots paid the player (Economy's tally)
+	candyX2: boolean?, -- some of it in a Rush or on Oct 31
 }
+
+export type PotFacts = {
+	opponent: string, -- Settle.opponentKind(e)
+	botKind: string?, -- Settle.botKind(e)
+	shortCapped: boolean, -- money pays this shot's balls at the flat short-match rate
+	pots: number, -- the shot's pots that paid the player money ("Ball" grants)
+	farm: number, -- the anti-farm factor money's ball pay used (Money.farmRow().Balls)
+	seq: number?, -- the shot's seq (a shot pays once)
+	state: PotCandy.State, -- the player's Candy in this match so far (Economy's tally): updated
+}
+
+--- A shot's pocket Candy (Economy.payOne, right after the shot's money went into the save; in a
+--- pcall there): PerPocket a pot (Halloween/PotCandy), only while the event is Live, Candy per
+--- pocket is on and the player sees Halloween (HwOn: the tutorial over), in a match against
+--- people or a disguised bot. One save commit for the shot ("hwPot", quiet); the HUD's Candy
+--- attribute at once (the client's CandyFlyer holds the pill's number back until each chip
+--- lands); the view and the one HwCandy "Match" event wait for the settle. Returns each pot's
+--- Candy in order (empty when it pays none) and the balance after it (nil when none).
+function CandyService.pots(player: Player, f: PotFacts): ({ number }, number?)
+	local none: { number } = {}
+	if not isPlayer(player) or not PotCandy.on() or not CandyService.isLive() then
+		return none
+	end
+	if player:GetAttribute("HwOn") ~= true or f.shortCapped == true then
+		return none
+	end
+	if not PotCandy.eligible(f.opponent, f.botKind) then
+		return none
+	end
+	local now = Clock.serverNow()
+	local amounts, nextState = PotCandy.shot(f.state, {
+		pots = f.pots,
+		farm = f.farm,
+		multiplier = CandyService.multiplier(player),
+		event = Event.multiplier(now),
+		seq = f.seq,
+	})
+	local total = PotCandy.sum(amounts)
+	local function keep()
+		f.state.exact = nextState.exact
+		f.state.paid = nextState.paid
+		f.state.seqs = nextState.seqs
+		f.state.x2 = nextState.x2
+	end
+	if total <= 0 then
+		if #amounts > 0 then
+			keep() -- nothing whole yet (a cut farm factor): its part counts at the next pot
+		end
+		return none
+	end
+	local result = PlayerData.hwPot(player, total, CandyService.ctx())
+	if result == nil or result.candy <= 0 then
+		return none
+	end
+	keep()
+	local candy = PlayerData.hwCandy(player)
+	if player:GetAttribute("Candy") ~= candy then
+		player:SetAttribute("Candy", candy)
+	end
+	return amounts, candy
+end
 
 -- The last match each player used an ability in ("tableId:epoch", from UltService.Used).
 local ultMatch: { [Player]: string } = setmetatable({}, { __mode = "k" }) :: any
@@ -496,11 +565,93 @@ local function kingTable(matchKey: string): boolean
 	return ok and found == true
 end
 
+-- The quest events a real match counts (Matches, Balls, NiceShots, Wins, the team kinds, the
+-- ability quest).
+local function matchEvents(player: Player, f: MatchFacts): { { kind: string, amount: number } }
+	local team = (f.teamSize or 1) >= 2
+	local events = {
+		{ kind = "Matches", amount = 1 },
+		{ kind = "Balls", amount = f.balls },
+		{ kind = "NiceShots", amount = f.nice },
+	}
+	if f.won then
+		table.insert(events, { kind = "Wins", amount = 1 })
+	end
+	if team then
+		table.insert(events, { kind = "TeamMatches", amount = 1 })
+		if f.won then
+			table.insert(events, { kind = "TeamWins", amount = 1 })
+		end
+	end
+	if ultMatch[player] == f.matchKey then
+		table.insert(events, { kind = "UltMatches", amount = 1 })
+	end
+	return events
+end
+
+-- A settled match while Candy is paid per pocket (Halloween/PotCandy.settle): its pots already
+-- paid the Candy, so nothing is added here. The match's total is logged once (HwCandy "Match")
+-- and shown once (the end-of-match chip, CandyToast), and a real match against people or a
+-- disguised bot counts for the quests. Ranking calls this for short matches too (their pots'
+-- Candy is logged and shown; no quest). Returns the match's Candy.
+local function potSettled(player: Player, f: MatchFacts): number
+	local d = PotCandy.settle({
+		real = f.real,
+		opponent = f.opponent,
+		botKind = f.botKind,
+		candy = f.candy or 0,
+	})
+	if f.real then
+		-- HwMatch: every real settled match while Live (value: friends here, capped; a: how it
+		-- paid, "Paid", "Disguised", "Tutorial" or "PC"; b: in the group).
+		local friends, group = boostInputs(player)
+		Funnel.event(
+			player,
+			"HwMatch",
+			math.min(math.floor(friends), 4),
+			d.how,
+			if group then "Group" else "NoGroup"
+		)
+	end
+	local result: PlayerData.HwResult? = nil
+	if d.quests then
+		result = PlayerData.hwQuest(player, matchEvents(player, f), CandyService.ctx())
+	elseif d.how == "PC" and f.real and kingTable(f.matchKey) then
+		-- A Pumpkin King match: the Matches and Balls quests only (Boss.CountsForQuests).
+		local events = CandyMath.kingEvents(f.balls, f.forfeited)
+		if #events > 0 then
+			result = PlayerData.hwQuest(player, events, CandyService.ctx())
+		end
+	end
+	if d.log > 0 then
+		Funnel.once(player, "Halloween", "3_FirstCandy")
+		logCandy(player, d.log, "Match", f.candyX2 == true)
+	end
+	if d.toast > 0 then
+		Net.get("Halloween"):FireClient(player, {
+			toast = { candy = d.toast, source = "Match", x2 = f.candyX2 == true },
+		})
+	end
+	if result ~= nil then
+		after(player, result, "Match")
+	elseif d.log > 0 then
+		CandyService.changed(player)
+	end
+	return d.log
+end
+
 --- A settled match's Candy and quest events (Ranking.settleOne, in a pcall): real matches
 --- against people only (the tutorial's bot counts; a disguised bot, PC and solo never do), all
 --- in one commit. Returns the Candy added (0 when the match pays none: never a "+0").
 function CandyService.matchSettled(player: Player, f: MatchFacts): number
 	if not isPlayer(player) or C.Match.Enabled ~= true or not CandyService.isLive() then
+		return 0
+	end
+	if PotCandy.on() then
+		return potSettled(player, f)
+	end
+	-- The old settle-time Candy (Match.PerPocketEnabled false): real matches only.
+	if not f.real then
 		return 0
 	end
 	-- HwMatch: every settled match while Live (value: friends here, capped; a: how it paid;
@@ -533,24 +684,7 @@ function CandyService.matchSettled(player: Player, f: MatchFacts): number
 		farmBonus = farm.Bonus,
 	})
 	local candy = CandyMath.apply(base, CandyService.multiplier(player))
-	local team = (f.teamSize or 1) >= 2
-	local events = {
-		{ kind = "Matches", amount = 1 },
-		{ kind = "Balls", amount = f.balls },
-		{ kind = "NiceShots", amount = f.nice },
-	}
-	if f.won then
-		table.insert(events, { kind = "Wins", amount = 1 })
-	end
-	if team then
-		table.insert(events, { kind = "TeamMatches", amount = 1 })
-		if f.won then
-			table.insert(events, { kind = "TeamWins", amount = 1 })
-		end
-	end
-	if ultMatch[player] == f.matchKey then
-		table.insert(events, { kind = "UltMatches", amount = 1 })
-	end
+	local events = matchEvents(player, f)
 	local result = PlayerData.hwAddCandy(player, candy, "Earned", CandyService.ctx(), events)
 	local added = if result then result.candy else 0
 	logCandy(player, added, "Match")

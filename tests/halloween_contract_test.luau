@@ -93,7 +93,11 @@ return {
 		H.expect(C.Double.From == DOUBLE_FROM and C.Double.To == DOUBLE_TO, "Oct 31 Eastern window")
 		H.expect(
 			C.Match.PerBall == 3 and C.Match.Finished == 10 and C.Match.Win == 25,
-			"3 a ball, 10 finished, +25 a win"
+			"the old settle-time Candy (the switch off): 3 a ball, 10 finished, +25 a win"
+		)
+		H.expect(
+			C.Match.PerPocketEnabled == true and C.Match.PerPocket == 3,
+			"per pocket (2026-10-29): 3 Candy a pot, on"
 		)
 		local r = C.Quests.Rewards
 		H.expect(
@@ -275,6 +279,7 @@ return {
 		end
 		check("Config.Halloween", Config.Halloween, {
 			"Match.Enabled",
+			"Match.PerPocketEnabled",
 			"Quests.Enabled",
 			"Cues.Enabled",
 			"Packs.Enabled",

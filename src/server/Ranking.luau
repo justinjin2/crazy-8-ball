@@ -446,17 +446,11 @@ local function settleOne(m: Match, entry: Entry, paid: Paid)
 			paid.streak = streak
 		end
 	end
-	if not real then
-		countShort(p, m.key)
-		return
-	end
-
-	-- A disguised bot's win counts toward the day's hidden limit (Config.Economy.DisguisedDailyWins).
-	if won and disguised then
-		PlayerData.countDaily(p, "Disguised")
-	end
-	-- The Halloween event's Candy and quests (hw-core; CandyService.matchSettled pays only real
-	-- matches against people, never a disguised bot). An error never blocks the settle.
+	-- The Halloween event's Candy and quests (hw-core; CandyService.matchSettled). Per pocket
+	-- (Config.Halloween.Match.PerPocketEnabled) the pots already paid the Candy: this logs and
+	-- shows the match's total (short matches too) and counts the quests of a real match against
+	-- people or a disguised bot. Off: the old settle-time Candy, real matches against people
+	-- only. An error never blocks the settle.
 	local okCandy, candyErr = pcall(function(): any
 		local tally = Economy.tally(m.key, p.UserId)
 		return CandyService.matchSettled(p, {
@@ -470,12 +464,24 @@ local function settleOne(m: Match, entry: Entry, paid: Paid)
 			teamSize = m.e.teamSize,
 			farm = farm,
 			matchKey = m.key,
+			opponent = Settle.opponentKind(m.e),
+			candy = tally.candy,
+			candyX2 = tally.candyX2,
 		})
 	end)
 	if not okCandy then
 		warn("[8ball] Ranking: Halloween Candy failed: " .. tostring(candyErr))
 	end
 
+	if not real then
+		countShort(p, m.key)
+		return
+	end
+
+	-- A disguised bot's win counts toward the day's hidden limit (Config.Economy.DisguisedDailyWins).
+	if won and disguised then
+		PlayerData.countDaily(p, "Disguised")
+	end
 	-- The winner's lucky block: the day's win track (economy v4 plan section 5; ECONOMY 3.6),
 	-- from the counts before this match: the first Config.BlockOdds.Drop.WinTrack real wins of
 	-- the day that pass the anti-farm rules, and Play against PC only for its first

@@ -3785,10 +3785,22 @@ Config.Halloween = {
 	-- The Candy icon (candy corn, 256 px): map's +1 / +50 billboards, the GUI lane's chip and the
 	-- event menu read it. "" = each uses its own fallback.
 	CandyIcon = "rbxassetid://75949906210202",
-	-- Match Candy at settle (Halloween/CandyMath; real matches against people only): PerBall a
-	-- ball pocketed, Finished for a match the player's side did not forfeit, Win on top for a
-	-- win; times the event multiplier and the friends + group boost.
-	Match = { Enabled = true, PerBall = 3, Finished = 10, Win = 25 },
+	-- Match Candy. Per pocket (designer, 2026-10-29; Halloween/PotCandy, docs/ECONOMY.md): every
+	-- pot that pays the player money pays PerPocket Candy with it, flying from the pocket to the
+	-- Candy pill like the cash (CandyFlyer), x the same anti-farm factor as money's ball pay x
+	-- the event multiplier and the friends + group boost; against people and disguised bots,
+	-- never practice (PC, solo) or the tutorial's bot. No Candy at settle on top (Finished and
+	-- Win are folded into the pots: a winner pots more). PerPocketEnabled false: the old
+	-- settle-time Candy instead (Halloween/CandyMath; real matches against people only: PerBall
+	-- a ball, Finished for a match the side did not forfeit, Win on top), one line to cut.
+	Match = {
+		Enabled = true,
+		PerPocketEnabled = true,
+		PerPocket = 3, -- ~47 eligible pots an hour of play: ~170 Candy an hour with the Rushes
+		PerBall = 3,
+		Finished = 10,
+		Win = 25,
+	},
 	-- Beating the Pumpkin King: the first PaidWinsPerDay wins of a UTC day pay Candy (flat);
 	-- every win starts a personal cooldown of CooldownSeconds (the King's prompt shows it).
 	Boss = {

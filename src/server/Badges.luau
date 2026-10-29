@@ -56,8 +56,15 @@ local LIVE = not IS_STUDIO and game.GameId == B.UniverseId
 -- PlayerData ops that never change what a badge reads (the playtime tick, our own marks,
 -- Halloween's 5 s active tick: a prize it gives commits as "hwActiveGrant", which is checked),
 -- and the frequent ground-candy pickup (about one a minute a player): its Candy (the Candy
--- badges) is checked at the player's next other commit or their next join.
-local SKIP_OPS = { addPlaySeconds = true, markBadges = true, hwActive = true, hwPickup = true }
+-- badges) is checked at the player's next other commit or their next join. A pot's Candy
+-- ("hwPot", one a shot) comes right after the shot's money commit, which is checked.
+local SKIP_OPS = {
+	addPlaySeconds = true,
+	markBadges = true,
+	hwActive = true,
+	hwPickup = true,
+	hwPot = true,
+}
 local TICK_SECONDS = 0.5 -- the queue loop's step while it has work
 local WARN_SECONDS = 60 -- at most one warning this often (a throttled BadgeService, a full server)
 local REVEAL_SECONDS = Rules.revealSeconds()

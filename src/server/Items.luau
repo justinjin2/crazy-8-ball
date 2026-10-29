@@ -63,6 +63,7 @@ local QUIET_OPS: { [string]: boolean } = {
 	-- of it in the snapshot (the Candy track, whose cue steps a pickup could reach, is removed
 	-- for the evening release, 2026-10-29).
 	hwPickup = true,
+	hwPot = true, -- a shot's pocket Candy (one a shot): Candy only, none of it in the snapshot
 	recordShot = true,
 	addMoney = true,
 	addDailyMoney = true,
