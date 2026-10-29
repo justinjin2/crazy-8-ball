@@ -3,10 +3,10 @@
   "name": "Pitchfork Cue",
   "tier": "Legendary",
   "catalog_id": "PitchforkCue",
-  "note": "Halloween 2026 track cue, 500 Candy (the designer's slot-2 pick, coordinator 2026-10-28 19:40; concept mocks/v3/R2.png). Only ever \"Pitchfork Cue\", never \"devil\". Built by lane hw-map (assets/cue/CuePiecesHalloween_Pitchfork.py); core owns its Catalog, Track, Strings and Art rows. Remade 2026-10-29 (the designer): the fork at the TIP, at the approved butt fork's size (about 2.1 across; a compact half-size one read too small), flat, the middle prong is the tip; the outer prongs fade while aiming, the flames on their points.",
+  "note": "Halloween 2026 track cue, 500 Candy (the designer's slot-2 pick, coordinator 2026-10-28 19:40; concept mocks/v3/R2.png). Only ever \"Pitchfork Cue\", never \"devil\". Built by lane hw-map (assets/cue/CuePiecesHalloween_Pitchfork.py); core owns its Catalog, Track, Strings and Art rows. Remade 2026-10-29 (the designer): a compact fork at the TIP, about half as wide, flat, the middle prong is the tip; the outer prongs fade while aiming, the flames on their points.",
   "body": "pitchfork",
   "maps_from": "classic",
-  "thumb_margin": 1.95,
+  "thumb_margin": 1.8,
   "thumb_shift": -0.12,
   "look": {
     "Shaft": "#D81E1E",
@@ -39,7 +39,7 @@
             "Kind": "Attachment",
             "AtStuds": 0.4,
             "Up": 0.0,
-            "Side": -0.8,
+            "Side": -0.31,
             "Joint": "Tines"
           },
           "Rate": 8,
@@ -120,7 +120,7 @@
             "Kind": "Attachment",
             "AtStuds": 0.4,
             "Up": 0.0,
-            "Side": 0.8,
+            "Side": 0.31,
             "Joint": "Tines"
           },
           "Rate": 8,
@@ -198,8 +198,8 @@
           "Host": {
             "Kind": "Part",
             "FromStuds": 0.1,
-            "ToStuds": 1.45,
-            "Width": 1.7,
+            "ToStuds": 1.3,
+            "Width": 0.82,
             "Shape": "Cylinder",
             "ShapeStyle": "Volume",
             "Joint": "Tines"

@@ -653,7 +653,7 @@ return {
 		Id = "pitchfork",
 		Name = "Pitchfork Cue",
 		Tier = "Legendary",
-		Thumb = "rbxassetid://85469100080592",
+		Thumb = "rbxassetid://110284560248397",
 		Look = {
 			Shaft = { 216, 30, 30 },
 			Forearm = { 216, 30, 30 },

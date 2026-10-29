@@ -2,7 +2,7 @@
   "id": "pitchfork",
   "Frame": "cue",
   "frame": "Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)",
-  "Triangles": 8912,
+  "Triangles": 8960,
   "Parts": [
     {
       "Material": "SmoothPlastic",
@@ -23,11 +23,11 @@
         -0.004
       ],
       "Size": [
-        0.4767,
+        0.3768,
         0.4002,
         7.008
       ],
-      "Triangles": 5540,
+      "Triangles": 5588,
       "Smooth": true
     },
     {
@@ -72,12 +72,12 @@
       "Offset": [
         0.0,
         0.0,
-        2.5725
+        2.6525
       ],
       "Size": [
-        2.0764,
-        0.1606,
-        1.215
+        0.9185,
+        0.1623,
+        1.055
       ],
       "Triangles": 2744,
       "Smooth": true
@@ -138,13 +138,13 @@
       "Parent": null,
       "Pivot": [
         0.0,
-        -1.38,
+        -1.22,
         0.0
       ],
       "PivotRoblox": [
         -0.0,
         0.0,
-        2.12
+        2.28
       ],
       "Motion": [],
       "Aim": "fade"

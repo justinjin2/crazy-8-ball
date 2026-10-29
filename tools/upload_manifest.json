@@ -1384,6 +1384,11 @@
     "imageId": "137525961488251",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball/.claude/worktrees/agent-adf8a5316b308e556/assets/cue/pieces/pitchfork/pitchfork_parts.glb": {
+    "assetId": "116270933265788",
+    "assetType": "Model",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball/.claude/worktrees/agent-adf8a5316b308e556/assets/cue/pieces/witch_broom/HatCharm.glb": {
     "assetId": "104736333858086",
     "assetType": "Model",
@@ -1392,6 +1397,12 @@
   "/Users/justinjin/Desktop/8ball/.claude/worktrees/agent-adf8a5316b308e556/assets/cue/pieces/witch_broom/witch_broom_parts.glb": {
     "assetId": "106017662921644",
     "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/.claude/worktrees/agent-adf8a5316b308e556/assets/cue/thumbs/pitchfork.png": {
+    "assetId": "110284560248397",
+    "assetType": "Image",
+    "imageId": "110284560248397",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/.claude/worktrees/agent-adf8a5316b308e556/assets/cue/thumbs/witch_broom.png": {
@@ -6676,17 +6687,6 @@
   "/Users/justinjin/Downloads/422945-Puzzle-Game-Achievement-02.wav": {
     "assetId": "124844921098629",
     "assetType": "Audio",
-    "status": "ok"
-  },
-  "/Users/justinjin/Desktop/8ball/assets/cue/pieces/pitchfork/pitchfork_parts.glb": {
-    "assetId": "83258251764793",
-    "assetType": "Model",
-    "status": "ok"
-  },
-  "/Users/justinjin/Desktop/8ball/assets/cue/thumbs/pitchfork.png": {
-    "assetId": "89043121890764",
-    "assetType": "Decal",
-    "imageId": "85469100080592",
     "status": "ok"
   }
 }

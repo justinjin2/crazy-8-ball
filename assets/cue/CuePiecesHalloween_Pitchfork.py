@@ -5,13 +5,12 @@ See CuePieces.py for the kit and CuePiecesHalloween_A.py for the body rules (`ch
 body passes before it exports. Modelled in the cue's Blender frame: X the side, Y from the tip
 (0) toward the butt (-7), Z up.
 
-    pitchfork    the large pitchfork AT THE TIP (the designer 2026-10-29: the approved butt
-                 fork's size, about 2.1 across the barbs, but the fork is the tip; the compact
-                 half-size one read too small): the middle prong, red and square-ish with a
+    pitchfork    a compact pitchfork AT THE TIP (the designer 2026-10-29: about half as wide,
+                 flat, the middle prong is the tip): the middle prong, red and square-ish with a
                  flat barbed arrowhead whose point IS the cue's tip (d 0, nothing past it), is
                  part of the body and never fades; a bevelled gold yoke and the two outer prongs
-                 (their points set back 0.32, about 1.04 off the axis across the barbs) ride the
-                 Tines joint and fade on the owner's own screen while aiming. Laid flat (face up), so
+                 (their points set back 0.32, 0.445 off the axis across the barbs) ride the Tines
+                 joint and fade on the owner's own screen while aiming. Laid flat (face up), so
                  nothing reaches the cloth on a max-draw stroke. Behind the yoke the glossy
                  candy-apple red shaft starts with a gold ferrule, slim (0.82 of the shared cue's
                  width: the designer found the first two "too wide"); a low collar (gold, black,
@@ -88,7 +87,7 @@ SLIM = 0.82
 # overlap the hand on other players' screens, as the Sword's blade does); and the first 0.3 studs
 # may be TipAcross wide (the middle arrowhead, flat; the ball curves away from it, so it never
 # meets the ball, while 0.12 would cut the arrowhead to a stub).
-A.BODY_EXCEPTIONS['pitchfork'] = {'Slim': SLIM, 'WideX': 1.75, 'BridgeCore': ('Body',), 'TipAcross': 0.25}
+A.BODY_EXCEPTIONS['pitchfork'] = {'Slim': SLIM, 'WideX': 1.5, 'BridgeCore': ('Body',), 'TipAcross': 0.25}
 
 # The lathe's raised bands: (d, extra over the slim envelope) polylines between flush rows,
 # raised BAND_RISE of these (the bevel shapes kept). Outside the hand zones (2.1 to 4.4 and
@@ -127,28 +126,27 @@ TAIL_R = 0.04                       # the tube's radius (it rides R + 0.014 on t
 TAIL_RIDE = (0.014, 0.035)          # the centre's offset over the slim envelope: everywhere, extra on top
 TAIL_TIP = (0.26, 0.055, 0.3, 0.75)  # the lifting tip: its run along the cue, its rise, the arrowhead's length and scale
 
-# The fork, at the tip (the designer 2026-10-29: the approved butt fork's size, about 2.1 across
-# the barbs and 1.5 studs long, flat, the middle prong is the tip; a compact half-size one read too
-# small).
+# The fork, at the tip (the designer 2026-10-29: "a compact fork at the TIP", about half the
+# approved 2.08 span, flat, the middle prong is the tip; it was past the butt, 1.5 studs long).
 # Its prongs spread along S = (cos t, 0, sin t), t = FORK_TILT from +X toward +Z: 180 lays it
 # flat, face up (at 150 the lower outer tine sat 0.4 under the axis, into the cloth on a max-draw
 # stroke, whose axis is only 0.097 over it). d is studs from the tip, as everywhere here.
 FORK_TILT = 180.0
-FORK_SPREAD = 0.80                  # the outer prongs' centres off the axis (studs), as the butt fork's
-PRONG_R = (0.062, 0.072)            # a prong's section: across its face (up), in its plane (sideways)
+FORK_SPREAD = 0.31                  # the outer prongs' centres off the axis (studs); 0.445 across the barbs
+PRONG_R = (0.05, 0.058)             # a prong's section: across its face (up), in its plane (sideways)
 PRONG_SQUARE = 2.8                  # its superellipse power: a rounded, bevelled square that catches light
-FORK_FROM = 1.38                    # the outer prongs leave the yoke here (the butt fork's 1.38 to the point)
-FORK_BEND = 0.78                    # and turn parallel to the cue here (its 0.6 of U)
+FORK_FROM = 1.22                    # the outer prongs leave the yoke here
+FORK_BEND = 0.86                    # and turn parallel to the cue here
 MIDDLE_TIP, OUTER_TIP = 0.0, 0.32   # the arrowheads' points: the middle one IS the cue's tip; the outer
                                     # ones set back, out of the tip zone, so the middle one strikes first
-HEAD_LEN = (0.54, 0.52)             # the arrowheads' lengths: middle, outer (the butt fork's)
-HEAD_SCALE = (1.15, 1.15)           # the arrowheads' width and thickness (HEAD and BARB are at 1): middle, outer
+HEAD_LEN = (0.40, 0.34)             # the arrowheads' lengths: middle, outer
+HEAD_SCALE = (0.8, 0.72)            # the arrowheads' width and thickness (HEAD and BARB are at 1): middle, outer
 HEAD_THICK = 0.7                    # and their thickness again on top: flat, elegant blades
-LATHE_FROM = 1.52                   # the shaft starts here, behind the yoke, with a gold ferrule
+LATHE_FROM = 1.36                   # the shaft starts here, behind the yoke, with a gold ferrule
 FERRULE = 0.07                      # the ferrule's length
-HALF_SPAN_CAP = 1.1                 # check_fork: nothing in the fork zone further off the axis sideways (the butt fork's Aim cap)
+HALF_SPAN_CAP = 0.46                # check_fork: nothing in the fork zone further off the axis sideways
 CLOTH_DEPTH = 0.085                 # check_fork: nor deeper under the axis (a max-draw axis is 0.097 over the cloth)
-FORK_ZONE = 1.8                     # the fork zone for those two checks (studs from the tip)
+FORK_ZONE = 1.6                     # the fork zone for those two checks (studs from the tip)
 # an arrowhead's section along it (t from its neck, 0, to its point, 1): full width, full
 # thickness (studs at scale 1); the point rounds off over its last 0.09
 HEAD = ((0.0, 0.18, 0.152), (0.025, 0.25, 0.14), (0.06, 0.31, 0.128), (0.10, 0.335, 0.12),
@@ -162,11 +160,11 @@ BARB = ((0.16, 0.09, 0.045, 0.06), (0.07, 0.14, 0.04, 0.05), (-0.02, 0.17, 0.033
 # groove between, then a dome toward the tip the prongs leave from (d, radius at scale 1; the
 # butt build's profile turned round). Flattened: its section is YOKE_SCALE of these sideways and
 # YOKE_UP of that up and down (the cloth rule), an oval boss the outer prongs grow out of.
-YOKE_SCALE = 0.75
-YOKE_UP = 0.45
-YOKE = ((1.535, 0.0), (1.53, 0.19), (1.524, 0.226), (1.516, 0.238), (1.492, 0.238), (1.486, 0.222),
-        (1.476, 0.214), (1.466, 0.222), (1.46, 0.238), (1.436, 0.238), (1.426, 0.222), (1.40, 0.19),
-        (1.37, 0.14), (1.348, 0.07), (1.34, 0.0))
+YOKE_SCALE = 0.62
+YOKE_UP = 0.55
+YOKE = ((1.375, 0.0), (1.37, 0.19), (1.364, 0.226), (1.356, 0.238), (1.332, 0.238), (1.326, 0.222),
+        (1.316, 0.214), (1.306, 0.222), (1.30, 0.238), (1.276, 0.238), (1.266, 0.222), (1.24, 0.19),
+        (1.21, 0.14), (1.188, 0.07), (1.18, 0.0))
 
 
 def slim_envelope():

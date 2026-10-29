@@ -5,7 +5,7 @@
 return {
 	Id = "pitchfork",
 	Frame = "cue",
-	Rigid = "83258251764793",
+	Rigid = "116270933265788",
 	Models = {},
 	Parts = {
 		{
@@ -21,7 +21,7 @@ return {
 			Name = "Body_Pitchfork",
 			Joint = "Body",
 			Offset = { 0, 0.0117, -0.004 },
-			Size = { 0.4767, 0.4002, 7.008 },
+			Size = { 0.3768, 0.4002, 7.008 },
 			Smooth = true,
 		},
 		{
@@ -52,8 +52,8 @@ return {
 			},
 			Name = "Tines_Pitchfork",
 			Joint = "Tines",
-			Offset = { 0, 0, 2.5725 },
-			Size = { 2.0764, 0.1606, 1.215 },
+			Offset = { 0, 0, 2.6525 },
+			Size = { 0.9185, 0.1623, 1.055 },
 			Smooth = true,
 		},
 	},
@@ -84,7 +84,7 @@ return {
 		},
 		Tines = {
 			Parent = nil,
-			PivotRoblox = { -0, 0, 2.12 },
+			PivotRoblox = { -0, 0, 2.28 },
 			Motion = {},
 			Aim = "fade",
 		},
