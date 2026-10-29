@@ -4003,6 +4003,12 @@ Config.Shop = {
 			VaultedSeconds = 7 * 86400, -- the "Vaulted" card stays this long after the end
 		},
 	},
+	-- The Grand Opening block off the Shop (designer, 2026-10-29: Firework 500/500 and Beta
+	-- 100/100 all found): no money or Robux buy (a late receipt pays the fallback), its card
+	-- and the Featured header hidden (ShopState deals.GrandOpening.offShop); owned blocks still
+	-- open, and the launch bonus and the Grand Opening Luck still follow its row. false: today's
+	-- Shop.
+	GrandOpeningOffShop = true,
 	-- The Mystery block's money price as the shop card shows it (Deals.Mystery.Money is what the
 	-- server charges; keep the two the same). Economy v6 (designer, 2026-10-10): $25,000 and
 	-- 5 for $100,000 (v5.1: $19,900 and $89,900): about 3 hours of matches for a free player.

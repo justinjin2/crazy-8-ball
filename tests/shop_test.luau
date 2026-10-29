@@ -73,6 +73,27 @@ local function withSoftLaunch(on: boolean, fn: () -> ())
 	end
 end
 
+-- Runs `fn` with Config.Shop.GrandOpeningOffShop set to `off`, and puts it back even if it
+-- fails.
+local function withOffShop(off: boolean, fn: () -> ())
+	local S = Config.Shop :: any
+	local was = S.GrandOpeningOffShop
+	S.GrandOpeningOffShop = off
+	local ok, err = pcall(fn)
+	S.GrandOpeningOffShop = was
+	if not ok then
+		error(err, 0)
+	end
+end
+
+-- A test of the Grand Opening block on sale (the Shop before 2026-10-29): runs it with the
+-- block back on the Shop.
+local function oldShop(fn: () -> ()): () -> ()
+	return function()
+		withOffShop(false, fn)
+	end
+end
+
 local function newShop(overrides: { [string]: any }?): any
 	local shop: { [string]: any } = {
 		FirstJoin = JOIN,
@@ -276,7 +297,7 @@ local function offerEndsAt(payload: any, now: number): number?
 	return found
 end
 
-return {
+local tests = {
 	["every money pack matches ECONOMY 11.1"] = function()
 		local packs = Shop.packs()
 		H.expect(#packs == #PACKS, ("%d packs, expected %d"):format(#packs, #PACKS))
@@ -340,6 +361,38 @@ return {
 				("day %d: never again"):format(day)
 			)
 		end
+	end,
+
+	["the Grand Opening block off the Shop: no buy, owned blocks open, the bonus and Luck kept"] = function()
+		local BlockDrop = H.require("Progression.BlockDrop")
+		local LuckyBlocks = H.require("Progression.LuckyBlocks")
+		local now = Config.Shop.Deals.GrandOpening.StartsAt + DAY
+		local bonusOn, luckOn
+		withOffShop(false, function()
+			H.expect(Shop.deal("GrandOpening", now).open, "on sale on today's Shop")
+			H.expect(not Shop.deal("GrandOpening", now).offShop, "not off")
+			bonusOn, luckOn = Shop.launchBonus(now), BlockDrop.luckLive(now)
+		end)
+		withOffShop(true, function()
+			local deal = Shop.deal("GrandOpening", now)
+			H.expect(deal.offShop and not deal.open, "off the Shop: closed")
+			H.expect(not Shop.deal("Mystery", now).offShop, "the Mystery block stays")
+			H.expect(ShopView.check("GrandOpening1", ctxAt(now)) == "Closed", "no Robux prompt")
+			H.expect(Shop.receiptCheck("GrandOpening3", newShop(), now, false) == "Closed", "")
+			H.expect(
+				select(2, Shop.grantFor("GrandOpening3", newShop(), now, false)) == "Closed",
+				"a late receipt pays the fallback"
+			)
+			local bonus = Shop.launchBonus(now)
+			H.expect(bonus.open == bonusOn.open and bonus.endsAt == bonusOn.endsAt, "the bonus")
+			H.expect(BlockDrop.luckLive(now) == luckOn, "the Grand Opening Luck")
+			H.expect(LuckyBlocks.kind("GrandOpening") ~= nil, "the kind stays")
+			local block = { Id = 1, Kind = "GrandOpening", ReadyAt = now - 1 }
+			H.expect(LuckyBlocks.canOpen(block, now, 1), "an owned block still opens")
+			local p = ShopView.build(ctxAt(now))
+			H.expect(p.deals.GrandOpening.offShop == true, "the client hides its card")
+			H.expect(p.deals.Mystery.offShop == false, "and keeps the Mystery card")
+		end)
 	end,
 
 	["the Starter Pack is on for its window, until bought"] = function()
@@ -1557,3 +1610,17 @@ return {
 		H.expect(restricted.products.StarterPack.canBuy == fresh.products.StarterPack.canBuy, "")
 	end,
 }
+
+-- The tests of the Grand Opening block on sale run on today's Shop (oldShop).
+for _, name in
+	{
+		"the Grand Opening block deal: 45 days, vaulted 7 more, off until its date (before its start)",
+		"Mystery blocks grant paid blocks; the Starter Pack adds an hour of 2x money",
+		"paid random items are refused where restricted; the page order and Roblox Plus",
+	}
+do
+	assert(tests[name], name)
+	tests[name] = oldShop(tests[name])
+end
+
+return tests
