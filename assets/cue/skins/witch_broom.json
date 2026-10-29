@@ -4,7 +4,7 @@
   "tier": "Secret",
   "catalog_id": "WitchBroomCue",
   "draft": false,
-  "note": "Halloween 2026 (lane Cues B, docs/prompts/HW_CUES_B_PROMPT.md 2.4, concept C3b_broom.png), remade 2026-10-28 (Justin 12:55): a real broom, a gnarled twisted branch with knots and a broken stub, a violet crystal tip with a silver coil, a thick purple binding with a silver buckle and gold crescent, a big full head of golden straw (3.3x), a swaying witch-hat charm; moons, stars, bats and spell stars round it, potion smoke and bats out of the bristles, sparks from the crystal. No ribbons. v3 (2026-10-29): the finisher is a witch's-hat constellation and the witch alone, no portal rings or moon.",
+  "note": "Halloween 2026 (lane Cues B, docs/prompts/HW_CUES_B_PROMPT.md 2.4, concept C3b_broom.png), remade 2026-10-28 (Justin 12:55): a real broom, a gnarled twisted branch with knots and a broken stub, a violet crystal tip with a silver coil, a thick purple binding with a silver buckle and gold crescent, a big full head of golden straw (3.3x), a swaying witch-hat charm; moons, stars, bats and spell stars round it, potion smoke and bats out of the bristles, sparks from the crystal. No ribbons. v3 (2026-10-29): the finisher is a witch's-hat constellation, no portal rings or moon; v4 (designer 2026-10-29): the flying witch picture is gone, the stars stay.",
   "body": "witch_broom",
   "maps_from": "classic",
   "look": {
@@ -2062,7 +2062,7 @@
       ]
     },
     "Pocket": {
-      "Note": "Secret, about 2.2 s, v3 (designer 2026-10-29: the portal rings read like the Beta cue's; no moon, the witch smoother and faster): a violet flash; a witch's-hat constellation (pieces/witch_broom_stars: eight Neon stars joined by violet chart lines, twinkling at their own pace, dust stars round it) rises and grows out of the pocket facing the camera; a dark column behind a fountain of gold five-point stars; twinkling star dust round the hat; then the witch alone (no moon: a 64-frame OneShot flipbook of 128 px cells, 1.05 s, about 60 frames a second, 5 studs, 3.4 up; was 16 frames over 2.2 s) sweeps across the hat's tip with a gold and violet sparkle trail off her bristles; a gold star burst at the hat's tip; bats; stars raining down to close. No ring decals, no swirl disc, no shared gust ribbons (KeepRibbons false); only the shared gust's own shockwave ring on the cloth stays, as on every cue.",
+      "Note": "Secret, about 2.2 s, v4 (designer 2026-10-29: get rid of the witch 2D animated picture, keep the stars): a violet flash; a witch's-hat constellation (pieces/witch_broom_stars: eight Neon stars joined by violet chart lines, twinkling at their own pace, dust stars round it) rises and grows out of the pocket facing the camera; a dark column behind a fountain of gold five-point stars; twinkling star dust round the hat; a gold star burst at the hat's tip; bats; stars raining down to close. No witch (v3's 64-frame flying witch is gone), no ring decals, no swirl disc, no shared gust ribbons (KeepRibbons false); only the shared gust's own shockwave ring on the cloth stays, as on every cue.",
       "Flash": {
         "Color": [
           190,
@@ -2351,42 +2351,6 @@
           "LightEmission": 1,
           "LightInfluence": 0,
           "Brightness": 3
-        },
-        {
-          "Name": "Witch",
-          "Texture": "vfx/witch_broom/witch_fly_8x8.png",
-          "FlipbookLayout": "Grid8x8",
-          "FlipbookMode": "OneShot",
-          "Delay": 0.35,
-          "Host": {
-            "Kind": "Point",
-            "Offset": [
-              0,
-              3.4,
-              0
-            ],
-            "Size": 0
-          },
-          "Burst": 1,
-          "Lifetime": [
-            1.05,
-            1.05
-          ],
-          "Speed": [
-            0,
-            0
-          ],
-          "SpreadAngle": [
-            0,
-            0
-          ],
-          "Size": 5.0,
-          "Transparency": 0,
-          "Rotation": 0,
-          "Color": "#FFFFFF",
-          "LightEmission": 0,
-          "LightInfluence": 0,
-          "ZOffset": 0.5
         },
         {
           "Name": "StarBurst",
@@ -2694,7 +2658,7 @@
       "BodyTriangles": 9600,
       "PieceTriangles": 2392,
       "PocketPieceTriangles": 652,
-      "Note": "Third build (2026-10-28, 13:15): the remade broom body (6 parts, 9,600 triangles: gnarled handle, 3.3x straw head) and the aura piece without ribbons (19 parts, 2,392 triangles: moons, stars, bats, three spell stars). v3 (2026-10-29): the finisher piece is the hat constellation witch_broom_stars (11 parts, 652 triangles, was the portal rings' 13 parts, 4,928) and bursts 127 particles once (was 134).",
+      "Note": "Third build (2026-10-28, 13:15): the remade broom body (6 parts, 9,600 triangles: gnarled handle, 3.3x straw head) and the aura piece without ribbons (19 parts, 2,392 triangles: moons, stars, bats, three spell stars). v3 (2026-10-29): the finisher piece is the hat constellation witch_broom_stars (11 parts, 652 triangles, was the portal rings' 13 parts, 4,928) and bursts 127 particles once (was 134). v4 (2026-10-29): the witch layer is gone (one 5-stud 64-frame flipbook particle; its 1024 witch_fly_8x8 sheet is no longer loaded): 126 particles once.",
       "OrbiterHeads": 48,
       "LivePps": "measured 168.4/s in hand and on the back with the two orbiter heads (Config.CueSkins HeadRate 24 each); 180.4 before the trim (robustness pass 2026-10-28); v3: 115.45/s plus the two heads (48) = 163.45"
     }

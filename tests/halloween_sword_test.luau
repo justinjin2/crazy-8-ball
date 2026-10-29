@@ -1,12 +1,18 @@
 --!strict
--- The Halloween Sword's v3 effects (lane cuesB, 2026-10-29; the designer: the top of the
--- event's ladder, the best emissive effects of the four): a richer aura inside a phone-sized
--- budget, a darker deep-purple slash trail, and the finisher redone as a laughing face of
--- purple fire (one big looping flipbook particle) with no spinning ghosts.
+-- The Halloween Sword's effects. v3 (lane cuesB, 2026-10-29) gave it painted toon flames, a
+-- darker deep-purple slash trail and a laughing fire-face finisher; v4 (the designer, 2026-10-29
+-- ~14:20: the older version was better, no flat 2D flame pictures): the aura and its event-menu
+-- card are back to the soft flames of before v3, the darker slash trail stays with glowing
+-- embers, and the finisher is a purple energy burst sitting on the hole, all glow.
 
 local H = require("./harness")
 
 local ID = "HalloweenSwordCue"
+-- vfx/halloween_sword/flame_4x4.png: the soft painted fire the aura wore before v3
+local SOFT_FLAME = "rbxassetid://115803746724573"
+-- v3's sprites the designer turned down: the inked toon flame and the fire-face sheet
+local TOON_FLAME = "rbxassetid://87257680474573"
+local FIRE_FACE = "rbxassetid://109113140681429"
 
 local function isAsset(value: any): boolean
 	return type(value) == "string" and value:sub(1, 13) == "rbxassetid://" and #value > 13
@@ -40,80 +46,83 @@ local function row(): any
 	return r
 end
 
-local function layer(pocket: any, name: string): any
-	for _, l in pocket.Layers or {} do
-		if l.Name == name then
-			return l
-		end
-	end
-	return nil
-end
-
 --- The relative luminance (0..1) of an {r, g, b} 0..255 colour.
 local function luminance(c: { number }): number
 	return (0.2126 * c[1] + 0.7152 * c[2] + 0.0722 * c[3]) / 255
 end
 
 return {
-	["the finisher is the laughing fire face, not the ghosts"] = function()
+	["the finisher is a purple energy burst on the hole: all glow, no drawn picture"] = function()
 		local pocket = row().Pocket
 		H.expect(pocket ~= nil and pocket.Flash ~= nil, ID .. ": the finisher needs its flash")
 		H.expect(pocket.Piece == nil, ID .. ": the spinning ghosts piece is back")
 		H.expect(
 			pocket.KeepRibbons == false,
-			ID .. ": the shared swirl ribbons would cross the face"
+			ID .. ": the shared swirl ribbons would cross the column"
 		)
-		local face = layer(pocket, "Face")
-		H.expect(face ~= nil, ID .. ": no Face layer")
-		H.expect(isAsset(face.Texture), ID .. ": the face texture is not uploaded")
-		H.expect(face.Burst == 1, ID .. ": the face is one big particle")
-		H.expect(
-			face.FlipbookLayout == "Grid4x4" and face.FlipbookMode == "Loop",
-			ID .. ": the face flipbook loops its 16 frames (two cackles)"
-		)
-		H.expect(rateOf(face.FlipbookFramerate) >= 10, ID .. ": the laugh is too slow to read")
-		H.expect(maxOf(face.Size) >= 3.5, ID .. ": the face should be big (>= 3.5 studs)")
-		H.expect(maxOf(face.Size) <= 5, ID .. ": the face hides too much of the table (> 5 studs)")
-		H.expect((face.Speed or 0) ~= 0, ID .. ": the face must rise out of the pocket")
-		-- it fades out before the root goes (Effects keeps the root for the longest layer)
-		local t = face.Transparency
-		H.expect(type(t) == "table" and t[#t][2] >= 0.99, ID .. ": the face must fade out")
-		-- lots of flames round it, and the face drawn in front of them
-		local flames = 0
+		local flat, column, fire, last = 0, 0, 0, 0
 		for _, l in pocket.Layers do
-			if l.Texture == face.Texture then
-				continue
+			local name = tostring(l.Name)
+			H.expect(isAsset(l.Texture), ID .. ": layer " .. name .. " texture")
+			H.expect(
+				l.Texture ~= FIRE_FACE and l.Texture ~= TOON_FLAME,
+				ID .. ": layer " .. name .. " is a v3 drawn picture"
+			)
+			H.expect(name ~= "Face" and name ~= "FaceGlow", ID .. ": the fire face is back")
+			-- emissive light, never a picture alpha-blended over the table (v3's face was 0.08,
+			-- its toon flames 0.15); the layers over the bright cloth blend in part (at least
+			-- half light) so they tint it violet instead of adding up to white on it
+			H.expect((l.LightEmission or 0) >= 0.5, ID .. ": layer " .. name .. " does not glow")
+			-- born on the hole (Effects.skinFinisher's point is the pocket's centre on the cloth):
+			-- nothing under the cloth (the table hid the face's chin), nothing off to a side
+			local h = l.Host or {}
+			local o = h.Offset or { 0, 0, 0 }
+			H.expect(o[1] == 0 and o[3] == 0, ID .. ": layer " .. name .. " is off the hole")
+			H.expect(o[2] >= 0, ID .. ": layer " .. name .. " starts under the cloth")
+			H.expect(
+				(h.Size or 0) <= 1.5,
+				ID .. ": layer " .. name .. " is born too wide of the hole"
+			)
+			if l.Orientation == "VelocityPerpendicular" then
+				-- lying on the cloth round the hole (rings, streaks, the pool of light)
+				flat += 1
+				H.expect(o[2] <= 0.1, ID .. ": " .. name .. " floats over the cloth")
+				H.expect(maxOf(l.Size) <= 3.5, ID .. ": " .. name .. " spreads past 3.5 studs")
+			else
+				-- about half the v3 face's 4.2 studs
+				H.expect(maxOf(l.Size) <= 2.5, ID .. ": " .. name .. " is over 2.5 studs")
 			end
-			H.expect(isAsset(l.Texture), ID .. ": layer " .. tostring(l.Name) .. " texture")
-			if l.FlipbookLayout == "Grid4x4" and l.Name:find("Flame") then
-				flames += l.Burst or 0
-				H.expect(
-					(l.ZOffset or 0) < (face.ZOffset or 0),
-					ID .. ": " .. l.Name .. " draws in front of the face"
-				)
+			if l.Orientation == "VelocityParallel" and o[2] >= 0.8 then
+				column += 1
 			end
+			if l.FlipbookLayout == "Grid8x8" then
+				fire += l.Burst or 0
+			end
+			local life = l.Lifetime
+			local longest = if type(life) == "table" then math.max(life[1], life[2]) else life or 1
+			last = math.max(last, (l.Delay or 0) + longest)
 		end
-		H.expect(flames >= 40, ID .. ": too few flames round the face (" .. flames .. ")")
+		H.expect(flat >= 3, ID .. ": too little light on the cloth (" .. flat .. " flat layers)")
+		H.expect(column >= 1, ID .. ": no light column standing on the hole")
+		H.expect(fire >= 16, ID .. ": too little soft fire rising (" .. fire .. ")")
+		H.expect(last >= 1.6 and last <= 2.5, ("%s: lasts %.2f s (about 2)"):format(ID, last))
 	end,
 
 	["the finisher stays inside a phone budget"] = function()
 		local pocket = row().Pocket
-		local total, big = 0, 0
+		local total = 0
 		for _, l in pocket.Layers do
 			total += l.Burst or 0
-			if maxOf(l.Size) >= 3 then
-				big += l.Burst or 0
-			end
 		end
+		-- well under v3's 159 (two of them 4 to 5 stud quads)
 		H.expect(
-			total <= 200,
-			("%s: the finisher bursts %d particles (at most 200)"):format(ID, total)
+			total <= 120,
+			("%s: the finisher bursts %d particles (at most 120)"):format(ID, total)
 		)
-		H.expect(big <= 4, ("%s: %d big (>= 3 stud) particles fill the screen"):format(ID, big))
 		H.expect(#(pocket.Rings or {}) <= 3, ID .. ": at most three rings")
 	end,
 
-	["the aura is richer but stays inside its budget"] = function()
+	["the aura is the soft flames of before v3, inside its budget"] = function()
 		local r = row()
 		local aura = r.Aura
 		local total, low = 0, 0
@@ -123,8 +132,11 @@ return {
 				low += rateOf(e.Rate)
 			end
 			H.expect(isAsset(e.Texture), ID .. ": aura emitter " .. tostring(e.Name) .. " texture")
+			H.expect(
+				e.Texture ~= TOON_FLAME and e.Texture ~= FIRE_FACE,
+				ID .. ": aura emitter " .. tostring(e.Name) .. " wears a v3 flat flame"
+			)
 		end
-		H.expect(total >= 30, ID .. ": the top cue's aura is thin (" .. total .. "/s)")
 		H.expect(total <= 60, ID .. ": the aura is over 60 particles a second (" .. total .. ")")
 		H.expect(low <= 15, ID .. ": Lower effects still leaves " .. low .. "/s")
 		H.expect(#(aura.Lights or {}) <= 2, ID .. ": at most two lights")
@@ -136,6 +148,7 @@ return {
 		for _, e in aura.Emitters do
 			if e.Name:find("EdgeFlames") then
 				flames += 1
+				H.expect(e.Texture == SOFT_FLAME, ID .. ": " .. e.Name .. " is not the soft flame")
 				H.expect(e.Low == "hide", ID .. ": " .. e.Name .. " must hide under Lower effects")
 				H.expect(
 					(e.LightEmission or 0) <= 0.3,
@@ -146,7 +159,30 @@ return {
 		H.expect(flames == 2, ID .. ": both blade edges flame")
 	end,
 
-	["the slash trail is a darker deep purple with its flames"] = function()
+	["the event menu's Sword card draws the soft flame"] = function()
+		local Config = H.require("Config")
+		local HwCardFxMath = H.require("HwCardFxMath")
+		local card = (Config.UI.Halloween.CardFx.Cues :: any)[ID]
+		H.expect(card ~= nil, ID .. ": no event-menu card effects")
+		local rises = 0
+		for i, layer in card.Layers do
+			local texture = HwCardFxMath.resolve(row(), layer)
+			H.expect(
+				texture ~= TOON_FLAME and texture ~= FIRE_FACE,
+				("%s card layer %d draws a v3 flat flame"):format(ID, i)
+			)
+			if layer.Kind == "Rise" then
+				rises += 1
+				H.expect(
+					texture == SOFT_FLAME,
+					("%s card layer %d: the flames are not the soft flame"):format(ID, i)
+				)
+			end
+		end
+		H.expect(rises >= 1, ID .. ": the card's flames are gone")
+	end,
+
+	["the slash trail is a darker deep purple shedding glowing embers, no flat flames"] = function()
 		local r = row()
 		local trail = r.Style.Trail
 		H.expect(isAsset(trail.Texture), ID .. ": the trail is painted with the flame strip")
@@ -161,11 +197,21 @@ return {
 		local names = {}
 		local rate = 0
 		for _, e in r.TrailEmitters or {} do
-			names[e.Name] = true
+			names[e.Name] = e
 			rate += rateOf(e.Rate)
 			H.expect(isAsset(e.Texture), ID .. ": trail emitter " .. tostring(e.Name) .. " texture")
+			H.expect(
+				e.Texture ~= TOON_FLAME
+					and e.Texture ~= SOFT_FLAME
+					and string.find(e.Name, "Flame") == nil,
+				ID .. ": trail emitter " .. tostring(e.Name) .. " is a flat painted flame"
+			)
 		end
-		H.expect(names.SlashFlames == true, ID .. ": no flames shed off the trail")
+		local embers = names.SlashEmbers
+		H.expect(embers ~= nil, ID .. ": no embers shed off the trail")
+		H.expect((embers.LightEmission or 0) >= 0.8, ID .. ": the embers do not glow")
+		H.expect(maxOf(embers.Size) <= 0.2, ID .. ": the embers are not small")
+		H.expect(names.SlashSmoke ~= nil, ID .. ": the trail's little dark smoke is gone")
 		H.expect(rate <= 40, ID .. ": the trail sheds " .. rate .. " particles a second")
 	end,
 }
