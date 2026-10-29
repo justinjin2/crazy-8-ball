@@ -45,6 +45,17 @@ local function checkBody(name: string, spec: any, B: any)
 		local z0 = part.Offset[3] - part.Size[3] / 2
 		local z1 = part.Offset[3] + part.Size[3] / 2
 		front = math.max(front, z1)
+		-- Nothing past the tip (2026-10-29, the Pitchfork's fork at the tip): the tip is what
+		-- meets the ball, so a part reaching further would go through the cue ball.
+		H.expect(
+			z1 <= TIP_Z + B.TipSlackStuds + 1e-4,
+			("%s: part %s reaches %.3f studs past the tip (at most %.2f)"):format(
+				name,
+				part.Name,
+				z1 - TIP_Z,
+				B.TipSlackStuds
+			)
+		)
 		local limit = if isAim(part.Joint) then B.MaxOverhangStuds else B.PastButtStuds
 		H.expect(
 			z0 >= BUTT_Z - limit - 1e-4,

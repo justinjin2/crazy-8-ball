@@ -653,7 +653,7 @@ return {
 		Id = "pitchfork",
 		Name = "Pitchfork Cue",
 		Tier = "Legendary",
-		Thumb = "rbxassetid://139633646140924",
+		Thumb = "rbxassetid://110284560248397",
 		Look = {
 			Shaft = { 216, 30, 30 },
 			Forearm = { 216, 30, 30 },
@@ -792,23 +792,6 @@ return {
 			Cap = { 65, 67, 70 },
 		},
 	},
-	SpiderCue = {
-		Id = "spider",
-		Name = "Spider Cue",
-		Tier = "Mythic",
-		Thumb = "rbxassetid://75625207590037",
-		Look = {
-			Shaft = { 12, 12, 16 },
-			Forearm = { 12, 12, 16 },
-			Wrap = { 18, 18, 22 },
-			Ring = { 216, 220, 230 },
-			Tip = { 42, 42, 50 },
-			Cap = { 12, 12, 16 },
-			Accent = { 192, 20, 44 },
-		},
-		Piece = "spider_aura",
-		Body = "spider",
-	},
 	SpliceCue = {
 		Id = "splice",
 		Name = "Splice",
@@ -939,7 +922,7 @@ return {
 		Id = "witch_broom",
 		Name = "Witch's Broom",
 		Tier = "Secret",
-		Thumb = "rbxassetid://109752689782479",
+		Thumb = "rbxassetid://82560329966868",
 		Look = {
 			Shaft = { 107, 74, 46 },
 			Forearm = { 107, 74, 46 },

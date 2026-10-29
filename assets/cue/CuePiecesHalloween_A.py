@@ -59,6 +59,9 @@ MAX_PARTS, MAX_TRIS = 8, 10000
 #   'SlimGrip': r, a handle slimmer still: in the grip hand zone the radius may come down to r
 #            (designer 20:5x: a sword handle, thinner than the cue is fine). Both may be set;
 #            the upper bound is Slim's, the lower the smaller of the two.
+#   'TipAcross': studs, the first TIP_LEN studs may be this wide instead of TIP_ACROSS (the
+#            designer 2026-10-29: the Pitchfork's middle arrowhead IS the tip, flat; the ball
+#            curves away from the cue, so a wider flat head behind the point never meets it).
 BODY_EXCEPTIONS = {}   # the hard budget (the data tool stops over it); aim at 6 and 6,000
 
 
@@ -91,6 +94,8 @@ def check_body(kit, step=0.1):
     excepted up to AIM_OVERHANG), and nothing before the tip."""
     R = envelope()
     bins = _bins(kit, step)
+    ex = BODY_EXCEPTIONS.get(kit.pid, {})
+    tip_across = ex.get('TipAcross', TIP_ACROSS)
     problems = []
     wide_cx = []   # a WideX body's sideways centre, bin by bin through the bridge hand
     all_d = [v[0] for vs in bins.values() for v in vs]
@@ -110,8 +115,8 @@ def check_body(kit, step=0.1):
         r_side = max((math.hypot(x, z) for _, x, z, _, _ in vs if z <= 0 or abs(x) > abs(z)), default=0.0)
         r_up = max((math.hypot(x, z) for _, x, z, _, _ in vs if z > 0 and abs(z) >= abs(x)), default=0.0)
         if d0 < TIP_LEN:
-            if 2 * r_max > TIP_ACROSS + 1e-6:
-                problems.append('%.1f: %.3f across at the tip (at most %.2f)' % (d0, 2 * r_max, TIP_ACROSS))
+            if 2 * r_max > tip_across + 1e-6:
+                problems.append('%.1f: %.3f across at the tip (at most %.2f)' % (d0, 2 * r_max, tip_across))
             continue
         past = d0 - LENGTH
         if past >= 0:
@@ -125,7 +130,6 @@ def check_body(kit, step=0.1):
                 problems.append('%s (Aim) reaches %.2f studs past the butt (at most %.2f)' % (j, d - LENGTH, AIM_OVERHANG))
             continue
         in_hand = any(a <= d0 < b_ for a, b_ in HAND_ZONES)
-        ex = BODY_EXCEPTIONS.get(kit.pid, {})
         wide = d0 < ex.get('WideX', 0.0)
         gz = ex.get('GuardInGripZone')
         if in_hand and gz and gz[0] <= d0 < gz[1]:

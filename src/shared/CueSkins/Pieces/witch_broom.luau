@@ -5,9 +5,9 @@
 return {
 	Id = "witch_broom",
 	Frame = "cue",
-	Rigid = "81896660220724",
+	Rigid = "106017662921644",
 	Models = {
-		HatCharm = "113228232691476",
+		HatCharm = "104736333858086",
 	},
 	Parts = {
 		{
@@ -27,7 +27,7 @@ return {
 			Joint = "Charm",
 			Skinned = true,
 			Bones = { "Charm", "Chain2", "Hat" },
-			Offset = { -0.4901, -0.3522, -3.5534 },
+			Offset = { -0.4098, -0.3522, -3.5534 },
 			Size = { 0.2968, 0.498, 0.377 },
 			Model = "HatCharm",
 		},
@@ -65,8 +65,8 @@ return {
 			},
 			Name = "Body_Bark",
 			Joint = "Body",
-			Offset = { -0.0219, 0.0844, -0.175 },
-			Size = { 0.7662, 0.8986, 6.75 },
+			Offset = { -0.0214, 0.1072, -0.175 },
+			Size = { 0.6064, 0.7837, 6.75 },
 		},
 		{
 			Material = "SmoothPlastic",
@@ -82,8 +82,8 @@ return {
 			},
 			Name = "Bristles_Bark",
 			Joint = "Bristles",
-			Offset = { 0.0014, -0.0078, -4.2384 },
-			Size = { 1.7545, 1.7372, 1.4768 },
+			Offset = { 0.0011, -0.0142, -4.2384 },
+			Size = { 1.3685, 1.3499, 1.4768 },
 			Outline = false,
 		},
 	},
@@ -128,7 +128,7 @@ return {
 		},
 		Charm = {
 			Parent = "Body",
-			PivotRoblox = { -0.3499, -0.11, -3.39 },
+			PivotRoblox = { -0.2697, -0.11, -3.39 },
 			Motion = {
 				{
 					Kind = "Sway",
@@ -148,7 +148,7 @@ return {
 		},
 		Chain2 = {
 			Parent = "Charm",
-			PivotRoblox = { -0.3738, -0.1775, -3.4257 },
+			PivotRoblox = { -0.2935, -0.1775, -3.4257 },
 			Motion = {
 				{
 					Kind = "Sway",
@@ -161,7 +161,7 @@ return {
 		},
 		Hat = {
 			Parent = "Chain2",
-			PivotRoblox = { -0.3976, -0.245, -3.4615 },
+			PivotRoblox = { -0.3173, -0.245, -3.4615 },
 			Motion = {
 				{
 					Kind = "Sway",
