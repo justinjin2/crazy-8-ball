@@ -482,8 +482,9 @@ export type PotFacts = {
 
 --- A shot's pocket Candy (Economy.payOne, right after the shot's money went into the save; in a
 --- pcall there): PerPocket a pot (Halloween/PotCandy), only while the event is Live, Candy per
---- pocket is on and the player sees Halloween (HwOn: the tutorial over), in a match against
---- people or a disguised bot. One save commit for the shot ("hwPot", quiet); the view and the
+--- pocket is on, in a match against people or a disguised bot. It pays before the tutorial is
+--- over too (its real match: PLAN's "Candy counts from the first match"; nothing of it shows
+--- until HwOn, CandyFlyer and CandyToast wait for it). One save commit for the shot ("hwPot", quiet); the view and the
 --- one HwCandy "Match" event wait for the settle. Returns each pot's Candy in order (empty when
 --- it pays none) and the balance after it (nil when none), which the caller sets as the Candy
 --- attribute only after its MoneyGrant went out (CandyService.showBalance), so the client's
@@ -493,7 +494,7 @@ function CandyService.pots(player: Player, f: PotFacts): ({ number }, number?)
 	if not isPlayer(player) or not PotCandy.on() or not CandyService.isLive() then
 		return none
 	end
-	if player:GetAttribute("HwOn") ~= true or f.shortCapped == true then
+	if f.shortCapped == true then
 		return none
 	end
 	if not PotCandy.eligible(f.opponent, f.botKind) then

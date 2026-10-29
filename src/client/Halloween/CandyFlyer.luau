@@ -12,6 +12,7 @@
 -- Cheap: one RenderStepped connection only while a chip is up (disconnected when the last
 -- lands), chip frames reused from a small pool, nothing per frame when idle. Purely visual:
 -- the server already saved the Candy.
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local TextService = game:GetService("TextService")
@@ -385,6 +386,10 @@ end
 --- A MoneyGrant from the server: its grants' `candy` fly from their pockets (see the top).
 function CandyFlyer.onGrant(payload: any)
 	if layer == nil or type(payload) ~= "table" or type(payload.grants) ~= "table" then
+		return
+	end
+	-- Nothing before HwOn (the tutorial's real match pays its pots quietly, like CandyToast).
+	if Players.LocalPlayer:GetAttribute("HwOn") ~= true then
 		return
 	end
 	local tableId = if type(payload.tableId) == "number" then payload.tableId else 0
