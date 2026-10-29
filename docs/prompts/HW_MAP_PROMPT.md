@@ -453,7 +453,7 @@ Config.HalloweenMap = {
 		HoldSeconds = 0.4, ThrottleSeconds = 5, TauntEverySeconds = 6, Cue = "JackOLanternCue",
 		ReadyAttribute = "PumpkinKingReadyAt", Aura = { Rate = 12, LightRange = 10 },
 		Burst = { Candies = 50, Sparkles = 30, Seconds = 2, ShowStuds = 120 } },
-	Candy = { Enabled = false, TargetPerHour = 25, -- no hour cap here: core's Halloween.Pickup.HourCap
+	Candy = { Enabled = false, -- no hour cap here: core's Halloween.Pickup.HourCap
 		SpawnEverySeconds = 30, JitterSeconds = 10, NearStuds = { 10, 30 }, PadClearStuds = 6,
 		LifeSeconds = 60, MaxAlive = 40, MaxAlivePerPlayer = 3, PickupStuds = 5,
 		PickupTickSeconds = 0.2, TeleportStuds = 12.5, TeleportGraceSeconds = 1,

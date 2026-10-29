@@ -199,7 +199,8 @@ return {
 	["each board's four go easiest first (by expected minutes)"] = function()
 		local Quests = load()
 		-- A rough clock: 6.3 min a match, half of them won, 5.75 balls a match, a King win in
-		-- about 3 tries, 25 pickups an hour, one nice shot in 3 matches, an ability in half.
+		-- about 3 tries, 54 pickups an hour (a match player who walks about while waiting: the
+		-- 2026-10-29 target), one nice shot in 3 matches, an ability in half.
 		local minutes: { [string]: number } = {
 			Matches = 6.3,
 			Wins = 12.6,
@@ -209,7 +210,7 @@ return {
 			TeamWins = 16,
 			UltMatches = 12.6,
 			King = 18,
-			Pickups = 2.4,
+			Pickups = 60 / 54,
 			Active = 1 / 60,
 		}
 		for n = 1, 6 do
