@@ -5,6 +5,8 @@ when `docs/STATUS.md` became current state only. Finished work moves here from S
 on top. Read it only to answer "when or why did X change"; it is not part of the read-first list.
 An entry marked "(latest)" was the latest when written.
 
+**2026-10-29 (04:47): the Halloween build 7b212c71** (moved here when the evening release replaced it; never published): Candy from matches, lobby pickups and the 2x minutes, daily quests, the Candy track (11 steps: the Pitchfork at 500, the Witch's Broom at 2,000, the Halloween Sword at 7,000), the Spider play-time cue (3 h), the Pumpkin King at :15 and :45 with the 5% Jack-o'-Lantern drop, Candy packs, the night rooftop, roaming, the friend boost, badges v2, the Grand Opening block off the Shop. Verified then: 1,482 Lune tests, two reviews, hw-gui QA on PC, phone, iPad and gamepad emulation, the hw-sys fresh-player run. The designer put it on hold at ~05:30 for the simplified menu and buying (`docs/prompts/HW_MENU_V4_PROMPT.md`, then `HW_EVENING_PROMPT.md`).
+
 **2026-10-12 (late night): the QA batch's rounds 1 and 2** (moved here when STATUS took the
 third round; all on `gui-v4`, not pushed): the tester's 8 notes: OPPONENT'S TURN held
 (`29d9a02`), replay catch-up (`9849fb6`), the tutorial break streak (`c1e3f67`, x1, x2), ability

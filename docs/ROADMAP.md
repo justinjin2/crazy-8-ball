@@ -592,8 +592,13 @@ Built in one day by six lanes on branch `halloween`; checklist and switches in
   cues (each its own effect, the Witch's Broom a new model), the Spider play-time cue, Candy
   packs, the timed Pumpkin King, the night rooftop and lobby drops, roaming, the friend boost
   and boost text, badges v2. Lint, 1,469 tests, the fresh-player run, Team Create synced.
-- [ ] **Robustness pass** (designer, 2026-10-28 17:46): every lane's own area and two
-  independent reviews of the existing files it changes; fixes merged and re-checked.
+- [x] **Robustness pass** (designer, 2026-10-28 17:46): every lane's own area and two
+  independent reviews of the existing files it changes; fixes merged and re-checked (Oct 29).
+- [x] **The evening release** (designer, 2026-10-29; `docs/prompts/HW_EVENING_PROMPT.md`): the
+  menu to mock A, buying the three cues with Candy or Robux, no track and no Spider, ground
+  candy about half of all Candy, the King's rise cutscene and cloth cape, the Pitchfork's fork
+  at the tip, a thinner Witch's Broom, the new prices; lint, tests, the Studio main paths and a
+  fresh-player run.
 - [ ] **Published** by the designer (outdated-only restart), the LIVE icon, the first watch
   readings (errors, server FPS, memory, Candy, King and pack events).
 - [ ] **A real phone, iPad and controller check** (only emulated sizes so far).

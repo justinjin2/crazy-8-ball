@@ -596,8 +596,8 @@ the Experience Event, the 16:00 cut enforcement, the freeze, RELEASE.md, the 19:
 - [x] 07:30 Read the brief and the code (six readers, `~/Desktop/8ball-refs/halloween/evening/`), the live numbers, the designer's answers; the prices and the three products in Config and on Roblox (d7ebf89d); five lanes started.
 - [x] Merge the lanes (buy, drops, king, cues, menu) into `halloween`; lint and the full tests green (08:55: 1,506 passed, lint OK).
 - [x] Team Create: the Pitchfork and Witch's Broom templates rebuilt (ONLY), the Spider templates removed (08:45: pitchfork 3 parts with Tines, witch_broom 5, aura 19, pocket 13, no problems; SpiderCue, spider, spider_aura, spider_pocket deleted).
-- [ ] Studio: the main paths (buy with Candy, the Robux prompt, ground candy while roaming, the King's rise, cutscene and cape, the menu on PC and phone emulation), console clean.
-- [ ] Fresh-player run (join, tutorial or skip, first match, the popups, the event menu).
-- [ ] Docs: STATUS, RELEASE, ROADMAP, the lane notes; pushed; the publish handoff to the designer.
+- [x] Studio: the main paths (buy with Candy, the Robux prompt, ground candy while roaming, the King's rise, cutscene and cape, the menu on PC and phone emulation), console clean. (09:05: all seen on PC; the hero shots widened and the King's name tag hidden under the cutscene, a6d0d823; phone emulation: the 8-ball flair overlaps the Pitchfork's Candy button, open in STATUS.)
+- [x] Fresh-player run (join, tutorial or skip, first match, the popups, the event menu). (09:10, a fresh Studio store: join, Skip, Daily popup, the menu, Candy and Robux buys, a /solo first match, console clean; the pad's bot fallback needs the live MemoryStore queue, so Studio used /solo.)
+- [x] Docs: STATUS, RELEASE, ROADMAP, the lane notes; pushed; the publish handoff to the designer. (09:30)
 
 ## Notes

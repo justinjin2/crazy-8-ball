@@ -4,39 +4,42 @@ Current state only, rewritten in place. Keep it to about two screens (under 100 
 step is finished and verified, move its dated entry to the top of
 `docs/archive/STATUS_HISTORY.md` and keep only what is still true or still open here.
 
-Updated 2026-10-29 (**published by the designer 2026-10-27: everything up to `7c4d85aa`**: the emote system, 2KLIKES, the 1v1 result cutscene off; the emote audio update is pushed and waiting to publish). **The game is live** (officially released 2026-10-10). Work goes on
-in `~/Desktop/8ball`, branch `gui-v4`. The STATUS from just before launch, in full, is the top
+Updated 2026-10-29 (**published by the designer 2026-10-27: everything up to `7c4d85aa`**: the emote system, 2KLIKES, the 1v1 result cutscene off; the emote audio update rides with the Halloween publish). **The game is live** (officially released 2026-10-10). Work goes on
+in `~/Desktop/8ball`, branch `halloween` (it holds all of `gui-v4`). The STATUS from just before launch, in full, is the top
 entry of `docs/archive/STATUS_HISTORY.md`.
 
-## Halloween 2026 (branch `halloween`, pushed, NOT published: on hold for the simplified menu)
+## Halloween 2026 (branch `halloween`, pushed, waiting for the designer to publish tonight)
 
-- **Do not publish yet** (designer, 2026-10-29 ~05:30). The update is being simplified:
-  - Done: night all event, the cues shown as Unique (pink), the Spider off.
-  - To do: the menu redo (mock A approved), buying with Candy or Robux, removing the track and
-    the Spider fully, the HUD Candy pill and boost breakdowns, the Shop banner, and the
-    Pitchfork's fork at the tip.
-  - Brief: `docs/prompts/HW_MENU_V4_PROMPT.md`.
-- **What follows describes 7b212c71,** the build that was ready before this change:
-- **In it:** Candy (matches, lobby pickups, 2x Candy minutes 0-9 UTC), daily quests, the Candy
-  track (11 steps: spins, money, the Pitchfork at 500, the Witch's Broom at 2,000, the
-  Halloween Sword at 7,000), the Spider play-time cue (3 h), the Pumpkin King (:15 and :45,
-  +150 Candy, +$2,500, +100 XP a visit, and a 5% Jack-o'-Lantern drop on the first win of each
-  visit with a chance sign over him, hidden for owners), Candy packs, the night rooftop,
-  roaming, the friend boost and boost text, badges v2. The Grand Opening block is off the
-  Shop (the Shop opens on Blocks; owned blocks still open). Ends Nov 3 19:00 EST and turns
-  Candy into money.
-- **Verified (Oct 29, 04:00-04:47):** 1,482 Lune tests, lint; two independent reviews of the
-  late changes (one defect, the King drop pill vanishing after the first close: fixed with a
-  test); hw-gui QA on PC, phone 844x390, iPad and gamepad emulation; the hw-sys fresh-player
-  run (no Halloween text in the tutorial, 42 Candy after the first match, popups NEW RANK >
-  Daily > Invite, the track, the Shop on Blocks, console clean).
-- **Parked, not in this publish:** Robux Limited cues (branch `hw-core-limited`; 299 and 1,499
-  approved for later, needs the designer's lineup pick and new products). Gifting dropped.
-- **Open:** a real phone/iPad/controller check (only emulated so far); the Spider still does
-  not fully match concept C1b; the MATCH RULES card covers the HALLOWEEN tile's ENDS pill while
-  seated on a pad (minor); badge icons wait on Roblox moderation; Cue Preview ships off.
-- **Store page:** the plain Halloween icon is up; the LIVE icon goes up when the publish is
-  out. The Experience Event runs 19:00 Oct 28 to Nov 3.
+- **Ready to publish** (Oct 29 ~09:30): the evening release (`docs/prompts/HW_EVENING_PROMPT.md`),
+  checklist and switches in `docs/halloween/RELEASE.md`. Outdated-only restart.
+- **In it:** Candy saved and spent (balance = Earned + Bought - Spent) from matches (3 a ball,
+  10, 25), ground candy (5 a pickup about every 20 s, also while roaming in a match, 80 an hour
+  at most; about half of all Candy), daily quests (today's board only), the King's visits; the
+  menu redone to mock A with the three cues for Candy or Robux: Pitchfork 300 / 49 R$, Witch's
+  Broom 2,500 / 249 R$, Halloween Sword 7,500 / 599 R$ (gifts too); Candy packs 300 for 49 R$
+  and 1,200 for 149 R$. The Candy track and the Spider are gone. The Pumpkin King rises out of
+  the roof on his throne with a letterboxed cutscene for players free in the lobby (every
+  visit, a tap skips); his cape is cloth (17 parts) and sways, also while he shoots. The
+  Pitchfork has a compact fork at the tip; the Witch's Broom is thinner. "One of a Kind" counts
+  the Halloween cues; the Broom badge says Get. Roaming during a match and the 50 badges ship in
+  this update (both already on the branch since Oct 28).
+- **Verified (Oct 29, 08:55-09:15):** lint and the full Lune tests; the Pitchfork and Broom
+  templates rebuilt in Team Create, the Spider's removed; Studio on PC with a fresh save:
+  join, tutorial skip, the Daily popup, the menu owned and unowned, a Candy buy (ok and Poor),
+  a Robux receipt (grant, and the money fallback when owned), ground candy +5 and spawns in a
+  match, roaming, the King's rise, cutscene and cape, the Pitchfork in aim view, a first match,
+  console clean. Products and prices on Roblox checked (`tools/roblox_products.py --sync`
+  dry run: nothing to change; Studio shows the account's discounted prices).
+- **Open:** a real phone, iPad and controller check (only emulated); on phone the 8-ball flair
+  overlaps the left end of the Pitchfork's Candy button; the end screen's Candy-to-money line
+  never shows for a player who spent all their Candy ($0); the throne may show for one frame
+  before it sinks; the arrival banner is hidden under the cutscene; the share of matches
+  against disguised bots (0 Candy) is not measured; stale comments (`Net.luau:457`, the
+  HalloweenMap budget comment says 40 candies).
+- **After the publish:** save the place to `place/8ball.rbxl`; the LIVE store icon; watch
+  `HwBuy`, `HwCandy` Match vs `CandyPickups`, `KingCutscene`, FPS and memory (RELEASE 6).
+- **Parked:** Robux Limited cues (branch `hw-core-limited`). The Grand Opening block stays off
+  the Shop (it was ~37% of dev product revenue before; earlier decision).
 
 ## The game is live
 

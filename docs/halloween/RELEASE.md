@@ -1,123 +1,104 @@
 # Halloween 2026: release checklist
 
-For Justin. The code reads the clock: from **19:00 EDT Oct 28** a server with this update is
-Live, so a server that starts now boots straight into Live. Ready to publish at `7b212c71`
-(Oct 29, 04:47): Team Create is synced to it. Line numbers re-read 21:15 Oct 28.
+For Justin. Tonight's build (Oct 29 evening): branch `halloween`, the commit the coordinator
+names in STATUS. The code reads the clock: the event has been Live since 19:00 EDT Oct 28, so a
+server with this update boots straight into Live. It ends by itself Nov 3 19:00 EST. Config line
+numbers re-read 09:15 Oct 29.
 
-## 1. Check by hand (test place or Studio Play, then on the live game after the publish)
+## 1. Check by hand (Studio Play or the test place first, then the live game after the publish)
 
 On a phone, a PC and a controller where you can:
 
-1. Join on a **new account** and an **old account**. The tutorial shows no Halloween popups
+1. Join on a **new account** and an **old account**. The tutorial shows nothing of Halloween
    until it is done or skipped.
 2. Play one match. The result shows Candy: 3 a ball, +10 for finishing, +25 for a win.
-3. The **HALLOWEEN** button (right side) opens the menu: the Candy track, quests, the Spider,
-   the Candy packs.
-4. The **Pumpkin King**: he visits the middle of the roof at :15 and :45 past every hour for 12
-   minutes (the top pill counts down, then "PUMPKIN KING IS HERE!"; tap it for the arrow).
-   Challenge him once; a first win in a visit pays +150 Candy, +$2,500 and +100 XP, and rolls
-   the **5% Jack-o'-Lantern Cue drop** (the sign over him shows the chance; it is hidden once you
-   own the cue, and a drop shows a "From the Pumpkin King" card).
-5. Pick up a **lobby Candy**.
-6. The boost text (Money Boost / Candy Boost) and its card.
-7. **Walk around** while it is the other player's turn.
-8. A **Candy pack** prompt opens (cancel it; don't buy).
-9. Each new cue (My Cues and the Index, in hand, one pot; `/givecue <Id>` to check quickly):
-   Pitchfork (500 Candy), Witch's Broom (2,000), Halloween Sword (7,000), the Spider (3 h of
-   play) and the Jack-o'-Lantern (the Pumpkin King's 5% drop).
-10. The **Shop** opens on Blocks: the Grand Opening block is gone (blocks already owned still
-    open from the inventory).
-11. Settings > **Lower effects** on and off with a Halloween cue.
+3. **Walk around** while it is the other player's turn, and pick up a **ground candy** (+5).
+   Candy spawns near you about every 20 seconds, in a match too.
+4. The **HALLOWEEN** button opens the menu: the Candy balance, today's 4 quests, the three cues
+   (Pitchfork 300 Candy or 49 R$, Witch's Broom 2,500 or 249 R$, Halloween Sword 7,500 or 599 R$)
+   and the two Candy packs (300 for 49 R$, 1,200 for 149 R$). No Candy track, no Spider.
+5. **Buy the Pitchfork with Candy** (play for it, or `/hw candy 300` on your account). The balance drops by
+   300 and the cue is yours (My Cues). A Robux button opens the Roblox prompt (cancel it unless
+   you want to test a real buy).
+6. The **Pumpkin King** visits at :15 and :45 for 12 minutes. When he comes, players free in the
+   lobby see a short black-bar cutscene of him rising out of the roof on his throne (a tap
+   skips). Check his **cape**: smooth and swaying, also while he shoots. Beat him once: +150
+   Candy, +$2,500, +100 XP, and the 5% Jack-o'-Lantern roll.
+7. The **Pitchfork** in your hand while aiming: a compact fork at the tip. The **Witch's Broom**
+   is thinner than before.
+8. Settings > **Lower effects** on and off with a Halloween cue.
 
-## 2. Publishing (ready now)
+## 2. Publishing
 
-1. Use the **Team Create** Studio window ("[EMOTES] CRAZY 8 Ball"). Rojo must say connected,
-   and the coordinator says which commit it is synced at. The folder must be clean (nothing
-   uncommitted).
+1. Use the **Team Create** Studio window ("[EMOTES] CRAZY 8 Ball"). Rojo must say connected.
+   The folder must be clean (nothing uncommitted): Rojo ships whatever is in it.
 2. **File > Publish to Roblox.**
 3. Creator Hub > the game > **Configure > Server management > Restart Servers**, choose
-   **"Restart only servers with outdated versions"**, with no delay longer than 10 minutes.
-   Old servers have to go: old code resets an equipped new cue to Classic (`SaveSchema.luau`
-   refuses newer saves) and pays no Candy. Servers also restart by
-   themselves after 5-6 h (`Config.ServerRestart`).
-4. Rename the game by hand once it is out: add the pumpkin (your words: "[🎃] … nothing else").
-5. Tell the coordinator it is out: the LIVE icon goes up then (`store_page.py icon-set LIVE --go`).
+   **"Restart only servers with outdated versions"**. Old servers have to go: their code has no
+   Candy shop, still runs the Candy track and does not know the new cues.
+4. Save the place to `place/8ball.rbxl` once (File > Save to File As), so git has the rebuilt
+   Pitchfork and Broom templates.
+5. Tell the coordinator it is out (the LIVE icon goes up then:
+   `python3 tools/halloween/store_page.py icon-set LIVE --go`).
 
-## 3. What you should see
-
-- **Published after 19:00 (the plan now):** a new server is Live at once (no countdown pill):
-  night falls on the rooftop; the event tables, trees, pumpkins and lights; the
-  HALLOWEEN button; the King's timer pill (he visits at :15 and :45); Candy in matches and
-  lobby pickups; the **2x CANDY** chip in the first 10 minutes of every hour (UTC minutes 0-9).
-- **(Only if published before 19:00:** the boost text first, the "HALLOWEEN EVENT IN" pill
-  from 18:30, then all of the above at 19:00.)
-- **The store page:** the countdown icons ran 5H (14:00) and 2H (17:42; the Mac slept through
-  4H and 3H); at Justin's word (17:46) the "STARTS IN" badge is gone: the plain Halloween icon
-  is up (121071839544374) and the countdown job is stopped. The LIVE icon (91272722538693) goes
-  up when the publish is out, the plain one again a day later (log:
-  `~/Desktop/8ball-refs/halloween/shots/coordinator/store/log.txt`). Your Experience Event runs
-  19:00 Oct 28 to 19:00 Nov 3 (times fixed by API at 11:54; nothing else changed).
-
-## 4. Every switch (Config, `src/shared/Config.luau`)
+## 3. Every switch (Config, `src/shared/Config.luau`)
 
 Off = the old behaviour; one line, then publish with the outdated-only restart.
 
-| Switch | Line (21:15) | Off does |
+| Switch | Line | Off does |
 |---|---|---|
-| `Config.Halloween.Enabled` | 3763 | no Candy, no event UI; saved Candy still converts after the end |
-| `Config.Halloween.Rush.Enabled` | 3772 | no 2x Candy minutes |
-| `Config.Halloween.Match.Enabled` | 3783 | no match Candy |
-| `Config.Halloween.Boss.Visit` | 3796 | the King's visit reward (Candy 150, Money 2500, Xp 100): one line to change |
-| `Config.Halloween.Boss.CountsForQuests` | 3800 | King matches stop counting for the Matches/Balls quests |
-| `Config.Halloween.Quests.Enabled` | 3812 | no quest boards |
-| `Config.Halloween.Spider.Enabled` | 3901 | no Spider active-time cue |
-| `Config.Halloween.Packs.Enabled` | 3918 | Candy packs not sold |
-| `Config.Halloween.Convert.Enabled` | 3920 | Candy does not turn into money after the end |
-| `Config.HalloweenMap.Enabled` | 9257 | the master map switch: no night, tables, decor, props, throne, King, drops |
-| `Config.HalloweenMap` Night / Tables / Decor / Props / Throne / Boss / Candy | 9267-9578 | each part alone (Throne and Boss go off together) |
-| `Config.HalloweenMap.Boss.Mode` | 9440 | `"Throne"`: the King sits on his throne at the piano all event (the old way) instead of visiting |
-| `Config.CueSkins.Bodies.Enabled` | 6590 | the body cues draw the normal stick |
-| `Config.Multiplayer.Roam.Enabled` | 8317 | in-match players stay at their table, as before |
-| `Config.Badges.Enabled` | 18081 | no badge is awarded |
+| `Config.Halloween.Enabled` | 3764 | no Candy, no event UI; saved Candy still converts after the end |
+| `Config.Halloween.Rush.Enabled` | 3773 | no 2x Candy minutes (UTC :00-:09) |
+| `Config.Halloween.Match` | 3784 | match Candy (3 a ball, 10, 25) |
+| `Config.Halloween.Pickup` | 3814 | ground candy: 5 a pickup, 80 pickups an hour at most |
+| `Config.Halloween.Quests.Enabled` | 3822 | no quest boards |
+| `Config.Halloween.Cues.Enabled` | 3916 | the three cues cannot be bought (Candy or Robux) |
+| `Config.Halloween.Packs.Enabled` | 3925 | Candy packs not sold |
+| `Config.Halloween.Convert.Enabled` | 3928 | Candy does not turn into money ($10 each) after the end |
+| `Config.HalloweenMap.Enabled` | 9280 | the master map switch: no night, tables, decor, props, throne, King, drops |
+| `Config.HalloweenMap.Boss.Enabled` | 9487 | no Pumpkin King |
+| `Config.HalloweenMap.Boss.Entrance.Enabled` | 9562 | he appears at once with the burst (no rise, no cutscene) |
+| `Config.HalloweenMap.Boss.Entrance.Cutscene` | 9563 | the rise without the camera, bars and title |
+| `Config.HalloweenMap.King.Cloth.Enabled` | 9709 | the old cape (three rigid boxes) |
+| `Config.HalloweenMap.Candy.Enabled` | 9740 | no ground candy (`SpawnEverySeconds` 9741 sets how often) |
+| `Config.Multiplayer.Roam.Enabled` | 8340 | in-match players stay at their table, as before |
+| `Config.Badges.Enabled` | 18338 | no badge is awarded |
 | `Config.Economy.FriendBoostEnabled` | 2037 | no +10% per friend |
-| `Config.UI.BoostPill.Enabled` | 10078 | the old VIP tag instead of the boost text |
-| `Config.UI.CuePreview.Enabled` | 10146 | already off |
 
-## 5. If something breaks
+## 4. If something breaks
 
-Tell the coordinator what you see. The coordinator flips the switch, commits and pushes;
-you publish with the outdated-only restart. Cut order for a bad night (PLAN): the King
-(`HalloweenMap.Boss.Enabled`, or `Boss.Mode = "Throne"` to keep him seated), then the lobby drops
-(`HalloweenMap.Candy`), then roaming, then the badge queue, then the whole event
+Tell the coordinator what you see. The coordinator flips the switch, commits and pushes; you
+publish with the outdated-only restart. Cut order for a bad night: the cutscene
+(`Boss.Entrance.Cutscene`), the cape (`King.Cloth`), the King (`Boss.Enabled`), the ground
+candy (`HalloweenMap.Candy`), roaming, the badge queue, then the whole event
 (`Halloween.Enabled`).
 
-## 6. Nov 3, 19:00 EST
+## 5. Nov 3, 19:00 EST
 
-The event ends and converts Candy into money by itself; the Experience Event ends itself.
-Rename the game back (`[EMOTES] CRAZY 8 Ball`, or what you choose then). The icon: set the
-original back (asset 123614794049673): `python3 tools/halloween/store_page.py icon-set 123614794049673 --go`.
+The event ends and converts Candy into money by itself. Rename the game back. The icon: set the
+original back (asset 123614794049673):
+`python3 tools/halloween/store_page.py icon-set 123614794049673 --go`.
 
-## 7. What to read after launch (custom events and funnels)
+## 6. What to read after launch (custom events and funnels)
 
-- Core: the `Halloween` funnel (1_Button, 2_Opened, 3_FirstCandy, 4_Cue150, 5_Cue500,
-  6_Cue2000, 7_Cue7000; named by Candy step, so a cue swap keeps them) and `HwCandy`, `HwMatch`, `HwQuest`, `HwTrack`, `HwSpider`, `HwPack`,
-  `HwConvert`, `HwMenu`.
-- Cues A: `HalloweenCueEquipped` (counts every Equip press, not distinct players).
-- Sys: `RoamHome` (how far players roam), `BadgeAwarded` (Retro back-pay on day one).
-- GUI: `FriendBoost` (friends at leave), `BoostCard` (card opens).
-- Creator Hub: server FPS P10/P50, memory, concurrent users, the error report. Baselines
-  before the publish (analytics API, hourly, Oct 27 10:00 to Oct 28 20:00 UTC; query and result
-  in `~/Desktop/8ball-refs/halloween/analytics/watch/base_*.json`): peak concurrent players
-  690-2,270; server FPS P10 swings 27-59 through the day (P50 60); `MemoryUsageP50` 156-168 (one
-  hour 194); DAU 24,887 and 23.1 min per DAU (Oct 26). Alarms: P10 under 20 for an hour, or
-  memory P50 over about 200 two hours running.
+- The `Halloween` funnel: 1_Button, 2_Opened, 3_FirstCandy, 4_Pitchfork, 5_Broom, 6_Sword (each
+  cue owned however it was got).
+- `HwBuy` (cue, Candy / Robux / Gift): which cues sell and how. `HwCandy` "Match" against
+  `CandyPickups`: the 50/50 split the designer asked for. `HwPack`, `HwQuest`, `HwKing`,
+  `HwMenu`, `HwConvert`.
+- `KingCutscene` (Shown / Skipped / Cut / Done): how many skip it.
+- The model to compare with (ECONOMY, "Halloween Candy and the event cues"): ~280 Candy an hour
+  from matches and ~270 from the ground; the Pitchfork in ~25 min, the Broom in ~4 h, the
+  Sword in ~13-15 h of play.
+- Creator Hub: server FPS P10/P50, client memory, concurrent users, the error report. Alarms:
+  P10 under 20 for an hour, or memory P50 over about 200 two hours running.
 
-## 8. Discord announcement (draft; you post it)
+## 7. Discord announcement (draft; you post it)
 
 > 🎃 **The HALLOWEEN UPDATE is live!** 🎃
-> The rooftop has gone haunted. Play matches to collect **Candy**, finish daily quests and
-> unlock Halloween cues that never come back: the **Pitchfork**, the **Witch's Broom** and the
-> **Halloween Sword** on the Candy track, and the **Spider** for 3 hours of play. The **Pumpkin
-> King** visits the middle of the roof at :15 and :45 every hour: beat him for Candy, money and
-> XP, and a **5% chance at the Jack-o'-Lantern Cue**! Grab Candy around the lobby, and play in
-> the first 10 minutes of every hour for **2x Candy**. Ends Nov 3!
+> The rooftop has gone haunted. Play matches and grab **Candy** all over the lobby (even while
+> you wait for your turn), finish daily quests, and spend your Candy on Halloween cues that
+> never come back: the **Pitchfork**, the **Witch's Broom** and the **Halloween Sword**. The
+> **Pumpkin King** rises at :15 and :45 every hour: beat him for Candy, money and XP, and a
+> **5% chance at the Jack-o'-Lantern Cue**! Play in the first 10 minutes of every hour for
+> **2x Candy**. Ends Nov 3!
