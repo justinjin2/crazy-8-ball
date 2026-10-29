@@ -827,12 +827,18 @@ function EventMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		local cornerPx = y(L.CornerUnits)
 		local edgePx = math.max(2, y(L.EdgeUnits))
 		local innerPx = math.max(1, y(L.InnerUnits))
-		card.fillRound.CornerRadius = UDim.new(0, cornerPx)
-		card.ballsRound.CornerRadius = UDim.new(0, cornerPx)
+		-- The pink edge is drawn outward from the fill, so the fill is inset by its thickness:
+		-- the edge lies inside the card's box and the scroller's edges never cut it (the
+		-- designer's screenshot, 2026-10-29: the first card's left and the row's top were cut).
+		card.fill.Position = UDim2.fromOffset(edgePx, edgePx)
+		card.fill.Size = UDim2.new(1, -2 * edgePx, 1, -2 * edgePx)
+		card.fillRound.CornerRadius = UDim.new(0, math.max(0, cornerPx - edgePx))
+		card.ballsRound.CornerRadius = UDim.new(0, math.max(0, cornerPx - edgePx))
 		card.edge.Thickness = edgePx
-		card.inner.Position = UDim2.fromOffset(innerPx + 1, innerPx + 1)
-		card.inner.Size = UDim2.new(1, -2 * (innerPx + 1), 1, -2 * (innerPx + 1))
-		card.innerRound.CornerRadius = UDim.new(0, math.max(0, cornerPx - innerPx - 1))
+		local innerAt = edgePx + innerPx + 1
+		card.inner.Position = UDim2.fromOffset(innerAt, innerAt)
+		card.inner.Size = UDim2.new(1, -2 * innerAt, 1, -2 * innerAt)
+		card.innerRound.CornerRadius = UDim.new(0, math.max(0, cornerPx - innerAt))
 		card.innerStroke.Thickness = innerPx
 		local glow = card.glow
 		if glow then
