@@ -7,7 +7,7 @@ return {
 	Frame = "cue",
 	Rigid = "83009241990570",
 	Models = {
-		Crown = "108311282849319",
+		Crown = "88445798540249",
 	},
 	Parts = {
 		{
@@ -30,8 +30,8 @@ return {
 				"Blade7",
 				"Blade8",
 			},
-			Offset = { 0, 0, -3.395 },
-			Size = { 1.4184, 1.4184, 1.31 },
+			Offset = { 0, 0, -2.81 },
+			Size = { 2.6257, 2.6257, 2.62 },
 			Model = "Crown",
 		},
 		{
@@ -54,8 +54,8 @@ return {
 				"Blade7",
 				"Blade8",
 			},
-			Offset = { 0, 0, -3.4545 },
-			Size = { 1.4664, 1.4664, 1.4289 },
+			Offset = { 0, 0, -2.8345 },
+			Size = { 2.6769, 2.6769, 2.6689 },
 			Model = "Crown",
 		},
 		{
@@ -78,8 +78,8 @@ return {
 				"Blade7",
 				"Blade8",
 			},
-			Offset = { 0, 0, -3.4298 },
-			Size = { 1.3892, 1.3891, 1.1443 },
+			Offset = { 0, 0, -2.7949 },
+			Size = { 2.5023, 2.5023, 2.171 },
 			Model = "Crown",
 		},
 		{
@@ -165,7 +165,7 @@ return {
 		},
 		Crown = {
 			Parent = "Body",
-			PivotRoblox = { 0, 0, -4.05 },
+			PivotRoblox = { 0, 0, -4.12 },
 			Motion = {},
 			Aim = "fade",
 		},
@@ -185,12 +185,12 @@ return {
 		},
 		Blade1 = {
 			Parent = "Crown",
-			PivotRoblox = { -0, -0.34, -4.05 },
+			PivotRoblox = { -0, -0.5, -4.12 },
 			Motion = {
 				{
 					Kind = "Hinge",
 					Axis = { -1, 0, 0 },
-					Amp = 1.5,
+					Amp = 0.8,
 					Period = 3.1,
 					Phase = 0,
 				},
@@ -198,12 +198,12 @@ return {
 		},
 		Blade2 = {
 			Parent = "Crown",
-			PivotRoblox = { -0.2404, -0.2404, -4.05 },
+			PivotRoblox = { -0.3536, -0.3536, -4.12 },
 			Motion = {
 				{
 					Kind = "Hinge",
 					Axis = { -0.7071067690849304, 0, -0.7071067690849304 },
-					Amp = 2,
+					Amp = 1.05,
 					Period = 3.27,
 					Phase = 45,
 				},
@@ -211,12 +211,12 @@ return {
 		},
 		Blade3 = {
 			Parent = "Crown",
-			PivotRoblox = { -0.34, -0, -4.05 },
+			PivotRoblox = { -0.5, -0, -4.12 },
 			Motion = {
 				{
 					Kind = "Hinge",
 					Axis = { -6.123234262925839e-17, 0, -1 },
-					Amp = 2.5,
+					Amp = 1.3,
 					Period = 3.44,
 					Phase = 90,
 				},
@@ -224,12 +224,12 @@ return {
 		},
 		Blade4 = {
 			Parent = "Crown",
-			PivotRoblox = { -0.2404, 0.2404, -4.05 },
+			PivotRoblox = { -0.3536, 0.3536, -4.12 },
 			Motion = {
 				{
 					Kind = "Hinge",
 					Axis = { 0.7071067690849304, 0, -0.7071067690849304 },
-					Amp = 1.5,
+					Amp = 0.8,
 					Period = 3.6100000000000003,
 					Phase = 135,
 				},
@@ -237,12 +237,12 @@ return {
 		},
 		Blade5 = {
 			Parent = "Crown",
-			PivotRoblox = { -0, 0.34, -4.05 },
+			PivotRoblox = { -0, 0.5, -4.12 },
 			Motion = {
 				{
 					Kind = "Hinge",
 					Axis = { 1, 0, -1.2246468525851679e-16 },
-					Amp = 2,
+					Amp = 1.05,
 					Period = 3.7800000000000002,
 					Phase = 180,
 				},
@@ -250,12 +250,12 @@ return {
 		},
 		Blade6 = {
 			Parent = "Crown",
-			PivotRoblox = { 0.2404, 0.2404, -4.05 },
+			PivotRoblox = { 0.3536, 0.3536, -4.12 },
 			Motion = {
 				{
 					Kind = "Hinge",
 					Axis = { 0.7071067690849304, -0, 0.7071067690849304 },
-					Amp = 2.5,
+					Amp = 1.3,
 					Period = 3.95,
 					Phase = 225,
 				},
@@ -263,12 +263,12 @@ return {
 		},
 		Blade7 = {
 			Parent = "Crown",
-			PivotRoblox = { 0.34, 0, -4.05 },
+			PivotRoblox = { 0.5, 0, -4.12 },
 			Motion = {
 				{
 					Kind = "Hinge",
 					Axis = { 1.8369701465288538e-16, -0, 1 },
-					Amp = 1.5,
+					Amp = 0.8,
 					Period = 4.12,
 					Phase = 270,
 				},
@@ -276,12 +276,12 @@ return {
 		},
 		Blade8 = {
 			Parent = "Crown",
-			PivotRoblox = { 0.2404, -0.2404, -4.05 },
+			PivotRoblox = { 0.3536, -0.3536, -4.12 },
 			Motion = {
 				{
 					Kind = "Hinge",
 					Axis = { -0.7071067690849304, 0, 0.7071067690849304 },
-					Amp = 2,
+					Amp = 1.05,
 					Period = 4.29,
 					Phase = 315,
 				},

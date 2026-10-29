@@ -670,7 +670,7 @@ return {
 				},
 			},
 		},
-		Outline = "#D8DCE6",
+		Outline = "#94B4DC",
 	},
 	TrailEmitters = {
 		{
@@ -835,7 +835,7 @@ return {
 		Pocket = {
 			Colors = {
 				{ 216, 220, 230 },
-				{ 200, 16, 46 },
+				{ 242, 244, 248 },
 			},
 			ColorShare = 1,
 		},

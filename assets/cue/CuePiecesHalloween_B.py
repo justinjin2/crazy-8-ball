@@ -1626,22 +1626,27 @@ def _spider_atlas(k):
     return A
 
 
+def _sstep(a, b, t):
+    """Scalar smoothstep: 0 at t <= a, 1 at t >= b."""
+    t = max(0.0, min(1.0, (t - a) / (b - a)))
+    return t * t * (3 - 2 * t)
+
+
 def _spider_blade_curve(theta, long=True):
-    """A leg-blade's centreline (Vectors) and its radial direction: rooted at the dome's base
-    (d 7.55), sweeping FORWARD along the butt and flaring out like a splayed spider leg (a cubic
-    in the (d, out) plane, out to 0.93 of the Aim room 1.1), the tip turning in and pointing up
-    the shaft at d 6.24: just behind the grip hand's rest at 5.95 (the grip zone 4.4-6.2 stays
-    flush), the way C1's hand holds the shaft ahead of the crown (coordinator 19:08). Four broad
-    blades on the diagonals and four short ones between (tip at d 6.8, out 0.6) so the crown's
-    silhouette is jagged, not a cage (v9 lab); the centreline keeps room for the blade's width
-    (a crescent 0.32 wide at its bulge, the inner edge taking most of it)."""
+    """A blade's centreline (Vectors) and its radial direction, v2 frame (coordinator 21:0x: the
+    crown is a third of the cue in C1b): rooted at the socket cup's rim (d 7.62, out 0.5),
+    sweeping FORWARD over the grip zone and flaring out as it goes, the long tier to d 5.0 at
+    out 1.21, the short tier to d 5.8 at out 1.21. Over the grip (CLEAR 4.4-6.9, the measured
+    hand rests at d 5.57-6.81) the fin's inner edge stays outside the hand's clear cylinder
+    (0.85) and its outer edge inside 1.35; between 6.9 and the cup it stays inside the Aim
+    room (1.1). A cubic in the (d, out) plane (control points from a grid search over the
+    width profile below); the strip takes 0.55 of its width inward and 0.45 outward."""
     from mathutils import Vector
     rad = Vector((math.sin(theta), 0, -math.cos(theta)))      # out from the axis at this angle
-    topness = 0.5 + 0.5 * math.cos(theta - math.pi)           # 1 at the top (+Z), 0 at the bottom
     if long:
-        P = ((7.55, 0.34), (7.3, 0.8 + 0.03 * topness), (6.72, 0.86 + 0.03 * topness), (6.24, 0.74))
+        P = ((7.62, 0.5), (7.3, 1.2), (5.8, 1.07), (5.0, 1.21))
     else:
-        P = ((7.55, 0.34), (7.4, 0.62), (7.05, 0.7), (6.8, 0.6))
+        P = ((7.62, 0.5), (7.3, 1.0), (5.8, 1.17), (5.8, 1.21))
     pts = []
     n = 13
     for s in range(n):
@@ -1745,7 +1750,7 @@ def spider(k):
 
     # --- the crown: the eye dome at the end, the eyes, four broad and four short skinned
     # crescent blades with a red rim on the outer edge, red rim rings (coordinator 19:3x) ----------
-    k.joint('Crown', pivot=(0, -7.55, 0), parent='Body', aim='fade')
+    k.joint('Crown', pivot=(0, -7.62, 0), parent='Body', aim='fade')
     bm = bmesh.new()
     _lathe(bm, [q[0] for q in SPIDER_DOME], [q[1] for q in SPIDER_DOME], 24, close=True)
     k.add('Crown', k.mesh_object('Dome', bm, ['Blade']))
@@ -1775,17 +1780,18 @@ def spider(k):
         pts, rad = _spider_blade_curve(theta, long=big)
         curves.append((pts, rad))
         k.joint('Blade%d' % (i + 1), pivot=tuple(pts[0]), parent='Crown', motion=[
-            {'Kind': 'Hinge', 'Axis': tuple(Vector((0, 1, 0)).cross(rad)), 'Amp': 1.5 + 1.0 * (i % 3) / 2,
-             'Period': 3.1 + 0.17 * i, 'Phase': 45 * i}])
+            {'Kind': 'Hinge', 'Axis': tuple(Vector((0, 1, 0)).cross(rad)), 'Amp': 0.8 + 0.5 * (i % 3) / 2,
+             'Period': 3.1 + 0.17 * i, 'Phase': 45 * i}])   # small: the tips are 2.6 studs out over the hand
         # a crescent: the outer rim follows the centreline's convex sweep, the inner edge takes
         # most of the width so it bows back toward the shaft; broad at the bulge, a point at the tip
-        wmax = 0.32 if big else 0.22
+        wmax = 0.30 if big else 0.26
         inner, outer = [], []
         for s, p in enumerate(pts):
             t = s / (len(pts) - 1)
-            w = 0.1 * (1 - t) + wmax * (math.sin(math.pi * t) ** 1.2) + 0.012
-            inner.append(p - rad * (w * 0.7))
-            outer.append(p + rad * (w * 0.3))
+            # narrow at the root (over the cup and the Aim room's 1.1), broad over the grip, a point
+            w = 0.05 + wmax * _sstep(0.3, 0.6, t) * (1 - _sstep(0.8, 1.0, t)) + 0.012
+            inner.append(p - rad * (w * 0.55))   # the inner edge stays outside the hand's cylinder (CLEAR)
+            outer.append(p + rad * (w * 0.45))
         _strip_uv(bm_b, uvl_b, inner, outer, flat_uv)
         eo = [o + rad * 0.004 for o in outer]
         _strip_uv(bm_e, uvl_e, [o - rad * 0.012 for o in eo], [o + rad * 0.02 for o in eo], flat_uv)
@@ -1834,18 +1840,14 @@ def spider(k):
     for i in range(SPIDER_BLADES):
         pa, ra = curves[i]
         pb, rb = curves[(i + 1) % SPIDER_BLADES]
-        mids = []
-        for t in (0.22, 0.36, 0.5, 0.64, 0.78, 0.92):
+        # eight rungs a gap, two by the cup and six over the grip (from t 0.45, d 6.4, where the
+        # fins are out far enough that a rung's middle clears the hand's cylinder); a small sag;
+        # no radial threads: a thread from the cup rim cuts through the cylinder near d 6.7
+        for t in (0.14, 0.26, 0.45, 0.56, 0.67, 0.78, 0.88, 0.95):
             s = int(round(t * (len(pa) - 1)))
             a = pa[s] + ra * 0.05
             b = pb[s] + rb * 0.05
-            pts = strand(bm_w, a, b, 0.18, 0.008)
-            mids.append(pts[len(pts) // 2])
-            nweb += 1
-        hub_dir = (ra + rb).normalized()
-        hub = Vector((0, -7.5, 0)) + hub_dir * 0.3
-        for m in (mids[2], mids[5]):
-            strand(bm_w, hub, m, 0.05, 0.007)
+            strand(bm_w, a, b, 0.06, 0.008)
             nweb += 1
     webs = k.mesh_object('Webs', bm_w, ['Web'], smooth=False)
     k.add('Crown', webs)
@@ -1958,6 +1960,14 @@ def check_envelope(pid, kit):
                     if rad.max() > lim + 1e-4:
                         fail('too far off the axis past the butt (d %.2f)' % dm, rad.max() - lim)
                     continue
+                clear = CLEAR.get(pid)
+                if aim and clear and clear['Zone'][0] <= dm <= clear['Zone'][1]:
+                    # the named exception: the crown over the grip, outside the hand's cylinder
+                    if rad.min() < clear['Radius'] - 1e-4:
+                        fail("inside the grip hand's clear cylinder (d %.2f)" % dm, clear['Radius'] - rad.min())
+                    if rad.max() > clear['Outer'] + 1e-4:
+                        fail('too wide over the grip (d %.2f)' % dm, rad.max() - clear['Outer'])
+                    continue
                 in_hand = (r['Bridge'][0] <= dm <= r['Bridge'][1]) or (r['Grip'][0] <= dm <= r['Grip'][1])
                 if in_hand and ob.name in BODY_SHAFT.get(pid, (ob.name,)):
                     cx = (sx.min() + sx.max()) / 2
@@ -2048,6 +2058,15 @@ def spider_pocket(k):
     bmesh.ops.transform(bm, matrix=Matrix.Translation(Vector((0, 0, 0.4))) @ Matrix.Rotation(math.radians(-90), 4, 'X'), verts=bm.verts[:])
     k.add('Bead', k.mesh_object('BeadHourglass', bm, ['Crimson'], smooth=False))
 
+
+# A named exception (coordinator 21:0x, the way cues-a's Sword guard has one): this body's
+# Aim-joint crown may pass FORWARD over the grip zone, as long as inside Zone every vertex stays
+# OUTSIDE a clear cylinder of Radius round the axis and inside Outer. The grip hand wraps the
+# shaft inside the cylinder: measured 2026-10-28 21:15 in the fixture solo game, the grip hand's
+# box corners reach 0.77 from the axis (d 5.57-6.81 at aim, sliding toward 4.4 in the stroke),
+# so Radius 0.85 leaves 0.08. Outer 1.35 (above the Aim room's 1.1) lets the fins keep a radial
+# width there; both numbers are the coordinator's to confirm.
+CLEAR = {'spider': {'Zone': (4.4, 6.9), 'Radius': 0.85, 'Outer': 1.35}}
 
 # The part(s) that are the shaft itself in the hand zones (checked for the centreline and the
 # exact radius); any other part there is decor and only has to stay flush.
