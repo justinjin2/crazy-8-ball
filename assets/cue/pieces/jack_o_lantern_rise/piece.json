@@ -13,16 +13,16 @@
         "ColorMap": "pieces/jack_o_lantern/atlas_color.png",
         "NormalMap": "pieces/jack_o_lantern/atlas_normal.png",
         "EmissiveMask": "pieces/jack_o_lantern/atlas_emissive.png",
-        "EmissiveTint": "#FFB43A",
-        "EmissiveStrength": 1.7
+        "EmissiveTint": "#FFC24A",
+        "EmissiveStrength": 2.6
       },
       "Name": "Head_Jack",
       "File": "pieces/jack_o_lantern_rise/Head_Jack.obj",
       "Joint": "Head",
       "Offset": [
-        0.0,
+        -0.0,
         1.2023,
-        0.0
+        -0.0
       ],
       "Size": [
         1.64,
@@ -33,7 +33,7 @@
     },
     {
       "Material": "Neon",
-      "Color": "#FFB43A",
+      "Color": "#FFC24A",
       "Transparency": 0.0,
       "Reflectance": 0.0,
       "Name": "Core_Core",
@@ -60,8 +60,8 @@
         "ColorMap": "pieces/jack_o_lantern/atlas_color.png",
         "NormalMap": "pieces/jack_o_lantern/atlas_normal.png",
         "EmissiveMask": "pieces/jack_o_lantern/atlas_emissive.png",
-        "EmissiveTint": "#FFB43A",
-        "EmissiveStrength": 1.7
+        "EmissiveTint": "#FFC24A",
+        "EmissiveStrength": 2.6
       },
       "Name": "Orbit_Jack",
       "File": "pieces/jack_o_lantern_rise/Orbit_Jack.obj",

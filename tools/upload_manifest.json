@@ -674,9 +674,9 @@
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball-hw-sys/assets/cue/pieces/jack_o_lantern/atlas_color.png": {
-    "assetId": "112499160574226",
+    "assetId": "114826661142008",
     "assetType": "Decal",
-    "imageId": "100416923323451",
+    "imageId": "99927700415602",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball-hw-sys/assets/cue/pieces/jack_o_lantern/atlas_emissive.png": {
@@ -692,12 +692,12 @@
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball-hw-sys/assets/cue/pieces/jack_o_lantern/jack_o_lantern_parts.glb": {
-    "assetId": "129795433809453",
+    "assetId": "139022797831052",
     "assetType": "Model",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball-hw-sys/assets/cue/pieces/jack_o_lantern_jacks/jack_o_lantern_jacks_parts.glb": {
-    "assetId": "87126774561040",
+    "assetId": "100772326272910",
     "assetType": "Model",
     "status": "ok"
   },

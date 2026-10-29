@@ -11,7 +11,7 @@ while the stick is drawn for a shot; everyone else sees it whole).
     jack_o_lantern   the body: a dark green tip on a bronze ferrule; a glossy orange shaft with
                      soft wood grain and fine flutes; a chunky green vine spiralling up it with
                      real leaves between the hands; dark wood collars with glowing slits and a
-                     bronze band; the carved pumpkin (1.45 across, ten glossy lobes, a glowing
+                     bronze band; the carved pumpkin (1.70 across, ten glossy lobes, a glowing
                      face cut through the rind over a flickering core) with big leaves at its
                      base and a curly stem.
 
@@ -44,16 +44,21 @@ COL = {
     'bronze': '#9A5F28', 'bronze_dark': '#5A3412', 'bronze_light': '#F2C47E',
     'green': '#3E8E3A', 'green_dark': '#24561F', 'green_light': '#7CC453', 'rib': '#A8DC78',
     'stem': '#4E6E2A', 'stem_dark': '#2E4416', 'stem_light': '#7E9A48',
-    'glow': '#FFD45A', 'glow_hot': '#FFF0A0', 'flesh': '#FFA22E', 'core': '#FFB43A',
+    'glow': '#FFD45A', 'glow_hot': '#FFF0A0', 'flesh': '#FFA22E', 'core': '#FFC24A',
+    # the shaft and the vine only, deeper than the pumpkin's orange and the leaves' green (C4's
+    # rich orange shaft and dark olive vine; the coordinator 19:4x)
+    'shaft': '#EE6A14', 'shaft_deep': '#CC500C', 'shaft_light': '#FF9440', 'shaft_groove': '#9E3A08',
+    'vine': '#4F6E24', 'vine_dark': '#2C4214', 'vine_light': '#88A546',
 }
 
 # Where things are (d from the tip).
 TIP_END = 0.3          # the tip and ferrule
 SHAFT_END = 6.2        # the shaft lathe stops here, under the first collar ring
 COLLAR = (6.18, 7.14)  # the collar lathe (its last ring sinks into the pumpkin's flank)
-PUMP_C = 7.6           # the pumpkin's centre
+GROW = 1.17            # the pumpkin's size against round 3's (the coordinator 19:4x: C4's dominates the butt)
+PUMP_C = 7.58          # the pumpkin's centre (its tip-side flank sinks into the collar's last ring)
 PUMP_L = 0.62          # its half length along the cue
-PUMP_R = 0.725         # its radius at the equator (1.45 across)
+PUMP_R = 0.725 * GROW  # its radius at the equator (1.70 across)
 PUMP_Z = 0.08          # raised a little: less of it below the axis (a back's torso)
 LOBES = 10
 VINE_FROM, VINE_TO, VINE_PITCH = 6.2, 0.78, 0.92   # the vine's run and the d per turn
@@ -224,20 +229,20 @@ def jack_atlas(k):
     streak = HB._fbm(U * 3.0, V * 0.25, 9.0, octaves=3, seed=4)
     fl = np.abs(np.sin(np.pi * U * 10))
     groove = 1 - sm(fl, 0.0, 0.32)
-    col = lerp(c['orange'], c['orange_deep'], np.clip(0.15 + 0.5 * (d / 6.2) * 0.4 + 0.25 * (grain - 0.5), 0, 1))
-    col = lerp(col, c['orange_light'], np.clip((streak - 0.55) * 1.6, 0, 1) * 0.45)
-    col = lerp(col, c['groove'], groove * 0.55)
+    col = lerp(c['shaft'], c['shaft_deep'], np.clip(0.15 + 0.5 * (d / 6.2) * 0.4 + 0.25 * (grain - 0.5), 0, 1))
+    col = lerp(col, c['shaft_light'], np.clip((streak - 0.55) * 1.6, 0, 1) * 0.45)
+    col = lerp(col, c['shaft_groove'], groove * 0.55)
     # soft wood-grain lines: thin darker lines running along the cue, wandering a little
     warp = HB._fbm(U * 2.0, V * 0.6, 6.0, octaves=3, seed=7)
     lines = np.abs(np.sin(np.pi * (U * 26 + 1.4 * warp + 0.6 * np.sin(V * 9.0))))
     gl = (1 - sm(lines, 0.0, 0.16)) * (0.55 + 0.45 * streak)
-    col = lerp(col, c['orange_deep'], gl * 0.5)
-    col = lerp(col, c['groove'], gl * sm(streak, 0.5, 0.8) * 0.3)
+    col = lerp(col, c['shaft_deep'], gl * 0.5)
+    col = lerp(col, c['shaft_groove'], gl * sm(streak, 0.5, 0.8) * 0.3)
     # the gloss: a broad soft sheen on top and a crisp highlight line inside it
     top = np.exp(-((U - 0.5) / 0.11) ** 2)
-    col = lerp(col, c['orange_light'], top * 0.45)
+    col = lerp(col, c['shaft_light'], top * 0.45)
     col = lerp(col, c['gloss'], np.exp(-((U - 0.47) / 0.025) ** 2) * 0.7 * (0.75 + 0.25 * streak))
-    col = lerp(col, c['orange_deep'], np.exp(-((np.minimum(U, 1 - U)) / 0.12) ** 2) * 0.35)
+    col = lerp(col, c['shaft_deep'], np.exp(-((np.minimum(U, 1 - U)) / 0.12) ** 2) * 0.35)
     h = 0.6 * (1 - groove) + 0.25 * grain - 0.25 * gl
     A.paint('SHAFT', col, height=h, bump=1.4)
 
@@ -259,7 +264,7 @@ def jack_atlas(k):
     in_shaft = (d < 6.225).astype(np.float32)
     col = lerp(col, band, in_band)
     col = lerp(col, bronze, in_bronze)
-    col = lerp(col, c['orange'], in_shaft)
+    col = lerp(col, c['shaft'], in_shaft)
     # eight slits round the band, long along the cue, rounded ends
     su = (U * 8) % 1.0
     sx = np.abs(su - 0.5) / 0.16
@@ -321,9 +326,9 @@ def jack_atlas(k):
     # --- VINE: green with a pale stripe on top, a faint twist --------------------------------
     U, V = A.grid('VINE')
     tw = 0.5 + 0.5 * np.sin(2 * np.pi * (U * 2 + V * 14))
-    col = lerp(c['green_dark'], c['green'], 0.5 + 0.5 * np.cos((U - 0.5) * 2 * np.pi))
-    col = lerp(col, c['green_light'], np.exp(-((U - 0.5) / 0.1) ** 2) * 0.55)
-    col = lerp(col, c['green_dark'], tw * 0.18)
+    col = lerp(c['vine_dark'], c['vine'], 0.5 + 0.5 * np.cos((U - 0.5) * 2 * np.pi))
+    col = lerp(col, c['vine_light'], np.exp(-((U - 0.5) / 0.1) ** 2) * 0.45)
+    col = lerp(col, c['vine_dark'], tw * 0.22)
     A.paint('VINE', col, height=0.3 * tw)
 
     # --- STEM: dark green-brown, lengthwise ridges, a paler top ------------------------------
@@ -343,7 +348,8 @@ def jack_atlas(k):
     col = lerp(green, bronze, sm(d, 0.14, 0.155))
     A.paint('TIP', col)
 
-    A.materials(k, opaque='Jack', emissive_tint='#FFB43A', emissive_strength=1.7, Reflectance=0.06)
+    # the carved face's glow strong on the bright floor (C4's yellow-orange face; 1.7 read dim)
+    A.materials(k, opaque='Jack', emissive_tint='#FFC24A', emissive_strength=2.6, Reflectance=0.06)
     return A
 
 
@@ -456,15 +462,15 @@ def jack_o_lantern(k):
     # the stem's dark ring and the big leaves at the base ride on the pumpkin
     bm = bmesh.new()
     uvl = bm.loops.layers.uv.new('UVMap')
-    top_d = PUMP_C + PUMP_R * PUMP_SB * 0.9
+    top_d = PUMP_C + PUMP_R * PUMP_SB * 0.87
     # the stem's cap: a dark wood ring round the stem's base, standing off the flank (the card's)
     rds = [top_d - 0.05, top_d + 0.005, top_d + 0.02, top_d + 0.06, top_d + 0.075, top_d + 0.08]
-    rrs = [0.15, 0.158, 0.16, 0.152, 0.138, 0.118]
+    rrs = [GROW * r for r in (0.15, 0.158, 0.16, 0.152, 0.138, 0.118)]
     _lathe(bm, uvl, rds, rrs, 18, lambda u, i: A.uv('WOOD', u, i / (len(rds) - 1)), close=True,
            centres=[(0.0, PUMP_Z)] * len(rds), cap_uv=A.uv('WOOD', 0.5, 0.95))
-    base_d = COLLAR[1] - 0.03
-    for ang, length, width, tw in ((math.pi, 0.7, 0.44, 0), (math.pi - 0.95, 0.64, 0.4, -14), (math.pi + 0.95, 0.66, 0.41, 16),
-                                   (math.pi - 1.8, 0.5, 0.32, -22), (math.pi + 1.75, 0.52, 0.33, 22)):
+    base_d = COLLAR[1] - 0.1           # the bigger pumpkin's flank comes further down the collar
+    for ang, length, width, tw in ((math.pi, 0.76, 0.47, 0), (math.pi - 0.95, 0.69, 0.43, -14), (math.pi + 0.95, 0.71, 0.44, 16),
+                                   (math.pi - 1.8, 0.54, 0.35, -22), (math.pi + 1.75, 0.56, 0.36, 22)):
         out = Vector((math.sin(ang), 0, -math.cos(ang)))
         base = Vector((0, -base_d, PUMP_Z * 0.5)) + out * 0.27
         along = Vector((0, 0.95, 0)) + out * 0.42
@@ -473,7 +479,7 @@ def jack_o_lantern(k):
 
     # the core: a flickering Neon ellipsoid inside the rind, seen through the carved face
     k.joint('Core', pivot=(0, -PUMP_C, PUMP_Z), parent='Pumpkin',
-            visual=[{'Kind': 'Glow', 'Min': 0.2, 'Max': 0.75, 'Period': 0.55, 'Shape': 'flicker', 'Color': '#FFC040'}])
+            visual=[{'Kind': 'Glow', 'Min': 0.3, 'Max': 0.85, 'Period': 0.55, 'Shape': 'flicker', 'Color': '#FFE07A'}])
     bm = bmesh.new()
     nr, ns = 10, 18
     rings = [[bm.verts.new(_pump_point(0.08 + (math.pi - 0.16) * i / nr, 2 * math.pi * j / ns, 0.85, False)) for j in range(ns)]
@@ -498,10 +504,12 @@ def jack_o_lantern(k):
             motion=[{'Kind': 'Hinge', 'Axis': (1, 0, 0), 'Amp': 5.0, 'Period': 1.6, 'Phase': 30}])
     bm = bmesh.new()
     uvl = bm.loops.layers.uv.new('UVMap')
-    ctrl = [(top_d - 0.06, 0.0), (top_d + 0.08, 0.02), (top_d + 0.18, 0.1), (top_d + 0.24, 0.24), (top_d + 0.23, 0.38),
-            (top_d + 0.15, 0.47), (top_d + 0.05, 0.46), (top_d + 0.0, 0.38), (top_d + 0.04, 0.31), (top_d + 0.11, 0.33)]
+    # the curl taller with the pumpkin but no longer along the cue (an Aim joint stops 1.5 past the butt)
+    ctrl = [(top_d + 0.72 * dd, GROW * zz) for dd, zz in
+            ((-0.06, 0.0), (0.08, 0.02), (0.18, 0.1), (0.24, 0.24), (0.23, 0.38),
+             (0.15, 0.47), (0.05, 0.46), (0.0, 0.38), (0.04, 0.31), (0.11, 0.33))]
     pts = _catmull([Vector((0, -dd, PUMP_Z + zz)) for dd, zz in ctrl], 6)
-    rads = [0.105 * (1 - 0.62 * (i / (len(pts) - 1)) ** 0.9) for i in range(len(pts))]
+    rads = [GROW * 0.105 * (1 - 0.62 * (i / (len(pts) - 1)) ** 0.9) for i in range(len(pts))]
     _tube(bm, uvl, pts, rads, 8, lambda u, t: A.uv('STEM', u, t), up=(1, 0, 0))
     k.add('Stem', k.mesh_object('StemCurl', bm, ['Jack']))
     print('CUE jack: pumpkin d %.2f..%.2f across %.2f, stem to d %.2f, vine %d points, %d shaft leaves'
@@ -527,7 +535,7 @@ def _catmull(points, per):
 # The carved pumpkin
 # =============================================================================================
 
-PUMP_H = 0.6           # the pumpkin's half height along the face's up (its stalk axis on the card)
+PUMP_H = 0.6 * GROW   # the pumpkin's half height along the face's up (its stalk axis on the card)
 PUMP_SB = 0.86         # its depth along the cue, a share of PUMP_R (the stem end to the collar)
 
 
@@ -543,7 +551,7 @@ def _pump_point(th, ps, scale=1.0, lobed=True):
     s = (0.925 + 0.075 * abs(math.cos(LOBES * psi / 2)) ** 0.55) if lobed else 1.0
     rho = PUMP_R * scale * (math.sin(th) ** 0.82) * s
     y = -PUMP_H * scale * math.cos(th)
-    y += 0.11 * scale * math.exp(-(th / 0.5) ** 2) - 0.12 * scale * math.exp(-((math.pi - th) / 0.5) ** 2)
+    y += GROW * scale * (0.11 * math.exp(-(th / 0.5) ** 2) - 0.12 * math.exp(-((math.pi - th) / 0.5) ** 2))
     C = Vector((0, -PUMP_C, PUMP_Z))
     return C + a * y + (n * math.cos(psi) + b * (math.sin(psi) * PUMP_SB)) * rho
 
@@ -731,10 +739,13 @@ JACKS_PID = 'jack_o_lantern_jacks'
 # (name, d, side X, up Z, scale of the big pumpkin, yaw of the face from +X toward the tip, low,
 # spin in degrees a second: each turns slowly round its own stem so its face comes round to
 # every side, never parked in front of the big face)
-MINI_JACKS = (('Jack1', 3.5, 0.3, 0.56, 0.22, 20, 'hide', 34),
-              ('Jack2', 6.55, -0.42, 0.66, 0.22, 165, None, -41),
-              ('Jack3', 7.45, -0.15, 0.86, 0.24, 120, None, 29),
-              ('Jack4', 8.2, -0.5, 0.62, 0.22, 230, 'hide', -37))
+# All behind the grip's front (d > 4.4) and short of the butt, off to the sides (|X| >= 0.5, clear
+# of the grip forearm): out of the owner's aim view, since a decor piece does not Aim-fade yet;
+# the bigger pumpkin fills the room past the butt (the coordinator 19:4x).
+MINI_JACKS = (('Jack1', 4.75, 0.5, 0.5, 0.21, 20, 'hide', 34),
+              ('Jack2', 5.7, -0.52, 0.62, 0.22, 165, 'hide', -41),
+              ('Jack3', 6.5, -0.5, 0.8, 0.24, 120, None, 29),
+              ('Jack4', 5.3, 0.56, 0.78, 0.21, 230, None, -37))
 
 
 def _mini_jack(k, A, centre, yaw, scale, name):
@@ -748,19 +759,19 @@ def _mini_jack(k, A, centre, yaw, scale, name):
     n, a, _ = _face_frame()
     C = Vector((0, -PUMP_C, PUMP_Z))
     across = a.cross(n).normalized()
-    ctrl = [C + a * u + across * w for u, w in
+    ctrl = [C + (a * u + across * w) * GROW for u, w in
             ((0.36, 0.0), (0.52, 0.01), (0.64, 0.05), (0.72, 0.13), (0.73, 0.22), (0.67, 0.28), (0.6, 0.27))]
     pts = _catmull(ctrl, 3)
     bm = bmesh.new()
     bm.from_mesh(ob.data)
     uvl = bm.loops.layers.uv.active or bm.loops.layers.uv.new('UVMap')
-    _tube(bm, uvl, pts, [0.09 - 0.05 * (i / (len(pts) - 1)) ** 1.3 for i in range(len(pts))], 6,
+    _tube(bm, uvl, pts, [GROW * (0.09 - 0.05 * (i / (len(pts) - 1)) ** 1.3) for i in range(len(pts))], 6,
           lambda u, t: A.uv('STEM', u, t), up=tuple(n))
     bm.to_mesh(ob.data)
     bm.free()
     roll = math.atan2(n.z, n.x)        # the face's tilt above +X: stand the jack up
     ob.data.transform(Matrix.Translation(Vector(centre)) @ Matrix.Rotation(math.radians(yaw), 4, 'Z')
-                      @ Matrix.Rotation(roll, 4, 'Y') @ Matrix.Scale(scale, 4) @ Matrix.Translation(-C))
+                      @ Matrix.Rotation(roll, 4, 'Y') @ Matrix.Scale(scale / GROW, 4) @ Matrix.Translation(-C))
     for p in ob.data.polygons:
         p.use_smooth = True
         p.material_index = 0
@@ -769,10 +780,9 @@ def _mini_jack(k, A, centre, yaw, scale, name):
 
 @piece
 def jack_o_lantern_jacks(k):
-    """Four mini jack-o'-lanterns floating round the back half of the cue and the big pumpkin,
-    each its own aura joint bobbing and looking about (C4). Aim joints, so the two past the butt
-    may reach 1.5 studs out; Lower effects keeps two. They wear the body's atlas (the same
-    uploaded maps: no new texture)."""
+    """Four mini jack-o'-lanterns floating round the grip and the collar, each its own aura joint
+    bobbing and looking about (C4). Aim joints (for when a decor piece Aim-fades); Lower effects
+    keeps two. They wear the body's atlas (the same uploaded maps: no new texture)."""
     A = jack_atlas(k)
     for i, (name, d, x, z, scale, yaw, low, spin) in enumerate(MINI_JACKS):
         k.joint(name, pivot=(x, -d, z), aura=True, aim='fade', low=low,
@@ -800,7 +810,7 @@ def jack_o_lantern_rise(k):
     k.material('Core', 'Neon', COL['core'])
     n, a, _ = _face_frame()
     C = Vector((0, -PUMP_C, PUMP_Z))
-    scale = 1.35
+    scale = 1.35 / GROW                 # 1.95 studs across, whatever the cue's pumpkin
     M = (Matrix.Translation(Vector((0, 0, 1.0))) @ Matrix.Rotation(math.radians(-90), 4, 'Z')
          @ Matrix.Rotation(math.atan2(n.z, n.x), 4, 'Y') @ Matrix.Scale(scale, 4) @ Matrix.Translation(-C))
     k.joint('Head', pivot=(0, 0, 1.0), motion=[
@@ -808,13 +818,13 @@ def jack_o_lantern_rise(k):
         {'Kind': 'Hinge', 'Axis': (0, 0, 1), 'Amp': 6.0, 'Period': 2.2, 'Phase': 40}])
     rind = _pumpkin(k, A, name='RiseRind')
     across = a.cross(n).normalized()
-    ctrl = [C + a * u + across * w for u, w in
+    ctrl = [C + (a * u + across * w) * GROW for u, w in
             ((0.36, 0.0), (0.52, 0.01), (0.64, 0.05), (0.72, 0.13), (0.73, 0.22), (0.67, 0.28), (0.6, 0.27))]
     pts = _catmull(ctrl, 4)
     bm = bmesh.new()
     bm.from_mesh(rind.data)
     uvl = bm.loops.layers.uv.active or bm.loops.layers.uv.new('UVMap')
-    _tube(bm, uvl, pts, [0.085 - 0.045 * (i / (len(pts) - 1)) ** 1.3 for i in range(len(pts))], 8,
+    _tube(bm, uvl, pts, [GROW * (0.085 - 0.045 * (i / (len(pts) - 1)) ** 1.3) for i in range(len(pts))], 8,
           lambda u, t: A.uv('STEM', u, t), up=tuple(n))
     bm.to_mesh(rind.data)
     bm.free()

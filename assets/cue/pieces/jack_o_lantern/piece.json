@@ -13,8 +13,8 @@
         "ColorMap": "pieces/jack_o_lantern/atlas_color.png",
         "NormalMap": "pieces/jack_o_lantern/atlas_normal.png",
         "EmissiveMask": "pieces/jack_o_lantern/atlas_emissive.png",
-        "EmissiveTint": "#FFB43A",
-        "EmissiveStrength": 1.7
+        "EmissiveTint": "#FFC24A",
+        "EmissiveStrength": 2.6
       },
       "Name": "Body_Jack",
       "File": "pieces/jack_o_lantern/Body_Jack.obj",
@@ -40,8 +40,8 @@
         "ColorMap": "pieces/jack_o_lantern/atlas_color.png",
         "NormalMap": "pieces/jack_o_lantern/atlas_normal.png",
         "EmissiveMask": "pieces/jack_o_lantern/atlas_emissive.png",
-        "EmissiveTint": "#FFB43A",
-        "EmissiveStrength": 1.7
+        "EmissiveTint": "#FFC24A",
+        "EmissiveStrength": 2.6
       },
       "Name": "Leaves_Jack",
       "File": "pieces/jack_o_lantern/Leaves_Jack.obj",
@@ -67,41 +67,41 @@
         "ColorMap": "pieces/jack_o_lantern/atlas_color.png",
         "NormalMap": "pieces/jack_o_lantern/atlas_normal.png",
         "EmissiveMask": "pieces/jack_o_lantern/atlas_emissive.png",
-        "EmissiveTint": "#FFB43A",
-        "EmissiveStrength": 1.7
+        "EmissiveTint": "#FFC24A",
+        "EmissiveStrength": 2.6
       },
       "Name": "Pumpkin_Jack",
       "File": "pieces/jack_o_lantern/Pumpkin_Jack.obj",
       "Joint": "Pumpkin",
       "Offset": [
         0.0001,
-        0.079,
-        -3.796
+        0.0788,
+        -3.7552
       ],
       "Size": [
-        1.4167,
-        1.2536,
-        1.8903
+        1.6575,
+        1.4668,
+        2.0788
       ],
       "Triangles": 3114
     },
     {
       "Material": "Neon",
-      "Color": "#FFB43A",
+      "Color": "#FFC24A",
       "Transparency": 0.0,
       "Reflectance": 0.0,
       "Name": "Core_Core",
       "File": "pieces/jack_o_lantern/Core_Core.obj",
       "Joint": "Core",
       "Offset": [
-        -0.0,
-        0.0794,
-        -4.1
+        -0.0001,
+        0.0793,
+        -4.08
       ],
       "Size": [
-        1.1985,
-        1.0687,
-        1.0438
+        1.4023,
+        1.2504,
+        1.2213
       ],
       "Triangles": 396
     },
@@ -114,21 +114,21 @@
         "ColorMap": "pieces/jack_o_lantern/atlas_color.png",
         "NormalMap": "pieces/jack_o_lantern/atlas_normal.png",
         "EmissiveMask": "pieces/jack_o_lantern/atlas_emissive.png",
-        "EmissiveTint": "#FFB43A",
-        "EmissiveStrength": 1.7
+        "EmissiveTint": "#FFC24A",
+        "EmissiveStrength": 2.6
       },
       "Name": "Stem_Jack",
       "File": "pieces/jack_o_lantern/Stem_Jack.obj",
       "Joint": "Stem",
       "Offset": [
         0.0,
-        0.2982,
-        -4.7876
+        0.3358,
+        -4.8177
       ],
       "Size": [
-        0.21,
-        0.6455,
-        0.3927
+        0.2457,
+        0.7544,
+        0.3301
       ],
       "Triangles": 880
     }
@@ -225,23 +225,23 @@
       "Parent": "Pumpkin",
       "Pivot": [
         0,
-        -7.6,
+        -7.58,
         0.08
       ],
       "PivotRoblox": [
         0,
         0.08,
-        -4.1
+        -4.08
       ],
       "Motion": [],
       "Visual": [
         {
           "Kind": "Glow",
-          "Min": 0.2,
-          "Max": 0.75,
+          "Min": 0.3,
+          "Max": 0.85,
           "Period": 0.55,
           "Shape": "flicker",
-          "Color": "#FFC040"
+          "Color": "#FFE07A"
         }
       ]
     },
@@ -249,13 +249,13 @@
       "Parent": "Pumpkin",
       "Pivot": [
         0,
-        -8.16115,
+        -8.21466065,
         0.08
       ],
       "PivotRoblox": [
         0,
         0.08,
-        -4.6611
+        -4.7147
       ],
       "Motion": [
         {

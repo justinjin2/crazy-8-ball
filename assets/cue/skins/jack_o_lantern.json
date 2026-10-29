@@ -34,8 +34,8 @@
           "FlipbookStartRandom": true,
           "Host": {
             "Kind": "Attachment",
-            "AtStuds": 7.55,
-            "Up": 0.74,
+            "AtStuds": 7.52,
+            "Up": 0.85,
             "Side": 0.0
           },
           "Rate": 3,
@@ -107,9 +107,9 @@
           "FlipbookStartRandom": true,
           "Host": {
             "Kind": "Attachment",
-            "AtStuds": 7.25,
-            "Up": 0.62,
-            "Side": 0.34
+            "AtStuds": 7.17,
+            "Up": 0.71,
+            "Side": 0.4
           },
           "Rate": 3,
           "Lifetime": [
@@ -180,9 +180,9 @@
           "FlipbookStartRandom": true,
           "Host": {
             "Kind": "Attachment",
-            "AtStuds": 7.9,
-            "Up": 0.6,
-            "Side": 0.3
+            "AtStuds": 7.93,
+            "Up": 0.69,
+            "Side": 0.35
           },
           "Rate": 3,
           "Lifetime": [
@@ -253,9 +253,9 @@
           "FlipbookStartRandom": true,
           "Host": {
             "Kind": "Attachment",
-            "AtStuds": 7.4,
-            "Up": 0.6,
-            "Side": -0.4
+            "AtStuds": 7.35,
+            "Up": 0.69,
+            "Side": -0.47
           },
           "Rate": 3,
           "Lifetime": [
@@ -326,9 +326,9 @@
           "FlipbookStartRandom": true,
           "Host": {
             "Kind": "Attachment",
-            "AtStuds": 7.85,
-            "Up": 0.55,
-            "Side": -0.45
+            "AtStuds": 7.87,
+            "Up": 0.63,
+            "Side": -0.53
           },
           "Rate": 3,
           "Lifetime": [
@@ -399,8 +399,8 @@
           "FlipbookStartRandom": true,
           "Host": {
             "Kind": "Attachment",
-            "AtStuds": 8.25,
-            "Up": 0.42,
+            "AtStuds": 8.34,
+            "Up": 0.48,
             "Side": 0.0
           },
           "Rate": 3,
@@ -469,9 +469,9 @@
           "Host": {
             "Kind": "Part",
             "FromStuds": 7.0,
-            "ToStuds": 8.3,
-            "Width": 1.1,
-            "Up": 0.75
+            "ToStuds": 8.4,
+            "Width": 1.3,
+            "Up": 0.86
           },
           "Rate": 10,
           "Lifetime": [
@@ -1258,7 +1258,7 @@
       "Beams": 0,
       "Lights": 2,
       "Orbiters": 0,
-      "Note": "Plus the decor piece (4 parts, 4,264 triangles; the body is 5 parts, 8,086); trail 35/s while the ball moves; the finisher bursts 116 once and its piece is 3 parts, 6,552 triangles. Firework is 214/s, 1 beam, 2 lights."
+      "Note": "Plus the decor piece (4 parts, 4,264 triangles; the body is 5 parts, 8,086); trail 39/s while the ball moves; the finisher bursts 116 once and its piece is 3 parts, 6,552 triangles. Firework is 214/s, 1 beam, 2 lights."
     },
     "Piece": {
       "Note": "pieces/jack_o_lantern_jacks (assets/cue/CuePiecesJack.py): four low-poly carved jacks, the body's pumpkin at a fifth of its size with its inner skin glowing through the face (the body's atlas, no new texture), a stem curling off the top; each an aura joint that bobs, tilts and turns slowly round its stem so its face comes round to every side (Jack1 between the hands, Jack2 behind the grip, Jack3 over the pumpkin, Jack4 behind it). Aim joints; Lower effects hides Jack1 and Jack4."

@@ -13,21 +13,21 @@
         "ColorMap": "pieces/jack_o_lantern/atlas_color.png",
         "NormalMap": "pieces/jack_o_lantern/atlas_normal.png",
         "EmissiveMask": "pieces/jack_o_lantern/atlas_emissive.png",
-        "EmissiveTint": "#FFB43A",
-        "EmissiveStrength": 1.7
+        "EmissiveTint": "#FFC24A",
+        "EmissiveStrength": 2.6
       },
       "Name": "Jack1_Jack",
       "File": "pieces/jack_o_lantern_jacks/Jack1_Jack.obj",
       "Joint": "Jack1",
       "Offset": [
-        -0.3,
-        0.5924,
-        0.0
+        -0.5,
+        0.5309,
+        -1.25
       ],
       "Size": [
-        0.2963,
-        0.2826,
-        0.2757
+        0.2828,
+        0.2697,
+        0.2631
       ],
       "Triangles": 1066
     },
@@ -40,16 +40,16 @@
         "ColorMap": "pieces/jack_o_lantern/atlas_color.png",
         "NormalMap": "pieces/jack_o_lantern/atlas_normal.png",
         "EmissiveMask": "pieces/jack_o_lantern/atlas_emissive.png",
-        "EmissiveTint": "#FFB43A",
-        "EmissiveStrength": 1.7
+        "EmissiveTint": "#FFC24A",
+        "EmissiveStrength": 2.6
       },
       "Name": "Jack2_Jack",
       "File": "pieces/jack_o_lantern_jacks/Jack2_Jack.obj",
       "Joint": "Jack2",
       "Offset": [
-        0.42,
-        0.6924,
-        -3.05
+        0.52,
+        0.6524,
+        -2.2
       ],
       "Size": [
         0.3046,
@@ -67,16 +67,16 @@
         "ColorMap": "pieces/jack_o_lantern/atlas_color.png",
         "NormalMap": "pieces/jack_o_lantern/atlas_normal.png",
         "EmissiveMask": "pieces/jack_o_lantern/atlas_emissive.png",
-        "EmissiveTint": "#FFB43A",
-        "EmissiveStrength": 1.7
+        "EmissiveTint": "#FFC24A",
+        "EmissiveStrength": 2.6
       },
       "Name": "Jack3_Jack",
       "File": "pieces/jack_o_lantern_jacks/Jack3_Jack.obj",
       "Joint": "Jack3",
       "Offset": [
-        0.15,
-        0.8954,
-        -3.95
+        0.5,
+        0.8354,
+        -3.0
       ],
       "Size": [
         0.2968,
@@ -94,21 +94,21 @@
         "ColorMap": "pieces/jack_o_lantern/atlas_color.png",
         "NormalMap": "pieces/jack_o_lantern/atlas_normal.png",
         "EmissiveMask": "pieces/jack_o_lantern/atlas_emissive.png",
-        "EmissiveTint": "#FFB43A",
-        "EmissiveStrength": 1.7
+        "EmissiveTint": "#FFC24A",
+        "EmissiveStrength": 2.6
       },
       "Name": "Jack4_Jack",
       "File": "pieces/jack_o_lantern_jacks/Jack4_Jack.obj",
       "Joint": "Jack4",
       "Offset": [
-        0.5,
-        0.6524,
-        -4.7
+        -0.56,
+        0.8109,
+        -1.8
       ],
       "Size": [
-        0.2861,
-        0.2826,
-        0.2979
+        0.2731,
+        0.2697,
+        0.2843
       ],
       "Triangles": 1066
     }
@@ -117,14 +117,14 @@
     "Jack1": {
       "Parent": null,
       "Pivot": [
-        0.3,
-        -3.5,
-        0.56
+        0.5,
+        -4.75,
+        0.5
       ],
       "PivotRoblox": [
-        -0.3,
-        0.56,
-        0.0
+        -0.5,
+        0.5,
+        -1.25
       ],
       "Motion": [
         {
@@ -167,14 +167,14 @@
     "Jack2": {
       "Parent": null,
       "Pivot": [
-        -0.42,
-        -6.55,
-        0.66
+        -0.52,
+        -5.7,
+        0.62
       ],
       "PivotRoblox": [
-        0.42,
-        0.66,
-        -3.05
+        0.52,
+        0.62,
+        -2.2
       ],
       "Motion": [
         {
@@ -211,19 +211,20 @@
         }
       ],
       "Aura": true,
+      "Low": "hide",
       "Aim": "fade"
     },
     "Jack3": {
       "Parent": null,
       "Pivot": [
-        -0.15,
-        -7.45,
-        0.86
+        -0.5,
+        -6.5,
+        0.8
       ],
       "PivotRoblox": [
-        0.15,
-        0.86,
-        -3.95
+        0.5,
+        0.8,
+        -3.0
       ],
       "Motion": [
         {
@@ -265,14 +266,14 @@
     "Jack4": {
       "Parent": null,
       "Pivot": [
-        -0.5,
-        -8.2,
-        0.62
+        0.56,
+        -5.3,
+        0.78
       ],
       "PivotRoblox": [
-        0.5,
-        0.62,
-        -4.7
+        -0.56,
+        0.78,
+        -1.8
       ],
       "Motion": [
         {
@@ -309,7 +310,6 @@
         }
       ],
       "Aura": true,
-      "Low": "hide",
       "Aim": "fade"
     }
   }

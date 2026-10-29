@@ -5,7 +5,7 @@
 return {
 	Id = "jack_o_lantern_jacks",
 	Frame = "cue",
-	Rigid = "87126774561040",
+	Rigid = "100772326272910",
 	Models = {},
 	Parts = {
 		{
@@ -14,16 +14,16 @@ return {
 			Transparency = 0,
 			Reflectance = 0.06,
 			SurfaceAppearance = {
-				ColorMap = "rbxassetid://100416923323451",
+				ColorMap = "rbxassetid://99927700415602",
 				NormalMap = "rbxassetid://85285431244146",
 				EmissiveMask = "rbxassetid://124556134573112",
-				EmissiveTint = "#FFB43A",
-				EmissiveStrength = 1.7,
+				EmissiveTint = "#FFC24A",
+				EmissiveStrength = 2.6,
 			},
 			Name = "Jack1_Jack",
 			Joint = "Jack1",
-			Offset = { -0.3, 0.5924, 0 },
-			Size = { 0.2963, 0.2826, 0.2757 },
+			Offset = { -0.5, 0.5309, -1.25 },
+			Size = { 0.2828, 0.2697, 0.2631 },
 		},
 		{
 			Material = "SmoothPlastic",
@@ -31,15 +31,15 @@ return {
 			Transparency = 0,
 			Reflectance = 0.06,
 			SurfaceAppearance = {
-				ColorMap = "rbxassetid://100416923323451",
+				ColorMap = "rbxassetid://99927700415602",
 				NormalMap = "rbxassetid://85285431244146",
 				EmissiveMask = "rbxassetid://124556134573112",
-				EmissiveTint = "#FFB43A",
-				EmissiveStrength = 1.7,
+				EmissiveTint = "#FFC24A",
+				EmissiveStrength = 2.6,
 			},
 			Name = "Jack2_Jack",
 			Joint = "Jack2",
-			Offset = { 0.42, 0.6924, -3.05 },
+			Offset = { 0.52, 0.6524, -2.2 },
 			Size = { 0.3046, 0.2826, 0.2743 },
 		},
 		{
@@ -48,15 +48,15 @@ return {
 			Transparency = 0,
 			Reflectance = 0.06,
 			SurfaceAppearance = {
-				ColorMap = "rbxassetid://100416923323451",
+				ColorMap = "rbxassetid://99927700415602",
 				NormalMap = "rbxassetid://85285431244146",
 				EmissiveMask = "rbxassetid://124556134573112",
-				EmissiveTint = "#FFB43A",
-				EmissiveStrength = 1.7,
+				EmissiveTint = "#FFC24A",
+				EmissiveStrength = 2.6,
 			},
 			Name = "Jack3_Jack",
 			Joint = "Jack3",
-			Offset = { 0.15, 0.8954, -3.95 },
+			Offset = { 0.5, 0.8354, -3 },
 			Size = { 0.2968, 0.3083, 0.3279 },
 		},
 		{
@@ -65,22 +65,22 @@ return {
 			Transparency = 0,
 			Reflectance = 0.06,
 			SurfaceAppearance = {
-				ColorMap = "rbxassetid://100416923323451",
+				ColorMap = "rbxassetid://99927700415602",
 				NormalMap = "rbxassetid://85285431244146",
 				EmissiveMask = "rbxassetid://124556134573112",
-				EmissiveTint = "#FFB43A",
-				EmissiveStrength = 1.7,
+				EmissiveTint = "#FFC24A",
+				EmissiveStrength = 2.6,
 			},
 			Name = "Jack4_Jack",
 			Joint = "Jack4",
-			Offset = { 0.5, 0.6524, -4.7 },
-			Size = { 0.2861, 0.2826, 0.2979 },
+			Offset = { -0.56, 0.8109, -1.8 },
+			Size = { 0.2731, 0.2697, 0.2843 },
 		},
 	},
 	Joints = {
 		Jack1 = {
 			Parent = nil,
-			PivotRoblox = { -0.3, 0.56, 0 },
+			PivotRoblox = { -0.5, 0.5, -1.25 },
 			Motion = {
 				{
 					Kind = "Bob",
@@ -109,7 +109,7 @@ return {
 		},
 		Jack2 = {
 			Parent = nil,
-			PivotRoblox = { 0.42, 0.66, -3.05 },
+			PivotRoblox = { 0.52, 0.62, -2.2 },
 			Motion = {
 				{
 					Kind = "Bob",
@@ -133,11 +133,12 @@ return {
 				},
 			},
 			Aura = true,
+			Low = "hide",
 			Aim = "fade",
 		},
 		Jack3 = {
 			Parent = nil,
-			PivotRoblox = { 0.15, 0.86, -3.95 },
+			PivotRoblox = { 0.5, 0.8, -3 },
 			Motion = {
 				{
 					Kind = "Bob",
@@ -165,7 +166,7 @@ return {
 		},
 		Jack4 = {
 			Parent = nil,
-			PivotRoblox = { 0.5, 0.62, -4.7 },
+			PivotRoblox = { -0.56, 0.78, -1.8 },
 			Motion = {
 				{
 					Kind = "Bob",
@@ -189,7 +190,6 @@ return {
 				},
 			},
 			Aura = true,
-			Low = "hide",
 			Aim = "fade",
 		},
 	},
