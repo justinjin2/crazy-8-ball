@@ -2062,7 +2062,7 @@
       ]
     },
     "Pocket": {
-      "Note": "Secret, about 2.2 s, v4 (designer 2026-10-29: get rid of the witch 2D animated picture, keep the stars): a violet flash; a witch's-hat constellation (pieces/witch_broom_stars: eight Neon stars joined by violet chart lines, twinkling at their own pace, dust stars round it) rises and grows out of the pocket facing the camera; a dark column behind a fountain of gold five-point stars; twinkling star dust round the hat; a gold star burst at the hat's tip; bats; stars raining down to close. No witch (v3's 64-frame flying witch is gone), no ring decals, no swirl disc, no shared gust ribbons (KeepRibbons false); only the shared gust's own shockwave ring on the cloth stays, as on every cue.",
+      "Note": "Secret, about 2.2 s, v4 (designer 2026-10-29: get rid of the witch 2D animated picture, keep the stars; the bats went too, 2026-10-29, a flat flipbook like the witch): a violet flash; a witch's-hat constellation (pieces/witch_broom_stars: eight Neon stars joined by violet chart lines, twinkling at their own pace, dust stars round it) rises and grows out of the pocket facing the camera; a dark column behind a fountain of gold five-point stars; twinkling star dust round the hat; a gold star burst at the hat's tip; stars raining down to close. No witch (v3's 64-frame flying witch is gone), no bats, no ring decals, no swirl disc, no shared gust ribbons (KeepRibbons false); only the shared gust's own shockwave ring on the cloth stays, as on every cue.",
       "Flash": {
         "Color": [
           190,
@@ -2420,67 +2420,6 @@
           ]
         },
         {
-          "Name": "Bats",
-          "Texture": "vfx/witch_broom/bat_flap_4x4.png",
-          "FlipbookLayout": "Grid4x4",
-          "FlipbookMode": "Loop",
-          "FlipbookFramerate": 12,
-          "FlipbookStartRandom": true,
-          "Delay": 0.3,
-          "Host": {
-            "Kind": "Point",
-            "Offset": [
-              0,
-              1.2,
-              0
-            ],
-            "Size": 0.6
-          },
-          "Burst": 4,
-          "Lifetime": [
-            1.4,
-            1.8
-          ],
-          "Speed": [
-            1.0,
-            2.2
-          ],
-          "SpreadAngle": [
-            50,
-            50
-          ],
-          "EmissionDirection": "Top",
-          "Acceleration": [
-            0,
-            1.2,
-            0
-          ],
-          "Drag": 0.6,
-          "Size": 0.4,
-          "Transparency": [
-            [
-              0,
-              1
-            ],
-            [
-              0.1,
-              0
-            ],
-            [
-              0.8,
-              0
-            ],
-            [
-              1,
-              1
-            ]
-          ],
-          "Rotation": 0,
-          "Color": "#FFFFFF",
-          "LightEmission": 0,
-          "LightInfluence": 0
-        },
-        {
           "Name": "StarRain",
           "Texture": "vfx/_shared/star4.png",
           "Delay": 0.95,
@@ -2658,7 +2597,7 @@
       "BodyTriangles": 9600,
       "PieceTriangles": 2392,
       "PocketPieceTriangles": 652,
-      "Note": "Third build (2026-10-28, 13:15): the remade broom body (6 parts, 9,600 triangles: gnarled handle, 3.3x straw head) and the aura piece without ribbons (19 parts, 2,392 triangles: moons, stars, bats, three spell stars). v3 (2026-10-29): the finisher piece is the hat constellation witch_broom_stars (11 parts, 652 triangles, was the portal rings' 13 parts, 4,928) and bursts 127 particles once (was 134). v4 (2026-10-29): the witch layer is gone (one 5-stud 64-frame flipbook particle; its 1024 witch_fly_8x8 sheet is no longer loaded): 126 particles once.",
+      "Note": "Third build (2026-10-28, 13:15): the remade broom body (6 parts, 9,600 triangles: gnarled handle, 3.3x straw head) and the aura piece without ribbons (19 parts, 2,392 triangles: moons, stars, bats, three spell stars). v3 (2026-10-29): the finisher piece is the hat constellation witch_broom_stars (11 parts, 652 triangles, was the portal rings' 13 parts, 4,928) and bursts 127 particles once (was 134). v4 (2026-10-29): the witch layer is gone (one 5-stud 64-frame flipbook particle; its 1024 witch_fly_8x8 sheet is no longer loaded): 126 particles once. Then the four flipbook bats went too (designer: keep the stars only): 122 particles once.",
       "OrbiterHeads": 48,
       "LivePps": "measured 168.4/s in hand and on the back with the two orbiter heads (Config.CueSkins HeadRate 24 each); 180.4 before the trim (robustness pass 2026-10-28); v3: 115.45/s plus the two heads (48) = 163.45"
     }

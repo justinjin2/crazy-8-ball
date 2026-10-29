@@ -4,7 +4,7 @@
 -- Jack-o'-Lantern's finisher laugh is quiet and heard only near the table, its rising head
 -- has no circling mini jacks; the Witch's Broom's finisher has nothing ring-like (the Beta
 -- cue's look: ring decals, a flat swirl disc, the gust's ribbons, rings turning round the
--- pocket), and since v4 (designer 2026-10-29) no 2D animated witch either, its stars only; its
+-- pocket), and since v4 (designer 2026-10-29) no 2D animated witch or bats either, its stars only; its
 -- bristle head is short enough not to stab the floor from a normal character's back. Read from
 -- the generated skin and piece rows.
 
@@ -126,6 +126,15 @@ return {
 			H.expect(layer.Texture ~= WITCH_FLY, layer.Name .. ": the 2D animated witch is back")
 		end
 		H.expect(names.Witch == nil and names.WitchMoon == nil, "the witch layers are gone")
+		-- the bats were a flat flipbook too (designer: keep the stars only); the smoke column
+		-- behind the stars is the one sheet left
+		H.expect(names.Bats == nil, "the flipbook bats are gone")
+		for _, layer in row.Pocket.Layers do
+			H.expect(
+				layer.FlipbookLayout == nil or layer.Name == "DarkColumn",
+				layer.Name .. ": an animated picture in the finisher"
+			)
+		end
 		for _, star in { "StarFountain", "Sparkles", "Twinkles", "StarBurst", "StarRain" } do
 			H.expect(names[star] == true, "the star layer " .. star .. " stays")
 		end
