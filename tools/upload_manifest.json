@@ -428,6 +428,192 @@
     "assetType": "Model",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/ghost_lantern/LanternGhost_base_color.png": {
+    "assetId": "133001338339076",
+    "assetType": "Decal",
+    "imageId": "127642772720159",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/ghost_lantern/LanternGhost_emissive.png": {
+    "assetId": "90490982966558",
+    "assetType": "Decal",
+    "imageId": "89315159661323",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/ghost_lantern/ghost_lantern_parts.glb": {
+    "assetId": "117104999552064",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/ghost_lantern_aura/Ghost1_base_color.png": {
+    "assetId": "116406540464892",
+    "assetType": "Decal",
+    "imageId": "112416689978255",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/ghost_lantern_aura/Ghost1_emissive.png": {
+    "assetId": "117847664442622",
+    "assetType": "Decal",
+    "imageId": "73107843094031",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/ghost_lantern_aura/Ghost2_base_color.png": {
+    "assetId": "140251788201404",
+    "assetType": "Decal",
+    "imageId": "92931462325932",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/ghost_lantern_aura/Ghost2_emissive.png": {
+    "assetId": "78962127796913",
+    "assetType": "Decal",
+    "imageId": "89888030856902",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/ghost_lantern_aura/Ghost3_base_color.png": {
+    "assetId": "107592666456551",
+    "assetType": "Decal",
+    "imageId": "94103003326353",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/ghost_lantern_aura/Ghost3_emissive.png": {
+    "assetId": "117854494232047",
+    "assetType": "Decal",
+    "imageId": "73981308169954",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/ghost_lantern_aura/Ghost4_base_color.png": {
+    "assetId": "94582085984486",
+    "assetType": "Decal",
+    "imageId": "99619027472181",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/ghost_lantern_aura/Ghost4_emissive.png": {
+    "assetId": "85079120701552",
+    "assetType": "Decal",
+    "imageId": "120467933344583",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/ghost_lantern_aura/ghost_lantern_aura_parts.glb": {
+    "assetId": "95352236468083",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/ghost_lantern_pocket/Ghost1_base_color.png": {
+    "assetId": "103736497820826",
+    "assetType": "Decal",
+    "imageId": "77424934985413",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/ghost_lantern_pocket/Ghost1_emissive.png": {
+    "assetId": "136478786844206",
+    "assetType": "Decal",
+    "imageId": "72447057397964",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/ghost_lantern_pocket/Ghost2_base_color.png": {
+    "assetId": "110047131221047",
+    "assetType": "Decal",
+    "imageId": "111454837729003",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/ghost_lantern_pocket/Ghost2_emissive.png": {
+    "assetId": "79161762085714",
+    "assetType": "Decal",
+    "imageId": "109736830302576",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/ghost_lantern_pocket/Ghost3_base_color.png": {
+    "assetId": "105473553366291",
+    "assetType": "Decal",
+    "imageId": "120550036848824",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/ghost_lantern_pocket/Ghost3_emissive.png": {
+    "assetId": "78391914162609",
+    "assetType": "Decal",
+    "imageId": "72584101233365",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/ghost_lantern_pocket/Ghost4_base_color.png": {
+    "assetId": "137393802255433",
+    "assetType": "Decal",
+    "imageId": "91645521827441",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/ghost_lantern_pocket/Ghost4_emissive.png": {
+    "assetId": "71575647708706",
+    "assetType": "Decal",
+    "imageId": "130247569974202",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/ghost_lantern_pocket/ghost_lantern_pocket_parts.glb": {
+    "assetId": "138667305501133",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/halloween_sword/Sword_base_color.png": {
+    "assetId": "125677539965063",
+    "assetType": "Decal",
+    "imageId": "76403631299161",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/halloween_sword/Sword_emissive.png": {
+    "assetId": "85684077438490",
+    "assetType": "Decal",
+    "imageId": "121056044730551",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/halloween_sword/halloween_sword_parts.glb": {
+    "assetId": "86637363502662",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/halloween_sword_pocket/Ghost1_base_color.png": {
+    "assetId": "70601037268606",
+    "assetType": "Decal",
+    "imageId": "72155331748769",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/halloween_sword_pocket/Ghost1_emissive.png": {
+    "assetId": "133142820484140",
+    "assetType": "Decal",
+    "imageId": "97729279630176",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/halloween_sword_pocket/Ghost2_base_color.png": {
+    "assetId": "79545189004069",
+    "assetType": "Decal",
+    "imageId": "79140229039442",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/halloween_sword_pocket/Ghost2_emissive.png": {
+    "assetId": "73821219983071",
+    "assetType": "Decal",
+    "imageId": "134582047080311",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/halloween_sword_pocket/Ghost3_base_color.png": {
+    "assetId": "86556515162931",
+    "assetType": "Decal",
+    "imageId": "95762135176025",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/halloween_sword_pocket/Ghost3_emissive.png": {
+    "assetId": "97216945592378",
+    "assetType": "Decal",
+    "imageId": "131703476103443",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/halloween_sword_pocket/halloween_sword_pocket_parts.glb": {
+    "assetId": "74124048940331",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/jack_o_lantern/jack_o_lantern_parts.glb": {
+    "assetId": "120351810341434",
+    "assetType": "Model",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/jack_o_lantern_aura/jack_o_lantern_aura_parts.glb": {
     "assetId": "82575724602452",
     "assetType": "Model",
@@ -442,6 +628,18 @@
     "assetId": "86620364444680",
     "assetType": "Decal",
     "imageId": "112696270813806",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/thumbs/ghost_lantern.png": {
+    "assetId": "89354921717114",
+    "assetType": "Decal",
+    "imageId": "120508298846402",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/thumbs/halloween_sword.png": {
+    "assetId": "101808889320521",
+    "assetType": "Decal",
+    "imageId": "121167927707840",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/thumbs/jack_o_lantern.png": {
@@ -480,6 +678,24 @@
     "imageId": "87422541803734",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/vfx/ghost_lantern/ghost.png": {
+    "assetId": "107900451027140",
+    "assetType": "Decal",
+    "imageId": "88524679023137",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/vfx/halloween_sword/flame_4x4.png": {
+    "assetId": "74692877151120",
+    "assetType": "Decal",
+    "imageId": "115803746724573",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/vfx/halloween_sword/wrap_256.png": {
+    "assetId": "83821423608710",
+    "assetType": "Decal",
+    "imageId": "87147907827260",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/vfx/jack_o_lantern/jack_4x4.png": {
     "assetId": "118106652557059",
     "assetType": "Decal",
@@ -490,6 +706,12 @@
     "assetId": "87025522416082",
     "assetType": "Decal",
     "imageId": "100529744606848",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/ui/halloween/CueGhostLantern.png": {
+    "assetId": "111471355312136",
+    "assetType": "Decal",
+    "imageId": "105792322478609",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/pieces/black_cat/Tail.glb": {

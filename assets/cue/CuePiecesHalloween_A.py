@@ -38,7 +38,20 @@ UP_EXTRA = 0.25              # +Z between the hand zones (2.1 to 4.4): leaves, r
 BUTT_FROM, BUTT_EXTRA = 6.75, 0.2   # from 6.75 to the butt: the bulb, the pumpkin
 PAST_BUTT = 0.3              # past the butt (Bodies.PastButtStuds)
 AIM_OVERHANG = 1.5           # an Aim-fade joint's reach past the butt (Bodies.MaxOverhangStuds)
-MAX_PARTS, MAX_TRIS = 8, 10000   # the hard budget (the data tool stops over it); aim at 6 and 6,000
+MAX_PARTS, MAX_TRIS = 8, 10000
+# Named relaxations of the rules above, one body at a time (coordinator 19:2x 2026-10-28: the
+# Halloween Sword's wide blade; a named exception per body, never a looser global rule):
+#   'WideX': up to this many studs the sideways width may pass envelope + SIDE_EXTRA (the
+#            downward reach and the +Z allowance still hold);
+#   'BridgeCore': in the bridge hand zone the hand rule applies in Z (up/down) and on the
+#            centreline to these joints only (the solid core); other joints (an Aim-fade flame
+#            edge) may overlap the hand.
+#   'GuardInGripZone': (d0, d1) at the front of the grip hand zone where a sword's guard may
+#            sit: the hand rules are off there and the +Z allowance runs to d1 (coordinator
+#            20:4x: the hilt reads as a stick when the guard stops at 4.4; the grip hand's
+#            full wind-up was measured in Studio to reach 4.92 from the tip, so 4.9 is the
+#            back edge that stays clear of the fingers).
+BODY_EXCEPTIONS = {}   # the hard budget (the data tool stops over it); aim at 6 and 6,000
 
 
 def envelope():
@@ -71,6 +84,7 @@ def check_body(kit, step=0.1):
     R = envelope()
     bins = _bins(kit, step)
     problems = []
+    wide_cx = []   # a WideX body's sideways centre, bin by bin through the bridge hand
     all_d = [v[0] for vs in bins.values() for v in vs]
     if not all_d:
         raise AssertionError('%s: no vertices' % kit.pid)
@@ -103,6 +117,27 @@ def check_body(kit, step=0.1):
                 problems.append('%s (Aim) reaches %.2f studs past the butt (at most %.2f)' % (j, d - LENGTH, AIM_OVERHANG))
             continue
         in_hand = any(a <= d0 < b_ for a, b_ in HAND_ZONES)
+        ex = BODY_EXCEPTIONS.get(kit.pid, {})
+        wide = d0 < ex.get('WideX', 0.0)
+        gz = ex.get('GuardInGripZone')
+        if in_hand and gz and gz[0] <= d0 < gz[1]:
+            in_hand = False   # the guard, ahead of the hand's full wind-up
+        if in_hand and wide and ex.get('BridgeCore'):
+            core = [(x, z) for _, x, z, j, _ in vs if j in ex['BridgeCore']]
+            if core:
+                z_max = max(abs(z) for _, z in core)
+                if z_max > r_env + HAND_TOL + 1e-6:
+                    problems.append('%.1f (hand zone, %s): %.3f thick up or down, envelope %.3f (+%.2f at most)' % (d0, '/'.join(ex['BridgeCore']), z_max, r_env, HAND_TOL))
+                # centred: the core up and down in every bin; sideways the whole blade over the
+                # zone (its flame serrations are not mirror pairs bin by bin, and which faces
+                # count as core is a texture split, not a shape), checked after the loop
+                xs = [x for _, x, _, _, _ in vs]
+                zs = [z for _, z in core]
+                cx, cz = (max(xs) + min(xs)) / 2, (max(zs) + min(zs)) / 2
+                wide_cx.append(cx)
+                if abs(cz) > HAND_TOL + 1e-6:
+                    problems.append('%.1f (hand zone): the core off the centreline by %.3f up or down' % (d0, cz))
+            continue
         if in_hand:
             if r_max > r_env + HAND_TOL + 1e-6:
                 problems.append('%.1f (hand zone): radius %.3f, envelope %.3f (+%.2f at most)' % (d0, r_max, r_env, HAND_TOL))
@@ -119,11 +154,17 @@ def check_body(kit, step=0.1):
             if r_max > r_env + BUTT_EXTRA + 1e-6:
                 problems.append('%.1f (butt): radius %.3f, envelope %.3f (+%.2f at most)' % (d0, r_max, r_env, BUTT_EXTRA))
             continue
-        if r_side > r_env + SIDE_EXTRA + 1e-6:
+        if wide:
+            down, low_joint = max(((-z, j) for _, _, z, j, _ in vs), default=(0.0, '-'))
+            if down > r_env + SIDE_EXTRA + 1e-6:
+                problems.append('%.1f: %s reaches %.3f down, envelope %.3f (+%.2f at most)' % (d0, low_joint, down, r_env, SIDE_EXTRA))
+        elif r_side > r_env + SIDE_EXTRA + 1e-6:
             problems.append('%.1f: radius %.3f sideways or down, envelope %.3f (+%.2f at most)' % (d0, r_side, r_env, SIDE_EXTRA))
-        up_allow = UP_EXTRA if 2.1 <= d0 < 4.4 else SIDE_EXTRA
+        up_allow = UP_EXTRA if 2.1 <= d0 < (gz[1] if gz else 4.4) else SIDE_EXTRA
         if r_up > r_env + up_allow + 1e-6:
             problems.append('%.1f: radius %.3f on +Z, envelope %.3f (+%.2f at most)' % (d0, r_up, r_env, up_allow))
+    if wide_cx and abs(sum(wide_cx) / len(wide_cx)) > HAND_TOL + 1e-6:
+        problems.append('the blade sits %.3f off the centreline sideways through the bridge hand' % (sum(wide_cx) / len(wide_cx)))
     n_parts = sum(len({m.material for m in ob.material_slots}) for j in kit.joints.values() for ob in j['objects'])
     if n_parts > MAX_PARTS:
         problems.append('about %d parts (joint x material), at most %d' % (n_parts, MAX_PARTS))
