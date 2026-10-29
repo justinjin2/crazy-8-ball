@@ -33,7 +33,8 @@
 -- the cues its Event row lists (the Halloween cards' PREVIEW, which opens on TRAIL). The pure
 -- maths is CuePreviewMath; numbers in Config.UI.CuePreview, words in Strings.CuePreview. Studio
 -- only: GuiQA `preview` (id, tab?, note?), `previewTab`, `previewTurn` (degrees, through the
--- stick's code), `previewDrag`, `previewLoad`, `previewLeaks`.
+-- stick's code), `previewDrag`, `previewLoad`, `previewScreen` (w, h: a phone's screen in the
+-- top-left corner), `previewLeaks`.
 local ContextActionService = game:GetService("ContextActionService")
 local GuiService = game:GetService("GuiService")
 local Players = game:GetService("Players")
@@ -133,6 +134,10 @@ type Session = {
 }
 
 local session: Session? = nil
+-- Studio only (GuiQA `previewScreen`): a phone's screen emulated in the top-left corner, as a
+-- lively menu's Root trick does (this panel lays out from its ScreenGui and fits its camera from
+-- the real view, so that trick cannot reach it). Always nil in a live game.
+local emulated: Vector2? = nil
 local renderBound = false -- the render step is bound (previewLeaks)
 local lastOpen = -math.huge
 local started = false
@@ -608,7 +613,7 @@ local FRAMINGS: { [string]: { string } } = {
 -- Fit the tab's framings to the window now (CuePreviewMath.fitDistance): at the tab's own
 -- pitch, all round the orbit, clamped to Fit.Distance. Again only when the tab, the window or
 -- the cue's body changes.
-local function refit(s: Session, at: Vector2, size: Vector2, viewport: Vector2)
+local function refit(s: Session, at: Vector2, size: Vector2, viewport: Vector2, fov: number)
 	local spec = C.Tabs[s.tab]
 	local range = C.Fit.Distance[s.tab]
 	local keep = 1 - C.Fit.MarginShare
@@ -623,7 +628,7 @@ local function refit(s: Session, at: Vector2, size: Vector2, viewport: Vector2)
 			list,
 			vec(focus),
 			spec.Pitch,
-			C.FovDeg,
+			fov,
 			{ w = viewport.X, h = viewport.Y },
 			{ x = at.X, y = at.Y },
 			{ w = size.X / 2 * keep, h = size.Y / 2 * keep },
@@ -650,6 +655,16 @@ local function framing(s: Session): (Vector3, number)
 	return a.focus:Lerp(b.focus, w), a.distance + (b.distance - a.distance) * w
 end
 
+-- The camera's vertical field of view: Config's; with a phone's screen emulated (Studio),
+-- widened so the emulated corner spans what a phone's whole view does (the same angle a pixel).
+local function fieldOfView(viewport: Vector2): number
+	local e = emulated
+	if e == nil or e.Y <= 0 then
+		return C.FovDeg
+	end
+	return math.deg(2 * math.atan(math.tan(math.rad(C.FovDeg) / 2) * viewport.Y / e.Y))
+end
+
 local function frameCamera(s: Session)
 	local cam = workspace.CurrentCamera
 	local at = windowCentre(s)
@@ -657,24 +672,26 @@ local function frameCamera(s: Session)
 		return
 	end
 	local viewport = cam.ViewportSize
+	local fov = fieldOfView(viewport)
 	local size = (s.parts.window :: GuiObject).AbsoluteSize
 	local stick = s.stick
 	local body = if stick then stick:GetAttribute("Body") else nil
 	if (if type(body) == "string" then body else nil) ~= s.body then
 		measure(s) -- the body was drawn (or dropped): the cue's length changed
 	end
-	local key = ("%s|%.0f|%.0f|%.0f|%.0f|%.0f|%.0f"):format(
+	local key = ("%s|%.0f|%.0f|%.0f|%.0f|%.0f|%.0f|%.2f"):format(
 		s.tab,
 		at.X,
 		at.Y,
 		size.X,
 		size.Y,
 		viewport.X,
-		viewport.Y
+		viewport.Y,
+		fov
 	)
 	if key ~= s.fitKey then
 		s.fitKey = key
-		refit(s, at, size, viewport)
+		refit(s, at, size, viewport, fov)
 	end
 	local focus, distance = framing(s)
 	s.focus = focus
@@ -687,12 +704,12 @@ local function frameCamera(s: Session)
 		s.yaw,
 		math.max(s.pitch, lowest),
 		distance,
-		C.FovDeg,
+		fov,
 		{ w = viewport.X, h = viewport.Y },
 		{ x = at.X, y = at.Y }
 	)
 	cam.CameraType = Enum.CameraType.Scriptable
-	cam.FieldOfView = C.FovDeg
+	cam.FieldOfView = fov
 	cam.CFrame =
 		CFrame.lookAt(Vector3.new(eye.x, eye.y, eye.z), Vector3.new(target.x, target.y, target.z))
 end
@@ -789,6 +806,10 @@ local function layout(s: Session)
 		return
 	end
 	local size = gui.AbsoluteSize
+	local e = emulated
+	if e then -- Studio: the emulated phone's screen under Roblox's top bar
+		size = Vector2.new(e.X, e.Y - GuiService:GetGuiInset().Y)
+	end
 	if size.X <= 0 then
 		return
 	end
@@ -1619,6 +1640,18 @@ local function start()
 			stickShown = stick ~= nil and stick:GetAttribute("Visible") == true,
 			timeoutIn = math.max(0, s.readyAt - os.clock()),
 		}
+	end)
+	-- A phone's screen, `w` x `h` (844, 390: one on its side, its top bar in it), emulated in the
+	-- top-left corner: the panel laid out for it and the camera widened so the corner shows what
+	-- a phone's whole view does. Screenshot that corner. No arguments: the real screen again.
+	GuiQA.add("previewScreen", function(w: number?, h: number?)
+		emulated = if type(w) == "number" and type(h) == "number" then Vector2.new(w, h) else nil
+		local s = session
+		if s then
+			layout(s)
+			s.fitKey = ""
+		end
+		return emulated ~= nil
 	end)
 	GuiQA.add("previewLeaks", function()
 		local cam = workspace.CurrentCamera
