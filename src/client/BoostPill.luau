@@ -414,7 +414,8 @@ function BoostPill.flags(self: any): Money.Boosts
 	return BoostFlags.of(player, workspace:GetServerTimeNow())
 end
 
--- Whether the pill may show: the save is in, the money HUD shows, the tutorial is over. A VIP's
+-- Whether the pill may show: the save is in, the money HUD shows, the tutorial's guided part
+-- is over (from its soft part on, with the Halloween event's HwOn; designer 2026-10-29). A VIP's
 -- shows while the tutorial runs too (the VIP tag did), and so does one VIP was just bought on
 -- (the Vip attribute may land a moment after the purchase's message).
 function BoostPill.allowed(self: any, vip: boolean): boolean
@@ -422,7 +423,7 @@ function BoostPill.allowed(self: any, vip: boolean): boolean
 	if not player then
 		return true
 	end
-	if Steps.active(player:GetAttribute("TutorialStep")) and not (vip or self.perks) then
+	if Steps.guided(player:GetAttribute("TutorialStep")) and not (vip or self.perks) then
 		return false
 	end
 	return self.money.root.Visible
