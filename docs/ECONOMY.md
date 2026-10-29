@@ -246,7 +246,8 @@ Epic block + 5 spins. **Weekly community codes** (2026-10-26, posted in the Disc
 designer each Monday): 5 spins each, one per week Monday 00:00 UTC to the next Monday: BREAKSHOT (to Nov 2),
 BANKSHOT (Nov 9), CUEBALL (Nov 16), TRICKSHOT (Nov 23), CORNERPOCKET (Nov 30), MASSESHOT (Dec 7).
 
-**The Pumpkin King, timed** (Halloween 2026, 2026-10-28, Justin's numbers through the coordinator;
+**The Pumpkin King, timed** (off for the Oct 29 release, designer 2026-10-29:
+`Config.HalloweenMap.Boss.Enabled` false; kept for when he comes back) (Halloween 2026, 2026-10-28, Justin's numbers through the coordinator;
 only while Live and only with `Config.HalloweenMap.Boss.Mode` "Timed", Throne mode keeps its
 50 Candy for the first 2 wins of a UTC day): he visits 12 minutes at UTC :15 and :45, and the
 first win of each visit pays a player **+150 Candy (flat), +$2,500 (a reward, never boosted) and
@@ -254,32 +255,72 @@ first win of each visit pays a player **+150 Candy (flat), +$2,500 (a reward, ne
 but count for the King quests. At most 2 visits an hour; no cooldown. `Config.Halloween.Boss.Visit`;
 measured by the `HwKing` event (Paid or Repeat).
 
-**Halloween Candy and the event cues** (2026-10-29, the designer's targets for a 5-day event from
-the Oct 29 evening release to Nov 3 19:00 EST: the first cue in 20-30 min of play, the next in 3-5
-h, the last in 10-20 h; Candy from the ground about half). No track: Candy is saved and spent
-(balance = Earned + Bought - Spent); leftover Candy becomes $10 each at the end.
+**Halloween Candy and the event cues** (retuned 2026-10-29 ~13:00 for the evening release, the
+designer's decisions of ~12:00; the event runs to Nov 3 19:00 EST, about 5 days after the
+release). No track: Candy is saved and spent (balance = Earned + Bought - Spent); leftover Candy
+becomes $10 each at the end. **The Pumpkin King is off for the release** (no visits, no +150 a
+visit, no Jack-o'-Lantern drop; his quests read as their Alts). Candy comes about a third each
+from **pockets**, **daily quests** and the **ground** (a bit less), so playing matches is what
+pays most, and the Pitchfork comes in a new player's first ~20-25 minutes.
 
-| Source | Numbers | Per hour of real play (model) |
+| Source | Numbers | Per hour of play (model) |
 |---|---|---|
-| Matches against people | 3 a ball, 10 finished, 25 a win; x2 in the Rush (UTC :00-:09) and on Oct 31; friends +10% each, group +10% | ~280 (9.5 matches an hour, measured pace 6.3 min; ~4 balls, half won; ~70% of matches against people: disguised-bot matches pay 0, a share not yet measured) |
-| Ground candy | 1 a pickup, many candies: one spawn near each player about every 4 s (25 s each on the ground, up to 8 each and 150 in a server), also while roaming in a match; 400 pickups (400 Candy) an hour at most | ~270 (about 36 eligible minutes an hour, half picked up) |
-| Quests | 60 / 100 / 150 / 250 a day, today's board only | up to 560 a day |
-| The Pumpkin King | +150 a visit's first win | up to 300 |
+| Pockets | **3 Candy a pot that pays money** (`Config.Halloween.Match.PerPocket`), flying from the pocket into the Candy pill like the cash; against people and disguised bots (designer), never PC practice, solo or the tutorial's bot; x the money's anti-farm ball factor; x2 in the Rush (UTC :00-:09) and on Oct 31 (Eastern), never x4; friends +10% each (at most 4), group +10%. No Candy at settle (Finished and Win folded into the pots: a winner pots more). Switch `Match.PerPocketEnabled` off: the old settle-time Candy (3 a ball, 10 finished, 25 a win) | **~170** (Oct 31: ~290) |
+| Ground candy | 1 a pickup; one spawn near each eligible player every 4.5 s (+-1), 30 s each on the ground, up to 8 each and 150 in a server, also while roaming in a match; **150 pickups an hour at most** (`Pickup.HourCap`, was 400) | **~130** (cap 150) |
+| Quests | 60 / 100 / 150 / 250 a board, today's board only; the first three take ~6, ~13 and ~16-20 min of play, the fourth 50-95 min | 560 a day (310 in the first ~20 min) |
+| The Pumpkin King | off for the release (was +150 a visit's first win, up to ~300 a day) | 0 |
 
-| Cue | Candy | Robux | Reached after (model) |
-|---|---|---|---|
-| Pitchfork | 300 | 49 | ~25 min |
-| Witch's Broom | 2,500 | 249 | ~4 h of play |
-| Halloween Sword | 7,500 | 599 | ~13-15 h of play |
-| Jack-o'-Lantern | the King's 5% drop | none | |
+The numbers behind it (stated, with where they come from):
+
+| Number | Value | Source |
+|---|---|---|
+| Play a day per active player | 21.9 min (28 days), ~23 min the last days | Creator Hub Engagement, read 2026-10-29 12:30 (2-day lag) |
+| Session | 15.9 min; new players 15.2, returning 20.5 | Creator Hub Engagement, same read |
+| New players | ~90% of DAU (7,573 of 8,375 a day over 28 days; ~90K of ~100K on the last day) | Creator Hub Engagement, same read |
+| D1 / D7 retention | ~12% / ~1% | Creator Hub Retention, same read |
+| Payers | 2.47% (Oct 21-27) | documented (ECONOMY section 7 data) |
+| Match pace | 6.3 min a match, lobby time included (9.5 an hour) | saves, measured 2026-10-11 |
+| Balls a match | 5.75 for the player's side | the quest clock (tests/halloween_quests_test.luau); Creator Hub's Pocket money (918.9M over ~85,500 h of play in 28 days, ~$10.7K an hour) agrees: ~55-70 paid balls an hour |
+| Matches that pay Candy | ~85% (people and disguised bots; PC practice and solo not) | **assumption**, not yet measured: `HwMatch` (a: Paid / Disguised / PC / Tutorial) measures it |
+| Friends + group | ~+5% on average | **assumption**: `HwMatch` (value: friends here; b: group) measures it |
+| Ground | ~20 free minutes an hour (between matches and roaming in the other side's turn), about half the spawns picked up | **assumption**: `CandyPickups` (value: Candy a session; b: eligible minutes) measures it |
+| Tutorial | ~5 min before Halloween shows (HwOn) | **assumption** |
+
+So ~46.5 eligible pots an hour x 3 x 1.17 (the Rush's 10 minutes an hour) x 1.05 = ~170 Candy an
+hour from pockets (~290 on Oct 31), ~130 from the ground, and the quests' 560 a day.
+
+| Cue | Candy | Robux | The 3 h-a-day player (boards 2-6) | The ~22 min-a-day player |
+|---|---|---|---|---|
+| Pitchfork | 300 | 49 | ~17 min | **~22 min of play** (day 1, with a 5 min tutorial) |
+| Witch's Broom | 2,500 | 249 | ~4.6 h (day 2) | not in 5 days (~2,100 by the end; one 300 pack short) |
+| Jack-o'-Lantern | 4,500 | 399 | ~8.4 h (day 3, Oct 31's 2x) | no |
+| Halloween Sword | 7,500 | 599 | **~14.4 h** (day 5) | no |
+
+| The 3 h-a-day player | After day 1 (3 h) | Day 2 (6 h) | Day 3 (9 h) | Day 4 (12 h) | Day 5 (15 h) |
+|---|---|---|---|---|---|
+| Pockets | 513 | 1,026 | 1,906 | 2,419 | 2,933 (38%) |
+| Ground | 390 | 780 | 1,170 | 1,560 | 1,950 (25%) |
+| Quests | 560 | 1,120 | 1,680 | 2,240 | 2,800 (36%) |
+| Total | 1,463 | 2,926 | 4,756 | 6,219 | **7,683** |
+
+| The ~22 min-a-day player | Day 1 (22 min) | Day 2 | Day 3 | Day 4 | Day 5 (110 min) |
+|---|---|---|---|---|---|
+| Total (pockets / ground / quests) | 395 (48 / 37 / 310) | 816 | 1,281 | 1,701 | 2,122 (344 / 227 / 1,550) |
+
+A first session of the average 15 min (5 of them the tutorial) gets ~110 Candy (the first two
+quests and a few pots); the Pitchfork needs the third quest (~16-20 min). A 1 h-a-day player ends
+with ~3,700 (the Broom on day 3). The model: `python3 tools/halloween/pacing.py` (minutes of
+play, each board's quests done at their clock minutes, Oct 31 played on day 3); the quest clock and
+the board shape are tested (tests/halloween_quests_test.luau).
 
 Candy packs: 300 Candy for 49 R$ and 1,200 for 149 R$, so buying a cue straight for Robux is
-never dearer than buying its Candy (the cheapest pack route: Pitchfork 49, Broom 347, Sword 943).
-The data behind the Robux (Creator Hub, Oct 21-27): 22.1 min of play a day per player, 2.47% of
-players pay, 55 R$ net per payer a day; the best sellers sit at 29-299 R$, 599 R$ sells ~29 a
-week, almost nothing above 1,000. Measure after publishing: `HwBuy` (cue, Candy/Robux/Gift),
-`HwCandy` "Match" against `CandyPickups` (the 50/50 split), the products' sales, and the Candy
-balance the day before the end.
+never dearer than buying its Candy (unchanged). Measure after publishing: the `HwCandy` "Match"
+event (one a match: its pots' total; b: x2 when some came in a Rush) against `CandyPickups` (the
+ground, a session) and `HwQuest` (Claimed / Auto) for the three shares; the `Halloween` funnel
+(3_FirstCandy, 4_Pitchfork: the share of new players who reach the Pitchfork; 5_Broom, 6_Jack,
+7_Sword); `HwMatch` for the paying share and the boosts; `HwBuy`, the products' sales and the
+Candy balance the day before the end. Retune if the Pitchfork funnel step is under ~30% of
+3_FirstCandy or the shares drift past ~45% for one source.
 
 **Planned, not built** (Config.Planned): the Daily Challenge (its button is off for the release),
 Lucky Shot free (miss $250, grey $500, blue $1,000, red $2,500, gold a Mystery) and Golden Shot

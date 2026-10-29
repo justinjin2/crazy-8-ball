@@ -109,8 +109,8 @@ return {
 			"King 50 x2/day, 900 s"
 		)
 		H.expect(
-			C.Pickup.Candy == 1 and C.Pickup.HourCap == 400,
-			"1 Candy a pickup, 400 pickups a player a UTC hour"
+			C.Pickup.Candy == 1 and C.Pickup.HourCap == 150,
+			"1 Candy a pickup, 150 pickups a player a UTC hour"
 		)
 		H.expect((C :: any).Spider == nil, "no Spider (designer, 2026-10-29)")
 		H.expect(C.Convert.MoneyPerCandy == 10, "$10 a Candy at the end")

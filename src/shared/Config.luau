@@ -3826,18 +3826,23 @@ Config.Halloween = {
 	KingDrop = { Enabled = false, Cue = "JackOLanternCue", Chance = 0.05 }, -- off with the King (2026-10-29)
 	-- Ground candy (map's CandyDrop spawns it): Candy each pickup (flat), at most HourCap
 	-- pickups per player per UTC hour (the save counts pickups; the Pickups quests count them
-	-- too, not Candy). The ONLY pickup cap: CandyService.pickup enforces it. About half of all
-	-- Candy (designer, 2026-10-29): one Candy a candy, many more candies on the ground (not
-	-- bigger ones): a match player who walks about while waiting for their turn picks up about
-	-- 270 an hour (~270 Candy, as much as their ~280 match Candy); a lobby walker stops at the
-	-- cap, 400 pickups = 400 Candy an hour.
-	Pickup = { Candy = 1, HourCap = 400 },
+	-- too, not Candy). The ONLY pickup cap: CandyService.pickup enforces it. A bit under a third
+	-- of all Candy (designer, 2026-10-29 ~12:00: pockets, quests and the ground about a third
+	-- each): one Candy a candy, many candies on the ground (Config.HalloweenMap.Candy); a match
+	-- player who walks about between turns picks up about 130 an hour, and even a pure lobby
+	-- walker stops at the cap, 150 an hour (under the ~170 an hour the pots pay a match player).
+	-- docs/ECONOMY.md, Halloween.
+	Pickup = { Candy = 1, HourCap = 150 },
 	-- Quests: four a board, easiest first, paying Rewards[slot] Candy (flat) on CLAIM. Kind
 	-- (Halloween/Quests): Matches, Wins, Balls, NiceShots, TeamMatches, TeamWins (2v2 or 3v3),
 	-- UltMatches (an ability used in the match), King (Pumpkin King wins), Pickups (lobby Candy),
 	-- Active (seconds of active play). Alt replaces a quest while its hook is off (the King or
-	-- the pickups switched off in Config.HalloweenMap, or no ability signal). Icon: a key of
-	-- Config.UI.Halloween.QuestIcons. Order and needs: docs/halloween/lanes/hw-core.md.
+	-- the pickups switched off in Config.HalloweenMap, or no ability signal); an Alt is never a
+	-- hooked kind itself. Icon: a key of Config.UI.Halloween.QuestIcons. The shape (2026-10-29
+	-- ~12:00, the King off for the release): each board's first three take a new player about
+	-- 6, 13 and 16-20 min of play (310 Candy: with the pots and the ground, the Pitchfork in
+	-- their first ~20-25 min), the fourth 50-95 min (the ~3 h-a-day player finishes every
+	-- board). Order and minutes: docs/ECONOMY.md, Halloween; tests/halloween_quests_test.luau.
 	Quests = {
 		Enabled = true,
 		Rewards = { 60, 100, 150, 250 },
@@ -3853,51 +3858,60 @@ Config.Halloween = {
 					Alt = { Kind = "Balls", Need = 30 },
 				},
 			},
-			{ -- 2, Thu Oct 29
-				{ Kind = "TeamMatches", Need = 1, Icon = "Team" },
-				{ Kind = "King", Need = 1, Icon = "King", Alt = { Kind = "Matches", Need = 4 } },
-				{ Kind = "Wins", Need = 2, Icon = "Win" },
-				{ Kind = "Balls", Need = 30, Icon = "Ball" },
+			{ -- 2, Thu Oct 29 (opens with the release, 19:00 EDT)
+				{ Kind = "Matches", Need = 1, Icon = "Match" },
+				{ Kind = "Wins", Need = 1, Icon = "Win" },
+				{ Kind = "Balls", Need = 15, Icon = "Ball" },
+				{
+					Kind = "King",
+					Need = 1,
+					Icon = "King",
+					Alt = { Kind = "Active", Need = 60 * 60 },
+				},
 			},
 			{ -- 3, Fri Oct 30
+				{ Kind = "Balls", Need = 8, Icon = "Ball" },
+				{ Kind = "Wins", Need = 1, Icon = "Win" },
+				{
+					Kind = "Pickups",
+					Need = 40, -- about 18 min of play with some walking about (130 an hour)
+					Icon = "Candy",
+					Alt = { Kind = "Matches", Need = 3 },
+				},
 				{
 					Kind = "UltMatches",
-					Need = 3,
+					Need = 4,
 					Icon = "Ult",
-					Alt = { Kind = "Matches", Need = 5 },
+					Alt = { Kind = "NiceShots", Need = 3 },
 				},
-				{ Kind = "Wins", Need = 3, Icon = "Win" },
-				-- Before the nice shots: about 33 min of walking about (270 candies an hour).
-				{
-					Kind = "Pickups",
-					Need = 150,
-					Icon = "Candy",
-					Alt = { Kind = "Balls", Need = 60 },
-				},
-				{ Kind = "NiceShots", Need = 5, Icon = "Nice" },
 			},
 			{ -- 4, Sat Oct 31 (opens Halloween night)
-				{ Kind = "Active", Need = 30 * 60, Icon = "Clock" },
-				{ Kind = "King", Need = 2, Icon = "King", Alt = { Kind = "Wins", Need = 3 } },
-				{ Kind = "Balls", Need = 50, Icon = "Ball" },
-				{ Kind = "Wins", Need = 5, Icon = "Win" },
+				{ Kind = "Matches", Need = 1, Icon = "Match" },
+				{ Kind = "Balls", Need = 12, Icon = "Ball" },
+				{ Kind = "Active", Need = 20 * 60, Icon = "Clock" },
+				{ Kind = "King", Need = 2, Icon = "King", Alt = { Kind = "Wins", Need = 6 } },
 			},
 			{ -- 5, Sun Nov 1
-				{ Kind = "TeamWins", Need = 1, Icon = "Team" },
-				{ Kind = "Wins", Need = 6, Icon = "Win" },
-				{ Kind = "Balls", Need = 75, Icon = "Ball" },
+				{ Kind = "Balls", Need = 8, Icon = "Ball" },
+				{ Kind = "Wins", Need = 1, Icon = "Win" },
+				{ Kind = "Matches", Need = 3, Icon = "Match" },
 				{
 					Kind = "Pickups",
-					Need = 250,
+					Need = 150, -- about 70 min of play with some walking about
 					Icon = "Candy",
-					Alt = { Kind = "Balls", Need = 100 },
+					Alt = { Kind = "Active", Need = 60 * 60 },
 				},
 			},
-			{ -- 6, Mon Nov 2
-				{ Kind = "Active", Need = 45 * 60, Icon = "Clock" },
-				{ Kind = "King", Need = 3, Icon = "King", Alt = { Kind = "Wins", Need = 4 } },
-				{ Kind = "Wins", Need = 8, Icon = "Win" },
-				{ Kind = "Balls", Need = 100, Icon = "Ball" },
+			{ -- 6, Mon Nov 2 (the last, about 25 h to the end)
+				{ Kind = "Matches", Need = 1, Icon = "Match" },
+				{ Kind = "Wins", Need = 1, Icon = "Win" },
+				{ Kind = "Balls", Need = 15, Icon = "Ball" },
+				{
+					Kind = "King",
+					Need = 3,
+					Icon = "King",
+					Alt = { Kind = "NiceShots", Need = 5 },
+				},
 			},
 		} :: {
 			{
@@ -9766,13 +9780,16 @@ Config.HalloweenMap = {
 	-- Halloween.Pickup.HourCap, 400) for a lobby walker.
 	Candy = {
 		Enabled = true, -- the lobby's candy drops
-		SpawnEverySeconds = 3.5, -- one candy per eligible player this often (about 800 an hour)...
+		-- One candy per eligible player this often (about 800 an hour; 3.5 before the 2026-10-29
+		-- thirds retune, hw-core: with LifeSeconds 30 a player who stands still still has about
+		-- 6-7 around them, as many as before; the Candy is bounded by Halloween.Pickup.HourCap)...
+		SpawnEverySeconds = 4.5,
 		JitterSeconds = 1, -- ...give or take this
 		NearStuds = { 10, 30 }, -- this far from them
 		PadClearStuds = 6, -- never this close to a queue or portal pad
 		-- An unclaimed candy goes after this: short, so a walker's candy stays around them
-		-- (about 6 alive each, under MaxAlivePerPlayer) instead of piling up behind them.
-		LifeSeconds = 25,
+		-- (about 6-7 alive each, under MaxAlivePerPlayer) instead of piling up behind them.
+		LifeSeconds = 30,
 		-- On the server (a 60-player lobby). Every client draws every candy (one MeshPart of
 		-- about 244 triangles, the same two meshes, each: a full 150 is about 36,600 triangles)
 		-- with SparkleRate sparkles (none with Lower effects), and floats those within

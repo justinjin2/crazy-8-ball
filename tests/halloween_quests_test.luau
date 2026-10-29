@@ -8,6 +8,24 @@ local H = require("./harness")
 local ALL_ON = { king = true, pickups = true, ult = true }
 local ALL_OFF = { king = false, pickups = false, ult = false }
 
+-- A rough clock of minutes of play per quest unit (docs/ECONOMY.md, Halloween): 6.3 min a match
+-- (measured 2026-10-11), half of them won, 5.75 balls a match, a King win in about 3 tries, 130
+-- ground candies an hour (a match player who walks about between turns, 2026-10-29 ~12:00:
+-- one spawn every 4.5 s while free, about half picked up, ~20 free minutes an hour), one nice
+-- shot in 3 matches, an ability in half of them, a team match about every 8 min.
+local MINUTES: { [string]: number } = {
+	Matches = 6.3,
+	Wins = 12.6,
+	Balls = 6.3 / 5.75,
+	NiceShots = 18.9,
+	TeamMatches = 8,
+	TeamWins = 16,
+	UltMatches = 12.6,
+	King = 18,
+	Pickups = 60 / 130,
+	Active = 1 / 60,
+}
+
 local function load()
 	return H.require("Halloween.Quests"), H.require("Config").Halloween
 end
@@ -42,21 +60,36 @@ return {
 		local Quests = load()
 		local on, off = Quests.board(2, ALL_ON), Quests.board(2, ALL_OFF)
 		H.expect(on ~= nil and off ~= nil, "board 2")
-		local kingOn, kingOff = (on :: any)[2], (off :: any)[2]
+		local kingOn, kingOff = (on :: any)[4], (off :: any)[4]
 		H.expect(kingOn.kind == "King" and kingOn.need == 1, "the King")
-		H.expect(kingOff.kind == "Matches" and kingOff.need == 4, "its Alt")
+		H.expect(kingOff.kind == "Active" and kingOff.need == 3600, "its Alt: play 60 min")
 		H.expect(kingOff.key == kingOn.key, "same key")
+		H.expect(kingOff.icon == "Clock", "the Alt's own icon")
 		local pickOff = (Quests.board(1, ALL_OFF) :: any)[4]
 		H.expect(pickOff.kind == "Balls" and pickOff.need == 30, "pickups -> balls x2")
-		local ultOff = (Quests.board(3, ALL_OFF) :: any)[1]
-		H.expect(ultOff.kind == "Matches" and ultOff.need == 5, "abilities -> matches 5")
-		-- The map on but the King off (HalloweenMap.Enabled with Boss.Enabled false): only the
-		-- King's quests swap.
+		local pick3 = (Quests.board(3, ALL_OFF) :: any)[3]
+		H.expect(pick3.kind == "Matches" and pick3.need == 3, "pickups -> 3 matches")
+		local ultOff = (Quests.board(3, ALL_OFF) :: any)[4]
+		H.expect(ultOff.kind == "NiceShots" and ultOff.need == 3, "abilities -> 3 nice shots")
+		-- The map on but the King off (HalloweenMap.Enabled with Boss.Enabled false, the
+		-- release): only the King's quests swap.
 		local mixed = Quests.board(2, { king = false, pickups = true, ult = true }) :: any
-		H.expect(
-			mixed[2].kind == "Matches" and mixed[1].kind == "TeamMatches",
-			"only the King swaps"
-		)
+		H.expect(mixed[4].kind == "Active" and mixed[1].kind == "Matches", "only the King swaps")
+	end,
+
+	["no Alt is a quest with a hook of its own (it could never move with that hook off)"] = function()
+		local _, C = load()
+		local hooked = { King = true, Pickups = true, UltMatches = true }
+		for n, rows in C.Quests.Boards do
+			for slot, row in rows do
+				if row.Alt ~= nil then
+					H.expect(
+						not hooked[row.Alt.Kind],
+						("board %d slot %d: its Alt is %s"):format(n, slot, row.Alt.Kind)
+					)
+				end
+			end
+		end
 	end,
 
 	["no board shows the same quest twice, whichever hooks are off"] = function()
@@ -81,17 +114,18 @@ return {
 	["active seconds fill a Play-minutes quest only on its own day"] = function()
 		local Quests = load()
 		local q = {}
+		local kingOff = { king = false, pickups = true, ult = true }
 		H.expect(#Quests.route(q, 3, ALL_ON, "Active", 5) == 0, "no Active quest on board 3")
 		local four = keyOf(Quests, 4, "Active", ALL_ON) :: string
-		local six = keyOf(Quests, 6, "Active", ALL_ON) :: string
+		local two = keyOf(Quests, 2, "Active", kingOff) :: string
 		for _ = 1, 400 do
 			Quests.route(q, 4, ALL_ON, "Active", 5) -- the server's 5 s ticks on Oct 31
 		end
-		H.expect(q[four] == 1800, "board 4's 30 minutes: " .. tostring(q[four]))
-		H.expect(q[six] == nil, "board 6 never gets board 4's time")
+		H.expect(q[four] == 1200, "board 4's 20 minutes: " .. tostring(q[four]))
+		H.expect(q[two] == nil, "board 2 never gets board 4's time")
 		H.expect(#Quests.route(q, 5, ALL_ON, "Active", 5) == 0, "board 5 has none")
-		local r = Quests.route(q, 6, ALL_ON, "Active", 5)
-		H.expect(#r == 1 and r[1].key == six and q[six] == 5, "board 6 on its day")
+		local r = Quests.route(q, 2, kingOff, "Active", 5)
+		H.expect(#r == 1 and r[1].key == two and q[two] == 5, "board 2 (the King's Alt) on its day")
 	end,
 
 	["a win counts only on today's board, never an older one"] = function()
@@ -99,7 +133,7 @@ return {
 		local q = {}
 		local r = Quests.route(q, 3, ALL_ON, "Wins", 1)
 		local b3 = keyOf(Quests, 3, "Wins", ALL_ON) :: string
-		H.expect(#r == 1 and r[1].key == b3 and not r[1].done, "board 3's Wins")
+		H.expect(#r == 1 and r[1].key == b3 and q[b3] == 1, "board 3's Wins")
 		H.expect(q[keyOf(Quests, 1, "Wins", ALL_ON) :: string] == nil, "board 1 untouched")
 		H.expect(q[keyOf(Quests, 2, "Wins", ALL_ON) :: string] == nil, "board 2 untouched")
 		H.expect(#Quests.route(q, 0, ALL_ON, "Wins", 1) == 0, "before the first board: none")
@@ -212,30 +246,56 @@ return {
 		end
 	end,
 
-	["each board's four go easiest first (by expected minutes)"] = function()
+	["each board's four go easiest first (by expected minutes), whichever hooks are off"] = function()
 		local Quests = load()
-		-- A rough clock: 6.3 min a match, half of them won, 5.75 balls a match, a King win in
-		-- about 3 tries, 270 pickups an hour (a match player who walks about while waiting: the
-		-- 2026-10-29 target, one Candy a candy), one nice shot in 3 matches, an ability in half.
-		local minutes: { [string]: number } = {
-			Matches = 6.3,
-			Wins = 12.6,
-			Balls = 6.3 / 5.75,
-			NiceShots = 18.9,
-			TeamMatches = 8,
-			TeamWins = 16,
-			UltMatches = 12.6,
-			King = 18,
-			Pickups = 60 / 270,
-			Active = 1 / 60,
-		}
-		for n = 1, 6 do
-			local last = 0
-			for _, q in Quests.board(n, ALL_ON) or {} do
-				local m = minutes[q.kind] * q.need
-				H.expect(m >= last * 0.6, ("board %d: %s after a much longer one"):format(n, q.key))
-				last = math.max(last, m)
+		for _, king in { true, false } do
+			for _, pickups in { true, false } do
+				for _, ult in { true, false } do
+					local hooks = { king = king, pickups = pickups, ult = ult }
+					for n = 1, 6 do
+						local last = 0
+						for _, q in Quests.board(n, hooks) or {} do
+							local m = MINUTES[q.kind] * q.need
+							H.expect(
+								m >= last * 0.6,
+								("board %d: %s after a much longer one"):format(n, q.key)
+							)
+							last = math.max(last, m)
+						end
+					end
+				end
 			end
+		end
+	end,
+
+	["with the King off (the release) every board is reachable: a new player's first three in ~20 min, all four in a 3 h day"] = function()
+		local Quests = load()
+		local release = { king = false, pickups = true, ult = true }
+		-- The boards a player sees from the release (Oct 29 19:00 EDT): 2 to 6. Every quest of a
+		-- board moves at once while they play (one kind each), so a board's quests are done by
+		-- the longest of their own minutes.
+		for n = 2, 6 do
+			local list = Quests.board(n, release) :: { any }
+			local kinds: { [string]: boolean } = {}
+			local firstThree, all = 0, 0
+			for slot, q in list do
+				H.expect(q.kind ~= "King", ("board %d: no King quest with him off"):format(n))
+				H.expect(kinds[q.kind] == nil, ("board %d: one quest a kind"):format(n))
+				kinds[q.kind] = true
+				local m = MINUTES[q.kind] * q.need
+				all = math.max(all, m)
+				if slot <= 3 then
+					firstThree = math.max(firstThree, m)
+				end
+			end
+			H.expect(
+				firstThree <= 21,
+				("board %d: the first three take %.1f min (the Pitchfork's ~20)"):format(
+					n,
+					firstThree
+				)
+			)
+			H.expect(all <= 120, ("board %d: all four take %.1f min (3 h a day)"):format(n, all))
 		end
 	end,
 }
