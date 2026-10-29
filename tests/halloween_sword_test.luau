@@ -2,7 +2,8 @@
 -- The Halloween Sword's effects. v3 (lane cuesB, 2026-10-29) gave it painted toon flames, a
 -- darker deep-purple slash trail and a laughing fire-face finisher; v4 (the designer, 2026-10-29
 -- ~14:20: the older version was better, no flat 2D flame pictures): the aura and its event-menu
--- card are back to the soft flames of before v3, and the darker slash trail stays.
+-- card are back to the soft flames of before v3, the darker slash trail stays with glowing
+-- embers, and the finisher is a purple energy burst sitting on the hole, all glow.
 
 local H = require("./harness")
 
@@ -45,76 +46,79 @@ local function row(): any
 	return r
 end
 
-local function layer(pocket: any, name: string): any
-	for _, l in pocket.Layers or {} do
-		if l.Name == name then
-			return l
-		end
-	end
-	return nil
-end
-
 --- The relative luminance (0..1) of an {r, g, b} 0..255 colour.
 local function luminance(c: { number }): number
 	return (0.2126 * c[1] + 0.7152 * c[2] + 0.0722 * c[3]) / 255
 end
 
 return {
-	["the finisher is the laughing fire face, not the ghosts"] = function()
+	["the finisher is a purple energy burst on the hole: all glow, no drawn picture"] = function()
 		local pocket = row().Pocket
 		H.expect(pocket ~= nil and pocket.Flash ~= nil, ID .. ": the finisher needs its flash")
 		H.expect(pocket.Piece == nil, ID .. ": the spinning ghosts piece is back")
 		H.expect(
 			pocket.KeepRibbons == false,
-			ID .. ": the shared swirl ribbons would cross the face"
+			ID .. ": the shared swirl ribbons would cross the column"
 		)
-		local face = layer(pocket, "Face")
-		H.expect(face ~= nil, ID .. ": no Face layer")
-		H.expect(isAsset(face.Texture), ID .. ": the face texture is not uploaded")
-		H.expect(face.Burst == 1, ID .. ": the face is one big particle")
-		H.expect(
-			face.FlipbookLayout == "Grid4x4" and face.FlipbookMode == "Loop",
-			ID .. ": the face flipbook loops its 16 frames (two cackles)"
-		)
-		H.expect(rateOf(face.FlipbookFramerate) >= 10, ID .. ": the laugh is too slow to read")
-		H.expect(maxOf(face.Size) >= 3.5, ID .. ": the face should be big (>= 3.5 studs)")
-		H.expect(maxOf(face.Size) <= 5, ID .. ": the face hides too much of the table (> 5 studs)")
-		H.expect((face.Speed or 0) ~= 0, ID .. ": the face must rise out of the pocket")
-		-- it fades out before the root goes (Effects keeps the root for the longest layer)
-		local t = face.Transparency
-		H.expect(type(t) == "table" and t[#t][2] >= 0.99, ID .. ": the face must fade out")
-		-- lots of flames round it, and the face drawn in front of them
-		local flames = 0
+		local flat, column, fire, last = 0, 0, 0, 0
 		for _, l in pocket.Layers do
-			if l.Texture == face.Texture then
-				continue
+			local name = tostring(l.Name)
+			H.expect(isAsset(l.Texture), ID .. ": layer " .. name .. " texture")
+			H.expect(
+				l.Texture ~= FIRE_FACE and l.Texture ~= TOON_FLAME,
+				ID .. ": layer " .. name .. " is a v3 drawn picture"
+			)
+			H.expect(name ~= "Face" and name ~= "FaceGlow", ID .. ": the fire face is back")
+			-- emissive light, never a picture alpha-blended over the table (v3's face was 0.08,
+			-- its toon flames 0.15); the layers over the bright cloth blend in part (at least
+			-- half light) so they tint it violet instead of adding up to white on it
+			H.expect((l.LightEmission or 0) >= 0.5, ID .. ": layer " .. name .. " does not glow")
+			-- born on the hole (Effects.skinFinisher's point is the pocket's centre on the cloth):
+			-- nothing under the cloth (the table hid the face's chin), nothing off to a side
+			local h = l.Host or {}
+			local o = h.Offset or { 0, 0, 0 }
+			H.expect(o[1] == 0 and o[3] == 0, ID .. ": layer " .. name .. " is off the hole")
+			H.expect(o[2] >= 0, ID .. ": layer " .. name .. " starts under the cloth")
+			H.expect(
+				(h.Size or 0) <= 1.5,
+				ID .. ": layer " .. name .. " is born too wide of the hole"
+			)
+			if l.Orientation == "VelocityPerpendicular" then
+				-- lying on the cloth round the hole (rings, streaks, the pool of light)
+				flat += 1
+				H.expect(o[2] <= 0.1, ID .. ": " .. name .. " floats over the cloth")
+				H.expect(maxOf(l.Size) <= 3.5, ID .. ": " .. name .. " spreads past 3.5 studs")
+			else
+				-- about half the v3 face's 4.2 studs
+				H.expect(maxOf(l.Size) <= 2.5, ID .. ": " .. name .. " is over 2.5 studs")
 			end
-			H.expect(isAsset(l.Texture), ID .. ": layer " .. tostring(l.Name) .. " texture")
-			if l.FlipbookLayout == "Grid4x4" and l.Name:find("Flame") then
-				flames += l.Burst or 0
-				H.expect(
-					(l.ZOffset or 0) < (face.ZOffset or 0),
-					ID .. ": " .. l.Name .. " draws in front of the face"
-				)
+			if l.Orientation == "VelocityParallel" and o[2] >= 0.8 then
+				column += 1
 			end
+			if l.FlipbookLayout == "Grid8x8" then
+				fire += l.Burst or 0
+			end
+			local life = l.Lifetime
+			local longest = if type(life) == "table" then math.max(life[1], life[2]) else life or 1
+			last = math.max(last, (l.Delay or 0) + longest)
 		end
-		H.expect(flames >= 40, ID .. ": too few flames round the face (" .. flames .. ")")
+		H.expect(flat >= 3, ID .. ": too little light on the cloth (" .. flat .. " flat layers)")
+		H.expect(column >= 1, ID .. ": no light column standing on the hole")
+		H.expect(fire >= 16, ID .. ": too little soft fire rising (" .. fire .. ")")
+		H.expect(last >= 1.6 and last <= 2.5, ("%s: lasts %.2f s (about 2)"):format(ID, last))
 	end,
 
 	["the finisher stays inside a phone budget"] = function()
 		local pocket = row().Pocket
-		local total, big = 0, 0
+		local total = 0
 		for _, l in pocket.Layers do
 			total += l.Burst or 0
-			if maxOf(l.Size) >= 3 then
-				big += l.Burst or 0
-			end
 		end
+		-- well under v3's 159 (two of them 4 to 5 stud quads)
 		H.expect(
-			total <= 200,
-			("%s: the finisher bursts %d particles (at most 200)"):format(ID, total)
+			total <= 120,
+			("%s: the finisher bursts %d particles (at most 120)"):format(ID, total)
 		)
-		H.expect(big <= 4, ("%s: %d big (>= 3 stud) particles fill the screen"):format(ID, big))
 		H.expect(#(pocket.Rings or {}) <= 3, ID .. ": at most three rings")
 	end,
 
