@@ -4,36 +4,36 @@ Current state only, rewritten in place. Keep it to about two screens (under 100 
 step is finished and verified, move its dated entry to the top of
 `docs/archive/STATUS_HISTORY.md` and keep only what is still true or still open here.
 
-Updated 2026-10-28 (**published by the designer 2026-10-27: everything up to `7c4d85aa`**: the emote system, 2KLIKES, the 1v1 result cutscene off; the emote audio update is pushed and waiting to publish). **The game is live** (officially released 2026-10-10). Work goes on
+Updated 2026-10-29 (**published by the designer 2026-10-27: everything up to `7c4d85aa`**: the emote system, 2KLIKES, the 1v1 result cutscene off; the emote audio update is pushed and waiting to publish). **The game is live** (officially released 2026-10-10). Work goes on
 in `~/Desktop/8ball`, branch `gui-v4`. The STATUS from just before launch, in full, is the top
 entry of `docs/archive/STATUS_HISTORY.md`.
 
-## Halloween 2026 (branch `halloween`, pushed, NOT published)
+## Halloween 2026 (branch `halloween`, pushed at `7b212c71`, NOT published)
 
-- **Waiting to publish:** `halloween` (it also carries `gui-v4`'s emote audio update). The
-  release is no longer tied to 19:00 (designer, 2026-10-28 17:46): it goes out tonight once
-  the robustness pass is done (each lane's area plus two independent reviews of the existing
-  files it changes). From 19:00 EDT a server with the update is Live; one that starts later
-  is Live at once. Everything to check, publish and switch off: `docs/halloween/RELEASE.md`.
+- **Waiting to publish:** `halloween` at `7b212c71` (it also carries `gui-v4`'s emote audio
+  update). Team Create is synced to it (every changed script checked byte for byte, 04:47
+  Oct 29) and boots clean into Live. One publish (designer, 04:00). Steps, checks and every
+  switch: `docs/halloween/RELEASE.md`.
 - **In it:** Candy (matches, lobby pickups, 2x Candy minutes 0-9 UTC), daily quests, the Candy
-  track, four Halloween track cues (each its own effect, no ribbons; the lineup below),
-  the Spider play-time cue, Candy packs, the timed Pumpkin King (:15 and :45, +150 Candy,
-  +$2,500, +100 XP a visit), the night rooftop, roaming during the other player's turn, the
-  friend boost and boost text, badges v2. Ends Nov 3 19:00 EST and turns Candy into money.
-- **Verified:** 1,477 Lune tests, lint (21:20); the fresh-player run on `16784c7c` (no
-  Halloween text in the tutorial, Candy after the first match, popups in order, console clean).
-- **The cue redo (designer 18:20-21:28; the release waits for it):** the lineup is Jack (150
-  Candy), Pitchfork Cue (500), Witch's Broom (2,000), Halloween Sword (7,000, the top prize,
-  his purple concept C8 as the body) and the Spider (3 h of play). Candy Corn, Black Cat and
-  the Ghost are out; the Bone is parked. **Done and built in Team Create:** the Jack (C4), the
-  Broom, the Pitchfork (slimmed, approved 21:28). **Building:** the Sword v5 (hw-cues-a: a slim
-  grip, the purple flame border as animated VFX instead of mesh) and the Spider redone to its
-  black-and-silver concept C1b (hw-cues-b, from the judged mesh candidate D). Each gets a
-  template build in Team Create (`tools/build_cue_templates.luau`, ONLY = that cue) after merge.
-- **Open:** a real phone/iPad/controller sweep (only emulated so far); badge icons waiting on
-  Roblox moderation (a placeholder until then); Cue Preview ships off.
-- **Store page:** the plain Halloween icon is up (the countdown badge removed 17:46); the LIVE
-  icon goes up when the publish is out. The Experience Event runs 19:00 Oct 28 to Nov 3.
+  track (11 steps: spins, money, the Pitchfork at 500, the Witch's Broom at 2,000, the
+  Halloween Sword at 7,000), the Spider play-time cue (3 h), the Pumpkin King (:15 and :45,
+  +150 Candy, +$2,500, +100 XP a visit, and a 5% Jack-o'-Lantern drop on the first win of each
+  visit with a chance sign over him, hidden for owners), Candy packs, the night rooftop,
+  roaming, the friend boost and boost text, badges v2. The Grand Opening block is off the
+  Shop (the Shop opens on Blocks; owned blocks still open). Ends Nov 3 19:00 EST and turns
+  Candy into money.
+- **Verified (Oct 29, 04:00-04:47):** 1,482 Lune tests, lint; two independent reviews of the
+  late changes (one defect, the King drop pill vanishing after the first close: fixed with a
+  test); hw-gui QA on PC, phone 844x390, iPad and gamepad emulation; the hw-sys fresh-player
+  run (no Halloween text in the tutorial, 42 Candy after the first match, popups NEW RANK >
+  Daily > Invite, the track, the Shop on Blocks, console clean).
+- **Parked, not in this publish:** Robux Limited cues (branch `hw-core-limited`; 299 and 1,499
+  approved for later, needs the designer's lineup pick and new products). Gifting dropped.
+- **Open:** a real phone/iPad/controller check (only emulated so far); the Spider still does
+  not fully match concept C1b; the MATCH RULES card covers the HALLOWEEN tile's ENDS pill while
+  seated on a pad (minor); badge icons wait on Roblox moderation; Cue Preview ships off.
+- **Store page:** the plain Halloween icon is up; the LIVE icon goes up when the publish is
+  out. The Experience Event runs 19:00 Oct 28 to Nov 3.
 
 ## The game is live
 

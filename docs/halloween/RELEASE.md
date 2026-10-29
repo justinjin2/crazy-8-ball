@@ -1,9 +1,8 @@
 # Halloween 2026: release checklist
 
-For Justin, tonight (Wed Oct 28 2026). The code reads the clock: from **19:00 EDT** a server
-with this update is Live. Justin, 17:46: the publish no longer has to beat 19:00; it goes out
-tonight once the robustness pass is done (target about 20:30). A server that starts after 19:00
-boots straight into Live. Line numbers re-read 17:50.
+For Justin. The code reads the clock: from **19:00 EDT Oct 28** a server with this update is
+Live, so a server that starts now boots straight into Live. Ready to publish at `7b212c71`
+(Oct 29, 04:47): Team Create is synced to it. Line numbers re-read 21:15 Oct 28.
 
 ## 1. Check by hand (test place or Studio Play, then on the live game after the publish)
 
@@ -26,11 +25,11 @@ On a phone, a PC and a controller where you can:
 9. Each new cue (My Cues and the Index, in hand, one pot; `/givecue <Id>` to check quickly):
    Pitchfork (500 Candy), Witch's Broom (2,000), Halloween Sword (7,000), the Spider (3 h of
    play) and the Jack-o'-Lantern (the Pumpkin King's 5% drop).
-11. The **Shop** opens on Blocks: the Grand Opening block is gone (blocks already owned still
+10. The **Shop** opens on Blocks: the Grand Opening block is gone (blocks already owned still
     open from the inventory).
-10. Settings > **Lower effects** on and off with a Halloween cue.
+11. Settings > **Lower effects** on and off with a Halloween cue.
 
-## 2. Publishing (tonight, after the robustness pass; target about 20:30)
+## 2. Publishing (ready now)
 
 1. Use the **Team Create** Studio window ("[EMOTES] CRAZY 8 Ball"). Rojo must say connected,
    and the coordinator says which commit it is synced at. The folder must be clean (nothing
