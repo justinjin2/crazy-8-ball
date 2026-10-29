@@ -552,19 +552,19 @@
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/halloween_sword/Sword_base_color.png": {
-    "assetId": "125677539965063",
+    "assetId": "85817546705059",
     "assetType": "Decal",
-    "imageId": "76403631299161",
+    "imageId": "75318200932240",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/halloween_sword/Sword_emissive.png": {
-    "assetId": "85684077438490",
+    "assetId": "131615284149967",
     "assetType": "Decal",
-    "imageId": "121056044730551",
+    "imageId": "71863257711341",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/halloween_sword/halloween_sword_parts.glb": {
-    "assetId": "86637363502662",
+    "assetId": "76480974378514",
     "assetType": "Model",
     "status": "ok"
   },
@@ -637,9 +637,9 @@
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/thumbs/halloween_sword.png": {
-    "assetId": "101808889320521",
+    "assetId": "100595983657473",
     "assetType": "Decal",
-    "imageId": "121167927707840",
+    "imageId": "106906520938583",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/thumbs/jack_o_lantern.png": {
@@ -688,6 +688,12 @@
     "assetId": "74692877151120",
     "assetType": "Decal",
     "imageId": "115803746724573",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/vfx/halloween_sword/flame_strip.png": {
+    "assetId": "85718428335391",
+    "assetType": "Decal",
+    "imageId": "109569215000295",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/vfx/halloween_sword/wrap_256.png": {
@@ -748,30 +754,30 @@
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/pieces/spider/Crown.glb": {
-    "assetId": "93000287192965",
+    "assetId": "132045699421617",
     "assetType": "Model",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/pieces/spider/atlas_color.png": {
-    "assetId": "119513146574407",
+    "assetId": "136498534837826",
     "assetType": "Decal",
-    "imageId": "136685013702647",
+    "imageId": "90648310244873",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/pieces/spider/atlas_emissive.png": {
-    "assetId": "123115177768198",
+    "assetId": "99626463555454",
     "assetType": "Decal",
-    "imageId": "137219366088334",
+    "imageId": "106850133991111",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/pieces/spider/atlas_normal.png": {
-    "assetId": "138639821578265",
+    "assetId": "76435438525324",
     "assetType": "Decal",
-    "imageId": "89592941305226",
+    "imageId": "106107774148591",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/pieces/spider/spider_parts.glb": {
-    "assetId": "119622637359515",
+    "assetId": "138983963223051",
     "assetType": "Model",
     "status": "ok"
   },
@@ -781,7 +787,7 @@
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/pieces/spider_pocket/spider_pocket_parts.glb": {
-    "assetId": "76740152492017",
+    "assetId": "90588130322925",
     "assetType": "Model",
     "status": "ok"
   },
