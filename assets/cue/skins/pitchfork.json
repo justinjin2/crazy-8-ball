@@ -6,8 +6,14 @@
   "note": "Halloween 2026 track cue, 500 Candy (the designer's slot-2 pick, coordinator 2026-10-28 19:40; concept mocks/v3/R2.png). Only ever \"Pitchfork Cue\", never \"devil\". Built by lane hw-map (assets/cue/CuePiecesHalloween_Pitchfork.py); core owns its Catalog, Track, Strings and Art rows. Remade 2026-10-29 (the designer): a compact fork at the TIP, about half as wide, flat, the middle prong is the tip; the flames on the outer prongs' points. Since 2026-10-29 (v3) the outer prongs stay solid while aiming and shooting, and their flames burn small and steady.",
   "body": "pitchfork",
   "maps_from": "classic",
-  "thumb_margin": 1.8,
-  "thumb_shift": -0.12,
+  "thumb_grow": {
+    "at": 1.43,
+    "toward": "tip",
+    "scale": 2.2,
+    "blend": 0.25,
+    "roll": 40
+  },
+  "thumb_fit": 26,
   "look": {
     "Shaft": "#D81E1E",
     "Forearm": "#D81E1E",

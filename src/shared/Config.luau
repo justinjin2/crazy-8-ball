@@ -17874,15 +17874,17 @@ Config.UI.Halloween = {
 		LowFps = 30,
 		Cues = {
 			-- The calmest: two small smooth flames on the outer prongs' points, two sparks.
+			-- Measured on the card with the fork drawn 2.2x (CuePreview --thumb-spots: the
+			-- butt, the grown tip and the TipFlame hosts; 2026-10-29).
 			PitchforkCue = {
-				Axis = { { 0.15, 0.91 }, { 0.8, 0.08 } },
+				Axis = { { 0.152, 0.932 }, { 0.822, 0.058 } },
 				Layers = {
 					{
 						Kind = "Pulse",
 						Emitter = { "TipFlameA", "TipFlameB", "TipFlame" },
 						Texture = "rbxassetid://123290266051638",
 						Grid = 4,
-						Spots = { { 0.712, 0.118 }, { 0.795, 0.178 } },
+						Spots = { { 0.657, 0.071 }, { 0.852, 0.221 } },
 						Frame = 5,
 						Size = { 0.13, 0.17 },
 						Alpha = { 0.3, 0.05 },
@@ -17898,8 +17900,8 @@ Config.UI.Halloween = {
 						Grid = 1,
 						Tints = { "#FF6A2A", "#FFB23D" },
 						Life = { 1.3, 1.9 },
-						Along = { 0.86, 0.98 },
-						Side = { 0, 0.07 },
+						Along = { 0.7, 0.97 }, -- the grown fork (its ForkSparks host)
+						Side = { 0, 0.12 },
 						Travel = { 0.03, 0.1 },
 						Size = { 0.045, 0.065, 0 },
 						FadeIn = 0.2,
@@ -17959,9 +17961,11 @@ Config.UI.Halloween = {
 					},
 				} :: { any },
 			},
-			-- Orange flames licking up the shaft and embers rising off it.
+			-- Orange flames licking up the shaft and embers rising off it. Measured on the card
+			-- with the pumpkin drawn 1.5x (CuePreview --thumb-spots: the butt, inside the
+			-- pumpkin, to the tip; the collar at about 0.16; 2026-10-29).
 			JackOLanternCue = {
-				Axis = { { 0.1, 0.92 }, { 0.86, 0.04 } },
+				Axis = { { 0.37, 0.746 }, { 0.915, 0.034 } },
 				Layers = {
 					{
 						Kind = "Rise",
@@ -18058,8 +18062,8 @@ Config.UI.Halloween = {
 	-- jack-o'-lantern (also the ribbon's pumpkin), the candy pile (the end screen, the menu's
 	-- Candy packs) and cash.
 	Art = {
-		JackOLanternCue = "rbxassetid://114487013205177",
-		PitchforkCue = "rbxassetid://110284560248397", -- its skin's Thumb (the compact fork at the tip, rim-popped; 2026-10-29)
+		JackOLanternCue = "rbxassetid://103301193919705", -- its skin's Thumb (the remade body, the pumpkin drawn 1.5x; 2026-10-29)
+		PitchforkCue = "rbxassetid://130408256165091", -- its skin's Thumb (the fork drawn 2.2x and face on, rim-popped; 2026-10-29)
 		WitchBroomCue = "rbxassetid://131711880887023", -- its skin's Thumb (the v3 shorter head; 2026-10-29)
 		HalloweenSwordCue = "rbxassetid://106906520938583", -- cues-a's v5 card (its skin's Thumb; the slim hilt, rim-popped)
 		Header = "rbxassetid://100823591958466", -- the menu header's jack-o'-lantern ("" = the Candy icon)

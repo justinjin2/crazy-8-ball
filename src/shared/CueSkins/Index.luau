@@ -479,7 +479,7 @@ return {
 		Id = "jack_o_lantern",
 		Name = "Jack-o'-Lantern",
 		Tier = "Legendary",
-		Thumb = "rbxassetid://110159550393453",
+		Thumb = "rbxassetid://103301193919705",
 		Look = {
 			Shaft = { 255, 122, 28 },
 			Forearm = { 255, 122, 28 },
@@ -653,7 +653,7 @@ return {
 		Id = "pitchfork",
 		Name = "Pitchfork Cue",
 		Tier = "Legendary",
-		Thumb = "rbxassetid://110284560248397",
+		Thumb = "rbxassetid://130408256165091",
 		Look = {
 			Shaft = { 216, 30, 30 },
 			Forearm = { 216, 30, 30 },
