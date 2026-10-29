@@ -22,6 +22,159 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
   `Index.luau`, `Textures.luau` (regenerate after every merge conflict there).
 
 ## Status
+- 23:23 **READY: Spider v2g, the barb pass (coordinator 23:0x, hold lifted; timeboxed).**
+  Built, uploaded, merged with origin/halloween, lint + 1477 tests OK, pushed.
+  1. Barbs: short claw-shaped barbs instead of long leaves, each a thick-based claw with a
+     convex outer edge, a concave inner edge and a pointed tip that flicks outward-back. Rear
+     tier the longest (root d 6.92 to tip 7.98, reach 1.09), mid 5.95 to 6.86 (0.93), the
+     front spur the shortest (5.15 to 5.90, 0.71). Black chrome with silver only on the outer
+     edge's bevels; the silver fuller line dropped (a midrib was what read as a leaf / fish
+     fin). The spine ridges capped at the butt limit (the rear root moved to 6.92). 6 parts,
+     9,708 triangles, envelope OK.
+  2. Aura silk beams re-aimed: Silk2 to 5.9 (spur tips), Silk4 to 6.86 (mid tips), Silk3 to
+     7.95 (rear tips), the halo to 8.0; the gem glint and red light moved from 6.47 (nothing
+     there now) to the collar gems at 4.95; the silk haze to the dome at 7.92.
+  3. origin/halloween merged clean (cf9d1ee0): the Black Cat removal hunks taken in
+     `CuePiecesHalloween_B.py` and `tools/hw_sprites_b.py` (0 mentions left), the Spider kept;
+     the manifest a union (my three Spider rows present); both cues rebuilt headless after the
+     merge (Spider 9,708 tris OK, Broom 5 parts 9,144 tris OK); `cue_skins_data.py` twice, no
+     row drift (66 skins, 31 pieces).
+  Uploads: spider_parts.glb 138983963223051, Crown.glb 132045699421617 (the atlas unchanged:
+  136498534837826 / image 90648310244873). Template rebuilt ONLY SpiderCue in my window: the
+  Crown model = Blades, Spurs, RootPart; every mesh fetches Success on the client.
+  Compare for judging: `gate2/spider_v2g_compare.jpg` (TARGET, ref_side, v2g side /
+  three-quarter / crown close, and ref crown over v2g crown).
+  LAB SHOTS NOT TAKEN (stand, back carry, hand at aim): my Studio window stopped rendering at
+  ~23:12 (RenderStepped 0 frames/s; the Roblox Player is the frontmost app, so every Studio
+  play view is occluded). The cue warm-up runs on RenderStepped, so the lab's back-carry
+  refuses until the window renders again; a screen_capture is parked waiting for a frame. I
+  did not raise my window over the Player. The three shots go in the moment it renders. The
+  in-game material read is the same as v2f's lab shot (`gate2/spider_v2f_crown_lab.jpg`:
+  black chrome, silver edges, silver outline); only the barb shape changed.
+- 22:54 **Spider v2f: the C1b colour pass, then HOLD** (coordinator 22:2x, four points; HOLD at
+  22:49). Built, uploaded and lab-checked in my window, committed, NOT READY (the hold).
+  1. Blades black chrome: the BLACK swatch's angle-keyed specular streak cut from 0.5 to 0.12
+     (it was greying whole blades, since a blade's facets share one atlas u); silver only on
+     the outer edge's two bevel bands and the fuller strip (crescent mats SV,SV,CH,SV,CH,CH,CH).
+  2. Blade body: broader crescents (D's chord), the rear tier the longest (root d 6.70, tip
+     8.12 at r 1.06), mid (5.70 to 7.06, r 0.96), spur the shortest (5.05 to 6.00, r 0.68);
+     each tip a hooked point that turns outward-back (the last chain segment near-radial, the
+     inner edge meeting it). In the side render the hook is there but small: the crescents
+     still read longer and leafier than ref_side's short barbs. If that is the next note, it
+     is a SPIDER_TIERS table change (shorter chords, a stronger last-segment turn).
+  3. Dome back to r 0.30 at d 7.92 in a slimmer stacked socket (0.49 to 0.31), the eight
+     beads at r 0.345 (radius 0.03), the hourglass 0.22 x 0.12 red on the end face.
+  4. Everything else kept (hub petals, collar hex bezels + gems, ferrule, chevron shaft,
+     spine ridges, SpiderCrownInGrip exception). 6 parts, 9,708 triangles, envelope OK.
+  Uploads (before the hold arrived): spider_parts.glb 95247110765311, Crown.glb
+  122731260768808, atlas_color.png 136498534837826 (image 90648310244873; normal + emissive
+  unchanged). `src/shared/CueSkins/Pieces/spider.luau` regenerated. Lint OK, 1477 tests pass.
+  Lab (my window, templates rebuilt ONLY SpiderCue; Crown model = Blades, Spurs, RootPart):
+  `gate2/spider_v2f_crown_lab.jpg` (black blades with silver edges, silver outline, dome +
+  red hourglass; the back carrier's crown shows too). Compare for judging:
+  `gate2/spider_v2f_compare.jpg` (TARGET, ref_side, cand_D side, v2f side / 3-4 / crown).
+  NOT done (held): stand/back/hand-at-aim shots, the aura's silk beams on the new tips, the
+  origin/halloween merge (Black Cat removal hunks), READY. Waiting for the coordinator.
+- 21:46 **Spider v2e: candidate D in the compact frame (coordinator 21:3x, option B).** Built,
+  uploaded, in my lab; session cut by the usage limit right after the stand capture. The judged
+  mesh's kit (D's faceted crescent with silver bevels and a fuller strip, petal root plates,
+  stacked-ring lathes, hex bezel + faceted hourglass, spearhead ferrule) is ported into
+  `assets/cue/spider_geo.py` and driven from the lane builder; the silver is baked into the one
+  512 atlas as per-facet UV swatches (BLACK / SILVER regions), no silver parts. Layout like
+  ref_side: the dome (r 0.40, pole 8.38) in a stacked silver-bevel socket with eight beads and
+  the hourglass emblem; the teardrop hub (6.94-7.6) with eight petal plates; three swept-back
+  blade tiers, tips pointing at the butt (rear tier on the axes 6.55 to 8.14 framing the dome,
+  middle on the diagonals 5.65 to 7.16, spurs 5.05 to 6.05; max radius 0.93); a slim flush
+  collar with three low hex bezels and gems at the crown's FRONT (4.74-5.16); spine ridges
+  under every blade root; no mesh webs (the silk is the skin's effects). The named exception
+  SpiderCrownInGrip (CLEAR: zone 4.4-6.9, radius 0.55 the knuckle reach, outer 0.95; inside the
+  cylinder only thin sheets on the blades' radial planes) replaces the 0.85 cylinder; others
+  may see the hand's box corners graze a blade root at some pulls (accepted, coordinator
+  21:3x). 6 parts, 9,708 tris, envelope OK. A one-mesh skinned file imports with no RootPart
+  (the blades fell away in the lab), so the spurs are a second skinned mesh. Ids: body
+  78705204807430, Crown.glb 135800150443063, atlas 88729431213170 / 76435438525324 /
+  99626463555454 (images 124630570825061 / 106107774148591 / 106850133991111). Shots: gate2/
+  spider_v2e_compare.jpg (render_views --keep-materials side, 3/4, crown close under TARGET,
+  ref_side and cand_D side), spider_v2e_crown_lab.jpg, spider_v2e_stand_lab.jpg. NOT done:
+  the back and hand-at-aim lab shots, lint/tests, the origin/halloween merge (the Black Cat
+  removal hunks), the aura's silk beams re-aimed at the new blade tips, READY. v2d (the
+  splayed v2c frame, rejected as a whisk) is in this branch's history only as the uncommitted
+  step before this.
+- 21:00 **Spider v2a/v2b: the C1b pass that doesn't wait on the mesh** (coordinator 20:16, Justin
+  rejected v13; the target is C1b). Done and committed (6d01ff89): 1. Materials: black chrome
+  painted the way cues-a's Sword is (SmoothPlastic, Reflectance 0.06, no skybox mirror): a
+  near-black atlas with a long specular streak, overlapping chevron armour plates between the
+  bands with a silver edge line, a grey bloom and a dark overlap gap, a dark steel spearhead
+  ferrule at d 0.3-0.95 with silver V edges, the tip dark steel; the ten zigzag bands silver
+  (SmoothPlastic, Reflectance 0.28) as the plates' standing edges; the blades' rim and the
+  socket rings silver; nothing emissive but the red gem. 2. The butt cap: a glossy black ball
+  (r 0.40, pole at d 8.35) sitting in a ringed socket cup (r 0.48 at 7.60-7.64, two silver
+  rings plus the neck ring), a red Neon hourglass emblem on the pole (Glow); the sixteen eyes
+  gone. 3. The webs: real geometry, 64 white Neon strands (0.008 wide crossed quads, Neon
+  Transparency 0.12) strung between adjacent blades: six rungs a gap sagging 0.18 toward the
+  axis and two radial threads a gap from the socket, skinned on the blade bones so they follow
+  the breathing; v2a's 0.016 strands read as white bars at close range, v2b's thin ones read
+  as web. 4. FX recoloured in spider.json: Smoke and CrownSmoke black (LightEmission 0,
+  opaque-ish transparency curve, 24 + 10/s), WebSparkles / CrownGlints / SilkSparks white,
+  SilkHaze (white, faint) instead of CrownGlow, CrimsonPop dropped, the halo white and faint,
+  lights white 0.5 and the gem's red 0.3; aura 13 emitters 115.7/s of 120; the trail gains a
+  TrailSmoke black puff layer (30/s with the ball moving); the finisher: white flash, white
+  web ring to 5.5, black smoke layer, and the pocket piece remade as a radiant white web (a
+  white orb web turning, a fan of twelve white threads rising and opening to 1.5 wide and 1.4
+  up with three rings across it, a small red hourglass bead at the heart; 3 parts, 3,576
+  tris). Body 8 parts, 9,412 tris (the shaft rings at 0.15, socket tori 20x5). Ids: body
+  83009241990570, Crown.glb 108311282849319, atlas 75669013774207 / 122822886483636 /
+  116549042889690 (images 95084384244552 / 140040547180034 / 95471768841465 applied), pocket
+  90588130322925. Lab at hw-map's clean spot (-80, 0, 68), by night: gate2/spider_v2b_
+  side_by_side.jpg (C1b whole, crown, finisher; v2b stand, crown close, back) and
+  spider_v2b_{stand,crown,back}_lab.jpg. Honest gaps against C1b: the crown's blades are still
+  v13's eight crescents (4 long, 4 short), not C1b's long layered scythe tiers, so the whole
+  crown is a third the size it should be; the webs run as parallel rungs across each gap,
+  not radial orb webs; the chrome's silver edges are painted lines, no real specular; the
+  finisher not yet seen in a real pocket; the ink outline stays the catalog's red theme
+  colour (Config.CueSkins.Pop.Outline, not mine) and should go silver for C1b: a Request.
+  Waiting on the judged mesh for the blades; the web generator takes any blade curves.
+- 20:30 **Spider v2 (C1b) crown frame, brief 2.2**, for the judges' meshes. RULES: Grip hand
+  4.4-6.2 (rest at d 5.95, wind-up slides to 4.45), ButtZone 6.2-7.0 env+0.25, PastButt 0.3
+  (radius 0.45); an Aim joint ('Crown', fades at aim) gets AimPastButt 1.5 (to d 8.5) and
+  AimRadius 1.1. So the crown may root anywhere in 6.2-8.5, flare to radius 1.1 over all of it,
+  and sweep forward only to d 6.2: the grip hand at rest covers 5.55-6.35, a blade past 6.2
+  goes through the fingers. Largest C1b-legal crown: three tiers of eight blades rooted at
+  7.0-7.7 sweeping forward, tips at d 6.2 (long tier, 1.4 studs), 6.5 and 6.8, radius 1.1 at
+  the bulge; the butt dome to 8.5; blades 0.06-0.08 thick at the root with a bevelled silver
+  edge and hooked tips. Named exception, if a judged mesh needs more sweep: the long tier to
+  d 5.8 only because the Crown fades at aim (the clip shows in the lobby carry alone). I'd
+  rather not take it; 6.2 unless the coordinator says. Also this hour: the QA pass stopped at
+  the coordinator's 20:16 (Spider rejected: C1b is the target, not C1).
+- 20:25 **QA pass numbers (stopped at 20:16)**, my lane window on 4c03454e, lobby bots off,
+  tutorial off, one fresh Play. Leaks: 10 equip/unequip cycles a cue (EquipCue id, then
+  Classic, 2 s apart), workspace descendants and Stats.InstanceCount before and after, with a
+  40 s no-equip control (added 0). Spider added 184 / gone 81, Broom 269 / 81, Jack 194 / 81:
+  all of it one CueWarmup tree a cue (the Sprites attachments, the aura piece, the
+  shot:<id> pocket warm-up) plus the swapped look on the pooled back stick (BackCue_12.Mesh
+  32, CueStick.Mesh 31), one copy each, never ten; ClientVisuals stayed at 1,313 descendants
+  across every cycle. Connections are not countable from a script: not checked. Cost (live;
+  in hand = the full look on a stand stick, on the back = the pooled stick; Lower effects set
+  through SettingsRequest on the live back cue): Spider 15 emitters 112.1 pps (54.9 Lower),
+  2 lights, 5 beams, 1 trail, 43 parts; body 7 parts 9,812 tris, 1 atlas; aura piece 8 parts
+  144 tris; pocket 3 parts 2,208. Broom 22 emitters 180.4 pps (94.4 Lower), 3 lights, 1 beam,
+  2 trails, 55 parts; body 5 parts 9,144 tris, 1 atlas; aura 19 parts 1,228; pocket 13 parts
+  4,928. Jack 4 emitters 22.0 pps (7.7 Lower), 2 lights, 0 beams, 41 parts; body 6 parts
+  7,040 tris, 1 atlas; aura 18 parts 3,248; pocket 4 parts 6,120. Client memory tags over the
+  three: particles 17.6 -> 18.6 MB, textures flat at 149.7, mesh parts 9.9. OVER BUDGET: the
+  Broom, 180.4 live against Secret 170: the json's Budget sum (169.4) never counted the two
+  orbiter heads (Config.CueSkins HeadRate 24 each = 48). Trim in witch_broom.json: Haze
+  16 -> 12, VioletGlow 16 -> 12, EmeraldWisps 20 -> 16 (json 157.4; live should read 168.4,
+  not yet re-measured). Spider 112.1 of 120 fine. Against a flat 120 the Broom needs a
+  redesign, not a trim: coordinator to say. Screens: My Cues (gate2/qa_mycues.jpg), the
+  Index's Exclusive row 4/5 with CLAIM! on the given cues (qa_index_exclusive.jpg), the Candy
+  Track nodes for the Jack (150) and the Broom (2,000) and the Spider on the play-time card
+  (qa_halloween_track.jpg), the end screen's three YOURS FOREVER cards (qa_endscreen.jpg):
+  all draw, nothing stretched, no error. The Index preview is off in Config
+  (UI.CuePreview.Enabled = false): nothing to check. Console: only Studio's DataStore and
+  MemoryStore lines and funnel logs, no cue warning or error. Not reached: the real-pocket
+  finisher (the fixture solo game ran; my shot loop's ball-in-hand spot was
+  InvalidPlacement) and the bot-carry view.
 - 19:50 **Spider v13 polish, READY** (the coordinator's three points after v12). 1. The dome,
   eyes and blades are smooth-shaded: `tools/cue_pieces_glb.py` now honours an opt-in
   `"Smooth": true` on a part row (every other lane's parts still pack flat), written by SMOOTH +
@@ -471,6 +624,10 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
 
 ## Requests
 
+- 21:00 **Request (Cues A / hw-core): the Spider's ink outline colour.** Every cue wears a solid
+  outline in its theme colour (Config.CueSkins.Pop.Outline); the Spider's is the catalog's red.
+  C1b has no red but the hourglass: please make its theme colour the silver '#D8DCE6' (or point
+  me at the catalog field and I'll put it in the Request properly). Not blocking.
 - 19:50 **READY SpiderCue v13 @ 9e6ae788** (skin `spider`: body 119622637359515 + Crown
   93000287192965, atlas 119513146574407 / 123115177768198 / 138639821578265 with image ids
   applied, aura, pocket and card as the 19:25 READY; base `halloween` @5020858d; lint OK,

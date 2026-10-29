@@ -5,28 +5,28 @@
 return {
 	Id = "spider_pocket",
 	Frame = "pocket",
-	Rigid = "76740152492017",
+	Rigid = "90588130322925",
 	Models = {},
 	Parts = {
 		{
 			Material = "Neon",
-			Color = "#E6EAF2",
-			Transparency = 0.08,
+			Color = "#F2F5FA",
+			Transparency = 0.06,
 			Reflectance = 0,
 			Name = "Web_Silk",
 			Joint = "Web",
 			Offset = { 0, 0, 0 },
-			Size = { 2.2, 0.026, 2.2 },
+			Size = { 2.6, 0.0277, 2.6 },
 		},
 		{
 			Material = "Neon",
-			Color = "#FF2A44",
-			Transparency = 0.12,
+			Color = "#FFFFFF",
+			Transparency = 0.1,
 			Reflectance = 0,
 			Name = "Funnel_Thread",
 			Joint = "Funnel",
-			Offset = { 0, 0.65, 0 },
-			Size = { 1.9423, 1.3183, 1.9801 },
+			Offset = { 0, 0.725, 0 },
+			Size = { 2.9276, 1.371, 2.9276 },
 		},
 		{
 			Material = "Neon",
@@ -35,8 +35,8 @@ return {
 			Reflectance = 0,
 			Name = "Bead_Crimson",
 			Joint = "Bead",
-			Offset = { 0, 1.3, 0 },
-			Size = { 0.18, 0.2, 0.18 },
+			Offset = { 0, 0.5, 0 },
+			Size = { 0.16, 0.2, 0.16 },
 		},
 	},
 	Joints = {
@@ -60,19 +60,19 @@ return {
 			},
 		},
 		Funnel = {
-			Parent = "Web",
+			Parent = nil,
 			PivotRoblox = { 0, 0, 0 },
 			Motion = {
 				{
 					Kind = "Spin",
 					Axis = { 0, 0, 1 },
-					Rate = -48,
+					Rate = -36,
 				},
 			},
 		},
 		Bead = {
 			Parent = "Funnel",
-			PivotRoblox = { 0, 1.3, 0 },
+			PivotRoblox = { 0, 0.5, 0 },
 			Motion = {},
 			Visual = {
 				{
