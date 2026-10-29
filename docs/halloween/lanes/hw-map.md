@@ -50,6 +50,21 @@ From PLAN §4 (everything else is read-only to this lane; ask through Requests):
 - `Config.HalloweenMap.Props.Budget.Lights = 6` (throne 2 + the throne King's aura 1 + 3 table Kings).
 
 ## Status
+- 04:08 hw-map: **KING DROP SIGN built** (Justin approved the mock, plus: hidden for an owner).
+  - `src/client/HalloweenMap/KingDropSign.luau` (started by MapClient with the Boss on): one
+    BillboardGui on the King's stage figure (tag PumpkinKing, ThroneKing) above his name: the
+    drop cue's card art (Config.UI.Halloween.Art) on a purple tile, "BEAT ME!", "5% CHANCE" and
+    "JACK-O'-LANTERN CUE" (Strings.HalloweenMap.KingDrop*, the cue's name from Strings.Items.Cues).
+    It goes with his figure when he leaves. Sized in studs plus a px floor; one looped tween
+    on the art tile (none with Reduce Motion, paused while hidden); nothing per frame.
+  - Shown only while `Rules.kingDrop()` reads Config.Halloween.KingDrop on (hw-core's; a missing
+    or malformed row hides it, tested), and hidden while the player owns the cue, rechecked on
+    every Items snapshot.
+  - Config.HalloweenMap.KingSign (every number), `Rules.chanceText` ("5%", "2.5%"), a Lune test.
+  - Studio (lane window, King's visit forced, a temporary uncommitted KingDrop row): the sign over
+    him as mocked, then `/givecue JackOLanternCue` hid it at once. Console: Studio's usual lines.
+    Shots: `~/Desktop/8ball-refs/halloween/shots/hw-map/king_drop_sign/` (mock_v1, wired_visit,
+    wired_owned_hidden).
 - 21:29 hw-map: **PITCHFORK CUE APPROVED** (Justin 21:28: "yes pitchfork is thin enough", via the
   coordinator). Merged: card aed00b8d, core's Art id f0257a2c, decision 73d60f6e. Team Create's
   template is built from 0136f90b's ids. HELD: no more Pitchfork changes unless Justin asks.
@@ -571,6 +586,10 @@ coordinator resolves overlaps. Planned (add the commit sha when each lands):
 
 ## Assumptions
 
+- King drop sign, decided here (2026-10-29): built on the client (not with the server's
+  throne), because hiding it for an owner is per player; it hangs on the figure KingLook
+  already tags, so leaving needs no extra code. Sized in studs plus a px floor (7 x 2.6 studs
+  + 110 x 40 px): the cue line is about 14 px on a phone at 28 studs, and it grows as you walk up.
 - Pitchfork Cue, decided here (2026-10-28):
   - The fork's prongs spread along (cos 150, 0, sin 150) in the cue's Blender frame. The card's
     camera looks from +X and the top, a back's from the top toward the tip, the stand's from
