@@ -28,6 +28,10 @@ From PLAN §4 (everything else is read-only; ask below under Requests):
 - Tests: `tests/halloween_*_test.luau`, additions to `save_schema_test` and `config_test`.
 
 ## Status
+- 21:20 hw-core: **READY @HEAD** a45d8c6e: Art.PitchforkCue = rbxassetid://109608018268838, hw-map's re-rendered card. It replaces 121098110131668 and is the same id as the merged skin's Thumb. hw-map's lane file says it was sent to core; no message reached me, so I took it from their 3a111dca merge.
+  - Lint OK, 1,477 tests.
+  - Studio on halloween 3a111dca (the Pitchfork's skin in): 600 Candy now grants step 4. Given 1-4; HwTrack 500 [PitchforkCue] and 5_Cue500 fire; "New in your Index: Pitchfork Cue!". The hold released as designed (Catalog.ready).
+  - The 500 node shows the new card, ticked; console clean.
 - 21:05 hw-core: **READY @HEAD** 69622deb: Art.HalloweenSwordCue = rbxassetid://121167927707840 (cues-a's pop pass: proportion fix, lavender halo, brighter glow; replaces 77260527077254, the same id as their skin's Thumb). Lint OK, 1,477 tests; Studio: the 7,000 node shows the new sword, loaded, and it now reads clearly on the dark top tile (the 20:50 look note is answered); console clean.
 - 20:50 hw-core: **READY @HEAD** 248f67f4: Art.HalloweenSwordCue = rbxassetid://77260527077254 (cues-a's thumbnail, the same id as its skin's Thumb). Lint OK, 1,477 tests; Studio: the event menu's track shows the sword on the 7,000 node (HwNode11, loaded), console clean. Every track cue now has its card. Look note (not changed): the purple sword on the dark purple top tile reads faint next to the other cards.
 - 20:35 hw-core: **READY @HEAD** 8317597d: Art.PitchforkCue = rbxassetid://121098110131668 (hw-map's card, the whole pitchfork face-on). Lint OK, 1,477 tests; Studio: the image fetches (AssetFetchStatus.Success) and the event menu's track shows the red pitchfork on the 500 node (HwNode4), console clean. Art.HalloweenSwordCue stays "" until cues-a's thumbnail.
