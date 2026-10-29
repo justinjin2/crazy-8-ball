@@ -732,7 +732,6 @@ return {
 			-- Halloween 2026 (docs/halloween/PLAN.md §3)
 			JackOLanternCue = "Jack-o'-Lantern Cue",
 			PitchforkCue = "Pitchfork Cue",
-			SpiderCue = "Spider Cue",
 			WitchBroomCue = "Witch's Broom",
 			HalloweenSwordCue = "Halloween Sword",
 		},

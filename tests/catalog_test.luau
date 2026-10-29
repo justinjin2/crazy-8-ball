@@ -145,12 +145,12 @@ return {
 		)
 
 		local all = Catalog.list()
-		-- 46 block cues, Classic, 10 rank cues, VIP and Starter, 2 Unique, 5 Halloween 2026.
-		H.expect(#all == 46 + 1 + 12 + 2 + 5, ("%d cues in all, expected 66"):format(#all))
+		-- 46 block cues, Classic, 10 rank cues, VIP and Starter, 2 Unique, 4 Halloween 2026.
+		H.expect(#all == 46 + 1 + 12 + 2 + 4, ("%d cues in all, expected 65"):format(#all))
 		H.expect(Catalog.get("WeekOneCue") == nil, "the Week One Cue is gone (economy v6)")
 	end,
 
-	["the five Halloween 2026 cues: shown Unique, never traded or sold, hidden until built, drawn as Classic meanwhile"] = function()
+	["the four Halloween 2026 cues: shown Unique, never traded or sold, hidden until built, drawn as Classic meanwhile"] = function()
 		local Catalog, _, Strings = load()
 		local CueSkins = H.require("CueSkins")
 		-- PLAN §3: id, Effect (the visual ladder level).
@@ -158,7 +158,6 @@ return {
 			{ "JackOLanternCue", "Legendary" },
 			{ "PitchforkCue", "Legendary" },
 			{ "WitchBroomCue", "Secret" },
-			{ "SpiderCue", "Mythic" },
 			{ "HalloweenSwordCue", "Secret" },
 		}
 		local ready = 0
@@ -207,7 +206,9 @@ return {
 				H.expect(Catalog.exists(cue.Id), cue.Id .. " exists")
 			end
 		end
-		H.expect(listed == 5, "all five in list()")
+		H.expect(listed == 4, "all four in list()")
+		-- The Spider is removed (designer, 2026-10-29: it never went live).
+		H.expect(Catalog.get("SpiderCue") == nil, "the Spider Cue is gone")
 		-- Every cue that is not an event cue is ready; unknown ids never are.
 		H.expect(
 			Catalog.ready("Classic") and Catalog.ready("EclipseCue"),

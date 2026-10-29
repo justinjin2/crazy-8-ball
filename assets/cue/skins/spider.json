@@ -3,8 +3,8 @@
   "name": "Spider Cue",
   "tier": "Mythic",
   "catalog_id": "SpiderCue",
-  "draft": false,
-  "note": "Halloween 2026 (lane Cues B, brief 2.6, concept C1_spider.jpg / C1b_spider.png), fourth build 2026-10-28 (Justin 18:45: redone to the concept): a glossy black shaft with red angular chevron bands spiralling up it and silk strung along it, a red crystal spear tip, a red hourglass gem at the collar, eight curved black leg-blades with red edges rooted at the end and sweeping forward round the butt behind the grip hand with silver silk between them, a rounded butt cap studded with glowing red eyes; red smoke and embers, silk webs. The silhouette is the crown of eight leg-blades (the reference itself); no crawling creatures. | v2 (20:40, Justin rejected v13; the target is C1b_spider.png): black chrome, silver edges, white webs, black smoke; red only on the hourglass.",
+  "draft": true,
+  "note": "REMOVED from the Halloween 2026 release (designer 2026-10-29 05:30: the Spider is removed entirely; it never went live): kept as a draft so the generator leaves it out (no skin row, no pieces, no Catalog row) while its files stay for a later event. Halloween 2026 (lane Cues B, brief 2.6, concept C1_spider.jpg / C1b_spider.png), fourth build 2026-10-28 (Justin 18:45: redone to the concept): a glossy black shaft with red angular chevron bands spiralling up it and silk strung along it, a red crystal spear tip, a red hourglass gem at the collar, eight curved black leg-blades with red edges rooted at the end and sweeping forward round the butt behind the grip hand with silver silk between them, a rounded butt cap studded with glowing red eyes; red smoke and embers, silk webs. The silhouette is the crown of eight leg-blades (the reference itself); no crawling creatures. | v2 (20:40, Justin rejected v13; the target is C1b_spider.png): black chrome, silver edges, white webs, black smoke; red only on the hourglass.",
   "body": "spider",
   "maps_from": "classic",
   "look": {
