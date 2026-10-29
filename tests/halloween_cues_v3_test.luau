@@ -4,9 +4,9 @@
 -- Jack-o'-Lantern's finisher laugh is quiet and heard only near the table, its rising head
 -- has no circling mini jacks; the Witch's Broom's finisher has nothing ring-like (the Beta
 -- cue's look: ring decals, a flat swirl disc, the gust's ribbons, rings turning round the
--- pocket) and its witch flies alone (no moon) on a 64-frame flipbook; its bristle head is short
--- enough not to stab the floor from a normal character's back. Read from the generated skin and
--- piece rows.
+-- pocket), and since v4 (designer 2026-10-29) no 2D animated witch either, its stars only; its
+-- bristle head is short enough not to stab the floor from a normal character's back. Read from
+-- the generated skin and piece rows.
 
 local H = require("./harness")
 
@@ -115,23 +115,23 @@ return {
 		end
 	end,
 
-	["the Broom's witch flies alone on a smooth flipbook"] = function()
+	["the Broom's finisher has no witch picture, only its stars"] = function()
 		local CueSkins = H.require("CueSkins")
 		local row = CueSkins.get("WitchBroomCue")
-		local witch = nil
+		-- vfx/witch_broom/witch_fly_8x8.png, v3's 64-frame flying witch
+		local WITCH_FLY = "rbxassetid://124879285784866"
+		local names = {}
 		for _, layer in row.Pocket.Layers do
-			H.expect(layer.Name ~= "WitchMoon", "the witch-and-moon layer is gone")
-			if layer.Name == "Witch" then
-				witch = layer
-			end
+			names[layer.Name] = true
+			H.expect(layer.Texture ~= WITCH_FLY, layer.Name .. ": the 2D animated witch is back")
 		end
-		H.expect(witch ~= nil, "the witch layer")
-		H.expect(witch.FlipbookLayout == "Grid8x8", "64 frames")
-		H.expect(witch.FlipbookMode == "OneShot", "one fly-by a burst")
-		H.expect(witch.Lifetime[2] <= 1.3, "a fast fly-by (at most 1.3 s)")
+		H.expect(names.Witch == nil and names.WitchMoon == nil, "the witch layers are gone")
+		for _, star in { "StarFountain", "Sparkles", "Twinkles", "StarBurst", "StarRain" } do
+			H.expect(names[star] == true, "the star layer " .. star .. " stays")
+		end
 		H.expect(
-			type(witch.Texture) == "string" and witch.Texture:sub(1, 13) == "rbxassetid://",
-			"an uploaded flipbook"
+			row.Pocket.Piece ~= nil and row.Pocket.Piece.Piece == "witch_broom_stars",
+			"the witch's-hat constellation stays"
 		)
 	end,
 
