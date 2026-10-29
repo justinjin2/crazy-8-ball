@@ -272,7 +272,7 @@ return {
 				Texture = "rbxassetid://138665035996966",
 				Host = {
 					Kind = "Attachment",
-					AtStuds = 6.47,
+					AtStuds = 4.95,
 				},
 				Rate = 3,
 				Lifetime = { 0.5, 0.8 },
@@ -330,7 +330,7 @@ return {
 				Texture = "rbxassetid://78860393208560",
 				Host = {
 					Kind = "Attachment",
-					AtStuds = 7.6,
+					AtStuds = 7.92,
 				},
 				Rate = 2,
 				Lifetime = { 1.2, 1.6 },
@@ -467,7 +467,7 @@ return {
 			{
 				Name = "SilkHalo",
 				FromStuds = 0,
-				ToStuds = 7.3,
+				ToStuds = 8,
 				Width0 = 0.4,
 				Width1 = 0.8,
 				Segments = 20,
@@ -524,7 +524,7 @@ return {
 			{
 				Name = "Silk2",
 				FromStuds = 2,
-				ToStuds = 4.8,
+				ToStuds = 5.9,
 				Width0 = 0.18,
 				Width1 = 0.18,
 				Segments = 12,
@@ -553,7 +553,7 @@ return {
 			{
 				Name = "Silk3",
 				FromStuds = 4.2,
-				ToStuds = 7.1,
+				ToStuds = 7.95,
 				Width0 = 0.18,
 				Width1 = 0.18,
 				Segments = 12,
@@ -582,7 +582,7 @@ return {
 			{
 				Name = "Silk4",
 				FromStuds = 1,
-				ToStuds = 6.9,
+				ToStuds = 6.86,
 				Width0 = 0.18,
 				Width1 = 0.18,
 				Segments = 12,
@@ -659,7 +659,7 @@ return {
 				},
 			},
 			{
-				AtStuds = 6.47,
+				AtStuds = 4.95,
 				Color = "#C8102E",
 				Brightness = 0.3,
 				Range = 5,

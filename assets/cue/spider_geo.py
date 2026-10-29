@@ -227,7 +227,7 @@ def crescent(mb, O, I, phi, scale=1.0, wref=0.075, thick=1.0, fuller=0.04, curl=
             row.append(e1)
             cols.append(row)
         stations.append((cols[0], cols[1]))
-    mats = [SV, SV, CH, SV, CH, CH, CH]   # silver on the OUTER edge's bevels and the fuller only (v2f)
+    mats = [SV, SV, CH, CH, CH, CH, CH]   # silver on the OUTER edge's bevels only; no fuller line (v2g: a midrib made the blades read as leaves)
     for k in range(len(stations) - 1):
         for side in (0, 1):
             A, B = stations[k][side], stations[k + 1][side]

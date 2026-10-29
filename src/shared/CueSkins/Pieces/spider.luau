@@ -5,9 +5,9 @@
 return {
 	Id = "spider",
 	Frame = "cue",
-	Rigid = "95247110765311",
+	Rigid = "138983963223051",
 	Models = {
-		Crown = "122731260768808",
+		Crown = "132045699421617",
 	},
 	Parts = {
 		{
@@ -37,8 +37,8 @@ return {
 				"Blade7",
 				"Blade8",
 			},
-			Offset = { 0, 0, -3.41 },
-			Size = { 2.12, 2.12, 2.42 },
+			Offset = { 0, 0, -3.465 },
+			Size = { 2.18, 2.18, 2.03 },
 			Smooth = true,
 			Model = "Crown",
 		},
@@ -70,7 +70,7 @@ return {
 				"Blade8",
 			},
 			Offset = { 0, 0, -2.025 },
-			Size = { 0.9617, 0.9617, 0.95 },
+			Size = { 1.0041, 1.0041, 0.75 },
 			Smooth = true,
 			Model = "Crown",
 		},
@@ -88,8 +88,8 @@ return {
 			},
 			Name = "Body_Body",
 			Joint = "Body",
-			Offset = { 0, 0, -0.06 },
-			Size = { 0.412, 0.412, 7.12 },
+			Offset = { 0, 0, -0.09 },
+			Size = { 0.412, 0.412, 7.18 },
 			Smooth = true,
 		},
 		{
@@ -173,7 +173,7 @@ return {
 		},
 		Blade1 = {
 			Parent = "Crown",
-			PivotRoblox = { -0, -0.18, -3.2 },
+			PivotRoblox = { -0, -0.18, -3.42 },
 			Motion = {
 				{
 					Kind = "Hinge",
@@ -186,7 +186,7 @@ return {
 		},
 		Blade2 = {
 			Parent = "Crown",
-			PivotRoblox = { -0.1273, -0.1273, -2.2 },
+			PivotRoblox = { -0.1273, -0.1273, -2.45 },
 			Motion = {
 				{
 					Kind = "Hinge",
@@ -199,7 +199,7 @@ return {
 		},
 		Blade3 = {
 			Parent = "Crown",
-			PivotRoblox = { -0.18, -0, -3.2 },
+			PivotRoblox = { -0.18, -0, -3.42 },
 			Motion = {
 				{
 					Kind = "Hinge",
@@ -212,7 +212,7 @@ return {
 		},
 		Blade4 = {
 			Parent = "Crown",
-			PivotRoblox = { -0.1273, 0.1273, -2.2 },
+			PivotRoblox = { -0.1273, 0.1273, -2.45 },
 			Motion = {
 				{
 					Kind = "Hinge",
@@ -225,7 +225,7 @@ return {
 		},
 		Blade5 = {
 			Parent = "Crown",
-			PivotRoblox = { -0, 0.18, -3.2 },
+			PivotRoblox = { -0, 0.18, -3.42 },
 			Motion = {
 				{
 					Kind = "Hinge",
@@ -238,7 +238,7 @@ return {
 		},
 		Blade6 = {
 			Parent = "Crown",
-			PivotRoblox = { 0.1273, 0.1273, -2.2 },
+			PivotRoblox = { 0.1273, 0.1273, -2.45 },
 			Motion = {
 				{
 					Kind = "Hinge",
@@ -251,7 +251,7 @@ return {
 		},
 		Blade7 = {
 			Parent = "Crown",
-			PivotRoblox = { 0.18, 0, -3.2 },
+			PivotRoblox = { 0.18, 0, -3.42 },
 			Motion = {
 				{
 					Kind = "Hinge",
@@ -264,7 +264,7 @@ return {
 		},
 		Blade8 = {
 			Parent = "Crown",
-			PivotRoblox = { 0.1273, -0.1273, -2.2 },
+			PivotRoblox = { 0.1273, -0.1273, -2.45 },
 			Motion = {
 				{
 					Kind = "Hinge",
