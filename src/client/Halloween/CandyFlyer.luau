@@ -215,7 +215,7 @@ local function build(chip: Chip)
 		textPx,
 		(Enum.Font :: any)[Config.UI.Kit.Font],
 		Vector2.new(10000, 1000)
-	).X + 6
+	).X + C.TextPadPx
 	local frame = takeFrame()
 	chip.frame = frame
 	frame.Size = UDim2.fromOffset(height + textW, height)

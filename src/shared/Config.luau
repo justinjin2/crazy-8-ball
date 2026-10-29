@@ -10380,6 +10380,7 @@ Config.UI.CandyFlyer = {
 	ShortChipHeightPx = 24, -- a phone
 	TextPx = 24,
 	ShortTextPx = 19,
+	TextPadPx = 6, -- added to the words' measured width (the cash chip's)
 	Tint = { 255, 150, 40 }, -- the Candy orange (the boost pill's Candy line)
 	FollowSeconds = 0.12, -- after the pot's cash chip
 	BelowShare = 1.1, -- starts this many chip heights under the pocket (under the cash)
