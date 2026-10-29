@@ -1552,12 +1552,12 @@ SPIDER_COLLAR = ((4.74, None, 0), (4.77, 0.190, 1), (4.80, 0.205, 0), (4.86, 0.2
 SPIDER_GEM = (4.95, 0.19)             # the bezel band's centre and radius
 SPIDER_GEM_ANGLES = (math.pi / 2, math.pi / 2 + 2 * math.pi / 3, math.pi / 2 - 2 * math.pi / 3)   # top, two lower sides
 # the crown (Aim fade, past the butt on the Aim room's 1.1): the teardrop hub (d, r), the
-# stacked-ring socket (d, r, band material), the dome (centre d, radius; pole at 8.38, Aim cap 8.5).
+# stacked-ring socket (d, r, band material), the dome (centre d, radius; pole at 8.22, Aim cap 8.5).
 # The hub starts past 6.9 so its first 0.1 slice sits outside the CLEAR zone (its cap centre is on the axis).
 SPIDER_HUB = ((6.94, 0.195), (7.00, 0.270), (7.12, 0.350), (7.26, 0.420), (7.40, 0.465), (7.52, 0.485), (7.60, 0.490))
-SPIDER_SOCKET = ((7.60, 0.490, 1), (7.65, 0.530, 1), (7.74, 0.530, 0), (7.77, 0.490, 1), (7.83, 0.490, 0),
-                 (7.86, 0.520, 1), (7.92, 0.520, 0), (7.95, 0.470, 1), (7.99, 0.440, 0), (8.02, 0.410, 0))
-SPIDER_DOME = (7.98, 0.40)
+SPIDER_SOCKET = ((7.60, 0.490, 1), (7.64, 0.500, 0), (7.70, 0.460, 1), (7.74, 0.420, 0), (7.80, 0.420, 1),
+                 (7.83, 0.380, 0), (7.89, 0.380, 1), (7.92, 0.340, 0), (7.96, 0.320, 0), (7.99, 0.310, 0))
+SPIDER_DOME = (7.92, 0.30)            # v2f (coordinator 21:5x): smaller, the blades dominate; pole at 8.22
 
 
 def _spider_atlas(k):
@@ -1633,7 +1633,7 @@ def _spider_atlas(k):
     U, V = A.grid('BLACK')
     bcol = _lerp(black, black_light, 0.35 * _fbm(U, V, 3.0, octaves=2, seed=71))
     streak = np.exp(-((U - 0.32) ** 2) / (2 * 0.07 ** 2))
-    bcol = _lerp(bcol, grey, 0.5 * streak)
+    bcol = _lerp(bcol, grey, 0.12 * streak)   # v2f: faint, the blades stay black chrome
     A.paint('BLACK', bcol, height=np.zeros_like(U), emissive=np.zeros_like(U), bump=0.6)
     U, V = A.grid('SILVER')
     scol = _lerp(_lerp(_rgb('#5A6070'), _rgb('#B4BAC6'), U), bright, np.clip((U - 0.82) * 5.0, 0, 1))
@@ -1661,12 +1661,12 @@ SPIDER_TIERS = {
     # butt; the middle tier (the diagonals) and the small spurs ahead of it sit over the grip
     # inside the hand's reach, as the concept has them (CLEAR: thin sheets on their radial
     # planes, the owner never sees them at aim).
-    'rear': (((6.55, 0.16), (6.62, 0.26), (6.78, 0.46), (6.98, 0.64), (7.25, 0.80), (7.55, 0.90), (7.80, 0.93), (8.00, 0.90), (8.14, 0.83)),
-             ((6.55, 0.16), (6.62, 0.19), (6.78, 0.27), (6.98, 0.37), (7.25, 0.50), (7.55, 0.65), (7.80, 0.79), (8.00, 0.86), (8.14, 0.83))),
-    'mid': (((5.65, 0.16), (5.72, 0.25), (5.88, 0.43), (6.08, 0.59), (6.33, 0.73), (6.60, 0.82), (6.84, 0.86), (7.02, 0.84), (7.16, 0.77)),
-            ((5.65, 0.16), (5.72, 0.18), (5.88, 0.26), (6.08, 0.35), (6.33, 0.46), (6.60, 0.59), (6.84, 0.72), (7.02, 0.80), (7.16, 0.77))),
-    'spur': (((5.05, 0.16), (5.11, 0.22), (5.24, 0.35), (5.40, 0.47), (5.60, 0.56), (5.80, 0.60), (5.95, 0.58), (6.05, 0.53)),
-             ((5.05, 0.16), (5.11, 0.17), (5.24, 0.23), (5.40, 0.31), (5.60, 0.41), (5.80, 0.51), (5.95, 0.56), (6.05, 0.53))),
+    'rear': (((6.70, 0.16), (6.78, 0.32), (6.96, 0.57), (7.18, 0.76), (7.44, 0.90), (7.70, 0.97), (7.92, 0.97), (8.04, 0.94), (8.12, 1.06)),
+             ((6.70, 0.16), (6.78, 0.19), (6.96, 0.27), (7.18, 0.38), (7.44, 0.52), (7.70, 0.68), (7.92, 0.82), (8.04, 0.90), (8.12, 1.06))),
+    'mid': (((5.70, 0.16), (5.78, 0.30), (5.96, 0.52), (6.18, 0.69), (6.44, 0.81), (6.68, 0.87), (6.86, 0.87), (6.98, 0.85), (7.06, 0.96)),
+            ((5.70, 0.16), (5.78, 0.18), (5.96, 0.25), (6.18, 0.35), (6.44, 0.47), (6.68, 0.62), (6.86, 0.74), (6.98, 0.82), (7.06, 0.96))),
+    'spur': (((5.05, 0.16), (5.11, 0.24), (5.26, 0.40), (5.44, 0.52), (5.64, 0.59), (5.80, 0.60), (5.92, 0.58), (6.00, 0.68)),
+             ((5.05, 0.16), (5.11, 0.17), (5.26, 0.22), (5.44, 0.30), (5.64, 0.40), (5.80, 0.50), (5.92, 0.56), (6.00, 0.68))),
 }
 
 
@@ -1830,8 +1830,8 @@ def spider(k):
     def beads(bm, uvl):
         for i in range(SPIDER_BLADES):
             a = phis[i] + math.pi / 8
-            c = Vector((0.455 * math.cos(a), -7.99, 0.455 * math.sin(a)))
-            ret = bmesh.ops.create_uvsphere(bm, u_segments=6, v_segments=4, radius=0.035,
+            c = Vector((0.345 * math.cos(a), -7.95, 0.345 * math.sin(a)))
+            ret = bmesh.ops.create_uvsphere(bm, u_segments=6, v_segments=4, radius=0.03,
                                             matrix=Matrix.Translation(c))
             faces = {f for v in ret['verts'] for f in v.link_faces}
             for f in faces:
@@ -1843,7 +1843,7 @@ def spider(k):
     k.joint('Emblem', pivot=(0, -(dome_d + dome_r), 0), parent='Crown',
             visual=[{'Kind': 'Glow', 'Min': 0.0, 'Max': 0.6, 'Period': 1.7, 'Color': '#FF9AA0'}])
     mb = SG.MB()
-    SG.hourglass(mb, SG.dome_map(-dome_d, dome_r), 0.26, 0.14, 0.008, 0.018, 0.011)
+    SG.hourglass(mb, SG.dome_map(-dome_d, dome_r), 0.22, 0.12, 0.007, 0.016, 0.010)   # clearly red on the end face
     k.add('Emblem', geo('Emblem', mb, mats=('Red',), textured=False, smooth=False, split=None))
 
     # the blades: D's faceted crescent (razor edge, silver bevels, black face, silver fuller)

@@ -194,7 +194,7 @@ def crescent(mb, O, I, phi, scale=1.0, wref=0.075, thick=1.0, fuller=0.04, curl=
     forward hook; a station whose two edges meet is a point (the horn and the hook tips).
     The cross-section is faceted so the chrome throws crisp lines: razor edge -> steep silver
     bevel -> second silver bevel -> black face -> a silver fuller strip over the centre ridge ->
-    face -> bevels -> edge. curl: a tangential sweep of the sheet, curl * (r - curl_r0)^2."""
+    face -> black bevels -> inner edge (C1b: black chrome, silver only on the outer edge). curl: a tangential sweep of the sheet, curl * (r - curl_r0)^2."""
     d1, d2 = 0.0055 * scale, 0.018 * scale
     h1, h2, hr = 0.0100 * scale * thick, 0.0165 * scale * thick, 0.0215 * scale * thick
     O = [Vector(p) for p in O]
@@ -227,7 +227,7 @@ def crescent(mb, O, I, phi, scale=1.0, wref=0.075, thick=1.0, fuller=0.04, curl=
             row.append(e1)
             cols.append(row)
         stations.append((cols[0], cols[1]))
-    mats = [SV, SV, CH, SV, CH, SV, SV]
+    mats = [SV, SV, CH, SV, CH, CH, CH]   # silver on the OUTER edge's bevels and the fuller only (v2f)
     for k in range(len(stations) - 1):
         for side in (0, 1):
             A, B = stations[k][side], stations[k + 1][side]

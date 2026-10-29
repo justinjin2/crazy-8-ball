@@ -22,6 +22,30 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
   `Index.luau`, `Textures.luau` (regenerate after every merge conflict there).
 
 ## Status
+- 22:54 **Spider v2f: the C1b colour pass, then HOLD** (coordinator 22:2x, four points; HOLD at
+  22:49). Built, uploaded and lab-checked in my window, committed, NOT READY (the hold).
+  1. Blades black chrome: the BLACK swatch's angle-keyed specular streak cut from 0.5 to 0.12
+     (it was greying whole blades, since a blade's facets share one atlas u); silver only on
+     the outer edge's two bevel bands and the fuller strip (crescent mats SV,SV,CH,SV,CH,CH,CH).
+  2. Blade body: broader crescents (D's chord), the rear tier the longest (root d 6.70, tip
+     8.12 at r 1.06), mid (5.70 to 7.06, r 0.96), spur the shortest (5.05 to 6.00, r 0.68);
+     each tip a hooked point that turns outward-back (the last chain segment near-radial, the
+     inner edge meeting it). In the side render the hook is there but small: the crescents
+     still read longer and leafier than ref_side's short barbs. If that is the next note, it
+     is a SPIDER_TIERS table change (shorter chords, a stronger last-segment turn).
+  3. Dome back to r 0.30 at d 7.92 in a slimmer stacked socket (0.49 to 0.31), the eight
+     beads at r 0.345 (radius 0.03), the hourglass 0.22 x 0.12 red on the end face.
+  4. Everything else kept (hub petals, collar hex bezels + gems, ferrule, chevron shaft,
+     spine ridges, SpiderCrownInGrip exception). 6 parts, 9,708 triangles, envelope OK.
+  Uploads (before the hold arrived): spider_parts.glb 95247110765311, Crown.glb
+  122731260768808, atlas_color.png 136498534837826 (image 90648310244873; normal + emissive
+  unchanged). `src/shared/CueSkins/Pieces/spider.luau` regenerated. Lint OK, 1477 tests pass.
+  Lab (my window, templates rebuilt ONLY SpiderCue; Crown model = Blades, Spurs, RootPart):
+  `gate2/spider_v2f_crown_lab.jpg` (black blades with silver edges, silver outline, dome +
+  red hourglass; the back carrier's crown shows too). Compare for judging:
+  `gate2/spider_v2f_compare.jpg` (TARGET, ref_side, cand_D side, v2f side / 3-4 / crown).
+  NOT done (held): stand/back/hand-at-aim shots, the aura's silk beams on the new tips, the
+  origin/halloween merge (Black Cat removal hunks), READY. Waiting for the coordinator.
 - 21:46 **Spider v2e: candidate D in the compact frame (coordinator 21:3x, option B).** Built,
   uploaded, in my lab; session cut by the usage limit right after the stand capture. The judged
   mesh's kit (D's faceted crescent with silver bevels and a fuller strip, petal root plates,

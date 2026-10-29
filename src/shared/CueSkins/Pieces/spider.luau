@@ -5,9 +5,9 @@
 return {
 	Id = "spider",
 	Frame = "cue",
-	Rigid = "78705204807430",
+	Rigid = "95247110765311",
 	Models = {
-		Crown = "135800150443063",
+		Crown = "122731260768808",
 	},
 	Parts = {
 		{
@@ -16,7 +16,7 @@ return {
 			Transparency = 0,
 			Reflectance = 0.06,
 			SurfaceAppearance = {
-				ColorMap = "rbxassetid://124630570825061",
+				ColorMap = "rbxassetid://90648310244873",
 				NormalMap = "rbxassetid://106107774148591",
 				EmissiveMask = "rbxassetid://106850133991111",
 				EmissiveTint = "#F2F5FA",
@@ -37,8 +37,8 @@ return {
 				"Blade7",
 				"Blade8",
 			},
-			Offset = { 0, 0, -3.395 },
-			Size = { 1.86, 1.86, 2.49 },
+			Offset = { 0, 0, -3.41 },
+			Size = { 2.12, 2.12, 2.42 },
 			Smooth = true,
 			Model = "Crown",
 		},
@@ -48,7 +48,7 @@ return {
 			Transparency = 0,
 			Reflectance = 0.06,
 			SurfaceAppearance = {
-				ColorMap = "rbxassetid://124630570825061",
+				ColorMap = "rbxassetid://90648310244873",
 				NormalMap = "rbxassetid://106107774148591",
 				EmissiveMask = "rbxassetid://106850133991111",
 				EmissiveTint = "#F2F5FA",
@@ -69,8 +69,8 @@ return {
 				"Blade7",
 				"Blade8",
 			},
-			Offset = { 0, 0, -2.05 },
-			Size = { 0.8619, 0.8619, 1 },
+			Offset = { 0, 0, -2.025 },
+			Size = { 0.9617, 0.9617, 0.95 },
 			Smooth = true,
 			Model = "Crown",
 		},
@@ -80,7 +80,7 @@ return {
 			Transparency = 0,
 			Reflectance = 0.06,
 			SurfaceAppearance = {
-				ColorMap = "rbxassetid://124630570825061",
+				ColorMap = "rbxassetid://90648310244873",
 				NormalMap = "rbxassetid://106107774148591",
 				EmissiveMask = "rbxassetid://106850133991111",
 				EmissiveTint = "#F2F5FA",
@@ -88,8 +88,8 @@ return {
 			},
 			Name = "Body_Body",
 			Joint = "Body",
-			Offset = { 0, 0, 0.015 },
-			Size = { 0.412, 0.412, 6.97 },
+			Offset = { 0, 0, -0.06 },
+			Size = { 0.412, 0.412, 7.12 },
 			Smooth = true,
 		},
 		{
@@ -108,7 +108,7 @@ return {
 			Transparency = 0,
 			Reflectance = 0.06,
 			SurfaceAppearance = {
-				ColorMap = "rbxassetid://124630570825061",
+				ColorMap = "rbxassetid://90648310244873",
 				NormalMap = "rbxassetid://106107774148591",
 				EmissiveMask = "rbxassetid://106850133991111",
 				EmissiveTint = "#F2F5FA",
@@ -116,8 +116,8 @@ return {
 			},
 			Name = "Crown_Body",
 			Joint = "Crown",
-			Offset = { 0, 0, -4.1589 },
-			Size = { 1.06, 1.06, 1.4378 },
+			Offset = { 0, 0, -4.0792 },
+			Size = { 1.043, 1.043, 1.2784 },
 			Smooth = true,
 		},
 		{
@@ -127,8 +127,8 @@ return {
 			Reflectance = 0,
 			Name = "Emblem_Red",
 			Joint = "Emblem",
-			Offset = { 0, 0, -4.8694 },
-			Size = { 0.139, 0.258, 0.0408 },
+			Offset = { 0, 0, -4.7093 },
+			Size = { 0.1188, 0.2178, 0.039 },
 		},
 	},
 	Joints = {
@@ -159,7 +159,7 @@ return {
 		},
 		Emblem = {
 			Parent = "Crown",
-			PivotRoblox = { 0, 0, -4.88 },
+			PivotRoblox = { 0, 0, -4.72 },
 			Motion = {},
 			Visual = {
 				{
@@ -173,7 +173,7 @@ return {
 		},
 		Blade1 = {
 			Parent = "Crown",
-			PivotRoblox = { -0, -0.18, -3.05 },
+			PivotRoblox = { -0, -0.18, -3.2 },
 			Motion = {
 				{
 					Kind = "Hinge",
@@ -186,7 +186,7 @@ return {
 		},
 		Blade2 = {
 			Parent = "Crown",
-			PivotRoblox = { -0.1273, -0.1273, -2.15 },
+			PivotRoblox = { -0.1273, -0.1273, -2.2 },
 			Motion = {
 				{
 					Kind = "Hinge",
@@ -199,7 +199,7 @@ return {
 		},
 		Blade3 = {
 			Parent = "Crown",
-			PivotRoblox = { -0.18, -0, -3.05 },
+			PivotRoblox = { -0.18, -0, -3.2 },
 			Motion = {
 				{
 					Kind = "Hinge",
@@ -212,7 +212,7 @@ return {
 		},
 		Blade4 = {
 			Parent = "Crown",
-			PivotRoblox = { -0.1273, 0.1273, -2.15 },
+			PivotRoblox = { -0.1273, 0.1273, -2.2 },
 			Motion = {
 				{
 					Kind = "Hinge",
@@ -225,7 +225,7 @@ return {
 		},
 		Blade5 = {
 			Parent = "Crown",
-			PivotRoblox = { -0, 0.18, -3.05 },
+			PivotRoblox = { -0, 0.18, -3.2 },
 			Motion = {
 				{
 					Kind = "Hinge",
@@ -238,7 +238,7 @@ return {
 		},
 		Blade6 = {
 			Parent = "Crown",
-			PivotRoblox = { 0.1273, 0.1273, -2.15 },
+			PivotRoblox = { 0.1273, 0.1273, -2.2 },
 			Motion = {
 				{
 					Kind = "Hinge",
@@ -251,7 +251,7 @@ return {
 		},
 		Blade7 = {
 			Parent = "Crown",
-			PivotRoblox = { 0.18, 0, -3.05 },
+			PivotRoblox = { 0.18, 0, -3.2 },
 			Motion = {
 				{
 					Kind = "Hinge",
@@ -264,7 +264,7 @@ return {
 		},
 		Blade8 = {
 			Parent = "Crown",
-			PivotRoblox = { 0.1273, -0.1273, -2.15 },
+			PivotRoblox = { 0.1273, -0.1273, -2.2 },
 			Motion = {
 				{
 					Kind = "Hinge",
