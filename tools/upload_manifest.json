@@ -626,10 +626,21 @@
     "assetType": "Model",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball-hw-map/assets/cue/pieces/pitchfork/pitchfork_parts.glb": {
+    "assetId": "128205977328929",
+    "assetType": "Model",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball-hw-map/assets/cue/thumbs/bone.png": {
     "assetId": "137357376268612",
     "assetType": "Decal",
     "imageId": "131967740072541",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-map/assets/cue/thumbs/pitchfork.png": {
+    "assetId": "103149636237619",
+    "assetType": "Decal",
+    "imageId": "121098110131668",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball-hw-map/assets/cue/vfx/bone/bone_512.png": {
@@ -654,6 +665,18 @@
     "assetId": "130907496602792",
     "assetType": "Decal",
     "imageId": "70582963869082",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-map/assets/cue/vfx/pitchfork/flame_4x4.png": {
+    "assetId": "85340977331246",
+    "assetType": "Decal",
+    "imageId": "123290266051638",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-map/assets/cue/vfx/pitchfork/pitchfork_atlas.png": {
+    "assetId": "82327787563256",
+    "assetType": "Decal",
+    "imageId": "123262479656006",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball-refs/emotes/birdbrain_loop.flac": {

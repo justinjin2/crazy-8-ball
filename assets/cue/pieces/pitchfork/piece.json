@@ -1,0 +1,144 @@
+{
+  "id": "pitchfork",
+  "Frame": "cue",
+  "frame": "Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)",
+  "Triangles": 8442,
+  "Parts": [
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#FFFFFF",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "SurfaceAppearance": {
+        "ColorMap": "vfx/pitchfork/pitchfork_atlas.png"
+      },
+      "Name": "Body_Pitchfork",
+      "File": "pieces/pitchfork/Body_Pitchfork.obj",
+      "Joint": "Body",
+      "Offset": [
+        0.0,
+        0.0192,
+        -0.004
+      ],
+      "Size": [
+        0.496,
+        0.5343,
+        7.008
+      ],
+      "Triangles": 5164
+    },
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#FFFFFF",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "SurfaceAppearance": {
+        "ColorMap": "vfx/pitchfork/pitchfork_atlas.png"
+      },
+      "Name": "TailTip_Pitchfork",
+      "File": "pieces/pitchfork/TailTip_Pitchfork.obj",
+      "Joint": "TailTip",
+      "Offset": [
+        0.0251,
+        0.2544,
+        -0.4863
+      ],
+      "Size": [
+        0.2048,
+        0.2177,
+        0.3815
+      ],
+      "Triangles": 550
+    },
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#FFFFFF",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "SurfaceAppearance": {
+        "ColorMap": "vfx/pitchfork/pitchfork_atlas.png"
+      },
+      "Name": "Fork_Pitchfork",
+      "File": "pieces/pitchfork/Fork_Pitchfork.obj",
+      "Joint": "Fork",
+      "Offset": [
+        0.0,
+        0.0,
+        -4.2325
+      ],
+      "Size": [
+        1.5118,
+        0.8983,
+        1.495
+      ],
+      "Triangles": 2728
+    }
+  ],
+  "Joints": {
+    "Body": {
+      "Parent": null,
+      "Pivot": [
+        0,
+        -3.5,
+        0
+      ],
+      "PivotRoblox": [
+        0,
+        0,
+        0.0
+      ],
+      "Motion": []
+    },
+    "TailTip": {
+      "Parent": null,
+      "Pivot": [
+        0.0,
+        -3.799999952316284,
+        0.1812385618686676
+      ],
+      "PivotRoblox": [
+        -0.0,
+        0.1812,
+        -0.3
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0,
+            1,
+            0
+          ],
+          "Amp": 14.0,
+          "Period": 1.6
+        },
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            1,
+            0,
+            0
+          ],
+          "Amp": 5.0,
+          "Period": 2.3,
+          "Phase": 60
+        }
+      ]
+    },
+    "Fork": {
+      "Parent": null,
+      "Pivot": [
+        0.0,
+        -7.0,
+        0.0
+      ],
+      "PivotRoblox": [
+        -0.0,
+        0.0,
+        -3.5
+      ],
+      "Motion": [],
+      "Aim": "fade"
+    }
+  }
+}
