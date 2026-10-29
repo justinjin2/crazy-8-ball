@@ -10830,6 +10830,81 @@ Config.UI.Menu = {
 		TabRockDegrees = 6.9,
 		RockSeconds = 2.9,
 	},
+	-- A menu's own look over the lively frame (MenuFrame.new's `theme`, a key here; built by
+	-- MenuTheme, moved by MenuThemeMath). A menu with no theme keeps the house frame exactly as it
+	-- is: nothing here is read for it.
+	Themes = {
+		-- The Halloween event menu (designer, 2026-10-29: "give it more of a unique background like
+		-- purple themed ... like how the grand opening pill had a different unique background";
+		-- picked "Haunted night"): deep purple fading darker toward the bottom, a soft glowing moon
+		-- behind the header, a few small bats and faint stars drifting, an orange-glow edge; the
+		-- pink cards pop on it, same layout. The sky (moon, stars, bats) lies in the header band
+		-- behind the title and pills; the sheet is purple with its dots as faint lilac specks, an
+		-- orange edge and an orange glow inside it, and a soft orange halo round the panel.
+		-- Pictures: tools/gui/hw_night.py (assets/ui/halloween/Night*.png, Image assets). Motion:
+		-- one UIAnim loop from the panel's landing until the close (none while shut), at most
+		-- LowFps steps a second with Lower effects (and the Low counts); still with Reduce Motion.
+		-- Sizes are shares of the header row's height (a phone's 32 px, a computer's 44).
+		HauntedNight = {
+			Band = { { 78, 34, 146 }, { 40, 15, 82 } }, -- the panel behind the sheet (the header band), top to bottom
+			Sheet = { { 60, 24, 116 }, { 22, 8, 46 } }, -- the sheet, fading darker toward the bottom
+			SheetEdge = { 255, 140, 30 }, -- its thin edge (orange; the house one is light blue)
+			SheetEdgePx = 2,
+			HeaderTint = { 196, 168, 255 }, -- the header's scrolling 8-balls: faint lilac
+			HeaderTransparency = 0.88,
+			DotsTint = { 214, 196, 255 }, -- the sheet's still dots: faint lilac specks
+			DotsTransparency = 0.88,
+			Images = {
+				Moon = "rbxassetid://109161574830960", -- NightMoon.png 192 x 192 (the disc 48% of it, its glow baked in)
+				Bat = "rbxassetid://97602755308118", -- NightBat.png 96 x 48
+				Star = "rbxassetid://89751178304300", -- NightStar.png 32 x 32, white (tinted here)
+				Edge = "rbxassetid://77538782010794", -- NightEdge.png 96 x 96, the sheet's inner glow (9-sliced)
+			},
+			-- The moon: its middle X of the panel's width and Y of the header row down, its picture
+			-- OfHeader times the row's height; it breathes between Alpha (transparencies) over Seconds.
+			Moon = { X = 0.57, Y = 0.42, OfHeader = 2.4, Alpha = { 0, 0.14 }, Seconds = 5 },
+			-- The sheet's inner glow: the picture's 9-slice middle (its corners match the sheet's
+			-- 22 px curve at SliceScale 1), breathing between Alpha over Seconds.
+			Edge = { SliceCenter = { 40, 40, 56, 56 }, Alpha = { 0.1, 0.4 }, Seconds = 3.4 },
+			-- The halo round the panel (Kit.Art.SoftGlow, 9-sliced): Reach px past its outline,
+			-- breathing between Alpha over Seconds.
+			Halo = { Tint = { 255, 132, 24 }, ReachPx = 18, Alpha = { 0.35, 0.65 }, Seconds = 3.4 },
+			-- The bats cross the band (from off one side to off the other, every other one the other
+			-- way) in Seconds (each its own, from the range), Y of the band's height down, bobbing
+			-- BobShare of the row's height over BobSeconds and tilting Tilt degrees with it; their
+			-- wings beat (the picture's height from FlapLow to all of it) every Flap seconds. Width
+			-- OfHeader times the row's height. Margin: how far off the sides (of the band's width)
+			-- they turn back in.
+			Bats = {
+				Count = 3,
+				Low = 1,
+				OfHeader = { 0.72, 0.96 },
+				Seconds = { 22, 34 },
+				Y = { 0.22, 0.62 },
+				BobShare = 0.08,
+				BobSeconds = { 2.6, 3.6 },
+				Tilt = 7,
+				Flap = { 0.34, 0.46 },
+				FlapLow = 0.55,
+				Margin = 0.06,
+			},
+			-- Faint stars in the band, drifting left Drift band widths a second (fading out at the
+			-- sides, in again at the other), twinkling between Alpha (strongest, faintest
+			-- transparency) every Twinkle seconds, OfHeader of the row's height across.
+			Stars = {
+				Count = 8,
+				Low = 4,
+				OfHeader = { 0.18, 0.32 },
+				Y = { 0.12, 0.82 },
+				Drift = 0.004,
+				Twinkle = { 2.2, 3.8 },
+				Alpha = { 0.2, 0.85 },
+				EdgeShare = 0.05, -- the fade at each side, of the band's width
+				Tints = { "#FFFFFF", "#FFE7A6", "#D9C4FF" },
+			},
+			LowFps = 30, -- Lower effects: at most this many steps a second
+		},
+	},
 	-- The left column (reference 06): one tile each, top to bottom, each just its big icon
 	-- with no box behind it (designer, 2026-09-28). Keys name the menus (Menus.register) and
 	-- their words (Strings.Menus.Column) and icons (Kit.Icons).
@@ -17626,6 +17701,9 @@ Config.UI.Halloween = {
 	-- computer or a tablet shows it all, scaled to fit the panel; a phone shows the cue row whole
 	-- with the quests' header peeking, and the rest scrolls. At most Lively.MaxWidthShare wide.
 	Menu = {
+		-- The frame's own look (a Config.UI.Menu.Themes key; designer's pick "Haunted night",
+		-- 2026-10-29). "" = the house frame, as every other menu.
+		Theme = "HauntedNight",
 		-- The header's Candy and ENDS IN pills (between the title and the X).
 		PillOfHeader = 0.8, -- their height, of the header row's
 		PillTextShare = 0.62, -- their words, of the pill's height

@@ -250,7 +250,14 @@ type Pack = {
 --- Build the menu (closed) and register it with Menus.
 function EventMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 	local _ = deps
-	local frame = MenuFrame.new(screen, { name = NAME, title = W.Title, money = false })
+	-- The frame in its own look (Config.UI.Halloween.Menu.Theme: "Haunted night"; "" = the house
+	-- frame).
+	local frame = MenuFrame.new(screen, {
+		name = NAME,
+		title = W.Title,
+		money = false,
+		theme = if M.Theme ~= "" then M.Theme else nil,
+	})
 	-- The header's jack-o'-lantern.
 	local headerArt = if ART.Header ~= "" then ART.Header else H.CandyIcon
 	if headerArt ~= "" and frame.icon then

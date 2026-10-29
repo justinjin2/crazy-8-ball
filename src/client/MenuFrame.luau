@@ -41,6 +41,7 @@ local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local Format = require(Shared:WaitForChild("Progression"):WaitForChild("Format"))
 local HudParts = require(script.Parent.HudParts)
+local MenuTheme = require(script.Parent.MenuTheme)
 local Menus = require(script.Parent.Menus)
 local MoneyHud = require(script.Parent.MoneyHud)
 local Quality = require(script.Parent.Quality)
@@ -90,6 +91,9 @@ export type Options = {
 	-- A lively frame on a narrow computer or tablet never gets narrower than this (up to its
 	-- phone share): the Ranked screen's cards cut their words at 66% of an 800 px window.
 	minWidthPx: number?,
+	-- A lively frame's own look, a Config.UI.Menu.Themes key (MenuTheme; the Halloween menu's
+	-- "HauntedNight"). None: the house frame, exactly as every other menu's.
+	theme: string?,
 }
 
 -- The sizes of the last layout, for the pages (onLayout).
@@ -373,9 +377,11 @@ function MenuFrame.new(screen: ScreenGui, opts: Options): any
 	local menuConfig = (Config.UI :: any)[opts.name]
 	self.idles = {} :: { UIAnim.Handle }
 	self.stage = nil :: Stage.Stage?
+	self.theme = nil :: MenuTheme.Theme?
 	if HudParts.lively(opts.name) and type(menuConfig) == "table" and menuConfig.Open then
 		self.stage = Stage.new(menuConfig.Open)
 		self.band = HudParts.livelyCard(card)
+		self.theme = MenuTheme.apply(card, opts.theme)
 	end
 
 	-- The header: icon, title, (money), red X.
@@ -800,6 +806,9 @@ function MenuFrame.layout(self: any): boolean
 		tabRow.Visible = false
 	end
 	HudParts.setSheetTop(self.card, sheetTop)
+	if self.theme then
+		MenuTheme.layout(self.theme, w, sheetTop, pad, headerH)
+	end
 
 	-- The pages, on the sheet (inset from the panel's outline), padded inside it.
 	local inset = K.SheetInsetPx
@@ -1083,6 +1092,9 @@ function MenuFrame.stageFrame(self: any)
 	local L = Config.UI.Menu.Lively
 	stage:add("Panel", self.card, function()
 		self.content.Visible = true
+		if self.theme then
+			self:idle(MenuTheme.idle(self.theme)) -- the theme's sky moves until the close
+		end
 	end)
 	stage:add("Header", self.band)
 	stage:add("Basket", self.icon, function()

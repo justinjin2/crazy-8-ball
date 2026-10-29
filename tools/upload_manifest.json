@@ -6722,5 +6722,29 @@
     "assetType": "Image",
     "imageId": "87257680474573",
     "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/ui/halloween/NightMoon.png": {
+    "assetId": "109161574830960",
+    "assetType": "Image",
+    "imageId": "109161574830960",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/ui/halloween/NightBat.png": {
+    "assetId": "97602755308118",
+    "assetType": "Image",
+    "imageId": "97602755308118",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/ui/halloween/NightStar.png": {
+    "assetId": "89751178304300",
+    "assetType": "Image",
+    "imageId": "89751178304300",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/ui/halloween/NightEdge.png": {
+    "assetId": "77538782010794",
+    "assetType": "Image",
+    "imageId": "77538782010794",
+    "status": "ok"
   }
 }

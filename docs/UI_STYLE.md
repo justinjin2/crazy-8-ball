@@ -41,6 +41,15 @@ screen, a popup).
   8-balls scroll slowly up-left; the white sheet has the original tiny pool-ball dots, still;
   the tabs stand outside the right edge; an 8-ball flair is pinned on the left edge; a compact
   header (the title fills it, the X smaller than the money pill, a gold + on the money pill).
+- **A menu's own look** (designer, 2026-10-29, the Halloween event menu: "something unique
+  like how the grand opening pill had a different unique background"; pick "Haunted night"):
+  a lively menu may name a theme (`MenuFrame.new`'s `theme`, `Config.UI.Menu.Themes`, built by
+  `MenuTheme`); every other menu keeps the house frame exactly. Haunted night: the band and the
+  sheet deep purple (the sheet darker toward the bottom), the header's 8-balls and the dots
+  faint lilac, an orange sheet edge with an orange glow inside it and a soft orange halo round
+  the panel; in the header band, behind the title and pills, a soft glowing moon, faint stars
+  drifting and twinkling and a few small bats crossing (flat SVG art, `tools/gui/hw_night.py`).
+  The cards and the white boxes stay as they are and pop on it; same layout.
 - **Blur, never darken** (designer, 2026-10-06, after a reference; replaces the dims of
   2026-09-27/28): behind every menu, the Ranked roadmap, the lucky block reel, the
   end-of-match screen and NEW RANK!, the 3D world blurs and the GUI stays sharp. A very quick
