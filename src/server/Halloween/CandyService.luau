@@ -126,13 +126,9 @@ function CandyService.ctx(): PlayerData.HwCtx
 	return { now = now, open = Event.boardIndex(now), hooks = CandyService.hooks() }
 end
 
--- The event's cues: the shop's (Config.Halloween.Cues) and the King's drop (the view's `owned`:
--- the menu's OWNED and the end screen's cards).
-local EVENT_CUES: { string } = {}
-for _, row in C.Cues.List do
-	table.insert(EVENT_CUES, row.Cue)
-end
-table.insert(EVENT_CUES, C.KingDrop.Cue)
+-- The event's cues, each once (Ledger.eventCues: the view's `owned`, the menu's OWNED and the
+-- end screen's cards).
+local EVENT_CUES: { string } = Ledger.eventCues()
 
 -- Whether the player's tutorial is over (Done or Skipped): nothing Halloween shows before.
 local function tutorialOver(player: Player): boolean
@@ -368,7 +364,9 @@ end
 --- through the real rank rules), later wins pay nothing; no cooldown. Not Live: nothing.
 function CandyService.bossWon(player: Player, visitStart: number?): BossWon
 	local none: BossWon = { granted = false, amount = 0, cooldownEndsAt = 0 }
-	if not isPlayer(player) or not CandyService.isLive() then
+	-- The King switched off (Config.HalloweenMap.Boss.Enabled, 2026-10-29): no win pays or
+	-- counts, not even the designer's /hw kingwin.
+	if not isPlayer(player) or not CandyService.isLive() or not CandyService.hooks().king then
 		return none
 	end
 	local timed = kingTimed() and type(visitStart) == "number"

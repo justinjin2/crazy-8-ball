@@ -52,6 +52,21 @@ return {
 		H.expect(C.Convert.MoneyPerCandy == 10, "$10")
 	end,
 
+	["the event cues are listed once each (the Jack-o'-Lantern is the shop's and was the King's)"] = function()
+		local _, Ledger, Config = load()
+		local list = Ledger.eventCues()
+		local seen: { [string]: boolean } = {}
+		for _, id in list do
+			H.expect(seen[id] == nil, "listed twice: " .. id)
+			seen[id] = true
+		end
+		for i, row in Config.Halloween.Cues.List do
+			H.expect(list[i] == row.Cue, "the shop's order: " .. row.Cue)
+		end
+		H.expect(seen[Config.Halloween.KingDrop.Cue] == true, "the King's drop is in it")
+		H.expect(#list == #Config.Halloween.Cues.List, "the Jack-o'-Lantern once, as a shop cue")
+	end,
+
 	["a match's base Candy: 3 a ball, 10 finished, 25 a win"] = function()
 		local CandyMath = load()
 		H.expect(CandyMath.base({ balls = 6, finished = 1, won = 1 }) == 18 + 10 + 25, "a win")
