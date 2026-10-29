@@ -8,8 +8,14 @@
 --
 --   MODEL     the cue level and tilted in its full aura, the camera turning round it
 --   TRAIL     the stroke, the ball rolling into a pocket with the cue's trail, the pocket burst
---             and the cue's finisher, again and again
+--             and the cue's finisher, again and again; the camera eases from the roll up to the
+--             finisher as the ball nears the pocket, and back for the next stroke
 --   FINISHER  the camera close on the pocket: the roll's last part, the burst and the finisher
+--
+-- The camera's distance is fitted to the window's real size (CuePreviewMath.fitDistance): the
+-- whole cue as drawn (a body reaching past the butt, its 3D piece), and the finisher's whole
+-- height (finisherReach, read from the skin row), stay in view all round the orbit; the loop
+-- holds a long finisher its own length.
 --
 -- Drag the window (mouse or finger) or push the right stick to turn the view; LB/RB switch the
 -- tabs; A presses the selected button; B, Escape and the red X close it (Menus' close action).
@@ -21,10 +27,14 @@
 -- on Stage), the header's 8-balls scroll, the sheet has the dots, the title's icon, the lit tab's
 -- icon and the 8-ball flair rock; a close folds the panel back over the world already given back.
 --
--- Public: CuePreview.open(id, opts?) -> boolean, CuePreview.enabled(), CuePreview.isOpen(),
--- CuePreview.close(). The pure maths is CuePreviewMath; numbers in Config.UI.CuePreview, words
--- in Strings.CuePreview. Studio only: GuiQA `preview` (id, tab?, note?), `previewTab`,
--- `previewTurn` (degrees, through the stick's code), `previewDrag`, `previewLoad`, `previewLeaks`.
+-- Public: CuePreview.open(id, opts?) -> boolean, CuePreview.allowed(id), CuePreview.enabled(),
+-- CuePreview.isOpen(), CuePreview.close(). Who may open it: every cue while
+-- Config.UI.CuePreview.Enabled (My Cues' and the Index's Preview buttons show only then), else
+-- the cues its Event row lists (the Halloween cards' PREVIEW, which opens on TRAIL). The pure
+-- maths is CuePreviewMath; numbers in Config.UI.CuePreview, words in Strings.CuePreview. Studio
+-- only: GuiQA `preview` (id, tab?, note?), `previewTab`, `previewTurn` (degrees, through the
+-- stick's code), `previewDrag`, `previewLoad`, `previewScreen` (w, h: a phone's screen in the
+-- top-left corner), `previewLeaks`.
 local ContextActionService = game:GetService("ContextActionService")
 local GuiService = game:GetService("GuiService")
 local Players = game:GetService("Players")
@@ -38,6 +48,7 @@ local Config = require(Shared:WaitForChild("Config"))
 local Net = require(Shared:WaitForChild("Net"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local CuePreviewMath = require(Shared:WaitForChild("CuePreviewMath"))
+local CueSkins = require(Shared:WaitForChild("CueSkins"))
 local CueStickBuilder = require(Shared:WaitForChild("CueStickBuilder"))
 local Placement = require(Shared:WaitForChild("Placement"))
 local Catalog = require(Shared:WaitForChild("Progression"):WaitForChild("Catalog"))
@@ -60,7 +71,7 @@ local K = Config.UI.Kit
 local LV = Config.UI.Menu.Lively
 local COPY = Strings.CuePreview
 local NAME = "CuePreview"
-local TABS = { "Model", "Trail", "Finisher" }
+local TABS = CuePreviewMath.Tabs
 local TAB_ICONS = { Model = "Cue", Trail = "Lightning", Finisher = "Target" }
 local STICK_ACTION = "8ballCuePreviewStick"
 local TAB_ACTION = "8ballCuePreviewTabs"
@@ -87,9 +98,9 @@ type Session = {
 	look: any,
 	effects: any,
 	ball: BasePart?,
-	pocket: Vector3?,
-	start: Vector3?,
-	tableTop: number,
+	pocket: Vector3?, -- the ball's centre over the pocket (the roll's end)
+	start: Vector3?, -- the ball's centre where the stroke hits it
+	cloth: number, -- the cloth's height (world Y): the burst rises from the pocket there
 	connections: { RBXScriptConnection },
 	camera: any,
 	held: any,
@@ -105,7 +116,16 @@ type Session = {
 	dragging: boolean,
 	lastDrag: Vector2?,
 	lastDragAt: number,
-	stickLength: number,
+	span: CuePreviewMath.Span, -- the cue as drawn, along it from the tip (its body counted in)
+	body: string?, -- the body the span was measured with (the stick's Body attribute)
+	reach: CuePreviewMath.Reach, -- how high, wide and long the cue's finisher is
+	hold: number, -- the loop holds the finisher this long
+	fits: { [string]: { focus: Vector3, distance: number } }, -- the camera's framings (refit)
+	fitKey: string, -- what they were fitted for: the tab, the window, the body
+	phase: string?, -- the loop's phase now, and how far through it (TRAIL's camera follows)
+	progress: number,
+	shown: boolean, -- the stick is shown (its look is in)
+	jumped: boolean, -- the stick jumps to another pose this frame: hidden for it
 	focus: Vector3,
 	burstDone: boolean,
 	reveal: Stage.Stage?, -- the open (Config.UI.CuePreview.Open)
@@ -114,13 +134,25 @@ type Session = {
 }
 
 local session: Session? = nil
+-- Studio only (GuiQA `previewScreen`): a phone's screen emulated in the top-left corner, as a
+-- lively menu's Root trick does (this panel lays out from its ScreenGui and fits its camera from
+-- the real view, so that trick cannot reach it). Always nil in a live game.
+local emulated: Vector2? = nil
 local renderBound = false -- the render step is bound (previewLeaks)
 local lastOpen = -math.huge
 local started = false
 
---- Whether the preview is switched on (the entry buttons show only then).
+--- Whether the preview is switched on for every cue (My Cues' and the Index's Preview buttons
+--- show only then).
 function CuePreview.enabled(): boolean
 	return C.Enabled == true
+end
+
+--- Whether the preview opens on catalog cue `id` now: every cue while it is switched on, else
+--- only the cues Config.UI.CuePreview.Event lists while that is on (the Halloween cards' PREVIEW
+--- shows only for these).
+function CuePreview.allowed(id: string): boolean
+	return CuePreviewMath.allowed(C, id) and Catalog.get(id) ~= nil
 end
 
 --- Whether the preview is open now.
@@ -255,9 +287,9 @@ local function buildStage(s: Session)
 	s.stage = stage
 	local dark = rgb(C.Backdrop)
 	-- The room: a floor, a ceiling and four walls round the table, its own lights inside (it
-	-- must read under any lighting preset).
-	local room = 70
-	local h = 30
+	-- must read under any lighting preset), big enough for the farthest fitted camera.
+	local room = C.Room.SideStuds
+	local h = C.Room.HeightStuds
 	bare(
 		"Floor",
 		Vector3.new(room, 1, room),
@@ -291,7 +323,8 @@ local function buildStage(s: Session)
 			target = p
 		end
 	end
-	local radius = Config.Balls.RadiusInches
+	-- The ball rests its drawn radius over the cloth, as the game's do.
+	local radius = Config.Balls.RenderRadiusInches
 	local px, py, pz = Placement.toWorld(placement, target.x, target.y, radius)
 	s.pocket = Vector3.new(px, py, pz)
 	-- The ball starts this far back along the pocket's diagonal.
@@ -299,9 +332,11 @@ local function buildStage(s: Session)
 	local sx, sy, sz =
 		Placement.toWorld(placement, target.x * (1 - back), target.y * (1 - back), radius)
 	s.start = Vector3.new(sx, sy, sz)
-	s.tableTop = py
+	-- The burst rises from the pocket's centre at cloth height, as Main's (its rings lie on it).
+	local _, clothY = Placement.toWorld(placement, target.x, target.y, 0)
+	s.cloth = clothY
 	if not cloneTable(stage, placement) then
-		slab(stage, placement, s.pocket :: Vector3)
+		slab(stage, placement, Vector3.new(px, clothY + 0.03, pz))
 	end
 	-- Lights: a key spot from above the pocket's side, a violet rim behind.
 	local mid = ((s.start :: Vector3) + (s.pocket :: Vector3)) / 2
@@ -335,7 +370,7 @@ local function buildStage(s: Session)
 	rim.Shadows = false
 	rim.Parent = rimHost
 	-- The ball, at the game's drawn size.
-	local d = 2 * radius * Config.Balls.RenderScale * Config.Table.StudsPerInch
+	local d = 2 * radius * Config.Table.StudsPerInch
 	local ball = bare(
 		"Ball",
 		Vector3.new(d, d, d),
@@ -346,6 +381,27 @@ local function buildStage(s: Session)
 	ball.Shape = Enum.PartType.Ball
 	s.ball = ball
 	stage.Parent = workspace
+end
+
+-- The cue as drawn (CuePreviewMath.cueSpan): the shared stick, its body when it wears one (the
+-- stick's Body attribute: CueStickBuilder's decision, cleared if the body fails to build) and
+-- its 3D piece. Measured again whenever the body changes; the camera refits then.
+local function measure(s: Session)
+	local stick = s.stick
+	local body = if stick then stick:GetAttribute("Body") else nil
+	local rows = {}
+	local bodyRow = if type(body) == "string" then CueSkins.piece(body) else nil
+	if bodyRow then
+		table.insert(rows, bodyRow)
+	end
+	local row = CueSkins.get(s.id)
+	local pieceRow = if row and row.Piece then CueSkins.piece(row.Piece) else nil
+	if pieceRow then
+		table.insert(rows, pieceRow)
+	end
+	s.body = if type(body) == "string" then body else nil
+	s.span = CuePreviewMath.cueSpan(Config.Cue.CueLengthStuds, rows)
+	s.fitKey = ""
 end
 
 -- The cue's stick, look and effects (again when the cue changes).
@@ -368,33 +424,55 @@ local function buildCue(s: Session)
 	s.look = CueSkinLook.attach(stick, { aura = true })
 	s.effects = Effects.new(stage, Effects.styleOfCue(s.id))
 	s.effects:attachTrail(s.ball :: BasePart)
-	local size = stick:GetExtentsSize()
-	s.stickLength = math.max(size.X, size.Y, size.Z)
-	-- Hidden until its assets are in (or the timeout), with the spinner up.
+	-- Its finisher's reach and length, from its skin row (a plain cue's burst: the least).
+	local row = CueSkins.get(s.id)
+	local pocket = if row then row.Pocket else nil
+	local creature = if type(pocket) == "table" and type(pocket.Piece) == "table"
+		then CueSkins.piece(pocket.Piece.Piece)
+		else nil
+	s.reach = CuePreviewMath.finisherReach(pocket, creature)
+	s.hold = CuePreviewMath.holdSeconds(s.reach.seconds)
+	measure(s)
+	-- Hidden until its assets are in (or the timeout), with the spinner up: posed in its place
+	-- meanwhile (step), so it appears there. Parked far off and moved in, a skin's orbiting
+	-- ribbons (the Broom's stars) streaked from where it had waited.
 	s.ready = false
 	s.readyAt = os.clock() + C.LoadTimeoutSeconds
+	s.shown = false
+	CueStickBuilder.setVisible(stick, false)
 	local id = s.id
 	CueAssets.whenReady(id, function()
 		if session == s and s.id == id then
 			s.ready = true
 		end
 	end)
-	stick:PivotTo(CFrame.new(0, -1000, 0) + stage:GetPivot().Position)
 end
 
 --------------------------------------------------------------------------------------------
 -- The loop and the camera (one render step while open)
 --------------------------------------------------------------------------------------------
 
--- The cue for MODEL: level, tilted, its middle at the focus.
+-- MODEL's cue: level, tilted, the middle of the cue as drawn (its body past the butt counted in)
+-- over the stage's centre.
+local MODEL_AXIS = (CFrame.Angles(0, 0, math.rad(12)) * Vector3.new(1, 0, 0)).Unit
+
+local function modelCentre(s: Session): Vector3
+	local f = C.Tabs.Model.Focus
+	return (s.start :: Vector3):Lerp(s.pocket :: Vector3, 0.5) + Vector3.new(f[1], f[2], f[3])
+end
+
+-- The drawn cue's middle, along it from the tip.
+local function spanMiddle(s: Session): number
+	return (s.span.from + s.span.to) / 2
+end
+
 local function poseModel(s: Session)
 	local stick = s.stick
 	if not stick then
 		return
 	end
-	local axis = (CFrame.Angles(0, 0, math.rad(12)) * Vector3.new(1, 0, 0)).Unit
-	local tip = s.focus - axis * (s.stickLength / 2)
-	stick:PivotTo(CFrame.lookAt(tip, tip - axis))
+	local tip = modelCentre(s) - MODEL_AXIS * spanMiddle(s)
+	stick:PivotTo(CFrame.lookAt(tip, tip - MODEL_AXIS))
 end
 
 local function setTrail(s: Session, rolling: boolean, pocketed: boolean)
@@ -417,12 +495,13 @@ local function playLoop(s: Session, dt: number)
 		return
 	end
 	s.loopAt += dt
-	local timeline = CuePreviewMath.timeline(s.tab, nil)
+	local timeline = CuePreviewMath.timeline(s.tab, s.hold) -- the cue's finisher, held whole
 	local phase, progress = CuePreviewMath.phaseAt(timeline, s.loopAt)
+	s.phase, s.progress = phase, progress
 	local from, to = s.start :: Vector3, s.pocket :: Vector3
 	local dir = (to - from).Unit
-	local gap = 0.25
-	local pullStuds = 1.6
+	local gap = C.Stroke.GapStuds
+	local pullStuds = C.Stroke.PullStuds
 	if phase == "back" or phase == "hit" then
 		s.burstDone = false
 		ball.Transparency = 0
@@ -443,7 +522,7 @@ local function playLoop(s: Session, dt: number)
 		if not s.burstDone then
 			s.burstDone = true
 			pcall(function()
-				s.effects:pocketBurst(Vector3.new(to.X, s.tableTop, to.Z), 1)
+				s.effects:pocketBurst(Vector3.new(to.X, s.cloth, to.Z), 1)
 			end)
 		end
 	else
@@ -461,30 +540,176 @@ local function windowCentre(s: Session): Vector2?
 	return window.AbsolutePosition + window.AbsoluteSize / 2 + inset
 end
 
+-- The middle of a set of points' box.
+local function boxCentre(points: { Vector3 }): Vector3
+	local lo, hi = points[1], points[1]
+	for _, p in points do
+		lo, hi = lo:Min(p), hi:Max(p)
+	end
+	return (lo + hi) / 2
+end
+
+-- What each framing keeps in view (world points) and the point it turns round:
+--   Model     MODEL's cue as drawn, both ends a little off its axis
+--   Roll      TRAIL's stroke and roll: the ball from where it is hit to the pocket
+--   Rise      TRAIL's finisher: its column over the pocket (finisherReach)
+--   Trail     TRAIL whole, held still with Reduce Motion
+--   Finisher  FINISHER's end of the roll and the finisher
+local function framingPoints(s: Session, name: string): ({ Vector3 }, Vector3)
+	local start, pocket = s.start :: Vector3, s.pocket :: Vector3
+	if name == "Model" then
+		local centre = modelCentre(s)
+		local side = MODEL_AXIS:Cross(Vector3.yAxis).Unit
+		local up = side:Cross(MODEL_AXIS).Unit
+		local mid = spanMiddle(s)
+		local points = {}
+		for _, at in { s.span.from, s.span.to } do
+			local p = centre + MODEL_AXIS * (at - mid)
+			for _, off in { up, -up, side, -side } do
+				table.insert(points, p + off * s.span.across)
+			end
+		end
+		return points, centre
+	end
+	local lift = Vector3.yAxis * (2 * Config.Balls.RenderRadiusInches * Config.Table.StudsPerInch)
+	local dir = (pocket - start).Unit
+	local roll = {
+		start,
+		start + lift,
+		pocket,
+		pocket + lift,
+		start - dir * (C.Stroke.GapStuds + C.Fit.StrokeStuds),
+	}
+	local column = { pocket }
+	local floor = Vector3.new(pocket.X, s.cloth, pocket.Z)
+	local r = s.reach.radius
+	for _, h in { 0, s.reach.top } do
+		for _, off in { Vector3.xAxis, -Vector3.xAxis, Vector3.zAxis, -Vector3.zAxis } do
+			table.insert(column, floor + off * r + Vector3.yAxis * h)
+		end
+	end
+	if name == "Roll" then
+		return roll, boxCentre(roll)
+	elseif name == "Rise" then
+		return column, floor + Vector3.yAxis * (s.reach.top / 2)
+	end
+	local points = table.clone(column)
+	if name == "Finisher" then
+		table.insert(points, start:Lerp(pocket, 1 - C.FinisherRollShare))
+	else
+		for _, p in roll do
+			table.insert(points, p)
+		end
+	end
+	return points, boxCentre(points)
+end
+
+local FRAMINGS: { [string]: { string } } = {
+	Model = { "Model" },
+	Trail = { "Roll", "Rise", "Trail" },
+	Finisher = { "Finisher" },
+}
+
+-- Fit the tab's framings to the window now (CuePreviewMath.fitDistance): at the tab's own
+-- pitch, all round the orbit, clamped to Fit.Distance. Again only when the tab, the window or
+-- the cue's body changes.
+local function refit(s: Session, at: Vector2, size: Vector2, viewport: Vector2, fov: number)
+	local spec = C.Tabs[s.tab]
+	local range = C.Fit.Distance[s.tab]
+	local keep = 1 - C.Fit.MarginShare
+	table.clear(s.fits)
+	for _, name in FRAMINGS[s.tab] do
+		local points, focus = framingPoints(s, name)
+		local list = {}
+		for i, p in points do
+			list[i] = vec(p)
+		end
+		local d = CuePreviewMath.fitDistance(
+			list,
+			vec(focus),
+			spec.Pitch,
+			fov,
+			{ w = viewport.X, h = viewport.Y },
+			{ x = at.X, y = at.Y },
+			{ w = size.X / 2 * keep, h = size.Y / 2 * keep },
+			C.Fit.YawStepDeg
+		)
+		s.fits[name] = { focus = focus, distance = math.clamp(d, range[1], range[2]) }
+	end
+end
+
+-- Where the camera looks and from how far now: the tab's framing, or on TRAIL the stroke's
+-- easing over to the finisher's as the ball nears the pocket and back in the gap
+-- (CuePreviewMath.follow); held on the whole of it with Reduce Motion.
+local function framing(s: Session): (Vector3, number)
+	local fits = s.fits
+	if s.tab ~= "Trail" then
+		local fit = fits[s.tab]
+		return fit.focus, fit.distance
+	end
+	if UIAnim.reduced() then
+		return fits.Trail.focus, fits.Trail.distance
+	end
+	local w = CuePreviewMath.follow(s.phase, s.progress)
+	local a, b = fits.Roll, fits.Rise
+	return a.focus:Lerp(b.focus, w), a.distance + (b.distance - a.distance) * w
+end
+
+-- The camera's vertical field of view: Config's; with a phone's screen emulated (Studio),
+-- widened so the emulated corner spans what a phone's whole view does (the same angle a pixel).
+local function fieldOfView(viewport: Vector2): number
+	local e = emulated
+	if e == nil or e.Y <= 0 then
+		return C.FovDeg
+	end
+	return math.deg(2 * math.atan(math.tan(math.rad(C.FovDeg) / 2) * viewport.Y / e.Y))
+end
+
 local function frameCamera(s: Session)
 	local cam = workspace.CurrentCamera
 	local at = windowCentre(s)
-	if not at then
+	if not at or not s.start or not s.pocket then
 		return
 	end
-	local spec = C.Tabs[s.tab]
-	local f = spec.Focus
-	local base = if s.tab == "Finisher"
-		then s.pocket :: Vector3
-		else (s.start :: Vector3):Lerp(s.pocket :: Vector3, 0.5)
-	s.focus = base + Vector3.new(f[1], f[2], f[3])
 	local viewport = cam.ViewportSize
+	local fov = fieldOfView(viewport)
+	local size = (s.parts.window :: GuiObject).AbsoluteSize
+	local stick = s.stick
+	local body = if stick then stick:GetAttribute("Body") else nil
+	if (if type(body) == "string" then body else nil) ~= s.body then
+		measure(s) -- the body was drawn (or dropped): the cue's length changed
+	end
+	local key = ("%s|%.0f|%.0f|%.0f|%.0f|%.0f|%.0f|%.2f"):format(
+		s.tab,
+		at.X,
+		at.Y,
+		size.X,
+		size.Y,
+		viewport.X,
+		viewport.Y,
+		fov
+	)
+	if key ~= s.fitKey then
+		s.fitKey = key
+		refit(s, at, size, viewport, fov)
+	end
+	local focus, distance = framing(s)
+	s.focus = focus
+	-- Never under the room's floor: a far camera dragged low looks up from just over it.
+	local floorY = C.Origin[2] + C.Room.EyeOverFloorStuds
+	local lowest =
+		math.deg(math.asin(math.clamp((floorY - focus.Y) / math.max(distance, 1e-3), -1, 1)))
 	local eye, target = CuePreviewMath.camera(
-		vec(s.focus),
+		vec(focus),
 		s.yaw,
-		s.pitch,
-		spec.Distance,
-		C.FovDeg,
+		math.max(s.pitch, lowest),
+		distance,
+		fov,
 		{ w = viewport.X, h = viewport.Y },
 		{ x = at.X, y = at.Y }
 	)
 	cam.CameraType = Enum.CameraType.Scriptable
-	cam.FieldOfView = C.FovDeg
+	cam.FieldOfView = fov
 	cam.CFrame =
 		CFrame.lookAt(Vector3.new(eye.x, eye.y, eye.z), Vector3.new(target.x, target.y, target.z))
 end
@@ -500,7 +725,8 @@ local function step(dt: number)
 	if not s then
 		return
 	end
-	-- The right stick turns it; a drag or a flick spins it; idle long enough, it turns alone.
+	-- The right stick turns it; a drag or a flick spins it; idle long enough, it turns alone
+	-- (with Reduce Motion it never turns on its own: no auto-turn, no flick's spin).
 	local stick = s.stickInput
 	if stick.Magnitude > 0.15 then
 		s.yaw = (s.yaw - stick.X * C.StickDegPerSecond * dt) % 360
@@ -509,15 +735,22 @@ local function step(dt: number)
 		s.spin = 0
 	elseif not s.dragging then
 		s.idle += dt
-		s.yaw, s.spin = CuePreviewMath.turn(s.yaw, s.spin, s.idle, dt)
+		s.yaw, s.spin = CuePreviewMath.turn(s.yaw, s.spin, s.idle, dt, UIAnim.reduced())
 	end
 	local ready = isReady(s)
 	local spinner = s.parts.spinner
 	if spinner then
 		spinner.Visible = not ready
 	end
-	if ready then
-		playLoop(s, dt)
+	-- Posed in place even while loading (the loop waits at its start), shown once its look is
+	-- in; hidden the one frame after a jump (a tab switch), so its look restarts where it lands.
+	playLoop(s, if ready then dt else 0)
+	local stickNow = s.stick
+	local show = (s.ready or os.clock() >= s.readyAt) and not s.jumped
+	s.jumped = false
+	if stickNow and show ~= s.shown then
+		s.shown = show
+		CueStickBuilder.setVisible(stickNow, show)
 	end
 	frameCamera(s)
 end
@@ -533,6 +766,7 @@ local function setTab(s: Session, tab: string)
 	s.tab = tab
 	s.loopAt = 0
 	s.burstDone = false
+	s.jumped = true -- the stick moves to the tab's pose
 	if tab ~= "Model" and not CueAssets.shotReady(s.id) then
 		s.readyAt = math.max(s.readyAt, os.clock() + C.LoadTimeoutSeconds)
 	end
@@ -572,6 +806,10 @@ local function layout(s: Session)
 		return
 	end
 	local size = gui.AbsoluteSize
+	local e = emulated
+	if e then -- Studio: the emulated phone's screen under Roblox's top bar
+		size = Vector2.new(e.X, e.Y - GuiService:GetGuiInset().Y)
+	end
 	if size.X <= 0 then
 		return
 	end
@@ -877,8 +1115,29 @@ local function dragTo(s: Session, at: Vector2)
 	s.idle = 0
 end
 
+-- The gamepad's first stop: EQUIP for an owned cue, else the lit tab.
+local function firstStop(s: Session): GuiObject?
+	return if owned(s.id) then s.parts.equip else s.parts["tab" .. s.tab]
+end
+
 local function bindInput(s: Session)
 	local drag = s.parts.drag
+	-- A gamepad picked up while it is open lands on its first stop (the lively frame's rule):
+	-- with nothing selected, A pressed nothing.
+	table.insert(
+		s.connections,
+		UserInputService.LastInputTypeChanged:Connect(function(kind: Enum.UserInputType)
+			local gui = s.gui
+			local selected = GuiService.SelectedObject
+			if
+				gui
+				and string.sub(kind.Name, 1, 7) == "Gamepad"
+				and not (selected and selected:IsDescendantOf(gui))
+			then
+				GuiService.SelectedObject = firstStop(s)
+			end
+		end)
+	)
 	table.insert(
 		s.connections,
 		drag.InputBegan:Connect(function(input: InputObject)
@@ -1204,10 +1463,12 @@ local function openNow()
 	if not want then
 		return
 	end
+	local opts = want.opts or {}
+	local first = CuePreviewMath.tabOf(opts.tab) -- the event cards open on TRAIL
 	local s: Session = {
 		id = want.id,
-		opts = want.opts or {},
-		tab = "Model",
+		opts = opts,
+		tab = first,
 		gui = nil,
 		parts = { loops = {} },
 		stage = nil,
@@ -1217,13 +1478,13 @@ local function openNow()
 		ball = nil,
 		pocket = nil,
 		start = nil,
-		tableTop = 0,
+		cloth = 0,
 		connections = {},
 		camera = nil,
 		held = nil,
 		touch = nil,
 		yaw = 200,
-		pitch = C.Tabs.Model.Pitch,
+		pitch = C.Tabs[first].Pitch,
 		spin = 0,
 		idle = C.IdleResumeSeconds,
 		loopAt = 0,
@@ -1233,7 +1494,16 @@ local function openNow()
 		dragging = false,
 		lastDrag = nil,
 		lastDragAt = 0,
-		stickLength = 5,
+		span = CuePreviewMath.cueSpan(Config.Cue.CueLengthStuds, {}),
+		body = nil,
+		reach = CuePreviewMath.finisherReach(nil, nil),
+		hold = C.FinisherHoldSeconds,
+		fits = {},
+		fitKey = "",
+		phase = nil,
+		progress = 0,
+		shown = false,
+		jumped = false,
 		focus = Vector3.zero,
 		burstDone = false,
 		reveal = nil,
@@ -1250,14 +1520,14 @@ local function openNow()
 		buildCue(s)
 		buildGui(s)
 		bindInput(s)
-		setTab(s, "Model")
+		setTab(s, first)
 		refreshEquip(s)
 		frameCamera(s)
 		RunService:BindToRenderStep(NAME, Enum.RenderPriority.Camera.Value + 1, step)
 		renderBound = true
 		playOpen(s)
 		if UserInputService.GamepadEnabled then
-			GuiService.SelectedObject = if owned(s.id) then s.parts.equip else s.parts.tabModel
+			GuiService.SelectedObject = firstStop(s)
 		end
 	end)
 	if not ok then
@@ -1306,11 +1576,7 @@ local function start()
 			Menus.close(NAME)
 			return false
 		end
-		local okOpen = (CuePreview :: any).open(id, { from = "QA", note = note })
-		if okOpen and tab and session then
-			setTab(session :: Session, tab)
-		end
-		return okOpen
+		return (CuePreview :: any).open(id, { from = "QA", note = note, tab = tab })
 	end)
 	GuiQA.add("previewTab", function(by: any)
 		local s = session
@@ -1362,11 +1628,8 @@ local function start()
 			return nil
 		end
 		if stall then
-			s.ready = false
+			s.ready = false -- the next step hides the stick, as buildCue leaves it
 			s.readyAt = os.clock() + C.LoadTimeoutSeconds
-			if s.stick and s.stage then -- hidden as buildCue leaves it
-				s.stick:PivotTo(CFrame.new(0, -1000, 0) + s.stage:GetPivot().Position)
-			end
 		end
 		local stick = s.stick
 		return {
@@ -1374,9 +1637,21 @@ local function start()
 			look = s.ready,
 			shot = CueAssets.shotReady(s.id),
 			spinner = s.parts.spinner ~= nil and s.parts.spinner.Visible,
-			stickShown = stick ~= nil and stick:GetPivot().Position.Y > s.tableTop - 100,
+			stickShown = stick ~= nil and stick:GetAttribute("Visible") == true,
 			timeoutIn = math.max(0, s.readyAt - os.clock()),
 		}
+	end)
+	-- A phone's screen, `w` x `h` (844, 390: one on its side, its top bar in it), emulated in the
+	-- top-left corner: the panel laid out for it and the camera widened so the corner shows what
+	-- a phone's whole view does. Screenshot that corner. No arguments: the real screen again.
+	GuiQA.add("previewScreen", function(w: number?, h: number?)
+		emulated = if type(w) == "number" and type(h) == "number" then Vector2.new(w, h) else nil
+		local s = session
+		if s then
+			layout(s)
+			s.fitKey = ""
+		end
+		return emulated ~= nil
 	end)
 	GuiQA.add("previewLeaks", function()
 		local cam = workspace.CurrentCamera
@@ -1399,16 +1674,22 @@ local function start()
 	end)
 end
 
---- Open the preview on catalog cue `id` (`opts.from`: "Cues", "Index", "Track" for the event;
---- `opts.onClose` runs after it closes; `opts.note` is the line under the rarity). False when
---- switched off, blocked (a match, a popup, a reel), spammed, or for an unknown cue. Opened
---- again while open, it switches to the new cue.
+-- The openers counted (TutorialEvent "CuePreview" .. from -> the CuePreview custom event).
+local REPORTED: { [string]: boolean } =
+	{ Cues = true, Index = true, Track = true, Halloween = true }
+
+--- Open the preview on catalog cue `id` (`opts.from`: "Cues", "Index", "Halloween" for the
+--- event cards, "Track"; `opts.tab`: "Model", "Trail" or "Finisher" to open on, MODEL by
+--- default; `opts.onClose` runs after it closes; `opts.note` is the line under the rarity).
+--- False when `allowed` refuses the cue (switched off, not an event cue, unknown), blocked (a
+--- match, a popup, a reel) or spammed. Opened again while open, it switches to the new cue (on
+--- `opts.tab` if given).
 function CuePreview.open(
 	id: string,
-	opts: { from: string?, onClose: (() -> ())?, note: string? }?
+	opts: { from: string?, onClose: (() -> ())?, note: string?, tab: string? }?
 ): boolean
 	start()
-	if not CuePreview.enabled() or type(id) ~= "string" or Catalog.get(id) == nil then
+	if not CuePreview.allowed(id) then
 		return false
 	end
 	local now = os.clock()
@@ -1423,6 +1704,8 @@ function CuePreview.open(
 		s.opts = opts or s.opts
 		Players.LocalPlayer:SetAttribute(ATTRIBUTE, id)
 		local okSwitch = pcall(function()
+			-- Its shot effects start loading now, not at Main's next look (ShotRefreshSeconds).
+			CueAssets.holdShots({ CueStickBuilder.equippedCue(Players.LocalPlayer), id })
 			buildCue(s)
 			s.parts.name.Text = CueThumb.cueName(id)
 			CueThumb.set(s.parts.thumb, id)
@@ -1430,7 +1713,7 @@ function CuePreview.open(
 			s.parts.pill.BackgroundColor3 = CueThumb.rarityColor(rarity)
 			s.parts.pillWords.Text = CueThumb.rarityName(rarity)
 			refreshEquip(s)
-			setTab(s, s.tab)
+			setTab(s, if opts and opts.tab then CuePreviewMath.tabOf(opts.tab) else s.tab)
 		end)
 		return okSwitch
 	end
@@ -1441,7 +1724,7 @@ function CuePreview.open(
 		return false
 	end
 	local from = opts and opts.from
-	if from == "Cues" or from == "Index" or from == "Track" then
+	if type(from) == "string" and REPORTED[from] then
 		report("CuePreview" .. from)
 	end
 	return true

@@ -157,6 +157,259 @@ return {
 		H.expect(M.easeOut(0) == 0 and M.easeOut(1) == 1 and M.easeOut(0.5) > 0.5, "eases out")
 	end,
 
+	["who may open it: every cue while Enabled, else only the event's cues while Event is on"] = function()
+		local M = H.require("CuePreviewMath")
+		local Config = H.require("Config")
+		local Catalog = H.require("Progression.Catalog")
+		local four = { "PitchforkCue", "WitchBroomCue", "JackOLanternCue", "HalloweenSwordCue" }
+		local event = { Enabled = true, Cues = four }
+		-- Switched on: every cue (My Cues and the Index), the event's too.
+		local on = { Enabled = true, Event = event }
+		H.expect(M.allowed(on, "Classic") and M.allowed(on, "WitchBroomCue"), "Enabled: every cue")
+		-- Off, the event on: its four alone.
+		local off = { Enabled = false, Event = event }
+		for _, id in four do
+			H.expect(M.allowed(off, id), "the event's cue: " .. id)
+		end
+		H.expect(not M.allowed(off, "Classic"), "not another cue")
+		H.expect(not M.allowed(off, "CandyCornCue"), "not another Halloween cue")
+		-- Both off, or no event row: none.
+		H.expect(
+			not M.allowed({ Enabled = false, Event = { Enabled = false, Cues = four } }, four[1])
+		)
+		H.expect(not M.allowed({ Enabled = false }, four[1]), "no event row")
+		H.expect(not M.allowed(off, nil) and not M.allowed(off, 7), "not a cue id")
+		-- As shipped: the preview off for all, on for the four, and the four are catalog cues.
+		local C = Config.UI.CuePreview
+		H.expect(C.Enabled == false, "the preview stays off for My Cues and the Index")
+		H.expect(C.Event.Enabled == true and #C.Event.Cues == 4, "the event's switch is on")
+		for _, id in four do
+			H.expect(M.allowed(C, id), "shipped: " .. id)
+			H.expect(Catalog.get(id) ~= nil, "a catalog cue: " .. id)
+		end
+		H.expect(not M.allowed(C, "Classic"), "shipped: no other cue")
+	end,
+
+	["a particle's climb: straight, under gravity, with Roblox's halving drag"] = function()
+		local M = H.require("CuePreviewMath")
+		local Config = H.require("Config")
+		local F = Config.UI.CuePreview.Fit
+		H.near(M.climb(6, 0, 0, 1), 6, 1e-6, "no drag, no lift: speed times life")
+		H.near(M.climb(7, 0, -6, 2), 49 / 12, 0.15, "under gravity: its peak")
+		local life = F.MaxLifeSeconds
+		H.near(
+			M.climb(4, 1, 0, 99),
+			4 / math.log(2) * (1 - 2 ^ -life),
+			0.1,
+			"halving drag, life capped"
+		)
+		H.expect(M.climb(5, 0, 0, 0) == 0 and M.climb(0, 0, 0, 3) == 0, "nothing to climb")
+	end,
+
+	["a finisher's reach: its high sprites, fountains and creature count, sparks and sprays do not climb"] = function()
+		local M = H.require("CuePreviewMath")
+		local Config = H.require("Config")
+		local CueSkins = H.require("CueSkins")
+		local C = Config.UI.CuePreview
+		local F = C.Fit
+		local none = M.finisherReach(nil, nil)
+		H.expect(none.top == F.TopStuds[1] and none.radius == F.RadiusStuds[1], "a plain burst")
+		H.expect(none.seconds == 0, "no finisher of its own")
+		-- A big sprite high over the pocket (the Broom's witch): at its height, its seen size.
+		local witch = {
+			Layers = {
+				{
+					Delay = 0.35,
+					Host = { Kind = "Point", Offset = { 0, 3.4, 0 }, Size = 0 },
+					Size = 5,
+					Speed = { 0, 0 },
+					Lifetime = { 1.05, 1.05 },
+				},
+			},
+		}
+		local w = M.finisherReach(witch, nil)
+		H.near(w.top, 3.4 + 5 * F.SpriteShare / 2, 1e-9, "the witch's top")
+		H.near(w.radius, 5 * F.SpriteShare / 2, 1e-9, "and its width")
+		H.near(w.seconds, 1.4, 1e-9, "its delay and life")
+		-- A narrow fountain climbs; the same as sparks, or sprayed every way, does not.
+		local function one(size: number, spread: number): number
+			local layer = { Size = size, Speed = 6, Lifetime = 1, SpreadAngle = { spread, spread } }
+			return M.finisherReach({ Layers = { layer } }, nil).top
+		end
+		local climbs = 6 * F.ClimbShare + 0.6 * F.SpriteShare / 2
+		H.near(one(0.6, 12), climbs, 1e-6, "a fountain climbs")
+		H.expect(one(0.1, 12) == F.TopStuds[1], "sparks fly high but are not counted")
+		H.expect(one(0.6, 180) == F.TopStuds[1], "a spray stays round its host")
+		-- The creature at its highest rise and largest scale.
+		local creature = { Parts = { { Offset = { 0.5, 1, 0 }, Size = { 1, 2, 1 } } } }
+		local risen = M.finisherReach({
+			Layers = {},
+			Piece = {
+				Piece = "x",
+				Delay = 0.1,
+				Seconds = 2,
+				Rise = { { 0, -0.3 }, { 1, 1.5 } },
+				Scale = { { 0, 0.5 }, { 1, 1.6 } },
+			},
+		}, creature)
+		H.near(risen.top, 1.5 + 2 * 1.6, 1e-9, "risen and grown")
+		H.near(risen.radius, 1 * 1.6, 1e-9, "its width grown")
+		H.near(risen.seconds, 2.1, 1e-9, "its delay and length")
+		-- Clamped.
+		local tower = { Layers = { { Host = { Offset = { 0, 40, 0 } }, Size = 1 } } }
+		H.expect(M.finisherReach(tower, nil).top == F.TopStuds[2], "never taller than TopStuds")
+		-- The four Halloween cues (their rows may be rebuilt: only what any finisher shows).
+		for _, id in Config.UI.CuePreview.Event.Cues do
+			local pocket = CueSkins.get(id).Pocket
+			local p = pocket and pocket.Piece
+			local reach = M.finisherReach(pocket, p and CueSkins.piece(p.Piece))
+			H.expect(
+				reach.top > none.top and reach.top <= F.TopStuds[2],
+				"taller than a burst: " .. id
+			)
+			H.expect(reach.radius >= F.RadiusStuds[1] and reach.radius <= F.RadiusStuds[2], id)
+			H.expect(reach.seconds > 0, "a finisher of its own: " .. id)
+			local hold = M.holdSeconds(reach.seconds)
+			H.expect(hold >= math.min(reach.seconds, C.FinisherMaxSeconds), "held whole: " .. id)
+		end
+	end,
+
+	["the loop holds a finisher its own length, never under the plain pace or over the cap"] = function()
+		local M = H.require("CuePreviewMath")
+		local Config = H.require("Config")
+		local C = Config.UI.CuePreview
+		H.expect(M.holdSeconds(nil) == C.FinisherHoldSeconds, "none: the plain pace")
+		H.expect(M.holdSeconds(1) == C.FinisherHoldSeconds, "a short one: the plain pace")
+		H.near(M.holdSeconds(3.1), 3.1, 1e-9, "a long one: its own")
+		H.expect(M.holdSeconds(99) == C.FinisherMaxSeconds, "capped")
+		local trail = M.timeline("Trail", M.holdSeconds(3.1))
+		H.near(trail[5].to - trail[5].from, 3.1, 1e-9, "the timeline holds it")
+	end,
+
+	["a cue as drawn: a body past the butt and its 3D piece counted, a pocket creature not"] = function()
+		local M = H.require("CuePreviewMath")
+		local Config = H.require("Config")
+		local CueSkins = H.require("CueSkins")
+		local F = Config.UI.CuePreview.Fit
+		local L = Config.Cue.CueLengthStuds
+		local plain = M.cueSpan(L, {})
+		H.expect(plain.from == 0 and plain.to == L and plain.across == F.CueAcrossStuds, "a stick")
+		-- A body whose last part reaches 1.5 studs past the butt (the mesh frame: the tip +L/2).
+		local body = {
+			Frame = "cue",
+			Parts = {
+				{ Offset = { 0, 0, 0 }, Size = { 0.2, 0.2, L } },
+				{ Offset = { 0, 0, -L / 2 - 0.75 }, Size = { 1.4, 1.2, 1.5 } },
+			},
+		}
+		local drawn = M.cueSpan(L, { body })
+		H.near(drawn.from, 0, 1e-9, "the tip at the tip")
+		H.near(drawn.to, L + 1.5, 1e-9, "past the butt")
+		H.near(drawn.across, 0.7, 1e-9, "its widest part")
+		local creature =
+			{ Frame = "pocket", Parts = { { Offset = { 0, 0, 40 }, Size = { 9, 9, 9 } } } }
+		H.near(M.cueSpan(L, { creature }).to, L, 1e-9, "a pocket creature is not on the cue")
+		-- The four Halloween cues' bodies: at least the stick, never far past it.
+		for _, id in Config.UI.CuePreview.Event.Cues do
+			local index = CueSkins.index(id)
+			local rows = { CueSkins.piece(index.Body) }
+			local row = CueSkins.get(id)
+			if row.Piece then
+				table.insert(rows, CueSkins.piece(row.Piece))
+			end
+			local span = M.cueSpan(L, rows)
+			H.expect(span.to >= L and span.to <= L + 2, ("%s: %.2f long"):format(id, span.to))
+			H.expect(math.abs(span.from) < 0.1, id .. ": the tip at the tip")
+		end
+	end,
+
+	["the fitted camera keeps every point in the window all round the orbit, and no farther"] = function()
+		local M = H.require("CuePreviewMath")
+		local Config = H.require("Config")
+		local C = Config.UI.CuePreview
+		local F = C.Fit
+		local focus = { x = 2405, y = 2404, z = 3 }
+		-- A tall column off to one side and a roll on the cloth (TRAIL's kind of content).
+		local points = {
+			{ x = 2400, y = 2403, z = 0 },
+			{ x = 2408, y = 2403, z = 4 },
+			{ x = 2408, y = 2409, z = 4 },
+			{ x = 2406, y = 2409, z = 6 },
+			{ x = 2410, y = 2403, z = 2 },
+		}
+		for _, size in SIZES do
+			local p = M.panel(size.screen)
+			local W = p.window
+			local at = { x = W.x + W.w / 2 + size.offset.x, y = W.y + W.h / 2 + size.offset.y }
+			local half = { w = W.w / 2 * (1 - F.MarginShare), h = W.h / 2 * (1 - F.MarginShare) }
+			for _, pitch in { 14, 30 } do
+				local d = M.fitDistance(points, focus, pitch, C.FovDeg, size.viewport, at, half, 15)
+				local function worst(distance: number): number
+					local most = 0
+					for yaw = 0, 345, 15 do
+						local eye, target =
+							M.camera(focus, yaw, pitch, distance, C.FovDeg, size.viewport, at)
+						for _, q in points do
+							local px, depth = M.project(q, eye, target, C.FovDeg, size.viewport)
+							H.expect(depth > 0, "in front")
+							most = math.max(
+								most,
+								math.abs(px.x - at.x) / half.w,
+								math.abs(px.y - at.y) / half.h
+							)
+						end
+					end
+					return most
+				end
+				local where = ("%s pitch %d"):format(size.name, pitch)
+				H.expect(worst(d) <= 1 + 1e-6, "all inside: " .. where)
+				H.expect(worst(d * 0.97) > 1, "no farther than needed: " .. where)
+			end
+		end
+		-- Only the focus to keep: never nearer than NearStuds.
+		local only = M.fitDistance(
+			{ focus },
+			focus,
+			20,
+			C.FovDeg,
+			SIZES[1].viewport,
+			{ x = 300, y = 200 },
+			{ w = 100, h = 80 },
+			15
+		)
+		H.near(only, F.NearStuds, 1e-9, "the near limit")
+	end,
+
+	["TRAIL's camera eases to the finisher as the ball nears the pocket, holds, and comes back"] = function()
+		local M = H.require("CuePreviewMath")
+		local Config = H.require("Config")
+		local F = Config.UI.CuePreview.Fit
+		H.expect(M.follow("back", 0.5) == 0 and M.follow("hit", 1) == 0, "the stroke: on the roll")
+		H.expect(
+			M.follow("roll", 0) == 0 and M.follow("roll", F.FollowFrom) == 0,
+			"the roll starts"
+		)
+		H.near(M.follow("roll", 1), 1, 1e-9, "at the pocket: on the finisher")
+		local last = 0
+		for i = 0, 20 do
+			local w = M.follow("roll", i / 20)
+			H.expect(w >= last - 1e-12, "it only eases over")
+			last = w
+		end
+		H.expect(M.follow("drop", 0) == 1 and M.follow("finisher", 0.5) == 1, "holds on it")
+		H.expect(M.follow("gap", 0) == 1 and M.follow("gap", 1) == 0, "back in the gap")
+		H.expect(M.follow(nil, nil) == 0, "before the loop: on the roll")
+	end,
+
+	["the tab it opens on: the one asked for, else MODEL"] = function()
+		local M = H.require("CuePreviewMath")
+		H.expect(M.tabOf("Trail") == "Trail", "TRAIL (the event cards)")
+		H.expect(M.tabOf("Finisher") == "Finisher" and M.tabOf("Model") == "Model")
+		H.expect(M.tabOf(nil) == "Model", "none asked for")
+		H.expect(M.tabOf("trail") == "Model" and M.tabOf(3) == "Model", "not a tab")
+		H.expect(table.concat(M.Tabs, " ") == "Model Trail Finisher", "the row's order")
+	end,
+
 	["turning: a flick decays, the auto-turn waits, the pitch stays in its limits"] = function()
 		local M = H.require("CuePreviewMath")
 		local Config = H.require("Config")
@@ -170,5 +423,10 @@ return {
 		H.expect(M.pitch(40, 30) == C.PitchMaxDeg and M.pitch(0, -90) == C.PitchMinDeg, "clamped")
 		local y2 = M.turn(350, 0, 99, 1)
 		H.expect(y2 >= 0 and y2 < 360, "yaw wraps")
+		-- Reduce Motion: it never turns on its own.
+		local y3, s3 = M.turn(10, 0, 99, 1, true)
+		H.expect(y3 == 10 and s3 == 0, "no auto-turn with Reduce Motion")
+		local y4, s4 = M.turn(10, 300, 0, 0.1, true)
+		H.expect(y4 == 10 and s4 == 0, "no flick's spin with Reduce Motion")
 	end,
 }

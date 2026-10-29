@@ -293,7 +293,7 @@ return {
 		check("Config.Multiplayer.Roam", Config.Multiplayer.Roam, { "Enabled" })
 		check("Config.Badges", Config.Badges, { "Enabled" })
 		check("Config.UI.BoostPill", Config.UI.BoostPill, { "Enabled" })
-		check("Config.UI.CuePreview", Config.UI.CuePreview, { "Enabled" })
+		check("Config.UI.CuePreview", Config.UI.CuePreview, { "Enabled", "Event.Enabled" })
 		check(
 			"Config.Economy friend boost",
 			if Config.Economy.FriendBoost ~= nil then Config.Economy else nil,

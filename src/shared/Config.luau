@@ -10403,6 +10403,14 @@ Config.UI.CandyFlyer = {
 -- stage far from the lobby seen through the panel's window. Studs, degrees, seconds, pixels.
 Config.UI.CuePreview = {
 	Enabled = false, -- ON only after it passes on a phone size and with a controller
+	-- With Enabled off, these cues alone may open it (CuePreviewMath.allowed): the Halloween
+	-- cards' PREVIEW button (designer, 2026-10-29: "for these 4 specific cues ... it auto plays
+	-- the ball trail and finisher on loop"), opening on TRAIL. Off: the cards show no button;
+	-- My Cues and the Index follow Enabled alone either way.
+	Event = {
+		Enabled = true,
+		Cues = { "PitchforkCue", "WitchBroomCue", "JackOLanternCue", "HalloweenSwordCue" },
+	},
 	Origin = { 2400, 2400, 0 }, -- clear of the map and the Backrooms hall ({0, 2400, 0})
 	OutsideTransparency = 0.35, -- the flat navy veil outside the panel (never a blur)
 	WindowShare = 0.6, -- the 3D window, a share of the panel's width
@@ -10445,10 +10453,52 @@ Config.UI.CuePreview = {
 	SpinDecay = 4, -- a flick's spin fades by this factor a second
 	IdleResumeSeconds = 3, -- the auto-turn comes back this long after the last drag
 	TurnDegPerSecond = 20,
-	Tabs = { -- the camera per tab: focus offset from the stage centre, distance, pitch
-		Model = { Focus = { 0, 2, 0 }, Distance = 15, Pitch = 14 }, -- the cue (about 9 studs) floats over the cloth
-		Trail = { Focus = { 0, 0.5, 0 }, Distance = 8, Pitch = 30 },
-		Finisher = { Focus = { 0, 1.5, 0 }, Distance = 9, Pitch = 28 }, -- a big finisher (Eclipse) fits whole
+	Tabs = { -- the camera's pitch per tab (its distance and focus are fitted: Fit)
+		Model = { Focus = { 0, 2, 0 }, Pitch = 14 }, -- the cue floats this far over the stage centre
+		Trail = { Pitch = 30 },
+		Finisher = { Pitch = 28 },
+	},
+	-- The camera keeps what each tab shows inside the window all round the orbit, from the
+	-- window's real size, at the tab's pitch (CuePreviewMath.fitDistance; the Halloween cues,
+	-- 2026-10-29: their bodies reach past the butt and their finishers stand 5-6 studs tall; the
+	-- fixed distances before, 15/8/9 studs, cut them off, and a 7-stud cue too in a PC's
+	-- window, a third of the screen wide): MODEL the cue as drawn (CuePreviewMath.cueSpan),
+	-- TRAIL the stroke, the roll and the finisher over the pocket, FINISHER the end of the roll
+	-- and the finisher. (tune)
+	-- TRAIL has two framings, the stroke and roll, then the finisher: the camera eases from one
+	-- to the other as the ball nears the pocket and back in the gap (CuePreviewMath.follow; both
+	-- at once needed 22-29 studs, a phone's ball 7 px). With Reduce Motion it holds still on both.
+	Fit = {
+		MarginShare = 0.1, -- of the window's half size, kept clear round the content
+		YawStepDeg = 15, -- the orbit is checked every this many degrees
+		NearStuds = 1, -- never nearer than this to any point it keeps in view
+		Distance = { -- studs: the fitted distance is clamped to these (inside Room)
+			Model = { 8, 28 },
+			Trail = { 6, 32 },
+			Finisher = { 6, 28 },
+		},
+		FollowFrom = 0.45, -- TRAIL's camera starts over to the finisher this far into the roll
+		CueAcrossStuds = 0.6, -- the cue is kept this far off its axis at least (its aura)
+		StrokeStuds = 0.6, -- TRAIL keeps this much of the cue behind its tip in view at the hit
+		-- A finisher's reach (CuePreviewMath.finisherReach), read from its skin row, rough on
+		-- purpose: its layers' sprites at their host's height, a narrow fountain carried up by
+		-- its speed, drag and lift, its 3D creature at its rise and largest scale.
+		SpriteShare = 0.8, -- of a layer's largest sprite size counted as seen (soft edges)
+		ClimbShare = 0.75, -- of a fountain's climb counted (its particles fade near the top)
+		FountainDegrees = 90, -- a layer spreading less than this from straight up climbs...
+		SparkStuds = 0.3, -- ...unless its particles stay under this size (sparks, embers)
+		MaxLifeSeconds = 4, -- a layer's life is counted at most this long
+		TopStuds = { 2.5, 6.5 }, -- the finisher's height over the pocket, clamped (a plain burst: the least)
+		RadiusStuds = { 1, 3 }, -- its reach out from the pocket, clamped
+	},
+	FinisherMaxSeconds = 4, -- a skin's finisher holds its own length (finisherReach), at most this
+	Stroke = { GapStuds = 0.25, PullStuds = 1.6 }, -- TRAIL's stroke: the tip's rest off the ball, its back swing
+	-- The dark room round the stage's table: wide and high enough that the farthest fitted
+	-- camera (Fit.Distance, any pitch the drag allows) stays inside its walls and ceiling.
+	Room = {
+		SideStuds = 100,
+		HeightStuds = 44,
+		EyeOverFloorStuds = 1, -- a camera dragged low stays this far over the floor
 	},
 	StrokeBackSeconds = 0.35,
 	StrokeHitSeconds = 0.1,
