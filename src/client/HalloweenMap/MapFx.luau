@@ -1,10 +1,10 @@
 --!strict
 -- MapFx (Halloween 2026, hw-map lane): the Haunted Rooftop's effects on this screen. The lobby
 -- candy (CandyDrop's invisible parts in workspace.HalloweenCandy): a wrapped candy drawn here,
--- popping in, floating and spinning, a few sparkles. Net HalloweenMapFx: "Pickup" (a +1 over
--- the picked candy, a pop), "Burst" (the Pumpkin King's candy explosion over his table, "+50
--- CANDY" for a paid win, smaller with no number otherwise), "Puff" (the King leaving in purple
--- smoke). Everything is local, short-lived and halved on low quality (Quality.isLow). Sounds are
+-- popping in, floating and spinning, a few sparkles. Net HalloweenMapFx: "Pickup" (its amount,
+-- "+5", over the picked candy, a pop), "Burst" (the Pumpkin King's candy explosion over his
+-- table, "+50 CANDY" for a paid win, smaller with no number otherwise), "Puff" (the King
+-- leaving in purple smoke). Everything is local, short-lived and halved on low quality (Quality.isLow). Sounds are
 -- the game's existing UI clips (no new audio).
 
 local Players = game:GetService("Players")
@@ -187,7 +187,7 @@ local function holder(at: Vector3, life: number): Part
 	return p
 end
 
--- A rising, fading line of text over `at` (the +1 and the +50 CANDY).
+-- A rising, fading line of text over `at` (a pickup's +5 and the +50 CANDY).
 local function riser(at: Vector3, text: string, colour: Color3, studs: number, seconds: number)
 	local p = holder(at, seconds + 0.2)
 	local bb = Instance.new("BillboardGui")
@@ -383,7 +383,12 @@ local function onFx(fx: any)
 		return
 	end
 	if fx.kind == "Pickup" and typeof(fx.at) == "Vector3" then
-		riser(fx.at + Vector3.new(0, 1.5, 0), S.CandyPickup:format(1), COLOURS.Orange, 1.6, 0.9)
+		-- The Candy the server gave (its message's amount); no number without one.
+		local amount = tonumber(fx.amount)
+		if amount and amount >= 1 then
+			local text = S.CandyPickup:format(math.floor(amount))
+			riser(fx.at + Vector3.new(0, 1.5, 0), text, COLOURS.Orange, 1.6, 0.9)
+		end
 		pcall(UISound.play, "OwnerPop", 1.3)
 	elseif fx.kind == "Burst" and typeof(fx.at) == "Vector3" then
 		burst(fx.at, tonumber(fx.amount) or 0, tonumber(fx.winner), fx.full == true)

@@ -2,17 +2,17 @@
 -- CandyDrop (Halloween 2026, hw-map lane; a copy of MoneyRain): while the event is Live, candy
 -- pieces pop up on the roof near each eligible player (Rules.eligible: a lobby, HwOn, not
 -- filming, not queued on a pad, in a running match only while free to roam, not sitting, not
--- idle), one every SpawnEverySeconds (give or take
--- JitterSeconds) on a floor spot NearStuds from them, never on a queue or portal pad nor in a
--- table's match area. Each is an invisible anchored part in workspace[Folder] (attribute Kind:
--- the wrapper's colour); every client's MapClient draws, spins and pops it. The server checks
--- pickups every PickupTickSeconds: a player walking within PickupStuds asks core's
--- CandyService.pickup, which owns the Candy and the hour cap (Config.Halloween.Pickup.HourCap):
--- ok takes it (+1 shown on that player's screen), "Cap" leaves it for others and shows the
--- bag-full note once, pausing that player to the next UTC hour (Rules.pickupOutcome). A root
--- that jumped (a teleport: a turn's move, a portal) picks up nothing for TeleportGraceSeconds.
--- No client remote collects anything. Off (does nothing at all) while Config.HalloweenMap
--- .Enabled or Candy.Enabled is, and in an arena.
+-- idle), one every SpawnEverySeconds (give or take JitterSeconds) on a floor spot NearStuds
+-- from them, never on a queue or portal pad nor in a table's match area. Each is an invisible
+-- anchored part in workspace[Folder] (attribute Kind: the wrapper's colour); every client's
+-- MapClient draws, spins and pops it. The server checks pickups every PickupTickSeconds: a
+-- player walking within PickupStuds asks core's CandyService.pickup, which owns the Candy and
+-- the hour cap (Config.Halloween.Pickup.HourCap): ok takes it ("+5" on that player's screen:
+-- the Pickup message carries the Candy, Config.Halloween.Pickup.Candy), "Cap" leaves it for
+-- others and shows the bag-full note once, pausing that player to the next UTC hour
+-- (Rules.pickupOutcome). A root that jumped (a teleport: a turn's move, a portal) picks up
+-- nothing for TeleportGraceSeconds. No client remote collects anything. Off (does nothing at
+-- all) while Config.HalloweenMap.Enabled or Candy.Enabled is, and in an arena.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -363,8 +363,11 @@ local function pickupTick()
 				w.pickups += 1
 				forget(c)
 				table.remove(candies, i)
+				-- The Candy it gave (flat: CandyService.pickup adds Pickup.Candy) for the "+5".
+				local amount = Config.Halloween.Pickup.Candy
 				pcall(function()
-					Net.get("HalloweenMapFx"):FireClient(p, { kind = "Pickup", at = c.at })
+					Net.get("HalloweenMapFx")
+						:FireClient(p, { kind = "Pickup", at = c.at, amount = amount })
 				end)
 			elseif outcome.note then
 				w.capped = true
