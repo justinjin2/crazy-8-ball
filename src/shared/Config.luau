@@ -17394,7 +17394,7 @@ Config.UI.Halloween = {
 		PitchforkCue = "rbxassetid://139633646140924", -- hw-map's card (its skin's Thumb; the skinnier fork, rim-popped)
 		SpiderCue = "rbxassetid://134067061693157",
 		WitchBroomCue = "rbxassetid://83442214439619",
-		HalloweenSwordCue = "rbxassetid://136458818972136", -- cues-a's card (its skin's Thumb; v5, the slim hilt)
+		HalloweenSwordCue = "rbxassetid://106906520938583", -- cues-a's card (its skin's Thumb; v5, rim-popped)
 		Header = "rbxassetid://100823591958466", -- the menu header's jack-o'-lantern ("" = the Candy icon)
 		Gift = "rbxassetid://130940237317316", -- "" = Kit icon Gift
 		CandyPile = "rbxassetid://100770056241444",
