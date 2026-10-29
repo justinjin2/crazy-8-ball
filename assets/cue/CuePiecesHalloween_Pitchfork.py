@@ -5,25 +5,32 @@ See CuePieces.py for the kit and CuePiecesHalloween_A.py for the body rules (`ch
 body passes before it exports. Modelled in the cue's Blender frame: X the side, Y from the tip
 (0) toward the butt (-7), Z up.
 
-    pitchfork    a cream tip and a gold ferrule; the glossy candy-apple red shaft, slim (0.82 of
-                 the shared cue's width: the designer found the first two "too wide"); a low
-                 collar (gold, black, gold) with two small slim black horns on top; a red tail
-                 coiling from under the collar down the shaft (riding high on top), lifting off
-                 it in a small arrowhead tip that sways; a black band with gold rims; the red
-                 grip with a painted black band; a black butt cap with a gold ring; and past the
-                 butt a large pitchfork: a bevelled gold yoke and three slim, square-ish red
-                 prongs with flat barbed arrowhead tips, 1.5 studs long and about 2.1 across the
-                 barbs (1.04 off the axis, under the Aim cap's 1.1; it fades on the owner's own
-                 screen while aiming)
+    pitchfork    a compact pitchfork AT THE TIP (the designer 2026-10-29: about half as wide,
+                 flat, the middle prong is the tip): the middle prong, red and square-ish with a
+                 flat barbed arrowhead whose point IS the cue's tip (d 0, nothing past it), is
+                 part of the body and never fades; a bevelled gold yoke and the two outer prongs
+                 (their points set back 0.32, 0.445 off the axis across the barbs) ride the Tines
+                 joint and fade on the owner's own screen while aiming. Laid flat (face up), so
+                 nothing reaches the cloth on a max-draw stroke. Behind the yoke the glossy
+                 candy-apple red shaft starts with a gold ferrule, slim (0.82 of the shared cue's
+                 width: the designer found the first two "too wide"); a low collar (gold, black,
+                 gold) with two small slim black horns on top; a red tail coiling from under the
+                 collar down the shaft (riding high on top), lifting off it in a small arrowhead
+                 tip that sways; a black band with gold rims; the red grip with a painted black
+                 band; a black butt cap with a gold ring
 
 One painted atlas (vfx/pitchfork/pitchfork_atlas.png) for every part: the lathe's bands and
 its lacquer along most of it (a sheen, a crisp near-white streak with a thinner one either
 side, a rim light underneath; the gold and black bands bevelled at their edges; the tail's
 shadow on the shaft round the coil), and three swatches (red, black, gold, each shaded round a
-tube with rim lights, red on the black horns) in a band at the top that the horns, the tail and
-the fork are mapped onto. So the body is three parts: Body, TailTip and Fork. A small roughness
-map (vfx/pitchfork/pitchfork_rough.png, the same zones) gives the sun a crisp highlight on the
-lacquer; no Reflectance mirror (`UseRoughness`: build_cue_templates applies it only when asked).
+tube with rim lights, red on the black horns) in a band at the top that the horns, the tail,
+the prongs, the yoke and the shaft's front ferrule are mapped onto. So the body is three parts:
+Body, TailTip and Tines (renamed from the butt build's Fork, so an old template with new data
+is a missing part and falls back to the plain cue instead of drawing a wrong fork). The atlas's
+cream tip and front ferrule rows are unused since the fork moved (kept, so the atlas and its
+id stay). A small roughness map (vfx/pitchfork/pitchfork_rough.png, the same zones) gives the
+sun a crisp highlight on the lacquer; no Reflectance mirror (`UseRoughness`: build_cue_templates
+applies it only when asked).
 
 The flame flipbook (vfx/pitchfork/flame_4x4.png) is painted here too: an opaque cartoon flame,
 red with a darker rim, going orange only at its tongues' tips (coordinator 19:40: red, not
@@ -74,7 +81,13 @@ ROUGHNESS = {'Red': 0.22, 'Black': 0.26, 'Gold': 0.34, 'Cream': 0.5}
 # of the shared cue's envelope, under a named 'Slim' exception to the hand rule (the hands rest
 # at most 0.03 off the grip).
 SLIM = 0.82
-A.BODY_EXCEPTIONS['pitchfork'] = {'Slim': SLIM}
+# The fork at the tip (2026-10-29) adds three, for this body only: up to WideX studs from the tip
+# the sideways width is free (the barbs, the outer prongs), and in the bridge hand zone only the
+# Body's up/down thickness and centreline are held to the hand rule (the fading Tines may
+# overlap the hand on other players' screens, as the Sword's blade does); and the first 0.3 studs
+# may be TipAcross wide (the middle arrowhead, flat; the ball curves away from it, so it never
+# meets the ball, while 0.12 would cut the arrowhead to a stub).
+A.BODY_EXCEPTIONS['pitchfork'] = {'Slim': SLIM, 'WideX': 1.5, 'BridgeCore': ('Body',), 'TipAcross': 0.25}
 
 # The lathe's raised bands: (d, extra over the slim envelope) polylines between flush rows,
 # raised BAND_RISE of these (the bevel shapes kept). Outside the hand zones (2.1 to 4.4 and
@@ -113,22 +126,27 @@ TAIL_R = 0.04                       # the tube's radius (it rides R + 0.014 on t
 TAIL_RIDE = (0.014, 0.035)          # the centre's offset over the slim envelope: everywhere, extra on top
 TAIL_TIP = (0.26, 0.055, 0.3, 0.75)  # the lifting tip: its run along the cue, its rise, the arrowhead's length and scale
 
-# The fork, past the butt on an Aim-fade joint. Its prongs spread along S = (cos t, 0, sin t),
-# t = FORK_TILT from +X toward +Z: seen nearly face-on by the card's camera (from +X and the
-# top), a back carry's (from the top, toward the tip) and half-on by the lobby stand's (-X).
-FORK_TILT = 150.0
-# Large (the designer: "actually pretty large"; the coordinator 20:4x: about 20-25% larger than
-# the first build, using AimRadius 1.1) but slim (the designer 2026-10-28: "too wide"): the span
-# kept, about 1.03 off the axis, on slimmer prongs, yoke and arrowheads.
-FORK_SPREAD = 0.80                  # the outer prongs' centres off the axis (studs)
-PRONG_R = (0.062, 0.072)            # a prong's section: across its face, in its plane
+# The fork, at the tip (the designer 2026-10-29: "a compact fork at the TIP", about half the
+# approved 2.08 span, flat, the middle prong is the tip; it was past the butt, 1.5 studs long).
+# Its prongs spread along S = (cos t, 0, sin t), t = FORK_TILT from +X toward +Z: 180 lays it
+# flat, face up (at 150 the lower outer tine sat 0.4 under the axis, into the cloth on a max-draw
+# stroke, whose axis is only 0.097 over it). d is studs from the tip, as everywhere here.
+FORK_TILT = 180.0
+FORK_SPREAD = 0.31                  # the outer prongs' centres off the axis (studs); 0.445 across the barbs
+PRONG_R = (0.05, 0.058)             # a prong's section: across its face (up), in its plane (sideways)
 PRONG_SQUARE = 2.8                  # its superellipse power: a rounded, bevelled square that catches light
-FORK_FROM = 7.10                    # the prongs leave the yoke here
-FORK_BEND = 7.70                    # the outer prongs turn parallel to the cue here
-MIDDLE_TIP, OUTER_TIP = 8.48, 8.45  # the arrowheads' points (the Aim cap is 8.5)
-HEAD_LEN = (0.54, 0.52)             # the arrowheads' lengths: middle, outer
-HEAD_SCALE = 1.15                   # the arrowheads' width and thickness (HEAD and BARB are at 1)
+FORK_FROM = 1.22                    # the outer prongs leave the yoke here
+FORK_BEND = 0.86                    # and turn parallel to the cue here
+MIDDLE_TIP, OUTER_TIP = 0.0, 0.32   # the arrowheads' points: the middle one IS the cue's tip; the outer
+                                    # ones set back, out of the tip zone, so the middle one strikes first
+HEAD_LEN = (0.40, 0.34)             # the arrowheads' lengths: middle, outer
+HEAD_SCALE = (0.8, 0.72)            # the arrowheads' width and thickness (HEAD and BARB are at 1): middle, outer
 HEAD_THICK = 0.7                    # and their thickness again on top: flat, elegant blades
+LATHE_FROM = 1.36                   # the shaft starts here, behind the yoke, with a gold ferrule
+FERRULE = 0.07                      # the ferrule's length
+HALF_SPAN_CAP = 0.46                # check_fork: nothing in the fork zone further off the axis sideways
+CLOTH_DEPTH = 0.085                 # check_fork: nor deeper under the axis (a max-draw axis is 0.097 over the cloth)
+FORK_ZONE = 1.6                     # the fork zone for those two checks (studs from the tip)
 # an arrowhead's section along it (t from its neck, 0, to its point, 1): full width, full
 # thickness (studs at scale 1); the point rounds off over its last 0.09
 HEAD = ((0.0, 0.18, 0.152), (0.025, 0.25, 0.14), (0.06, 0.31, 0.128), (0.10, 0.335, 0.12),
@@ -138,12 +156,15 @@ HEAD = ((0.0, 0.18, 0.152), (0.025, 0.25, 0.14), (0.06, 0.31, 0.128), (0.10, 0.3
 # axis, half thickness, half width) at scale 1
 BARB = ((0.16, 0.09, 0.045, 0.06), (0.07, 0.14, 0.04, 0.05), (-0.02, 0.17, 0.033, 0.036),
         (-0.09, 0.185, 0.026, 0.024), (-0.115, 0.188, 0.012, 0.011))
-# the gold yoke over the butt's end: two bevelled rims with a groove between, then a dome the
-# prongs leave from (radii at YOKE_SCALE of these)
-YOKE_SCALE = 0.75
-YOKE = ((6.985, 0.0), (6.99, 0.19), (6.996, 0.226), (7.004, 0.238), (7.028, 0.238), (7.034, 0.222),
-        (7.044, 0.214), (7.054, 0.222), (7.06, 0.238), (7.084, 0.238), (7.094, 0.222), (7.12, 0.19),
-        (7.15, 0.14), (7.172, 0.07), (7.18, 0.0))
+# the gold yoke where the prongs leave the shaft: from the shaft's side, two bevelled rims with a
+# groove between, then a dome toward the tip the prongs leave from (d, radius at scale 1; the
+# butt build's profile turned round). Flattened: its section is YOKE_SCALE of these sideways and
+# YOKE_UP of that up and down (the cloth rule), an oval boss the outer prongs grow out of.
+YOKE_SCALE = 0.62
+YOKE_UP = 0.55
+YOKE = ((1.375, 0.0), (1.37, 0.19), (1.364, 0.226), (1.356, 0.238), (1.332, 0.238), (1.326, 0.222),
+        (1.316, 0.214), (1.306, 0.222), (1.30, 0.238), (1.276, 0.238), (1.266, 0.222), (1.24, 0.19),
+        (1.21, 0.14), (1.188, 0.07), (1.18, 0.0))
 
 
 def slim_envelope():
@@ -156,13 +177,20 @@ def _band_rows(R, band):
     return [(d, R(d) + extra * BAND_RISE) for d, extra in band]
 
 
-def lathe_rows():
-    """The lathe's (d, r) rows from the tip to the butt's closed end."""
+def ferrule_rows():
+    """The shaft's front: a gold ferrule closed toward the tip (the middle prong enters it),
+    LATHE_FROM to LATHE_FROM + FERRULE, a little proud of the shaft; its own UVs (the gold
+    swatch), so it is a separate run of rows from lathe_rows."""
     R = slim_envelope()
-    rows = [(0.0, 0.0), (0.012, 0.03), (0.03, R(0.03))]
-    rows += _rows(0.03, 0.30, R, 0.09)[1:]
-    rows += [(0.303, R(0.30) + 0.008), (0.357, R(0.357) + 0.008), (0.36, R(0.36))]
-    rows += _rows(0.36, 2.10, R, 0.2)[1:-1]
+    d0, d1 = LATHE_FROM, LATHE_FROM + FERRULE
+    return [(d0, 0.0), (d0 + 0.004, R(d0) * 0.75), (d0 + 0.012, R(d0) + 0.01), (d1 - 0.006, R(d1) + 0.01),
+            (d1, R(d1))]
+
+
+def lathe_rows():
+    """The lathe's (d, r) rows from the ferrule's back to the butt's closed end."""
+    R = slim_envelope()
+    rows = _rows(LATHE_FROM + FERRULE, 2.10, R, 0.2)[:-1]
     rows += _band_rows(R, COLLAR)
     rows += _rows(2.50, 4.20, R, 0.2)[1:-1]
     rows += _band_rows(R, LOW_BAND)
@@ -289,11 +317,23 @@ def pitchfork(k):
                SurfaceAppearance={'ColorMap': pitchfork_atlas(), 'RoughnessMap': pitchfork_roughness(),
                                      'UseRoughness': True})
 
-    # --- the body: the lathe, the horns and the tail's coil, all on the atlas -------------------
+    # --- the body: the middle prong (the tip), the lathe, the horns and the tail's coil -----------
     k.joint('Body', pivot=(0, -3.5, 0))
     bm = bmesh.new()
     _revolve(bm, lathe_rows(), 24, uv=lambda d, share: (share, d / V_STUDS * LATHE_V))
     uvl = bm.loops.layers.uv['UVMap']
+    # the shaft's gold ferrule, closed toward the tip, where the middle prong enters it
+    fr = ferrule_rows()
+    _tube(bm, uvl, [Vector((0.0, -d, 0.0)) for d, _ in fr], [r for _, r in fr], lambda i: (0.0, 0.0, 1.0), 'Gold',
+          along=lambda i: (fr[i][0] - fr[0][0]) / FERRULE, segs=24, caps=(False, False))
+    # the middle prong, straight from inside the ferrule to its arrowhead, whose point is the
+    # cue's tip (d 0 exactly: the head's last section is a point at base + its length)
+    S, N = _fork_frame()
+    A = Vector((0.0, 1.0, 0.0))     # the arrowheads point toward the tip
+    neck = MIDDLE_TIP + HEAD_LEN[0]
+    straight = [_fork_point(0.0, LATHE_FROM + 0.03 + (neck - 0.02 - LATHE_FROM - 0.03) * i / 6) for i in range(7)]
+    _tube(bm, uvl, straight, [PRONG_R] * 7, lambda i: N, 'Red', segs=16, caps=(True, False), square=PRONG_SQUARE)
+    _head(bm, uvl, _fork_point(0.0, neck), A, S, N, HEAD_LEN[0], scale=HEAD_SCALE[0], thick=HEAD_THICK)
     # two small curved black horns on the collar, either side of the top, curling toward the tip
     for side in (-1, 1):
         b = math.radians(HORN_ANGLE) * side
@@ -343,21 +383,17 @@ def pitchfork(k):
     _finish(bm)
     k.add('TailTip', k.mesh_object('TailTip', bm, ['Pitchfork']))
 
-    # --- the pitchfork past the butt: it fades on the owner's screen while aiming -------------------
-    S, N = _fork_frame()
-    A = Vector((0.0, -1.0, 0.0))
-    k.joint('Fork', pivot=(0.0, -7.0, 0.0), aim='fade')
+    # --- the yoke and the outer prongs at the tip: they fade on the owner's screen while aiming ----
+    # (the middle prong is the body's: the owner aims a cue that still ends on its point)
+    k.joint('Tines', pivot=(0.0, -FORK_FROM, 0.0), aim='fade')
     bm = bmesh.new()
     uvl = bm.loops.layers.uv.new('UVMap')
-    # the gold yoke over the butt's end, where the prongs leave the cue
+    # the gold yoke, an oval boss round the middle prong in front of the ferrule
     yk = [Vector((0.0, -d, 0.0)) for d, _ in YOKE]
-    _tube(bm, uvl, yk, [r * YOKE_SCALE for _, r in YOKE], lambda i: N, 'Gold', segs=24, caps=(False, False))
-    # the middle prong, straight
-    straight = [_fork_point(0.0, FORK_FROM - 0.04 + (MIDDLE_TIP - HEAD_LEN[0] - FORK_FROM + 0.06) * i / 6) for i in range(7)]
-    _tube(bm, uvl, straight, [PRONG_R] * 7, lambda i: N, 'Red', segs=16, caps=(True, False), square=PRONG_SQUARE)
-    _head(bm, uvl, straight[-1] - A * 0.02, A, S, N, HEAD_LEN[0], scale=HEAD_SCALE, thick=HEAD_THICK)
+    _tube(bm, uvl, yk, [(r * YOKE_SCALE * YOKE_UP, r * YOKE_SCALE) for _, r in YOKE], lambda i: N, 'Gold', segs=24,
+          caps=(False, False))
     # the outer prongs: a round U out of the yoke (a quadratic curve leaving sideways, arriving
-    # parallel to the cue), then straight up to their arrowheads
+    # parallel to the cue), then straight on to their arrowheads, which point toward the tip
     for side in (-1, 1):
         p0, p1, p2 = (0.0, FORK_FROM), (side * FORK_SPREAD, FORK_FROM), (side * FORK_SPREAD, FORK_BEND)
         pts = []
@@ -366,33 +402,41 @@ def pitchfork(k):
             s = (1 - t) ** 2 * p0[0] + 2 * (1 - t) * t * p1[0] + t * t * p2[0]
             d = (1 - t) ** 2 * p0[1] + 2 * (1 - t) * t * p1[1] + t * t * p2[1]
             pts.append(_fork_point(s, d))
-        end = OUTER_TIP - HEAD_LEN[1]
-        pts += [_fork_point(side * FORK_SPREAD, FORK_BEND + (end + 0.02 - FORK_BEND) * i / 4) for i in range(1, 5)]
+        neck = OUTER_TIP + HEAD_LEN[1]
+        pts += [_fork_point(side * FORK_SPREAD, FORK_BEND + (neck - 0.02 - FORK_BEND) * i / 4) for i in range(1, 5)]
         _tube(bm, uvl, pts, [PRONG_R] * len(pts), lambda i: N, 'Red', segs=16, caps=(True, False), square=PRONG_SQUARE)
-        _head(bm, uvl, pts[-1] - A * 0.02, A, S, N, HEAD_LEN[1], scale=HEAD_SCALE, thick=HEAD_THICK)
+        _head(bm, uvl, _fork_point(side * FORK_SPREAD, neck), A, S, N, HEAD_LEN[1], scale=HEAD_SCALE[1],
+              thick=HEAD_THICK)
     _finish(bm)
-    k.add('Fork', k.mesh_object('Fork', bm, ['Pitchfork']))
+    k.add('Tines', k.mesh_object('Tines', bm, ['Pitchfork']))
     check_body(k)
     check_fork(k)
 
 
-AIM_RADIUS = 1.1     # Cues B's brief 2.2 radial room for an Aim joint past the butt (RULES['AimRadius'])
-
-
 def check_fork(k):
-    """The Cues B rule the body check leaves out: an Aim joint's vertices past the butt stay
-    within AIM_RADIUS of the axis. Prints the fork's reach and spread."""
-    reach, radius = 0.0, 0.0
+    """The fork's own rules, on top of the body check: the middle prong's point is exactly the
+    cue's tip and nothing passes it; in the fork zone (the first FORK_ZONE studs) nothing sits
+    further than HALF_SPAN_CAP off the axis sideways or deeper than CLOTH_DEPTH under it (flat,
+    so no tine reaches the cloth on a max-draw stroke). Prints the fork's span and depth."""
+    front, span, depth, at_tip = math.inf, 0.0, 0.0, False
     for jname, j in k.joints.items():
         for ob in j['objects']:
             M = ob.matrix_world
             for v in ob.data.vertices:
                 p = M @ v.co
-                if -p.y > 7.0:
-                    reach = max(reach, -p.y - 7.0)
-                    radius = max(radius, math.hypot(p.x, p.z))
-    assert radius <= AIM_RADIUS + 1e-6, 'the fork reaches %.3f off the axis (at most %.2f)' % (radius, AIM_RADIUS)
-    print('CUE pitchfork: the fork reaches %.3f past the butt, %.3f off the axis (%.2f across)' % (reach, radius, 2 * radius))
+                d = -p.y
+                front = min(front, d)
+                if jname == 'Body' and abs(d - MIDDLE_TIP) < 1e-5 and math.hypot(p.x, p.z) < 1e-5:
+                    at_tip = True
+                if d < FORK_ZONE:
+                    span = max(span, abs(p.x))
+                    depth = max(depth, -p.z)
+    assert front >= -1e-5, 'a part passes the tip by %.4f' % -front
+    assert at_tip, "the middle prong's point is not at the cue's tip"
+    assert span <= HALF_SPAN_CAP + 1e-6, 'the fork reaches %.3f off the axis (at most %.2f)' % (span, HALF_SPAN_CAP)
+    assert depth <= CLOTH_DEPTH + 1e-6, 'the fork reaches %.3f under the axis (at most %.3f)' % (depth, CLOTH_DEPTH)
+    print('CUE pitchfork: the fork at the tip, %.3f off the axis (%.2f across), %.3f under it; nothing past the tip'
+          % (span, 2 * span, depth))
 
 
 # =============================================================================================
@@ -574,7 +618,7 @@ def flame_flipbook(px=128, grid=4):
 
 # Part keys patched into piece.json after the export (tools/cue_pieces_glb.py "Smooth": shared
 # vertex normals; the packer writes flat faces otherwise and the lathe and prongs read faceted).
-PART_KEYS = {'pitchfork': {name: {'Smooth': True} for name in ('Body_Pitchfork', 'TailTip_Pitchfork', 'Fork_Pitchfork')}}
+PART_KEYS = {'pitchfork': {name: {'Smooth': True} for name in ('Body_Pitchfork', 'TailTip_Pitchfork', 'Tines_Pitchfork')}}
 
 
 def _patch_parts(pid):

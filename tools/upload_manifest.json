@@ -911,21 +911,10 @@
     "assetType": "Model",
     "status": "ok"
   },
-  "/Users/justinjin/Desktop/8ball-hw-map/assets/cue/pieces/pitchfork/pitchfork_parts.glb": {
-    "assetId": "136051344252950",
-    "assetType": "Model",
-    "status": "ok"
-  },
   "/Users/justinjin/Desktop/8ball-hw-map/assets/cue/thumbs/bone.png": {
     "assetId": "137357376268612",
     "assetType": "Decal",
     "imageId": "131967740072541",
-    "status": "ok"
-  },
-  "/Users/justinjin/Desktop/8ball-hw-map/assets/cue/thumbs/pitchfork.png": {
-    "assetId": "124232120821793",
-    "assetType": "Decal",
-    "imageId": "139633646140924",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball-hw-map/assets/cue/vfx/bone/bone_512.png": {
@@ -1409,6 +1398,17 @@
     "assetId": "113082192164237",
     "assetType": "Decal",
     "imageId": "137525961488251",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/.claude/worktrees/agent-adf8a5316b308e556/assets/cue/pieces/pitchfork/pitchfork_parts.glb": {
+    "assetId": "116270933265788",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/.claude/worktrees/agent-adf8a5316b308e556/assets/cue/thumbs/pitchfork.png": {
+    "assetId": "110284560248397",
+    "assetType": "Image",
+    "imageId": "110284560248397",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/abilities/BlackFlash/BlackFlash.glb": {
