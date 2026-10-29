@@ -50,17 +50,34 @@ SWORD = {'Black': '#1A1424', 'Deep': '#3B1F5C', 'Violet': '#7B2FF7', 'Orchid': '
 # The Meshy model's regions along its own Z (the tip at +0.95, the pommel's point at -0.95;
 # measured 2026-10-28 19:31: |x| 0.2 along the blade, the wings 0.35, the grip 0.035).
 M_TIP, M_GUARD0, M_GUARD1, M_GRIP1, M_END = 0.95, -0.30, -0.58, -0.78, -0.95
-BLADE_END = 4.32          # the blade meets the guard here (one scale for the whole blade)
-GUARD0, GUARD1 = 4.23, 4.85   # the guard ends where the grip hand's full wind-up reaches (4.92 measured, 20:5x)
+BLADE_END = 5.03          # the blade meets the guard here (one scale for the whole blade)
+BLADE_X, BLADE_Z = 0.86, 0.86   # the core's width and thickness kept at v4's (the length grew 16%: designer 20:5x)
+GUARD0, GUARD1 = 4.97, 5.55   # the guard just in front of the hand at rest (designer 20:5x: the hilt short and slim)
 GUARD_X, GUARD_Z = 2.6, 1.6   # the guard's own scales: wide like the art, flattened in Z
 GUARD_LIFT = 0.055          # the pumpkin and wings lifted so their underside stays within envelope + 0.08 at 4.2-4.3
-GRIP0, GRIP1 = 4.87, 6.80
-POMMEL1 = 7.28            # the crystal's point: 0.28 past the butt (plain limit 0.3)
+GRIP0, GRIP1 = 5.57, 6.85     # only as long as the hand at rest needs (its box 5.57-6.81 measured)
+GRIP_R = 0.115                # a sword handle, slimmer than the cue envelope (about 0.18 here)
+POMMEL1 = 7.29            # the crystal's point: 0.29 past the butt (plain limit 0.3)
 POMMEL_S = (POMMEL1 - GRIP1) / (M_GRIP1 - M_END)
 BLADE_S = BLADE_END / (M_TIP - M_GUARD0)
 ATLAS_PX = 512            # the baked atlas: 512 read the same as 1024 up close in the lab (20:08), so phones get 512
-CORE_BEVEL = 0.018        # model units: the light bevel line along the dark core's edge stays on the blade
-A.BODY_EXCEPTIONS['halloween_sword'] = {'WideX': 4.9, 'BridgeCore': ('Body',), 'GuardInGripZone': (4.4, 4.9)}
+# The clean silhouette (v5, designer 20:5x: the flame border is VFX, not the model). The Meshy
+# blade's tongues thin gradually (no fin plateau to split on), sweep toward the point with a
+# notch under each, and differ side to side, so a split or a per-length scaling leaves
+# scallops (lab 21:3x-21:5x). Instead every vertex is pressed onto a designed core profile that
+# sits inside the deepest valley: a straight taper from CORE_ROOT_W under the guard to
+# CORE_MID_W at CORE_MID_D, then the model's own point (the tip rule's pinch). Studs on the cue.
+CORE_ROOT_W = 0.42
+CORE_MID_W = 0.32
+CORE_MID_D = 1.2
+# The paint: the source texture's flame tongues are painted over before the bake, by where a
+# texel sits between the spine (0) and the core's rim (1): inside PAINT_CORE_R the Meshy paint
+# stays (the dark core with its ridge glow), beyond it a dark mottled steel, and from
+# PAINT_BEVEL_R a thin lavender bevel that the emissive mask picks up.
+PAINT_CORE_R = 0.5
+PAINT_BEVEL_R = 0.9
+A.BODY_EXCEPTIONS['halloween_sword'] = {'WideX': 5.55, 'BridgeCore': ('Body',), 'GuardInGripZone': (4.4, 5.55),
+                                        'SlimGrip': GRIP_R}
 
 
 def _smooth(a, b, x):
@@ -168,43 +185,32 @@ def _maps(k, img, name='Sword'):
     return rel, rel_e, px
 
 
-def _face_classes(ob, px):
-    """Per face: its region ('blade', 'flame', 'guard', 'grip', 'pommel') from where it sits on
-    the model. On the blade the split is geometric: the dark core's half-width is measured
-    band by band from the faces the texture paints dark (plus the light bevel line along its
-    edge), and a face outside that outline is a flame. A split by each face's own colour put
-    the blade's bright bevel faces into the flames and left pale wedges on the core (lab
-    19:52)."""
+def _core_w(d):
+    """The core's half-width at `d` studs from the tip (see CORE_ROOT_W)."""
+    if d >= CORE_MID_D:
+        return CORE_MID_W + (CORE_ROOT_W - CORE_MID_W) * min(1.0, (d - CORE_MID_D) / (BLADE_END - CORE_MID_D))
+    return CORE_MID_W * (d / CORE_MID_D) ** 0.8
+
+
+def _blade_xd(x, z):
+    """A model blade vertex's x on the cue before the press (the tip rule's pinch in) and its d."""
+    d = min((M_TIP - z) * BLADE_S, GUARD1 - 0.01)
+    pinch = 0.5 + 0.5 * _smooth(0.3, 0.75, d)              # the tip rule: 0.12 across for 0.3
+    return x * BLADE_S * BLADE_X * pinch, d, pinch
+
+
+def _face_classes(ob):
+    """Per face: its region ('blade', 'guard', 'grip', 'pommel') from where it sits along the
+    model (v5: the whole flame-edged blade is 'blade'; its outline is pressed onto the core
+    profile in blade() and its tongue paint covered by _paint_core)."""
     import numpy as np
     me = ob.data
-    h, w = px.shape[:2]
-    uvl = me.uv_layers.active.data
     V = np.array([v.co[:] for v in me.vertices])
-    centres, out = [], []
+    out = []
     for p in me.polygons:
-        centres.append(V[list(p.vertices)].mean(axis=0))
-    centres = np.array(centres)
-    # the core's outline: per 0.05 band of the blade, the widest dark face centre
-    band = 0.05
-    nb = int(math.ceil((M_TIP - M_GUARD0) / band)) + 1
-    core = np.zeros(nb)
-    for p, c in zip(me.polygons, centres):
+        c = V[list(p.vertices)].mean(axis=0)
         if c[2] > M_GUARD0:
-            uv = np.mean([uvl[l].uv[:] for l in p.loop_indices], axis=0)
-            col = px[int(np.clip(uv[1] * h, 0, h - 1)), int(np.clip(uv[0] * w, 0, w - 1))]
-            if col.max() < 0.33:
-                b = int((M_TIP - c[2]) / band)
-                core[b] = max(core[b], abs(c[0]))
-    # fill empty bands from their neighbours and smooth a little
-    for i in range(nb):
-        if core[i] == 0:
-            near = [core[j] for j in (i - 1, i + 1, i - 2, i + 2) if 0 <= j < nb and core[j] > 0]
-            core[i] = max(near) if near else 0.0
-    core = np.maximum(core, np.concatenate([[0], core[:-1]]) * 0.9)
-    for c in centres:
-        if c[2] > M_GUARD0:
-            b = int((M_TIP - c[2]) / band)
-            out.append('flame' if abs(c[0]) > core[b] + CORE_BEVEL else 'blade')
+            out.append('blade')
         elif c[2] > M_GUARD1:
             out.append('guard')
         elif c[2] > M_GRIP1:
@@ -212,6 +218,78 @@ def _face_classes(ob, px):
         else:
             out.append('pommel')
     return out
+
+
+def _paint_core(k, ob, classes, src_path):
+    """The source colour with the blade's flame paint covered (see PAINT_CORE_R): each blade
+    face is rasterised in the source UV space with its corners' rim fraction r = |x| / core(d)
+    (the pressed rim is 1) interpolated, and a texel past PAINT_CORE_R is repainted dark steel,
+    past PAINT_BEVEL_R the lavender bevel. Written as a temporary file; returns its path."""
+    import tempfile
+    import numpy as np
+    bpy = k.bpy
+    img = bpy.data.images.load(src_path)
+    w, h = img.size
+    px = np.array(img.pixels[:], dtype=np.float32).reshape(h, w, 4)
+    rgb = px[..., :3]
+    black = np.array(_hex(SWORD['Black']), np.float32)
+    lav = np.array(_hex(SWORD['Lavender']), np.float32)
+    me = ob.data
+    uvl = me.uv_layers.active.data
+    V = np.array([v.co[:] for v in me.vertices])
+    painted = 0
+    for p in me.polygons:
+        if classes[p.index] != 'blade':
+            continue
+        vs = [V[i] for i in p.vertices]
+        r = []
+        for v in vs:
+            xx0, d, _ = _blade_xd(v[0], v[2])
+            r.append(min(1.2, abs(xx0) / max(_core_w(d), 1e-4)))
+        r = np.array(r)
+        if r.max() < PAINT_CORE_R - 0.08:
+            continue
+        uv = np.array([uvl[l].uv[:] for l in p.loop_indices]) * (w, h)
+        x0, y0 = np.floor(uv.min(axis=0) - 1).astype(int)
+        x1, y1 = np.ceil(uv.max(axis=0) + 1).astype(int)
+        x0, y0 = max(x0, 0), max(y0, 0)
+        x1, y1 = min(x1, w - 1), min(y1, h - 1)
+        if x1 <= x0 or y1 <= y0:
+            continue
+        xs, ys = np.meshgrid(np.arange(x0, x1 + 1) + 0.5, np.arange(y0, y1 + 1) + 0.5)
+        (ax, ay), (bx, by), (cx, cy) = uv
+        det = (bx - ax) * (cy - ay) - (cx - ax) * (by - ay)
+        if abs(det) < 1e-6:
+            continue
+        l1 = ((bx - xs) * (cy - ys) - (cx - xs) * (by - ys)) / det
+        l2 = ((cx - xs) * (ay - ys) - (ax - xs) * (cy - ys)) / det
+        l3 = 1.0 - l1 - l2
+        slack = 1.5 / max(1.0, math.sqrt(abs(det)))  # about a pixel and a half past each edge
+        inside = (l1 >= -slack) & (l2 >= -slack) & (l3 >= -slack)
+        if not inside.any():
+            continue
+        rr = np.clip(l1 * r[0] + l2 * r[1] + l3 * r[2], 0.0, 1.2)
+        sub = rgb[y0:y1 + 1, x0:x1 + 1]
+        lum = sub.mean(axis=-1, keepdims=True)
+        dark = black * (0.75 + 0.5 * np.minimum(lum, 0.5))
+        t_core = np.clip((rr - (PAINT_CORE_R - 0.08)) / 0.08, 0.0, 1.0)[..., None]
+        t_bev = np.clip((rr - PAINT_BEVEL_R) / (1.0 - PAINT_BEVEL_R), 0.0, 1.0)[..., None]
+        new = sub * (1 - t_core) + dark * t_core
+        new = new * (1 - t_bev) + lav * t_bev
+        sub[inside] = new[inside]
+        painted += 1
+    img.pixels.foreach_set(px.ravel())
+    out = os.path.join(tempfile.gettempdir(), '%s_core_paint.png' % k.pid)
+    img.filepath_raw = out
+    img.file_format = 'PNG'
+    img.save()
+    print('SWORD paint: %d blade faces repainted -> %s' % (painted, out))
+    return out
+
+
+def _hex(s):
+    s = s.lstrip('#')
+    return tuple(int(s[i:i + 2], 16) / 255.0 for i in (0, 2, 4))
 
 
 def _region_object(k, ob, classes, region, name, mapping, target):
@@ -263,7 +341,7 @@ def _rebake(k, objs, src_path, size=1024):
     the 512 keeps its lines). The old UV layer is dropped. Returns the atlas image."""
     import numpy as np
     bpy = k.bpy
-    rects = {'Blade': (0.0, 0.0, 0.5, 1.0), 'Flames': (0.5, 0.5, 0.5, 0.5), 'Guard': (0.5, 0.0, 0.25, 0.5), 'Pommel': (0.75, 0.0, 0.25, 0.5)}
+    rects = {'Blade': (0.0, 0.0, 0.5, 1.0), 'Guard': (0.5, 0.0, 0.5, 0.5), 'Pommel': (0.5, 0.5, 0.25, 0.5)}
     src = bpy.data.images.load(src_path)
     bake_px = max(size, 1024)
     target = bpy.data.images.new('SwordAtlas', bake_px, bake_px, alpha=False)
@@ -322,6 +400,22 @@ def _rebake(k, objs, src_path, size=1024):
     return target
 
 
+def _recentre_z(ob, step=0.1):
+    """The blade's core centred up and down in every 0.1-stud band (the hand rule's 0.02): the
+    Meshy blade's faces are not quite symmetric in thickness, and with the bevel widened the
+    core's z-centre drifted 0.022 at 2.0 studs (v5). Each band's vertices shift by its own
+    mid-thickness, at most a few hundredths."""
+    from collections import defaultdict
+    bands = defaultdict(list)
+    for v in ob.data.vertices:
+        bands[int(-v.co.y / step)].append(v)
+    for vs in bands.values():
+        zs = [v.co.z for v in vs]
+        mid = (max(zs) + min(zs)) / 2
+        for v in vs:
+            v.co.z -= mid
+
+
 @piece
 def halloween_sword(k):
     """The Halloween Sword body (see the module docstring)."""
@@ -330,29 +424,25 @@ def halloween_sword(k):
     from mathutils import Vector
     R = envelope()
     ob, src = _import(k)
-    meshy = k.bpy.data.images.load(_meshy_colour(src))
-    w, h = meshy.size
-    px = np.array(meshy.pixels[:], dtype=np.float32).reshape(h, w, 4)[..., :3]
-    classes = _face_classes(ob, px)
+    classes = _face_classes(ob)
+    painted = _paint_core(k, ob, classes, _meshy_colour(src))
     k.material('Wrap', 'SmoothPlastic', '#FFFFFF', Reflectance=0.02, SurfaceAppearance={'ColorMap': wrap_map(k.bpy)})
 
     k.joint('Body', pivot=(0, -3.5, 0))
     # the flame edges clear for the aiming owner; a slow shimmer: they hinge a hair about the axis
-    k.joint('Flames', pivot=(0, -1.9, 0), parent='Body', aim='fade',
-            motion=[{'Kind': 'Hinge', 'Axis': (0, 1, 0), 'Amp': 1.2, 'Period': 1.6}])
-
     thick = 0.037 * BLADE_S     # the Meshy blade's half thickness on the cue, before flattening
 
     def blade(x, y, z):
-        d = min((M_TIP - z) * BLADE_S, GUARD1 - 0.01)
-        pinch = 0.5 + 0.5 * _smooth(0.3, 0.75, d)              # the tip rule: 0.12 across for 0.3
+        xx0, d, pinch = _blade_xd(x, z)
         flat = min(1.0, (R(min(d, 7.0)) + 0.012) / thick)      # no thicker than the cue in the hand
-        zz = y * BLADE_S * flat * pinch
+        zz = y * BLADE_S * BLADE_Z * flat * pinch
         # The root flares under the guard (|y| 0.07 in the model, 0.25 at this scale): its
         # underside is held to the downward clearance (envelope + 0.08, SIDE_EXTRA), hidden
         # under the pumpkin; the ridge on +Z keeps its height (UP_EXTRA 0.25 there).
         zz = max(zz, -(R(min(d, 7.0)) + 0.07))
-        return Vector((x * BLADE_S * pinch, -d, zz))
+        w = _core_w(d)
+        xx = math.copysign(min(abs(xx0), w), xx0)              # pressed onto the core profile
+        return Vector((xx, -d, zz))
 
     def guard(x, y, z):
         d = min(GUARD0 + (M_GUARD0 - z) / (M_GUARD0 - M_GUARD1) * (GUARD1 - GUARD0), GUARD1 - 0.01)
@@ -364,23 +454,21 @@ def halloween_sword(k):
 
     parts = [
         ('Body', _region_object(k, ob, classes, 'blade', 'Blade', blade, 3300)),
-        ('Flames', _region_object(k, ob, classes, 'flame', 'Flames', blade, 2600)),
         ('Body', _region_object(k, ob, classes, 'guard', 'Guard', guard, 2000)),
         ('Body', _region_object(k, ob, classes, 'pommel', 'Pommel', pommel, 500)),
     ]
     k.bpy.data.objects.remove(ob)
-    atlas = _rebake(k, [o for _, o in parts], _meshy_colour(src), ATLAS_PX)
+    _recentre_z(parts[0][1])
+    atlas = _rebake(k, [o for _, o in parts], painted, ATLAS_PX)
     colour, emissive, _ = _maps(k, atlas)
     sa = {'ColorMap': colour, 'EmissiveMask': emissive}
     k.material('Steel', 'SmoothPlastic', '#FFFFFF', Reflectance=0.05,
                SurfaceAppearance=dict(sa, EmissiveTint=SWORD['Orchid'], EmissiveStrength=0.5))
-    k.material('Flame', 'SmoothPlastic', '#FFFFFF', Transparency=0.12,
-               SurfaceAppearance=dict(sa, EmissiveTint=SWORD['Lavender'], EmissiveStrength=1.1))
     k.material('Guard', 'SmoothPlastic', '#FFFFFF', Reflectance=0.04,
                SurfaceAppearance=dict(sa, EmissiveTint=SWORD['Orchid'], EmissiveStrength=0.9))
     k.material('Pommel', 'SmoothPlastic', '#FFFFFF', Reflectance=0.06,
                SurfaceAppearance=dict(sa, EmissiveTint=SWORD['Orchid'], EmissiveStrength=1.0))
-    for (joint, o), mat in zip(parts, ('Steel', 'Flame', 'Guard', 'Pommel')):
+    for (joint, o), mat in zip(parts, ('Steel', 'Guard', 'Pommel')):
         o.data.materials.clear()
         o.data.materials.append(k.blender_mat(mat))
         for p in o.data.polygons:
@@ -388,9 +476,9 @@ def halloween_sword(k):
         k.add(joint, o)
 
     # the grip: a lathe at the envelope through the grip hand, closed at both ends
-    rows = [(GRIP0, 0.0)] + [(d, R(d)) for d in [GRIP0 + i * 0.1 for i in range(int((GRIP1 - GRIP0) / 0.1) + 1)]] + [(GRIP1, R(GRIP1)), (GRIP1, 0.0)]
+    rows = [(GRIP0, 0.0), (GRIP0, GRIP_R), (GRIP1, GRIP_R), (GRIP1, 0.0)]
     bm = bmesh.new()
-    _revolve(bm, rows, 18, uv=lambda d, share: (share * 2.0, (d - GRIP0) / 0.6))
+    _revolve(bm, rows, 18, uv=lambda d, share: (share * 2.0, (d - GRIP0) / 0.4))
     _finish(bm)
     k.add('Body', k.mesh_object('Grip', bm, ['Wrap']))
     check_body(k)
