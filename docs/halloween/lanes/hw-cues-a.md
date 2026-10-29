@@ -61,6 +61,33 @@ From PLAN §4 (everything else is read-only; ask through Requests):
 
 ## Status (continued)
 
+- 23:36 hw-core confirms Art.HalloweenSwordCue = 106906520938583 set (28f643d0; Open Cloud: Image, Approved, Active). Nothing open on this lane; waiting for the coordinator.
+- 23:19 **READY @00258657** (hold lifted 23:0x): the Halloween Sword v5. Thumb re-rendered, popped and re-popped with a lavender --rim after hw-core's note (Art.HalloweenSwordCue = 106906520938583, sent to hw-core). origin/halloween merged at 6acaa682: `CuePiecesHalloween_A.py` keeps hw-map's `Slim` factor and my `SlimGrip` floor (the upper bound Slim's, the lower the smaller of the two) and `GuardInGripZone`; the manifest a per-row union (1080 rows, nothing dropped); every body rebuilt headless afterwards: bone, ghost_lantern, halloween_sword, jack_o_lantern, pitchfork pass the body rules, spider and witch_broom build (their builders print no rule line); the rebuild outputs restored. Lint OK, 1477 tests pass. Post-merge Studio: the sword's stand builds with its 4 body parts and both beams (template and piece folder present). Gap: in that Play session CueAssets.ready stayed false for 120 s on the Sword (the warm's preload, probably the minutes-old thumb decal still propagating); the cue draws regardless; recheck in the next session. Side-by-side v4 vs v5: `gate2/side_by_side_halloween_sword_v2.jpg`.
+- 22:48 HOLD (coordinator: the release is being re-planned; nothing new until the designer approves). Sword v5 checked in the lab with the v4 strip: the slim short hilt (grip 5.57-6.85, guard 4.97-5.55), the dark clean-edged blade and the flame border as scrolling beams read as C8's silhouette close on the stand, from above and on the back; in hand the owner's aim view stays clear. Lower effects hides the two edge flame emitters, the beams stay. Lint OK, 1477 tests pass. Thumb re-rendered and popped locally, NOT uploaded (hold): the rows still carry the v4 thumb id 121167927707840. Committed on hw-cues-a, not merged, no READY. Left when the hold lifts: thumb upload + id to hw-core, side-by-side v2 (v4 vs v5), merge origin/halloween (keep hw-map's Slim key), push, READY.
+- 21:46 STOPPED (usage limit). v5 state, all uncommitted on the tree: body pressed onto the core profile (GLB 76480974378514, maps 75318200932240 / 71863257711341, template rebuilt in my lane window), flame strip v4 (symmetric, dark, opaque; image 109569215000295) with the beams at Side 0.44->0.16, width 0.5/0.3, brightness 1, no light emission; rows regenerated. NOT yet seen in the lab (Play stopped). Left: lab check of the v4 strip (restart Play, rebuild the lab, close stand + stand above + back + hand shots), Lower-effects check, thumb re-render + pop + upload (send the id to hw-core), side-by-side v2, Assumptions/Shared-file lines, lint, tests, commits (CueSkinLook Low key; kit exceptions; the Sword v5), merge origin/halloween keeping hw-map's Slim key, push, READY.
+- 21:41 v5 body rebuilt twice more: the thickness split had only recoloured the tongues (they thin gradually, the valleys cut to 0.40 of 0.56, the two sides differ), so the blade is now pressed onto a designed core profile (0.42 under the guard to 0.32 at 1.2, the model's own point) and the source paint's tongues covered before the bake (dark steel past half the core, a lavender bevel from 0.9). Uploaded (GLB 76480974378514); checking the lab.
+- 21:22 v5 look in the lab: the flame border is off the mesh (thickness split) and back as two camera-facing scrolling flame beams plus two edge flame emitters (Low: hide). First pass was white and wide; narrowed (0.42/0.22), dimmed (brightness 1.0) and the strip repainted darker with taller tongues (decal 89917865309904); resolving its image id next, then the stand/back/hand captures.
+- 21:11 (Cues A): Sword v5 model built and uploading: blade 0-5.03, guard 4.97-5.55, slim lattice grip
+  5.57-6.85 at radius 0.115 (the envelope is 0.18 there; `SlimGrip` exception), pommel 6.85-7.29;
+  4 parts, 5,754 tris (the flame part is gone). Taking the flame tongues off the mesh took three
+  tries: the colour split kept their dark bases on the core, the x-outline has no valleys (the swept
+  tongues cover every band), so the split is by thickness (a face within 0.02 of the mid-plane is a
+  fin, the ridged core keeps everything inside the thick outline plus a thin bevel). The look code
+  gets a `Low: "hide"` key for aura emitters and beams (shared `CueSkinLook.luau`, own commit) so
+  the edge flame particles step off under Lower effects while the two edge beams stay; the painted
+  tileable flame strip (`vfx/halloween_sword/flame_strip.png`, symmetric so a camera-facing beam
+  reads from either side) is uploaded (image 130746688919060). Next: image ids, template, lab tune
+  of the beams and edge emitters, hand shots, thumb, side-by-side.
+- 21:00 (Cues A): Sword v5 started (designer via the coordinator 20:58, beats the wind-up
+  clipping): (1) the handle: a slim short lattice grip only as long as the hand at rest
+  (5.55-6.85, thinner than the envelope, named in the exception), the pumpkin guard and wings
+  just in front of it (5.0-5.55), the blade to 5.0 (toward C8's 4:1), the pommel as is; the
+  hand may pass through the guard for an instant at a full-power wind-up (GuardInGripZone
+  widened, "designer 20:5x"); (2) the jagged flame border comes OFF the model (the dark blade
+  keeps its ridge and a thin lavender bevel) and becomes smooth animated VFX along both edges
+  (scrolling painted flame beams plus flipbook flame particles), reading as C8's flaming
+  silhouette from the back and the stand, with a Lower effects step. Then the same lab views,
+  the side-by-side and READY.
 - 20:49 (Cues A): **READY @daff46cf** (origin/halloween merged, lint OK, 1,477 tests pass): the
   Halloween Sword Cue, commits 3e5b460a (the kit hooks and the `GuardInGripZone` exception),
   5fb6288b (the Sword: module, skin, pieces, model copy, vfx, thumb, manifest, rows, Index, the
@@ -714,6 +741,10 @@ Planned (PLAN §7 shared files; own block or line only; add the sha to each as i
   regenerated again (the Sword's new thumb id): hw-sys, regenerate after merging. `tools/thumb_pop.py`
   new (mine). Nothing else shared touched.
 
+- 22:48 Sword v5: `src/client/CueSkinLook.luau` (shared): an emitter or beam row's `Low = "hide"` turns the effect off under Lower effects (built off when low, re-applied on Quality.Changed); every other row unchanged. `assets/cue/CuePiecesHalloween_A.py` (mine): `GuardInGripZone` widened to (4.4, 5.55) and the new `SlimGrip` exception (a lattice grip thinner than the envelope). `tools/upload_manifest.json`: the Sword's body GLB, atlas, emissive and the new flame strip re-uploaded. Rows regenerated (`Pieces/halloween_sword.luau`, `Skins/HalloweenSwordCue.luau`); Index unchanged (the thumb id stays v4's).
+
+- 23:19 Sword v5 READY: `assets/cue/CuePiecesHalloween_A.py` merged with hw-map's `Slim` (both keys kept, see Assumptions 11). `tools/upload_manifest.json`: the Sword's thumb re-uploaded twice (106906520938583 is the live one; 136458818972136 and 121167927707840 stay as stale rows, harmless). `src/shared/CueSkins/Index.luau` regenerated (the Sword's thumb id): hw-sys, regenerate after merging.
+
 ## Requests
 
 - 10:59 **To Cues B:** (a) your 10:55 CueAssets request is already done: `c17cabbf` (09:59, on
@@ -800,6 +831,12 @@ Planned (PLAN §7 shared files; own block or line only; add the sha to each as i
   renamed, the switch off and on) and the `bodyOf` row check has the Lune test. Items 2's
   not-re-run places are stated as not checked rather than assumed.
 - 19:55 Sword: (1) `tier` "Secret" in the skin json (the top prize above the Secret Broom); Core's Catalog row decides the rarity shown. (2) The body is the Meshy image-to-3D of `sword_34_ref.png` (30 credits), split into five parts and re-proportioned; the blade 0-3.85 is 55% of the cue (the art's 76%) because the grip hand must have 4.4-6.75 (coordinator 19:2x: lengthen the grip, keep the blade). (3) The §2.2 checks relaxed, by name, for `halloween_sword` only (`BODY_EXCEPTIONS`): up to 4.4 studs the sideways width passes envelope+0.08 (the blade 1.32 across, the wings 1.81); in the bridge hand zone the radius rule is replaced by a thickness rule (the Body joint's |z| within envelope+0.02) and the sideways centreline is judged over the whole zone (the flame serrations are not mirror pairs bin by bin), the Flames joint (Aim fade) free to overlap the hand; and `GuardInGripZone` (4.4, 4.9): the guard may sit in the front of the grip hand zone, because the grip hand's full wind-up was measured in Studio (GuiQA aim at pull 0, 0.5, 1 on my avatar): the hand's box spans 5.57-6.81 at rest, 5.47-6.38 at half power and 4.92-5.79 at full power, so a guard ending at 4.85 never meets the fingers (coordinator 20:4x asked for 5.2; that is inside the sweep at any pull past half). Kept: the tip, the downward reach (the blade root's underside held to envelope + 0.07 under the pumpkin), +Z, the grip hand at the envelope, butt and past-butt, the budget. (4) Maps: one 512 colour atlas and a 512 emissive mask shared by four parts (the Meshy texture rebaked into one atlas: its chart soup blended into pale wedges under Roblox's mipmaps), a 256 wrap tile; 1024 and 512 read the same up close on the stand, so 512 ships (phone memory). (5) Lab only: a `HalloweenSwordCue` Catalog row and two Strings names sit in my working tree so the lane window can draw and equip it; they are never committed (Core adds the real rows). (6) The pocket ghosts reuse the Ghost Lantern's Meshy ghost model (three at 0.7 studs, lavender), welded before the collapse decimate (the kit's plain decimate tore the triangle soup to shards). (7) The Sword's finisher drops the shared swirl ribbons (`KeepRibbons: false`, as the Infernal's): they crossed the small ghosts as big white bars. (8) The card thumb is the renderer's output plus `tools/thumb_pop.py` (new, mine): a soft lavender halo behind the cue, the glow brightened, the dark body lifted, 2% larger, so the purple sword reads on the track's dark purple tile (coordinator 20:5x relaying Core); re-run it after every re-render, the parameters are in the lane status line.
+
+- (9) Sword v5 silhouette: the Meshy blade's flame tongues thin gradually, sweep with a notch under each and differ side to side, so a thickness split only recoloured them and a per-length scaling left scallops; the blade is pressed onto a designed core profile (0.42 half-width under the guard to 0.32 at 1.2 studs, then the model's own point), and the source paint's tongues are covered before the bake (dark steel past half the core, a lavender bevel from 0.9). The core is slimmer than v4's (0.84 wide at the root against 1.42); the VFX flames (0.5-wide beams on the edge) give the spread back.
+- (10) Sword v5 flames: two camera-facing beams along the edges with a painted symmetric flame strip (dark violet, opaque, no light emission: lit violet washed to white on the bright floor), tongues both ways so there is no V orientation to get right; plus two flipbook flame emitters on the edges with `Low = "hide"`. The hand may pass the guard at a full wind-up (designer 20:5x), `GuardInGripZone` widened for it.
+
+- (11) The kit's hand rule after the halloween merge: hw-map's `Slim` scales the envelope the hand rule holds against (upper and lower), my `SlimGrip` lowers only the floor; with both set the upper bound is Slim's and the lower the smaller of the two. Every body was rebuilt to re-run the rules.
+- (12) The v5 card: the clean dark blade faded into the dark track tile (hw-core 23:10), so the pop pass uses hw-map's `--rim 9` in lavender under a 0.5 halo; not a look change to the cue.
 
 ## Gate shots
 
@@ -932,3 +969,7 @@ Gate 2 addition (10:28, `gate2/`): Jack-o'-Lantern complete @ db1a9fdb (+ 73fc00
 - `gate2/sw_stand_v3.jpg`, `sw_back_v3.jpg`, `sw_stand_close_v3.jpg`: Halloween Sword v4 (the guard at 4.23-4.85, the blade to 4.32, the grip 4.87-6.80) on the stand from above, on the back and close on the stand, day.
 - `gate2/sw_hand_aim_v2.jpg`, `sw_hand_pull_v2.jpg`: v4 in hand at aim and at a full wind-up on the solo table (the grip hand's box 4.92-5.79 at full power, the guard ending 4.85).
 - `gate2/side_by_side_halloween_sword_v1.jpg`: the six panels: C8 card, the Meshy input, our card thumb on the track tile, stand close, back carry, in hand.
+- `gate2/sw_v5_stand_close.jpg`, `sw_v5_stand_above.jpg`, `sw_v5_back.jpg`: Halloween Sword v5 (short slim hilt, clean dark blade, the flame border as scrolling beams) close on the stand, from above and on the back, day.
+- `gate2/sw_v5_hand_aim.jpg`, `sw_v5_hand_pull.jpg`: v5 in hand at aim and at a full wind-up on the solo table (the owner's view: the blade flat, the flames thin end-on).
+- `gate2/sw_v5_lower_effects.jpg`: v5 under Lower effects: the edge flame emitters off, the beams and the outline stay.
+- `gate2/side_by_side_halloween_sword_v2.jpg`: v4 (wide blade, mesh tongues, long hilt) over v5 (short slim hilt, clean dark blade, the flame border as scrolling VFX): stand close, back carry, in hand.
