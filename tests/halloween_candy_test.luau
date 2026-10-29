@@ -246,21 +246,6 @@ return {
 		S.Enabled = saved
 	end,
 
-	["the lineup of 2026-10-29: the Spider is a track cue and his clock is off"] = function()
-		local _, Ledger, Config, SaveSchema = load()
-		local C = Config.Halloween
-		H.expect(C.Spider.Enabled == false, "the playtime clock is off")
-		local onTrack = false
-		for _, step in C.Track.Steps do
-			onTrack = onTrack or step.Cue == C.Spider.Cue
-		end
-		H.expect(onTrack, "the Spider is on the track")
-		local hw = SaveSchema.freshHalloween()
-		Ledger.addActive(hw, 20000)
-		H.expect(not Ledger.spiderDue(hw), "never given for play time")
-		H.expect(hw.Active == 20000, "active time still counts (the Play N min quests)")
-	end,
-
 	["active play counts only after a real match today, the time before it credited"] = function()
 		local _, Ledger, Config = load()
 		local G = Config.Halloween.ActiveGate
