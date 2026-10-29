@@ -2,18 +2,23 @@
 -- EventMenu: the Halloween event's menu (mock A, ~/Desktop/8ball-refs/halloween/mocks/v4/A.png;
 -- designer 2026-10-29). The lively frame (MenuFrame: the panel unrolls, the header, the red X,
 -- the 8-ball flair) with the player's Candy and "ENDS IN 5d 15h" pills in its header, then:
---   * four pink UNIQUE cue cards (Config.UI.CueCard.Looks.Unique; each cue's skin Thumb through
---     CueThumb): the Pitchfork, the Witch's Broom and the Halloween Sword with a big green Robux
---     button (the purple gift square inside its left end; it shines) over a smaller orange Candy
---     button (a first press says BUY?, a second buys: State.send({ buy = cue }), the answer comes
---     as the bought moment), and the Jack-o'-Lantern with its PUMPKIN KING DROP ribbon and no
---     buttons. An owned cue's card says OWNED;
+--   * four pink UNIQUE cue cards in Config.Halloween.Cues.List's order, easiest first (the
+--     Pitchfork, the Witch's Broom, the Jack-o'-Lantern, the Halloween Sword; designer
+--     2026-10-29), each with the Cues inventory's faint 8-balls drifting up-left, the cue's
+--     picture (its skin Thumb through CueThumb) with its own effects playing over it in 2D
+--     (Halloween/CardFx, richer up the ladder), a big green Robux button (the purple gift square inside its left end; it
+--     shines) over a smaller orange Candy button (a first press says BUY?, a second buys:
+--     State.send({ buy = cue }), the answer comes as the bought moment). An owned cue's card
+--     says OWNED. (With the Pumpkin King's drop switched on, a drop cue not on sale gets the
+--     PUMPKIN KING DROP ribbon instead of buttons.) Each card's pink edge lies inside its box,
+--     so the scroller never cuts it (designer, 2026-10-29);
 --   * TODAY'S QUESTS: today's board only, four rows (icon, line, bar, count, Candy chip or a
 --     bouncing CLAIM), "New quests in 14:28";
 --   * GET CANDY: the two packs, green Robux buttons with their gift squares.
 -- Placed in Config.UI.Halloween.Menu.Layout's units (HwMenuMath): a computer shows it all, a
 -- phone the cue row whole with the quests' header peeking. Built once, redrawn from
--- Halloween/State's view; one 1 s clock while open, never per frame.
+-- Halloween/State's view; one 1 s clock while open, and one per-frame loop for the cards'
+-- 8-balls and effects (only while open, only for cards on screen).
 local GuiService = game:GetService("GuiService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TextService = game:GetService("TextService")
@@ -23,6 +28,7 @@ local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local Format = require(Shared.Progression.Format)
 local HwMenuMath = require(Shared:WaitForChild("HwMenuMath"))
+local CardMath = require(Shared:WaitForChild("CardMath"))
 local Clock = require(Shared.Halloween.Clock)
 local Event = require(Shared.Halloween.Event)
 local CueThumb = require(script.Parent.Parent.CueThumb)
@@ -38,6 +44,7 @@ local ShopGift = require(script.Parent.Parent.ShopGift)
 local ShopParts = require(script.Parent.Parent.ShopParts)
 local UIAnim = require(script.Parent.Parent.UIAnim)
 local UISound = require(script.Parent.Parent.UISound)
+local CardFx = require(script.Parent.CardFx)
 local State = require(script.Parent.State)
 
 local NAME = "Halloween"
@@ -51,6 +58,7 @@ local CC = Config.UI.CueCard
 local K = Config.UI.Kit
 local W = Strings.Halloween
 local CUE_SHORT: { [string]: string } = W.CueShort :: any
+local CARD_FX = Config.UI.Halloween.CardFx
 local FAILED: { [string]: string } = W.BuyFailed :: any
 local SHOP_COPY: { [string]: any } = Strings.Menus.Shop :: any
 local FONT: Enum.Font = (Enum.Font :: any)[K.Font]
@@ -187,6 +195,9 @@ type Card = {
 	innerStroke: UIStroke,
 	art: Frame,
 	thumb: Frame,
+	fx: CardFx.Fx?, -- its cue's live effects (none: no CardFx row)
+	ballsPhase: number, -- where its 8-balls' drift starts (0..1)
+	landed: boolean, -- its reveal is over: its effects may play
 	name: TextLabel,
 	tag: Frame,
 	tagRing: UIStroke,
@@ -447,6 +458,8 @@ function EventMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		local thumb = CueThumb.new(art, entry.cue)
 		thumb.AnchorPoint = Vector2.new(0.5, 0.5)
 		thumb.Position = UDim2.fromScale(0.5, 0.5)
+		-- Its own effects behind and over the picture (built hidden; the menu's loop plays them).
+		local fx = CardFx.new(art, entry.cue, thumb)
 		local name = HudParts.text(root, "Name", 18, CueThumb.cueName(entry.cue))
 		name.TextWrapped = false
 		name.ZIndex = 6
@@ -494,6 +507,9 @@ function EventMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 			innerStroke = innerStroke,
 			art = art,
 			thumb = thumb,
+			fx = fx,
+			ballsPhase = (index * 0.31) % 1,
+			landed = false,
 			name = name,
 			tag = tag,
 			tagRing = tagRing,
@@ -568,6 +584,7 @@ function EventMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		-- shines; the hero's glow pulses; the ribbon's pumpkin breathes. Calmer with Lower
 		-- effects, still with Reduce Motion.
 		card.land = function()
+			card.landed = true -- its 8-balls and effects move from now (the menu's loop)
 			local slower = if Quality.isLow() then M.LowerSlower else 1
 			local pair = card.robux
 			if pair then
@@ -853,13 +870,12 @@ function EventMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 			glow.Size = UDim2.new(1, 2 * reach, 1, 2 * reach)
 			glow.SliceScale = 2 * reach / 128
 		end
-		-- The 8-balls: a window of the tile sheet, one period TileWidths card widths across.
-		local B = CC.Motion.Balls
-		local period = math.max(1, w * B.TileWidths)
-		local sx = math.min(B.SheetTexels, B.PeriodTexels * w / period)
-		local sy = math.min(B.SheetTexels, B.PeriodTexels * h / period)
+		-- The 8-balls: a window of the tile sheet, one period TileWidths card widths across (the
+		-- Cues inventory's; the menu's loop drifts it up-left).
+		local sx, sy, offset =
+			CardMath.ballsWindow(0, w - 2 * edgePx, h - 2 * edgePx, card.ballsPhase)
 		card.balls.ImageRectSize = Vector2.new(sx, sy)
-		card.balls.ImageRectOffset = Vector2.zero
+		card.balls.ImageRectOffset = Vector2.new(offset, offset)
 		-- The picture, the name over its foot, the UNIQUE pill.
 		local pad = round(L.CardPadUnits * plan.kx)
 		local artH = y(C.ArtUnits)
@@ -867,6 +883,10 @@ function EventMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		card.art.Size = UDim2.fromOffset(w - 2 * pad, artH)
 		local side = math.min(w - 2 * pad, artH)
 		card.thumb.Size = UDim2.fromOffset(side, side)
+		local fx = card.fx
+		if fx then
+			CardFx.layout(fx, side)
+		end
 		local namePx = tp(C.NameTextUnits)
 		local nameW = w - 2 * pad
 		local full = CueThumb.cueName(card.cue)
@@ -1281,6 +1301,46 @@ function EventMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 				end)
 			)
 		end
+		-- The cards' 8-balls drift up-left (the Cues inventory's) and their effects play: one loop
+		-- for all four, only while the menu is open (stopped on close), a card once it has landed
+		-- and while it is on screen. Lower effects: at most LowFps steps a second.
+		local lastStep = -math.huge
+		table.insert(
+			idles,
+			UIAnim.loop(scroll, function(clock: number)
+				local low = Quality.isLow()
+				if low and clock - lastStep < 1 / CARD_FX.LowFps then
+					return
+				end
+				lastStep = clock
+				local reduced = UIAnim.reduced()
+				local top = scroll.AbsolutePosition.Y
+				local bottom = top + scroll.AbsoluteSize.Y
+				for _, card in cards do
+					local at = card.root.AbsolutePosition.Y
+					local seen = card.landed and at < bottom and at + card.root.AbsoluteSize.Y > top
+					if seen then
+						local size = card.fill.AbsoluteSize
+						local sx, sy, offset = CardMath.ballsWindow(
+							if reduced then 0 else clock,
+							size.X,
+							size.Y,
+							card.ballsPhase
+						)
+						card.balls.ImageRectSize = Vector2.new(sx, sy)
+						card.balls.ImageRectOffset = Vector2.new(offset, offset)
+					end
+					local fx = card.fx
+					if fx then
+						if seen then
+							CardFx.step(fx, clock, low, reduced)
+						else
+							CardFx.hide(fx)
+						end
+					end
+				end
+			end)
+		)
 		-- A controller lands on the first waiting CLAIM once the panel has unrolled (the content
 		-- is hidden until then, so nothing in it can be selected before).
 		task.delay(Config.UI.Halloween.Open.OpenSeconds, function()
@@ -1303,6 +1363,11 @@ function EventMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		table.clear(idles)
 		for _, card in cards do
 			card.confirmUntil = 0
+			card.landed = false -- its effects wait for its next landing
+			local fx = card.fx
+			if fx then
+				CardFx.hide(fx)
+			end
 		end
 		if giftPopup then
 			giftPopup:close()

@@ -17679,6 +17679,217 @@ Config.UI.Halloween = {
 			TileButtonTextUnits = 32,
 		},
 	},
+	-- The event cue cards' live 2D effects (designer, 2026-10-29: "each event cue card shows its
+	-- VFX animated as live 2D effects made from the cue's own art", richer up the ladder): the
+	-- cue picture stays still and its own effect art plays over it (Halloween/CardFx; the maths
+	-- in shared/HwCardFxMath). Each layer reads its texture and flipbook grid from the cue's
+	-- generated skin row (CueSkins Skins/<cue>: Aura, then Trail, then Pocket emitters, the first
+	-- name in Emitter found), so a re-upload comes through; Texture and Grid are used only when
+	-- none of the names is there. Places are shares of the cue picture's square: Axis is the cue
+	-- from its butt to its tip (the thumbnails' diagonal), Along a share of that line (0 butt, 1
+	-- tip), Side across it (a magnitude range; the sign alternates sprite by sprite), Up is up
+	-- the screen. Kinds:
+	--   Pulse   fixed Spots, one still flipbook Frame (0-based) breathing between Size (low,
+	--           high) and Alpha (faint, strong transparency) over Seconds: a smooth fire, no
+	--           frame stepping (the Pitchfork's note: "a smooth pulse like real fire");
+	--   Rise    particles: each lives Life seconds, born somewhere in Along x Side, drifting
+	--           Travel (along the cue, up the screen) while its Size goes start, peak, end and
+	--           it fades in over FadeIn and out over FadeOut of its life; a flipbook loops at
+	--           Fps (nil: its frames play once over its life);
+	--   Twinkle a star born at a new spot each Seconds, growing, turning and fading (the cue
+	--           card's sparkle, CardMath.twinkle);
+	--   Glow    a soft glow stretched along the cue from Along[1] to Along[2], Thickness thick,
+	--           breathing between Alpha (faint, strong) over Seconds (behind the cue: Back).
+	-- Tints: an untinted texture keeps its own colours ("#FFFFFF"); white art needs a colour to
+	-- show on the pale pink card. Count sprites on a computer; Low with Lower effects (0: none);
+	-- Reduce Motion hides all but the Glow. AnchorY: the sprite's point on its spot (0.8: a
+	-- flame's foot). One loop for every card, only while the menu is open; at most LowFps
+	-- steps a second with Lower effects. Cost: the Pitchfork 4, the Broom 6, the Jack 8 and
+	-- the Sword 12 sprites (a flipbook sprite is a clip frame and its sheet: 2 instances).
+	CardFx = {
+		Enabled = true,
+		LowFps = 30,
+		Cues = {
+			-- The calmest: two small smooth flames on the outer prongs' points, two sparks.
+			PitchforkCue = {
+				Axis = { { 0.15, 0.91 }, { 0.8, 0.08 } },
+				Layers = {
+					{
+						Kind = "Pulse",
+						Emitter = { "TipFlameA", "TipFlameB", "TipFlame" },
+						Texture = "rbxassetid://123290266051638",
+						Grid = 4,
+						Spots = { { 0.712, 0.118 }, { 0.795, 0.178 } },
+						Frame = 5,
+						Size = { 0.13, 0.17 },
+						Alpha = { 0.3, 0.05 },
+						Seconds = 1.8,
+						AnchorY = 0.85,
+						Count = 2,
+						Low = 2,
+					},
+					{
+						Kind = "Rise",
+						Emitter = { "ForkSparks" },
+						Texture = "rbxassetid://129676691177221",
+						Grid = 1,
+						Tints = { "#FF6A2A", "#FFB23D" },
+						Life = { 1.3, 1.9 },
+						Along = { 0.86, 0.98 },
+						Side = { 0, 0.07 },
+						Travel = { 0.03, 0.1 },
+						Size = { 0.045, 0.065, 0 },
+						FadeIn = 0.2,
+						FadeOut = 0.5,
+						Alpha = 0.1,
+						Count = 2,
+						Low = 0,
+					},
+				} :: { any },
+			},
+			-- Twinkling stars round the stick (gold, violet, teal) and a drifting violet dust.
+			WitchBroomCue = {
+				Axis = { { 0.08, 0.92 }, { 0.86, 0.03 } },
+				Layers = {
+					{
+						Kind = "Twinkle",
+						Emitter = { "StarGlints", "CrystalFlare" },
+						Texture = "rbxassetid://138665035996966",
+						Grid = 1,
+						Tints = { "#FFC21F", "#A04BFF", "#18C9B0" },
+						Seconds = { 1.5, 2.3 },
+						Along = { 0.4, 0.92 },
+						Side = { 0.05, 0.14 },
+						Size = 0.26,
+						Count = 3,
+						Low = 2,
+					},
+					{
+						Kind = "Twinkle",
+						Emitter = { "SpellPopGold", "SpellBurst", "SpellPopViolet" },
+						Texture = "rbxassetid://118250274152711",
+						Grid = 1,
+						Tints = { "#FFC21F", "#A04BFF", "#18C9B0" },
+						Seconds = { 1.8, 2.6 },
+						Along = { 0.25, 0.8 },
+						Side = { 0.06, 0.16 },
+						Size = 0.12,
+						Count = 2,
+						Low = 1,
+					},
+					{
+						Kind = "Rise",
+						Emitter = { "VioletMotes", "CharmSparkle" },
+						Texture = "rbxassetid://80129474638893",
+						Grid = 1,
+						Tints = { "#8E3DFF" },
+						Life = { 2.6, 3.4 },
+						Along = { 0.35, 0.6 },
+						Side = { 0, 0.06 },
+						Travel = { 0.16, 0.05 },
+						Size = { 0.22, 0.3, 0.34 },
+						FadeIn = 0.3,
+						FadeOut = 0.5,
+						Alpha = 0.2,
+						Count = 1,
+						Low = 0,
+					},
+				} :: { any },
+			},
+			-- Orange flames licking up the shaft and embers rising off it.
+			JackOLanternCue = {
+				Axis = { { 0.1, 0.92 }, { 0.86, 0.04 } },
+				Layers = {
+					{
+						Kind = "Rise",
+						Emitter = { "Flame1", "Flame2", "Flame3" },
+						Texture = "rbxassetid://85236741743985",
+						Grid = 4,
+						Life = { 0.9, 1.4 },
+						Along = { 0.18, 0.94 },
+						Side = { 0, 0.05 },
+						Travel = { 0.04, 0.07 },
+						Size = { 0.1, 0.17, 0.07 },
+						FadeIn = 0.2,
+						FadeOut = 0.45,
+						Alpha = 0.05,
+						Fps = 18,
+						AnchorY = 0.85,
+						Count = 5,
+						Low = 3,
+					},
+					{
+						Kind = "Rise",
+						Emitter = { "Embers" },
+						Texture = "rbxassetid://129676691177221",
+						Grid = 1,
+						Tints = { "#FF7A1A", "#FFB23D", "#FF4E1A" },
+						Life = { 1.4, 2.2 },
+						Along = { 0.12, 0.8 },
+						Side = { 0.02, 0.1 },
+						Travel = { 0.05, 0.13 },
+						Size = { 0.05, 0.07, 0.015 },
+						FadeIn = 0.15,
+						FadeOut = 0.5,
+						Alpha = 0.05,
+						Count = 3,
+						Low = 1,
+					},
+				} :: { any },
+			},
+			-- The richest: a deep-purple aura along the blade, purple flames flowing up both
+			-- edges to the tip, and lilac sparkles.
+			HalloweenSwordCue = {
+				Axis = { { 0.12, 0.97 }, { 0.87, 0.02 } },
+				Layers = {
+					{
+						Kind = "Glow",
+						Texture = "rbxassetid://121163827465552", -- Kit.Art.SoftGlow
+						Grid = 1,
+						Back = true,
+						Tints = { "#8A2BFF" },
+						Along = { 0.36, 1.02 },
+						Thickness = 0.28,
+						Alpha = { 0.62, 0.3 },
+						Seconds = 2.4,
+						Count = 1,
+						Low = 1,
+					},
+					{
+						Kind = "Rise",
+						Emitter = { "EdgeFlamesL", "EdgeFlamesR", "EdgeFlames", "FlameColumn" },
+						Texture = "rbxassetid://115803746724573",
+						Grid = 4,
+						Life = { 0.8, 1.2 },
+						Along = { 0.4, 0.9 },
+						Side = { 0.025, 0.06 },
+						Travel = { 0.1, 0.03 },
+						Size = { 0.1, 0.17, 0.06 },
+						FadeIn = 0.18,
+						FadeOut = 0.45,
+						Alpha = 0.04,
+						Fps = 16,
+						AnchorY = 0.8,
+						Count = 8,
+						Low = 4,
+					},
+					{
+						Kind = "Twinkle",
+						Emitter = { "EdgeSparks", "Sparkle" },
+						Texture = "rbxassetid://118250274152711",
+						Grid = 1,
+						Tints = { "#B06BFF", "#7B2FF7", "#D7B8FF" },
+						Seconds = { 1.2, 1.8 },
+						Along = { 0.45, 1 },
+						Side = { 0.04, 0.12 },
+						Size = 0.11,
+						Count = 3,
+						Low = 1,
+					},
+				} :: { any },
+			},
+		},
+	},
 	-- Pictures (image ids; "" = the fallback named): the cue pictures of the King's sign and the
 	-- end screen (the event menu draws each cue's skin Thumb through CueThumb), the menu header's
 	-- jack-o'-lantern (also the ribbon's pumpkin), the candy pile (the end screen, the menu's
