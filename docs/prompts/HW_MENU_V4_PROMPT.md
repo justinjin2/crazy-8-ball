@@ -10,6 +10,11 @@ Keep the cost low: no multi-agent workflows unless a check really needs one.
 - Night all event, the moon out, no Sunset (`Config.HalloweenMap.Night.Permanent`, 4d8a1bce).
 - The four event cues show as Unique tier, pink (Rarity Unique, Group still Exclusive, d20abb8d).
 - The Spider playtime reward is off (`Config.Halloween.Spider.Enabled = false`, 34af660b).
+- The money boost card: a Friends row at +0% too, and no grey friend rule (35509c21,
+  Studio-checked).
+- **In progress when the plan ran out (maybe uncommitted in `src/client/BoostPill.luau`):** the
+  Candy line's own card (CANDY BOOST: Rush, Friends, Group, Total) and the Rush chip moved into
+  it. Run `git status` first; finish it or `git checkout` it.
 
 ## To build, in this order (one commit each)
 
@@ -42,7 +47,7 @@ Keep the cost low: no multi-agent workflows unless a check really needs one.
 4. **Remove the Spider fully** (17 files: `grep -rln "SpiderCue\|Halloween.Spider\|HwSpider"
    src tests`). It never went live, so no real save holds it; the save-schema test may still
    name the field.
-5. **HUD pills.**
+5. **HUD pills.** (The money card is done.)
    - A temporary Candy pill right above the money pill.
    - Hover or tap on the Candy boost and the Money boost shows a breakdown even at 0%:
      "Total: 0%", "Friends +10% each: +0%".
