@@ -2,7 +2,7 @@
   "id": "jack_o_lantern_rise",
   "Frame": "pocket",
   "frame": "Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)",
-  "Triangles": 6552,
+  "Triangles": 3354,
   "Parts": [
     {
       "Material": "SmoothPlastic",
@@ -50,33 +50,6 @@
         1.6639
       ],
       "Triangles": 396
-    },
-    {
-      "Material": "SmoothPlastic",
-      "Color": "#FFFFFF",
-      "Transparency": 0.0,
-      "Reflectance": 0.06,
-      "SurfaceAppearance": {
-        "ColorMap": "pieces/jack_o_lantern/atlas_color.png",
-        "NormalMap": "pieces/jack_o_lantern/atlas_normal.png",
-        "EmissiveMask": "pieces/jack_o_lantern/atlas_emissive.png",
-        "EmissiveTint": "#FFC24A",
-        "EmissiveStrength": 2.6
-      },
-      "Name": "Orbit_Jack",
-      "File": "pieces/jack_o_lantern_rise/Orbit_Jack.obj",
-      "Joint": "Orbit",
-      "Offset": [
-        -0.1471,
-        1.1942,
-        -0.2991
-      ],
-      "Size": [
-        3.3049,
-        0.9853,
-        3.1737
-      ],
-      "Triangles": 3198
     }
   ],
   "Joints": {
@@ -139,30 +112,6 @@
           "Period": 0.4,
           "Shape": "flicker",
           "Color": "#FFC040"
-        }
-      ]
-    },
-    "Orbit": {
-      "Parent": null,
-      "Pivot": [
-        0,
-        0,
-        1.0
-      ],
-      "PivotRoblox": [
-        0,
-        1.0,
-        0.0
-      ],
-      "Motion": [
-        {
-          "Kind": "Spin",
-          "Axis": [
-            0,
-            0,
-            1
-          ],
-          "Rate": 150.0
         }
       ]
     }

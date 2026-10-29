@@ -1,7 +1,8 @@
 --!strict
 -- The Halloween 2026 cues' v3 effect rules (lane cuesA, designer 2026-10-29): the Pitchfork's
--- outer prongs stay solid while aiming and its two tip flames burn small and steady. Read from
--- the generated skin and piece rows.
+-- outer prongs stay solid while aiming and its two tip flames burn small and steady; the
+-- Jack-o'-Lantern's finisher laugh is quiet and heard only near the table, its rising head
+-- has no circling mini jacks. Read from the generated skin and piece rows.
 
 local H = require("./harness")
 
@@ -50,5 +51,40 @@ return {
 			end
 		end
 		H.expect(flames == 2, "two tip flames")
+	end,
+
+	["the Jack's laugh is quiet and only near the table"] = function()
+		local CueSkins = H.require("CueSkins")
+		local row = CueSkins.get("JackOLanternCue")
+		local sound = row.Pocket and row.Pocket.Sound
+		H.expect(sound ~= nil and type(sound.Asset) == "string", "the laugh row")
+		-- at least 55% quieter than the 0.6 it shipped with
+		H.expect(sound.Volume <= 0.6 * 0.45 + 1e-9, "laugh volume " .. tostring(sound.Volume))
+		H.expect(
+			type(sound.RollOffMaxStuds) == "number" and sound.RollOffMaxStuds <= 25,
+			"silent from 25 studs"
+		)
+		H.expect(
+			type(sound.RollOffMinStuds) == "number"
+				and sound.RollOffMinStuds < sound.RollOffMaxStuds,
+			"a roll-off range"
+		)
+	end,
+
+	["the Jack's rising head has no circling mini jacks"] = function()
+		local CueSkins = H.require("CueSkins")
+		local row = CueSkins.get("JackOLanternCue")
+		local pid = row.Pocket.Piece.Piece
+		local piece = CueSkins.piece(pid)
+		H.expect(piece ~= nil, "the rise piece " .. tostring(pid))
+		H.expect(piece.Joints.Orbit == nil, "no Orbit joint")
+		for _, part in piece.Parts do
+			H.expect(part.Joint ~= "Orbit", "part " .. part.Name .. " on the Orbit")
+		end
+		local burst = 0
+		for _, layer in row.Pocket.Layers do
+			burst += layer.Burst or 0
+		end
+		H.expect(burst <= 60, ("finisher bursts %d particles (at most 60)"):format(burst))
 	end,
 }

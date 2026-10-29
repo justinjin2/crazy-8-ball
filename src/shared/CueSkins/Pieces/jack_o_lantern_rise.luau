@@ -35,23 +35,6 @@ return {
 			Offset = { 0, 0.9968, 0 },
 			Size = { 1.4092, 1.1308, 1.6639 },
 		},
-		{
-			Material = "SmoothPlastic",
-			Color = "#FFFFFF",
-			Transparency = 0,
-			Reflectance = 0.06,
-			SurfaceAppearance = {
-				ColorMap = "rbxassetid://99927700415602",
-				NormalMap = "rbxassetid://85285431244146",
-				EmissiveMask = "rbxassetid://124556134573112",
-				EmissiveTint = "#FFC24A",
-				EmissiveStrength = 2.6,
-			},
-			Name = "Orbit_Jack",
-			Joint = "Orbit",
-			Offset = { -0.1471, 1.1942, -0.2991 },
-			Size = { 3.3049, 0.9853, 3.1737 },
-		},
 	},
 	Joints = {
 		Head = {
@@ -87,17 +70,6 @@ return {
 					Period = 0.4,
 					Shape = "flicker",
 					Color = "#FFC040",
-				},
-			},
-		},
-		Orbit = {
-			Parent = nil,
-			PivotRoblox = { 0, 1, 0 },
-			Motion = {
-				{
-					Kind = "Spin",
-					Axis = { 0, 0, 1 },
-					Rate = 150,
 				},
 			},
 		},

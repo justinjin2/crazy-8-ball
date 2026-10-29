@@ -795,13 +795,20 @@ def jack_o_lantern_jacks(k):
 RISE_PID = 'jack_o_lantern_rise'
 
 
+# The finisher's three mini jacks circling the rising head (designer 2026-10-29, v3: fewer
+# effects round the pumpkin, the head coming out of the pocket is the focus): off. The live
+# template still holds their part (Orbit_Jack); the data no longer names it, so it is never cloned.
+RISE_ORBIT = False
+
+
 @piece
 def jack_o_lantern_rise(k):
     """The finisher's fiery jack-o'-lantern rising out of the pocket (C4): the cue's own carved
     pumpkin stood up at pocket size, 1.95 studs across, its face toward -Y over a flickering
-    Neon core, a curled stem on top, nodding quickly as it laughs and wobbling; three mini jacks
-    circle it on one orbit joint (no flat cards, the coordinator 19:08). Pocket frame, upright
-    (as cues-a's laughing jack). It wears the body's atlas."""
+    Neon core, a curled stem on top, nodding quickly as it laughs and wobbling. The three mini
+    jacks that circled it on one orbit joint (the coordinator 19:08) are off since v3
+    (RISE_ORBIT; the designer 2026-10-29: the head is the focus). Pocket frame, upright (as
+    cues-a's laughing jack). It wears the body's atlas."""
     from mathutils import Matrix, Vector
     import bmesh
     k.frame = 'pocket'
@@ -853,7 +860,9 @@ def jack_o_lantern_rise(k):
             bm.faces.new(outward([ring[j], ring[(j + 1) % ns], cv]))
     bmesh.ops.transform(bm, matrix=M, verts=bm.verts[:])
     k.add('Core', k.mesh_object('RiseCore', bm, ['Core']))
-    # the three mini jacks circling it (one orbit joint: one part), faces outward
+    # the three mini jacks circling it (one orbit joint: one part), faces outward; off since v3
+    if not RISE_ORBIT:
+        return
     k.joint('Orbit', pivot=(0, 0, 1.0), motion=[{'Kind': 'Spin', 'Axis': (0, 0, 1), 'Rate': 150.0}])
     for i, (ang, z) in enumerate(((20, 1.45), (140, 0.85), (260, 1.2))):
         phi = math.radians(ang)
