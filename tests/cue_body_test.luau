@@ -80,8 +80,9 @@ return {
 				checkBody(id .. "/" .. row.Body, piece, B)
 			end
 		end
-		-- The Halloween 2026 skins may still be draft (no row yet); nothing else has a Body.
-		H.expect(bodies <= 5, "only the five event cues have bodies")
+		-- The Halloween 2026 skins may still be draft (no row yet); nothing else has a Body
+		-- (Cues A: the Candy Corn, the Jack and the Halloween Sword; Cues B: its three).
+		H.expect(bodies <= 6, "only the six event cues have bodies")
 	end,
 
 	["the Cues A bodies' piece.json files obey the body rules (checked while draft)"] = function()

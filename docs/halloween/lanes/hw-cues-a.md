@@ -61,6 +61,92 @@ From PLAN §4 (everything else is read-only; ask through Requests):
 
 ## Status (continued)
 
+- 20:49 (Cues A): **READY @daff46cf** (origin/halloween merged, lint OK, 1,477 tests pass): the
+  Halloween Sword Cue, commits 3e5b460a (the kit hooks and the `GuardInGripZone` exception),
+  5fb6288b (the Sword: module, skin, pieces, model copy, vfx, thumb, manifest, rows, Index, the
+  body test's bound), a8178f6f (`tools/thumb_pop.py`). Core's Catalog, Track and Art rows are in
+  (Art 121167927707840). Templates to build in Team Create: `ONLY = { "HalloweenSwordCue" }`
+  (pieces `halloween_sword`, `halloween_sword_pocket`). Gaps left, honestly: the blade is 59%
+  of the cue (C8's 76%) and blade:grip 2.3:1 (C8 4:1), the grip hand's wind-up sweep forbids
+  more; the wings 1.8 studs across (the art's wider); the flame edges fade for the aiming
+  owner (Aim fade); the trail reads pale from the watch camera; the Meshy ghost's 256 map
+  smears on a few merged faces (hidden by the tint and outline); the pocket piece's Ghost2/3
+  hide under Lower effects.
+- 20:42 (Cues A): Halloween Sword v4, the coordinator's 20:4x proportion pass. The grip hand was
+  measured on the in-hand stick (GuiQA aim, my avatar): its box 5.57-6.81 from the tip at rest,
+  5.47-6.38 at half power, 4.92-5.79 at full power, so the asked-for guard at 5.2 sits inside the
+  wind-up sweep (the fingers would pass through the wings at any pull past half). The guard went
+  as far back as stays clear: 4.23-4.85 (was 3.76-4.38), the blade 0-4.32 (was 3.85), the lattice
+  grip 4.87-6.80 (was 4.40), the pommel unchanged; blade:grip 2.3:1 (was 1.6:1; C8 is 4:1). Named
+  in the body's exception as `GuardInGripZone` (4.4, 4.9); the blade root's underside held to
+  envelope + 0.07 under the pumpkin (the rules then pass: 5 parts, 7,708 tris). Rebuilt, re-baked,
+  re-uploaded (body GLB 86637363502662, atlas 76403631299161, emissive 121056044730551), template
+  rebuilt; lab: `sw_stand_v3`, `sw_back_v3`, `sw_stand_close_v3`; solo table: `sw_hand_aim_v2`,
+  `sw_hand_pull_v2` (full wind-up, the hand 0.07 behind the guard). Finisher: KeepRibbons false
+  (coordinator 20:4x, same ask), the pocket ghosts welded before the decimate and whole
+  (`sw_ghosts_still_v2`, 899 faces/473 vertices each, was 3,589 vertices of loose triangles).
+  Card thumb re-rendered and popped for the dark tile (`tools/thumb_pop.py`: lavender halo, glow
+  x1.35, the dark body lifted, 2% larger): image 121167927707840 (decal 101808889320521), sent
+  to hw-core. Side-by-side: `gate2/side_by_side_halloween_sword_v1.jpg` (C8 card, the Meshy
+  input, our thumb on the tile, stand, back, in hand). Console clean (Studio's usual DataStore
+  lines). Lab-only Catalog/Strings rows dropped; lint, tests, commits, merge, push next.
+- 20:22 (Cues A): Halloween Sword, final maps in: the 512 atlas's image ids applied, rows
+  regenerated, the template rebuilt, the lab at the clean spot (-80,0,68). Stand from above
+  and back carry captured with the final atlas (`sw_stand_v2`, `sw_back_v2`: the blade flat,
+  face up on the stand and face out on the back); the pommel's 0.28 past the butt with the
+  Outline on reads as a clean crystal tip (`sw_pommel_outline_v1`). In hand on a solo table
+  (`sw_hand_aim_v1`: the blade flat toward the aiming camera, the flame edges faded for the
+  owner); the break fired by PoolMatchQA, the trail captured from the watch camera
+  (`sw_trail_v1`, a pale streak with a violet edge); Lower effects on and off with the body
+  drawn: all five body parts stay (the fallback path is the shared code verified 18:14).
+  Finisher in the lobby by `Effects:pocketBurst`: the aura, column and rings fine, but (1) the
+  shared neon_strip swirl ribbons crossed in front as big white bars, so the Sword's finisher
+  now drops them (`KeepRibbons: false`, as the Infernal did), and (2) the three pocket ghosts
+  rendered as shattered triangle shards: the Meshy ghost is a triangle soup (3,589 vertices
+  for 900 faces) and the kit's collapse decimate tears it; fix in the Sword module (weld the
+  duplicates, then collapse to 900), rebuilding and re-uploading the pocket piece now.
+- 20:06: **Sword in the lab, the blade fixed.** First lab round (gate2 `sw_stand_v1.jpg`, `sw_back_v1.jpg`, `sw_stand_close_v1.jpg`): the sword reads as C8 on the stand (flat, face up, from above) and on the back (flat, face out, flames glowing, pumpkin guard, lattice grip, crystal at the hip), by night and by day, but the dark blade showed pale wedges up close. Chased it down: not the split, not the emissive, not specular (Fabric test), not the UVs (an EditableMesh probe showed Roblox keeps them per face): Meshy's atlas is a soup of tiny charts (1,236 islands for 3,300 blade faces) and Roblox's mipmaps blend neighbouring charts into pale blotches. Fix in the builder: weld Meshy's chart-border duplicates, give each part fresh UVs (a packed cube projection: a few big islands) and bake the Meshy colour into one clean 1024 atlas (Cycles, colour only); `sw_stand_close_v2.jpg` is clean (dark blade, ridge light, lavender bevels, violet flames, the pumpkin's face glowing). 7,852 tris, 5 parts. The 512-vs-1024 check: a runtime swap to the 512 image renders the parts white (the image never loads in Play); trying a fresh SurfaceAppearance, else the comparison goes through the Edit-mode template. Thumb re-rendered and re-uploaded (129953409302731). Next: back/stand v2 captures, the in-hand view and a shot (trail, finisher), the Lower-effects and fallback checks, the six-panel side-by-side, commit, merge, READY.
+- 19:42: **Halloween Sword, first build.** Candy Corn rows restored and the Ghost Lantern a draft @8b5b9d94 (pushed; the Index, Catalog, Config and Strings match halloween again). Sword: Meshy image-to-3D from `sword_34_ref.png` (12k tris, a faithful C8 sword), split by region and texture into five parts on the cue frame (`assets/cue/CuePiecesHalloweenSword.py`): the blade 0-3.85 (its tip pinched to the 0.12 rule, its thickness flattened to the envelope through the bridge hand), the flame edges on an Aim-fade joint, the pumpkin guard with wings 3.76-4.38 (1.8 studs across), a procedural wrapped grip 4.4-6.8 at the envelope, the crystal pommel to 7.28 (0.28 past the butt, no fade needed); 8,784 tris, one 1024 colour map + a 512 emissive mask + a 256 wrap tile. Body rules pass with the named exception `BODY_EXCEPTIONS['halloween_sword']` (WideX 4.4, BridgeCore Body; see Assumptions). Pocket piece: three small lavender ghosts (2,700 tris). Skin json written (flames flipbook = the shared fire sheet turned violet, purple slash trail, aura-burst finisher). Next: uploads, image ids, templates, the lab side-by-side.
+- 19:26: **Ghost Lantern parked @13c484eb** (coordinator 19:2x; Justin 19:18: too close to the live Phantom). v3 committed whole (bigger caged lantern, thick chain, three iron collars, four opaque ghosts with faces, more mist; v4 lights softened to 0.35/0.3), nothing deleted, PhantomCue's files untouched. Captures in gate2: `gl_stand_v4.jpg`, `gl_back_v4.jpg`, `gl_hand_aim_v4.jpg` (the owner's aim view; the trail and the finisher were not reached: the lane's Play session had seated me in a bot match, where the capture camera override does not apply). Open on this branch: the 150 slot (Catalog, Config.Halloween.Track, Strings, the three tests, the tools' ONLY lists) still names `GhostLanternCue` since 8dbd59ec took the Candy Corn rows out; see Requests. **Now: the Halloween Sword** (`HalloweenSwordCue` / skin `halloween_sword` / "Halloween Sword"), from C8 and the two refs in `~/Desktop/8ball-refs/halloween/sword/`.
+- 19:01 GHOST LANTERN (the 150 slot; id GhostLanternCue, skin ghost_lantern, "Ghost Lantern Cue",
+  coordinator 18:55: the catalog already has a live Rare PhantomCue, so never "Phantom"). Built to
+  C6_phantom.png and in the lab: `gate2/side_by_side_ghost_lantern_v2.jpg` (the card, the stand
+  in lobby light, the back, in hand aiming, our card picture, the live Rare Phantom's thumbnail
+  for contrast). Body `ghost_lantern` (7 parts, 8,616 tris): tip and ferrule, a cyan glass tube
+  end to end with a Neon core pulsing inside, five thin iron rings, two iron bands with a thick
+  iron chain (two turns, 0.09-stud links, `Outline = false` so its forty links get no ink)
+  between the hands, and past the butt the ghost lantern as an Aim-fade joint: iron neck and cap,
+  a six-bar cage with rings, a candle rod flickering, a Meshy ghost (assets/cue/models/ghost,
+  from an OpenAI front view) bobbing and turning inside, knob and hanging ring. Decor
+  `ghost_lantern_aura`: three of the same ghosts 0.9 studs tall drifting a lap round the shaft
+  in nine seconds (Path racetrack 0.5 off the glass, Bob, roll, a ghostly Fade), Lower effects
+  keeps one. Finisher `ghost_lantern_pocket`: four ghosts spiralling up a widening helix out of
+  the pocket, plus a mist column, ghost sprites, sparks, two cyan rings. Trail: a cyan-white
+  wisp ribbon with little ghosts floating up behind the ball. Aura 22.5/s (mist, sparkles,
+  lantern wisps, a tiny ghost now and then), two lights. Slot swap done: Catalog, Config track
+  150 and Art (new card art `assets/ui/halloween/CueGhostLantern.png`), Strings, the three
+  tests, build_cue_templates ONLY, vfx_lab IDS; CandyCornCue's skin, pieces, textures, thumb,
+  rows and manifest rows are out (its builder code stays in CuePiecesHalloween_A.py, unused,
+  for a later cleanup). Uploads: 3 meshes, 17 maps (colour + emissive per ghost; the PBR maps
+  dropped: a matte white ghost at half a stud does not need them), the sprite, the thumb, the
+  card art; image ids applied; templates built in my window; lint OK, 24 cue/catalog/Halloween
+  tests green.
+  **Honest gaps to the card:** (1) in the lobby the shaft reads as a solid bright cyan rod, the
+  glass look is lost under the core's bloom (readable on the bright floor, which the coordinator
+  asked for first); (2) the chain covers two turns between the hands only (the hand-zone rule:
+  a hand would clip through links), the card winds it along the whole lower half; (3) three
+  ghosts, not a swarm, and at the back-cue distance they read as white shapes, the faces only
+  close (emissive lowered 0.6 -> 0.3 for the next template build); (4) from the owner's aiming
+  camera a passing ghost foreshortens to a white blob (the Cat's old issue); (5) the trail and
+  the finisher are not yet seen in a shot (next, in the running solo match).
+- 18:29 PHANTOM (coordinator 18:45, Justin's verdict: the Candy slot is replaced). Concept card done:
+  `~/Desktop/8ball-refs/halloween/mocks/v2/C6_phantom.png` (from M3's Phantom and the C3 layout):
+  a translucent cyan glass shaft lit from inside, a dark iron chain spiralling the lower half, a
+  ghost-lantern butt cap (an iron cage with a little ghost glowing inside), cute round ghosts
+  drifting off the shaft, cyan mist; TRAIL a cyan-white ghost ribbon with two ghosts tumbling
+  behind the ball; FINISHER ghosts swirling up out of the pocket in a mist column. Nothing from
+  the tip. Next: the ghost model (an OpenAI front view -> Meshy image-to-3D -> `Kit.model`),
+  the chain, shaft and lantern in Blender headless, then the VFX and the 150 slot swap.
 - 18:14 ROBUSTNESS PASS (coordinator 17:52, Justin's word 17:46) on halloween @cb89ebcc, then
   origin/halloween c2e5fcdb merged (d0427312). Checked and found, by the brief's items:
   1. FALLBACK: found and fixed (2864e55d). A body cue hid the shared mesh as soon as a
@@ -620,6 +706,13 @@ Planned (PLAN §7 shared files; own block or line only; add the sha to each as i
   the piece's data row (`CueSkins.piece(body) ~= nil`), two lines with a comment; nothing else
   in the module touched. `tests/cue_body_test.luau` (mine): the stand-in body row now uses the
   shipped `jack_o_lantern` row, plus one new test.
+- 19:55 Sword: `assets/cue/CuePieces.py` (the kit, shared with Cues B): two guarded `import CuePiecesHalloweenSword` hooks after the Ghost Lantern's, nothing else. `tools/upload_manifest.json`: the Sword's rows added (body GLB re-uploaded twice as the split changed; the stale ids stay harmless). `src/shared/CueSkins/Index.luau` regenerated (HalloweenSwordCue added; the Candy Corn row back, the Ghost Lantern row gone): hw-sys, regenerate after merging. `assets/cue/CuePiecesHalloween_A.py` (mine): `BODY_EXCEPTIONS` and the two relaxations in `check_body`.
+
+- 20:42 Sword v4: `assets/cue/CuePiecesHalloween_A.py` (mine): the `GuardInGripZone` exception and the
+  down-reach message now names the joint. `tools/upload_manifest.json`: the Sword's body GLB, atlas,
+  emissive, pocket GLB and thumb re-uploaded (stale ids stay harmless). `src/shared/CueSkins/Index.luau`
+  regenerated again (the Sword's new thumb id): hw-sys, regenerate after merging. `tools/thumb_pop.py`
+  new (mine). Nothing else shared touched.
 
 ## Requests
 
@@ -669,6 +762,7 @@ Planned (PLAN §7 shared files; own block or line only; add the sha to each as i
 - 09:05 **MERGE drop 1** (`hw-cues-a` @ 7bef0153): the five cue ids and names, `Catalog.ready`,
   `drawAs`. No runtime behaviour change for existing cues (every shipped cue draws its own
   template as before; only an id with a StandIn falls back).
+- 19:26 REQUEST (coordinator / Core, before my next READY): the 150 track slot on `hw-cues-a` names `GhostLanternCue` (parked). Say which: (a) I restore the Candy Corn rows from `8dbd59ec^` (one revert commit, the Ghost Lantern's skin and pieces stay as a draft with no Catalog row), or (b) Core's Bone / hellfire row replaces it on merge. Until then the slot must not reach `halloween`.
 
 ## Assumptions
 
@@ -705,6 +799,7 @@ Planned (PLAN §7 shared files; own block or line only; add the sha to each as i
   not Lune-testable; it is covered by the Studio runs above (template emptied, a part
   renamed, the switch off and on) and the `bodyOf` row check has the Lune test. Items 2's
   not-re-run places are stated as not checked rather than assumed.
+- 19:55 Sword: (1) `tier` "Secret" in the skin json (the top prize above the Secret Broom); Core's Catalog row decides the rarity shown. (2) The body is the Meshy image-to-3D of `sword_34_ref.png` (30 credits), split into five parts and re-proportioned; the blade 0-3.85 is 55% of the cue (the art's 76%) because the grip hand must have 4.4-6.75 (coordinator 19:2x: lengthen the grip, keep the blade). (3) The §2.2 checks relaxed, by name, for `halloween_sword` only (`BODY_EXCEPTIONS`): up to 4.4 studs the sideways width passes envelope+0.08 (the blade 1.32 across, the wings 1.81); in the bridge hand zone the radius rule is replaced by a thickness rule (the Body joint's |z| within envelope+0.02) and the sideways centreline is judged over the whole zone (the flame serrations are not mirror pairs bin by bin), the Flames joint (Aim fade) free to overlap the hand; and `GuardInGripZone` (4.4, 4.9): the guard may sit in the front of the grip hand zone, because the grip hand's full wind-up was measured in Studio (GuiQA aim at pull 0, 0.5, 1 on my avatar): the hand's box spans 5.57-6.81 at rest, 5.47-6.38 at half power and 4.92-5.79 at full power, so a guard ending at 4.85 never meets the fingers (coordinator 20:4x asked for 5.2; that is inside the sweep at any pull past half). Kept: the tip, the downward reach (the blade root's underside held to envelope + 0.07 under the pumpkin), +Z, the grip hand at the envelope, butt and past-butt, the budget. (4) Maps: one 512 colour atlas and a 512 emissive mask shared by four parts (the Meshy texture rebaked into one atlas: its chart soup blended into pale wedges under Roblox's mipmaps), a 256 wrap tile; 1024 and 512 read the same up close on the stand, so 512 ships (phone memory). (5) Lab only: a `HalloweenSwordCue` Catalog row and two Strings names sit in my working tree so the lane window can draw and equip it; they are never committed (Core adds the real rows). (6) The pocket ghosts reuse the Ghost Lantern's Meshy ghost model (three at 0.7 studs, lavender), welded before the collapse decimate (the kit's plain decimate tore the triangle soup to shards). (7) The Sword's finisher drops the shared swirl ribbons (`KeepRibbons: false`, as the Infernal's): they crossed the small ghosts as big white bars. (8) The card thumb is the renderer's output plus `tools/thumb_pop.py` (new, mine): a soft lavender halo behind the cue, the glow brightened, the dark body lifted, 2% larger, so the purple sword reads on the track's dark purple tile (coordinator 20:5x relaying Core); re-run it after every re-render, the parameters are in the lane status line.
 
 ## Gate shots
 
@@ -824,3 +919,16 @@ Gate 2 addition (10:28, `gate2/`): Jack-o'-Lantern complete @ db1a9fdb (+ 73fc00
 - `sig_cat_trail_v2.jpg`, `sig_cat_aim_above_v1.jpg`: 14:02, the Cat's trail on a real shot (claw mark + shadow cat) and the aiming view from above (the cats as bars).
 - `robust_my_cues.jpg`, `robust_index.jpg`, `robust_jack_in_hand.jpg`: 17:5x, the robustness pass: My Cues and the Index with all five, Jack in hand at the table after an equip during the match.
 - `robust_fallback_jack_hand.jpg`: 18:14, Jack's body template with one part renamed: the stick in hand draws the shared mesh in the skin's maps with its aura, one warn, no errors.
+- `gate2/sw_stand_v1.jpg`: Halloween Sword v1 on the lab stand from above (the flat blade face up), the Broom beside it, night.
+- `gate2/sw_back_v1.jpg`: Halloween Sword v1 on the back carry (flat, face out, flames glowing, pumpkin guard, lattice grip, crystal at the hip), night.
+- `gate2/sw_stand_close_v1.jpg`: Halloween Sword v1 close on the stand: the pale wedges on the dark blade (Meshy's chart soup under Roblox's mipmaps), before the rebake.
+- `gate2/sw_stand_close_v2.jpg`: Halloween Sword v2 close on the stand after the rebake: a clean dark blade, ridge light, lavender bevels, violet flames, the pumpkin's face glowing, day.
+- `gate2/sw_hand_aim_v1.jpg`: Halloween Sword in hand on a solo table at aim (the owner's view: the blade flat toward the camera, the flame edges faded), day.
+- `gate2/sw_hand_pull_v1.jpg`: the same at a full wind-up (GuiQA aim pull 1); the grip hand's box 4.92-5.79 from the tip, measured for the guard's back edge.
+- `gate2/sw_trail_v1.jpg`: the break from the watch camera: the cue ball's pale streak with a violet edge; the back-carried Sword's sparks at the top left.
+- `gate2/sw_finisher_v1_ribbons.jpg`: the first lobby finisher: the shared neon_strip swirl ribbons crossing as big white bars (dropped: KeepRibbons false) and the ghosts at their fade.
+- `gate2/sw_ghosts_still_v1_torn.jpg`: the three pocket ghosts frozen mid-rise, torn to shards (Meshy's triangle soup under the collapse decimate).
+- `gate2/sw_ghosts_still_v2.jpg`: the same after welding before the decimate: three whole cute ghosts, faces on, inked outline.
+- `gate2/sw_stand_v3.jpg`, `sw_back_v3.jpg`, `sw_stand_close_v3.jpg`: Halloween Sword v4 (the guard at 4.23-4.85, the blade to 4.32, the grip 4.87-6.80) on the stand from above, on the back and close on the stand, day.
+- `gate2/sw_hand_aim_v2.jpg`, `sw_hand_pull_v2.jpg`: v4 in hand at aim and at a full wind-up on the solo table (the grip hand's box 4.92-5.79 at full power, the guard ending 4.85).
+- `gate2/side_by_side_halloween_sword_v1.jpg`: the six panels: C8 card, the Meshy input, our card thumb on the track tile, stand close, back carry, in hand.

@@ -1,0 +1,26 @@
+{
+  "name": "halloween_sword",
+  "endpoint": "image-to-3d",
+  "task_id": "01a184d7-05e2-7678-b4ea-8fc6a413b262",
+  "status": "SUCCEEDED",
+  "credits": 30,
+  "params": {
+    "ai_model": "latest",
+    "should_texture": true,
+    "enable_pbr": true,
+    "geometry_resolution": "standard",
+    "target_formats": [
+      "glb"
+    ],
+    "texture_resolution": "2k",
+    "texture_prompt": "A dark cursed Halloween sword: purple-black blade with a raised central ridge, jagged violet and lavender flame edges glowing along the whole blade, a carved jack-o-lantern pumpkin at the guard with a glowing purple face, bat-wing crossguard spikes, a dark wrapped grip with criss-cross binding, a faceted glowing purple crystal pommel. Palette near-black #1a1424, #3b1f5c, #7b2ff7, #b05cff, #d9c2ff.",
+    "should_remesh": true,
+    "target_polycount": 12000,
+    "topology": "triangle",
+    "images": [
+      "../8ball-refs/halloween/sword/sword_34_ref.png"
+    ]
+  },
+  "finished_at": 1793230101264,
+  "task_error": null
+}

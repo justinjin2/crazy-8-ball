@@ -21,3 +21,5 @@
 {"time": "2026-10-08 10:16", "name": "anims/anim_88_chest_pound_taunt.glb", "task_id": "01a11bde-fa2e-712b-821f-4b2848d76866", "endpoint": "animations", "status": "SUCCEEDED", "credits": 3}
 {"time": "2026-10-08 10:16", "name": "anims/anim_59_victory_cheer.glb", "task_id": "01a11bdf-40aa-70ed-b0a3-c6ff6db2cc15", "endpoint": "animations", "status": "SUCCEEDED", "credits": 3}
 {"time": "2026-10-28 18:44", "name": "bone_skull", "task_id": "01a184ae-a7ff-742b-a957-b9fbc60399da", "endpoint": "image-to-3d", "status": "SUCCEEDED", "credits": 35}
+{"time": "2026-10-28 18:31", "name": "ghost", "task_id": "01a184a2-a3f1-7651-9422-3533df0d8f68", "endpoint": "image-to-3d", "status": "SUCCEEDED", "credits": 30}
+{"time": "2026-10-28 19:28", "name": "halloween_sword", "task_id": "01a184d7-05e2-7678-b4ea-8fc6a413b262", "endpoint": "image-to-3d", "status": "SUCCEEDED", "credits": 30}
