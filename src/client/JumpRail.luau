@@ -88,6 +88,8 @@ function JumpRail.new(opts: Options): any
 		words.ZIndex = 9
 		table.insert(self.jumps, { key = key, button = button, badge = badge })
 	end
+	-- Every group and button as built, in the built order (setOrder picks from them).
+	self.allGroups, self.allJumps = opts.groups, table.clone(self.jumps)
 	-- Scrolling lights the group in view (not while a jump scrolls there itself).
 	opts.scroll:GetPropertyChangedSignal("CanvasPosition"):Connect(function()
 		if self.tween == nil and self.frame:isOpen() then
@@ -98,15 +100,28 @@ function JumpRail.new(opts: Options): any
 end
 
 --- Add the buttons and their badges to the menu's open (Stage ids "Tab<n>", "Tab<n>Badge").
+--- A button left out by setOrder takes a spare id after the shown ones, so no id still holds a
+--- shown button twice.
 function JumpRail.register(self: any, stage: Stage.Stage)
-	for index, jump in self.jumps :: { Jump } do
+	local index = 0
+	local function add(jump: Jump)
+		index += 1
 		stage:add("Tab" .. index, jump.button)
 		stage:add("Tab" .. index .. "Badge", jump.badge)
+	end
+	for _, jump in self.jumps :: { Jump } do
+		add(jump)
+	end
+	for _, jump in self.allJumps :: { Jump } do
+		if not table.find(self.jumps, jump) then
+			add(jump)
+		end
 	end
 end
 
 --- Put the buttons in `keys`' order (a menu whose sections move: the Free Reward's first visit
---- puts Group first); the next layout places them. True when the order changed: register the
+--- puts Group first); a group left out hides its button (the Shop's Featured while the Grand
+--- Opening is off it). The next layout places them. True when the order changed: register the
 --- open's ids again ("Tab<n>" follow the order).
 function JumpRail.setOrder(self: any, keys: { string }): boolean
 	local same = #keys == #self.jumps
@@ -122,14 +137,22 @@ function JumpRail.setOrder(self: any, keys: { string }): boolean
 	local groups: { Group } = {}
 	local jumps: { Jump } = {}
 	for _, key in keys do
-		for index, group in self.groups :: { Group } do
+		for index, group in self.allGroups :: { Group } do
 			if group.key == key then
 				table.insert(groups, group)
-				table.insert(jumps, self.jumps[index])
+				table.insert(jumps, self.allJumps[index])
 			end
 		end
 	end
+	for _, jump in self.allJumps :: { Jump } do
+		jump.button.Visible = table.find(keys, jump.key) ~= nil
+	end
 	self.groups, self.jumps = groups, jumps
+	-- A lit group left out: the next open lights the first group.
+	if self.current ~= nil and not self:has(self.current) then
+		self.current = nil
+		self:rockLit()
+	end
 	return true
 end
 

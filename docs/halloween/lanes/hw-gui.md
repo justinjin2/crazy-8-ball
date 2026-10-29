@@ -32,6 +32,28 @@ From PLAN §4 (everything else is read-only; ask below under Requests):
   `docs/STATUS.md`, `ROADMAP.md`, `DECISIONS.md`, `ECONOMY.md` (coordinator).
 
 ## Status
+- **04:09 READY (Grand Opening off the Shop, client): hw-gui @a90a817d** (halloween @01f4d6d9
+  merged clean). Lint OK, **1477/1477 tests**, Studio console clean. Commits: d4a3a2ef (JumpRail:
+  setOrder may leave a group out and hide its button; the Free Reward menu is unchanged) and
+  a90a817d (Shop). The interface sent to hw-core: the client reads only
+  `ItemState.shop().deals.GrandOpening.offShop == true` (their `Config.Shop.GrandOpeningOffShop`).
+  Missing or false means today's Shop, checked unchanged in Studio. With it true:
+  - the Featured group hides (its header, the Grand Opening card, its jump button);
+  - the Shop opens on Blocks, the panel fitted to the Blocks header and the Mystery card, the
+    restock peeking in;
+  - the pinned NEW badges drop, and the Starter/VIP offers' NEW mark moves to Blocks.
+  The server side stays core's: refusing BuyBlocks "GrandOpening" and its products, and any
+  HUD chip or banner that still advertises the block. Checked with offShop forced locally (never
+  committed):
+  - PC and phone 844x390 both open on Blocks (`shots/hw-gui/offshop0405/01-02`);
+  - the Blocks, Money and Passes jumps land and light right;
+  - the GrandOpening and Featured tabs open on Blocks, Offer on the offers, Money on Money;
+  - the hidden button can't be selected, and LB/RB step only the shown groups (by code; a real
+    controller is Justin's).
+  Still to do: a check against core's real state once it is in halloween. Halloween GUI QA pass
+  waits for core's READY.
+- 03:5x Halloween Limited card: mock only (`shots/hw-gui/limited2306/`), then dropped by Justin
+  (23:4x, parked); nothing built.
 - **18:15 READY (robustness pass): hw-gui @00e8b415** (halloween @d9474296 merged clean on top).
   Lint OK, `client_compiles` OK, **1469/1469 tests**, Studio console clean in every play (only the
   known 203785492 ContentId and this place's no-API lines). Fix commits: ffadcd82, 165b809d,

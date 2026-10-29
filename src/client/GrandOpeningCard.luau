@@ -594,9 +594,15 @@ end
 -- units, `s` its scale, `p` where that origin lands.
 type Group = { ox: number, oy: number, s: number, px: number, py: number }
 
+--- The page's scale at `width` pixels wide (as layout sets k, with no height given): the Shop's
+--- other groups use it too.
+function GrandOpeningCard.scaleFor(width: number): number
+	return width / L.Card[1]
+end
+
 --- The page's height at `width` pixels wide (as layout returns, with no height given).
 function GrandOpeningCard.heightFor(width: number): number
-	local k = width / L.Card[1]
+	local k = GrandOpeningCard.scaleFor(width)
 	return math.max(L.Featured.MinPx, math.floor(L.Featured.Units * k))
 		+ math.floor(L.Card[2] * k)
 		+ 8
