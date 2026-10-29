@@ -18128,10 +18128,12 @@ Config.UI.Halloween = {
 				} :: { any },
 			},
 			-- Orange flames licking up the shaft and embers rising off it. Measured on the card
-			-- with the pumpkin drawn 1.5x (CuePreview --thumb-spots: the butt, inside the
-			-- pumpkin, to the tip; the collar at about 0.16; 2026-10-29).
+			-- with the pumpkin drawn 1.2x in the model's own shape on the picture's centre line
+			-- (CuePreview --thumb-spots: the butt, inside the pumpkin, to the tip; the collar
+			-- at about 0.19; 2026-10-29). Along starts where they did on the 1.5x picture (0.18
+			-- and 0.12 there): just past the collar, at the same place on the shaft.
 			JackOLanternCue = {
-				Axis = { { 0.37, 0.746 }, { 0.915, 0.034 } },
+				Axis = { { 0.322, 0.733 }, { 0.86, 0.03 } },
 				Layers = {
 					{
 						Kind = "Rise",
@@ -18139,7 +18141,7 @@ Config.UI.Halloween = {
 						Texture = "rbxassetid://85236741743985",
 						Grid = 4,
 						Life = { 0.9, 1.4 },
-						Along = { 0.18, 0.86 },
+						Along = { 0.2, 0.86 },
 						Side = { 0, 0.05 },
 						Travel = { 0.04, 0.07 },
 						Size = { 0.1, 0.17, 0.07 },
@@ -18158,7 +18160,7 @@ Config.UI.Halloween = {
 						Grid = 1,
 						Tints = { "#FF7A1A", "#FFB23D", "#FF4E1A" },
 						Life = { 1.4, 2.2 },
-						Along = { 0.12, 0.8 },
+						Along = { 0.145, 0.8 },
 						Side = { 0.02, 0.1 },
 						Travel = { 0.05, 0.13 },
 						Size = { 0.05, 0.07, 0.015 },
@@ -18228,7 +18230,7 @@ Config.UI.Halloween = {
 	-- jack-o'-lantern (also the ribbon's pumpkin), the candy pile (the end screen, the menu's
 	-- Candy packs) and cash.
 	Art = {
-		JackOLanternCue = "rbxassetid://103301193919705", -- its skin's Thumb (the remade body, the pumpkin drawn 1.5x; 2026-10-29)
+		JackOLanternCue = "rbxassetid://75460670405284", -- its skin's Thumb (the remade body, the pumpkin 1.2x in its own shape, on the centre line; 2026-10-29)
 		PitchforkCue = "rbxassetid://130408256165091", -- its skin's Thumb (the fork drawn 2.2x and face on, rim-popped; 2026-10-29)
 		WitchBroomCue = "rbxassetid://131711880887023", -- its skin's Thumb (the v3 shorter head; 2026-10-29)
 		HalloweenSwordCue = "rbxassetid://106906520938583", -- cues-a's v5 card (its skin's Thumb; the slim hilt, rim-popped)

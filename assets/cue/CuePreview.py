@@ -70,10 +70,17 @@ THUMB_AURA_RATE = 2.0  # the aura's emitters at this many times their rate: one 
 #       studs behind `at` the cue widens (and turns) smoothly from 1 to k, so the head grows out
 #       of the shaft without a step. The aura's emitters and lights hosted in that zone move with
 #       it, and its emitters' sizes, speeds and pull grow k times. (OBJ body parts only.)
+#       Optional "true_shape": true - the head also k x THUMB_THICKEN long along the cue, so it
+#       keeps the model's proportions (the card thickens a body cue across only, which drew a
+#       round head THUMB_THICKEN times wider than long: the Jack's pumpkin, 2026-10-29); k 1 is
+#       then the head as big as that thickening alone and needs no blend.
 #   "thumb_fit": pad px (of THUMB_SIZE) - the picture framed to the drawn body itself, its
 #       projected extent plus this padding on the longer side, centred (the house framing is the
 #       cue's length on the diagonal, and a wide head or a grown one meets the edge); thumb_margin
-#       and thumb_shift are then unused.
+#       and thumb_shift are then unused. Centred on the body's box, the cue's axis can leave the
+#       picture's centre, and the power bar (PowerCue) turns the picture about its centre, so
+#       the cue there stands off the bar's middle (the Jack's, 2026-10-29): thumb_shift (along
+#       the axis) and thumb_margin keep the axis through the centre.
 THUMB_FIT_PAD = 14  # px, thumb_fit's padding when the key is true: room for the outline (5.5 px) and thumb_pop's rim (9 px)
 
 PREVIEW = {
@@ -1302,6 +1309,13 @@ def _grow_parts(g):
     return float(g['at']), sgn, float(g['scale']), float(g.get('blend', 0.0)), math.radians(float(g.get('roll', 0.0)))
 
 
+def _grow_along(g):
+    """thumb_grow's scale of the head along the cue: `scale`, or with "true_shape" that times
+    THUMB_THICKEN, which the card thickens the cue by across only (so the head keeps the model's
+    proportions instead of being drawn THUMB_THICKEN times wider than long)."""
+    return float(g['scale']) * THUMB_THICKEN if g.get('true_shape') else float(g['scale'])
+
+
 def grow_weight(u, blend):
     """How much of the grow a point gets, `u` studs into the head past the anchor (negative:
     behind it): 1 in the head, easing to 0 over the `blend` studs behind it."""
@@ -1315,7 +1329,9 @@ def grow_weight(u, blend):
 def grow_points(P, g):
     """thumb_grow on points P (n x 3, the cue's Blender frame: tip at the origin, butt along -Y,
     top +Z): the head scaled about the axis point at `at` and rolled about the axis; the blend
-    ring behind it only widened and rolled (its d kept), so nothing tears at the anchor."""
+    ring behind it only widened and rolled (its d kept), so nothing tears at the anchor; with
+    "true_shape" the head is also stretched along the cue (_grow_along), which keeps it whole at
+    the anchor too."""
     at, sgn, k, blend, roll = _grow_parts(g)
     P = np.asarray(P, np.float64)
     u = sgn * (at - (-P[:, 1]))
@@ -1324,6 +1340,8 @@ def grow_points(P, g):
     head = u >= 0
     A = np.array([0.0, -at, 0.0])
     out[head] = A + k * (P[head] - A)
+    if g.get('true_shape'):
+        out[head, 1] = A[1] + _grow_along(g) * (P[head, 1] - A[1])
     ring = ~head
     f = 1 + (k - 1) * w[ring]
     out[ring, 0] *= f
@@ -1369,7 +1387,7 @@ def grow_spec(spec, g):
         nh['AtStuds'], nh['Up'], nh['Side'] = point
     elif kind == 'Part':
         for key in ('FromStuds', 'ToStuds'):
-            nh[key] = at - k * (at - h.get(key, 3.8 if key == 'FromStuds' else 6.9))
+            nh[key] = at - _grow_along(g) * (at - h.get(key, 3.8 if key == 'FromStuds' else 6.9))
         nh['Width'] = h.get('Width', 0.3) * k
         nh['Up'], nh['Side'] = point[1], point[2]
     else:
