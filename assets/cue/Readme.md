@@ -50,9 +50,13 @@ tools/test.sh   # cue_shape_test (Shape.json is current), cue_mesh_test (MeshSki
   pictures (`python3 tools/cue_skin.py <ids> --thumb`; `--noaura` leaves the aura out), upload
   them and run `tools/cue_skins_data.py`. Every number is a `THUMB_*` constant at the top of
   `CuePreview.py`. A body cue's skin json may also set `thumb_grow` (its head drawn bigger, and
-  turned toward the camera, on the card only: the Pitchfork's fork, the Jack's pumpkin) and
-  `thumb_fit` (the picture framed to the drawn body, padded); both are explained beside
-  `THUMB_FIT_PAD`, are read by `--thumb` alone and never touch the game's model or its uploads.
+  turned toward the camera, on the card only: the Pitchfork's fork, the Jack's pumpkin; its
+  `true_shape` keeps the head in the model's proportions, as the card's thickening alone
+  draws a round head wider than long) and `thumb_fit` (the picture framed to the drawn body,
+  padded and centred on it, which moves the cue off the picture's centre line: the power bar
+  turns the picture about its centre, so a body that must stand centred in the bar is framed
+  with `thumb_shift` and `thumb_margin` instead); both are explained beside `THUMB_FIT_PAD`,
+  are read by `--thumb` alone and never touch the game's model or its uploads.
   `CuePreview.py --skin <id> --thumb --thumb-spots` also prints where the butt, the tip and each
   aura emitter's host land on the picture (shares of the square, y down): the numbers the
   Halloween menu's `Config.UI.Halloween.CardFx` rows (Axis, Spots) are measured in.
