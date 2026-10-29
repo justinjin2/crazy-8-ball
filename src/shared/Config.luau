@@ -10167,6 +10167,9 @@ Config.UI.BoostPill = {
 	-- The Rush chip's shell (R1.10), right over the pill at its left x: core's words
 	-- (RushChip.content), the candy icon from Config.Halloween.CandyIcon.
 	Chip = {
+		-- No separate Rush pill (designer, 2026-10-29): the Rush's words show inside the Candy
+		-- line's card instead. true: the chip over the pill as before.
+		Shown = false,
 		ZIndex = 11, -- under the pill, so the pill's open card covers it
 		HeightPx = 40,
 		ShortHeightPx = 30,

@@ -26,6 +26,7 @@
 -- Studio only: GuiQA `boosts`, `candyLine`, `boostCard`, `boostPress`, `boostPerks`, `rushChip`,
 -- `hudRects`, `hudOverlap`. Sizes in Config.UI.BoostPill, words in Strings.BoostPill.
 local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 
@@ -155,6 +156,9 @@ function BoostPill.new(money: any): any
 	self.hovered = false
 	self.pinned = false
 	self.pinToken = 0
+	self.cardKind = "Money" -- which line's card: "Money" or "Candy" (the line hovered or pressed)
+	self.shownKind = nil :: string? -- the kind the card was last filled for
+	self.rushWords = nil :: string? -- the Rush's words for the Candy card (RushChip.content)
 	self.fake = nil :: any -- GuiQA `boosts`
 	self.candyFake = nil :: (number | false)? -- GuiQA `candyLine`
 	self.candyOn = false -- the Candy line shows
@@ -189,6 +193,17 @@ function BoostPill.new(money: any): any
 		label.Visible = kind == "Money"
 		label.ZIndex = P.ZIndex + 1
 		self.lines[kind] = { label = label, pattern = COPY.Lines[kind], value = nil, count = nil }
+		-- Each line opens its own card: hovering it picks it, a press on it too (InputBegan
+		-- comes before the tag's Activated). The labels take no input themselves.
+		label.MouseEnter:Connect(function()
+			self:setKind(kind)
+		end)
+		label.InputBegan:Connect(function(input: InputObject)
+			local t = input.UserInputType
+			if t == Enum.UserInputType.MouseButton1 or t == Enum.UserInputType.Touch then
+				self.cardKind = kind
+			end
+		end)
 	end
 
 	-- The card over the pill, in a holder whose UIScale shrinks it on a short screen
@@ -600,6 +615,9 @@ end
 -- What the card says now: { icon?, words, value?, kind ("Part", "Note", "Get") }.
 function BoostPill.cardLines(self: any): { any }
 	local flags = self:flags()
+	if self.cardKind == "Candy" and self.candyOn then
+		return self:candyLines(flags)
+	end
 	local at = workspace:GetServerTimeNow()
 	local lines: { any } = {}
 	local parts = Money.boostParts(flags)
@@ -649,6 +667,25 @@ end
 function BoostPill.footLines(self: any): { string }
 	local flags = self:flags()
 	local lines = {}
+	if self.cardKind == "Candy" and self.candyOn then
+		-- The Rush's words while it runs, else when the next starts; then the group to join.
+		if self.rushWords then
+			table.insert(lines, self.rushWords)
+		elseif EventModule and type(EventModule.nextRushAt) == "function" then
+			pcall(function()
+				local at = now()
+				local nextAt = EventModule.nextRushAt(at)
+				if nextAt then
+					local words = (Strings.Halloween :: any).RushSoon
+					table.insert(lines, words:format(EventModule.clock(nextAt - at)))
+				end
+			end)
+		end
+		if flags.group ~= true then
+			table.insert(lines, COPY.Get.Group:format(math.floor(E.GroupBoost * 100 + 0.5)))
+		end
+		return lines
+	end
 	if EventModule and type(EventModule.isLive) == "function" then
 		local ok, live = pcall(EventModule.isLive, now())
 		if ok and live == true then
@@ -662,6 +699,66 @@ function BoostPill.footLines(self: any): { string }
 		table.insert(lines, COPY.Get.Vip:format(math.floor(E.VipBoost * 100 + 0.5)))
 	end
 	return lines
+end
+
+-- The Candy card's rows (designer, 2026-10-29): the Rush while it runs (x2), Friends (at +0%
+-- too) and Group, as CandyMath.multiplier pays them; the total is the Candy line's number.
+function BoostPill.candyLines(self: any, flags: Money.Boosts): { any }
+	local lines: { any } = {}
+	local event = 1
+	if EventModule and type(EventModule.multiplier) == "function" then
+		local ok, m = pcall(EventModule.multiplier, now())
+		if ok and type(m) == "number" then
+			event = m
+		end
+	end
+	if event > 1 then
+		table.insert(lines, {
+			icon = candyIcon(),
+			words = COPY.Rush,
+			value = COPY.Times:format(math.floor(event + 0.5)),
+			kind = "Rush",
+			line = "Part",
+		})
+	end
+	local friends = if type(flags.friends) == "number" then math.floor(flags.friends) else 0
+	local friendsAdd, groupAdd = 0, 0
+	if CandyMathModule then
+		pcall(function()
+			friendsAdd = CandyMathModule.friendsAdd(friends)
+			groupAdd = CandyMathModule.groupAdd(flags.group == true)
+		end)
+	end
+	if E.FriendBoostEnabled == true then
+		table.insert(lines, {
+			icon = ICONS.Friends,
+			words = PARTS.Friends:format(math.floor(E.FriendBoost * 100 + 0.5), friends),
+			value = percent(friendsAdd),
+			kind = "Friends",
+			line = "Part",
+		})
+	end
+	if groupAdd > 0 then
+		table.insert(lines, {
+			icon = ICONS.Group,
+			words = PARTS.Group,
+			value = percent(groupAdd),
+			kind = "Group",
+			line = "Part",
+		})
+	end
+	self.partsTotal = (self:candyPercent(flags) or 0) / 100
+	return lines
+end
+
+--- Pick which line's card shows (a hover); an open card refills for it.
+function BoostPill.setKind(self: any, kind: string)
+	if kind ~= self.cardKind then
+		self.cardKind = kind
+		if self.card.Visible then
+			self:fillCard()
+		end
+	end
 end
 
 --- Fill and size the card: the title, a row per part, the rule, the total, the foot lines.
@@ -697,6 +794,10 @@ function BoostPill.fillCard(self: any)
 		math.max(if short then K.ShortWidthPx else K.WidthPx, math.ceil(widest) + 2 * K.PadPx + 4)
 	self.cardW = cardW
 	local inner = cardW - 2 * K.PadPx
+	local candy = self.cardKind == "Candy" and self.candyOn
+	self.shownKind = if candy then "Candy" else "Money"
+	self.title.Text = if candy then COPY.CandyTitle else COPY.Title
+	local valueTint = if candy then rgb(P.CandyOrange) else rgb(K.ValueGreen)
 	local y = K.PadPx
 	self.title.Position = UDim2.fromOffset(K.PadPx, y)
 	self.title.Size = UDim2.fromOffset(inner, K.TitlePx + 4)
@@ -721,7 +822,7 @@ function BoostPill.fillCard(self: any)
 		row.words.Size = UDim2.fromOffset(cardW - K.PadPx - textX, K.RowPx)
 		row.value.Text = line.value or ""
 		row.value.Visible = line.value ~= nil
-		row.value.TextColor3 = rgb(K.ValueGreen)
+		row.value.TextColor3 = valueTint
 		row.value.Position = UDim2.fromOffset(K.PadPx, y)
 		row.value.Size = UDim2.fromOffset(inner, K.RowPx)
 		row.kind = line.kind
@@ -741,6 +842,7 @@ function BoostPill.fillCard(self: any)
 	self.totalWord.Position = UDim2.fromOffset(K.PadPx, y)
 	self.totalWord.Size = UDim2.fromOffset(inner, K.TotalPx + 4)
 	self.totalValue.Text = percent(self.partsTotal or 0)
+	self.totalValue.TextColor3 = valueTint
 	self.totalValue.Position = UDim2.fromOffset(K.PadPx, y)
 	self.totalValue.Size = UDim2.fromOffset(inner, K.TotalPx + 4)
 	y += K.TotalPx + 4
@@ -809,9 +911,18 @@ function BoostPill.press(self: any)
 		return
 	end
 	UISound.play("Click")
-	if self.pinned then
+	local pad = UserInputService:GetLastInputType().Name:find("Gamepad") ~= nil
+	if self.pinned and pad and self.candyOn and self.shownKind == "Money" then
+		self.cardKind = "Candy" -- a pad has no hover: A shows Money, then Candy, then closes
+	end
+	if self.pinned and self.shownKind ~= self.cardKind and self.card.Visible then
+		self:pin(P.PinSeconds) -- a press on the other line: its card instead of closing
+	elseif self.pinned then
 		self.pinned = false
 		self:hideCard()
+		if pad then
+			self.cardKind = "Money"
+		end
 	else
 		self:pin(P.PinSeconds)
 		if not self.reportedCard then
@@ -931,7 +1042,11 @@ end
 --- Once a second: the chip's words, the timed parts, and a relayout if anything moved.
 function BoostPill.tick(self: any)
 	local words = self:rushContent()
-	local on = words ~= nil
+	self.rushWords = words
+	local on = words ~= nil and CHIP.Shown ~= false
+	if self.card.Visible and self.shownKind == "Candy" then
+		self:fillCard() -- the Rush's countdowns in the card
+	end
 	if on then
 		self.chipWords = words
 	end
@@ -1008,11 +1123,13 @@ function BoostPill.addQA(self: any)
 		local candy = self.lines.Candy.label
 		return candy.Visible, candy.Text
 	end)
-	-- ("boostCard", open?): pin the card open (false: close).
-	GuiQA.add("boostCard", function(open: boolean?)
+	-- ("boostCard", open?, kind?): pin the card open (false: close), kind "Candy" for the Candy
+	-- line's card.
+	GuiQA.add("boostCard", function(open: boolean?, kind: string?)
 		if open == false then
 			self:closeCard()
 		else
+			self.cardKind = if kind == "Candy" then "Candy" else "Money"
 			self:pin(P.PinSeconds * 10)
 		end
 		return self.card.Visible

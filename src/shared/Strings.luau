@@ -1295,6 +1295,9 @@ return {
 	-- its "YOUR BOOSTS" card, a row per part (Money.boostParts' kinds).
 	BoostPill = {
 		Title = "YOUR BOOSTS",
+		CandyTitle = "CANDY BOOST", -- the Candy line's card (designer, 2026-10-29)
+		Rush = "Candy Rush", -- the Candy card's row while a Rush runs; its value is "x2"
+		Times = "x%d",
 		Percent = "+%d%%",
 		-- The HUD lines over the money pill (no background): Money green, Candy orange.
 		Lines = {
