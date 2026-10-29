@@ -28,6 +28,32 @@ From PLAN §4 (everything else is read-only; ask below under Requests):
 - Tests: `tests/halloween_*_test.luau`, additions to `save_schema_test` and `config_test`.
 
 ## Status
+- 23:35 hw-core: **READY @HEAD** for the Halloween Limited card (coordinator 23:0x, Justin's re-plan), switch **off**:
+  - Commits:
+    - 87d7a1fa: the card. Rows, products, the switch, the Grand Opening off the Shop, Unique, tests.
+    - 3bd660ee: the HwLimited events.
+    - 28f643d0: the Sword's rim-popped card 106906520938583 (Open Cloud: Approved, Active).
+  - Config:
+    - `Config.Shop.Limited`: two rows with `Event = "Halloween2026"`.
+      - The Witch's Broom on `HwLimited299` and the Halloween Sword on `HwLimited1499` (placeholders: **the pick changes only `Cue`**).
+      - StartsAt = `Config.Halloween.StartsAt`, Seconds to EndsAt, no Cap.
+    - `Config.Products`: `HwLimited299` (299 R$), `HwLimited1499` (1,499 R$), **Id 0, not made** (tools/roblox_products.py once picked).
+    - `Config.Shop.HalloweenLimited = { Enabled = false, OffShop = "GrandOpening" }`.
+  - **Why off:** both placeholders are Candy track cues today (2,000 and 7,000). A Limited cue is Unique, and a Unique cue cannot be a track or Spider reward.
+    - `tests/halloween_limited_test.luau` fails while Enabled is true and a Limited cue is still on the track or the Spider. Checked: on today, it names WitchBroomCue and HalloweenSwordCue.
+    - shop_test's real-id guard asks for the two product ids from the moment it is on.
+    - So the publish flips Enabled together with the final track and the two product ids.
+  - **On** (checked in Studio with the switch on in my window, then reverted):
+    - state.deals.GrandOpening open=false offShop=true; Mystery unchanged.
+    - Money BuyBlocks GrandOpening refused NotSold; Robux GrandOpening1 Closed; a late GO receipt pays the fallback.
+    - The launch bonus and the Grand Opening Luck read the deal's row: unchanged. Owned GO blocks still open (opening never reads the deal; /giveblock gave one).
+    - state.limited: both rows open, canBuy, endsAt 1793750400, cap nil; products ComingSoon (Id 0).
+    - StoreQA test purchases: 299 gives the Witch's Broom #1, 1,499 gives the Halloween Sword #1; a second receipt (owned) pays the money fallback.
+    - HwLimited events: `[WitchBroomCue, Bought]`, `[HalloweenSwordCue, Bought]`, `[HalloweenSwordCue, Fallback]`.
+  - **Off** (committed state): the old Shop. GO on sale, state.limited empty, HwLimited299 Closed (an off Limited product never prompts, even with an id).
+  - Lint OK; 1,482 tests off. With the switch on, only the two release guards fail (the clash and the ids), as intended. Console clean.
+  - Not testable in Studio until the products have ids: the "Pressed" event (nothing prompts at Id 0).
+  - My window's client stopped rendering after a screen_capture hang (images unloaded, sizes ~0), so no screenshot of the v5 Sword card.
 - 23:10 hw-core: **READY @HEAD** bb2c3c69: Art.HalloweenSwordCue = rbxassetid://136458818972136, cues-a's v5 card (slim hilt). It replaces 121167927707840.
   - Lint OK, 1,477 tests.
   - Studio: the 7,000 node shows it, loaded; console clean.
@@ -150,6 +176,13 @@ From PLAN §4 (everything else is read-only; ask below under Requests):
 
 Shared per PLAN §7 (add only core's own block or line; the coordinator resolves overlaps).
 All landed, each with its commit:
+- Halloween Limited card (87d7a1fa, 3bd660ee):
+  - `Config.luau`: Shop.Limited rows, Shop.HalloweenLimited, Products HwLimited299/1499.
+  - `Progression/Shop.luau`: LimitedRow.Event, `Shop.halloweenLimitedOn`, `Shop.limitedForProduct` exported, `effective()` off while the switch is off, `Shop.deal` offShop.
+  - `Progression/ShopView.luau`: DealView.offShop; limitedRow finds off rows.
+  - `Progression/Catalog.luau`: a card cue is Unique while on.
+  - `server/Store.luau`: the HwLimited event.
+  - Tests: shop_test (oldShop wrapper for the three Grand Opening tests, the real-id guard, the no-Limited line), catalog_test, cue_mesh_test, halloween_contract_test.
 - `Config.luau`: `Config.Halloween` (with `CandyIcon`, no friend/group keys), `Config.UI.Halloween`, product rows.
 - `Strings.luau`: `Strings.Halloween` after `Corners` (4f63cb79, `Dev` lines 06a05a85).
 - `SaveSchema.luau`: `freshHalloween()`, `Halloween` template entry after `EmoteFavorites`, `"Halloween"` last in `MAP_KEYS`, `fixHalloween` + its call last in `validate` (06a05a85; hw-sys adds `Badges` at the same spots).
@@ -232,8 +265,23 @@ Numbers changed: none (no goal is way off; the Broom staying just out of reach a
 the Secret's intent). Measure after the publish: HwTrack (step reached), HwQuest (claimed) and the
 Halloween funnel 4_Cue150 .. 7_Broom per day; HwCandy by source.
 
+## Interface for hw-gui: the Halloween Limited card (core 87d7a1fa)
+
+The ShopState payload (ShopView.build), while `Config.Shop.HalloweenLimited.Enabled`:
+- `state.deals.GrandOpening.offShop == true`: hide the Grand Opening card (its buy buttons are refused anyway: NotSold / Closed). Owned blocks open as before. Off: `offShop == false` and the old card.
+- `state.limited`: one row per Limited cue on sale, in Config order (the 299 one first, then the 1,499 one). Each row has:
+  - `cue` (a Catalog id), `product` (the Config.Products key: `HwLimited299`, `HwLimited1499`);
+  - `startsAt`, `endsAt` (unix, the event's end: the countdown);
+  - `open`, `owned`, `copy` (this player's number once owned, "#1"), `canBuy`;
+  - `sold` (copies sold everywhere; nil until read), `cap` (nil: no cap), `soldOut` (always false here).
+  - Empty while the switch is off.
+- `state.products[row.product]`: `robux` (Roblox's live price once the product exists, else 299 / 1,499), `available` (false until it has an id), `canBuy`, `owned`, and `reason` ("ComingSoon" at Id 0, "Owned", "Closed" after the end).
+- Buy: StoreRequest "Buy" with `row.product`, as for every product (the server checks, then prompts). It lands as `Inventory.Unique[cue] = copy` and `Shop.Limited[cue] = copy`; the ShopState comes again.
+- The cue's name and card: Strings.Items.Cues[cue], Config.UI.Halloween.Art[cue].
+
 ## Assumptions
 
+- Halloween Limited (23:35, no question asked): the switch ships off. Placeholders on the track would otherwise lose two track steps (a Unique cue cannot be granted), and a cue's group must never flip while players own it (Inventory.count reads Unique cues from Inventory.Unique, others from Inventory.Cues; the save keeps both either way). After launch the safe stop is ending the rows, not the switch. Limited cues trade like every Unique (Trade.tradable); flagged to the coordinator for Justin.
 - APPROVED by Justin (12:20, via the coordinator): the pickup quests are 15 / 30 / 50 lobby Candy instead of 25 / 50 / 100, on condition the pacing keeps a next goal close but earned: checked in Pacing below (no number changed).
 - Justin (12:20): play-time quests count match and lobby time alike, only idle time left out. They already did (SkyDropService.isActive: any input in the last 120 s, in any server, a match included). They count ACTIVE minutes routed like every quest: each second goes to one open "Play N min" quest, the oldest unfinished first (board 4's 30, then board 6's 45), so none is lost while another board is open and none counts twice; minutes before board 4 opens count for the Spider only (as wins before a board opens count for none of its quests). From 8af417f4 they (and the Spider) count from the first real match each UTC day, the time before it credited when that match is done (Config.Halloween.ActiveGate).
 - Tile placement: on touch the tile sits above the Starter Pack offer, clear of the jump button; on a computer below it; with no offer it moves into the Daily Challenge's spot (`tests/halloween_layout_test.luau`).
