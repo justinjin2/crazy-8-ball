@@ -103,23 +103,6 @@ return {
 			Cap = { 65, 42, 27 },
 		},
 	},
-	CandyCornCue = {
-		Id = "candy_corn",
-		Name = "Candy Corn",
-		Tier = "Epic",
-		Thumb = "rbxassetid://112696270813806",
-		Look = {
-			Shaft = { 255, 244, 226 },
-			Forearm = { 255, 122, 18 },
-			Wrap = { 255, 210, 30 },
-			Ring = { 255, 122, 18 },
-			Tip = { 255, 255, 255 },
-			Cap = { 255, 210, 30 },
-			Accent = { 255, 255, 255 },
-		},
-		Piece = "candy_corn_aura",
-		Body = "candy_corn",
-	},
 	CandyCue = {
 		Id = "candy",
 		Name = "Candy",

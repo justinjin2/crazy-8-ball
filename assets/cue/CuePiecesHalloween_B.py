@@ -1555,8 +1555,9 @@ SPIDER_DOME = ((6.98, 0.30), (7.3, 0.30), (7.5, 0.32), (7.58, 0.38), (7.68, 0.42
 
 
 def _spider_atlas(k):
-    """The Spider's atlas: SHAFT (glossy black with twelve long facets and a thin silver seam
-    beside each band; the bands themselves are Neon geometry), TIP (the red crystal spear: six
+    """The Spider's atlas: SHAFT (glossy black with twelve long facets, a thin silver seam
+    beside each band and C1's red chevron scales between the bands; the bands themselves are
+    Neon geometry), TIP (the red crystal spear: six
     facets, pale edges, emissive) and CAP (the collar's silver facet edges, the dome's black)."""
     import numpy as np
     A = Atlas('spider')
@@ -1575,7 +1576,16 @@ def _spider_atlas(k):
     for b in SPIDER_BANDS:
         seam = np.maximum(seam, _smooth(np.abs(d - (b + 0.075)), 0.02, 0.008))
     col = _lerp(col, silver, seam * 0.8)
-    A.paint('SHAFT', col, height=facet * 0.15 - seam * 0.3, emissive=np.zeros_like(U), bump=1.2)
+    # C1's chevron scales (v13): between the bands two thin red V-lines pointing at the tip, twice
+    # round the shaft, emissive so they read on the bright floor
+    chev = np.abs(((U + 0.25) % 0.5) - 0.25) * 2.0
+    scale = np.zeros_like(U)
+    for b0, b1 in zip(SPIDER_BANDS[:-1], SPIDER_BANDS[1:]):
+        for frac in (0.38, 0.68):
+            dd = b0 + (b1 - b0) * frac + 0.08 * chev
+            scale = np.maximum(scale, _smooth(np.abs(d - dd), 0.016, 0.005))
+    col = _lerp(col, red, scale)
+    A.paint('SHAFT', col, height=facet * 0.15 - seam * 0.3 + scale * 0.2, emissive=scale * 0.8, bump=1.2)
 
     U, V = A.grid('TIP')
     facet = np.abs(((U * 6) % 1.0) - 0.5) * 2.0
@@ -2015,6 +2025,32 @@ def patch_outline(pid):
     print('CUE patch_outline %s: %s' % (pid, ', '.join(names)))
 
 
+
+# The rigid parts the GLB packer smooth-shades (tools/cue_pieces_glb.py rebuilds every rigid
+# part from its OBJ flat, so a lathe's dome showed its 24 facets like a disco ball, coordinator
+# 19:5x; the key is opt-in, every other piece packs as before). Faceted by design: the gem.
+SMOOTH = {'spider': ['Body_Body', 'Body_Red', 'Crown_Blade', 'Eyes_Eye']}
+
+
+def patch_smooth(pid):
+    """Write `Smooth: true` on the parts SMOOTH names into the built piece.json."""
+    names = SMOOTH.get(pid, ())
+    if not names:
+        return
+    path = os.path.join(PIECES_DIR, pid, 'piece.json')
+    spec = json.load(open(path))
+    found = {part['Name'] for part in spec['Parts']}
+    for n in names:
+        if n not in found:
+            raise RuntimeError('CUE patch_smooth FAIL %s: SMOOTH names part %s, which the piece has not got' % (pid, n))
+    for part in spec['Parts']:
+        if part['Name'] in names:
+            part['Smooth'] = True
+    with open(path, 'w') as fh:
+        json.dump(spec, fh, indent=2)
+        fh.write('\n')
+    print('CUE patch_smooth %s: %s' % (pid, ', '.join(names)))
+
 # =============================================================================================
 # Previews: the body on its own (the plain cue hidden), from the views a gate wants
 # =============================================================================================
@@ -2206,6 +2242,7 @@ def build_checked(pid, render_preview=True):
     check_envelope(pid, kit)
     patch_aim(pid)
     patch_outline(pid)
+    patch_smooth(pid)
     if render_preview:
         preview_body(pid)
     return spec

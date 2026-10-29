@@ -4,7 +4,8 @@
     python3 tools/cue_pieces_glb.py [piece ...]      (no names: every folder with OBJs)
 
 Writes assets/cue/pieces/<piece>/<piece>_parts.glb: one object per piece.json part (named by the
-part's `Name`, which Roblox keeps as the MeshPart's name), UVs kept, normals recalculated, no
+part's `Name`, which Roblox keeps as the MeshPart's name), UVs kept, normals recalculated (flat,
+or smooth for a part row with "Smooth": true), no
 materials (Material, Color and maps come from piece.json at runtime). The OBJs are in the Roblox
 cue frame, recentred on each part's box; Roblox's importer turns Blender (x, y, z) into Roblox
 (-x, z, y), so each vertex goes in as (-X, Z, Y). Placement at runtime comes from the part's
@@ -63,6 +64,10 @@ def build(piece):
         bmesh.ops.recalc_face_normals(bm, faces=bm.faces[:])
         bm.to_mesh(mesh)
         bm.free()
+        if part.get('Smooth'):
+            # smooth shading (a lathe's dome shows its facets flat; opt-in per part row, hw-cues-b 2026-10-28)
+            for poly in mesh.polygons:
+                poly.use_smooth = True
         obj = bpy.data.objects.new(part['Name'], mesh)
         bpy.context.scene.collection.objects.link(obj)
     out = os.path.join(PIECES, piece, piece + '_parts.glb')

@@ -21,8 +21,8 @@ On a phone, a PC and a controller where you can:
 6. The boost text (Money Boost / Candy Boost) and its card.
 7. **Walk around** while it is the other player's turn.
 8. A **Candy pack** prompt opens (cancel it; don't buy).
-9. Each new cue: Candy Corn, Jack-o'-Lantern, Black Cat, Spider, Witch Broom (My Cues and the
-   Index, in hand, one pot).
+9. Each new cue: Jack-o'-Lantern, Pitchfork, Witch's Broom, Halloween Sword, Spider (My Cues and
+   the Index, in hand, one pot).
 10. Settings > **Lower effects** on and off with a Halloween cue.
 
 ## 2. Publishing (tonight, after the robustness pass; target about 20:30)
@@ -112,7 +112,7 @@ original back (asset 123614794049673): `python3 tools/halloween/store_page.py ic
 
 > 🎃 **The HALLOWEEN UPDATE is live!** 🎃
 > The rooftop has gone haunted. Play matches to collect **Candy**, finish daily quests and
-> unlock **5 Halloween cues** that never come back: Candy Corn, Jack-o'-Lantern, Black Cat,
-> Spider and the Witch's Broom. The **Pumpkin King** visits the middle of the roof at :15 and
+> unlock **5 Halloween cues** that never come back: the Jack-o'-Lantern, the Pitchfork, the
+> Witch's Broom, the **Halloween Sword** and the Spider. The **Pumpkin King** visits the middle of the roof at :15 and
 > :45 every hour: beat him for Candy, money and XP! Grab Candy around the lobby, and play in the
 > first 10 minutes of every hour for **2x Candy**. Ends Nov 3!
