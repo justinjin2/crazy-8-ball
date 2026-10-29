@@ -134,11 +134,15 @@ local function specialCue(id: string, group: string, effect: string, look: Look)
 end
 
 -- The Halloween 2026 event cues (designer, 2026-10-28; docs/halloween/PLAN.md §3): group
--- Exclusive, one copy each, never traded or sold, never coming back. Effect is the visual
--- ladder level (Pop.level). Until its skin is built a cue is hidden (Catalog.ready) and drawn
--- as Classic (StandIn); specialCue takes the skin's Look once the Index has it.
+-- Exclusive, one copy each, never traded or sold, never coming back. Shown as Unique tier,
+-- pink (designer, 2026-10-29): Rarity drives the card's colours, the Index row and the
+-- finder's money, Group still drives trading, selling and the one copy (as the rank cues).
+-- Effect is the visual ladder level (Pop.level). Until its skin is built a cue is hidden
+-- (Catalog.ready) and drawn as Classic (StandIn); specialCue takes the skin's Look once the
+-- Index has it.
 local function eventCue(id: string, effect: string): Cue
 	local cue = specialCue(id, "Exclusive", effect, skinLook(Catalog.Default))
+	cue.Rarity = "Unique"
 	cue.Event = "Halloween2026"
 	cue.StandIn = Catalog.Default
 	return cue

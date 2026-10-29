@@ -59,7 +59,8 @@ return {
 
 	["10 Ranked (the rank cues), 2 Exclusive (VIP, Starter), 2 Unique, Classic, nothing else"] = function()
 		local Catalog, Config = load()
-		-- Plus every Halloween 2026 event cue whose skin has left draft (Catalog.ready).
+		-- Plus every Halloween 2026 event cue whose skin has left draft (Catalog.ready), shown
+		-- Unique since 2026-10-29.
 		local ready = 0
 		for _, cue in Catalog.list() do
 			if cue.Event ~= nil and Catalog.ready(cue.Id) then
@@ -67,18 +68,18 @@ return {
 			end
 		end
 		local exclusive = Catalog.ofRarity("Exclusive")
+		H.expect(#exclusive == 2, ("%d Exclusive, expected 2 (VIP, Starter)"):format(#exclusive))
+		local ranked = Catalog.ofRarity("Ranked")
+		H.expect(#ranked == 10, ("%d Ranked, expected 10"):format(#ranked))
+		local unique = Catalog.ofRarity("Unique")
 		H.expect(
-			#exclusive == 2 + ready,
-			("%d Exclusive, expected %d (VIP, Starter and %d ready event cues)"):format(
-				#exclusive,
+			#unique == 2 + ready,
+			("%d Unique, expected %d (Beta, Firework and %d ready event cues)"):format(
+				#unique,
 				2 + ready,
 				ready
 			)
 		)
-		local ranked = Catalog.ofRarity("Ranked")
-		H.expect(#ranked == 10, ("%d Ranked, expected 10"):format(#ranked))
-		local unique = Catalog.ofRarity("Unique")
-		H.expect(#unique == 2, ("%d Unique, expected 2"):format(#unique))
 		H.expect(
 			Catalog.get("BetaCue") ~= nil and Catalog.get("FireworkCue") ~= nil,
 			"the Beta and Grand Opening cues"
@@ -120,10 +121,13 @@ return {
 			H.expect(#cue.Blocks == 0, cue.Id .. " must not drop from a block")
 		end
 		for _, cue in unique do
-			H.expect(
-				cue.Group == "Unique" and not cue.Sellable and cue.Tradable,
-				cue.Id .. " Unique rules"
-			)
+			-- A numbered Unique cue trades; a Halloween event cue shown Unique does not (group
+			-- Exclusive, designer 2026-10-29).
+			local numbered = cue.Group == "Unique" and cue.Tradable
+			local event = cue.Event == "Halloween2026"
+				and cue.Group == "Exclusive"
+				and not cue.Tradable
+			H.expect((numbered or event) and not cue.Sellable, cue.Id .. " Unique rules")
 			H.expect(#cue.Blocks == 0, cue.Id .. " must not drop from a block")
 		end
 
@@ -146,7 +150,7 @@ return {
 		H.expect(Catalog.get("WeekOneCue") == nil, "the Week One Cue is gone (economy v6)")
 	end,
 
-	["the five Halloween 2026 cues: Exclusive, never traded or sold, hidden until built, drawn as Classic meanwhile"] = function()
+	["the five Halloween 2026 cues: shown Unique, never traded or sold, hidden until built, drawn as Classic meanwhile"] = function()
 		local Catalog, _, Strings = load()
 		local CueSkins = H.require("CueSkins")
 		-- PLAN §3: id, Effect (the visual ladder level).
@@ -163,7 +167,9 @@ return {
 			local cue = Catalog.get(id)
 			H.expect(cue ~= nil, id .. " is in the catalog")
 			assert(cue, "no cue")
-			H.expect(cue.Group == "Exclusive" and cue.Rarity == "Exclusive", id .. " is Exclusive")
+			-- Group Exclusive (one copy, never traded or sold), shown Unique (designer, 2026-10-29).
+			H.expect(cue.Group == "Exclusive", id .. " is in the Exclusive group")
+			H.expect(cue.Rarity == "Unique", id .. " shows as Unique")
 			H.expect(not cue.Tradable and not cue.Sellable, id .. " never trades or sells")
 			H.expect(#cue.Blocks == 0 and not cue.Vaulted, id .. " drops from no block")
 			H.expect(cue.Event == "Halloween2026", id .. " is a Halloween 2026 cue")
@@ -189,12 +195,9 @@ return {
 			"the Candy Cane and Phantom cues keep their ids"
 		)
 		-- Hidden from every per-rarity list until ready; known to list, get and exists always.
-		local exclusive = Catalog.ofRarity("Exclusive")
-		H.expect(
-			#exclusive == 2 + ready,
-			("%d Exclusive shown, expected %d"):format(#exclusive, 2 + ready)
-		)
-		for _, cue in exclusive do
+		local shown = Catalog.ofRarity("Unique")
+		H.expect(#shown == 2 + ready, ("%d Unique shown, expected %d"):format(#shown, 2 + ready))
+		for _, cue in shown do
 			H.expect(cue.Event == nil or Catalog.ready(cue.Id), cue.Id .. " shown only when ready")
 		end
 		local listed = 0
