@@ -162,7 +162,7 @@ return {
 		local q = {}
 		for n = 1, 6 do
 			Quests.route(q, n, ALL_ON, "King", 5)
-			Quests.route(q, n, ALL_ON, "Pickups", 50)
+			Quests.route(q, n, ALL_ON, "Pickups", 250)
 		end
 		local king, pickups
 		for n = 1, 6 do
@@ -171,12 +171,14 @@ return {
 		end
 		H.expect(king ~= nil and pickups ~= nil, "the boards have both")
 		local kingKey, pickupsKey = king :: string, pickups :: string
-		-- Without the end's own claim, the map's switches off would lose both (the bug).
+		-- Without the end's own claim, the map's switches off would lose the King quest (the
+		-- bug; its Alt needs more). A Pickups quest needs more than its Alt since one Candy a
+		-- candy (2026-10-29), so claimable reads it finished either way.
 		local lost = true
 		for _, quest in Quests.claimable(q, {}, 6, { king = false, pickups = false, ult = true }) do
-			lost = lost and quest.key ~= kingKey and quest.key ~= pickupsKey
+			lost = lost and quest.key ~= kingKey
 		end
-		H.expect(lost, "claimable alone misses them")
+		H.expect(lost, "claimable alone misses the King quest")
 		-- ...converted on a first join after the map lane switched its King and pickups off: the
 		-- quests read as their Alts (higher needs), yet what was finished still pays.
 		local mapOff = { king = false, pickups = false, ult = true }
@@ -213,8 +215,8 @@ return {
 	["each board's four go easiest first (by expected minutes)"] = function()
 		local Quests = load()
 		-- A rough clock: 6.3 min a match, half of them won, 5.75 balls a match, a King win in
-		-- about 3 tries, 54 pickups an hour (a match player who walks about while waiting: the
-		-- 2026-10-29 target), one nice shot in 3 matches, an ability in half.
+		-- about 3 tries, 270 pickups an hour (a match player who walks about while waiting: the
+		-- 2026-10-29 target, one Candy a candy), one nice shot in 3 matches, an ability in half.
 		local minutes: { [string]: number } = {
 			Matches = 6.3,
 			Wins = 12.6,
@@ -224,7 +226,7 @@ return {
 			TeamWins = 16,
 			UltMatches = 12.6,
 			King = 18,
-			Pickups = 60 / 54,
+			Pickups = 60 / 270,
 			Active = 1 / 60,
 		}
 		for n = 1, 6 do

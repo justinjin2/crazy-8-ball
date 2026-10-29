@@ -7,7 +7,7 @@
 -- anchored part in workspace[Folder] (attribute Kind: the wrapper's colour); every client's
 -- MapClient draws, spins and pops it. The server checks pickups every PickupTickSeconds: a
 -- player walking within PickupStuds asks core's CandyService.pickup, which owns the Candy and
--- the hour cap (Config.Halloween.Pickup.HourCap): ok takes it ("+5" on that player's screen:
+-- the hour cap (Config.Halloween.Pickup.HourCap): ok takes it ("+1" on that player's screen:
 -- the Pickup message carries the Candy, Config.Halloween.Pickup.Candy), "Cap" leaves it for
 -- others and shows the bag-full note once, pausing that player to the next UTC hour
 -- (Rules.pickupOutcome). A root that jumped (a teleport: a turn's move, a portal) picks up
@@ -360,7 +360,7 @@ local function pickupTick()
 			end
 			local outcome = Rules.pickupOutcome(granted == true, reason, Clock.serverNow())
 			if outcome.take then
-				-- The Candy it gave (flat: CandyService.pickup adds Pickup.Candy) for the "+5".
+				-- The Candy it gave (flat: CandyService.pickup adds Pickup.Candy) for the "+1".
 				local amount = Config.Halloween.Pickup.Candy
 				w.candy += amount
 				forget(c)

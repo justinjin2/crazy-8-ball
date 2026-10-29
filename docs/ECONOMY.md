@@ -262,7 +262,7 @@ h, the last in 10-20 h; Candy from the ground about half). No track: Candy is sa
 | Source | Numbers | Per hour of real play (model) |
 |---|---|---|
 | Matches against people | 3 a ball, 10 finished, 25 a win; x2 in the Rush (UTC :00-:09) and on Oct 31; friends +10% each, group +10% | ~280 (9.5 matches an hour, measured pace 6.3 min; ~4 balls, half won; ~70% of matches against people: disguised-bot matches pay 0, a share not yet measured) |
-| Ground candy | 5 a pickup, one spawn near each player about every 20 s, also while roaming in a match; 80 pickups (400 Candy) an hour at most | ~270 (about 36 eligible minutes an hour, half picked up) |
+| Ground candy | 1 a pickup, many candies: one spawn near each player about every 4 s (25 s each on the ground, up to 8 each and 150 in a server), also while roaming in a match; 400 pickups (400 Candy) an hour at most | ~270 (about 36 eligible minutes an hour, half picked up) |
 | Quests | 60 / 100 / 150 / 250 a day, today's board only | up to 560 a day |
 | The Pumpkin King | +150 a visit's first win | up to 300 |
 

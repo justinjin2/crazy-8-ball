@@ -2,7 +2,7 @@
 -- MapFx (Halloween 2026, hw-map lane): the Haunted Rooftop's effects on this screen. The lobby
 -- candy (CandyDrop's invisible parts in workspace.HalloweenCandy): a wrapped candy drawn here,
 -- popping in, floating and spinning, a few sparkles. Net HalloweenMapFx: "Pickup" (its amount,
--- "+5", over the picked candy, a pop), "Burst" (the Pumpkin King's candy explosion over his
+-- "+1", over the picked candy, a pop), "Burst" (the Pumpkin King's candy explosion over his
 -- table, "+50 CANDY" for a paid win, smaller with no number otherwise), "Puff" (the King
 -- leaving in purple smoke). Everything is local, short-lived and halved on low quality (Quality.isLow). Sounds are
 -- the game's existing UI clips (no new audio).
@@ -132,7 +132,7 @@ local function track(part: Instance)
 	if not Quality.isLow() then
 		local sparkle = Instance.new("ParticleEmitter")
 		sparkle.Texture = SPARKLE
-		sparkle.Rate = 4
+		sparkle.Rate = HM.Candy.SparkleRate
 		sparkle.Lifetime = NumberRange.new(0.6, 1)
 		sparkle.Speed = NumberRange.new(0.5, 1)
 		sparkle.Size = NumberSequence.new(0.35)
@@ -187,7 +187,7 @@ local function holder(at: Vector3, life: number): Part
 	return p
 end
 
--- A rising, fading line of text over `at` (a pickup's +5 and the +50 CANDY).
+-- A rising, fading line of text over `at` (a pickup's +1 and the +50 CANDY).
 local function riser(at: Vector3, text: string, colour: Color3, studs: number, seconds: number)
 	local p = holder(at, seconds + 0.2)
 	local bb = Instance.new("BillboardGui")

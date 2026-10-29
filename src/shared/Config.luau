@@ -3808,10 +3808,11 @@ Config.Halloween = {
 	-- Ground candy (map's CandyDrop spawns it): Candy each pickup (flat), at most HourCap
 	-- pickups per player per UTC hour (the save counts pickups; the Pickups quests count them
 	-- too, not Candy). The ONLY pickup cap: CandyService.pickup enforces it. About half of all
-	-- Candy (designer, 2026-10-29): a match player who walks about while waiting for their turn
-	-- picks up about 54 an hour (~270 Candy, as much as their ~280 match Candy); a lobby walker
-	-- stops at the cap, 80 pickups = 400 Candy an hour.
-	Pickup = { Candy = 5, HourCap = 80 },
+	-- Candy (designer, 2026-10-29): one Candy a candy, many more candies on the ground (not
+	-- bigger ones): a match player who walks about while waiting for their turn picks up about
+	-- 270 an hour (~270 Candy, as much as their ~280 match Candy); a lobby walker stops at the
+	-- cap, 400 pickups = 400 Candy an hour.
+	Pickup = { Candy = 1, HourCap = 400 },
 	-- Quests: four a board, easiest first, paying Rewards[slot] Candy (flat) on CLAIM. Kind
 	-- (Halloween/Quests): Matches, Wins, Balls, NiceShots, TeamMatches, TeamWins (2v2 or 3v3),
 	-- UltMatches (an ability used in the match), King (Pumpkin King wins), Pickups (lobby Candy),
@@ -3828,7 +3829,7 @@ Config.Halloween = {
 				{ Kind = "Matches", Need = 3, Icon = "Match" },
 				{
 					Kind = "Pickups",
-					Need = 15,
+					Need = 75, -- 15 at 5 Candy a candy; same minutes at 1 each, 5x as many (2026-10-29)
 					Icon = "Candy",
 					Alt = { Kind = "Balls", Need = 30 },
 				},
@@ -3847,10 +3848,10 @@ Config.Halloween = {
 					Alt = { Kind = "Matches", Need = 5 },
 				},
 				{ Kind = "Wins", Need = 3, Icon = "Win" },
-				-- Before the nice shots since ground candy comes about 3x as often (2026-10-29).
+				-- Before the nice shots: about 33 min of walking about (270 candies an hour).
 				{
 					Kind = "Pickups",
-					Need = 30,
+					Need = 150,
 					Icon = "Candy",
 					Alt = { Kind = "Balls", Need = 60 },
 				},
@@ -3868,7 +3869,7 @@ Config.Halloween = {
 				{ Kind = "Balls", Need = 75, Icon = "Ball" },
 				{
 					Kind = "Pickups",
-					Need = 50,
+					Need = 250,
 					Icon = "Candy",
 					Alt = { Kind = "Balls", Need = 100 },
 				},
@@ -9732,22 +9733,27 @@ Config.HalloweenMap = {
 			MaxSteps = 4, -- ...and at most this many in one frame (a long frame drops the rest)
 		},
 	},
-	-- Ground candy, about half of all Candy (designer, 2026-10-29): Halloween.Pickup.Candy (5) a
-	-- pickup; about 54 pickups (~270 Candy) an hour for a match player who walks about while
-	-- waiting for their turn, the hour cap (core's Halloween.Pickup.HourCap, 80 = 400 Candy)
-	-- for a lobby walker.
+	-- Ground candy, about half of all Candy (designer, 2026-10-29: one Candy each, many more
+	-- of them): Halloween.Pickup.Candy (1) a pickup; about 270 pickups (~270 Candy) an hour for
+	-- a match player who walks about while waiting for their turn (about 36 eligible minutes an
+	-- hour, a spawn every ~4 s on the 1 s tick, half picked up), the hour cap (core's
+	-- Halloween.Pickup.HourCap, 400) for a lobby walker.
 	Candy = {
 		Enabled = true, -- the lobby's candy drops
-		SpawnEverySeconds = 20, -- one candy per eligible player this often (at most 180 an hour)...
-		JitterSeconds = 6, -- ...give or take this
+		SpawnEverySeconds = 3.5, -- one candy per eligible player this often (about 800 an hour)...
+		JitterSeconds = 1, -- ...give or take this
 		NearStuds = { 10, 30 }, -- this far from them
 		PadClearStuds = 6, -- never this close to a queue or portal pad
-		LifeSeconds = 45, -- an unclaimed candy goes after this
-		-- On the server. Every client draws every candy (one MeshPart of about 244 triangles
-		-- each: a full 60 is about 14,600 triangles) and floats those within AnimateStuds each
-		-- frame, so the per-frame loop never passes 60.
-		MaxAlive = 60,
-		MaxAlivePerPlayer = 3,
+		-- An unclaimed candy goes after this: short, so a walker's candy stays around them
+		-- (about 6 alive each, under MaxAlivePerPlayer) instead of piling up behind them.
+		LifeSeconds = 25,
+		-- On the server (a 60-player lobby). Every client draws every candy (one MeshPart of
+		-- about 244 triangles, the same two meshes, each: a full 150 is about 36,600 triangles)
+		-- with SparkleRate sparkles (none with Lower effects), and floats those within
+		-- AnimateStuds each frame.
+		MaxAlive = 150,
+		MaxAlivePerPlayer = 8,
+		SparkleRate = 2, -- sparkles a second on each candy (4 before 2026-10-29, at 60 alive)
 		PickupStuds = 5, -- walked over within this
 		PickupTickSeconds = 0.2, -- the server checks pickups this often
 		TeleportStuds = 12.5, -- a root moving more in one tick teleported (20.8 x 0.2 x 3)...
@@ -9758,8 +9764,8 @@ Config.HalloweenMap = {
 		SpotTries = 20, -- random spots tried before skipping a turn
 		-- A client floats and spins each candy this close to its camera every frame (Lower
 		-- effects: the nearer one); one farther off holds still.
-		AnimateStuds = 160,
-		AnimateStudsLow = 60,
+		AnimateStuds = 100,
+		AnimateStudsLow = 50,
 	},
 }
 
