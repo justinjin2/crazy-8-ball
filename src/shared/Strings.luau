@@ -1955,7 +1955,6 @@ return {
 		CueShort = {
 			JackOLanternCue = "Jack-o'-Lantern",
 			PitchforkCue = "Pitchfork",
-			SpiderCue = "Spider",
 			WitchBroomCue = "Witch's Broom",
 			HalloweenSwordCue = "Halloween Sword",
 		},
