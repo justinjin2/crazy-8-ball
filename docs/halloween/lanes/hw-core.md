@@ -28,6 +28,9 @@ From PLAN §4 (everything else is read-only; ask below under Requests):
 - Tests: `tests/halloween_*_test.luau`, additions to `save_schema_test` and `config_test`.
 
 ## Status
+- 21:19 hw-core: **READY @HEAD** 52d24ae4: Art.PitchforkCue = rbxassetid://139633646140924, hw-map's skinnier card with thumb_pop's new --rim pass. It replaces 108749630308384 and is the Thumb in hw-map 533b0a60's skin row.
+  - Lint OK, 1,477 tests.
+  - Studio: the 500 node shows it, loaded; it reads as a red fork on a cream glow, clear on the dark tile (my 21:10 look note is answered); console clean.
 - 21:10 hw-core: **READY @HEAD** 898fb187: Art.PitchforkCue = rbxassetid://108749630308384, hw-map's card after Justin's "skinnier" pass. It replaces 109608018268838 and is the Thumb in hw-map 0136f90b's skin row.
   - Lint OK, 1,477 tests.
   - Studio: the 500 node shows the new card, loaded; console clean.
