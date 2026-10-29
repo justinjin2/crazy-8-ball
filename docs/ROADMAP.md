@@ -599,8 +599,13 @@ Built in one day by six lanes on branch `halloween`; checklist and switches in
   candy about half of all Candy, the King's rise cutscene and cloth cape, the Pitchfork's fork
   at the tip, a thinner Witch's Broom, the new prices; lint, tests, the Studio main paths and a
   fresh-player run.
-- [ ] **Published** by the designer (outdated-only restart), the LIVE icon, the first watch
-  readings (errors, server FPS, memory, Candy, King and pack events).
+- [x] **v3** (designer, 2026-10-29 ~12:00): no Pumpkin King, the Jack-o'-Lantern for 4,500
+  Candy or 399 R$, Candy about a third each from pockets (flying per pot), quests and the
+  ground, the menu's moving 8-balls and live card effects, the "2026" badge, the four cues' v3
+  effects, the 5KLIKES and 10KLIKES codes; lint, 1,536 tests, the Studio main paths and a
+  fresh-player run.
+- [ ] **Published** by the designer (outdated-only restart), the game description's codes, the
+  LIVE icon, the first watch readings (errors, server FPS, memory, Candy and pack events).
 - [ ] **A real phone, iPad and controller check** (only emulated sizes so far).
 - [ ] **Nov 3 19:00 EST:** the end and the Candy convert seen working; the store icon and title
   back.

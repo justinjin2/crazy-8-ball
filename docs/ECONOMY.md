@@ -265,7 +265,7 @@ pays most, and the Pitchfork comes in a new player's first ~20-25 minutes.
 
 | Source | Numbers | Per hour of play (model) |
 |---|---|---|
-| Pockets | **3 Candy a pot that pays money** (`Config.Halloween.Match.PerPocket`), flying from the pocket into the Candy pill like the cash; against people and disguised bots (designer; past the day's 20 disguised wins at the practice share x0.3, hidden like their money), never PC practice, solo or the tutorial's bot; x the money's anti-farm ball factor; x2 in the Rush (UTC :00-:09) and on Oct 31 (Eastern), never x4; friends +10% each (at most 4), group +10%. No Candy at settle (Finished and Win folded into the pots: a winner pots more). Switch `Match.PerPocketEnabled` off: the old settle-time Candy (3 a ball, 10 finished, 25 a win) | **~170** (Oct 31: ~290) |
+| Pockets | **3 Candy a pot that pays money** (`Config.Halloween.Match.PerPocket`), flying from the pocket into the Candy pill like the cash; against people and disguised bots (designer; past the day's 20 disguised wins at the practice share x0.3, hidden like their money), never PC practice, solo or the tutorial's bot (the tutorial's real match pays its pots, shown only once the tutorial is over); no daily cap of its own past the disguised limit (at the practice share, ~40 an hour at most); x the money's anti-farm ball factor; x2 in the Rush (UTC :00-:09) and on Oct 31 (Eastern), never x4; friends +10% each (at most 4), group +10%. No Candy at settle (Finished and Win folded into the pots: a winner pots more). Switch `Match.PerPocketEnabled` off: the old settle-time Candy (3 a ball, 10 finished, 25 a win) | **~170** (Oct 31: ~290) |
 | Ground candy | 1 a pickup; one spawn near each eligible player every 4.5 s (+-1), 30 s each on the ground, up to 8 each and 150 in a server, also while roaming in a match; **150 pickups an hour at most** (`Pickup.HourCap`, was 400) | **~130** (cap 150) |
 | Quests | 60 / 100 / 150 / 250 a board, today's board only; the first three take ~6, ~13 and ~16-20 min of play, the fourth 50-95 min | 560 a day (310 in the first ~20 min) |
 | The Pumpkin King | off for the release (was +150 a visit's first win, up to ~300 a day) | 0 |
@@ -284,17 +284,22 @@ The numbers behind it (stated, with where they come from):
 | Matches that pay Candy | ~85% (people and disguised bots; PC practice and solo not) | **assumption**, not yet measured: `HwMatch` (a: Paid / Disguised / PC / Tutorial) measures it |
 | Friends + group | ~+5% on average | **assumption**: `HwMatch` (value: friends here; b: group) measures it |
 | Ground | ~20 free minutes an hour (between matches and roaming in the other side's turn), about half the spawns picked up | **assumption**: `CandyPickups` (value: Candy a session; b: eligible minutes) measures it |
-| Tutorial | ~5 min before Halloween shows (HwOn) | **assumption** |
+| Tutorial | ~5 min before Halloween shows (HwOn); its real match (game 2, or path R's game 1) pays its pots quietly, the model leaves them out | **assumption** |
 
 So ~46.5 eligible pots an hour x 3 x 1.17 (the Rush's 10 minutes an hour) x 1.05 = ~170 Candy an
 hour from pockets (~290 on Oct 31), ~130 from the ground, and the quests' 560 a day.
 
-| Cue | Candy | Robux | The 3 h-a-day player (boards 2-6) | The ~22 min-a-day player |
+| Cue | Candy | Robux | The 3 h-a-day player (boards 2-6), saving for this cue alone | The ~22 min-a-day player |
 |---|---|---|---|---|
 | Pitchfork | 300 | 49 | ~17 min | **~22 min of play** (day 1, with a 5 min tutorial) |
 | Witch's Broom | 2,500 | 249 | ~4.6 h (day 2) | not in 5 days (~2,100 by the end; one 300 pack short) |
 | Jack-o'-Lantern | 4,500 | 399 | ~8.4 h (day 3, Oct 31's 2x) | no |
 | Halloween Sword | 7,500 | 599 | **~14.4 h** (day 5) | no |
+
+Buying them in order instead (2,800 / 7,300 / 14,800 Candy in all), the 3 h-a-day player has the
+Broom at ~5.6 h and the Jack at ~13.7 h, and not the Sword within the event (7,683 by the end).
+The designer's "the Sword in ~15 h" was built as the Sword saved for alone (a review read the
+model again, 2026-10-29).
 
 | The 3 h-a-day player | After day 1 (3 h) | Day 2 (6 h) | Day 3 (9 h) | Day 4 (12 h) | Day 5 (15 h) |
 |---|---|---|---|---|---|

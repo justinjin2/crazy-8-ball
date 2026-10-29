@@ -4,43 +4,47 @@ Current state only, rewritten in place. Keep it to about two screens (under 100 
 step is finished and verified, move its dated entry to the top of
 `docs/archive/STATUS_HISTORY.md` and keep only what is still true or still open here.
 
-Updated 2026-10-29 (**published by the designer 2026-10-27: everything up to `7c4d85aa`**: the emote system, 2KLIKES, the 1v1 result cutscene off; the emote audio update rides with the Halloween publish). **The game is live** (officially released 2026-10-10). Work goes on
+Updated 2026-10-29 14:15 (**published by the designer 2026-10-27: everything up to `7c4d85aa`**: the emote system, 2KLIKES, the 1v1 result cutscene off; the emote audio update rides with the Halloween publish). **The game is live** (officially released 2026-10-10). Work goes on
 in `~/Desktop/8ball`, branch `halloween` (it holds all of `gui-v4`). The STATUS from just before launch, in full, is the top
 entry of `docs/archive/STATUS_HISTORY.md`.
 
 ## Halloween 2026 (branch `halloween`, pushed, waiting for the designer to publish tonight)
 
-- **Ready to publish** (Oct 29 ~09:30): the evening release (`docs/prompts/HW_EVENING_PROMPT.md`),
-  checklist and switches in `docs/halloween/RELEASE.md`. Outdated-only restart.
-- **In it:** Candy saved and spent (balance = Earned + Bought - Spent) from matches (3 a ball,
-  10, 25), ground candy (1 a candy, one spawning near each player about every 4 s, also while
-  roaming in a match, 400 an hour at most; about half of all Candy), daily quests (today's board only), the King's visits; the
-  menu redone to mock A with the three cues for Candy or Robux: Pitchfork 300 / 49 R$, Witch's
-  Broom 2,500 / 249 R$, Halloween Sword 7,500 / 599 R$ (gifts too); Candy packs 300 for 49 R$
-  and 1,200 for 149 R$. The Candy track and the Spider are gone. The Pumpkin King rises out of
-  the roof on his throne with a letterboxed cutscene for players free in the lobby (every
-  visit, a tap skips); his cape is cloth (17 parts) and sways, also while he shoots. The
-  Pitchfork has the compact fork at the tip (designer ~10:30, after trying the old butt fork
-  and a large tip fork); the Witch's Broom is thinner. "One of a Kind" counts
-  the Halloween cues; the Broom badge says Get. Roaming during a match and the 50 badges ship in
-  this update (both already on the branch since Oct 28).
-- **Verified (Oct 29, 08:55-09:15):** lint and the full Lune tests; the Pitchfork and Broom
-  templates rebuilt in Team Create, the Spider's removed; Studio on PC with a fresh save:
-  join, tutorial skip, the Daily popup, the menu owned and unowned, a Candy buy (ok and Poor),
-  a Robux receipt (grant, and the money fallback when owned), ground candy +5 and spawns in a
-  match, roaming, the King's rise, cutscene and cape, the Pitchfork in aim view, a first match,
-  console clean. ~09:45-10:35: ground candy at 1 each, 5x as many; the Pitchfork back
-  on the compact tip fork (template rebuilt, the menu card). Products and prices on Roblox checked (`tools/roblox_products.py --sync`
-  dry run: nothing to change; Studio shows the account's discounted prices).
-- **Open:** a real phone, iPad and controller check (only emulated); on phone the 8-ball flair
-  overlaps the left end of the Pitchfork's Candy button; the denser ground candy's client cost
-  (up to 150 candies in a full server) to watch in client memory and FPS after the publish; the end screen's Candy-to-money line
-  never shows for a player who spent all their Candy ($0); the throne may show for one frame
-  before it sinks; the arrival banner is hidden under the cutscene; the share of matches
-  against disguised bots (0 Candy) is not measured; stale comments (`Net.luau:457`, the
-  HalloweenMap budget comment says 40 candies).
-- **After the publish:** save the place to `place/8ball.rbxl`; the LIVE store icon; watch
-  `HwBuy`, `HwCandy` Match vs `CandyPickups`, `KingCutscene`, FPS and memory (RELEASE 6).
+- **Ready to publish** (Oct 29 ~14:15): the v3 update (the designer's ~12:00 list), checklist
+  and switches in `docs/halloween/RELEASE.md`. Outdated-only restart. Nothing of Halloween is
+  live yet (the live build `7c4d85aa` has none).
+- **In it:** no Pumpkin King (`HalloweenMap.Boss.Enabled` false; the drop off, his quests read
+  as their Alts, Pumpkin Slayer paused). Four cues for Candy or Robux, in this order: Pitchfork
+  300 / 49 R$, Witch's Broom 2,500 / 249 R$, **Jack-o'-Lantern 4,500 / 399 R$** (product HwJack
+  3723584090), Halloween Sword 7,500 / 599 R$; all Unique, their effects climb like rarities.
+  Candy about a third each from **pockets** (+3 a pot that pays money, people and disguised
+  bots, flying into the Candy pill; `Match.PerPocketEnabled`), **quests** (boards 2-6 reshaped,
+  rewards 60/100/150/250) and the **ground** (1 each, a spawn every 4.5 s, 150 an hour at most).
+  The tutorial's real match pays its pots quietly (no chips before HwOn). The menu: the cards'
+  8-balls drift, each card plays its cue's effects live in 2D, the edges are whole, a "2026"
+  pumpkin badge on the event cues (menu, My Cues, the Index once found, YOU GOT). Cues: the
+  Pitchfork's outer prongs stay and its tip flames are calm; the Jack's laugh 58% quieter and
+  near only, no circling jacks; the Broom's star finisher (a witch's-hat constellation and a
+  64-frame witch, no rings or moon), a shorter head, a calmer aura; the Sword's toon edge flames
+  and violet glow band, a deep-purple flaming trail, a laughing purple fire face finisher. Codes
+  5KLIKES (5 spins, $5,000), 10KLIKES (10 spins, $10,000; the tutorial types it), 2KLIKES lowered
+  to 10 spins and $10,000, 1KLIKES and 250LIKES expired. Roaming and the badges ship with it.
+- **Verified (Oct 29, 13:30-14:00):** lint and 1,536 Lune tests on the merge; the Broom
+  templates rebuilt in Team Create (1 skin, 3 pieces); Studio PC: the menu owned and unowned,
+  a match against a disguised bot (pots +3/+4, the balance after each grant, the "+17" end
+  chip), the Sword and Broom finishers, the Sword in aim view, the Pitchfork equipped; a
+  fresh-player run on a new Studio store (join, tutorial skip, Daily, Invite, the first match
+  17 Candy, BRONZE!, Daily, the abilities code line, 10KLIKES 10 spins + $10,000, 1KLIKES
+  refused, the event menu); console clean. Products on Roblox match Config (sync dry run).
+- **Open:** a real phone, iPad and controller check (only PC here); by hand: the Pitchfork's
+  bridge hand against its curving prongs on a short bridge, the Broom on a small avatar's back,
+  the Sword's trail in a break; on phone the hero Sword card's glow is cut on its right edge;
+  after the publish, client memory on phones (the cards' effects use the cues' 512-1024 px
+  sheets; ~30 sprites); the end screen's $0 convert line; stale comments (`Net.luau:457`, the
+  HalloweenMap budget comment).
+- **After the publish:** update the game description (the codes) and set the LIVE store icon;
+  save the place to `place/8ball.rbxl`; watch the funnel 3_FirstCandy -> 4_Pitchfork, `HwCandy`
+  Match vs `CandyPickups` vs `HwQuest`, `HwMatch`, `HwBuy`, FPS and memory (RELEASE 6).
 - **Parked:** Robux Limited cues (branch `hw-core-limited`). The Grand Opening block stays off
   the Shop (it was ~37% of dev product revenue before; earlier decision).
 
