@@ -17860,9 +17860,11 @@ Config.UI.Halloween = {
 					},
 				} :: { any },
 			},
-			-- Orange flames licking up the shaft and embers rising off it.
+			-- Orange flames licking up the shaft and embers rising off it. Measured on the card
+			-- with the pumpkin drawn 1.5x (CuePreview --thumb-spots: the butt, inside the
+			-- pumpkin, to the tip; the collar at about 0.16; 2026-10-29).
 			JackOLanternCue = {
-				Axis = { { 0.1, 0.92 }, { 0.86, 0.04 } },
+				Axis = { { 0.37, 0.746 }, { 0.915, 0.034 } },
 				Layers = {
 					{
 						Kind = "Rise",
@@ -17959,7 +17961,7 @@ Config.UI.Halloween = {
 	-- jack-o'-lantern (also the ribbon's pumpkin), the candy pile (the end screen, the menu's
 	-- Candy packs) and cash.
 	Art = {
-		JackOLanternCue = "rbxassetid://114487013205177",
+		JackOLanternCue = "rbxassetid://103301193919705", -- its skin's Thumb (the remade body, the pumpkin drawn 1.5x; 2026-10-29)
 		PitchforkCue = "rbxassetid://130408256165091", -- its skin's Thumb (the fork drawn 2.2x and face on, rim-popped; 2026-10-29)
 		WitchBroomCue = "rbxassetid://131711880887023", -- its skin's Thumb (the v3 shorter head; 2026-10-29)
 		HalloweenSwordCue = "rbxassetid://106906520938583", -- cues-a's v5 card (its skin's Thumb; the slim hilt, rim-popped)

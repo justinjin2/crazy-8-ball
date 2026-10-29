@@ -649,7 +649,7 @@ return {
 	},
 	Piece = "jack_o_lantern_jacks",
 	Body = "jack_o_lantern",
-	Thumb = "rbxassetid://110159550393453",
+	Thumb = "rbxassetid://103301193919705",
 	Look = {
 		Shaft = { 255, 122, 28 },
 		Forearm = { 255, 122, 28 },

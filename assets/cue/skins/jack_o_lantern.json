@@ -7,6 +7,14 @@
   "note": "Halloween 2026 track cue (500 Candy). Drawn by its own body piece (jack_o_lantern, assets/cue/CuePiecesJack.py, lane hw-sys 2026-10-28, to the C4 concept): a green stem tip, a glossy orange shaft with soft wood grain, a chunky vine with leaves spiralling up, a bronze and dark-wood collar with glowing slits, and a big carved pumpkin past the butt (an Aim joint: it clears on the owner's screen while aiming) whose face glows from a flickering core.",
   "body": "jack_o_lantern",
   "maps_from": "classic",
+  "thumb_grow": {
+    "at": 6.2,
+    "toward": "butt",
+    "scale": 1.5,
+    "blend": 0.4,
+    "roll": -12
+  },
+  "thumb_fit": 16,
   "look": {
     "Shaft": "#FF7A1C",
     "Forearm": "#FF7A1C",

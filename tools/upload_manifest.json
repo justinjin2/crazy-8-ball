@@ -642,12 +642,6 @@
     "imageId": "106906520938583",
     "status": "ok"
   },
-  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/thumbs/jack_o_lantern.png": {
-    "assetId": "107861865998214",
-    "assetType": "Decal",
-    "imageId": "110159550393453",
-    "status": "ok"
-  },
   "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/vfx/black_cat/claw_swipe.png": {
     "assetId": "137606027112313",
     "assetType": "Decal",
@@ -1382,6 +1376,12 @@
     "assetId": "113082192164237",
     "assetType": "Decal",
     "imageId": "137525961488251",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/.claude/worktrees/agent-ab7805e443325a88f/assets/cue/thumbs/jack_o_lantern.png": {
+    "assetId": "103301193919705",
+    "assetType": "Image",
+    "imageId": "103301193919705",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/.claude/worktrees/agent-ab7805e443325a88f/assets/cue/thumbs/pitchfork.png": {
