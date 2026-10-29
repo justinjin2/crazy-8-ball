@@ -147,6 +147,13 @@ function Ledger.convertMoney(hw: any): number
 	return Ledger.total(hw) * C.Convert.MoneyPerCandy
 end
 
+-- The end's money in its two shares: (earned Candy's, bought Candy's). Money from bought Candy
+-- is not earned money (Stats.MoneyEarned never counts money bought with Robux).
+function Ledger.convertSplit(hw: any): (number, number)
+	local per = C.Convert.MoneyPerCandy
+	return whole(hw.Earned) * per, whole(hw.Bought) * per
+end
+
 -- Whether the save is due its conversion at `now`: the event over, switched on, not done yet.
 function Ledger.convertDue(hw: any, now: number): boolean
 	return C.Convert.Enabled == true and Event.over(now) and hw.Converted ~= true

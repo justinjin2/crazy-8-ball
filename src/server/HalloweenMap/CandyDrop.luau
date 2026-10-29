@@ -60,6 +60,15 @@ local candies: { Candy } = {}
 local who: { [Player]: Who } = {}
 local rng = Random.new()
 local warned = false
+local warnedOnce: { [string]: boolean } = {}
+
+-- A loop's failure, said once (these loops run every 0.2 s and every second).
+local function warnOnce(message: string)
+	if not warnedOnce[message] then
+		warnedOnce[message] = true
+		warn("[HalloweenMap] " .. message)
+	end
+end
 
 local function folder(): Folder
 	local found = workspace:FindFirstChild(CandyDrop.Folder)
@@ -327,7 +336,7 @@ local function pickupTick()
 			end
 			local ok, granted, reason = pcall(CandyService.pickup, p)
 			if not ok then
-				warn("[HalloweenMap] pickup: " .. tostring(granted))
+				warnOnce("pickup: " .. tostring(granted))
 				break
 			end
 			local outcome = Rules.pickupOutcome(granted == true, reason, Clock.serverNow())
@@ -371,6 +380,9 @@ local function report(p: Player)
 		bucket,
 		Funnel.device(p)
 	)
+	-- Funnel's own leave handler may already have cleared its per-player log, and the event
+	-- above makes a new one that would hold the Player for the server's life (Friends' guard).
+	pcall(Funnel.clearLog, p)
 end
 
 --- Start the drops (once, from Bootstrap). isLobby: false in an arena.
@@ -386,7 +398,7 @@ function CandyDrop.start(isLobby: boolean)
 				spawnTick()
 			end)
 			if not ok then
-				warn("[HalloweenMap] CandyDrop: " .. tostring(err))
+				warnOnce("CandyDrop: " .. tostring(err))
 			end
 		end
 	end)
@@ -397,7 +409,7 @@ function CandyDrop.start(isLobby: boolean)
 				pickupTick()
 			end)
 			if not ok then
-				warn("[HalloweenMap] CandyDrop pickup: " .. tostring(err))
+				warnOnce("CandyDrop pickup: " .. tostring(err))
 			end
 		end
 	end)

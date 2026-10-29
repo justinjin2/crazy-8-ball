@@ -158,8 +158,16 @@ function EventButton.new(root: Frame, corners: any): any
 	-- The pill's time and the event's start and end: once a second, from after HubCorners.new
 	-- (a refresh lays the corners out).
 	task.defer(function()
+		local warned = false -- a failing refresh warns once; the loop goes on
 		while button.Parent ~= nil do
-			self:refresh()
+			local ok, err = pcall(function(): any
+				self:refresh()
+				return nil
+			end)
+			if not ok and not warned then
+				warned = true
+				warn("[8ball] Halloween tile: " .. tostring(err))
+			end
 			task.wait(1)
 		end
 	end)
@@ -297,9 +305,10 @@ function EventButton.bump(self: any)
 	end
 end
 
---- The tile's middle on the screen (where Candy flies), or nil while it is hidden.
+--- The tile's middle on the screen (where Candy flies), or nil while it is hidden (the corners
+--- too: under the result screen and in a match).
 function EventButton.target(self: any): Vector2?
-	if not self.shown or not self.button.Visible then
+	if not self.shown or not self.button.Visible or not self.corners:isShown() then
 		return nil
 	end
 	return self.button.AbsolutePosition + self.button.AbsoluteSize / 2

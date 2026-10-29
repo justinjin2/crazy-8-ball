@@ -145,11 +145,15 @@ function Quests.route(
 	return changed
 end
 
--- The quest behind `key` on an open board (nil for a key that is not one).
+-- The quest behind `key` on an open board (nil for a key that is not one). Only the quest's
+-- own spelling ("1.4", never "01.4" or "1.04"): a claim is recorded under the key sent.
 function Quests.find(key: string, open: number, hooks: Hooks): Quest?
 	local board, slot = string.match(key, "^(%d+)%.(%d+)$")
 	local n, s = tonumber(board), tonumber(slot)
 	if n == nil or s == nil or n < 1 or n > math.min(open, Quests.count()) then
+		return nil
+	end
+	if key ~= Quests.key(n, s) then
 		return nil
 	end
 	local list = Quests.board(n, hooks)
@@ -173,6 +177,35 @@ function Quests.claimable(
 		end
 	end
 	return list
+end
+
+-- The end's claim (PlayerData.hwConvert): `claimable` with the hooks now, and also what was
+-- finished as the event ran with the map lane's King and pickups on. A player converting on a
+-- first join after the map switched them off (their quests read as Alts with higher needs)
+-- keeps what they finished. Each quest once, in board order.
+function Quests.endClaimable(
+	q: { [string]: number },
+	claimed: { [string]: boolean },
+	open: number,
+	hooks: Hooks
+): { Quest }
+	local mapOn: Hooks = { king = true, pickups = true, ult = hooks.ult }
+	local now = Quests.claimable(q, claimed, open, hooks)
+	local ran = Quests.claimable(q, claimed, open, mapOn)
+	local seen: { [string]: boolean } = {}
+	for _, quest in now do
+		seen[quest.key] = true
+	end
+	for _, quest in ran do
+		if not seen[quest.key] then
+			seen[quest.key] = true
+			table.insert(now, quest)
+		end
+	end
+	table.sort(now, function(a: Quest, b: Quest): boolean
+		return if a.board ~= b.board then a.board < b.board else a.slot < b.slot
+	end)
+	return now
 end
 
 return Quests

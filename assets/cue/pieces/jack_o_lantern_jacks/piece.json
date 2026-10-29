@@ -1,0 +1,316 @@
+{
+  "id": "jack_o_lantern_jacks",
+  "Frame": "cue",
+  "frame": "Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)",
+  "Triangles": 4264,
+  "Parts": [
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#FFFFFF",
+      "Transparency": 0.0,
+      "Reflectance": 0.06,
+      "SurfaceAppearance": {
+        "ColorMap": "pieces/jack_o_lantern/atlas_color.png",
+        "NormalMap": "pieces/jack_o_lantern/atlas_normal.png",
+        "EmissiveMask": "pieces/jack_o_lantern/atlas_emissive.png",
+        "EmissiveTint": "#FFC24A",
+        "EmissiveStrength": 2.6
+      },
+      "Name": "Jack1_Jack",
+      "File": "pieces/jack_o_lantern_jacks/Jack1_Jack.obj",
+      "Joint": "Jack1",
+      "Offset": [
+        -0.5,
+        0.5309,
+        -1.25
+      ],
+      "Size": [
+        0.2828,
+        0.2697,
+        0.2631
+      ],
+      "Triangles": 1066
+    },
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#FFFFFF",
+      "Transparency": 0.0,
+      "Reflectance": 0.06,
+      "SurfaceAppearance": {
+        "ColorMap": "pieces/jack_o_lantern/atlas_color.png",
+        "NormalMap": "pieces/jack_o_lantern/atlas_normal.png",
+        "EmissiveMask": "pieces/jack_o_lantern/atlas_emissive.png",
+        "EmissiveTint": "#FFC24A",
+        "EmissiveStrength": 2.6
+      },
+      "Name": "Jack2_Jack",
+      "File": "pieces/jack_o_lantern_jacks/Jack2_Jack.obj",
+      "Joint": "Jack2",
+      "Offset": [
+        0.52,
+        0.6524,
+        -2.2
+      ],
+      "Size": [
+        0.3046,
+        0.2826,
+        0.2743
+      ],
+      "Triangles": 1066
+    },
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#FFFFFF",
+      "Transparency": 0.0,
+      "Reflectance": 0.06,
+      "SurfaceAppearance": {
+        "ColorMap": "pieces/jack_o_lantern/atlas_color.png",
+        "NormalMap": "pieces/jack_o_lantern/atlas_normal.png",
+        "EmissiveMask": "pieces/jack_o_lantern/atlas_emissive.png",
+        "EmissiveTint": "#FFC24A",
+        "EmissiveStrength": 2.6
+      },
+      "Name": "Jack3_Jack",
+      "File": "pieces/jack_o_lantern_jacks/Jack3_Jack.obj",
+      "Joint": "Jack3",
+      "Offset": [
+        0.5,
+        0.8354,
+        -3.0
+      ],
+      "Size": [
+        0.2968,
+        0.3083,
+        0.3279
+      ],
+      "Triangles": 1066
+    },
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#FFFFFF",
+      "Transparency": 0.0,
+      "Reflectance": 0.06,
+      "SurfaceAppearance": {
+        "ColorMap": "pieces/jack_o_lantern/atlas_color.png",
+        "NormalMap": "pieces/jack_o_lantern/atlas_normal.png",
+        "EmissiveMask": "pieces/jack_o_lantern/atlas_emissive.png",
+        "EmissiveTint": "#FFC24A",
+        "EmissiveStrength": 2.6
+      },
+      "Name": "Jack4_Jack",
+      "File": "pieces/jack_o_lantern_jacks/Jack4_Jack.obj",
+      "Joint": "Jack4",
+      "Offset": [
+        -0.56,
+        0.8109,
+        -1.8
+      ],
+      "Size": [
+        0.2731,
+        0.2697,
+        0.2843
+      ],
+      "Triangles": 1066
+    }
+  ],
+  "Joints": {
+    "Jack1": {
+      "Parent": null,
+      "Pivot": [
+        0.5,
+        -4.75,
+        0.5
+      ],
+      "PivotRoblox": [
+        -0.5,
+        0.5,
+        -1.25
+      ],
+      "Motion": [
+        {
+          "Kind": "Bob",
+          "Dir": [
+            0,
+            0,
+            1
+          ],
+          "Amp": 0.05,
+          "Period": 2.6,
+          "Phase": 0
+        },
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0,
+            0,
+            1
+          ],
+          "Rate": 34,
+          "Phase": 0
+        },
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            1,
+            0,
+            0
+          ],
+          "Amp": 7.0,
+          "Period": 3.1,
+          "Phase": 30
+        }
+      ],
+      "Aura": true,
+      "Low": "hide",
+      "Aim": "fade"
+    },
+    "Jack2": {
+      "Parent": null,
+      "Pivot": [
+        -0.52,
+        -5.7,
+        0.62
+      ],
+      "PivotRoblox": [
+        0.52,
+        0.62,
+        -2.2
+      ],
+      "Motion": [
+        {
+          "Kind": "Bob",
+          "Dir": [
+            0,
+            0,
+            1
+          ],
+          "Amp": 0.05,
+          "Period": 2.97,
+          "Phase": 70
+        },
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0,
+            0,
+            1
+          ],
+          "Rate": -41,
+          "Phase": 0
+        },
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            1,
+            0,
+            0
+          ],
+          "Amp": 7.0,
+          "Period": 3.5,
+          "Phase": 80
+        }
+      ],
+      "Aura": true,
+      "Low": "hide",
+      "Aim": "fade"
+    },
+    "Jack3": {
+      "Parent": null,
+      "Pivot": [
+        -0.5,
+        -6.5,
+        0.8
+      ],
+      "PivotRoblox": [
+        0.5,
+        0.8,
+        -3.0
+      ],
+      "Motion": [
+        {
+          "Kind": "Bob",
+          "Dir": [
+            0,
+            0,
+            1
+          ],
+          "Amp": 0.05,
+          "Period": 3.34,
+          "Phase": 140
+        },
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0,
+            0,
+            1
+          ],
+          "Rate": 29,
+          "Phase": 0
+        },
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            1,
+            0,
+            0
+          ],
+          "Amp": 7.0,
+          "Period": 3.9000000000000004,
+          "Phase": 130
+        }
+      ],
+      "Aura": true,
+      "Aim": "fade"
+    },
+    "Jack4": {
+      "Parent": null,
+      "Pivot": [
+        0.56,
+        -5.3,
+        0.78
+      ],
+      "PivotRoblox": [
+        -0.56,
+        0.78,
+        -1.8
+      ],
+      "Motion": [
+        {
+          "Kind": "Bob",
+          "Dir": [
+            0,
+            0,
+            1
+          ],
+          "Amp": 0.05,
+          "Period": 3.71,
+          "Phase": 210
+        },
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0,
+            0,
+            1
+          ],
+          "Rate": -37,
+          "Phase": 0
+        },
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            1,
+            0,
+            0
+          ],
+          "Amp": 7.0,
+          "Period": 4.300000000000001,
+          "Phase": 180
+        }
+      ],
+      "Aura": true,
+      "Aim": "fade"
+    }
+  }
+}

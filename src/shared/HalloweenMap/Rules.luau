@@ -229,6 +229,16 @@ function Rules.kingTimed(): boolean
 	return HM.Boss.Mode == "Timed"
 end
 
+--- Whether the timed King's visits run: Boss.Mode "Timed" with the map, his challenge (Boss)
+--- and his stage (Throne) all switched on. Throne off means no throne anywhere, so no visits
+--- either (the old roof). Anything that shows or points at his visits (core's timer) asks this.
+function Rules.kingVisits(): boolean
+	return Rules.kingTimed()
+		and HM.Enabled == true
+		and HM.Boss.Enabled == true
+		and HM.Throne.Enabled == true
+end
+
 --- The King's visit (Boss.Timed) running at `now`, or else the next one: (start, end), unix
 --- seconds on the server clock. Pure, so every server and client agree; he is here while
 --- start <= now < end. The event's Live check is the caller's.
@@ -256,6 +266,25 @@ end
 --- ":45" for a unix time (its UTC minute), as the King's notices name his next visit.
 function Rules.minuteText(at: number): string
 	return (":%02d"):format(math.floor(at / 60) % 60)
+end
+
+--- How many King matches count against Boss.MaxAtOnce: the `seating` ones being seated now
+--- (his body is still being built, so they are not in `kings` yet) and every one not ended
+--- whose bot still plays (`playing`). A King whose table moved on before he saw the result (a
+--- surrender and a reset in one burst, a leaver) never gets an ending, so it must not count
+--- forever.
+function Rules.kingsPlaying(
+	kings: { [number]: any }, -- by bot id: { ended: boolean? } at least
+	playing: (botId: number) -> boolean,
+	seating: number?
+): number
+	local n = seating or 0
+	for botId, king in kings do
+		if not king.ended and playing(botId) then
+			n += 1
+		end
+	end
+	return n
 end
 
 --- The place `id` has in the King's line (user ids, first in line first), or would get on

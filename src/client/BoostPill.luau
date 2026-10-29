@@ -296,10 +296,16 @@ function BoostPill.new(money: any): any
 	end
 	-- One 1 s loop: the chip's words (core's clock), the timed parts' ends and countdowns, and
 	-- the pieces around it (a hotbar or WinTrack that moved). Never per frame.
+	-- A failing tick warns once and the loop keeps going (one error must not freeze the pill).
 	task.spawn(function()
+		local warned = false
 		while true do
 			task.wait(CHIP.PollSeconds)
-			self:tick()
+			local ok, err = pcall(self.tick, self)
+			if not ok and not warned then
+				warned = true
+				warn(("[8ball] BoostPill: tick failed: %s"):format(tostring(err)))
+			end
 		end
 	end)
 	self:addQA()

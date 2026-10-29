@@ -2,7 +2,7 @@
   "id": "jack_o_lantern",
   "Frame": "cue",
   "frame": "Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)",
-  "Triangles": 7040,
+  "Triangles": 8086,
   "Parts": [
     {
       "Material": "SmoothPlastic",
@@ -10,122 +10,127 @@
       "Transparency": 0.0,
       "Reflectance": 0.06,
       "SurfaceAppearance": {
-        "ColorMap": "vfx/jack_o_lantern/rind_512.png"
+        "ColorMap": "pieces/jack_o_lantern/atlas_color.png",
+        "NormalMap": "pieces/jack_o_lantern/atlas_normal.png",
+        "EmissiveMask": "pieces/jack_o_lantern/atlas_emissive.png",
+        "EmissiveTint": "#FFC24A",
+        "EmissiveStrength": 2.6
       },
-      "Name": "Body_Rind",
-      "File": "pieces/jack_o_lantern/Body_Rind.obj",
+      "Name": "Body_Jack",
+      "File": "pieces/jack_o_lantern/Body_Jack.obj",
       "Joint": "Body",
       "Offset": [
         0.0,
         0.0,
-        -0.0825
+        -0.07
       ],
       "Size": [
-        0.6746,
-        0.6746,
-        7.165
+        0.62,
+        0.62,
+        7.14
       ],
-      "Triangles": 4752
+      "Triangles": 3396
     },
     {
       "Material": "SmoothPlastic",
-      "Color": "#2F5A2A",
+      "Color": "#FFFFFF",
       "Transparency": 0.0,
-      "Reflectance": 0.03,
-      "Name": "Body_Green",
-      "File": "pieces/jack_o_lantern/Body_Green.obj",
-      "Joint": "Body",
-      "Offset": [
-        0.0,
-        0.0732,
-        -3.7033
-      ],
-      "Size": [
-        0.08,
-        0.2233,
-        0.1886
-      ],
-      "Triangles": 112
-    },
-    {
-      "Material": "SmoothPlastic",
-      "Color": "#3E8E3A",
-      "Transparency": 0.0,
-      "Reflectance": 0.03,
-      "Name": "Body_Vine",
-      "File": "pieces/jack_o_lantern/Body_Vine.obj",
-      "Joint": "Body",
-      "Offset": [
-        0.007,
-        0.0039,
-        -0.0639
-      ],
-      "Size": [
-        0.4165,
-        0.4269,
-        6.304
-      ],
-      "Triangles": 1900
-    },
-    {
-      "Material": "SmoothPlastic",
-      "Color": "#4EA63C",
-      "Transparency": 0.0,
-      "Reflectance": 0.03,
-      "Name": "Leaves_Leaf",
-      "File": "pieces/jack_o_lantern/Leaves_Leaf.obj",
+      "Reflectance": 0.06,
+      "SurfaceAppearance": {
+        "ColorMap": "pieces/jack_o_lantern/atlas_color.png",
+        "NormalMap": "pieces/jack_o_lantern/atlas_normal.png",
+        "EmissiveMask": "pieces/jack_o_lantern/atlas_emissive.png",
+        "EmissiveTint": "#FFC24A",
+        "EmissiveStrength": 2.6
+      },
+      "Name": "Leaves_Jack",
+      "File": "pieces/jack_o_lantern/Leaves_Jack.obj",
       "Joint": "Leaves",
       "Offset": [
-        -0.0085,
-        0.2465,
-        -1.1843
+        0.0788,
+        0.1366,
+        0.27
       ],
       "Size": [
-        0.2116,
-        0.2313,
-        4.5497
+        0.5428,
+        0.3197,
+        1.86
       ],
-      "Triangles": 60
+      "Triangles": 300
+    },
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#FFFFFF",
+      "Transparency": 0.0,
+      "Reflectance": 0.06,
+      "SurfaceAppearance": {
+        "ColorMap": "pieces/jack_o_lantern/atlas_color.png",
+        "NormalMap": "pieces/jack_o_lantern/atlas_normal.png",
+        "EmissiveMask": "pieces/jack_o_lantern/atlas_emissive.png",
+        "EmissiveTint": "#FFC24A",
+        "EmissiveStrength": 2.6
+      },
+      "Name": "Pumpkin_Jack",
+      "File": "pieces/jack_o_lantern/Pumpkin_Jack.obj",
+      "Joint": "Pumpkin",
+      "Offset": [
+        0.0001,
+        0.0788,
+        -3.7552
+      ],
+      "Size": [
+        1.6575,
+        1.4668,
+        2.0788
+      ],
+      "Triangles": 3114
     },
     {
       "Material": "Neon",
-      "Color": "#FF9A2E",
+      "Color": "#FFC24A",
       "Transparency": 0.0,
       "Reflectance": 0.0,
-      "Name": "Slits_Slit",
-      "File": "pieces/jack_o_lantern/Slits_Slit.obj",
-      "Joint": "Slits",
+      "Name": "Core_Core",
+      "File": "pieces/jack_o_lantern/Core_Core.obj",
+      "Joint": "Core",
       "Offset": [
-        0.0,
-        0.0,
-        -0.23
+        -0.0001,
+        0.0793,
+        -4.08
       ],
       "Size": [
-        0.3821,
-        0.3469,
-        0.64
+        1.4023,
+        1.2504,
+        1.2213
       ],
-      "Triangles": 144
+      "Triangles": 396
     },
     {
-      "Material": "Neon",
-      "Color": "#FFC34D",
+      "Material": "SmoothPlastic",
+      "Color": "#FFFFFF",
       "Transparency": 0.0,
-      "Reflectance": 0.0,
-      "Name": "Face_Face",
-      "File": "pieces/jack_o_lantern/Face_Face.obj",
-      "Joint": "Face",
+      "Reflectance": 0.06,
+      "SurfaceAppearance": {
+        "ColorMap": "pieces/jack_o_lantern/atlas_color.png",
+        "NormalMap": "pieces/jack_o_lantern/atlas_normal.png",
+        "EmissiveMask": "pieces/jack_o_lantern/atlas_emissive.png",
+        "EmissiveTint": "#FFC24A",
+        "EmissiveStrength": 2.6
+      },
+      "Name": "Stem_Jack",
+      "File": "pieces/jack_o_lantern/Stem_Jack.obj",
+      "Joint": "Stem",
       "Offset": [
         0.0,
-        0.1937,
-        -3.4325
+        0.3358,
+        -4.8177
       ],
       "Size": [
-        0.5,
-        0.3674,
-        0.305
+        0.2457,
+        0.7544,
+        0.3301
       ],
-      "Triangles": 72
+      "Triangles": 880
     }
   ],
   "Joints": {
@@ -144,16 +149,16 @@
       "Motion": []
     },
     "Leaves": {
-      "Parent": null,
+      "Parent": "Body",
       "Pivot": [
         0,
-        -3.5,
+        -3.3,
         0
       ],
       "PivotRoblox": [
         0,
         0,
-        0.0
+        0.2
       ],
       "Motion": [
         {
@@ -163,7 +168,7 @@
             1,
             0
           ],
-          "Amp": 7.0,
+          "Amp": 5.0,
           "Period": 2.6
         },
         {
@@ -179,56 +184,90 @@
         }
       ]
     },
-    "Slits": {
-      "Parent": null,
+    "Pumpkin": {
+      "Parent": "Body",
       "Pivot": [
         0,
-        -3.73,
+        -7.12,
         0
       ],
       "PivotRoblox": [
         0,
         0,
-        -0.23
+        -3.62
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            1,
+            0,
+            0
+          ],
+          "Amp": 1.6,
+          "Period": 4.0
+        },
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0,
+            0,
+            1
+          ],
+          "Amp": 1.2,
+          "Period": 5.3,
+          "Phase": 90
+        }
+      ],
+      "Aim": "fade"
+    },
+    "Core": {
+      "Parent": "Pumpkin",
+      "Pivot": [
+        0,
+        -7.58,
+        0.08
+      ],
+      "PivotRoblox": [
+        0,
+        0.08,
+        -4.08
       ],
       "Motion": [],
       "Visual": [
         {
           "Kind": "Glow",
-          "Min": 0.0,
-          "Max": 0.45,
-          "Period": 4.0
+          "Min": 0.3,
+          "Max": 0.85,
+          "Period": 0.55,
+          "Shape": "flicker",
+          "Color": "#FFE07A"
         }
       ]
     },
-    "Face": {
-      "Parent": null,
+    "Stem": {
+      "Parent": "Pumpkin",
       "Pivot": [
         0,
-        -6.96,
-        0
+        -8.21466065,
+        0.08
       ],
       "PivotRoblox": [
         0,
-        0,
-        -3.46
+        0.08,
+        -4.7147
       ],
-      "Motion": [],
-      "Visual": [
+      "Motion": [
         {
-          "Kind": "Glow",
-          "Min": 0.25,
-          "Max": 0.8,
-          "Period": 0.55,
-          "Shape": "flicker",
-          "Color": "#FFC040"
-        },
-        {
-          "Kind": "Blink",
-          "Period": 2.7,
-          "Seconds": 0.37,
-          "Count": 3,
-          "Phase": 1.1
+          "Kind": "Hinge",
+          "Axis": [
+            1,
+            0,
+            0
+          ],
+          "Amp": 5.0,
+          "Period": 1.6,
+          "Phase": 30
         }
       ]
     }

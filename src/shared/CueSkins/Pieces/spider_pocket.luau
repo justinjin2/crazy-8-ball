@@ -5,7 +5,7 @@
 return {
 	Id = "spider_pocket",
 	Frame = "pocket",
-	Rigid = "86978515586894",
+	Rigid = "76740152492017",
 	Models = {},
 	Parts = {
 		{
@@ -20,8 +20,8 @@ return {
 		},
 		{
 			Material = "Neon",
-			Color = "#F2F4F8",
-			Transparency = 0.3,
+			Color = "#FF2A44",
+			Transparency = 0.12,
 			Reflectance = 0,
 			Name = "Funnel_Thread",
 			Joint = "Funnel",

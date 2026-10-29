@@ -57,6 +57,7 @@ local LIVE = not IS_STUDIO and game.GameId == B.UniverseId
 -- Halloween's 5 s active tick: a prize it gives commits as "hwActiveGrant", which is checked).
 local SKIP_OPS = { addPlaySeconds = true, markBadges = true, hwActive = true }
 local TICK_SECONDS = 0.5 -- the queue loop's step while it has work
+local WARN_SECONDS = 60 -- at most one warning this often (a throttled BadgeService, a full server)
 local REVEAL_SECONDS = Rules.revealSeconds()
 
 local Badges = {}
@@ -83,6 +84,8 @@ local Tables: any -- TableService, required in start() (it reaches Ranking, whic
 local looping = false
 local tokens = 0 -- the call budget (a token bucket refilled each tick)
 local lastRefill = 0
+local lastWarn = -math.huge
+local unsaid = 0 -- warnings held back since the last one
 
 local function enabled(): boolean
 	return B.Enabled == true
@@ -90,6 +93,28 @@ end
 
 local function now(): number
 	return os.clock()
+end
+
+-- One warning a minute at most, saying how many were held back: a failing or throttled
+-- BadgeService on a full server's back-pay never floods the console.
+local function warnSome(text: string)
+	local t = now()
+	if t - lastWarn < WARN_SECONDS then
+		unsaid += 1
+		return
+	end
+	lastWarn = t
+	local more = if unsaid > 0 then (" (and %d more since the last)"):format(unsaid) else ""
+	unsaid = 0
+	warn("[8ball] Badges: " .. text .. more)
+end
+
+-- `fn(...)` under a pcall: an error in the badges never reaches a join, a match or a save.
+local function guarded(what: string, fn: (...any) -> ...any, ...: any)
+	local ok, err = pcall(fn, ...)
+	if not ok then
+		warnSome(("%s failed: %s"):format(what, tostring(err)))
+	end
 end
 
 local function stateOf(player: Player): State?
@@ -180,13 +205,7 @@ end
 local function mark(player: Player, key: string)
 	local ok, err = pcall(PlayerData.markBadges, player, { key })
 	if not ok then
-		warn(
-			("[8ball] Badges: marking %s for %d failed: %s"):format(
-				key,
-				player.UserId,
-				tostring(err)
-			)
-		)
+		warnSome(("marking %s for %d failed: %s"):format(key, player.UserId, tostring(err)))
 	end
 end
 
@@ -201,6 +220,12 @@ local function award(player: Player, st: State, item: Item)
 	end
 	local ok, awarded =
 		pcall(BadgeService.AwardBadgeAsync, BadgeService, player.UserId, row.BadgeId)
+	-- Left while Roblox answered: no mark (their save is closed) and no Funnel event (its log
+	-- line, added after Funnel's PlayerRemoving, would keep the Player for the server's life).
+	-- The next join's save check finds the badge held (UserHasBadgeAsync) and marks it.
+	if player.Parent ~= Players then
+		return
+	end
 	if ok and awarded == true then
 		mark(player, item.key)
 		st.done[item.key] = true
@@ -212,6 +237,9 @@ local function award(player: Player, st: State, item: Item)
 	if takeToken() then
 		hasOk, has = pcall(BadgeService.UserHasBadgeAsync, BadgeService, player.UserId, row.BadgeId)
 	end
+	if player.Parent ~= Players then
+		return
+	end
 	if hasOk and has == true then
 		mark(player, item.key)
 		st.done[item.key] = true
@@ -219,19 +247,15 @@ local function award(player: Player, st: State, item: Item)
 	end
 	if ok and hasOk then
 		-- Roblox refused and says they do not hold it (a disabled badge): not again this session.
-		warn(("[8ball] Badges: %s refused for %d"):format(item.key, player.UserId))
+		warnSome(("%s refused for %d"):format(item.key, player.UserId))
 		st.done[item.key] = true
 		return
 	end
 	item.tries += 1
 	local delay = B.Retries[item.tries]
 	if delay == nil then
-		warn(
-			("[8ball] Badges: %s for %d failed %d times: next join"):format(
-				item.key,
-				player.UserId,
-				item.tries
-			)
+		warnSome(
+			("%s for %d failed %d times: next join"):format(item.key, player.UserId, item.tries)
 		)
 		st.done[item.key] = true
 		return
@@ -245,7 +269,46 @@ local function award(player: Player, st: State, item: Item)
 	end)
 end
 
--- The loop: one pass over the players each tick while any queue holds something.
+-- One pass over the players: each due award starts (stagger, holds, budget). Whether any
+-- queue still holds something.
+local function pass(): boolean
+	local players = Players:GetPlayers()
+	table.sort(players, function(a, b)
+		return a.UserId < b.UserId
+	end)
+	local waiting = false
+	for _, player in players do
+		local st = states[player]
+		if st and (#st.queue > 0 or st.busy) then
+			waiting = true
+			if not st.busy and #st.queue > 0 and now() >= st.nextAt and not held(player, st) then
+				if takeToken() then
+					local item = table.remove(st.queue, 1) :: Item
+					st.busy = true
+					st.nextAt = now() + B.StaggerSeconds
+					task.spawn(function()
+						local ok, err = pcall(function()
+							award(player, st, item)
+						end)
+						if not ok then
+							warnSome(("award %s failed: %s"):format(item.key, tostring(err)))
+							st.done[item.key] = true
+						end
+						st.busy = false
+						if st.done[item.key] then
+							st.queued[item.key] = nil -- a retry keeps its place instead
+						end
+					end)
+				end
+			end
+		end
+	end
+	return waiting
+end
+
+-- The loop: one pass each tick while any queue holds something. A pass that errors warns
+-- (warnSome) and the loop goes on, instead of dying with `looping` stuck (no badge again
+-- until the server closes).
 function runLoop()
 	if looping then
 		return
@@ -253,48 +316,10 @@ function runLoop()
 	looping = true
 	task.spawn(function()
 		while true do
-			local players = Players:GetPlayers()
-			table.sort(players, function(a, b)
-				return a.UserId < b.UserId
-			end)
-			local waiting = false
-			for _, player in players do
-				local st = states[player]
-				if st and (#st.queue > 0 or st.busy) then
-					waiting = true
-					if
-						not st.busy
-						and #st.queue > 0
-						and now() >= st.nextAt
-						and not held(player, st)
-					then
-						if takeToken() then
-							local item = table.remove(st.queue, 1) :: Item
-							st.busy = true
-							st.nextAt = now() + B.StaggerSeconds
-							task.spawn(function()
-								local ok, err = pcall(function()
-									award(player, st, item)
-								end)
-								if not ok then
-									warn(
-										("[8ball] Badges: award %s failed: %s"):format(
-											item.key,
-											tostring(err)
-										)
-									)
-									st.done[item.key] = true
-								end
-								st.busy = false
-								if st.done[item.key] then
-									st.queued[item.key] = nil -- a retry keeps its place instead
-								end
-							end)
-						end
-					end
-				end
-			end
-			if not waiting then
+			local ok, waiting = pcall(pass)
+			if not ok then
+				warnSome("the queue's pass failed: " .. tostring(waiting))
+			elseif not waiting then
 				looping = false
 				return
 			end
@@ -316,7 +341,7 @@ local function onChanged(player: Player, op: string)
 	local token = st.changeToken
 	task.delay(B.DebounceSeconds, function()
 		if states[player] == st and st.changeToken == token then
-			savePass(player, false)
+			guarded("a save check", savePass, player, false)
 		end
 	end)
 end
@@ -332,17 +357,19 @@ local function onLoaded(player: Player)
 	local st = newState()
 	states[player] = st
 	task.defer(function()
-		savePass(player, true)
+		guarded("a join's save check", savePass, player, true)
 		-- Met the Owner: Painicane joining gives it to everyone here; anyone joining him gets it.
-		if player.UserId == B.OwnerUserId then
-			for _, other in Players:GetPlayers() do
-				if other ~= player and states[other] then
-					Badges.grant(other, "MetOwner", "Owner")
+		guarded("Met the Owner", function()
+			if player.UserId == B.OwnerUserId then
+				for _, other in Players:GetPlayers() do
+					if other ~= player and states[other] then
+						Badges.grant(other, "MetOwner", "Owner")
+					end
 				end
+			elseif ownerHere() then
+				Badges.grant(player, "MetOwner", "Owner")
 			end
-		elseif ownerHere() then
-			Badges.grant(player, "MetOwner", "Owner")
-		end
+		end)
 	end)
 end
 
@@ -484,12 +511,7 @@ function Badges.start()
 	Tables = require(script.Parent.TableService) :: any
 	local UltService = require(script.Parent.UltService) :: any
 	UltService.Used:Connect(function(player: Player, tableId: any, epoch: any)
-		local ok, err = pcall(function()
-			onUltUsed(player, tableId, epoch)
-		end)
-		if not ok then
-			warn("[8ball] Badges: ult hook failed: " .. tostring(err))
-		end
+		guarded("the ult hook", onUltUsed, player, tableId, epoch)
 	end)
 	startQA()
 end

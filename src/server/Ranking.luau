@@ -39,7 +39,13 @@ local Counters = require(script.Parent.Counters)
 local Announce = require(script.Parent.Announce)
 local TutorialHints = require(script.Parent.TutorialHints)
 local CandyService = require(script.Parent.Halloween.CandyService) -- Halloween 2026 (hw-core)
-local Badges = require(script.Parent.Badges) -- Roblox badges (hw-sys lane, 2026-10-28)
+-- Roblox badges (hw-sys lane, 2026-10-28). Guarded: a badge module that fails to load never
+-- stops a settle (nil: no badge rules run).
+local badgesOk, Badges = pcall(require, script.Parent.Badges)
+if not badgesOk then
+	warn("[8ball] Ranking: Badges failed to load: " .. tostring(Badges))
+	Badges = nil
+end
 
 local E = Config.Economy
 local IS_STUDIO = RunService:IsStudio()
@@ -612,14 +618,16 @@ local function settle(e: any)
 		-- whose tutorial is over (TutorialSoft).
 		TutorialHints.markSeen(p, "Played")
 		-- The badges' match rules (Squad Goals, Beat the Owner!), never in the summary's way.
-		pcall(Badges.matchSettled, p, {
-			outcome = entry.outcome,
-			real = m.real,
-			teamSize = e.teamSize,
-			opponents = entry.opponents,
-			forfeitTeam = forfeitTeam,
-			userId = p.UserId,
-		})
+		if Badges then
+			pcall(Badges.matchSettled, p, {
+				outcome = entry.outcome,
+				real = m.real,
+				teamSize = e.teamSize,
+				opponents = entry.opponents,
+				forfeitTeam = forfeitTeam,
+				userId = p.UserId,
+			})
+		end
 		Net.get("MatchSummary"):FireClient(p, {
 			key = key,
 			tableId = e.id,

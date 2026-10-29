@@ -254,6 +254,17 @@ local function showRankUps(state: State)
 	end
 end
 
+-- One Halloween piece's setup (hw-core): a failure there warns and never stops the HUD's.
+local function halloween(what: string, setup: () -> ())
+	local ok, err = pcall(function(): any
+		setup()
+		return nil
+	end)
+	if not ok then
+		warn(("[8ball] Halloween %s: %s"):format(what, tostring(err)))
+	end
+end
+
 --- Build every screen and listen to the server. Main calls this once, with the ScreenGui
 --- and the hooks into the tables.
 function Progression.start(screen: ScreenGui, hooks: Hooks)
@@ -264,12 +275,26 @@ function Progression.start(screen: ScreenGui, hooks: Hooks)
 	UISound.preload()
 	ItemState.start() -- early, so the snapshots sent on load are heard
 	SettingsState.start() -- the switches (sound groups, Lower effects) and the seen moments
-	require(script.Parent.Halloween.State).start() -- the Halloween event's view (hw-core)
+	halloween("State", function() -- the Halloween event's view (hw-core)
+		require(script.Parent.Halloween.State).start()
+	end)
 	Music.start() -- the background music (its Settings row: the Music group)
 	money = MoneyHud.new(screen)
 	-- The boost pill over the money pill in the VIP tag's place (Halloween 2026, hw-gui lane;
 	-- off: VIP's tag, a VIP only). Both have the tag's shape (Purchased, LuckClover).
-	vipTag = if Config.UI.BoostPill.Enabled then BoostPill.new(money) else VipTag.new(money)
+	-- A pill that fails to build falls back to the VIP tag, so the HUD below still starts.
+	local pillOk, pill = false, nil
+	if Config.UI.BoostPill.Enabled then
+		pillOk, pill = pcall(BoostPill.new, money)
+		if not pillOk then
+			warn(
+				("[8ball] BoostPill failed to build, the VIP tag shows instead: %s"):format(
+					tostring(pill)
+				)
+			)
+		end
+	end
+	vipTag = if pillOk then pill else VipTag.new(money)
 	LuckClover.new(money, vipTag) -- the Grand Opening Luck's clover beside it (while it runs)
 	flyer = CashFlyer.new(screen, money, hooks.pocketToScreen)
 	newRank = NewRankPopup.new(screen, flyer, money)
@@ -312,7 +337,7 @@ function Progression.start(screen: ScreenGui, hooks: Hooks)
 		flyer = flyer,
 		rankHud = rankHud,
 		vipTag = vipTag,
-		boostPill = if Config.UI.BoostPill.Enabled then vipTag else nil, -- HubCorners' pad stop
+		boostPill = if pillOk then vipTag else nil, -- HubCorners' pad stop
 		hotbarCenter = LuckyClient.hotbarCenter,
 		bumpHotbar = LuckyClient.bumpHotbar,
 	}
@@ -328,10 +353,18 @@ function Progression.start(screen: ScreenGui, hooks: Hooks)
 	TradeMenu.new(screen, deps)
 	FreeRewardMenu.new(screen, deps)
 	DailyRewardsMenu.new(screen, deps)
-	require(script.Parent.Halloween.EventMenu).new(screen, deps) -- the Halloween event (hw-core)
-	require(script.Parent.Halloween.CandyToast).new(screen, deps) -- its Candy chips and cue cards
-	require(script.Parent.Halloween.Countdown).new(screen) -- 18:30-19:00 and the start
-	require(script.Parent.Halloween.EndScreen).start(screen) -- the end: Candy became money
+	halloween("EventMenu", function() -- the Halloween event (hw-core)
+		require(script.Parent.Halloween.EventMenu).new(screen, deps)
+	end)
+	halloween("CandyToast", function() -- its Candy chips and cue cards
+		require(script.Parent.Halloween.CandyToast).new(screen, deps)
+	end)
+	halloween("Countdown", function() -- 18:30-19:00 and the start
+		require(script.Parent.Halloween.Countdown).new(screen)
+	end)
+	halloween("EndScreen", function() -- the end: Candy became money
+		require(script.Parent.Halloween.EndScreen).start(screen)
+	end)
 	SettingsMenu.new(screen, deps)
 	-- Held rank rewards: the claim block over the roadmap (the tutorial lane).
 	RankClaimBlock.new(screen, deps, function(): boolean

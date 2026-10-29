@@ -80,6 +80,7 @@ end
 
 local open = false
 local showing: ScreenGui? = nil -- the end screen while it is up and not closing
+local failed = false -- its build failed this session: not tried again (warned once)
 
 --- Whether the end screen is up (Progression.quiet: the other popups wait for it).
 function EndScreen.busy(): boolean
@@ -96,6 +97,32 @@ function EndScreen.show(
 	owned: { [string]: boolean },
 	onShown: (() -> ())?
 )
+	local holder: { screen: ScreenGui? } = {}
+	local ok, err = pcall(function(): any
+		EndScreen.build(parentGui, candy, money, owned, onShown, holder)
+		return nil
+	end)
+	if not ok then
+		-- Half built: its dim must not stay over the game, nor busy() hold the lobby's popups.
+		local screen = holder.screen
+		if screen then
+			screen:Destroy()
+		end
+		showing = nil
+		open = false
+		failed = true
+		warn("[8ball] Halloween end screen: " .. tostring(err))
+	end
+end
+
+function EndScreen.build(
+	parentGui: Instance,
+	candy: number,
+	money: number,
+	owned: { [string]: boolean },
+	onShown: (() -> ())?,
+	holder: { screen: ScreenGui? }
+)
 	if open then
 		return
 	end
@@ -108,6 +135,7 @@ function EndScreen.show(
 	screen.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 	screen.DisplayOrder = E.DisplayOrder
 	screen.Parent = parentGui
+	holder.screen = screen
 	local dim = Instance.new("TextButton")
 	dim.Name = "Dim"
 	dim.Text = ""
@@ -329,7 +357,7 @@ function EndScreen.start(screen: ScreenGui)
 			and (view.convertedMoney or 0) > 0
 	end
 	local function check()
-		if waiting or open or not due() then
+		if waiting or open or failed or not due() then
 			return
 		end
 		waiting = true

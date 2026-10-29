@@ -286,6 +286,18 @@ return {
 		H.expect(not Ledger.convertDue(hw, END + 86400 * 40), "once (a December rejoin too)")
 	end,
 
+	["the end's money splits into earned and bought (bought Candy is never earned money)"] = function()
+		local _, Ledger, _, SaveSchema = load()
+		local hw = SaveSchema.freshHalloween()
+		hw.Earned, hw.Bought = 1240, 500
+		local earned, bought = Ledger.convertSplit(hw)
+		H.expect(earned == 12400 and bought == 5000, "$12,400 earned, $5,000 bought")
+		H.expect(earned + bought == Ledger.convertMoney(hw), "the two make the whole")
+		hw.Earned, hw.Bought = 0 / 0, -3
+		earned, bought = Ledger.convertSplit(hw)
+		H.expect(earned == 0 and bought == 0, "bad values are 0")
+	end,
+
 	["the end on a rejoin: finished quests claimed first, the marks survive a reload"] = function()
 		local _, Ledger, Config, SaveSchema = load()
 		local Quests = H.require("Halloween.Quests")

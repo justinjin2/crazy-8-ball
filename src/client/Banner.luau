@@ -309,7 +309,11 @@ function Banner.onBanner(self: any, payload: any)
 		ChatTags.system(ChatTags.paint(text, tint))
 	elseif kind == "King" then
 		-- The timed Pumpkin King arrived in the roof's middle, or left ("He returns at :45!"),
-		-- in the event's orange (Halloween 2026, hw-map lane).
+		-- in the event's orange (Halloween 2026, hw-map lane). Only for players the event is
+		-- shown to (HwOn): the tutorial stays free of Halloween.
+		if Players.LocalPlayer:GetAttribute("HwOn") ~= true then
+			return
+		end
 		local nextAt = name(payload.next)
 		if payload.here ~= true and (nextAt == nil or not nextAt:match("^:%d%d$")) then
 			return
