@@ -22,6 +22,47 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
   `Index.luau`, `Textures.luau` (regenerate after every merge conflict there).
 
 ## Status
+- 20:30 **Spider v2 (C1b) crown frame, brief 2.2**, for the judges' meshes. RULES: Grip hand
+  4.4-6.2 (rest at d 5.95, wind-up slides to 4.45), ButtZone 6.2-7.0 env+0.25, PastButt 0.3
+  (radius 0.45); an Aim joint ('Crown', fades at aim) gets AimPastButt 1.5 (to d 8.5) and
+  AimRadius 1.1. So the crown may root anywhere in 6.2-8.5, flare to radius 1.1 over all of it,
+  and sweep forward only to d 6.2: the grip hand at rest covers 5.55-6.35, a blade past 6.2
+  goes through the fingers. Largest C1b-legal crown: three tiers of eight blades rooted at
+  7.0-7.7 sweeping forward, tips at d 6.2 (long tier, 1.4 studs), 6.5 and 6.8, radius 1.1 at
+  the bulge; the butt dome to 8.5; blades 0.06-0.08 thick at the root with a bevelled silver
+  edge and hooked tips. Named exception, if a judged mesh needs more sweep: the long tier to
+  d 5.8 only because the Crown fades at aim (the clip shows in the lobby carry alone). I'd
+  rather not take it; 6.2 unless the coordinator says. Also this hour: the QA pass stopped at
+  the coordinator's 20:16 (Spider rejected: C1b is the target, not C1).
+- 20:25 **QA pass numbers (stopped at 20:16)**, my lane window on 4c03454e, lobby bots off,
+  tutorial off, one fresh Play. Leaks: 10 equip/unequip cycles a cue (EquipCue id, then
+  Classic, 2 s apart), workspace descendants and Stats.InstanceCount before and after, with a
+  40 s no-equip control (added 0). Spider added 184 / gone 81, Broom 269 / 81, Jack 194 / 81:
+  all of it one CueWarmup tree a cue (the Sprites attachments, the aura piece, the
+  shot:<id> pocket warm-up) plus the swapped look on the pooled back stick (BackCue_12.Mesh
+  32, CueStick.Mesh 31), one copy each, never ten; ClientVisuals stayed at 1,313 descendants
+  across every cycle. Connections are not countable from a script: not checked. Cost (live;
+  in hand = the full look on a stand stick, on the back = the pooled stick; Lower effects set
+  through SettingsRequest on the live back cue): Spider 15 emitters 112.1 pps (54.9 Lower),
+  2 lights, 5 beams, 1 trail, 43 parts; body 7 parts 9,812 tris, 1 atlas; aura piece 8 parts
+  144 tris; pocket 3 parts 2,208. Broom 22 emitters 180.4 pps (94.4 Lower), 3 lights, 1 beam,
+  2 trails, 55 parts; body 5 parts 9,144 tris, 1 atlas; aura 19 parts 1,228; pocket 13 parts
+  4,928. Jack 4 emitters 22.0 pps (7.7 Lower), 2 lights, 0 beams, 41 parts; body 6 parts
+  7,040 tris, 1 atlas; aura 18 parts 3,248; pocket 4 parts 6,120. Client memory tags over the
+  three: particles 17.6 -> 18.6 MB, textures flat at 149.7, mesh parts 9.9. OVER BUDGET: the
+  Broom, 180.4 live against Secret 170: the json's Budget sum (169.4) never counted the two
+  orbiter heads (Config.CueSkins HeadRate 24 each = 48). Trim in witch_broom.json: Haze
+  16 -> 12, VioletGlow 16 -> 12, EmeraldWisps 20 -> 16 (json 157.4; live should read 168.4,
+  not yet re-measured). Spider 112.1 of 120 fine. Against a flat 120 the Broom needs a
+  redesign, not a trim: coordinator to say. Screens: My Cues (gate2/qa_mycues.jpg), the
+  Index's Exclusive row 4/5 with CLAIM! on the given cues (qa_index_exclusive.jpg), the Candy
+  Track nodes for the Jack (150) and the Broom (2,000) and the Spider on the play-time card
+  (qa_halloween_track.jpg), the end screen's three YOURS FOREVER cards (qa_endscreen.jpg):
+  all draw, nothing stretched, no error. The Index preview is off in Config
+  (UI.CuePreview.Enabled = false): nothing to check. Console: only Studio's DataStore and
+  MemoryStore lines and funnel logs, no cue warning or error. Not reached: the real-pocket
+  finisher (the fixture solo game ran; my shot loop's ball-in-hand spot was
+  InvalidPlacement) and the bot-carry view.
 - 19:50 **Spider v13 polish, READY** (the coordinator's three points after v12). 1. The dome,
   eyes and blades are smooth-shaded: `tools/cue_pieces_glb.py` now honours an opt-in
   `"Smooth": true` on a part row (every other lane's parts still pack flat), written by SMOOTH +
