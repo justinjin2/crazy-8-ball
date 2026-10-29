@@ -6,7 +6,7 @@
   "note": "Halloween 2026 track cue, 500 Candy (the designer's slot-2 pick, coordinator 2026-10-28 19:40; concept mocks/v3/R2.png). Only ever \"Pitchfork Cue\", never \"devil\". Built by lane hw-map (assets/cue/CuePiecesHalloween_Pitchfork.py); core owns its Catalog, Track, Strings and Art rows.",
   "body": "pitchfork",
   "maps_from": "classic",
-  "thumb_margin": 2.2,
+  "thumb_margin": 2.4,
   "thumb_shift": 0.3,
   "look": {
     "Shaft": "#D81E1E",
