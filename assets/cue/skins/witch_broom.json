@@ -61,7 +61,7 @@
       "Note": "The moons, stars, bats and spell stars (the aura piece), the two orbiters and the halo beam move; the crystal glows 0.25-1.0 over 2.4 s; the charm swings over 1.8 s; the bristle head flexes over 2.6 and 4 s."
     },
     "Aura": {
-      "Note": "Secret (brief 2.4), third build (Justin 12:55: no ribbons, the Broom's own effects), inside out: a deep violet haze body, a violet additive glow, emerald wisps, violet motes, star and gold glints, crescent flecks along the handle; at the bristle head potion smoke curling up out of the straw (teal to violet), potion bubbles rising, straw leaves flying off and bats bursting out of it; sparks and a flare spraying from the crystal; a sparkle trickle from the hat charm; spell pops (four star pops, sparks; no rings); one violet halo beam; a violet PointLight at the crystal, an emerald one mid-handle and a gold one at the binding; two sparkle heads riding the cue; violet outline. About 169 particles a second before BackRateScale (budget 170).",
+      "Note": "Secret (brief 2.4), third build (Justin 12:55: no ribbons, the Broom's own effects), inside out: a deep violet haze body, a violet additive glow, emerald wisps, violet motes, star and gold glints, crescent flecks along the handle; at the bristle head potion smoke curling up out of the straw (teal to violet), potion bubbles rising, straw leaves flying off and bats bursting out of it; sparks and a flare spraying from the crystal; a sparkle trickle from the hat charm; spell pops (four star pops, sparks; no rings); one violet halo beam; a violet PointLight at the crystal, an emerald one mid-handle and a gold one at the binding; two sparkle heads riding the cue; violet outline. About 169 particles a second before BackRateScale (budget 170). v3 (designer 2026-10-29: the Halloween cues' effects climb like a ladder, Pitchfork, Broom, Jack, Sword; the Broom is the second rung): the haze and glow cloud thinned (Haze and VioletGlow 8/s, were 12; the teal glow and the mid-handle emerald light gone; the emerald wisps 6/s, were 16) and the sparkles fewer (star glints 10, gold glints 6, violet motes 6, crescents 6/s): 115.45 particles a second (was 157.45), two lights (was three). The moons, stars, bats and spell stars of the aura piece, the potion smoke and bats at the bristles, the crystal's flare and sparks, the halo beam and the two sparkle heads stay.",
       "Emitters": [
         {
           "Name": "Haze",
@@ -76,7 +76,7 @@
             "Shape": "Cylinder",
             "ShapeStyle": "Volume"
           },
-          "Rate": 12,
+          "Rate": 8,
           "Lifetime": [
             1.6,
             2.4
@@ -161,7 +161,7 @@
             "Shape": "Cylinder",
             "ShapeStyle": "Volume"
           },
-          "Rate": 12,
+          "Rate": 8,
           "Lifetime": [
             1.2,
             1.8
@@ -235,92 +235,6 @@
           "Brightness": 1.0
         },
         {
-          "Name": "TealGlow",
-          "Texture": "vfx/v2/smoke_8x8.png",
-          "FlipbookLayout": "Grid8x8",
-          "FlipbookMode": "OneShot",
-          "Host": {
-            "Kind": "Part",
-            "FromStuds": 0.3,
-            "ToStuds": 7.0,
-            "Width": 1.0,
-            "Shape": "Cylinder",
-            "ShapeStyle": "Volume"
-          },
-          "Rate": 6,
-          "Lifetime": [
-            1.2,
-            1.8
-          ],
-          "Speed": [
-            0.05,
-            0.25
-          ],
-          "SpreadAngle": [
-            180,
-            180
-          ],
-          "Drag": 1.2,
-          "Size": [
-            [
-              0,
-              0.7
-            ],
-            [
-              0.5,
-              1.3
-            ],
-            [
-              1,
-              1.6
-            ]
-          ],
-          "Transparency": [
-            [
-              0,
-              1
-            ],
-            [
-              0.1,
-              0.4
-            ],
-            [
-              0.6,
-              0.7
-            ],
-            [
-              1,
-              1
-            ]
-          ],
-          "Rotation": [
-            0,
-            360
-          ],
-          "RotSpeed": [
-            -25,
-            25
-          ],
-          "Color": [
-            [
-              0,
-              "#2EE6A0"
-            ],
-            [
-              0.5,
-              "#14A070"
-            ],
-            [
-              1,
-              "#0E5A40"
-            ]
-          ],
-          "LightEmission": 1,
-          "LightInfluence": 0,
-          "LockedToPart": true,
-          "Brightness": 0.9
-        },
-        {
           "Name": "EmeraldWisps",
           "Texture": "vfx/v2/wisp_8x8.png",
           "FlipbookLayout": "Grid8x8",
@@ -333,7 +247,7 @@
             "Shape": "Cylinder",
             "ShapeStyle": "Volume"
           },
-          "Rate": 16,
+          "Rate": 6,
           "Lifetime": [
             1.0,
             1.6
@@ -419,7 +333,7 @@
             "Shape": "Cylinder",
             "ShapeStyle": "Volume"
           },
-          "Rate": 10,
+          "Rate": 6,
           "Lifetime": [
             1.2,
             2.0
@@ -499,7 +413,7 @@
             "Shape": "Cylinder",
             "ShapeStyle": "Volume"
           },
-          "Rate": 16,
+          "Rate": 10,
           "Lifetime": [
             0.5,
             0.9
@@ -562,7 +476,7 @@
             "Shape": "Cylinder",
             "ShapeStyle": "Volume"
           },
-          "Rate": 10,
+          "Rate": 6,
           "Lifetime": [
             0.6,
             1.0
@@ -620,7 +534,7 @@
             "Shape": "Cylinder",
             "ShapeStyle": "Volume"
           },
-          "Rate": 10,
+          "Rate": 6,
           "Lifetime": [
             1.4,
             2.0
@@ -1731,17 +1645,6 @@
           }
         },
         {
-          "AtStuds": 3.5,
-          "Color": "#2EE6A0",
-          "Brightness": 0.6,
-          "Range": 7,
-          "Flicker": {
-            "Min": 0.8,
-            "Max": 1.1,
-            "Period": 3.1
-          }
-        },
-        {
           "AtStuds": 6.9,
           "Color": "#FFD36A",
           "Brightness": 0.6,
@@ -2784,16 +2687,16 @@
       }
     },
     "Budget": {
-      "ParticlesPerSecond": 157.45,
+      "ParticlesPerSecond": 115.45,
       "Beams": 1,
-      "Lights": 3,
+      "Lights": 2,
       "Orbiters": 2,
       "BodyTriangles": 9600,
       "PieceTriangles": 2392,
       "PocketPieceTriangles": 652,
       "Note": "Third build (2026-10-28, 13:15): the remade broom body (6 parts, 9,600 triangles: gnarled handle, 3.3x straw head) and the aura piece without ribbons (19 parts, 2,392 triangles: moons, stars, bats, three spell stars). v3 (2026-10-29): the finisher piece is the hat constellation witch_broom_stars (11 parts, 652 triangles, was the portal rings' 13 parts, 4,928) and bursts 127 particles once (was 134).",
       "OrbiterHeads": 48,
-      "LivePps": "measured 168.4/s in hand and on the back with the two orbiter heads (Config.CueSkins HeadRate 24 each); 180.4 before the trim (robustness pass 2026-10-28)"
+      "LivePps": "measured 168.4/s in hand and on the back with the two orbiter heads (Config.CueSkins HeadRate 24 each); 180.4 before the trim (robustness pass 2026-10-28); v3: 115.45/s plus the two heads (48) = 163.45"
     }
   }
 }
