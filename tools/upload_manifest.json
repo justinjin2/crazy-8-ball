@@ -791,11 +791,6 @@
     "assetType": "Model",
     "status": "ok"
   },
-  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/pieces/witch_broom/HatCharm.glb": {
-    "assetId": "113228232691476",
-    "assetType": "Model",
-    "status": "ok"
-  },
   "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/pieces/witch_broom/atlas_color.png": {
     "assetId": "106471947942716",
     "assetType": "Decal",
@@ -812,11 +807,6 @@
     "assetId": "115792270423755",
     "assetType": "Decal",
     "imageId": "138814904584787",
-    "status": "ok"
-  },
-  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/pieces/witch_broom/witch_broom_parts.glb": {
-    "assetId": "81896660220724",
-    "assetType": "Model",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/pieces/witch_broom_aura/witch_broom_aura_parts.glb": {
@@ -839,12 +829,6 @@
     "assetId": "94647986969002",
     "assetType": "Decal",
     "imageId": "75625207590037",
-    "status": "ok"
-  },
-  "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/thumbs/witch_broom.png": {
-    "assetId": "101208766181525",
-    "assetType": "Decal",
-    "imageId": "109752689782479",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball-hw-cues-b/assets/cue/vfx/black_cat/cat_leap_4x4.png": {
@@ -1405,10 +1389,26 @@
     "assetType": "Model",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball/.claude/worktrees/agent-adf8a5316b308e556/assets/cue/pieces/witch_broom/HatCharm.glb": {
+    "assetId": "104736333858086",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/.claude/worktrees/agent-adf8a5316b308e556/assets/cue/pieces/witch_broom/witch_broom_parts.glb": {
+    "assetId": "106017662921644",
+    "assetType": "Model",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball/.claude/worktrees/agent-adf8a5316b308e556/assets/cue/thumbs/pitchfork.png": {
     "assetId": "110284560248397",
     "assetType": "Image",
     "imageId": "110284560248397",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/.claude/worktrees/agent-adf8a5316b308e556/assets/cue/thumbs/witch_broom.png": {
+    "assetId": "82560329966868",
+    "assetType": "Image",
+    "imageId": "82560329966868",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/abilities/BlackFlash/BlackFlash.glb": {
