@@ -28,6 +28,20 @@ return {
 		H.expect(not Admin.isOwner(nil :: any))
 	end,
 
+	["only the owner sees how many copies of a cue exist"] = function()
+		local Admin, Config = load()
+		H.expect(Config.UI.Inventory.ExistOwnerOnly == true, "the counts are the owner's alone")
+		H.expect(Admin.seesCopies(544959133), "Painicane sees them")
+		for _, other in { 0, -1, 1, 544959134, 123456 } do
+			H.expect(not Admin.seesCopies(other), "hidden from " .. other)
+		end
+		H.expect(not Admin.seesCopies(nil :: any), "hidden with no user id")
+		Config.UI.Inventory.ExistOwnerOnly = false
+		local ok = Admin.seesCopies(123456)
+		Config.UI.Inventory.ExistOwnerOnly = true
+		H.expect(ok, "the switch off shows them to everyone, as before")
+	end,
+
 	["a typed part of a name finds the player"] = function()
 		local Admin = load()
 		local function who(typed: string): string?

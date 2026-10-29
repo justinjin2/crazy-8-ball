@@ -12548,6 +12548,10 @@ Config.UI.Inventory = {
 	-- first is where it starts). Names in Strings.Menus.Inventory.SortOrders. The rarity
 	-- filter chips were dropped for this (designer, 2026-09-28).
 	SortOrders = { "RarestFirst", "CommonFirst", "MostCopies", "NameAZ" },
+	-- How many copies of a cue exist ("1,284 exist" after its odds on the big card and in the
+	-- Index): only the owner sees it (Admin.seesCopies; designer, 2026-10-29: "its better if they
+	-- dont know the numbers"); everyone else sees the odds alone. false: everyone, as before.
+	ExistOwnerOnly = true,
 	GapPx = { 6, 10 }, -- between the Index's list and its detail panel
 	CardGapPx = { 6, 8 }, -- between two cards (their shape: Config.UI.CueCard.Units)
 	-- The Cues menu's plain boxes (InventoryCard.box) and small pills (InventoryCard.pill: the

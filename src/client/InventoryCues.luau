@@ -32,6 +32,7 @@ local Players = game:GetService("Players")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
+local Admin = require(Shared:WaitForChild("Admin"))
 local Progression = Shared:WaitForChild("Progression")
 local BlockDrop = require(Progression:WaitForChild("BlockDrop"))
 local BlockOdds = require(Progression:WaitForChild("BlockOdds"))
@@ -240,11 +241,13 @@ function InventoryCues.oddsLine(id: string): string?
 end
 
 --- The line under a cue's rarity (the big card, the Index): its odds and how many copies
---- exist ("4.2% chance · 1,284 exist"), either alone, or nil with neither.
+--- exist ("4.2% chance · 1,284 exist"), either alone, or nil with neither. The copies only for
+--- the owner (Admin.seesCopies).
 function InventoryCues.factsLine(id: string, copies: number?): string?
 	local odds = InventoryCues.oddsLine(id)
 	local exist = nil
-	if copies and copies >= 1 then
+	local player = Players.LocalPlayer
+	if copies and copies >= 1 and player and Admin.seesCopies(player.UserId) then
 		exist = (if copies == 1 then WORDS.ExistOne else WORDS.Exist):format(Format.commas(copies))
 	end
 	if odds and exist then

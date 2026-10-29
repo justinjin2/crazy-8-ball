@@ -15,6 +15,12 @@ function Admin.isOwner(userId: any): boolean
 	return type(userId) == "number" and table.find(Config.Debug.Commands.UserIds, userId) ~= nil
 end
 
+--- Whether `userId` sees how many copies of each cue exist (Config.UI.Inventory.ExistOwnerOnly:
+--- only the owner; everyone with the switch off).
+function Admin.seesCopies(userId: any): boolean
+	return Config.UI.Inventory.ExistOwnerOnly ~= true or Admin.isOwner(userId)
+end
+
 export type Named = { name: string, displayName: string }
 
 -- How well `typed` (lower case) fits a name: 1 the username exactly, 2 the display name
