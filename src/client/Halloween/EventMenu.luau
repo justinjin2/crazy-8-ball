@@ -354,7 +354,13 @@ function EventMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 	for _, row in H.Cues.List do
 		table.insert(entries, { cue = row.Cue, candy = row.Candy, product = row.Product })
 	end
-	if H.KingDrop.Enabled then
+	-- The Pumpkin King's drop, unless its cue is already on sale (the Jack-o'-Lantern since
+	-- 2026-10-29): one card a cue.
+	local onSale = false
+	for _, entry in entries do
+		onSale = onSale or entry.cue == H.KingDrop.Cue
+	end
+	if H.KingDrop.Enabled and not onSale then
 		table.insert(entries, { cue = H.KingDrop.Cue, candy = nil, product = nil })
 	end
 	local draw: () -> () = function() end
