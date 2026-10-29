@@ -22,6 +22,40 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
   `Index.luau`, `Textures.luau` (regenerate after every merge conflict there).
 
 ## Status
+- 21:00 **Spider v2a/v2b: the C1b pass that doesn't wait on the mesh** (coordinator 20:16, Justin
+  rejected v13; the target is C1b). Done and committed (6d01ff89): 1. Materials: black chrome
+  painted the way cues-a's Sword is (SmoothPlastic, Reflectance 0.06, no skybox mirror): a
+  near-black atlas with a long specular streak, overlapping chevron armour plates between the
+  bands with a silver edge line, a grey bloom and a dark overlap gap, a dark steel spearhead
+  ferrule at d 0.3-0.95 with silver V edges, the tip dark steel; the ten zigzag bands silver
+  (SmoothPlastic, Reflectance 0.28) as the plates' standing edges; the blades' rim and the
+  socket rings silver; nothing emissive but the red gem. 2. The butt cap: a glossy black ball
+  (r 0.40, pole at d 8.35) sitting in a ringed socket cup (r 0.48 at 7.60-7.64, two silver
+  rings plus the neck ring), a red Neon hourglass emblem on the pole (Glow); the sixteen eyes
+  gone. 3. The webs: real geometry, 64 white Neon strands (0.008 wide crossed quads, Neon
+  Transparency 0.12) strung between adjacent blades: six rungs a gap sagging 0.18 toward the
+  axis and two radial threads a gap from the socket, skinned on the blade bones so they follow
+  the breathing; v2a's 0.016 strands read as white bars at close range, v2b's thin ones read
+  as web. 4. FX recoloured in spider.json: Smoke and CrownSmoke black (LightEmission 0,
+  opaque-ish transparency curve, 24 + 10/s), WebSparkles / CrownGlints / SilkSparks white,
+  SilkHaze (white, faint) instead of CrownGlow, CrimsonPop dropped, the halo white and faint,
+  lights white 0.5 and the gem's red 0.3; aura 13 emitters 115.7/s of 120; the trail gains a
+  TrailSmoke black puff layer (30/s with the ball moving); the finisher: white flash, white
+  web ring to 5.5, black smoke layer, and the pocket piece remade as a radiant white web (a
+  white orb web turning, a fan of twelve white threads rising and opening to 1.5 wide and 1.4
+  up with three rings across it, a small red hourglass bead at the heart; 3 parts, 3,576
+  tris). Body 8 parts, 9,412 tris (the shaft rings at 0.15, socket tori 20x5). Ids: body
+  83009241990570, Crown.glb 108311282849319, atlas 75669013774207 / 122822886483636 /
+  116549042889690 (images 95084384244552 / 140040547180034 / 95471768841465 applied), pocket
+  90588130322925. Lab at hw-map's clean spot (-80, 0, 68), by night: gate2/spider_v2b_
+  side_by_side.jpg (C1b whole, crown, finisher; v2b stand, crown close, back) and
+  spider_v2b_{stand,crown,back}_lab.jpg. Honest gaps against C1b: the crown's blades are still
+  v13's eight crescents (4 long, 4 short), not C1b's long layered scythe tiers, so the whole
+  crown is a third the size it should be; the webs run as parallel rungs across each gap,
+  not radial orb webs; the chrome's silver edges are painted lines, no real specular; the
+  finisher not yet seen in a real pocket; the ink outline stays the catalog's red theme
+  colour (Config.CueSkins.Pop.Outline, not mine) and should go silver for C1b: a Request.
+  Waiting on the judged mesh for the blades; the web generator takes any blade curves.
 - 20:30 **Spider v2 (C1b) crown frame, brief 2.2**, for the judges' meshes. RULES: Grip hand
   4.4-6.2 (rest at d 5.95, wind-up slides to 4.45), ButtZone 6.2-7.0 env+0.25, PastButt 0.3
   (radius 0.45); an Aim joint ('Crown', fades at aim) gets AimPastButt 1.5 (to d 8.5) and
@@ -512,6 +546,10 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
 
 ## Requests
 
+- 21:00 **Request (Cues A / hw-core): the Spider's ink outline colour.** Every cue wears a solid
+  outline in its theme colour (Config.CueSkins.Pop.Outline); the Spider's is the catalog's red.
+  C1b has no red but the hourglass: please make its theme colour the silver '#D8DCE6' (or point
+  me at the catalog field and I'll put it in the Request properly). Not blocking.
 - 19:50 **READY SpiderCue v13 @ 9e6ae788** (skin `spider`: body 119622637359515 + Crown
   93000287192965, atlas 119513146574407 / 123115177768198 / 138639821578265 with image ids
   applied, aura, pocket and card as the 19:25 READY; base `halloween` @5020858d; lint OK,
