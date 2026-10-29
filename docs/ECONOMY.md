@@ -254,6 +254,33 @@ first win of each visit pays a player **+150 Candy (flat), +$2,500 (a reward, ne
 but count for the King quests. At most 2 visits an hour; no cooldown. `Config.Halloween.Boss.Visit`;
 measured by the `HwKing` event (Paid or Repeat).
 
+**Halloween Candy and the event cues** (2026-10-29, the designer's targets for a 5-day event from
+the Oct 29 evening release to Nov 3 19:00 EST: the first cue in 20-30 min of play, the next in 3-5
+h, the last in 10-20 h; Candy from the ground about half). No track: Candy is saved and spent
+(balance = Earned + Bought - Spent); leftover Candy becomes $10 each at the end.
+
+| Source | Numbers | Per hour of real play (model) |
+|---|---|---|
+| Matches against people | 3 a ball, 10 finished, 25 a win; x2 in the Rush (UTC :00-:09) and on Oct 31; friends +10% each, group +10% | ~280 (9.5 matches an hour, measured pace 6.3 min; ~4 balls, half won; ~70% of matches against people: disguised-bot matches pay 0, a share not yet measured) |
+| Ground candy | 5 a pickup, one spawn near each player about every 20 s, also while roaming in a match; 80 pickups (400 Candy) an hour at most | ~270 (about 36 eligible minutes an hour, half picked up) |
+| Quests | 60 / 100 / 150 / 250 a day, today's board only | up to 560 a day |
+| The Pumpkin King | +150 a visit's first win | up to 300 |
+
+| Cue | Candy | Robux | Reached after (model) |
+|---|---|---|---|
+| Pitchfork | 300 | 49 | ~25 min |
+| Witch's Broom | 2,500 | 249 | ~4 h of play |
+| Halloween Sword | 7,500 | 599 | ~13-15 h of play |
+| Jack-o'-Lantern | the King's 5% drop | none | |
+
+Candy packs: 300 Candy for 49 R$ and 1,200 for 149 R$, so buying a cue straight for Robux is
+never dearer than buying its Candy (the cheapest pack route: Pitchfork 49, Broom 347, Sword 943).
+The data behind the Robux (Creator Hub, Oct 21-27): 22.1 min of play a day per player, 2.47% of
+players pay, 55 R$ net per payer a day; the best sellers sit at 29-299 R$, 599 R$ sells ~29 a
+week, almost nothing above 1,000. Measure after publishing: `HwBuy` (cue, Candy/Robux/Gift),
+`HwCandy` "Match" against `CandyPickups` (the 50/50 split), the products' sales, and the Candy
+balance the day before the end.
+
 **Planned, not built** (Config.Planned): the Daily Challenge (its button is off for the release),
 Lucky Shot free (miss $250, grey $500, blue $1,000, red $2,500, gold a Mystery) and Golden Shot
 15 R$ (miss a Mystery; grey a Mystery + $10,000; blue 2 Mysteries; red a Rare block; gold a Rare
