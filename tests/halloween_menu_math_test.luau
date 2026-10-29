@@ -91,6 +91,27 @@ return {
 		end
 	end,
 
+	["the cue picture fills its card down to the UNIQUE pill, inside the pink edge"] = function()
+		local _, Config = load()
+		local L = Config.UI.Halloween.Menu.Layout
+		local cardW = (L.WidthUnits - 3 * L.CardGapUnits) / 4
+		local inside = L.EdgeUnits + L.InnerUnits
+		for _, units in { L.Card, L.ShortCard } do
+			local C = units :: any
+			H.expect(C.ArtTopUnits >= inside, "the picture starts under the pink edge's line")
+			H.expect(
+				C.ArtTopUnits + C.ArtUnits <= C.TagTopUnits,
+				"it ends above the UNIQUE pill (the pill never covers the cue)"
+			)
+			H.expect(
+				C.ArtTopUnits + C.ArtUnits >= C.TagTopUnits - 2,
+				"and reaches down to it (no wasted room)"
+			)
+			H.expect(C.ArtUnits <= cardW - 2 * inside, "it fits across the card")
+			H.expect(C.NameTopUnits < C.ArtTopUnits + C.ArtUnits, "the name lies over its foot")
+		end
+	end,
+
 	["a computer and a tablet show the whole menu"] = function()
 		local Math, Config = load()
 		for _, size in { { 1920, 1080 }, { 1366, 768 }, { 1280, 720 }, { 1024, 768 } } do

@@ -17674,9 +17674,14 @@ Config.UI.Halloween = {
 			CardPadUnits = 10, -- a card's buttons and pills from its sides
 			GlowUnits = 26, -- the hero card's glow reaches this far past its edge
 			-- A cue card top to bottom (Top = where it starts, Units = how tall; Text = its words).
+			-- The cue's picture is a square ArtUnits on a side from ArtTopUnits, centred across the
+			-- card and reaching down to the UNIQUE pill (designer, 2026-10-29: "the pictures for the
+			-- cues are too small"; it was 220 and 184): its corners are clear (the cue runs from
+			-- bottom left to top right), so the name lies over its foot and it may pass the pads,
+			-- never the pink edge's white line.
 			Card = {
 				ArtTopUnits = 8,
-				ArtUnits = 220,
+				ArtUnits = 260,
 				NameTopUnits = 232, -- the name over the picture's foot (mock A)
 				NameUnits = 30,
 				NameTextUnits = 26,
@@ -17697,8 +17702,8 @@ Config.UI.Halloween = {
 			},
 			-- A phone's card: a smaller picture, taller buttons (a thumb's touch).
 			ShortCard = {
-				ArtTopUnits = 6,
-				ArtUnits = 184,
+				ArtTopUnits = 7,
+				ArtUnits = 225,
 				NameTopUnits = 198,
 				NameUnits = 32,
 				NameTextUnits = 28,

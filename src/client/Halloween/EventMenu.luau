@@ -892,12 +892,13 @@ function EventMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 			CardMath.ballsWindow(0, w - 2 * edgePx, h - 2 * edgePx, card.ballsPhase)
 		card.balls.ImageRectSize = Vector2.new(sx, sy)
 		card.balls.ImageRectOffset = Vector2.new(offset, offset)
-		-- The picture, the name over its foot, the UNIQUE pill.
+		-- The picture, the name over its foot, the UNIQUE pill. The picture is a square centred
+		-- across the card, down to the pill (its corners are clear), never past the white line
+		-- inside the pink edge; its effects (CardFx) are laid out on the same square.
 		local pad = round(L.CardPadUnits * plan.kx)
-		local artH = y(C.ArtUnits)
-		card.art.Position = UDim2.fromOffset(pad, y(C.ArtTopUnits))
-		card.art.Size = UDim2.fromOffset(w - 2 * pad, artH)
-		local side = math.min(w - 2 * pad, artH)
+		local side = math.max(1, math.min(y(C.ArtUnits), w - 2 * innerAt))
+		card.art.Position = UDim2.fromOffset(round((w - side) / 2), y(C.ArtTopUnits))
+		card.art.Size = UDim2.fromOffset(side, side)
 		card.thumb.Size = UDim2.fromOffset(side, side)
 		local fx = card.fx
 		if fx then
