@@ -2,7 +2,7 @@
   "id": "spider",
   "Frame": "cue",
   "frame": "Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)",
-  "Triangles": 9812,
+  "Triangles": 9412,
   "Parts": [
     {
       "Material": "SmoothPlastic",
@@ -38,10 +38,10 @@
       ]
     },
     {
-      "Material": "Neon",
-      "Color": "#E8102E",
+      "Material": "SmoothPlastic",
+      "Color": "#C9CED8",
       "Transparency": 0.0,
-      "Reflectance": 0.0,
+      "Reflectance": 0.28,
       "Name": "BladeEdges",
       "File": "pieces/spider/Crown.glb",
       "Mesh": "BladeEdgesSkin",
@@ -58,29 +58,62 @@
         "Blade7",
         "Blade8"
       ],
-      "Triangles": 2336,
+      "Triangles": 2000,
       "Offset": [
         0.0,
         0.0,
-        -3.434
+        -3.4545
       ],
       "Size": [
         1.4664,
         1.4664,
-        1.388
+        1.4289
       ]
     },
     {
-      "Material": "Foil",
+      "Material": "Neon",
+      "Color": "#F2F5FA",
+      "Transparency": 0.12,
+      "Reflectance": 0.0,
+      "Name": "Webs",
+      "File": "pieces/spider/Crown.glb",
+      "Mesh": "WebsSkin",
+      "Joint": "Crown",
+      "Skinned": true,
+      "Bones": [
+        "Crown",
+        "Blade1",
+        "Blade2",
+        "Blade3",
+        "Blade4",
+        "Blade5",
+        "Blade6",
+        "Blade7",
+        "Blade8"
+      ],
+      "Triangles": 1280,
+      "Offset": [
+        0.0,
+        0.0,
+        -3.4298
+      ],
+      "Size": [
+        1.3892,
+        1.3891,
+        1.1443
+      ]
+    },
+    {
+      "Material": "SmoothPlastic",
       "Color": "#FFFFFF",
       "Transparency": 0.0,
-      "Reflectance": 0.12,
+      "Reflectance": 0.06,
       "SurfaceAppearance": {
         "ColorMap": "pieces/spider/atlas_color.png",
         "NormalMap": "pieces/spider/atlas_normal.png",
         "EmissiveMask": "pieces/spider/atlas_emissive.png",
-        "EmissiveTint": "#FF3A50",
-        "EmissiveStrength": 1.6
+        "EmissiveTint": "#F2F5FA",
+        "EmissiveStrength": 0.0
       },
       "Name": "Body_Body",
       "File": "pieces/spider/Body_Body.obj",
@@ -95,28 +128,28 @@
         0.6928,
         6.96
       ],
-      "Triangles": 2932,
+      "Triangles": 2132,
       "Smooth": true
     },
     {
-      "Material": "Neon",
-      "Color": "#E8102E",
+      "Material": "SmoothPlastic",
+      "Color": "#C9CED8",
       "Transparency": 0.0,
-      "Reflectance": 0.0,
-      "Name": "Body_Red",
-      "File": "pieces/spider/Body_Red.obj",
+      "Reflectance": 0.28,
+      "Name": "Body_Silver",
+      "File": "pieces/spider/Body_Silver.obj",
       "Joint": "Body",
       "Offset": [
         0.0,
         0.0,
-        0.1058
+        0.0996
       ],
       "Size": [
+        0.39,
         0.396,
-        0.396,
-        5.3865
+        5.3562
       ],
-      "Triangles": 1920,
+      "Triangles": 1440,
       "Smooth": true
     },
     {
@@ -150,36 +183,35 @@
       "Offset": [
         0.0,
         0.0,
-        -4.095
+        -4.165
       ],
       "Size": [
-        0.86,
-        0.86,
-        1.23
+        0.96,
+        0.96,
+        1.37
       ],
-      "Triangles": 528,
+      "Triangles": 768,
       "Smooth": true
     },
     {
       "Material": "Neon",
-      "Color": "#FF2038",
+      "Color": "#E8102E",
       "Transparency": 0.0,
       "Reflectance": 0.0,
-      "Name": "Eyes_Eye",
-      "File": "pieces/spider/Eyes_Eye.obj",
-      "Joint": "Eyes",
+      "Name": "Emblem_Red",
+      "File": "pieces/spider/Emblem_Red.obj",
+      "Joint": "Emblem",
       "Offset": [
         0.0,
         0.0,
-        -4.5063
+        -4.85
       ],
       "Size": [
-        0.8464,
-        0.8591,
-        0.5146
+        0.24,
+        0.4,
+        0.05
       ],
-      "Triangles": 320,
-      "Smooth": true
+      "Triangles": 16
     }
   ],
   "Joints": {
@@ -235,26 +267,26 @@
       "Motion": [],
       "Aim": "fade"
     },
-    "Eyes": {
+    "Emblem": {
       "Parent": "Crown",
       "Pivot": [
         0,
-        -8.0,
+        -8.35,
         0
       ],
       "PivotRoblox": [
         0,
         0,
-        -4.5
+        -4.85
       ],
       "Motion": [],
       "Visual": [
         {
           "Kind": "Glow",
           "Min": 0.0,
-          "Max": 0.35,
-          "Period": 1.3,
-          "Color": "#FF3344"
+          "Max": 0.6,
+          "Period": 1.7,
+          "Color": "#FF9AA0"
         }
       ]
     },
