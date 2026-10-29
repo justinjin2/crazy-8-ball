@@ -853,10 +853,11 @@ One card for every cue: the Cues grid, the Index, the lucky block spin and YOU G
   on cues that drop from a block, a Unique cue showing its Grand Opening odds), then NEW and
   Equipped under it; top right the count ("x3") and the padlock on Exclusive and Unique
   cues. A numbered copy's number ("#412") is a dark chip with gold words just above the name,
-  on the right. An **event cue** wears its event's emblem top left in the chance chip's place
-  (2026-10-29: the "Halloween 2026" badge, a deep-purple pill with a flat pumpkin and "2026" in
-  white with the ink outline; `Config.UI.EventEmblem`, picked by the Catalog row's Event), NEW
-  and Equipped under it; never on a never-found card.
+  on the right. An **event cue** wears its event's emblem bottom right, just above the name, in
+  the picture's clear corner (2026-10-29: the "Halloween 2026" badge, a deep-purple pill with a
+  flat pumpkin and "2026" in white with the ink outline; `Config.UI.EventEmblem`, picked by the
+  Catalog row's Event; designer, later that day: moved there from the top left), over a copy
+  number's chip when there is one; never on a never-found card.
 - **Words keep the card's scale** (concept 2, 2026-10-08): a phone's small card shrinks its
   words with it, down to 6 px (`Config.UI.CueCard.Layout.MinTextPx`), rather than holding a
   floor that crowds the card.

@@ -10,9 +10,10 @@
 -- whole over the bar's left end, and the card wears its tier's colours. Top left: the chance
 -- chip (only on cues that drop from a block), then NEW and Equipped under it; top right the
 -- count ("x3") and the padlock on Exclusive and Unique cues; an event cue wears its event's
--- emblem top left ("Halloween 2026", Config.UI.EventEmblem; not on a never-found card), NEW and
--- Equipped under it; a copy number ("#412") is a dark
--- chip with gold words just above the name, on the right (concept 2). A bare card (the big
+-- emblem bottom right just above the name ("Halloween 2026", Config.UI.EventEmblem; designer,
+-- 2026-10-29, it was top left; not on a never-found card); a copy number ("#412") is a dark
+-- chip with gold words just above the name, on the right (concept 2; an emblem then sits over
+-- it). A bare card (the big
 -- card, whose words beside it say all that) shows no pills and no padlock. The card is filled in its
 -- look's colours, rimmed by the rarity edge, with faint 8-balls drifting up-left behind the
 -- cue; the rarer the cue, the more moves (CueCardFx). A never-found cue in the Index (`locked`)
@@ -111,7 +112,7 @@ export type Card = {
 	badge: ImageLabel,
 	chancePill: Frame,
 	chanceText: TextLabel,
-	emblem: ImageLabel, -- an event cue's emblem (EventEmblem), top left
+	emblem: ImageLabel, -- an event cue's emblem (EventEmblem), bottom right over the name
 	newPill: Frame,
 	newText: TextLabel,
 	equipPill: Frame,
@@ -342,14 +343,6 @@ function InventoryCard.layout(card: Card)
 	local left, top = px(P[1]), px(P[2])
 	local stepY = px(L.SecondPillTopUnits - P[2])
 	local row = 0
-	-- An event cue's emblem first, in the chance chip's place (no block drops an event cue).
-	if card.emblem.Visible then
-		local EU = EMBLEM.CardUnits
-		local ew, eh = EventEmblem.size(math.max(pillH, px(EU[3])))
-		card.emblem.Position = UDim2.fromOffset(px(EU[1]), px(EU[2]))
-		card.emblem.Size = UDim2.fromOffset(math.min(ew, w - 2 * left), eh)
-		row += 1
-	end
 	for _, entry in
 		{
 			{ card.chancePill, card.chanceText, chancePx },
@@ -389,6 +382,24 @@ function InventoryCard.layout(card: Card)
 		card.copyPill.Position = UDim2.fromOffset(w - px(CU[1]) - cw, nameTop - px(CU[3]) - copyH)
 		card.copyPill.Size = UDim2.fromOffset(cw, copyH)
 		HudParts.setTextSize(card.copyText, pillPx, pillPx)
+	end
+	-- An event cue's emblem bottom right, just above the name (or over the copy number's chip),
+	-- in the picture's clear corner (designer, 2026-10-29; it was top left).
+	if card.emblem.Visible then
+		local EU = EMBLEM.CardUnits
+		local above = if card.copyPill.Visible
+			then card.copyPill.Position.Y.Offset
+			else card.name.Position.Y.Offset
+		local ex, ey, ew, eh = EventEmblem.place(
+			w,
+			above,
+			px(EU[1]),
+			px(EU[2]),
+			math.max(pillH, px(EU[3])),
+			w - 2 * left
+		)
+		card.emblem.Position = UDim2.fromOffset(ex, ey)
+		card.emblem.Size = UDim2.fromOffset(ew, eh)
 	end
 
 	if card.fx then

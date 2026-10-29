@@ -6,8 +6,8 @@
 --     Pitchfork, the Witch's Broom, the Jack-o'-Lantern, the Halloween Sword; designer
 --     2026-10-29), each with the Cues inventory's faint 8-balls drifting up-left, the cue's
 --     picture (its skin Thumb through CueThumb) with its own effects playing over it in 2D
---     (Halloween/CardFx, richer up the ladder), the "Halloween 2026" emblem top left
---     (EventEmblem), a green Robux button (the purple gift square inside its left end; it
+--     (Halloween/CardFx, richer up the ladder), the "Halloween 2026" emblem bottom right
+--     above the name (EventEmblem), a green Robux button (the purple gift square inside its left end; it
 --     shines) over an orange Candy button of the same size (designer, 2026-10-29; a first
 --     press says BUY?, a second buys: State.send({ buy = cue }), the answer comes as the
 --     bought moment). An owned cue's card says OWNED. (With the Pumpkin King's drop switched
@@ -904,13 +904,20 @@ function EventMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		if fx then
 			CardFx.layout(fx, side)
 		end
-		-- The Halloween 2026 emblem top left, clear of the cue (its picture runs bottom left to
-		-- top right).
+		-- The Halloween 2026 emblem bottom right, just above the name (designer, 2026-10-29), in
+		-- the picture's clear corner (it runs from bottom left to top right).
 		local emblem = card.emblem
 		if emblem then
 			local E = C.EmblemUnits
-			local ew, eh = EventEmblem.size(math.max(L.MinTextPx + 4, y(E[3])))
-			emblem.Position = UDim2.fromOffset(pad + round(E[1] * plan.kx), y(E[2]))
+			local ex, ey, ew, eh = EventEmblem.place(
+				w,
+				y(C.NameTopUnits),
+				pad + round(E[1] * plan.kx),
+				y(E[2]),
+				math.max(L.MinTextPx + 4, y(E[3])),
+				w - 2 * pad
+			)
+			emblem.Position = UDim2.fromOffset(ex, ey)
 			emblem.Size = UDim2.fromOffset(ew, eh)
 		end
 		local namePx = tp(C.NameTextUnits)
