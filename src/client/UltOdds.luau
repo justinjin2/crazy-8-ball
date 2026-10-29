@@ -436,7 +436,17 @@ function UltOdds.draw(self: any, state: any)
 		then code.nextGoalLikes
 		else Config.Ults.CodeBanner.NextGoalLikes
 	local gold = ('<font color="%s">%%s</font>'):format(GOLD_HEX)
-	self.codeLine.Text = W.CodeLine:format(gold:format(active))
+	-- Config.Ults.CodeBanner.Also: more live codes named beside the active one ("USE CODES").
+	local also = if type(code.also) == "table" then code.also else Config.Ults.CodeBanner.Also or {}
+	local names = { gold:format(active) }
+	for i = #also, 1, -1 do
+		if type(also[i]) == "string" then
+			table.insert(names, 1, gold:format(also[i]))
+		end
+	end
+	self.codeLine.Text = if #names > 1
+		then W.CodeLines:format(table.concat(names, W.CodeJoin))
+		else W.CodeLine:format(names[1])
 	self.nextLine.Text = W.NextCode:format(gold:format(Format.commas(likes)))
 end
 

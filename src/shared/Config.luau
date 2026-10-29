@@ -3494,16 +3494,23 @@ Config.Daily = {
 		-- The game's 100-like code (designer, 2026-10-13, in the game's description): 5 ability
 		-- spins. Expired since 2026-10-24 00:00 UTC (designer: the game passed 250 likes).
 		["100LIKES"] = { Spins = 5, Expires = 1792800000 },
-		-- The game's 250-like code (designer, 2026-10-24): 10 ability spins. Expires 2026-10-31
-		-- 00:00 UTC (designer, 2026-10-25: the game passed 1,000 likes; 6 more days to use it).
-		["250LIKES"] = { Spins = 10, Expires = 1793404800 },
-		-- The game's 1,000-like code (designer, 2026-10-25): 15 ability spins and $10,000. Expires
-		-- 2026-11-01 00:00 UTC (designer, 2026-10-27: the game passed 2,000 likes; through Oct 31).
-		["1KLIKES"] = { Spins = 15, Money = 10000, Expires = 1793491200 },
-		-- The game's 2,000-like code (designer, 2026-10-27): 15 ability spins and $20,000, always
-		-- on (the same spins as 1KLIKES, twice the money: players spend about 23% of the money
-		-- they earn). The spin screen's code box and the tutorial name it since that day.
-		["2KLIKES"] = { Spins = 15, Money = 20000 },
+		-- The game's 250-like code (designer, 2026-10-24): 10 ability spins. Expired with the
+		-- Halloween update (Expires 2026-10-29 00:00 UTC, designer 2026-10-29: of the like codes
+		-- only 2KLIKES, 5KLIKES and 10KLIKES work).
+		["250LIKES"] = { Spins = 10, Expires = 1793232000 },
+		-- The game's 1,000-like code (designer, 2026-10-25): 15 ability spins and $10,000. Expired
+		-- with the Halloween update (2026-10-29 00:00 UTC, as 250LIKES).
+		["1KLIKES"] = { Spins = 15, Money = 10000, Expires = 1793232000 },
+		-- The game's 2,000-like code (designer, 2026-10-27), always on: 10 ability spins and
+		-- $10,000 since the Halloween update (was 15 and $20,000; designer 2026-10-29: too
+		-- generous next to 5KLIKES and 10KLIKES).
+		["2KLIKES"] = { Spins = 10, Money = 10000 },
+		-- The 5,000- and 10,000-like codes (designer, 2026-10-29: one reward split in two, so it
+		-- feels like more): 5 spins and $5,000, then 5 spins and $10,000, always on. The like
+		-- codes together: 20 spins and $25,000 (40 and $30,000 before, while 1KLIKES and
+		-- 250LIKES ran; codes are the biggest money source and spin packs about 10% of Robux).
+		["5KLIKES"] = { Spins = 5, Money = 5000 },
+		["10KLIKES"] = { Spins = 5, Money = 10000 },
 		-- Like milestones: 100 (the code box's first goal, CodeBanner.NextGoalLikes), 1k, 5k,
 		-- 10k, 25k, 50k, 100k likes.
 		LIKES100 = { Money = 5000, Spins = 2, Live = true },
@@ -4747,10 +4754,11 @@ Config.Ults = {
 	},
 	-- The code box on the spin screen (section 9.3): the designer edits these two in one place.
 	-- The code itself is a row in Config.Daily.Codes (Spins = 3).
-	-- 2026-10-27 (designer, the game passed 2,000 likes): 2KLIKES, the next code at 5,000 likes
-	-- (was 1KLIKES, next at 2,000; 250LIKES, next at 1,000; before that 100LIKES, next at 250,
-	-- and RELEASE, next at 100). The tutorial's code step types this code too.
-	CodeBanner = { ActiveCode = "2KLIKES", NextGoalLikes = 5000 },
+	-- 2026-10-29 (designer, the game passed 10,000 likes): 10KLIKES, with 5KLIKES shown beside
+	-- it (Also), the next code at 25,000 likes (was 2KLIKES, next at 5,000; 1KLIKES, next at
+	-- 2,000; 250LIKES, next at 1,000; before that 100LIKES, next at 250, and RELEASE, next at
+	-- 100). The tutorial's code step types ActiveCode only.
+	CodeBanner = { ActiveCode = "10KLIKES", Also = { "5KLIKES" }, NextGoalLikes = 25000 },
 	-- The PC opponent (section 4): it activates when its bar is full and it is behind, or when
 	-- its shot finder sees no easy shot.
 	Pc = { WhenBehind = true, WhenNoEasyShot = true },

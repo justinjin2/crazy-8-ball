@@ -2219,6 +2219,8 @@ return {
 			LuckyOdds = "Lucky odds", -- the switch that shows a Lucky Spin's odds
 			-- The code box. %s is the code, or the likes, drawn in gold (keep it when translating).
 			CodeLine = "USE CODE %s FOR FREE SPINS",
+			CodeLines = "USE CODES %s FOR FREE SPINS", -- two or more live codes (CodeBanner.Also)
+			CodeJoin = " & ",
 			NextCode = "NEXT CODE AT %s LIKES",
 			-- The pill at the foot of the odds (a phone: over Buy spins): the count, then what the
 			-- pity spin gives, its rarity in its colour (designer, 2026-10-09: the rule line under

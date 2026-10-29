@@ -326,7 +326,7 @@ export type Payload = {
 	robuxPacks: { string },
 	luckyPacks: { string },
 	products: { [string]: ProductView },
-	code: { active: string, nextGoalLikes: number },
+	code: { active: string, also: { string }, nextGoalLikes: number },
 }
 
 -- The slot a pass key unlocks, or nil.
@@ -440,7 +440,11 @@ function SpinView.state(ctx: Context): Payload
 		robuxPacks = table.clone(E.RobuxPacks),
 		luckyPacks = table.clone(E.LuckyPacks),
 		products = products,
-		code = { active = U.CodeBanner.ActiveCode, nextGoalLikes = U.CodeBanner.NextGoalLikes },
+		code = {
+			active = U.CodeBanner.ActiveCode,
+			also = table.clone(U.CodeBanner.Also or {}),
+			nextGoalLikes = U.CodeBanner.NextGoalLikes,
+		},
 	}
 end
 

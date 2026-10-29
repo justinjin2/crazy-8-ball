@@ -315,8 +315,12 @@ return {
 		local codes = {}
 		local row = Config.Daily.Codes[U.CodeBanner.ActiveCode]
 		H.expect(
-			row ~= nil and row.Spins == 15 and row.Money == 20000,
-			"the banner's code gives 15 spins and $20,000"
+			row ~= nil and row.Spins == 5 and row.Money == 10000,
+			"the banner's code (10KLIKES) gives 5 spins and $10,000"
+		)
+		H.expect(
+			#U.CodeBanner.Also == 1 and U.CodeBanner.Also[1] == "5KLIKES",
+			"5KLIKES named beside it"
 		)
 		local ok, reward = Daily.redeem(codes, "  release ", DAY * 86400)
 		H.expect(ok and (reward :: any).spins == 3 and (reward :: any).lucky == 0, "3 spins")
@@ -332,25 +336,40 @@ return {
 		local ok250, got250 = Daily.redeem(codes, "250likes", 1792800000)
 		H.expect(ok250 and (got250 :: any).spins == 10, "250LIKES gives 10 spins")
 		H.expect(not Daily.isLive("250LIKES"), "250LIKES on without /code on")
-		-- It works 6 more days after 1KLIKES (2026-10-25) and expires 2026-10-31 00:00 UTC;
-		-- 1KLIKES gives 15 spins and $10,000.
-		local still250 = Daily.redeem({}, "250LIKES", 1793404800 - 1)
-		H.expect(still250, "250LIKES still works on 2026-10-30")
-		local late250, late250Why = Daily.redeem({}, "250LIKES", 1793404800)
-		H.expect(not late250 and late250Why == "Expired", "250LIKES expired from 2026-10-31")
+		-- It expired with the Halloween update (2026-10-29 00:00 UTC); 1KLIKES gives 15 spins
+		-- and $10,000.
+		local still250 = Daily.redeem({}, "250LIKES", 1793232000 - 1)
+		H.expect(still250, "250LIKES still works on 2026-10-28")
+		local late250, late250Why = Daily.redeem({}, "250LIKES", 1793232000)
+		H.expect(not late250 and late250Why == "Expired", "250LIKES expired from 2026-10-29")
 		local ok1k, got1k = Daily.redeem(codes, "1klikes", 1792886400)
 		H.expect(ok1k and (got1k :: any).spins == 15, "1KLIKES gives 15 spins")
 		H.expect((got1k :: any).money == 10000, "and $10,000")
 		H.expect(not Daily.isLive("1KLIKES"), "1KLIKES on without /code on")
-		-- It works through 2026-10-31 after 2KLIKES (2026-10-27) and expires 2026-11-01 00:00
-		-- UTC; 2KLIKES gives 15 spins and $20,000, always on.
-		H.expect(Daily.redeem({}, "1KLIKES", 1793491200 - 1), "1KLIKES still works on 2026-10-31")
-		local late1k, late1kWhy = Daily.redeem({}, "1KLIKES", 1793491200)
-		H.expect(not late1k and late1kWhy == "Expired", "1KLIKES expired from 2026-11-01")
+		-- It expired with the Halloween update (2026-10-29 00:00 UTC); 2KLIKES gives 10 spins
+		-- and $10,000 since then (was 15 and $20,000), always on.
+		H.expect(Daily.redeem({}, "1KLIKES", 1793232000 - 1), "1KLIKES still works on 2026-10-28")
+		local late1k, late1kWhy = Daily.redeem({}, "1KLIKES", 1793232000)
+		H.expect(not late1k and late1kWhy == "Expired", "1KLIKES expired from 2026-10-29")
 		local ok2k, got2k = Daily.redeem(codes, "2klikes", 1793491200)
-		H.expect(ok2k and (got2k :: any).spins == 15, "2KLIKES gives 15 spins")
-		H.expect((got2k :: any).money == 20000, "and $20,000")
+		H.expect(ok2k and (got2k :: any).spins == 10, "2KLIKES gives 10 spins")
+		H.expect((got2k :: any).money == 10000, "and $10,000")
 		H.expect(not Daily.isLive("2KLIKES"), "2KLIKES on without /code on")
+		-- 5KLIKES and 10KLIKES (2026-10-29): 5 spins and $5,000, 5 spins and $10,000, always on,
+		-- each once.
+		local ok5k, got5k = Daily.redeem(codes, "5klikes", 1793491200)
+		H.expect(ok5k and (got5k :: any).spins == 5 and (got5k :: any).money == 5000, "5KLIKES")
+		local ok10k, got10k = Daily.redeem(codes, "10KLIKES", 1793491200)
+		H.expect(
+			ok10k and (got10k :: any).spins == 5 and (got10k :: any).money == 10000,
+			"10KLIKES"
+		)
+		local twice = Daily.redeem(codes, "10klikes", 1793491200)
+		H.expect(not twice, "10KLIKES once per player")
+		H.expect(
+			not Daily.isLive("5KLIKES") and not Daily.isLive("10KLIKES"),
+			"on without /code on"
+		)
 		local out = RewardView.reward(reward :: any)
 		H.expect(out.spins == 3 and out.lucky == 0 and out.money == 0, "the reply's chip")
 		-- Lucky Spins are retired: a code row with LuckySpins pays plain spins.
@@ -544,7 +563,12 @@ return {
 		end
 		H.expect(p.live and not p.restricted and not p.vip and not p.devAll, "flags")
 		H.expect(p.moneyPerSpin == 10000 and #p.moneyPacks == 4, "money")
-		H.expect(p.code.active == "2KLIKES" and p.code.nextGoalLikes == 5000, "the code box")
+		H.expect(
+			p.code.active == "10KLIKES"
+				and p.code.also[1] == "5KLIKES"
+				and p.code.nextGoalLikes == 25000,
+			"the code box"
+		)
 		H.expect((p :: any).auto == nil and (p :: any).autoStopChoices == nil, "no Auto Spin")
 		for _, key in SpinView.productKeys() do
 			local product = p.products[key]
