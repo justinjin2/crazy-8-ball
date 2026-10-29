@@ -649,6 +649,22 @@ return {
 		},
 		Piece = "phoenix",
 	},
+	PitchforkCue = {
+		Id = "pitchfork",
+		Name = "Pitchfork Cue",
+		Tier = "Legendary",
+		Thumb = "rbxassetid://139633646140924",
+		Look = {
+			Shaft = { 216, 30, 30 },
+			Forearm = { 216, 30, 30 },
+			Wrap = { 90, 11, 11 },
+			Ring = { 242, 182, 50 },
+			Tip = { 255, 241, 220 },
+			Cap = { 17, 17, 17 },
+			Accent = { 224, 34, 27 },
+		},
+		Body = "pitchfork",
+	},
 	PixelCue = {
 		Id = "pixel",
 		Name = "Pixel",

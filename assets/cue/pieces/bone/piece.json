@@ -1,0 +1,144 @@
+{
+  "id": "bone",
+  "Frame": "cue",
+  "frame": "Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)",
+  "Triangles": 8006,
+  "Parts": [
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#FFFFFF",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "SurfaceAppearance": {
+        "ColorMap": "vfx/bone/bone_512.png"
+      },
+      "Name": "Body_Bone",
+      "File": "pieces/bone/Body_Bone.obj",
+      "Joint": "Body",
+      "Offset": [
+        0.0,
+        0.0,
+        -0.02
+      ],
+      "Size": [
+        0.53,
+        0.53,
+        7.04
+      ],
+      "Triangles": 3560,
+      "Smooth": true
+    },
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#FFFFFF",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "SurfaceAppearance": {
+        "ColorMap": "vfx/bone/skull_512.png"
+      },
+      "Name": "Skull_SkullBone",
+      "File": "pieces/bone/Skull_SkullBone.obj",
+      "Joint": "Skull",
+      "Offset": [
+        0.0621,
+        0.0708,
+        -3.8704
+      ],
+      "Size": [
+        1.0996,
+        1.1081,
+        1.0415
+      ],
+      "Triangles": 3998,
+      "Outline": false,
+      "Smooth": true
+    },
+    {
+      "Material": "Neon",
+      "Color": "#30D82A",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Eyes_Glow",
+      "File": "pieces/bone/Eyes_Glow.obj",
+      "Joint": "Eyes",
+      "Offset": [
+        0.2583,
+        0.3272,
+        -3.7772
+      ],
+      "Size": [
+        0.529,
+        0.4719,
+        0.2206
+      ],
+      "Triangles": 448,
+      "Outline": false,
+      "Smooth": true
+    }
+  ],
+  "Joints": {
+    "Body": {
+      "Parent": null,
+      "Pivot": [
+        0,
+        -3.5,
+        0
+      ],
+      "PivotRoblox": [
+        0,
+        0,
+        0.0
+      ],
+      "Motion": []
+    },
+    "Skull": {
+      "Parent": null,
+      "Pivot": [
+        -0.061964429914951324,
+        -7.389999866485596,
+        0.07848827540874481
+      ],
+      "PivotRoblox": [
+        0.062,
+        0.0785,
+        -3.89
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            1,
+            0,
+            0
+          ],
+          "Amp": 3.0,
+          "Period": 3.4
+        }
+      ],
+      "Aim": "fade"
+    },
+    "Eyes": {
+      "Parent": "Skull",
+      "Pivot": [
+        -0.061964429914951324,
+        -7.389999866485596,
+        0.07848827540874481
+      ],
+      "PivotRoblox": [
+        0.062,
+        0.0785,
+        -3.89
+      ],
+      "Motion": [],
+      "Visual": [
+        {
+          "Kind": "Glow",
+          "Min": 0.0,
+          "Max": 0.3,
+          "Period": 1.8
+        }
+      ],
+      "Aim": "fade"
+    }
+  }
+}

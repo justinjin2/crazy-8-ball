@@ -17391,10 +17391,10 @@ Config.UI.Halloween = {
 	-- exist (the approved concept art), the gift boxes, the end screen's candy pile and cash.
 	Art = {
 		JackOLanternCue = "rbxassetid://114487013205177",
-		PitchforkCue = "rbxassetid://121098110131668", -- hw-map's card (the whole pitchfork, face-on)
+		PitchforkCue = "rbxassetid://139633646140924", -- hw-map's card (its skin's Thumb; the skinnier fork, rim-popped)
 		SpiderCue = "rbxassetid://134067061693157",
 		WitchBroomCue = "rbxassetid://83442214439619",
-		HalloweenSwordCue = "rbxassetid://77260527077254", -- cues-a's card (its skin's Thumb)
+		HalloweenSwordCue = "rbxassetid://121167927707840", -- cues-a's card (its skin's Thumb; the pop pass)
 		Header = "rbxassetid://100823591958466", -- the menu header's jack-o'-lantern ("" = the Candy icon)
 		Gift = "rbxassetid://130940237317316", -- "" = Kit icon Gift
 		CandyPile = "rbxassetid://100770056241444",

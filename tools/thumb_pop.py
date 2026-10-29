@@ -32,6 +32,11 @@ def main():
     ap.add_argument('--glow', type=float, default=1.25, help='brightness multiplier on glow (semi-transparent) pixels')
     ap.add_argument('--lift', type=float, default=0.85, help='gamma on the opaque pixels (below 1 lifts the dark body)')
     ap.add_argument('--zoom', type=float, default=1.04, help='the cue this much larger in the square')
+    ap.add_argument('--rim', type=float, default=0.0,
+                    help='px (of 512) of soft light hugging the cue\'s silhouette, under it (0: none); for a '
+                         'thin cue whose ends sit outside the round halo (the slim Pitchfork, 2026-10-28)')
+    ap.add_argument('--rim-color', default='FFE2C4', help='the rim\'s colour (hex)')
+    ap.add_argument('--rim-alpha', type=float, default=0.9, help='the rim at the silhouette')
     ap.add_argument('--out', default=None, help='write here instead of over the thumb')
     a = ap.parse_args()
 
@@ -63,9 +68,20 @@ def main():
     r = np.hypot(xx - (n - 1) / 2, yy - (n - 1) / 2) / (a.halo_radius * n)
     halo_a = a.halo_alpha * np.clip(1 - r, 0, 1) ** 2 * (3 - 2 * np.clip(1 - r, 0, 1))
     hc = hexrgb(a.halo)
-    out_a = al + halo_a * (1 - al)
+    # The rim (opt-in): the silhouette grown by `rim` px and softened, over the halo, under the cue.
+    rim_a = np.zeros_like(al)
+    if a.rim > 0:
+        from PIL import ImageFilter
+        px_n = a.rim * n / 512
+        mask = Image.fromarray((np.clip(al, 0, 1) * 255).astype(np.uint8))
+        grow = mask.filter(ImageFilter.MaxFilter(2 * int(round(px_n)) + 1)).filter(ImageFilter.GaussianBlur(px_n / 2))
+        rim_a = a.rim_alpha * np.asarray(grow, np.float32) / 255
+    rc = hexrgb(a.rim_color)
+    bg_a = rim_a + halo_a * (1 - rim_a)
+    bg_pm = rc * rim_a[..., None] + hc * (halo_a * (1 - rim_a))[..., None]   # premultiplied
+    out_a = al + bg_a * (1 - al)
     out_rgb = np.where(out_a[..., None] > 1e-4,
-                       (rgb * al[..., None] + hc * (halo_a * (1 - al))[..., None]) / np.maximum(out_a[..., None], 1e-4), 0)
+                       (rgb * al[..., None] + bg_pm * (1 - al)[..., None]) / np.maximum(out_a[..., None], 1e-4), 0)
 
     out = np.concatenate([np.clip(out_rgb, 0, 1), out_a[..., None]], -1)
     dest = a.out or path

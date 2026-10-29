@@ -53,8 +53,12 @@ MAX_PARTS, MAX_TRIS = 8, 10000
 #            back edge clear of the fingers; designer 20:5x: the handle is way too big, the
 #            guard goes to 5.0-5.55 just in front of the hand at rest, and the hand passing
 #            through it for an instant at a full-power wind-up is accepted).
-#   'SlimGrip': r, a handle slimmer than the cue envelope: in the grip hand zone the radius may
-#            come down to r (designer 20:5x: a sword handle, thinner than the cue is fine).
+#   'Slim': a factor under 1 for a body slimmer than the shared cue (the designer 2026-10-28:
+#            the Pitchfork "too wide"): the hand rule holds against this share of the
+#            envelope (+-HAND_TOL), so the hands rest at most (1 - Slim) x 0.18 off the grip.
+#   'SlimGrip': r, a handle slimmer still: in the grip hand zone the radius may come down to r
+#            (designer 20:5x: a sword handle, thinner than the cue is fine). Both may be set;
+#            the upper bound is Slim's, the lower the smaller of the two.
 BODY_EXCEPTIONS = {}   # the hard budget (the data tool stops over it); aim at 6 and 6,000
 
 
@@ -143,9 +147,10 @@ def check_body(kit, step=0.1):
                     problems.append('%.1f (hand zone): the core off the centreline by %.3f up or down' % (d0, cz))
             continue
         if in_hand:
-            if r_max > r_env + HAND_TOL + 1e-6:
-                problems.append('%.1f (hand zone): radius %.3f, envelope %.3f (+%.2f at most)' % (d0, r_max, r_env, HAND_TOL))
-            r_low = min(r_env, ex.get('SlimGrip', r_env))
+            r_hand = r_env * ex.get('Slim', 1.0)
+            if r_max > r_hand + HAND_TOL + 1e-6:
+                problems.append('%.1f (hand zone): radius %.3f, envelope %.3f (+%.2f at most)' % (d0, r_max, r_hand, HAND_TOL))
+            r_low = min(r_hand, ex.get('SlimGrip', r_hand))
             if r_max < r_low - HAND_TOL - 1e-6:
                 problems.append('%.1f (hand zone): radius %.3f, envelope %.3f (the hand would sink in)' % (d0, r_max, r_low))
             # centred: the bin's outline (its box) is centred on the axis

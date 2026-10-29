@@ -1136,6 +1136,14 @@ def build(pid, render_preview=True):
     except ImportError:
         pass
     try:
+        import CuePiecesHalloween_Bone  # noqa: F401  (lane hw-map's Bone Cue)
+    except ImportError:
+        pass
+    try:
+        import CuePiecesHalloween_Pitchfork  # noqa: F401  (lane hw-map's Pitchfork Cue)
+    except ImportError:
+        pass
+    try:
         import CuePiecesGhostLantern  # noqa: F401  (lane Cues A's Ghost Lantern Cue, 2026-10-28)
     except ImportError:
         pass
@@ -1230,6 +1238,14 @@ def render_sprite(name):
         pass
     try:
         import CuePiecesHalloween_B  # noqa: F401
+    except ImportError:
+        pass
+    try:
+        import CuePiecesHalloween_Bone  # noqa: F401  (lane hw-map's Bone Cue)
+    except ImportError:
+        pass
+    try:
+        import CuePiecesHalloween_Pitchfork  # noqa: F401  (lane hw-map's Pitchfork Cue)
     except ImportError:
         pass
     try:

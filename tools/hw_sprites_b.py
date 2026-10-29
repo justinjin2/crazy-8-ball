@@ -16,9 +16,6 @@ so a row's Color tints them.
                                   reads right from every side), black with a violet rim
     witch_broom/witch_moon_4x4    16 frames, OneShot: a pale full moon fades in, a witch on her
                                   broom crosses it with two bats, it fades out
-    black_cat/cat_run_4x4         16 frames, Loop: a lean cat galloping IN PLACE (the moonwalk
-                                  rule), black with a thin gold rim
-    black_cat/cat_leap_4x4        16 frames, OneShot: a cat leaping up and out within its cell
     spider/web                    a radial web (spokes and a spiral)
     spider/silk                   a silk strand, tileable left to right (Beam texture)
     spider/web_ring               a ring decal of web strands
@@ -182,78 +179,6 @@ def hash01(i, j):
     h = ((h ^ (h >> 13)) * 1274126177) & 0xFFFFFFFF
     h = h ^ (h >> 16)
     return (h & 0xFFFFFF) / float(0xFFFFFF)
-
-
-# --------------------------------------------------------------------------- the cat rig
-
-def cat_pose(cv, phase, origin=(0.3, 0.5), scale=0.42, pitch=0.0, legs=None, tail_wave=0.0, bob=0.0):
-    """A lean, long-legged cat facing +x in body units (shoulder (0, 0) to hip (1, 0)), drawn on
-    `cv` at `scale` with the shoulder at `origin`, pitched about the body's middle. phase: the
-    gallop (radians). legs: explicit (fl, fr, hl, hr) of (hip angle, knee angle) instead."""
-    ox, oy = origin
-    s = scale
-
-    def T(p):
-        q = (ox + p[0] * s, oy + p[1] * s + bob)
-        return rot(q, (ox + 0.5 * s, oy + bob), pitch)
-    # the spine: an arched back from the shoulders to the rump, deeper at the chest
-    spine = bezier((-0.05, 0.02), (0.3, 0.12), (0.7, 0.12), (1.05, 0.0), 12)
-    for i, (a, b) in enumerate(zip(spine[:-1], spine[1:])):
-        cv.capsule(T(a), T(b), (0.11 - 0.02 * i / 11) * s)
-    cv.capsule(T((0.0, -0.03)), T((0.18, -0.07)), 0.12 * s)
-    cv.capsule(T((0.85, -0.02)), T((1.0, -0.04)), 0.1 * s)
-    # neck and head: small, forward, a short muzzle, two ears
-    cv.capsule(T((-0.03, 0.06)), T((-0.3, 0.18)), 0.075 * s)
-    head = T((-0.37, 0.2))
-    cv.ellipse(head, 0.1 * s, 0.085 * s, pitch + 0.2)
-    cv.capsule(head, T((-0.48, 0.16)), 0.05 * s)
-    for side in (-1, 1):
-        cv.polygon([T((-0.4 + 0.05 * side, 0.26)), T((-0.41 + 0.085 * side, 0.4)), T((-0.33 + 0.06 * side, 0.26))])
-    # legs: front from the shoulder, hind from the hip
-    if legs is None:
-        def gallop(ph, hind):
-            swing = math.sin(ph)
-            hipang = (0.95 if hind else 0.85) * swing + (0.2 if hind else 0.05)
-            knee = (0.5 + 0.5 * math.cos(ph - 0.6)) * (1.1 if hind else 0.9) * (1 if hind else -1)
-            return hipang, knee
-        legs = (gallop(phase, False), gallop(phase + 0.9, False), gallop(phase + math.pi + 0.4, True), gallop(phase + math.pi + 1.3, True))
-    fl, fr, hl, hr = legs
-    for (hipang, knee), root, hind in ((fr, (0.02, -0.05), False), (hr, (0.97, -0.06), True), (fl, (0.02, -0.05), False), (hl, (0.97, -0.06), True)):
-        lens = (0.34, 0.3, 0.09) if hind else (0.32, 0.3, 0.08)
-        pts = [T(p) for p in limb(cv, root, (hipang, knee, -knee * 0.7), lens)]
-        cv.capsule(pts[0], pts[1], (0.065 if hind else 0.055) * s)
-        cv.capsule(pts[1], pts[2], 0.04 * s)
-        cv.capsule(pts[2], pts[3], 0.035 * s)
-    # the tail: long, up and back, waving
-    tail = bezier((1.03, 0.0), (1.28, 0.03 + 0.08 * math.sin(tail_wave)), (1.46, 0.3 + 0.1 * math.sin(tail_wave + 1.0)), (1.4, 0.56 + 0.06 * math.cos(tail_wave)), 14)
-    for i, (a, b) in enumerate(zip(tail[:-1], tail[1:])):
-        cv.capsule(T(a), T(b), (0.05 - 0.025 * i / 13) * s)
-
-
-def cat_run():
-    frames = []
-    for i in range(16):
-        cv = Canvas(CELL)
-        ph = 2 * math.pi * i / 16
-        cat_pose(cv, ph, origin=(0.3, 0.5), scale=0.42, pitch=0.06 * math.sin(ph + 0.5), bob=0.02 * math.sin(2 * ph), tail_wave=ph)
-        frames.append(rimmed(cv.alpha(), (0, 0, 0), GOLD, rim_px=1.5, glow_px=4, glow=0.35))
-    return sheet(frames)
-
-
-def cat_leap():
-    frames = []
-    for i in range(16):
-        cv = Canvas(CELL)
-        t = i / 15
-        y = 0.22 + 0.5 * math.sin(math.pi * min(t, 0.75) / 1.5)
-        x = 0.28 + 0.12 * t
-        pitch = 0.75 * (1 - t) ** 1.3 - 0.15 * t
-        ext = math.sin(math.pi * min(t * 1.2, 1.0))
-        legs = ((1.0 * ext - 0.4, -0.4 * (1 - ext)), (0.8 * ext - 0.3, -0.5 * (1 - ext)),
-                (-1.0 * ext + 0.3, 1.0 * (1 - ext)), (-0.8 * ext + 0.2, 0.9 * (1 - ext)))
-        cat_pose(cv, 0.0, origin=(x, y), scale=0.36, pitch=pitch, legs=legs, tail_wave=t * 4)
-        frames.append(rimmed(cv.alpha(), (0, 0, 0), GOLD, rim_px=1.5, glow_px=5, glow=0.4))
-    return sheet(frames, fade=lambda i, n: 1.0 if i < 11 else max(0.0, 1 - (i - 10) / 5))
 
 
 # --------------------------------------------------------------------------- the bat and the witch
@@ -434,7 +359,6 @@ def web_ring():
 SPRITES = {
     'witch_broom/crescent': crescent, 'witch_broom/straw': straw,
     'witch_broom/bat_flap_4x4': bat_flap, 'witch_broom/witch_moon_4x4': witch_moon,
-    'black_cat/cat_run_4x4': cat_run, 'black_cat/cat_leap_4x4': cat_leap,
     'spider/web': web, 'spider/silk': silk, 'spider/web_ring': web_ring,
 }
 
