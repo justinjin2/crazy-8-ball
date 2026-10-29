@@ -3883,9 +3883,10 @@ Config.Halloween = {
 	-- once, never a claim. Cue (one copy, skipped if owned), Spins (ability spins) or Money.
 	Track = {
 		Steps = {
-			-- The lineup (designer, 2026-10-29 03:59): the Pitchfork, the Witch's Broom, the
-			-- Spider and the Sword on the track; the Jack-o'-Lantern is the Pumpkin King's drop
-			-- (Config.Halloween.KingDrop). Given is keyed by index: final before the publish.
+			-- The lineup (designer, 2026-10-29 04:0x): the Pitchfork, the Witch's Broom and the
+			-- Sword on the track; the Jack-o'-Lantern is the Pumpkin King's drop
+			-- (Config.Halloween.KingDrop); the Spider stays the playtime cue. Given is keyed by
+			-- index: final before the publish.
 			{ At = 50, Spins = 1 },
 			{ At = 150, Spins = 2 }, -- was the Jack-o'-Lantern
 			{ At = 300, Money = 2500 },
@@ -3894,7 +3895,7 @@ Config.Halloween = {
 			{ At = 1500, Money = 5000 },
 			{ At = 2000, Cue = "WitchBroomCue" },
 			{ At = 3000, Spins = 3 },
-			{ At = 4500, Cue = "SpiderCue" }, -- was $10,000 (the Spider was the playtime cue)
+			{ At = 4500, Money = 10000 },
 			{ At = 5500, Spins = 5 },
 			{ At = 7000, Cue = "HalloweenSwordCue" }, -- the top prize
 		} :: { { At: number, Cue: string?, Spins: number?, Money: number? } },

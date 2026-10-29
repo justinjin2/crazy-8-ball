@@ -22,7 +22,7 @@ return {
 			{ 1500, "Money", 5000 },
 			{ 2000, "Cue", "WitchBroomCue" },
 			{ 3000, "Spins", 3 },
-			{ 4500, "Cue", "SpiderCue" },
+			{ 4500, "Money", 10000 },
 			{ 5500, "Spins", 5 },
 			{ 7000, "Cue", "HalloweenSwordCue" },
 		}

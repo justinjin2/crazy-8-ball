@@ -155,7 +155,7 @@ return {
 				{ 1500, 5000 },
 				{ 2000, "WitchBroomCue" },
 				{ 3000, 3 },
-				{ 4500, "SpiderCue" },
+				{ 4500, 10000 },
 				{ 5500, 5 },
 				{ 7000, "HalloweenSwordCue" },
 			}

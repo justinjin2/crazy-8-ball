@@ -258,7 +258,7 @@ local CUES: { Cue } = {
 	eventCue("JackOLanternCue", "Legendary"), -- the Pumpkin King's drop (Halloween.KingDrop)
 	eventCue("PitchforkCue", "Legendary"), -- track 500
 	eventCue("WitchBroomCue", "Secret"), -- track 2,000
-	eventCue("SpiderCue", "Mythic"), -- track 4,500 (was 3 h 01 m of active play)
+	eventCue("SpiderCue", "Mythic"), -- 3 h 01 m of active event play
 	eventCue("HalloweenSwordCue", "Secret"), -- track 7,000, the top prize (tier: designer's call)
 }
 
