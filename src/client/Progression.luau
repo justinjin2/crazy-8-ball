@@ -731,7 +731,7 @@ function Progression.update(state: State)
 			and not reelUp
 			and not teleportUp()
 			and menu == nil
-			and not TutorialAnchors.hidden("Money") -- the guided tutorial still hides the HUD
+			and not TutorialAnchors.hidden("Shop") -- the guided tutorial still hides the HUD
 	)
 	column:setPadRoute(not state.inMatch and not Menus.isOpen())
 	Portals.setBlocked(state.inMatch or state.afterMatch) -- roaming players get no portal ask
