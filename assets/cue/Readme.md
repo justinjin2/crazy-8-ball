@@ -53,6 +53,9 @@ tools/test.sh   # cue_shape_test (Shape.json is current), cue_mesh_test (MeshSki
   turned toward the camera, on the card only: the Pitchfork's fork, the Jack's pumpkin) and
   `thumb_fit` (the picture framed to the drawn body, padded); both are explained beside
   `THUMB_FIT_PAD`, are read by `--thumb` alone and never touch the game's model or its uploads.
+  `CuePreview.py --skin <id> --thumb --thumb-spots` also prints where the butt, the tip and each
+  aura emitter's host land on the picture (shares of the square, y down): the numbers the
+  Halloween menu's `Config.UI.Halloween.CardFx` rows (Axis, Spots) are measured in.
 
 ## Files
 

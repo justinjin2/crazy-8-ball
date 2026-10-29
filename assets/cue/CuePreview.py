@@ -802,6 +802,23 @@ def blender_main(args):
         out.file_format = 'PNG'
         os.makedirs(dest, exist_ok=True)
         out.save()
+        if '--thumb-spots' in args:
+            # where things land on the picture, in shares of its square (x right, y down; the
+            # menu's Config.UI.Halloween.CardFx places its 2D effects so): the butt and the
+            # tip (grown with thumb_grow), and each aura emitter's host point
+            from bpy_extras.object_utils import world_to_camera_view
+
+            def spot(at, up=0.0, side=0.0):
+                p = cue.matrix_world @ Vector(tuple(vfx.cue_point(at, up, side)))
+                v = world_to_camera_view(scene, cam, p)
+                return '%.3f %.3f' % (v.x, 1 - v.y)
+            ends = grow_points(np.array([[0.0, -7.0, 0.0], [0.0, 0.0, 0.0]]), grow) if grow else np.array(
+                [[0.0, -7.0, 0.0], [0.0, 0.0, 0.0]])
+            print('CUE thumb spot butt', spot(-ends[0][1]), '| tip', spot(-ends[1][1]))
+            for sp in aura_specs:
+                h = sp.get('Host') or {}
+                at = h.get('AtStuds', (h.get('FromStuds', 0.0) + h.get('ToStuds', 0.0)) / 2)
+                print('CUE thumb spot', sp.get('Name'), h.get('Kind'), spot(at, h.get('Up', 0.0), h.get('Side', 0.0)))
         for ob, co in grown:  # thumb_grow was the picture's alone: the body and its rows as they were
             ob.data.vertices.foreach_set('co', co.astype(np.float32).ravel())
             ob.data.update()
