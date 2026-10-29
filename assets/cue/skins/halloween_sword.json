@@ -1,0 +1,770 @@
+{
+ "id": "halloween_sword",
+ "name": "Halloween Sword",
+ "tier": "Secret",
+ "draft": false,
+ "catalog_id": "HalloweenSwordCue",
+ "note": "Halloween 2026's top prize (7000 Candy; coordinator 19:2x 2026-10-28, Justin: the purple sword model, replicated exactly, as the cue body). Drawn by its own body piece (halloween_sword): a purple-black blade with a raised ridge and glowing violet flame edges, a carved jack-o'-lantern guard with bat wings, a wrapped grip, a crystal pommel. Concept: mocks/v2/C8_halloween_sword.png. Lane hw-cues-a. Core adds the Catalog and Track rows.",
+ "body": "halloween_sword",
+ "maps_from": "classic",
+ "look": {
+  "Shaft": "#2A1A40",
+  "Forearm": "#2A1A40",
+  "Wrap": "#1A1424",
+  "Ring": "#7B2FF7",
+  "Tip": "#D9C2FF",
+  "Cap": "#1A1424",
+  "Accent": "#B05CFF"
+ },
+ "vfx": {
+  "Moving": {
+   "Kind": "Body motion",
+   "Note": "The body itself: the flame edges shimmer (a hair of hinge about the axis, 1.6 s); the carved face's light flickers (Aura Lights); the rest is the sword, still, as the art."
+  },
+  "Aura": {
+   "Note": "C8's IDLE EFFECT: light purple flames licking along the blade (the shared painted fire sheet turned violet, opaque, low light emission so it never turns to mush on the bright floor), a few violet sparks drifting off the edges, a thin dark mist behind the pumpkin guard; the carved face's light flickers. No beam, no orbiter, no ribbon.",
+   "BackRateScale": 0.5,
+   "Emitters": [
+    {
+     "Name": "BladeFlames",
+     "Texture": "vfx/halloween_sword/flame_4x4.png",
+     "FlipbookLayout": "Grid4x4",
+     "FlipbookMode": "Loop",
+     "FlipbookFramerate": 12,
+     "FlipbookStartRandom": true,
+     "Host": {
+      "Kind": "Part",
+      "FromStuds": 0.7,
+      "ToStuds": 3.7,
+      "Width": 1.0,
+      "Shape": "Box",
+      "ShapeStyle": "Volume"
+     },
+     "LockedToPart": true,
+     "LightInfluence": 0,
+     "Rate": 11,
+     "Lifetime": [
+      0.45,
+      0.8
+     ],
+     "Speed": [
+      0.5,
+      1.0
+     ],
+     "SpreadAngle": [
+      14,
+      14
+     ],
+     "EmissionDirection": "Top",
+     "Acceleration": [
+      0,
+      0.6,
+      0
+     ],
+     "Drag": 1.0,
+     "Size": [
+      [
+       0,
+       0.22
+      ],
+      [
+       0.5,
+       0.42
+      ],
+      [
+       1,
+       0.18
+      ]
+     ],
+     "Transparency": [
+      [
+       0,
+       0.25
+      ],
+      [
+       0.6,
+       0.35
+      ],
+      [
+       1,
+       1
+      ]
+     ],
+     "Rotation": [
+      -10,
+      10
+     ],
+     "RotSpeed": [
+      -20,
+      20
+     ],
+     "Color": [
+      [
+       0,
+       "#D9C2FF"
+      ],
+      [
+       0.5,
+       "#B05CFF"
+      ],
+      [
+       1,
+       "#7B2FF7"
+      ]
+     ],
+     "LightEmission": 0.25,
+     "Brightness": 1.3
+    },
+    {
+     "Name": "EdgeSparks",
+     "Texture": "vfx/_shared/star4.png",
+     "Host": {
+      "Kind": "Part",
+      "FromStuds": 0.5,
+      "ToStuds": 3.8,
+      "Width": 1.1,
+      "Shape": "Box",
+      "ShapeStyle": "Surface"
+     },
+     "LockedToPart": true,
+     "Rate": 6,
+     "Lifetime": [
+      0.5,
+      0.9
+     ],
+     "Speed": [
+      0.3,
+      0.8
+     ],
+     "SpreadAngle": [
+      180,
+      180
+     ],
+     "Drag": 1.5,
+     "Acceleration": [
+      0,
+      0.8,
+      0
+     ],
+     "Size": [
+      [
+       0,
+       0.1
+      ],
+      [
+       0.3,
+       0.16
+      ],
+      [
+       1,
+       0
+      ]
+     ],
+     "Transparency": [
+      [
+       0,
+       0.2
+      ],
+      [
+       1,
+       1
+      ]
+     ],
+     "Color": [
+      [
+       0,
+       "#F0E6FF"
+      ],
+      [
+       1,
+       "#B05CFF"
+      ]
+     ],
+     "LightEmission": 1,
+     "LightInfluence": 0,
+     "Brightness": 1.8
+    },
+    {
+     "Name": "GuardMist",
+     "Texture": "vfx/_shared/smoke_4x4.png",
+     "FlipbookLayout": "Grid4x4",
+     "FlipbookMode": "OneShot",
+     "Host": {
+      "Kind": "Part",
+      "FromStuds": 3.6,
+      "ToStuds": 4.5,
+      "Width": 1.4,
+      "Shape": "Cylinder",
+      "ShapeStyle": "Volume"
+     },
+     "LockedToPart": true,
+     "LightInfluence": 0,
+     "Rate": 4,
+     "Lifetime": [
+      1.2,
+      1.8
+     ],
+     "Speed": [
+      0.1,
+      0.3
+     ],
+     "SpreadAngle": [
+      180,
+      180
+     ],
+     "Drag": 1.2,
+     "Size": [
+      [
+       0,
+       0.5
+      ],
+      [
+       1,
+       1.2
+      ]
+     ],
+     "Transparency": [
+      [
+       0,
+       1
+      ],
+      [
+       0.2,
+       0.55
+      ],
+      [
+       0.7,
+       0.75
+      ],
+      [
+       1,
+       1
+      ]
+     ],
+     "Rotation": [
+      0,
+      360
+     ],
+     "RotSpeed": [
+      -15,
+      15
+     ],
+     "Color": [
+      [
+       0,
+       "#3B1F5C"
+      ],
+      [
+       1,
+       "#1A1424"
+      ]
+     ],
+     "LightEmission": 0
+    }
+   ],
+   "Orbiters": [],
+   "Lights": [
+    {
+     "AtStuds": 4.07,
+     "Color": "#B05CFF",
+     "Brightness": 0.45,
+     "Range": 6,
+     "Flicker": {
+      "Min": 0.6,
+      "Max": 1.1,
+      "Period": 0.55,
+      "Shape": "flicker"
+     }
+    },
+    {
+     "AtStuds": 2.0,
+     "Color": "#7B2FF7",
+     "Brightness": 0.3,
+     "Range": 6
+    }
+   ],
+   "Outline": "#B05CFF",
+   "Beams": []
+  },
+  "Style": {
+   "Trail": {
+    "Colors": [
+     [
+      176,
+      92,
+      255
+     ],
+     [
+      123,
+      47,
+      247
+     ]
+    ],
+    "NearTransparency": 0.0,
+    "Lifetime": 0.9,
+    "WidthStuds": 0.5,
+    "LightEmission": 0.6,
+    "Texture": "vfx/_shared/neon_strip.png",
+    "TextureMode": "Wrap",
+    "TextureLength": 1.0,
+    "WidthScale": [
+     [
+      0,
+      0.5
+     ],
+     [
+      0.25,
+      1.0
+     ],
+     [
+      1,
+      0.35
+     ]
+    ],
+    "Transparency": [
+     [
+      0,
+      0.05
+     ],
+     [
+      0.6,
+      0.3
+     ],
+     [
+      1,
+      1
+     ]
+    ],
+    "Brightness": 1.5,
+    "Core": {
+     "Color": [
+      240,
+      225,
+      255
+     ],
+     "Width": 0.14,
+     "NearTransparency": 0.0,
+     "LightEmission": 1,
+     "Transparency": [
+      [
+       0,
+       0.0
+      ],
+      [
+       0.5,
+       0.25
+      ],
+      [
+       1,
+       1
+      ]
+     ],
+     "WidthScale": [
+      [
+       0,
+       1
+      ],
+      [
+       0.6,
+       0.6
+      ],
+      [
+       1,
+       0.25
+      ]
+     ],
+     "Brightness": 2.0
+    }
+   },
+   "Pocket": {
+    "Colors": [
+     [
+      176,
+      92,
+      255
+     ],
+     [
+      217,
+      194,
+      255
+     ]
+    ],
+    "ColorShare": 1
+   }
+  },
+  "Trail": {
+   "Note": "C8's SLASH EFFECT: a purple slash, a sharp violet ribbon with a pale core behind the ball, violet sparks shed off it.",
+   "Emitters": [
+    {
+     "Name": "SlashSparks",
+     "Texture": "vfx/_shared/star4.png",
+     "Host": {
+      "Kind": "Point"
+     },
+     "Rate": 12,
+     "Lifetime": [
+      0.3,
+      0.6
+     ],
+     "Speed": [
+      0.5,
+      1.5
+     ],
+     "SpreadAngle": [
+      180,
+      180
+     ],
+     "Drag": 2,
+     "Acceleration": [
+      0,
+      1.0,
+      0
+     ],
+     "Size": [
+      [
+       0,
+       0.12
+      ],
+      [
+       1,
+       0
+      ]
+     ],
+     "Transparency": [
+      [
+       0,
+       0.2
+      ],
+      [
+       1,
+       1
+      ]
+     ],
+     "Color": [
+      [
+       0,
+       "#F0E6FF"
+      ],
+      [
+       1,
+       "#B05CFF"
+      ]
+     ],
+     "LightEmission": 1,
+     "LightInfluence": 0,
+     "Brightness": 1.6
+    }
+   ]
+  },
+  "Pocket": {
+   "Note": "About 1.8 s (C8's WIN EFFECT, spooky aura): a violet flash and two rings on the cloth, a purple aura burst (a soft glow ball and a violet flame column out of the pocket), three small cute 3D ghosts (halloween_sword_pocket) swirling up through it, a sparkle fall.",
+   "Flash": {
+    "Color": [
+     176,
+     92,
+     255
+    ],
+    "Brightness": 8,
+    "Seconds": 0.3
+   },
+   "Rings": [
+    {
+     "Texture": "vfx/_shared/ring.png",
+     "Color": "#B05CFF",
+     "Start": 0.6,
+     "End": 3.6,
+     "Seconds": 0.5,
+     "Delay": 0.0
+    },
+    {
+     "Texture": "vfx/_shared/ring.png",
+     "Color": "#D9C2FF",
+     "Start": 0.6,
+     "End": 2.8,
+     "Seconds": 0.45,
+     "Delay": 0.15
+    }
+   ],
+   "Piece": {
+    "Piece": "halloween_sword_pocket",
+    "Delay": 0.1,
+    "Seconds": 1.7,
+    "Rise": [
+     [
+      0,
+      -0.5
+     ],
+     [
+      0.3,
+      0.2
+     ],
+     [
+      1,
+      0.6
+     ]
+    ],
+    "Scale": [
+     [
+      0,
+      0.7
+     ],
+     [
+      0.3,
+      1.0
+     ],
+     [
+      1,
+      1.0
+     ]
+    ],
+    "Spin": [
+     [
+      0,
+      0
+     ],
+     [
+      1,
+      0
+     ]
+    ],
+    "Transparency": [
+     [
+      0,
+      0
+     ],
+     [
+      0.65,
+      0
+     ],
+     [
+      1,
+      1
+     ]
+    ]
+   },
+   "Layers": [
+    {
+     "Name": "AuraBurst",
+     "Texture": "vfx/_shared/glow_soft.png",
+     "Host": {
+      "Kind": "Point",
+      "Size": 0.4
+     },
+     "Burst": 18,
+     "Delay": 0.0,
+     "Lifetime": [
+      0.6,
+      1.0
+     ],
+     "Speed": [
+      1.5,
+      3.5
+     ],
+     "SpreadAngle": [
+      180,
+      180
+     ],
+     "Drag": 2.5,
+     "Size": [
+      [
+       0,
+       0.6
+      ],
+      [
+       0.4,
+       1.4
+      ],
+      [
+       1,
+       0.4
+      ]
+     ],
+     "Transparency": [
+      [
+       0,
+       0.3
+      ],
+      [
+       0.5,
+       0.5
+      ],
+      [
+       1,
+       1
+      ]
+     ],
+     "Color": [
+      [
+       0,
+       "#D9C2FF"
+      ],
+      [
+       1,
+       "#7B2FF7"
+      ]
+     ],
+     "LightEmission": 0.8,
+     "LightInfluence": 0,
+     "Brightness": 1.5
+    },
+    {
+     "Name": "FlameColumn",
+     "Texture": "vfx/halloween_sword/flame_4x4.png",
+     "FlipbookLayout": "Grid4x4",
+     "FlipbookMode": "Loop",
+     "FlipbookFramerate": 10,
+     "FlipbookStartRandom": true,
+     "Host": {
+      "Kind": "Point",
+      "Size": 0.5
+     },
+     "Burst": 22,
+     "Delay": 0.05,
+     "Lifetime": [
+      0.9,
+      1.4
+     ],
+     "Speed": [
+      2.5,
+      4.5
+     ],
+     "SpreadAngle": [
+      14,
+      14
+     ],
+     "EmissionDirection": "Top",
+     "Drag": 1.2,
+     "Acceleration": [
+      0,
+      1,
+      0
+     ],
+     "Size": [
+      [
+       0,
+       0.5
+      ],
+      [
+       0.4,
+       0.9
+      ],
+      [
+       1,
+       0.3
+      ]
+     ],
+     "Transparency": [
+      [
+       0,
+       0.2
+      ],
+      [
+       0.6,
+       0.35
+      ],
+      [
+       1,
+       1
+      ]
+     ],
+     "Rotation": [
+      -10,
+      10
+     ],
+     "Color": [
+      [
+       0,
+       "#D9C2FF"
+      ],
+      [
+       0.5,
+       "#B05CFF"
+      ],
+      [
+       1,
+       "#7B2FF7"
+      ]
+     ],
+     "LightEmission": 0.3,
+     "LightInfluence": 0,
+     "Brightness": 1.3
+    },
+    {
+     "Name": "Sparkle",
+     "Texture": "vfx/_shared/star4.png",
+     "Host": {
+      "Kind": "Point",
+      "Size": 0.3
+     },
+     "Burst": 30,
+     "Delay": 0.1,
+     "Lifetime": [
+      0.8,
+      1.4
+     ],
+     "Speed": [
+      3,
+      6
+     ],
+     "SpreadAngle": [
+      40,
+      40
+     ],
+     "EmissionDirection": "Top",
+     "Drag": 1.0,
+     "Acceleration": [
+      0,
+      -6,
+      0
+     ],
+     "Size": [
+      [
+       0,
+       0.14
+      ],
+      [
+       1,
+       0
+      ]
+     ],
+     "Transparency": [
+      [
+       0,
+       0.1
+      ],
+      [
+       1,
+       1
+      ]
+     ],
+     "Color": [
+      [
+       0,
+       "#FFFFFF"
+      ],
+      [
+       0.4,
+       "#D9C2FF"
+      ],
+      [
+       1,
+       "#B05CFF"
+      ]
+     ],
+     "LightEmission": 1,
+     "LightInfluence": 0,
+     "Brightness": 1.8
+    }
+   ],
+   "KeepRibbons": false
+  },
+  "Budget": {
+   "ParticlesPerSecond": 21,
+   "Back": 10.5,
+   "Beams": 0,
+   "Lights": 2,
+   "Orbiters": 0,
+   "Note": "Plus the body (5 parts, 8,784 tris: the Meshy sword split and re-proportioned, one 1024 colour map, a 512 emissive mask, a 256 wrap tile) and the finisher piece (3 ghost models, 2,700 tris); trail 12/s while the ball moves; the finisher bursts 70 once plus the three-ghost piece."
+  }
+ }
+}

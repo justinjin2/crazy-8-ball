@@ -436,6 +436,22 @@ return {
 			Cap = { 10, 27, 16 },
 		},
 	},
+	HalloweenSwordCue = {
+		Id = "halloween_sword",
+		Name = "Halloween Sword",
+		Tier = "Secret",
+		Thumb = "rbxassetid://121167927707840",
+		Look = {
+			Shaft = { 42, 26, 64 },
+			Forearm = { 42, 26, 64 },
+			Wrap = { 26, 20, 36 },
+			Ring = { 123, 47, 247 },
+			Tip = { 217, 194, 255 },
+			Cap = { 26, 20, 36 },
+			Accent = { 176, 92, 255 },
+		},
+		Body = "halloween_sword",
+	},
 	HeritageCue = {
 		Id = "heritage",
 		Name = "Heritage",

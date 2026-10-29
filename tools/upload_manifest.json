@@ -418,6 +418,16 @@
     "assetType": "Model",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/candy_corn/candy_corn_parts.glb": {
+    "assetId": "135070490205166",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/candy_corn_aura/candy_corn_aura_parts.glb": {
+    "assetId": "78851369686323",
+    "assetType": "Model",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/ghost_lantern/LanternGhost_base_color.png": {
     "assetId": "133001338339076",
     "assetType": "Decal",
@@ -541,6 +551,64 @@
     "assetType": "Model",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/halloween_sword/Sword_base_color.png": {
+    "assetId": "125677539965063",
+    "assetType": "Decal",
+    "imageId": "76403631299161",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/halloween_sword/Sword_emissive.png": {
+    "assetId": "85684077438490",
+    "assetType": "Decal",
+    "imageId": "121056044730551",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/halloween_sword/halloween_sword_parts.glb": {
+    "assetId": "86637363502662",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/halloween_sword_pocket/Ghost1_base_color.png": {
+    "assetId": "70601037268606",
+    "assetType": "Decal",
+    "imageId": "72155331748769",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/halloween_sword_pocket/Ghost1_emissive.png": {
+    "assetId": "133142820484140",
+    "assetType": "Decal",
+    "imageId": "97729279630176",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/halloween_sword_pocket/Ghost2_base_color.png": {
+    "assetId": "79545189004069",
+    "assetType": "Decal",
+    "imageId": "79140229039442",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/halloween_sword_pocket/Ghost2_emissive.png": {
+    "assetId": "73821219983071",
+    "assetType": "Decal",
+    "imageId": "134582047080311",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/halloween_sword_pocket/Ghost3_base_color.png": {
+    "assetId": "86556515162931",
+    "assetType": "Decal",
+    "imageId": "95762135176025",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/halloween_sword_pocket/Ghost3_emissive.png": {
+    "assetId": "97216945592378",
+    "assetType": "Decal",
+    "imageId": "131703476103443",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/halloween_sword_pocket/halloween_sword_pocket_parts.glb": {
+    "assetId": "74124048940331",
+    "assetType": "Model",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/jack_o_lantern/jack_o_lantern_parts.glb": {
     "assetId": "120351810341434",
     "assetType": "Model",
@@ -556,10 +624,22 @@
     "assetType": "Model",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/thumbs/candy_corn.png": {
+    "assetId": "86620364444680",
+    "assetType": "Decal",
+    "imageId": "112696270813806",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/thumbs/ghost_lantern.png": {
     "assetId": "89354921717114",
     "assetType": "Decal",
     "imageId": "120508298846402",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/thumbs/halloween_sword.png": {
+    "assetId": "101808889320521",
+    "assetType": "Decal",
+    "imageId": "121167927707840",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/thumbs/jack_o_lantern.png": {
@@ -574,10 +654,46 @@
     "imageId": "139208403900742",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/vfx/candy_corn/bands_512.png": {
+    "assetId": "134639070931625",
+    "assetType": "Decal",
+    "imageId": "91314085676266",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/vfx/candy_corn/kernel_4x4.png": {
+    "assetId": "86802001063942",
+    "assetType": "Decal",
+    "imageId": "107248613281213",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/vfx/candy_corn/kernel_palette.png": {
+    "assetId": "120865108870850",
+    "assetType": "Decal",
+    "imageId": "119521496210859",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/vfx/candy_corn/rods_4x4.png": {
+    "assetId": "118126099688548",
+    "assetType": "Decal",
+    "imageId": "87422541803734",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/vfx/ghost_lantern/ghost.png": {
     "assetId": "107900451027140",
     "assetType": "Decal",
     "imageId": "88524679023137",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/vfx/halloween_sword/flame_4x4.png": {
+    "assetId": "74692877151120",
+    "assetType": "Decal",
+    "imageId": "115803746724573",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/vfx/halloween_sword/wrap_256.png": {
+    "assetId": "83821423608710",
+    "assetType": "Decal",
+    "imageId": "87147907827260",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/vfx/jack_o_lantern/jack_4x4.png": {
@@ -6451,46 +6567,6 @@
   "/Users/justinjin/Downloads/422945-Puzzle-Game-Achievement-02.wav": {
     "assetId": "124844921098629",
     "assetType": "Audio",
-    "status": "ok"
-  },
-  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/candy_corn/candy_corn_parts.glb": {
-    "assetId": "135070490205166",
-    "assetType": "Model",
-    "status": "ok"
-  },
-  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/candy_corn_aura/candy_corn_aura_parts.glb": {
-    "assetId": "78851369686323",
-    "assetType": "Model",
-    "status": "ok"
-  },
-  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/thumbs/candy_corn.png": {
-    "assetId": "86620364444680",
-    "assetType": "Decal",
-    "imageId": "112696270813806",
-    "status": "ok"
-  },
-  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/vfx/candy_corn/bands_512.png": {
-    "assetId": "134639070931625",
-    "assetType": "Decal",
-    "imageId": "91314085676266",
-    "status": "ok"
-  },
-  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/vfx/candy_corn/kernel_4x4.png": {
-    "assetId": "86802001063942",
-    "assetType": "Decal",
-    "imageId": "107248613281213",
-    "status": "ok"
-  },
-  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/vfx/candy_corn/kernel_palette.png": {
-    "assetId": "120865108870850",
-    "assetType": "Decal",
-    "imageId": "119521496210859",
-    "status": "ok"
-  },
-  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/vfx/candy_corn/rods_4x4.png": {
-    "assetId": "118126099688548",
-    "assetType": "Decal",
-    "imageId": "87422541803734",
     "status": "ok"
   }
 }
