@@ -18215,7 +18215,13 @@ Config.Badges = {
 		{ Key = "CueLegendary", BadgeId = 494978037344337, Rule = { seenRarity = "Legendary" } },
 		{ Key = "CueMythic", BadgeId = 832024187830975, Rule = { seenRarity = "Mythic" } },
 		{ Key = "CueSecret", BadgeId = 1923791243743351, Rule = { seenRarity = "Secret" } },
-		{ Key = "CueUnique", BadgeId = 1800047869806584, Rule = { seenGroup = "Unique" } },
+		-- A numbered Unique cue, or one shown as Unique (the Halloween cues: Rarity Unique, Group
+		-- Exclusive; designer, 2026-10-29).
+		{
+			Key = "CueUnique",
+			BadgeId = 1800047869806584,
+			Rule = { seenGroup = "Unique", orRarity = "Unique" },
+		},
 		{ Key = "Cues5", BadgeId = 2409084780202428, Rule = { seenCount = 5 } },
 		{ Key = "Cues10", BadgeId = 3048335140968827, Rule = { seenCount = 10 } },
 		{ Key = "Cues25", BadgeId = 1158904462514818, Rule = { seenCount = 25 } },

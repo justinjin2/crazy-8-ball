@@ -7,7 +7,8 @@
 --   stat = <Stats key>, atLeast = n       Stats.<key> >= n
 --   peak = <tier>                         PeakDivision reached that tier's division I
 --   seenRarity = <rarity>                 a Block cue of that rarity ever owned
---   seenGroup = <group>                   any cue of that Catalog group ever owned
+--   seenGroup = <group>[, orRarity = <r>] any cue of that Catalog group (or shown with Rarity r,
+--                                         whatever its group) ever owned
 --   seenCount = n                         n distinct cues ever owned (Classic, group Default, not counted)
 --   seenCue = <id>                        that cue ever owned
 --   always = true                         Welcome
@@ -104,8 +105,12 @@ function Badges.passes(rule: { [string]: any }?, save: any): boolean
 		end
 		return false
 	elseif kind == "seenGroup" then
+		local orRarity = rule.orRarity
 		for _, cue in Catalog.list() do
-			if cue.Group == rule.seenGroup and Inventory.everOwned(save, cue.Id) then
+			if
+				(cue.Group == rule.seenGroup or (orRarity ~= nil and cue.Rarity == orRarity))
+				and Inventory.everOwned(save, cue.Id)
+			then
 				return true
 			end
 		end
@@ -217,9 +222,10 @@ function Badges.check(
 		table.insert(problems, fmt:format(...))
 	end
 	local stats = SaveSchema.template().Stats
-	local rarities, groups = {}, {}
+	local rarities, groups, shown = {}, {}, {}
 	for _, cue in catalog.list() do
 		groups[cue.Group] = true
+		shown[cue.Rarity] = true
 		if cue.Group == "Block" then
 			rarities[cue.Rarity] = true
 		end
@@ -293,6 +299,9 @@ function Badges.check(
 		elseif kind == "seenGroup" then
 			if not groups[rule.seenGroup] then
 				bad("%s: unknown group %s", key, tostring(rule.seenGroup))
+			end
+			if rule.orRarity ~= nil and not shown[rule.orRarity] then
+				bad("%s: unknown orRarity %s", key, tostring(rule.orRarity))
 			end
 		elseif kind == "seenCount" then
 			if not whole(rule.seenCount) then

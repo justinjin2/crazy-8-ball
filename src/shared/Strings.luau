@@ -2841,7 +2841,7 @@ return {
 		},
 		BroomRider = {
 			Name = "Broom Rider",
-			Description = "Earn the Witch's Broom at Halloween 2026.",
+			Description = "Get the Witch's Broom at Halloween 2026.",
 		},
 	},
 }
