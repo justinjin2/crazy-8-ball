@@ -124,6 +124,28 @@ local function eventShows(): boolean
 	return ok and on == true
 end
 
+-- The Candy pill's number for the saved balance (core's CandyFlyer: the pots' Candy still
+-- flying is held back until each chip lands), read guarded; the balance itself without it.
+local FlyerModule: any = nil
+local flyerLooked = false
+local function candyShown(balance: number): number
+	if not flyerLooked then
+		flyerLooked = true
+		FlyerModule = optional(function()
+			local folder = script.Parent:FindFirstChild("Halloween")
+			local module = folder and folder:FindFirstChild("CandyFlyer")
+			return if module then (require :: any)(module) else nil
+		end)
+	end
+	if FlyerModule and type(FlyerModule.shown) == "function" then
+		local ok, value = pcall(FlyerModule.shown, balance)
+		if ok and type(value) == "number" then
+			return value
+		end
+	end
+	return balance
+end
+
 local function candyIcon(): string?
 	local hw = (Config :: any).Halloween
 	local icon = if type(hw) == "table" then hw.CandyIcon else nil
@@ -599,7 +621,7 @@ function BoostPill.layout(self: any)
 		local textPx = if short then CP.ShortTextPx else CP.TextPx
 		local player = Players.LocalPlayer
 		local count = if player then player:GetAttribute("Candy") else nil
-		local words = Format.commas(if type(count) == "number" then count else 0)
+		local words = Format.commas(if type(count) == "number" then candyShown(count) else 0)
 		local icon = candyIcon()
 		local iconPx = if icon then math.floor(h * CP.IconShare) else 0
 		local textX = CP.PadPx + (if icon then iconPx + CP.PadPx / 2 else 0)

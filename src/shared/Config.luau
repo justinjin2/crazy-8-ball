@@ -10351,6 +10351,35 @@ Config.UI.BoostPill = {
 	},
 }
 
+-- The flying Halloween Candy (Halloween/CandyFlyer; hw-core, 2026-10-29): for every pot that
+-- paid Candy (Config.Halloween.Match.PerPocket), a small candy and "+3" pop out just under the
+-- pot's cash chip, hang, then fly on a curve into the Candy pill (Config.UI.BoostPill.CandyPill),
+-- whose number counts up as each lands; with no pill on screen, to the HALLOWEEN tile, else it
+-- fades where it is. Lower effects: one chip a shot (its total), no overshoot. Seconds, pixels.
+Config.UI.CandyFlyer = {
+	ZIndex = 44, -- just under the cash chips (45)
+	ChipHeightPx = 30,
+	ShortChipHeightPx = 24, -- a phone
+	TextPx = 24,
+	ShortTextPx = 19,
+	Tint = { 255, 150, 40 }, -- the Candy orange (the boost pill's Candy line)
+	FollowSeconds = 0.12, -- after the pot's cash chip
+	BelowShare = 1.1, -- starts this many chip heights under the pocket (under the cash)
+	PopSeconds = 0.18,
+	PopFromScale = 0.3,
+	HangSeconds = 0.25,
+	FlySeconds = 0.6,
+	FadeShare = 0.3, -- fades over the last share of the flight
+	EndScale = 0.45,
+	ArcLiftShare = 0.3,
+	ArcMinLiftPx = 40,
+	StaggerSeconds = 0.18, -- a shot's chips follow each other by this
+	MaxWaitSeconds = 15, -- never waits longer for its ball's drop
+	StillSeconds = 0.6, -- with nowhere to fly: stays this long, then fades
+	EdgeMarginPx = 40,
+	PoolSize = 6, -- chip frames kept for reuse
+}
+
 -- The Cue Preview (R7, permanent; PLAN §2 "Cue preview"; mock PREV1_cue_preview): a client-only
 -- stage far from the lobby seen through the panel's window. Studs, degrees, seconds, pixels.
 Config.UI.CuePreview = {

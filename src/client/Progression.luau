@@ -374,6 +374,9 @@ function Progression.start(screen: ScreenGui, hooks: Hooks)
 	halloween("CandyToast", function() -- its Candy chips and cue cards
 		require(script.Parent.Halloween.CandyToast).new(screen, deps)
 	end)
+	halloween("CandyFlyer", function() -- each pot's Candy flying into the Candy pill
+		require(script.Parent.Halloween.CandyFlyer).start(screen, deps, hooks.pocketToScreen)
+	end)
 	halloween("Countdown", function() -- 18:30-19:00 and the start
 		require(script.Parent.Halloween.Countdown).new(screen)
 	end)
