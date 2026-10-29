@@ -28,6 +28,10 @@ From PLAN §4 (everything else is read-only; ask below under Requests):
 - Tests: `tests/halloween_*_test.luau`, additions to `save_schema_test` and `config_test`.
 
 ## Status
+- 21:10 hw-core: **READY @HEAD** 898fb187: Art.PitchforkCue = rbxassetid://108749630308384, hw-map's card after Justin's "skinnier" pass. It replaces 109608018268838 and is the Thumb in hw-map 0136f90b's skin row.
+  - Lint OK, 1,477 tests.
+  - Studio: the 500 node shows the new card, loaded; console clean.
+  - Look note (not changed): the slimmer fork is a thin red line at the track's card size, faint on the dark tile. A pop pass like cues-a's tools/thumb_pop.py would help; that's hw-map's call.
 - 21:02 hw-core: **the whole track checked end to end with every skin in** (halloween c911297c + my a45d8c6e; hw-core now = halloween 0f6bae83).
   - Lint OK, 1,477 tests; a regen of the skin data is clean.
   - Studio: 7,100 Candy grants all 11 steps, the Pitchfork's 4 and the Sword's 11 included (no longer held).
