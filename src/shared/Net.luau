@@ -444,7 +444,7 @@ local REMOTES: { [string]: string } = {
 	EmoteState = "RemoteEvent",
 	-- The Halloween event (hw-core; src/server/Halloween/CandyService.luau, client
 	-- Halloween/State). server -> one player: { view = { candy (the balance), earned, bought,
-	-- spent, open, boards, hooks, seen, kingReadyAt, converted,
+	-- spent, open, today (the board that takes progress), boards, hooks, seen, kingReadyAt, converted,
 	-- convertedMoney, endSeen, owned, on = { quests, packs, cues } } } (at most one every
 	-- Config.Halloween.PushSeconds, at once after a buy), or a moment: { toast = { candy, source,
 	-- x2 } } (Candy landed), { king = {...} } (a timed King win), { bought = {

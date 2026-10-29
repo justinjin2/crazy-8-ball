@@ -3464,7 +3464,7 @@ end
 --- CandyService's context for a Halloween mutation.
 export type HwCtx = {
 	now: number, -- Halloween/Clock.serverNow()
-	open: number, -- Event.boardIndex(now): the newest open quest board
+	open: number, -- Event.boardIndex(now): today's quest board, the only one that takes progress
 	hooks: Quests.Hooks,
 }
 
@@ -3520,7 +3520,7 @@ local function hwMutate(
 	return result
 end
 
--- Counts quest events (`{ { kind, amount } }`) on the open boards (Live only).
+-- Counts quest events (`{ { kind, amount } }`) on today's board (Live only).
 local function hwRoute(
 	hw: any,
 	ctx: HwCtx,
@@ -3765,6 +3765,36 @@ function PlayerData.hwBuyCue(player: Player, cueId: string, ctx: HwCtx): (boolea
 		return false, "Busy"
 	end
 	return ok, reason
+end
+
+--- Pays the finished, unclaimed quests of the boards before today's (Quests.pastDue: a newer
+--- board opened; Live only) into Earned, flat, marked claimed, in one commit. (the Candy paid,
+--- the quests paid, the result); 0 and nothing committed when none is due.
+function PlayerData.hwAutoClaim(player: Player, ctx: HwCtx): (number, { Quests.Quest }, HwResult?)
+	local data = peek(player)
+	local saved = if data ~= nil and type(data.Halloween) == "table" then data.Halloween else nil
+	if
+		saved == nil
+		or not HwEvent.isLive(ctx.now)
+		or type(saved.Q) ~= "table"
+		or type(saved.Claimed) ~= "table"
+		or #Quests.pastDue(saved.Q, saved.Claimed, ctx.open, ctx.hooks) == 0
+	then
+		return 0, {}, nil
+	end
+	local paid, quests = 0, {} :: { Quests.Quest }
+	local result = hwMutate("hwAutoClaim", player, function(_, hw, result)
+		for _, quest in Quests.pastDue(hw.Q, hw.Claimed, ctx.open, ctx.hooks) do
+			hw.Claimed[quest.key] = true
+			paid += HwLedger.addCandy(hw, quest.reward, "Earned")
+			table.insert(quests, quest)
+		end
+		result.candy = paid
+	end)
+	if result == nil then
+		return 0, {}, nil
+	end
+	return paid, quests, result
 end
 
 --- Sets one of the save's Halloween marks ("Seen": the menu was opened; "EndSeen": the end

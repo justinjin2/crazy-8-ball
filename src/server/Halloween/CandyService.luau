@@ -179,6 +179,7 @@ local function viewOf(player: Player, hw: any): any
 		bought = hw.Bought,
 		spent = hw.Spent or 0,
 		open = ctx.open,
+		today = ctx.open, -- the only board that takes progress (older ones are paid by themselves)
 		boards = boards,
 		hooks = ctx.hooks,
 		seen = hw.Seen,
@@ -618,8 +619,29 @@ local function commitActive(player: Player, ctx: PlayerData.HwCtx)
 end
 -- Active seconds waiting for the player's first real match today (Ledger.gateActive).
 local heldActive: { [Player]: number } = setmetatable({}, { __mode = "k" }) :: any
+-- The board each player's older boards were last paid up to (autoClaim): checked once a board.
+local autoBoard: { [Player]: number } = setmetatable({}, { __mode = "k" }) :: any
 
--- The tick for one player: held grants (a cue that became ready) and the end's conversion.
+-- A newer board is open: the older boards' finished quests nobody claimed are paid (Candy into
+-- Earned, the usual chip), once a board a player. HwQuest's b is "Auto" for them.
+local function autoClaim(player: Player, ctx: PlayerData.HwCtx)
+	if autoBoard[player] == ctx.open or not PlayerData.isLoaded(player) then
+		return
+	end
+	autoBoard[player] = ctx.open
+	local paid, quests, result = PlayerData.hwAutoClaim(player, ctx)
+	if paid <= 0 then
+		return
+	end
+	for _, quest in quests do
+		Funnel.event(player, "HwQuest", quest.board, quest.key, "Auto")
+	end
+	logCandy(player, paid, "Quest")
+	after(player, result, "Quest")
+end
+
+-- The tick for one player: the older boards' unclaimed quests, the active time and the end's
+-- conversion.
 local function tickPlayer(player: Player): any
 	local ctx = CandyService.ctx()
 	if Event.over(ctx.now) then
@@ -644,6 +666,9 @@ local function tickPlayer(player: Player): any
 	then
 		buttonTried[player] = true
 		Funnel.once(player, "Halloween", "1_Button")
+	end
+	if Event.isLive(ctx.now) then
+		autoClaim(player, ctx)
 	end
 	-- The Active quests' clock: this tick's seconds while the player is active, held until they
 	-- have finished a real match today (Ledger.gateActive, C.ActiveGate).
@@ -828,11 +853,9 @@ function CandyService.dev(player: Player, args: { string }): { string }
 	elseif verb == "quest" then
 		local ctx = CandyService.ctx()
 		local needs: { [string]: number } = {}
-		for n = 1, ctx.open do
-			local list: { Quests.Quest } = Quests.board(n, ctx.hooks) or {}
-			for _, quest in list do
-				needs[quest.kind] = (needs[quest.kind] or 0) + quest.need
-			end
+		local list: { Quests.Quest } = Quests.board(ctx.open, ctx.hooks) or {}
+		for _, quest in list do
+			needs[quest.kind] = (needs[quest.kind] or 0) + quest.need
 		end
 		local events = {}
 		for kind, need in needs do

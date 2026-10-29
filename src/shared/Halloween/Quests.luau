@@ -1,14 +1,14 @@
 --!strict
 -- Quests: the Halloween event's daily quest boards (Config.Halloween.Quests). Pure.
 --
--- Board N opens with Event.boardOpensAt(N); older boards stay open. A quest's progress is the
--- save's Q["<board>.<slot>"]; a finished quest is claimed once (Claimed) for Rewards[slot] Candy.
+-- Board N opens with Event.boardOpensAt(N). A quest's progress is the save's
+-- Q["<board>.<slot>"]; a finished quest is claimed once (Claimed) for Rewards[slot] Candy.
 --
--- Routing (hw-core's reading of PLAN's "in order, oldest unfinished first"): every event counts
--- once, toward the oldest open board whose quest of that kind is unfinished; an amount (balls,
--- seconds) fills that quest and the rest flows on to the next open quest of the same kind. So a
--- late joiner cannot clear several boards with one win, and a hard quest (the King) never
--- blocks the other quests of later boards.
+-- Today's board only (designer, 2026-10-29): every event counts once, on today's board (the
+-- newest open one, Event.boardIndex), toward its first unfinished quest of that kind; an amount
+-- (balls, seconds) fills that quest and the rest flows on to the board's next quest of the same
+-- kind. An older board never moves again, so once a newer board opens its finished, unclaimed
+-- quests are paid by themselves (pastDue).
 --
 -- Hooks: a quest whose hook is off is replaced by its Alt (the King or the lobby pickups
 -- switched off in Config.HalloweenMap, or no ability signal from UltService).
@@ -107,11 +107,12 @@ function Quests.done(q: { [string]: number }, quest: Quest): boolean
 	return Quests.progress(q, quest) >= quest.need
 end
 
--- Counts `amount` of `kind` in `q` (the save's Q, changed in place) across boards 1..`open`:
--- the oldest unfinished quest of that kind first, the rest flowing on. Returns what changed.
+-- Counts `amount` of `kind` in `q` (the save's Q, changed in place) on board `today` only (none
+-- before the first board or past the last): its first unfinished quest of that kind, the rest
+-- flowing on to the next. Returns what changed.
 function Quests.route(
 	q: { [string]: number },
-	open: number,
+	today: number,
 	hooks: Hooks,
 	kind: string,
 	amount: number
@@ -121,24 +122,22 @@ function Quests.route(
 	if left <= 0 then
 		return changed
 	end
-	for n = 1, math.min(open, Quests.count()) do
-		local list: { Quest } = Quests.board(n, hooks) or {}
-		for _, quest in list do
-			if left <= 0 then
-				return changed
-			end
-			if quest.kind == kind then
-				local have = Quests.progress(q, quest)
-				if have < quest.need then
-					local add = math.min(quest.need - have, left)
-					q[quest.key] = have + add
-					left -= add
-					table.insert(changed, {
-						key = quest.key,
-						added = add,
-						done = have + add >= quest.need,
-					})
-				end
+	local list: { Quest } = Quests.board(today, hooks) or {}
+	for _, quest in list do
+		if left <= 0 then
+			return changed
+		end
+		if quest.kind == kind then
+			local have = Quests.progress(q, quest)
+			if have < quest.need then
+				local add = math.min(quest.need - have, left)
+				q[quest.key] = have + add
+				left -= add
+				table.insert(changed, {
+					key = quest.key,
+					added = add,
+					done = have + add >= quest.need,
+				})
 			end
 		end
 	end
@@ -177,6 +176,18 @@ function Quests.claimable(
 		end
 	end
 	return list
+end
+
+-- The quests of the boards before `today` that were finished and never claimed: paid by
+-- themselves once a newer board opens (PlayerData.hwAutoClaim; they can never move again), by
+-- the end's rule (endClaimable).
+function Quests.pastDue(
+	q: { [string]: number },
+	claimed: { [string]: boolean },
+	today: number,
+	hooks: Hooks
+): { Quest }
+	return Quests.endClaimable(q, claimed, today - 1, hooks)
 end
 
 -- The end's claim (PlayerData.hwConvert): `claimable` with the hooks now, and also what was
