@@ -240,13 +240,15 @@ end
 
 local lastActivePush: { [Player]: number } = setmetatable({}, { __mode = "k" }) :: any
 
--- The Halloween funnel (Funnel.once; Steps.Funnels.Halloween): the Candy of each track cue.
+-- The Halloween funnel (Funnel.once; Steps.Funnels.Halloween): the Candy of each track cue,
+-- named by slot from step 4 ("4_Cue500"; tests/halloween_track_test.luau keeps Steps' names
+-- the same).
 local FUNNEL_CUES: { { at: number, name: string } } = {}
 do
-	local names = { "4_Cue150", "5_Cue500", "6_Cue2000", "7_Cue7000" }
 	for _, step in C.Track.Steps do
-		if step.Cue ~= nil and #FUNNEL_CUES < #names then
-			table.insert(FUNNEL_CUES, { at = step.At, name = names[#FUNNEL_CUES + 1] })
+		if step.Cue ~= nil then
+			local name = ("%d_Cue%d"):format(#FUNNEL_CUES + 4, step.At)
+			table.insert(FUNNEL_CUES, { at = step.At, name = name })
 		end
 	end
 end

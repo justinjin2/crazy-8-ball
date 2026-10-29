@@ -255,10 +255,10 @@ local CUES: { Cue } = {
 	}),
 	-- Halloween 2026 (Exclusive; the track and the playtime cue, PLAN §2 and §3). The ids
 	-- CandyCue (the Candy Cane invite cue) and PhantomCue are taken: never reused.
-	eventCue("JackOLanternCue", "Legendary"), -- track 150
-	eventCue("PitchforkCue", "Legendary"), -- track 500 (the designer's slot-2 pick)
+	eventCue("JackOLanternCue", "Legendary"), -- the Pumpkin King's drop (Halloween.KingDrop)
+	eventCue("PitchforkCue", "Legendary"), -- track 500
 	eventCue("WitchBroomCue", "Secret"), -- track 2,000
-	eventCue("SpiderCue", "Mythic"), -- 3 h 01 m of active event play
+	eventCue("SpiderCue", "Mythic"), -- track 4,500 (was 3 h 01 m of active play)
 	eventCue("HalloweenSwordCue", "Secret"), -- track 7,000, the top prize (tier: designer's call)
 }
 

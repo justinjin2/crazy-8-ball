@@ -9,20 +9,20 @@ local function load()
 end
 
 return {
-	["eleven steps, ascending, the cues where the designer put them (2026-10-28)"] = function()
+	["eleven steps, ascending, the cues where the designer put them (2026-10-29)"] = function()
 		local Track = load()
 		local steps = Track.steps()
 		H.expect(#steps == 11, "eleven")
 		local want = {
 			{ 50, "Spins", 1 },
-			{ 150, "Cue", "JackOLanternCue" },
+			{ 150, "Spins", 2 },
 			{ 300, "Money", 2500 },
 			{ 500, "Cue", "PitchforkCue" },
 			{ 1000, "Spins", 2 },
 			{ 1500, "Money", 5000 },
 			{ 2000, "Cue", "WitchBroomCue" },
 			{ 3000, "Spins", 3 },
-			{ 4500, "Money", 10000 },
+			{ 4500, "Cue", "SpiderCue" },
 			{ 5500, "Spins", 5 },
 			{ 7000, "Cue", "HalloweenSwordCue" },
 		}
@@ -30,6 +30,24 @@ return {
 			local step: any = steps[i]
 			H.expect(step.At == w[1], "At " .. i)
 			H.expect(Track.kind(step) == w[2] and step[w[2]] == w[3], "prize " .. i)
+		end
+	end,
+
+	["the Halloween funnel names each track cue's slot from step 4 (CandyService's rule)"] = function()
+		local Track = load()
+		local names = H.require("Tutorial.Steps").Funnels.Halloween
+		local want = { "1_Button", "2_Opened", "3_FirstCandy" }
+		for _, step in Track.steps() do
+			if step.Cue ~= nil then
+				table.insert(want, ("%d_Cue%d"):format(#want + 1, step.At))
+			end
+		end
+		H.expect(#names == #want, ("%d steps, expected %d"):format(#names, #want))
+		for i, name in want do
+			H.expect(
+				names[i] == name,
+				("step %d is %s, expected %s"):format(i, tostring(names[i]), name)
+			)
 		end
 	end,
 
