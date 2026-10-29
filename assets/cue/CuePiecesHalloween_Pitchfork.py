@@ -10,7 +10,8 @@ body passes before it exports. Modelled in the cue's Blender frame: X the side, 
                  flat barbed arrowhead whose point IS the cue's tip (d 0, nothing past it), is
                  part of the body and never fades; a bevelled gold yoke and the two outer prongs
                  (their points set back 0.32, 0.445 off the axis across the barbs) ride the Tines
-                 joint and fade on the owner's own screen while aiming. Laid flat (face up), so
+                 joint, which stays solid while aiming and shooting too (the designer
+                 2026-10-29: the outer prongs no longer fade). Laid flat (face up), so
                  nothing reaches the cloth on a max-draw stroke. Behind the yoke the glossy
                  candy-apple red shaft starts with a gold ferrule, slim (0.82 of the shared cue's
                  width: the designer found the first two "too wide"); a low collar (gold, black,
@@ -83,8 +84,8 @@ ROUGHNESS = {'Red': 0.22, 'Black': 0.26, 'Gold': 0.34, 'Cream': 0.5}
 SLIM = 0.82
 # The fork at the tip (2026-10-29) adds three, for this body only: up to WideX studs from the tip
 # the sideways width is free (the barbs, the outer prongs), and in the bridge hand zone only the
-# Body's up/down thickness and centreline are held to the hand rule (the fading Tines may
-# overlap the hand on other players' screens, as the Sword's blade does); and the first 0.3 studs
+# Body's up/down thickness and centreline are held to the hand rule (the Tines' outer prongs
+# sit 0.31-0.445 off the axis, either side of the bridge hand, as the Sword's blade does); and the first 0.3 studs
 # may be TipAcross wide (the middle arrowhead, flat; the ball curves away from it, so it never
 # meets the ball, while 0.12 would cut the arrowhead to a stub).
 A.BODY_EXCEPTIONS['pitchfork'] = {'Slim': SLIM, 'WideX': 1.5, 'BridgeCore': ('Body',), 'TipAcross': 0.25}
@@ -383,9 +384,9 @@ def pitchfork(k):
     _finish(bm)
     k.add('TailTip', k.mesh_object('TailTip', bm, ['Pitchfork']))
 
-    # --- the yoke and the outer prongs at the tip: they fade on the owner's screen while aiming ----
-    # (the middle prong is the body's: the owner aims a cue that still ends on its point)
-    k.joint('Tines', pivot=(0.0, -FORK_FROM, 0.0), aim='fade')
+    # --- the yoke and the outer prongs at the tip: a plain joint, solid while aiming -------------
+    # (the designer 2026-10-29: no more fading; the middle prong is the body's and the cue's tip)
+    k.joint('Tines', pivot=(0.0, -FORK_FROM, 0.0))
     bm = bmesh.new()
     uvl = bm.loops.layers.uv.new('UVMap')
     # the gold yoke, an oval boss round the middle prong in front of the ferrule

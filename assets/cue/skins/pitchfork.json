@@ -3,7 +3,7 @@
   "name": "Pitchfork Cue",
   "tier": "Legendary",
   "catalog_id": "PitchforkCue",
-  "note": "Halloween 2026 track cue, 500 Candy (the designer's slot-2 pick, coordinator 2026-10-28 19:40; concept mocks/v3/R2.png). Only ever \"Pitchfork Cue\", never \"devil\". Built by lane hw-map (assets/cue/CuePiecesHalloween_Pitchfork.py); core owns its Catalog, Track, Strings and Art rows. Remade 2026-10-29 (the designer): a compact fork at the TIP, about half as wide, flat, the middle prong is the tip; the outer prongs fade while aiming, the flames on their points.",
+  "note": "Halloween 2026 track cue, 500 Candy (the designer's slot-2 pick, coordinator 2026-10-28 19:40; concept mocks/v3/R2.png). Only ever \"Pitchfork Cue\", never \"devil\". Built by lane hw-map (assets/cue/CuePiecesHalloween_Pitchfork.py); core owns its Catalog, Track, Strings and Art rows. Remade 2026-10-29 (the designer): a compact fork at the TIP, about half as wide, flat, the middle prong is the tip; the flames on the outer prongs' points. Since 2026-10-29 (v3) the outer prongs stay solid while aiming and shooting, and their flames burn small and steady.",
   "body": "pitchfork",
   "maps_from": "classic",
   "thumb_margin": 1.8,
@@ -20,10 +20,10 @@
   "vfx": {
     "Moving": {
       "Kind": "Body motion",
-      "Note": "The tail's arrowhead tip sways; small painted flames flicker on the two outer prongs' points (the fork is at the tip since 2026-10-29); a few sparks rise off the fork. No light (a coloured light dyes the body by day)."
+      "Note": "The tail's arrowhead tip sways; two small painted flames burn steadily on the two outer prongs' points (the fork is at the tip since 2026-10-29; v3: smaller, slower, a smooth overlapping pulse instead of a blink); a few sparks rise off the fork. No light (a coloured light dyes the body by day)."
     },
     "Aura": {
-      "Note": "Opaque painted flames (red, orange only at the tongues' tips) at the two outer arrowheads' points, set back 0.32 from the tip (none on the middle point: it is the cue's tip and meets the ball), and sparks off the fork: no additive mush on the bright floor (coordinator 19:40). They name the fork's Tines joint; the whole aura goes quiet on the owner's turn, when the outer prongs fade.",
+      "Note": "Opaque painted flames (red, orange only at the tongues' tips) at the two outer arrowheads' points, set back 0.32 from the tip (none on the middle point: it is the cue's tip and meets the ball), and sparks off the fork: no additive mush on the bright floor (coordinator 19:40). v3 (designer 2026-10-29: the two pulsing flames looked choppy): each flame is about 8 overlapping particles locked to the prong's point, each living 1.0-1.25 s (the 16-frame flipbook at about 14 frames a second, was 32), fading in over its first 15% and out over its last 30%, 0.19 studs at most (was 0.32), so the flame reads as one small steady flame with a soft pulse, not a blink. The outer prongs (the Tines joint) no longer fade on the owner's screen, so the flames stay on solid points; the aura dims on a match turn by the tier's quiet share like every cue's. The lowest rung of the Halloween cues' effects ladder.",
       "BackRateScale": 0.5,
       "Outline": "#FF3B2F",
       "Orbiters": [],
@@ -42,51 +42,56 @@
             "Side": -0.31,
             "Joint": "Tines"
           },
-          "Rate": 8,
+          "LockedToPart": true,
+          "Rate": 7,
           "Lifetime": [
-            0.45,
-            0.6
+            1.0,
+            1.25
           ],
           "Speed": [
-            0.3,
-            0.6
+            0.04,
+            0.12
           ],
           "SpreadAngle": [
-            25,
-            25
+            8,
+            8
           ],
           "Acceleration": [
             0,
-            3.5,
+            0.35,
             0
           ],
-          "Drag": 0.5,
+          "Drag": 2.0,
           "Size": [
             [
               0,
-              0.18
+              0.1
             ],
             [
-              0.35,
-              0.32
+              0.3,
+              0.19
+            ],
+            [
+              0.7,
+              0.17
             ],
             [
               1,
-              0.1
+              0.08
             ]
           ],
           "Transparency": [
             [
               0,
-              0.2
+              1
             ],
             [
-              0.12,
-              0.0
+              0.15,
+              0.08
             ],
             [
-              0.75,
-              0.1
+              0.7,
+              0.12
             ],
             [
               1,
@@ -94,8 +99,12 @@
             ]
           ],
           "Rotation": [
-            -10,
-            10
+            -6,
+            6
+          ],
+          "RotSpeed": [
+            -8,
+            8
           ],
           "Color": [
             [
@@ -123,51 +132,56 @@
             "Side": 0.31,
             "Joint": "Tines"
           },
-          "Rate": 8,
+          "LockedToPart": true,
+          "Rate": 7,
           "Lifetime": [
-            0.45,
-            0.6
+            1.0,
+            1.25
           ],
           "Speed": [
-            0.3,
-            0.6
+            0.04,
+            0.12
           ],
           "SpreadAngle": [
-            25,
-            25
+            8,
+            8
           ],
           "Acceleration": [
             0,
-            3.5,
+            0.35,
             0
           ],
-          "Drag": 0.5,
+          "Drag": 2.0,
           "Size": [
             [
               0,
-              0.18
+              0.1
             ],
             [
-              0.35,
-              0.32
+              0.3,
+              0.19
+            ],
+            [
+              0.7,
+              0.17
             ],
             [
               1,
-              0.1
+              0.08
             ]
           ],
           "Transparency": [
             [
               0,
-              0.2
+              1
             ],
             [
-              0.12,
-              0.0
+              0.15,
+              0.08
             ],
             [
-              0.75,
-              0.1
+              0.7,
+              0.12
             ],
             [
               1,
@@ -175,8 +189,12 @@
             ]
           ],
           "Rotation": [
-            -10,
-            10
+            -6,
+            6
+          ],
+          "RotSpeed": [
+            -8,
+            8
           ],
           "Color": [
             [
@@ -752,14 +770,14 @@
       }
     },
     "Budget": {
-      "ParticlesPerSecond": 21,
-      "Back": 10.5,
+      "ParticlesPerSecond": 19,
+      "Back": 9.5,
       "Beams": 0,
       "Lights": 0,
       "Orbiters": 0,
       "BodyTriangles": 8960,
       "PocketPieceTriangles": 0,
-      "Note": "No decor or pocket piece: the body (3 parts, 8,960 triangles, one 256 x 1024 atlas: the lathe with the middle prong, the horns and the coil; the tail's swaying tip; the yoke and the outer prongs) carries the look; the aura 21/s (two tip flames and sparks); the trail 79/s while the ball moves (lifetimes halved by TrailEmitterLifetimeScale: about 20 flames alive, overlapping into a streak); the finisher bursts 96 particles once."
+      "Note": "No decor or pocket piece: the body (3 parts, 8,960 triangles, one 256 x 1024 atlas: the lathe with the middle prong, the horns and the coil; the tail's swaying tip; the yoke and the outer prongs, solid while aiming since v3) carries the look; the aura 19/s (two small steady tip flames, 7/s each with about 8 alive, and sparks 5/s; was 21/s with about 4 alive each); the trail 79/s while the ball moves (lifetimes halved by TrailEmitterLifetimeScale: about 20 flames alive, overlapping into a streak); the finisher bursts 96 particles once."
     }
   }
 }
