@@ -103,10 +103,24 @@ end
 
 -- Where a chip lands (absolute pixels) and the icon that thumps: the Candy pill's icon when it
 -- shows, else the HALLOWEEN tile, else nil.
+-- Whether `object` and everything over it show (each GuiObject visible, its ScreenGui on).
+local function onScreen(object: Instance): boolean
+	local at: Instance? = object
+	while at ~= nil do
+		if at:IsA("GuiObject") and not at.Visible then
+			return false
+		elseif at:IsA("ScreenGui") then
+			return at.Enabled
+		end
+		at = at.Parent
+	end
+	return false
+end
+
 local function targetOf(): (Vector2?, GuiObject?)
 	local p = pill()
 	local box = p and p.candyPill
-	if typeof(box) == "Instance" and box:IsA("GuiObject") and box.Visible then
+	if typeof(box) == "Instance" and box:IsA("GuiObject") and onScreen(box) then
 		local icon = p.candyPillIcon
 		local at: GuiObject = if typeof(icon) == "Instance"
 				and icon:IsA("GuiObject")
