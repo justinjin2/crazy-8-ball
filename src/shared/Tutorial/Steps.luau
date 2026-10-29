@@ -193,11 +193,11 @@ end
 ---------------------------------------------------------------------------------------------
 
 -- Each item the tutorial hides, and the step it shows from (Soft: when every icon pops in).
--- Rank and the money pill come with the Rank step (the claim's money flies to the pill).
+-- Rank comes with the Rank step. The money pill is never hidden (designer, 2026-10-29: "the
+-- money pill is gone in the tutorial"; it waited for Rank's claim, a step skipped since 10-12).
 Steps.Reveal = (
 	{
 		Rank = "Rank",
-		Money = "Rank",
 		Inventory = "Cues", -- the Cues menu's column tile
 		Abilities = "Abilities",
 		Shop = "Soft",

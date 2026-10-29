@@ -247,7 +247,11 @@ return {
 
 	["the guided part hides the menus and brings them back one by one"] = function()
 		local Steps = load()
-		for _, item in { "Rank", "Money", "Inventory", "Abilities", "Shop", "FreeReward", "Offer" } do
+		-- The money pill is never hidden (designer, 2026-10-29).
+		for _, step in { "Arrow", "Pad", "Game1", "Result", "Mystery", "Soft" } do
+			H.expect(Steps.shows(step, "Money"), "the money pill at " .. step)
+		end
+		for _, item in { "Rank", "Inventory", "Abilities", "Shop", "FreeReward", "Offer" } do
 			H.expect(not Steps.shows("Arrow", item) and not Steps.shows("Game1", item), item)
 			H.expect(not Steps.shows("Result", item), item .. " hidden after game 1")
 			H.expect(Steps.shows("Soft", item) and Steps.shows("Done", item), item .. " at the end")
