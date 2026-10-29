@@ -50,8 +50,8 @@ Keep the cost low: no multi-agent workflows unless a check really needs one.
    name the field.
 5. **HUD:** done. The Candy pill sits right above the money pill (`Config.UI.BoostPill.CandyPill`,
    Studio-checked on PC). Check it by hand on a phone, and check that tapping it opens the menu.
-6. **The Shop banner**: a small Halloween banner at the top of the Shop that opens the event
-   menu. There are no Halloween lucky blocks.
+6. **The Shop banner:** done (`Config.UI.Shop.HwBanner`, Studio-checked on PC). Check by hand
+   that tapping it opens the menu, and check it on a phone.
 7. **The Pitchfork model**: the fork must be the cue's TIP, the end that hits the ball
    (designer). Flip it in `src/shared/CueSkins/Skins/PitchforkCue.luau` and its pieces, then
    rebuild its template in Team Create (`tools/build_cue_templates.luau`, ONLY = PitchforkCue).
