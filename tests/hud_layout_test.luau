@@ -132,35 +132,65 @@ return {
 		end
 	end,
 
-	["a phone's lines sit right of the left column when they fit, else over the money pill"] = function()
+	["a phone's lines and Candy pill stack under the left column, right over the money pill"] = function()
 		local HudLayout = H.require("HudLayout")
 		local Config = H.require("Config")
 		local P = Config.UI.BoostPill
-		-- 844x332 with the WinTrack folded: room right of the column, so the column never moves.
+		local COLUMN = Config.UI.Menu.Column
+		-- Designer 2026-10-29: on a phone the boost lines and the Candy pill all fit underneath
+		-- the left column (ShortBesideColumn false), the column kept above them.
+		for _, phone in { { w = 844, h = 332 }, { w = 750, h = 311 } } do
+			for _, folded in { true, false } do
+				local s = {
+					moneyText = "$125,000",
+					blocks = 3,
+					winTrackOpen = not folded,
+					candy = true,
+					candyPill = true,
+				}
+				local others = HudLayout.others(phone, s)
+				local b = HudLayout.boost(phone, s, others)
+				local where = ("%dx%d folded=%s"):format(phone.w, phone.h, tostring(folded))
+				H.expect(
+					b.pill.x == others.money.x + P.LeftPx,
+					"at the left, over the money pill: " .. where
+				)
+				H.expect(
+					b.pill.y + b.pill.h == others.money.y - P.GapPx,
+					"right over the money pill: " .. where
+				)
+				local before = others.column :: any
+				local after = HudLayout.columnAfter(phone, s, others, b) :: any
+				H.expect(
+					after.y + after.h <= b.pill.y - COLUMN.AboveMoneyPx,
+					"the column above them: " .. where
+				)
+				-- They are small enough that the column hardly shrinks: never to its floor.
+				H.expect(
+					after.h / before.h > COLUMN.MinScale + 0.02,
+					"the column barely shrinks: " .. where
+				)
+			end
+		end
+		-- ShortBesideColumn true brings back the old place: right of the column when it fits.
+		P.ShortBesideColumn = true
 		local wide = { w = 844, h = 332 }
-		local s = { moneyText = "$125,000", blocks = 3, winTrackOpen = false }
-		local others = HudLayout.others(wide, s)
-		local b = HudLayout.boost(wide, s, others)
-		local column = others.column :: any
-		H.expect(b.pill.x >= column.x + column.w + P.ColumnGapPx, "right of the column")
-		H.expect(b.pill.y + b.pill.h == others.money.y - P.GapPx, "right over the money pill")
-		local after = HudLayout.columnAfter(wide, s, others, b) :: any
-		H.expect(after.y == column.y and after.h == column.h, "the column does not move for it")
-		-- 750x311 with the WinTrack open: no room there, so over the money pill, the column above.
-		local phone = { w = 750, h = 311 }
-		local sp =
-			{ moneyText = "$125,000", blocks = 3, candy = true, chipText = "CANDY RUSH 8:12" }
-		local op = HudLayout.others(phone, sp)
-		local bp = HudLayout.boost(phone, sp, op)
-		H.expect(bp.pill.x == op.money.x + P.LeftPx, "over the money pill")
-		local afterp = HudLayout.columnAfter(phone, sp, op, bp) :: any
-		H.expect(afterp.y + afterp.h <= (bp.chip :: any).y, "the column keeps above the chip")
+		local sw = { moneyText = "$125,000", blocks = 3, winTrackOpen = false }
+		local ow = HudLayout.others(wide, sw)
+		local bw = HudLayout.boost(wide, sw, ow)
+		P.ShortBesideColumn = false
+		local column = ow.column :: any
+		H.expect(bw.pill.x >= column.x + column.w + P.ColumnGapPx, "beside: right of the column")
+		local afterw = HudLayout.columnAfter(wide, sw, ow, bw) :: any
+		H.expect(afterw.y == column.y and afterw.h == column.h, "beside: the column does not move")
 		-- A computer: over the money pill, one line, or two with Candy (Candy on top).
+		local s = { moneyText = "$125,000", blocks = 3, winTrackOpen = false }
 		local pc = { w = 1920, h = 1022 }
 		local o2 = HudLayout.others(pc, s)
 		local b2 = HudLayout.boost(pc, s, o2)
 		H.expect(b2.pill.x == o2.money.x + P.LeftPx, "LeftPx from the money HUD's left edge")
-		H.expect(b2.pill.h == P.LinePx and b.pill.h == P.ShortLinePx, "one line")
+		local bShort = HudLayout.boost(wide, s, HudLayout.others(wide, s))
+		H.expect(b2.pill.h == P.LinePx and bShort.pill.h == P.ShortLinePx, "one line")
 		local sc = { moneyText = "$125,000", blocks = 3, winTrackOpen = false, candy = true }
 		local bc = HudLayout.boost(pc, sc, HudLayout.others(pc, sc))
 		H.expect(bc.pill.h == 2 * P.LinePx and bc.lineH == P.LinePx, "two lines with Candy")
