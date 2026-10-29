@@ -1305,14 +1305,13 @@ return {
 			Vip = "VIP",
 			Group = "Group",
 			Plus = "Roblox Plus",
-			Friends = "Friends (%d)",
+			Friends = "Friends +%d%% each (%d)", -- shown at +0% too (designer, 2026-10-29)
 			Starter = "Starter Pack",
 			Party = "Money Party",
 		},
 		TimeLeft = "%s · %s left", -- a timed part and its time: "Starter Pack · 42m left"
 		Total = "Total",
 		None = "No boosts yet",
-		FriendRule = "Each friend in your server +%d%% (max %d)",
 		CandyToo = "Friends and Group boost Candy too",
 		Get = {
 			Group = "Join the group: +%d%%",

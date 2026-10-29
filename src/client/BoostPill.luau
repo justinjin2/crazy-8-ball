@@ -603,11 +603,28 @@ function BoostPill.cardLines(self: any): { any }
 	local at = workspace:GetServerTimeNow()
 	local lines: { any } = {}
 	local parts = Money.boostParts(flags)
+	-- The Friends row shows at +0% too, in its place before Starter and Party, so players see
+	-- a friend would raise it (designer, 2026-10-29; it replaced the grey friend rule).
+	if E.FriendBoostEnabled == true then
+		local slot = #parts + 1
+		for i = #parts, 1, -1 do
+			local kind = parts[i].kind
+			if kind == "Friends" then
+				slot = 0
+				break
+			elseif kind == "Starter" or kind == "Party" then
+				slot = i
+			end
+		end
+		if slot > 0 then
+			table.insert(parts, slot, { kind = "Friends", add = 0 })
+		end
+	end
 	for _, part in parts do
 		local words = PARTS[part.kind] or part.kind
 		if part.kind == "Friends" then
 			local n = if type(flags.friends) == "number" then math.floor(flags.friends) else 0
-			words = words:format(n)
+			words = words:format(math.floor(E.FriendBoost * 100 + 0.5), n)
 		end
 		local left = timeLeft(part.kind, at)
 		if left then
@@ -628,17 +645,10 @@ function BoostPill.cardLines(self: any): { any }
 	return lines
 end
 
--- The lines under the total: the friend rule (it also says how to get more), the Candy line,
--- the boosts still to get. fillCard drops them from the end when the card would not fit.
+-- The lines under the total: the Candy line, the boosts still to get. fillCard drops them from the end when the card would not fit.
 function BoostPill.footLines(self: any): { string }
 	local flags = self:flags()
 	local lines = {}
-	if E.FriendBoostEnabled == true then
-		table.insert(
-			lines,
-			COPY.FriendRule:format(math.floor(E.FriendBoost * 100 + 0.5), E.FriendBoostMaxFriends)
-		)
-	end
 	if EventModule and type(EventModule.isLive) == "function" then
 		local ok, live = pcall(EventModule.isLive, now())
 		if ok and live == true then
