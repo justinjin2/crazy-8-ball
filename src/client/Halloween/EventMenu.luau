@@ -447,8 +447,10 @@ function EventMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		draw()
 	end
 
-	-- PREVIEW: the Cue Preview on this cue's TRAIL (its trail and finisher on a loop); closing it
-	-- comes back to this menu unless another menu has taken over meanwhile.
+	-- PREVIEW: the Cue Preview on this cue's TRAIL (its trail and finisher on a loop). Opening it
+	-- closes this menu (one menu at a time); closing it comes back here on the same cue (a
+	-- controller's selection back on that card's PREVIEW once the panel has unrolled; every
+	-- card is in the first screen), unless another menu has taken over meanwhile.
 	local function openPreview(cueId: string)
 		local preview = previewModule()
 		if preview == nil or type(preview.open) ~= "function" then
@@ -460,9 +462,19 @@ function EventMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 			from = NAME,
 			tab = M.Preview.Tab,
 			onClose = function()
-				if Menus.current() == nil then
-					Menus.open(NAME)
+				if Menus.current() ~= nil or not Menus.open(NAME) then
+					return
 				end
+				task.delay(Config.UI.Halloween.Open.OpenSeconds, function()
+					if not frame:isOpen() or not PadMode.active() then
+						return
+					end
+					for _, card in cards do
+						if card.cue == cueId and card.preview.Visible then
+							GuiService.SelectedObject = card.preview
+						end
+					end
+				end)
 			end,
 		})
 		if not ok then
