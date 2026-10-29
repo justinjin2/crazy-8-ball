@@ -31,7 +31,8 @@ On a phone, a PC and a controller where you can:
    with its trail, then the finisher in the pocket. Closing it comes back to the Halloween menu. Studio shows the
    Robux prices about 20% lower (40/200/320/480): that is Roblox's own regional price for your
    account; the products on Roblox are 49/249/399/599 (checked 13:50).
-5. **Buy the Pitchfork with Candy** (play for it, or `/hw candy 300` on your account). The balance
+5. **Buy the Pitchfork with Candy** (play for it, `/hw candy 300`, or the ADMIN panel's Give
+   Candy; `/hw candy 300 <name>` or the panel gives any player in the server). The balance
    drops by 300 and the cue is yours (My Cues, with the 2026 badge). A Robux button opens the
    Roblox prompt (cancel it unless you want to test a real buy).
 6. **No Pumpkin King**: no throne, timer, banners, sign or cutscene anywhere.

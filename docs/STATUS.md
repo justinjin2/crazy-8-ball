@@ -43,8 +43,13 @@ entry of `docs/archive/STATUS_HISTORY.md`.
   - Sweep fixes: the boost lines and the Candy pill show at the soft part (they waited for
     Done); the money pill's "+" hides in the guided tutorial; the Sky banner waits for the soft
     part again.
-  - Verified: lint and 1,567 tests. The Studio check of v6 waits on the Rojo reconnect (Studio
-    reopened at ~19:45 and its Rojo plugin is not connected to port 34872).
+  - The owner panel's **Give Candy** row and `/hw candy <n> <player>` (Painicane only).
+  - Verified (20:00-20:06, Studio, a fresh save): Arrow -> Soft turns Halloween on and starts
+    the personal 2x ("CANDY RUSH 9:50"); the Candy pill, Candy Boost line and HALLOWEEN button
+    show at Soft; Give Candy +400 and `/hw candy 50 pain` +50; the Pitchfork bought for 300
+    Candy (owned); the 300 and 1,200 Candy packs through the real receipt handler, a replayed
+    receipt paying nothing; board 2's four quests claimed (+560), a second claim paying
+    nothing. Console clean. Lint and 1,567 tests.
 - **In it from v3:**
   - No Pumpkin King.
   - Four cues for Candy or Robux: Pitchfork 300 / 49 R$, Broom 2,500 / 249 R$, Jack 4,500 /
