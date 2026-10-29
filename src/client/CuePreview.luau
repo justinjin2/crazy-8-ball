@@ -1146,7 +1146,9 @@ local function layoutShowcase(s: Session, size: Vector2)
 		parts.title,
 		{ x = p.title.x + iconPx + gap, y = p.title.y, w = p.title.w - iconPx - gap, h = p.title.h }
 	)
-	s.flairRest = UDim2.fromOffset(P.x, math.floor(P.y + P.h * SC.FlairDownShare))
+	-- Its whole ball inside the panel: a phone's panel ends a few px over the screen's foot.
+	local flairY = math.min(P.y + P.h * SC.FlairDownShare, P.y + P.h - LV.FlairPx / 2)
+	s.flairRest = UDim2.fromOffset(P.x, math.floor(flairY))
 	if parts.flair then
 		parts.flair.Position = s.flairRest
 	end
@@ -1366,6 +1368,8 @@ local function buildGui(s: Session)
 	close.Name = "Close"
 	close.ZIndex = 4
 	HudParts.padBack(close)
+	-- A phone's header makes it 28 px: its touch area is the house minimum all the same.
+	HudParts.setMinHit(close, C.MinHitPx)
 	parts.close = close
 	-- The window: only a rounded ink border; the stage shows through.
 	local window = HudParts.frame(content, "Window")
