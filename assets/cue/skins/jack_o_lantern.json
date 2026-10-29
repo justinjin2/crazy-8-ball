@@ -8,13 +8,15 @@
   "body": "jack_o_lantern",
   "maps_from": "classic",
   "thumb_grow": {
-    "at": 6.2,
+    "at": 6.17,
     "toward": "butt",
-    "scale": 1.5,
-    "blend": 0.4,
-    "roll": -12
+    "scale": 1.2,
+    "blend": 0.3,
+    "roll": -12,
+    "true_shape": true
   },
-  "thumb_fit": 16,
+  "thumb_shift": 0.85,
+  "thumb_margin": 2.61,
   "look": {
     "Shaft": "#FF7A1C",
     "Forearm": "#FF7A1C",
