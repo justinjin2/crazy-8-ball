@@ -9454,7 +9454,11 @@ Config.HalloweenMap = {
 		Enabled = true, -- off: no sign (the drop itself is hw-core's switch)
 		SizeStuds = { 7, 2.6 }, -- grows as you walk up...
 		MinPx = { 110, 40 }, -- ...plus this many px, so it stays readable far away on a phone
-		AboveHeadStuds = 7, -- over his head, above his name (KingName sits at 3.4)
+		-- Above his name at every distance (hw-gui QA 2026-10-29: the name's fixed 44 px covered
+		-- the cue line from 75 studs): the sign's bottom edge sits on the name's centre
+		-- (SizeOffset), its card GapPx above the name's top, in px, so the gap never closes.
+		GapPx = 8,
+		NameFallback = { Studs = 3.4, HalfPx = 22 }, -- KingLook's KingName, if it is not found
 		MaxDistance = 140, -- studs: not drawn past this
 		Card = { 48, 20, 78 }, -- the panel (the event's purple), shaded darker downward
 		Shade = { 150, 140, 165 }, -- the panel's gradient at its bottom (white at the top)
