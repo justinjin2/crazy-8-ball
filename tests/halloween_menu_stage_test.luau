@@ -27,5 +27,27 @@ return {
 			)
 		end
 		H.expect(count > 0, "found the menu's stage:add calls")
+		-- Every stage:add names its id literally, so this test sees all of them (a built id such
+		-- as "HwCard" .. i would slip past it).
+		local calls = 0
+		for _ in source:gmatch("stage:add%(") do
+			calls += 1
+		end
+		H.expect(calls == count, ("%d stage:add calls, %d with a literal id"):format(calls, count))
+	end,
+
+	["the open schedule names only pieces the menu registers"] = function()
+		local Config = H.require("Config")
+		local source = fs.readFile("src/client/Halloween/EventMenu.luau")
+		local frameIds = { Panel = true, Header = true, Basket = true, Title = true, Close = true }
+		frameIds.Flair = true
+		for _, step in Config.UI.Halloween.Open.Steps do
+			for _, id in step.Ids do
+				H.expect(
+					frameIds[id] == true or source:find('stage:add("' .. id .. '"', 1, true) ~= nil,
+					id .. " is in the schedule but the menu never registers it"
+				)
+			end
+		end
 	end,
 }

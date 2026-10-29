@@ -17445,53 +17445,130 @@ Config.UI.Halloween = {
 		Icon = "rbxassetid://109690179795075", -- the pumpkin with candy (256 px); "" = the Candy icon
 		GlowTint = { 255, 140, 30 }, -- the pumpkin's soft glow behind it
 	},
-	-- The event menu (Halloween/EventMenu): the lively frame round the Candy pill, the track,
-	-- the quest board, the Spider panel and Get Candy, with the Rush strip pinned at its foot. A
-	-- computer shows the quests and the Spider side by side; a phone one scrolling column.
+	-- The event menu (Halloween/EventMenu; mock A, ~/Desktop/8ball-refs/halloween/mocks/v4/A.png,
+	-- designer 2026-10-29): the lively frame with the Candy and ENDS IN pills in its header,
+	-- four pink UNIQUE cue cards (the Inventory's Unique look, Config.UI.CueCard.Looks.Unique),
+	-- TODAY'S QUESTS and GET CANDY. Everything is placed in Layout's units (HwMenuMath): a
+	-- computer or a tablet shows it all, scaled to fit the panel; a phone shows the cue row whole
+	-- with the quests' header peeking, and the rest scrolls. At most Lively.MaxWidthShare wide.
 	Menu = {
-		WidthShare = 0.72, -- of a computer's screen (the track's 11 nodes need the room)
-		PhoneWidthShare = 0.94,
-		PadPx = 12,
-		GapPx = 10,
-		TextPx = 18, -- body text (a phone's: ShortTextPx)
-		ShortTextPx = 14,
-		HeadPx = 22, -- section titles
-		ShortHeadPx = 17,
-		PillPx = 36, -- the Candy pill and the ends pill
-		ShortPillPx = 30,
-		-- The track: nodes evenly spaced on a bar filled by share between them; on a phone each
-		-- node at least NodeMinPx wide, scrolling sideways.
-		NodePx = 84, -- a node's card (a computer)
-		ShortNodePx = 70,
-		NodeMinPx = 78, -- a phone's slot at least this wide
-		NodeGapPx = 4, -- between two cards at least
-		NodeLabelMinPx = 8, -- a card's name shrinks down to this to fit ("Jack-o'-Lantern")
-		GrandScale = 1.25, -- the Witch's Broom's card
-		BarPx = 12,
-		ShortBarPx = 9,
-		TrackColor = { 255, 140, 30 }, -- the bar's fill
-		BarBack = { 60, 40, 90 },
-		CardTint = { 70, 40, 110 }, -- a cue node's card (night purple)
-		GiftTint = { 255, 255, 255 },
-		GivenTint = { 255, 207, 64 }, -- a reached node's gold frame
-		-- The quest board: four rows, each this tall.
-		RowPx = 46,
-		ShortRowPx = 40,
-		TabPx = 30,
-		ShortTabPx = 26,
-		QuestShare = 0.6, -- of a computer's width (the Spider and Get Candy take the rest)
-		-- The Rush strip at the foot.
-		StripPx = 40,
-		ShortStripPx = 32,
-		StripTint = { 46, 20, 82 },
-		RushTint = { 255, 140, 30 },
-		SpiderTint = { 46, 20, 82 },
-		HeadTint = { 255, 140, 30 }, -- the section titles' orange
+		-- The header's Candy and ENDS IN pills (between the title and the X).
+		PillOfHeader = 0.8, -- their height, of the header row's
+		PillTextShare = 0.62, -- their words, of the pill's height
+		PillPadPx = 8, -- inside their ends
+		PillIconShare = 1.15, -- the Candy pill's candy, of the pill's height (it pokes out a little)
+		CandyPillTint = { 252, 133, 22 }, -- the Candy pill's orange (mock A)
+		-- The Candy buttons' orange (the Kit has no orange tone): top, middle, lip (mock A).
+		CandyButton = { Top = { 255, 196, 92 }, Mid = { 250, 140, 22 }, Lip = { 206, 98, 0 } },
+		ConfirmSeconds = 3, -- a Candy button says BUY? this long after the first press
+		WaitSeconds = 6, -- after the second press it waits at most this long for the server's answer
+		ShineEvery = 3.2, -- each Robux button shines this often...
+		ShineStaggerSeconds = 0.35, -- ...each a little after the one before
+		-- The hero card's soft glow (mock A: the Sword's purple aura), pulsing.
+		GlowCue = "HalloweenSwordCue",
+		GlowTint = { 170, 80, 255 },
+		GlowLow = 0, -- its transparency at its strongest...
+		GlowHigh = 0.45, -- ...and at its faintest
+		GlowSeconds = 2.4, -- one breath
+		-- The Jack-o'-Lantern ribbon's crowned pumpkin breathes (scale).
+		BreatheScale = 1.08,
+		BreatheSeconds = 1.6,
+		LowerSlower = 2, -- Lower effects: the loops this many times slower, the breathe half as deep
 		ClaimBounceSeconds = 1.2, -- a waiting CLAIM bounces this often
-		MaxHeightShare = 0.86, -- of the screen's height at most
+		-- The PUMPKIN KING DROP ribbon: its fill top to bottom, gold rim and words (mock A).
+		RibbonFill = { { 98, 46, 16 }, { 52, 29, 15 }, { 115, 37, 7 } },
+		RibbonRim = { 255, 196, 64 },
+		RibbonText = { 255, 214, 77 },
+		RowTint = { 243, 240, 254 }, -- a quest row's lilac-white
+		BarBack = { 214, 201, 230 }, -- its bar's track
+		BarFill = { 255, 140, 30 }, -- and fill
+		TileTint = { 236, 246, 254 }, -- a Candy pack's pale blue tile
+		AmountTint = { 255, 244, 214 }, -- a pack's Candy count (cream, ink outline)
+		PackArtShare = { 0.72, 1 }, -- each pack's candy pile, of its picture box (the small pack smaller)
+		-- The units (mock A's pixels, about): x positions and widths scale by kx, heights and text
+		-- by k (HwMenuMath.plan); text never under MinTextPx.
+		Layout = {
+			WidthUnits = 1180, -- the content's width
+			MinTextPx = 12, -- no text smaller (a phone)
+			PeekPx = 30, -- a phone: this much of the quests box shows under the cue row
+			MaxStretch = 1.15, -- a computer: widths may grow up to this much more than heights
+			MinWholeScale = 0.45, -- a computer: under this k the menu scrolls instead of shrinking
+			CardGapUnits = 20, -- between two cue cards
+			CornerUnits = 22, -- a card's and a box's round corners
+			EdgeUnits = 5, -- a card's pink edge
+			InnerUnits = 2, -- the white line inside it
+			CardPadUnits = 10, -- a card's buttons and pills from its sides
+			GlowUnits = 26, -- the hero card's glow reaches this far past its edge
+			-- A cue card top to bottom (Top = where it starts, Units = how tall; Text = its words).
+			Card = {
+				ArtTopUnits = 8,
+				ArtUnits = 220,
+				NameTopUnits = 218, -- the name overlaps the picture's foot a little (mock A)
+				NameUnits = 30,
+				NameTextUnits = 26,
+				TagTopUnits = 254, -- the UNIQUE pill
+				TagUnits = 38,
+				TagTextUnits = 24,
+				RobuxTopUnits = 300,
+				RobuxUnits = 66,
+				RobuxTextUnits = 36,
+				CandyTopUnits = 374,
+				CandyUnits = 52,
+				CandyTextUnits = 30,
+				RibbonTopUnits = 302, -- the Jack-o'-Lantern's ribbon instead of the buttons
+				RibbonUnits = 118,
+				RibbonTextUnits = 26,
+				HeightUnits = 436,
+			},
+			-- A phone's card: a smaller picture, taller buttons (a thumb's touch).
+			ShortCard = {
+				ArtTopUnits = 6,
+				ArtUnits = 184,
+				NameTopUnits = 184,
+				NameUnits = 32,
+				NameTextUnits = 28,
+				TagTopUnits = 218,
+				TagUnits = 40,
+				TagTextUnits = 28,
+				RobuxTopUnits = 264,
+				RobuxUnits = 90,
+				RobuxTextUnits = 42,
+				CandyTopUnits = 360,
+				CandyUnits = 74,
+				CandyTextUnits = 34,
+				RibbonTopUnits = 266,
+				RibbonUnits = 164,
+				RibbonTextUnits = 30,
+				HeightUnits = 440,
+			},
+			SectionGapUnits = 16, -- the cue row to the boxes under it
+			QuestsWidthUnits = 690, -- TODAY'S QUESTS (GET CANDY takes the rest)
+			BoxGapUnits = 14, -- between the two boxes
+			BoxPadUnits = 12, -- inside a box
+			BoxTitleUnits = 54, -- a box's title row
+			BoxTitleTextUnits = 38,
+			TimerTextUnits = 22, -- "New quests in 14:28"
+			RowUnits = 60, -- a quest row
+			RowGapUnits = 8,
+			RowIconUnits = 44,
+			RowTextUnits = 26,
+			RowBarUnits = 12,
+			RowCountTextUnits = 22,
+			ChipWidthUnits = 150, -- the Candy chip and CLAIM
+			ChipUnits = 46,
+			ChipTextUnits = 26,
+			TileGapUnits = 12, -- between the two pack tiles
+			TileArtUnits = 134, -- a pack's picture
+			TileAmountUnits = 40, -- its Candy count
+			TileAmountTextUnits = 34,
+			TileButtonUnits = 62, -- its Robux button
+			TileButtonTextUnits = 32,
+		},
 	},
-	-- Pictures (image ids; "" = the fallback named): the cue cards until the cue lanes' thumbnails
-	-- exist (the approved concept art), the gift boxes, the end screen's candy pile and cash.
+	-- Pictures (image ids; "" = the fallback named): the cue pictures of the King's sign and the
+	-- end screen (the event menu draws each cue's skin Thumb through CueThumb), the menu header's
+	-- jack-o'-lantern (also the ribbon's pumpkin), the candy pile (the end screen, the menu's
+	-- Candy packs) and cash.
 	Art = {
 		JackOLanternCue = "rbxassetid://114487013205177",
 		PitchforkCue = "rbxassetid://139633646140924", -- hw-map's card (its skin's Thumb; the skinnier fork, rim-popped)
@@ -17590,35 +17667,19 @@ Config.UI.Halloween = {
 		King = "Crown",
 		Clock = "Stopwatch",
 	},
-	-- The menu's open (the lively frame's schedule; Stage ids from EventMenu).
+	-- The menu's open (the lively frame's schedule; Stage ids from EventMenu, literal ids only:
+	-- tests/halloween_menu_stage_test).
 	Open = {
 		OpenSeconds = 0.9,
 		Steps = {
 			{ Ids = { "Panel" }, Kind = "Unroll", At = 0 },
 			{ Ids = { "Header" }, Kind = "Fade", At = 0.12, Length = 0.15 },
 			{ Ids = { "Basket", "Title", "Close" }, Kind = "Pop", At = 0.18 },
-			{ Ids = { "HwCandy", "HwKingDrop", "HwEnds" }, Kind = "Pop", At = 0.2 },
-			{ Ids = { "HwTrack" }, Kind = "Grow", At = 0.22 },
-			{
-				Ids = {
-					"HwNode1",
-					"HwNode2",
-					"HwNode3",
-					"HwNode4",
-					"HwNode5",
-					"HwNode6",
-					"HwNode7",
-					"HwNode8",
-					"HwNode9",
-					"HwNode10",
-				},
-				Kind = "Pop",
-				At = 0.26,
-				Stagger = 1.25,
-			},
-			{ Ids = { "HwNode11" }, Kind = "Pop", At = 0.4, Burst = "Gold" },
-			{ Ids = { "HwQuests", "HwSpider", "HwPacks" }, Kind = "Grow", At = 0.36 },
-			{ Ids = { "HwRush" }, Kind = "Fade", At = 0.46, Length = 0.15 },
+			{ Ids = { "HwCandy", "HwEnds" }, Kind = "Pop", At = 0.2 },
+			{ Ids = { "HwCard1", "HwCard2" }, Kind = "Pop", At = 0.22, Stagger = 1.25 },
+			{ Ids = { "HwCard3" }, Kind = "Pop", At = 0.3, Burst = "Purple" }, -- the hero, the Sword
+			{ Ids = { "HwCard4" }, Kind = "Pop", At = 0.34 },
+			{ Ids = { "HwQuests", "HwPacks" }, Kind = "Grow", At = 0.38 },
 			{ Ids = { "Flair" }, Kind = "Drop", At = 0.6, Length = 0.25 },
 		},
 	},

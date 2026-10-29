@@ -1945,11 +1945,10 @@ return {
 		-- A timed King win's line (CandyToast): what the visit's first win paid, or a repeat.
 		KingPaid = "Pumpkin King beaten! +%s Candy %s +%s XP", -- "+150 Candy +$2,500 +100 XP"
 		KingRepeat = "Already rewarded this visit. He's back at %s!", -- ":45"
-		-- The event menu (Halloween/EventMenu).
-		TrackTitle = "CANDY TRACK",
-		KingDrop = "Pumpkin King drop · %s%%", -- "· 5%": Halloween.KingDrop.Chance
-		KingDropOwned = "Pumpkin King drop · OWNED",
-		-- The track cards' short cue names.
+		-- The event menu (Halloween/EventMenu; mock A).
+		-- The Jack-o'-Lantern card's ribbon: Halloween.KingDrop.Chance ("5").
+		KingRibbon = "PUMPKIN KING\nDROP %s%%",
+		-- A card's cue name when the full one is too wide for it (a phone).
 		CueShort = {
 			JackOLanternCue = "Jack-o'-Lantern",
 			PitchforkCue = "Pitchfork",
@@ -1957,12 +1956,21 @@ return {
 			WitchBroomCue = "Witch's Broom",
 			HalloweenSwordCue = "Halloween Sword",
 		},
-		GrandPrize = "GRAND PRIZE",
-		Spins = { One = "1 SPIN", Many = "%d SPINS" }, -- ability spins on a track gift
-		Preview = "Preview",
-		QuestsTitle = "QUESTS",
-		Day = "DAY %d",
-		UnlocksIn = "Unlocks in %s",
+		Owned = "OWNED", -- an owned cue's card
+		BuyConfirm = "BUY?", -- a Candy button after its first press (a second press buys)
+		NeedCandy = "You need %s more Candy", -- a Candy press with too little: "You need 120 more Candy"
+		BoughtCue = "%s is yours!", -- the cue's name
+		-- A Candy buy the server refused (CandyService's bought moment), by its reason.
+		BuyFailed = {
+			Poor = "Not enough Candy",
+			Owned = "You already own this cue",
+			Closed = "The event shop is closed",
+			Busy = "One moment, then try again",
+			Default = "Couldn't buy that. Try again",
+		},
+		QuestsTitle = "TODAY'S QUESTS",
+		NewQuestsIn = "New quests in %s", -- the next board's open: "New quests in 14:28"
+		QuestsEndIn = "Quests end in %s", -- after the last board opened: to the event's end
 		Claim = "CLAIM",
 		Claimed = "CLAIMED",
 		Reward = "+%d", -- a quest's Candy chip
@@ -1984,17 +1992,8 @@ return {
 			Active = { One = "Play 1 min", Many = "Play %d min" },
 		},
 		QuestsSoon = "Quests open soon!",
-		Spider = "PLAY 3H 01M", -- the playtime cue's panel
-		SpiderOf = "%s / %s", -- "1h 12m / 3h 01m"
-		SpiderNote = "Only active play counts",
-		SpiderDone = "YOURS!",
 		GetCandy = "GET CANDY",
-		PackCandy = "%s Candy",
-		-- The Rush strip at the menu's foot.
-		Rush = "CANDY RUSH",
-		RushSoon = "2x CANDY starts in %s",
-		RushNow = "2x CANDY ends in %s",
-		RushDone = "No more Rushes this event", -- Rush off, or the event's last hour
+		RushSoon = "2x CANDY starts in %s", -- the boost card's next Rush (BoostPill)
 		-- The Candy toast and the NEW CUE! card (Halloween/CandyToast).
 		Toast = "+%s", -- "+57" (Format.commas)
 		Double = "2x",
@@ -2003,8 +2002,6 @@ return {
 		FromSpider = "3 hours of play",
 		FromKing = "From the Pumpkin King",
 		Ok = "OK",
-		Night = "HALLOWEEN NIGHT",
-		NightNow = "2x CANDY ALL DAY %s",
 		Yours = "YOURS!",
 		-- The end screen (Halloween/EndScreen).
 		EndCandy = "%s CANDY", -- "1,240 CANDY"
