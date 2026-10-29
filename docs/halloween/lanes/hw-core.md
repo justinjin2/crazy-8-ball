@@ -28,6 +28,10 @@ From PLAN §4 (everything else is read-only; ask below under Requests):
 - Tests: `tests/halloween_*_test.luau`, additions to `save_schema_test` and `config_test`.
 
 ## Status
+- 23:10 hw-core: **READY @HEAD** bb2c3c69: Art.HalloweenSwordCue = rbxassetid://136458818972136, cues-a's v5 card (slim hilt). It replaces 121167927707840.
+  - Lint OK, 1,477 tests.
+  - Studio: the 7,000 node shows it, loaded; console clean.
+  - Look note (not changed): v5's card is darker than the popped v4, and the dark blade fades into the tile again; told cues-a.
 - 21:46 hw-core: STOPPING (usage limit). Nothing open: every hw-core commit is merged into halloween (last f0257a2c), and the tree is clean at the halloween tip. On resume: swap Art ids when a cue lane re-renders a card (the Sword v5 may bring a new Thumb); the event menu/HUD improvement list (planning only) when the designer's screenshot notes arrive.
 - 21:19 hw-core: **READY @HEAD** 52d24ae4: Art.PitchforkCue = rbxassetid://139633646140924, hw-map's skinnier card with thumb_pop's new --rim pass. It replaces 108749630308384 and is the Thumb in hw-map 533b0a60's skin row.
   - Lint OK, 1,477 tests.
