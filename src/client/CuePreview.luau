@@ -1094,8 +1094,29 @@ local function dragTo(s: Session, at: Vector2)
 	s.idle = 0
 end
 
+-- The gamepad's first stop: EQUIP for an owned cue, else the lit tab.
+local function firstStop(s: Session): GuiObject?
+	return if owned(s.id) then s.parts.equip else s.parts["tab" .. s.tab]
+end
+
 local function bindInput(s: Session)
 	local drag = s.parts.drag
+	-- A gamepad picked up while it is open lands on its first stop (the lively frame's rule):
+	-- with nothing selected, A pressed nothing.
+	table.insert(
+		s.connections,
+		UserInputService.LastInputTypeChanged:Connect(function(kind: Enum.UserInputType)
+			local gui = s.gui
+			local selected = GuiService.SelectedObject
+			if
+				gui
+				and string.sub(kind.Name, 1, 7) == "Gamepad"
+				and not (selected and selected:IsDescendantOf(gui))
+			then
+				GuiService.SelectedObject = firstStop(s)
+			end
+		end)
+	)
 	table.insert(
 		s.connections,
 		drag.InputBegan:Connect(function(input: InputObject)
@@ -1485,9 +1506,7 @@ local function openNow()
 		renderBound = true
 		playOpen(s)
 		if UserInputService.GamepadEnabled then
-			GuiService.SelectedObject = if owned(s.id)
-				then s.parts.equip
-				else s.parts["tab" .. first]
+			GuiService.SelectedObject = firstStop(s)
 		end
 	end)
 	if not ok then
