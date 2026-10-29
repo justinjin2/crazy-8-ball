@@ -17789,9 +17789,9 @@ Config.UI.Halloween = {
 			{ Ids = { "Header" }, Kind = "Fade", At = 0.12, Length = 0.15 },
 			{ Ids = { "Basket", "Title", "Close" }, Kind = "Pop", At = 0.18 },
 			{ Ids = { "HwCandy", "HwEnds" }, Kind = "Pop", At = 0.2 },
-			{ Ids = { "HwCard1", "HwCard2" }, Kind = "Pop", At = 0.22, Stagger = 1.25 },
-			{ Ids = { "HwCard3" }, Kind = "Pop", At = 0.3, Burst = "Purple" }, -- the hero, the Sword
-			{ Ids = { "HwCard4" }, Kind = "Pop", At = 0.34 },
+			{ Ids = { "HwCard1", "HwCard2", "HwCard3" }, Kind = "Pop", At = 0.22, Stagger = 1.25 },
+			-- The hero, the Sword (the last card since the menu's easiest-first order, 2026-10-29).
+			{ Ids = { "HwCard4" }, Kind = "Pop", At = 0.34, Burst = "Purple" },
 			{ Ids = { "HwQuests", "HwPacks" }, Kind = "Grow", At = 0.38 },
 			{ Ids = { "Flair" }, Kind = "Drop", At = 0.6, Length = 0.25 },
 		},
