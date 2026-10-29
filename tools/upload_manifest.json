@@ -428,11 +428,6 @@
     "assetType": "Model",
     "status": "ok"
   },
-  "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/jack_o_lantern/jack_o_lantern_parts.glb": {
-    "assetId": "120351810341434",
-    "assetType": "Model",
-    "status": "ok"
-  },
   "/Users/justinjin/Desktop/8ball-hw-cues-a/assets/cue/pieces/jack_o_lantern_aura/jack_o_lantern_aura_parts.glb": {
     "assetId": "82575724602452",
     "assetType": "Model",
@@ -676,6 +671,51 @@
     "assetId": "77938547508430",
     "assetType": "Decal",
     "imageId": "113918266054738",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-sys/assets/cue/pieces/jack_o_lantern/atlas_color.png": {
+    "assetId": "114826661142008",
+    "assetType": "Decal",
+    "imageId": "99927700415602",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-sys/assets/cue/pieces/jack_o_lantern/atlas_emissive.png": {
+    "assetId": "119585681233240",
+    "assetType": "Decal",
+    "imageId": "124556134573112",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-sys/assets/cue/pieces/jack_o_lantern/atlas_normal.png": {
+    "assetId": "91838199538777",
+    "assetType": "Decal",
+    "imageId": "85285431244146",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-sys/assets/cue/pieces/jack_o_lantern/jack_o_lantern_parts.glb": {
+    "assetId": "139022797831052",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-sys/assets/cue/pieces/jack_o_lantern_jacks/jack_o_lantern_jacks_parts.glb": {
+    "assetId": "100772326272910",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-sys/assets/cue/pieces/jack_o_lantern_rise/jack_o_lantern_rise_parts.glb": {
+    "assetId": "78928292515647",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-sys/assets/cue/vfx/jack_o_lantern/flame_4x4.png": {
+    "assetId": "129544477349079",
+    "assetType": "Decal",
+    "imageId": "85236741743985",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-sys/assets/cue/vfx/jack_o_lantern/jack_glow_4x4.png": {
+    "assetId": "75419368492673",
+    "assetType": "Decal",
+    "imageId": "119617994978170",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball-refs/emotes/birdbrain_loop.flac": {
