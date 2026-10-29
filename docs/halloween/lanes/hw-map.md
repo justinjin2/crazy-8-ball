@@ -50,6 +50,27 @@ From PLAN §4 (everything else is read-only to this lane; ask through Requests):
 - `Config.HalloweenMap.Props.Budget.Lights = 6` (throne 2 + the throne King's aura 1 + 3 table Kings).
 
 ## Status
+- 20:22 hw-map: **PITCHFORK CUE built and labbed** (coordinator 19:40, concept R2; never "devil").
+  `assets/cue/CuePiecesHalloween_Pitchfork.py`, `skins/pitchfork.json`, `pieces/pitchfork`,
+  `vfx/pitchfork`, `thumbs/pitchfork.png`. Core's rows merged (Legendary, track 500); core set
+  `Art.PitchforkCue` to my card id 121098110131668 (hw-core 8317597d).
+  - BODY: 3 parts / 8,442 tris on one painted 256x1024 atlas (a 512 atlas's pixels): candy-apple
+    red with a painted gloss, cream tip, gold ferrule; the horn collar (gold, black, gold) with two
+    broad curved black horns; a red tail coiling 1.75 loose turns from under the collar to 3.8,
+    its arrowhead tip lifting off the top on a swaying joint; a gold-black-gold band at 4.2-4.4;
+    a painted black band on the grip; a black butt cap with a gold ring; past the butt on an
+    Aim-fade joint the pitchfork: a gold yoke, three thick red prongs (0.16 x 0.19), the outer
+    ones in a round U, R2's barbed arrowheads with rounded points. 1.48 past the butt, 1.74
+    across the barbs (prong centres 1.24 apart), 0.87 off the axis (AimRadius 1.1: no exception
+    needed). `check_body` passes; hand zones flush.
+  - VFX, all opaque painted (`vfx/pitchfork/flame_4x4.png`: red, dark-red rim, warmer core,
+    orange only on each tongue's top third): flames rising off the three arrowhead points and a
+    few sparks (aura 29/s); the trail is a row of those flames plus sparks, no ribbon (79/s while
+    the ball moves); the finisher is a red flash and rings, a column of flame, a ring of flame,
+    gold sparkles and sparks, and a library fire whoosh (Pro Sound Effects "Fire Whoosh 13").
+  - LAB at (-80, 0, 68), Night and Day: stand, back carry at 7 and 15 studs (reads as a
+    pitchfork at 15), hand at aim in a solo game (the fork and its flames clear for the owner),
+    the finisher at table 4's side pocket, the trail on a moving test ball. Console clean.
 - 19:50 hw-map: **BONE CUE PARKED, PITCHFORK CUE started** (coordinator 19:40: Justin picked the
   Pitchfork for the 500 slot). The Bone WIP is committed as parked (5450b579), origin/halloween
   is merged with halloween's side for every Track, Catalog, Strings and Art row (10d228f9), and
@@ -402,8 +423,12 @@ From PLAN §4 (everything else is read-only to this lane; ask through Requests):
 ## Shared-file changes
 
 Landed (only my own blocks unless said):
-- `tools/cue_pieces_glb.py`: an opt-in `"Smooth": true` part key (shares a part's vertex
-  normals; no key = the old flat faces, so every other cue's GLB is unchanged) — 856430e4.
+- `tools/cue_pieces_glb.py`: my opt-in `"Smooth"` part key (856430e4) is superseded by cues-b's
+  identical one (the coordinator, 20:0x); hw-map took halloween's file whole (22ddeeaf), no diff left.
+- `assets/cue/CuePreview.py`: two opt-in skin keys for the card picture, `thumb_margin` (studs of
+  frame) and `thumb_shift` (studs toward the tip); absent = the house framing, so every other card
+  renders as before (the Pitchfork's fork, thickened 1.45x with the rest, met the corner).
+- `assets/cue/CuePieces.py`: a guarded `import CuePiecesHalloween_Pitchfork` beside the Bone's.
 - `Config.luau`: `Config.Lighting.Night` (after Sunset), `Config.HalloweenMap` (after Lighting) — 0b5ef756, ccb73403, 0498b301.
 - `Strings.luau`: `Strings.HalloweenMap` (after `Arena`); 5 keys in `GlobalQueue.Failed` (`KingBusy`,
   `KingNoTable`, `KingCooldown`, `KingNotNow`, `CandyBagFull`: the bag-full note reuses the queue
@@ -484,6 +509,23 @@ coordinator resolves overlaps. Planned (add the commit sha when each lands):
 - Coordinator: please include the step-1 interface commit in the interface merge.
 
 ## Assumptions
+
+- Pitchfork Cue, decided here (2026-10-28):
+  - The fork's prongs spread along (cos 150, 0, sin 150) in the cue's Blender frame. The card's
+    camera looks from +X and the top, a back's from the top toward the tip, the stand's from
+    -X: the card sees it face-on, a back about 90%, the stand 50%. At 30 degrees (the plan) the
+    card saw it edge-on.
+  - "Err bigger": spread 0.62 and arrowheads 1.2x after the first back-carry capture read slim.
+    It reads as a pitchfork at 15 studs; bigger pushes the lower prong further into the legs on
+    a back (its -Z reach is already about 0.43), so I stopped there.
+  - "No ribbons" for the trail: `Style.Trail` stays on but draws nothing (fully clear, 0.02 wide,
+    0.05 s). `Effects.attachTrail` attaches a skin's TrailEmitters only when the trail is on, and
+    a data-only clear ribbon keeps the shared runtime untouched. A cleaner code fix (emitters
+    without a ribbon) is core's call.
+  - No pocket piece: R2's finisher is flame and sparkles, and the opaque painted particles read
+    on the bright table. A 3D flame mesh can be added later if wanted.
+  - Horns at 30 degrees off the top: the up rule's +0.25 is a 45-degree cone and a horn's flank
+    reaches about 13 degrees more.
 
 - Cue labs, 2026-10-28: the lab spot moved to (-80, 0, 68). At (-40, 0, 70) the SoloPortal's
   cyan PointLight (range 14, brightness 2) tints every cue mint (cues-a and cues-b told). Body
