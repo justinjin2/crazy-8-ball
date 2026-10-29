@@ -1,9 +1,9 @@
 # Halloween 2026: release checklist
 
-For Justin. Tonight's build (Oct 29 evening, v4: v3 plus the 14:20 GUI round): branch
+For Justin. Tonight's build (Oct 29 evening, v4 + v5: v3, the 14:20 GUI round and the 17:30 fixes): branch
 `halloween`, the commit the coordinator names in STATUS. The code reads the clock: the event has
 been Live since 19:00 EDT Oct 28, so a server with this update boots straight into Live. It ends
-by itself Nov 3 19:00 EST. Config line numbers re-read 16:35 Oct 29.
+by itself Nov 3 19:00 EST. Config line numbers re-read 18:45 Oct 29.
 
 ## 1. Check by hand (Studio Play or the test place first, then the live game after the publish)
 
@@ -25,9 +25,9 @@ On a phone, a PC and a controller where you can:
    Pitchfork's fork and the Jack's pumpkin head much bigger), the Robux and Candy buttons are
    one size, and the "2026" pumpkin badge sits bottom right, just above the cue's name (on My
    Cues, the Index and YOU GOT too). Each card plays its cue's effects live (more up the ladder).
-   Each card has a **PREVIEW** button top left (on a phone just the play icon): it opens the Cue
-   Preview on TRAIL, playing a ball's trail and the finisher on a loop; closing it comes back to
-   the Halloween menu. Studio shows the
+   Each card has a **PREVIEW** button top left (on a phone just the play icon): it plays the cue
+   like a video, looping, with no buttons but the X: the cue alone on black, then a ball rolling
+   with its trail, then the finisher in the pocket. Closing it comes back to the Halloween menu. Studio shows the
    Robux prices about 20% lower (40/200/320/480): that is Roblox's own regional price for your
    account; the products on Roblox are 49/249/399/599 (checked 13:50).
 5. **Buy the Pitchfork with Candy** (play for it, or `/hw candy 300` on your account). The balance
@@ -46,9 +46,12 @@ On a phone, a PC and a controller where you can:
      the pocket hole (a light column, glowing rings and streaks on the cloth, soft purple fire;
      no face). Check it sits on the hole at a far corner and at a near side pocket.
 8. Settings > **Lower effects** on and off with a Halloween cue.
-9. **Copies**: the big cue card and the Index say "N exist" only on your account (Painicane);
+9. **The phone HUD**: Candy Boost, Money Boost and the Candy pill sit stacked under the left
+   buttons, just over the money pill, never out in the middle of the screen. **The Jack's
+   picture**: a round pumpkin with an undistorted face, on its card and centred in the PULL bar.
+10. **Copies**: the big cue card and the Index say "N exist" only on your account (Painicane);
    on any other account the line shows the odds alone.
-10. The **abilities** screen says "USE CODES 5KLIKES & 10KLIKES FOR FREE SPINS". 10KLIKES gives
+11. The **abilities** screen says "USE CODES 5KLIKES & 10KLIKES FOR FREE SPINS". 10KLIKES gives
    10 spins and $10,000, 5KLIKES 5 spins and $5,000, 2KLIKES 10 spins and $10,000; 1KLIKES is
    expired.
 
@@ -85,12 +88,14 @@ Off = the old behaviour; one line, then publish with the outdated-only restart.
 | `Config.HalloweenMap.Boss.Enabled` | 9529 | false for this release: no Pumpkin King |
 | `Config.HalloweenMap.Candy.Enabled` | 9783 | no ground candy (`SpawnEverySeconds` 9787 sets how often) |
 | `Config.Multiplayer.Roam.Enabled` | 8379 | in-match players stay at their table, as before |
-| `Config.UI.Halloween.CardFx.Enabled` | 17927 | the menu cards' live effects off (still pictures) |
-| `Config.UI.Halloween.Menu.Theme` | 17760 | `""`: the plain menu frame instead of Haunted night |
-| `Config.UI.CuePreview.Event.Enabled` | 10411 | no PREVIEW buttons on the event cards (the Cue Preview itself stays off, line 10405) |
-| `Config.UI.EventEmblem.Enabled` | 18241 | no "2026" badge on the event cues' cards |
-| `Config.UI.Inventory.ExistOwnerOnly` | 12604 | false: everyone sees "N exist" again (it is permanent, not an event switch) |
-| `Config.Badges.Enabled` | 18809 | no badge is awarded |
+| `Config.UI.Halloween.CardFx.Enabled` | 18046 | the menu cards' live effects off (still pictures) |
+| `Config.UI.Halloween.Menu.Theme` | 17879 | `""`: the plain menu frame instead of Haunted night |
+| `Config.UI.CuePreview.Event.Enabled` | 10415 | no PREVIEW buttons on the event cards (the Cue Preview itself stays off, line 10409) |
+| `Config.UI.CuePreview.Showcase.Enabled` | 10564 | PREVIEW opens the tabbed preview on TRAIL instead of the video-style loop |
+| `Config.UI.BoostPill.ShortBesideColumn` | 10304 | `true`: a phone's boost lines and Candy pill go back beside the left column |
+| `Config.UI.EventEmblem.Enabled` | 18362 | no "2026" badge on the event cues' cards |
+| `Config.UI.Inventory.ExistOwnerOnly` | 12723 | false: everyone sees "N exist" again (it is permanent, not an event switch) |
+| `Config.Badges.Enabled` | 18930 | no badge is awarded |
 | `Config.Economy.FriendBoostEnabled` | 2037 | no +10% per friend |
 
 ## 4. If something breaks
@@ -118,7 +123,8 @@ original back (asset 123614794049673):
   Disguised / PC / Tutorial) for the share of matches that pay.
 - `HwBuy` (cue, Candy / Robux / Gift): which cues sell and how. `HwPack`, `HwMenu`, `HwConvert`.
 - `CuePreview` "Opened" / "Halloween" (new in v4): how many open a PREVIEW, against `HwMenu`
-  opens and `HwBuy`. Does a preview come before a buy?
+  opens and `HwBuy`. Does a preview come before a buy? `CuePreview` "Watched" / "Halloween" (new
+  in v5): opens that played one whole loop to the finisher.
 - The model to compare with (ECONOMY, "Halloween Candy and the event cues"): ~170 Candy an hour
   from pockets and ~130 from the ground, 560 a day from quests; the Pitchfork in ~17-22 min, the
   Broom ~4.6 h, the Jack ~8.4 h, the Sword ~14.4 h of play (each saved for alone).

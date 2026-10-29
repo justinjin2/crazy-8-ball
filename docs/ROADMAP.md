@@ -610,6 +610,9 @@ Built in one day by six lanes on branch `halloween`; checklist and switches in
   buttons; the "2026" badge bottom right everywhere; the Haunted night menu look; PREVIEW on
   the four event cards; "N exist" for the owner only, for good; lint, tests, the Studio main
   paths, phone size and a fresh-player run.
+- [x] **v5, the 17:30 fixes**: the Jack's picture in the model's shape and centred in the PULL bar;
+  PREVIEW as a video-style loop (black, model, trail, finisher; the Sword turned to show its
+  blade); a phone's boost lines and Candy pill under the left buttons; lint, tests, Studio.
 - [ ] **Published** by the designer (outdated-only restart), the game description's codes, the
   LIVE icon, the first watch readings (errors, server FPS, memory, Candy and pack events).
 - [ ] **A real phone, iPad and controller check** (only emulated sizes so far).

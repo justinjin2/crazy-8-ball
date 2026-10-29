@@ -4,14 +4,14 @@ Current state only, rewritten in place. Keep it to about two screens (under 100 
 step is finished and verified, move its dated entry to the top of
 `docs/archive/STATUS_HISTORY.md` and keep only what is still true or still open here.
 
-Updated 2026-10-29 17:15 (**published by the designer 2026-10-27: everything up to `7c4d85aa`**: the emote system, 2KLIKES, the 1v1 result cutscene off; the emote audio update rides with the Halloween publish). **The game is live** (officially released 2026-10-10). Work goes on
+Updated 2026-10-29 18:50 (**published by the designer 2026-10-27: everything up to `7c4d85aa`**: the emote system, 2KLIKES, the 1v1 result cutscene off; the emote audio update rides with the Halloween publish). **The game is live** (officially released 2026-10-10). Work goes on
 in `~/Desktop/8ball`, branch `halloween` (it holds all of `gui-v4`). The STATUS from just before launch, in full, is the top
 entry of `docs/archive/STATUS_HISTORY.md`.
 
 ## Halloween 2026 (branch `halloween`, pushed, waiting for the designer to publish tonight)
 
-- **Ready to publish** (Oct 29 evening): v3 (the designer's ~12:00 list) plus **v4, the 14:20
-  GUI round**. The checklist and every switch are in `docs/halloween/RELEASE.md`. Use the
+- **Ready to publish** (Oct 29 evening): v3 (the designer's ~12:00 list), **v4, the 14:20
+  GUI round**, and **v5, the 17:30 fixes**. The checklist and every switch are in `docs/halloween/RELEASE.md`. Use the
   outdated-only restart. Nothing of Halloween is live yet (the live build `7c4d85aa` has none).
 - **v4 (designer 14:20, with an interview):**
   - The Sword's soft pre-v3 aura is back, also on its menu card. Its dark purple trail has
@@ -25,6 +25,17 @@ entry of `docs/archive/STATUS_HISTORY.md`.
     opens the Cue Preview on TRAIL for the four event cues only (`CuePreview.Event`); on a phone
     it is the icon alone.
   - Permanently, only Painicane sees "N exist" (`Inventory.ExistOwnerOnly`).
+- **v5 (designer ~17:30-17:50):**
+  - The Jack's card picture shows the pumpkin in the model's own shape, 1.2x, on the centre line,
+    so the PULL bar stands it in the middle (75460670405284).
+  - PREVIEW plays like the concept clips: black screen, the cue alone, the trail, the finisher,
+    looping, only the X (`CuePreview.Showcase`). The Sword is turned so its blade shows. A
+    "Watched" event counts whole loops.
+  - On a phone the boost lines and the Candy pill stack under the left buttons, smaller
+    (`BoostPill.ShortBesideColumn` false).
+  - Verified (18:30-18:50): lint and 1,564 tests; Studio at a phone-sized 750x323 HUD: the boost
+    lines and pill under FREE REWARD, the event menu with the new Jack card, the Sword's and the
+    Jack's model shots on black, the Jack in the PULL bar of a solo game (centred, round).
 - **In it from v3:**
   - No Pumpkin King.
   - Four cues for Candy or Robux: Pitchfork 300 / 49 R$, Broom 2,500 / 249 R$, Jack 4,500 /
