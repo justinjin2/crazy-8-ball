@@ -22,6 +22,35 @@ From PLAN §4: `BlackCatCue`, `SpiderCue` and `WitchBroomCue` content only. No r
   `Index.luau`, `Textures.luau` (regenerate after every merge conflict there).
 
 ## Status
+- 23:23 **READY: Spider v2g, the barb pass (coordinator 23:0x, hold lifted; timeboxed).**
+  Built, uploaded, merged with origin/halloween, lint + 1477 tests OK, pushed.
+  1. Barbs: short claw-shaped barbs instead of long leaves, each a thick-based claw with a
+     convex outer edge, a concave inner edge and a pointed tip that flicks outward-back. Rear
+     tier the longest (root d 6.92 to tip 7.98, reach 1.09), mid 5.95 to 6.86 (0.93), the
+     front spur the shortest (5.15 to 5.90, 0.71). Black chrome with silver only on the outer
+     edge's bevels; the silver fuller line dropped (a midrib was what read as a leaf / fish
+     fin). The spine ridges capped at the butt limit (the rear root moved to 6.92). 6 parts,
+     9,708 triangles, envelope OK.
+  2. Aura silk beams re-aimed: Silk2 to 5.9 (spur tips), Silk4 to 6.86 (mid tips), Silk3 to
+     7.95 (rear tips), the halo to 8.0; the gem glint and red light moved from 6.47 (nothing
+     there now) to the collar gems at 4.95; the silk haze to the dome at 7.92.
+  3. origin/halloween merged clean (cf9d1ee0): the Black Cat removal hunks taken in
+     `CuePiecesHalloween_B.py` and `tools/hw_sprites_b.py` (0 mentions left), the Spider kept;
+     the manifest a union (my three Spider rows present); both cues rebuilt headless after the
+     merge (Spider 9,708 tris OK, Broom 5 parts 9,144 tris OK); `cue_skins_data.py` twice, no
+     row drift (66 skins, 31 pieces).
+  Uploads: spider_parts.glb 138983963223051, Crown.glb 132045699421617 (the atlas unchanged:
+  136498534837826 / image 90648310244873). Template rebuilt ONLY SpiderCue in my window: the
+  Crown model = Blades, Spurs, RootPart; every mesh fetches Success on the client.
+  Compare for judging: `gate2/spider_v2g_compare.jpg` (TARGET, ref_side, v2g side /
+  three-quarter / crown close, and ref crown over v2g crown).
+  LAB SHOTS NOT TAKEN (stand, back carry, hand at aim): my Studio window stopped rendering at
+  ~23:12 (RenderStepped 0 frames/s; the Roblox Player is the frontmost app, so every Studio
+  play view is occluded). The cue warm-up runs on RenderStepped, so the lab's back-carry
+  refuses until the window renders again; a screen_capture is parked waiting for a frame. I
+  did not raise my window over the Player. The three shots go in the moment it renders. The
+  in-game material read is the same as v2f's lab shot (`gate2/spider_v2f_crown_lab.jpg`:
+  black chrome, silver edges, silver outline); only the barb shape changed.
 - 22:54 **Spider v2f: the C1b colour pass, then HOLD** (coordinator 22:2x, four points; HOLD at
   22:49). Built, uploaded and lab-checked in my window, committed, NOT READY (the hold).
   1. Blades black chrome: the BLACK swatch's angle-keyed specular streak cut from 0.5 to 0.12
