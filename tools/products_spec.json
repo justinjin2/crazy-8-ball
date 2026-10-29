@@ -328,16 +328,37 @@
   {
    "key": "Candy500",
    "kind": "Product",
-   "name": "500 Halloween Candy",
+   "name": "300 Halloween Candy",
    "robux": 49,
-   "description": "500 Halloween Candy. It counts toward every prize on the Halloween track, including the Witch's Broom. Leftover Candy becomes $10 each when the event ends."
+   "description": "300 Halloween Candy to spend on the Halloween cues in the event menu. Leftover Candy becomes $10 each when the event ends."
   },
   {
    "key": "Candy2000",
    "kind": "Product",
-   "name": "2,000 Halloween Candy",
+   "name": "1,200 Halloween Candy",
    "robux": 149,
-   "description": "2,000 Halloween Candy. It counts toward every prize on the Halloween track, including the Witch's Broom. Leftover Candy becomes $10 each when the event ends."
+   "description": "1,200 Halloween Candy to spend on the Halloween cues in the event menu. Leftover Candy becomes $10 each when the event ends."
+  },
+  {
+   "key": "HwPitchfork",
+   "kind": "Product",
+   "name": "Pitchfork Cue",
+   "robux": 49,
+   "description": "The Pitchfork Cue, a Unique Halloween 2026 cue. Sold only during the Halloween event; it can be gifted to a player in your server."
+  },
+  {
+   "key": "HwBroom",
+   "kind": "Product",
+   "name": "Witch's Broom Cue",
+   "robux": 249,
+   "description": "The Witch's Broom Cue, a Unique Halloween 2026 cue. Sold only during the Halloween event; it can be gifted to a player in your server."
+  },
+  {
+   "key": "HwSword",
+   "kind": "Product",
+   "name": "Halloween Sword Cue",
+   "robux": 599,
+   "description": "The Halloween Sword Cue, a Unique Halloween 2026 cue. Sold only during the Halloween event; it can be gifted to a player in your server."
   }
  ]
 }

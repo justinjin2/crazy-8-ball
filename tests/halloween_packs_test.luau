@@ -123,7 +123,7 @@ end
 return {
 	["the two Candy packs: made, priced, Candy, the menu's keys, not money packs"] = function()
 		local L = Config.Products.List :: any
-		local want = { Candy500 = { 49, 500 }, Candy2000 = { 149, 2000 } }
+		local want = { Candy500 = { 49, 300 }, Candy2000 = { 149, 1200 } }
 		for key, pair in want do
 			local row = L[key]
 			H.expect(row ~= nil and row.Kind == "Product" and row.Id > 0, key .. " is made")
@@ -164,10 +164,10 @@ return {
 			for _, at in { LIVE, RUSH, C.Double.From + 3600 } do
 				local grant, notFor = Shop.grantFor("Candy500", newShop(), at, false)
 				H.expect(notFor == nil and grant ~= nil, "open")
-				H.expect(grant.candy == 500 and grant.money == 0, "500 Candy, flat, no money")
+				H.expect(grant.candy == 300 and grant.money == 0, "300 Candy, flat, no money")
 			end
 			local big = Shop.grantFor("Candy2000", newShop(), LIVE, false, true)
-			H.expect(big ~= nil and big.candy == 2000, "2,000 (sold where random is restricted)")
+			H.expect(big ~= nil and big.candy == 1200, "1,200 (sold where random is restricted)")
 			local late, why = Shop.grantFor("Candy2000", newShop(), END, false)
 			H.expect(why == "Closed" and late ~= nil and late.candy == nil, "after: no Candy")
 			H.expect(late.money == Shop.fallbackMoney("Candy2000"), "the money fallback")
@@ -206,15 +206,15 @@ return {
 			local hw = server.player.save.Halloween
 			local id = Config.Products.List.Candy500.Id
 			H.expect(Shop.processReceipt(server.deps, receipt(id, "id1")) == "Granted", "first")
-			H.expect(hw.Bought == 500 and hw.Earned == 0, "500 bought")
+			H.expect(hw.Bought == 300 and hw.Earned == 0, "300 bought")
 			H.expect(Shop.processReceipt(server.deps, receipt(id, "id1")) == "Granted", "replay")
 			H.expect(Shop.processReceipt(server.deps, receipt(id, "id1")) == "Granted", "again")
-			H.expect(hw.Bought == 500 and server.grants == 1, "the same id: Candy once")
+			H.expect(hw.Bought == 300 and server.grants == 1, "the same id: Candy once")
 			H.expect(server.saves == 3, "each try saves before it is acknowledged")
 			H.expect(server.player.save.Money == 0, "no money for a pack")
 			local big = Config.Products.List.Candy2000.Id
 			H.expect(Shop.processReceipt(server.deps, receipt(big, "id2")) == "Granted", "another")
-			H.expect(hw.Bought == 2500 and server.grants == 2, "a new id: 2,000 more")
+			H.expect(hw.Bought == 1500 and server.grants == 2, "a new id: 1,200 more")
 		end)
 	end,
 
@@ -239,20 +239,20 @@ return {
 			hw.Given["1"] = true -- the 50 step, earned in play
 			local id = Config.Products.List.Candy500.Id
 			H.expect(Shop.processReceipt(server.deps, receipt(id, "r1")) == "Granted", "bought")
-			H.expect(hw.Bought == 500 and hw.Earned == 120, "flat: 500 into Bought, not doubled")
-			H.expect(Ledger.total(hw) == 620, "620 in all")
-			for _, index in { 1, 2, 3, 4 } do
+			H.expect(hw.Bought == 300 and hw.Earned == 120, "flat: 300 into Bought, not doubled")
+			H.expect(Ledger.total(hw) == 420, "420 in all")
+			for _, index in { 1, 2, 3 } do
 				H.expect(hw.Given[Track.key(index)] == true, "step " .. index .. " given")
 			end
-			H.expect(hw.Given["5"] == nil, "1,000 not reached")
+			H.expect(hw.Given["4"] == nil, "500 not reached")
 			-- The 2,000 pack carries the rest of the way past 2,000 (the Black Cat Cue).
 			local big = Config.Products.List.Candy2000.Id
 			H.expect(Shop.processReceipt(server.deps, receipt(big, "r2")) == "Granted", "bought")
-			H.expect(Ledger.total(hw) == 2620, "2,620")
-			for index = 1, 7 do
+			H.expect(Ledger.total(hw) == 1620, "1,620")
+			for index = 1, 6 do
 				H.expect(hw.Given[Track.key(index)] == true, "step " .. index .. " given")
 			end
-			H.expect(hw.Given["8"] == nil, "3,000 not reached")
+			H.expect(hw.Given["7"] == nil, "2,000 not reached")
 			H.expect(next(hw.Q) == nil, "no quest progress from a pack")
 		end)
 	end,

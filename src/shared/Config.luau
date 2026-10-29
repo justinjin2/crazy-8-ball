@@ -3923,6 +3923,21 @@ Config.Halloween = {
 	-- PerSecond, so two quick CLAIMs both count but a spamming client is held back.
 	Requests = { Burst = 4, PerSecond = 4 },
 	PackPromptGapSeconds = 30, -- HwMenu PackPrompt (a Get Candy press) logged at most this often
+	-- The event cues players buy (designer, 2026-10-29: no track; save Candy and buy the cue you
+	-- want). Candy: the price in Candy (spent from the balance Earned + Bought - Spent); Product:
+	-- the Config.Products.List key that sells it straight for Robux. Timed to the event's five
+	-- days from the release (docs/ECONOMY.md, Halloween): about 25 min of play for the Pitchfork,
+	-- about 4 h for the Broom, about 13-15 h for the Sword, at about 280 match + 280 ground
+	-- Candy an hour plus the quests. The Jack-o'-Lantern is the King's drop only (KingDrop).
+	-- Enabled false: no buying (the cards show without buttons).
+	Cues = {
+		Enabled = true,
+		List = {
+			{ Cue = "PitchforkCue", Candy = 300, Product = "HwPitchfork" },
+			{ Cue = "WitchBroomCue", Candy = 2500, Product = "HwBroom" },
+			{ Cue = "HalloweenSwordCue", Candy = 7500, Product = "HwSword" },
+		} :: { { Cue: string, Candy: number, Product: string } },
+	},
 	-- The two Candy packs (Config.Products.List Candy500 / Candy2000; flat, fill the whole track,
 	-- not quests).
 	Packs = { Enabled = true, Keys = { "Candy500", "Candy2000" } },
@@ -4429,8 +4444,17 @@ Config.Products = {
 		-- Halloween Candy one purchase adds to the save's Halloween.Bought, flat (no Rush, double
 		-- day, friends or group; no quest). Sold only while Packs.Enabled and the event is Live;
 		-- a receipt outside that pays Shop.fallbackMoney.
-		Candy500 = { Kind = "Product", Id = 3723285204, Robux = 49, Candy = 500 },
-		Candy2000 = { Kind = "Product", Id = 3723285208, Robux = 149, Candy = 2000 },
+		-- Smaller since 2026-10-29 (designer: the "Higher Robux" set), so buying a cue directly
+		-- is never dearer than buying its Candy; the keys stay (receipts and saves name them),
+		-- the names on Roblox say 300 and 1,200 (tools/products_spec.json, --sync).
+		Candy500 = { Kind = "Product", Id = 3723285204, Robux = 49, Candy = 300 },
+		Candy2000 = { Kind = "Product", Id = 3723285208, Robux = 149, Candy = 1200 },
+		-- The Halloween cues bought straight for Robux (Config.Halloween.Cues; made 2026-10-29):
+		-- Cue is the one copy granted; sold only while the event is Live, giftable to a player in
+		-- the server; a receipt for an owned cue or after the end pays Shop.fallbackMoney.
+		HwPitchfork = { Kind = "Product", Id = 3723520924, Robux = 49, Cue = "PitchforkCue" },
+		HwBroom = { Kind = "Product", Id = 3723520925, Robux = 249, Cue = "WitchBroomCue" },
+		HwSword = { Kind = "Product", Id = 3723520926, Robux = 599, Cue = "HalloweenSwordCue" },
 	},
 }
 
