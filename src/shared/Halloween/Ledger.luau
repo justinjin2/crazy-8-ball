@@ -66,6 +66,22 @@ function Ledger.addCandy(hw: any, amount: number, bucket: "Earned" | "Bought"): 
 	return hw[bucket] - before
 end
 
+-- The event's cues, each once: the shop's (Config.Halloween.Cues) in its order, then the King's
+-- drop unless the shop sells it too (the Jack-o'-Lantern since 2026-10-29). The view's `owned`,
+-- the menu's OWNED and the end screen's cards read this.
+function Ledger.eventCues(): { string }
+	local list: { string } = {}
+	for _, row in C.Cues.List do
+		if not table.find(list, row.Cue) then
+			table.insert(list, row.Cue)
+		end
+	end
+	if not table.find(list, C.KingDrop.Cue) then
+		table.insert(list, C.KingDrop.Cue)
+	end
+	return list
+end
+
 -- The Config.Halloween.Cues row selling cue `cueId`, or nil when the shop does not sell it.
 function Ledger.cueRow(cueId: any): CueRow?
 	for _, row in C.Cues.List do

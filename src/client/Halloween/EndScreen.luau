@@ -19,6 +19,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local Format = require(Shared:WaitForChild("Progression"):WaitForChild("Format"))
+local Ledger = require(Shared:WaitForChild("Halloween"):WaitForChild("Ledger"))
 local CueThumb = require(script.Parent.Parent.CueThumb)
 local GuiQA = require(script.Parent.Parent.GuiQA)
 local HudParts = require(script.Parent.Parent.HudParts)
@@ -37,12 +38,10 @@ local CLOSE_ACTION = "HalloweenEndScreen"
 
 local EndScreen = {}
 
--- The event cues: the cue shop's in its order (Config.Halloween.Cues), then the King's drop.
-local EVENT_CUES: { string } = {}
-for _, row in H.Cues.List do
-	table.insert(EVENT_CUES, row.Cue)
-end
-table.insert(EVENT_CUES, H.KingDrop.Cue)
+-- The event cues, each once: the cue shop's in its order (Config.Halloween.Cues), then the
+-- King's drop unless the shop sells it too (Halloween/Ledger.eventCues: the Jack-o'-Lantern is
+-- both since 2026-10-29, and was shown twice).
+local EVENT_CUES: { string } = Ledger.eventCues()
 
 local function progression(): any?
 	local ok, P = pcall(require, script.Parent.Parent.Progression)

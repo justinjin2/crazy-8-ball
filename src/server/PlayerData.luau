@@ -3584,6 +3584,21 @@ function PlayerData.hwAddCandy(
 	end)
 end
 
+--- A shot's pocket Candy (Halloween/PotCandy; CandyService.pots): into Earned, Live only, one
+--- commit a shot like its money. Its op "hwPot" is quiet (Items.QUIET_OPS, Badges.SKIP_OPS:
+--- the money commit just before it already re-checks the badges). nil when not loaded.
+function PlayerData.hwPot(player: Player, amount: number, ctx: HwCtx): HwResult?
+	if not isPlayer(player) then
+		refuse("hwPot", player, "bad player")
+		return nil
+	end
+	return hwMutate("hwPot", player, function(_, hw, result)
+		if HwEvent.isLive(ctx.now) then
+			result.candy = HwLedger.addCandy(hw, amount, "Earned")
+		end
+	end)
+end
+
 --- Counts quest events without Candy (Live only).
 function PlayerData.hwQuest(
 	player: Player,
