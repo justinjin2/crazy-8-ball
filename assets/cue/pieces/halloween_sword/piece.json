@@ -2,7 +2,7 @@
   "id": "halloween_sword",
   "Frame": "cue",
   "frame": "Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)",
-  "Triangles": 7708,
+  "Triangles": 5752,
   "Parts": [
     {
       "Material": "SmoothPlastic",
@@ -19,16 +19,16 @@
       "File": "pieces/halloween_sword/Body_Steel.obj",
       "Joint": "Body",
       "Offset": [
-        0.0287,
-        0.0106,
-        1.3025
+        0.0,
+        0.0,
+        0.9413
       ],
       "Size": [
-        1.4854,
-        0.4838,
-        4.3928
+        0.84,
+        0.4946,
+        5.1147
       ],
-      "Triangles": 3300
+      "Triangles": 3298
     },
     {
       "Material": "SmoothPlastic",
@@ -45,14 +45,14 @@
       "File": "pieces/halloween_sword/Body_Guard.obj",
       "Joint": "Body",
       "Offset": [
-        -0.0088,
+        -0.0087,
         0.0555,
-        -1.0082
+        -1.73
       ],
       "Size": [
         1.8047,
         0.3493,
-        0.6653
+        0.6218
       ],
       "Triangles": 2000
     },
@@ -71,14 +71,14 @@
       "File": "pieces/halloween_sword/Body_Pommel.obj",
       "Joint": "Body",
       "Offset": [
-        0.009,
-        0.0018,
-        -3.5447
+        0.0083,
+        0.0016,
+        -3.5747
       ],
       "Size": [
-        0.4037,
-        0.3098,
-        0.4693
+        0.3701,
+        0.284,
+        0.4294
       ],
       "Triangles": 382
     },
@@ -96,40 +96,14 @@
       "Offset": [
         0.0,
         0.0,
-        -2.335
+        -2.71
       ],
       "Size": [
-        0.3545,
-        0.36,
-        1.93
+        0.2265,
+        0.23,
+        1.28
       ],
-      "Triangles": 756
-    },
-    {
-      "Material": "SmoothPlastic",
-      "Color": "#FFFFFF",
-      "Transparency": 0.12,
-      "Reflectance": 0.0,
-      "SurfaceAppearance": {
-        "ColorMap": "pieces/halloween_sword/Sword_base_color.png",
-        "EmissiveMask": "pieces/halloween_sword/Sword_emissive.png",
-        "EmissiveTint": "#D9C2FF",
-        "EmissiveStrength": 1.1
-      },
-      "Name": "Flames_Flame",
-      "File": "pieces/halloween_sword/Flames_Flame.obj",
-      "Joint": "Flames",
-      "Offset": [
-        0.0258,
-        0.0012,
-        1.3327
-      ],
-      "Size": [
-        1.4908,
-        0.1421,
-        3.3679
-      ],
-      "Triangles": 1270
+      "Triangles": 72
     }
   ],
   "Joints": {
@@ -146,32 +120,6 @@
         0.0
       ],
       "Motion": []
-    },
-    "Flames": {
-      "Parent": "Body",
-      "Pivot": [
-        0,
-        -1.9,
-        0
-      ],
-      "PivotRoblox": [
-        0,
-        0,
-        1.6
-      ],
-      "Motion": [
-        {
-          "Kind": "Hinge",
-          "Axis": [
-            0,
-            1,
-            0
-          ],
-          "Amp": 1.2,
-          "Period": 1.6
-        }
-      ],
-      "Aim": "fade"
     }
   }
 }

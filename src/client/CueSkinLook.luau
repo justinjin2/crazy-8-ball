@@ -50,6 +50,7 @@ local Catalog = require(Shared:WaitForChild("Progression"):WaitForChild("Catalog
 local Textures = require(Shared:WaitForChild("CueSkins"):WaitForChild("Textures"))
 local CuePiece = require(script.Parent.CuePiece)
 local CueVfx = require(script.Parent.CueVfx)
+local Quality = require(script.Parent.Quality)
 
 local C = Config.CueSkins
 
@@ -103,8 +104,16 @@ export type Look = typeof(setmetatable(
 		mesh: MeshPart?,
 		folder: Model?, -- the look's own parts
 		built: { Instance }, -- everything to destroy on rebuild
-		emitters: { { e: ParticleEmitter, aura: boolean, rate: number, carrier: boolean } }, -- rate: unquieted; carrier: a Carrier host
-		beams: { { b: Beam, aura: boolean } },
+		emitters: {
+			{
+				e: ParticleEmitter,
+				aura: boolean,
+				rate: number,
+				carrier: boolean,
+				low: boolean,
+			}
+		}, -- rate: unquieted; carrier: a Carrier host; low: off under Lower effects (the row's Low = "hide")
+		beams: { { b: Beam, aura: boolean, low: boolean } },
 		dynBeams: { DynBeam },
 		orbiters: { Orbiter },
 		arcs: { Arc },
@@ -257,6 +266,14 @@ function CueSkinLook.attach(stick: Model, opts: Opts): Look
 			end)
 		)
 	end
+	-- Lower effects: the rows marked Low = "hide" (an emitter or a beam) go off and come back
+	-- with the setting (the Halloween Sword's edge flames, 2026-10-28).
+	table.insert(
+		self.connections,
+		Quality.Changed:Connect(function()
+			self:applyVisible()
+		end)
+	)
 	live[self] = true
 	self:refresh()
 	return self
@@ -784,7 +801,11 @@ function CueSkinLook.buildEmitter(self: Look, row: any, aura: boolean)
 	if carrier then
 		e.Enabled = self:carrierShown()
 	end
-	table.insert(self.emitters, { e = e, aura = aura, rate = rate, carrier = carrier })
+	local low = row.Low == "hide"
+	if low and Quality.isLow() then
+		e.Enabled = false
+	end
+	table.insert(self.emitters, { e = e, aura = aura, rate = rate, carrier = carrier, low = low })
 end
 
 -- A beam's curve control offsets: Curve0/Curve1 are [up, side] and land on Roblox (+side, up)
@@ -869,7 +890,11 @@ function CueSkinLook.buildBeam(self: Look, row: any, aura: boolean)
 	table.insert(self.built, a0)
 	table.insert(self.built, a1)
 	table.insert(self.built, beam)
-	table.insert(self.beams, { b = beam, aura = aura })
+	local low = row.Low == "hide"
+	if low and Quality.isLow() then
+		beam.Enabled = false
+	end
+	table.insert(self.beams, { b = beam, aura = aura, low = low })
 	local d: DynBeam = {
 		beam = beam,
 		a0 = a0,
@@ -1022,7 +1047,10 @@ function CueSkinLook.applyVisible(self: Look)
 	self.visible = visible
 	self.aura = aura
 	for _, item in self.emitters do
-		item.e.Enabled = aura and item.e.Rate > 0 and (not item.carrier or self.carrierOn)
+		item.e.Enabled = aura
+			and item.e.Rate > 0
+			and (not item.carrier or self.carrierOn)
+			and not (item.low and Quality.isLow())
 	end
 	local sound = self.sound
 	if sound then
@@ -1046,7 +1074,7 @@ function CueSkinLook.applyVisible(self: Look)
 		end
 	end
 	for _, item in self.beams do
-		item.b.Enabled = aura
+		item.b.Enabled = aura and not (item.low and Quality.isLow())
 	end
 	for _, o in self.orbiters do
 		o.trail.Enabled = aura
@@ -1220,7 +1248,10 @@ function CueSkinLook.step(self: Look, t: number)
 		self.carrierOn = carrierOn
 		for _, item in self.emitters do
 			if item.carrier then
-				item.e.Enabled = self.aura and item.e.Rate > 0 and carrierOn
+				item.e.Enabled = self.aura
+					and item.e.Rate > 0
+					and carrierOn
+					and not (item.low and Quality.isLow())
 			end
 		end
 	end
