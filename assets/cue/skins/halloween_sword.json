@@ -599,7 +599,7 @@
       }
     },
     "Trail": {
-      "Note": "C8's SLASH EFFECT, v3 (designer 2026-10-29: darker, deep purple, richer): a deep-violet slash painted with the sword's own flame border (flame_strip, fading to near-black violet behind), a thin lilac core, painted toon flames and violet sparks shed off it, a faint dark-violet smoke wake.",
+      "Note": "C8's SLASH EFFECT, v4 (designer 2026-10-29: keep the dark trail, no flat flames): the v3 deep-violet slash painted with the sword's own flame border (flame_strip, fading to near-black violet behind; in game stretched once along a ribbon of at most 0.45 s, Config.Effects), a thin lilac core, violet sparks and soft glowing embers drifting up off it with a faint violet glow, a little dark-violet smoke.",
       "Emitters": [
         {
           "Name": "SlashSparks",
@@ -607,7 +607,7 @@
           "Host": {
             "Kind": "Point"
           },
-          "Rate": 12,
+          "Rate": 10,
           "Lifetime": [
             0.3,
             0.6
@@ -661,23 +661,19 @@
           "Brightness": 1.6
         },
         {
-          "Name": "SlashFlames",
-          "Texture": "vfx/halloween_sword/toon_flame_4x4.png",
-          "FlipbookLayout": "Grid4x4",
-          "FlipbookMode": "Loop",
-          "FlipbookFramerate": 16,
-          "FlipbookStartRandom": true,
+          "Name": "SlashEmbers",
+          "Texture": "vfx/_shared/spark.png",
           "Host": {
             "Kind": "Point"
           },
           "Rate": 14,
           "Lifetime": [
-            0.45,
-            0.7
+            1.0,
+            1.6
           ],
           "Speed": [
-            0.2,
-            0.6
+            0.3,
+            0.9
           ],
           "SpreadAngle": [
             180,
@@ -686,21 +682,21 @@
           "Drag": 1.5,
           "Acceleration": [
             0,
-            2.0,
+            1.5,
             0
           ],
           "Size": [
             [
               0,
-              0.32
+              0.14
             ],
             [
-              0.4,
-              0.42
+              0.3,
+              0.17
             ],
             [
               1,
-              0.12
+              0
             ]
           ],
           "Transparency": [
@@ -709,7 +705,7 @@
               0.05
             ],
             [
-              0.7,
+              0.6,
               0.2
             ],
             [
@@ -717,23 +713,83 @@
               1
             ]
           ],
-          "Rotation": [
-            -12,
-            12
-          ],
           "Color": [
             [
               0,
-              "#FFFFFF"
+              "#F3E8FF"
+            ],
+            [
+              0.35,
+              "#C08CFF"
             ],
             [
               1,
-              "#9A7BD8"
+              "#6A22D0"
             ]
           ],
-          "LightEmission": 0.1,
+          "LightEmission": 1,
           "LightInfluence": 0,
-          "Brightness": 1.2
+          "Brightness": 2.6,
+          "Note": "soft glowing embers drifting up off the slash (additive, no painted flame); in game they live half their row's life (Config.Effects.TrailEmitterLifetimeScale): 0.5-0.8 s"
+        },
+        {
+          "Name": "SlashGlow",
+          "Texture": "vfx/_shared/glow_soft.png",
+          "Host": {
+            "Kind": "Point"
+          },
+          "Rate": 4,
+          "Lifetime": [
+            0.9,
+            1.2
+          ],
+          "Speed": [
+            0.05,
+            0.2
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Drag": 1.0,
+          "Acceleration": [
+            0,
+            0.4,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.35
+            ],
+            [
+              0.4,
+              0.65
+            ],
+            [
+              1,
+              0.45
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0.45
+            ],
+            [
+              0.4,
+              0.55
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#7B2FF7",
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "Brightness": 1.2,
+          "Note": "a faint violet glow round the embers, so the slash reads as light, not a ribbon alone"
         },
         {
           "Name": "SlashSmoke",
@@ -743,7 +799,7 @@
           "Host": {
             "Kind": "Point"
           },
-          "Rate": 6,
+          "Rate": 4,
           "Lifetime": [
             0.7,
             1.0
@@ -1507,7 +1563,7 @@
       "Beams": 2,
       "Lights": 2,
       "Orbiters": 0,
-      "Note": "v4 (2026-10-29): the aura is back to its rows before v3: 5.5+5.5 soft edge flames (flame_4x4), 6 sparks, 4 mist = 21/s steady, half on the back; Lower effects hides the edge flames (10/s left: sparks, mist; the two border beams stay). Plus the body (5 parts, 8,784 tris: the Meshy sword split and re-proportioned, a 512 colour atlas, a 512 emissive mask, a 256 wrap tile); textures: flame_4x4 1024, flame_strip 512x128, toon_flame 512 and fire_face 1024 (the trail's and the finisher's). Trail 32/s while the ball moves (12 sparks, 14 flames, 6 smoke). The finisher bursts 159 particles once (2 of them big: the face and its glow), no 3D piece."
+      "Note": "v4 (2026-10-29): the aura is back to its rows before v3: 5.5+5.5 soft edge flames (flame_4x4), 6 sparks, 4 mist = 21/s steady, half on the back; Lower effects hides the edge flames (10/s left: sparks, mist; the two border beams stay). Plus the body (5 parts, 8,784 tris: the Meshy sword split and re-proportioned, a 512 colour atlas, a 512 emissive mask, a 256 wrap tile); textures: flame_4x4 1024, flame_strip 512x128, toon_flame 512 and fire_face 1024 (the finisher's). Trail 32/s while the ball moves (10 sparks, 14 embers, 4 glow, 4 smoke; no flat flames). The finisher bursts 159 particles once (2 of them big: the face and its glow), no 3D piece."
     }
   }
 }

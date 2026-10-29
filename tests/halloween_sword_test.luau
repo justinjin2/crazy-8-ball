@@ -178,7 +178,7 @@ return {
 		H.expect(rises >= 1, ID .. ": the card's flames are gone")
 	end,
 
-	["the slash trail is a darker deep purple with its flames"] = function()
+	["the slash trail is a darker deep purple shedding glowing embers, no flat flames"] = function()
 		local r = row()
 		local trail = r.Style.Trail
 		H.expect(isAsset(trail.Texture), ID .. ": the trail is painted with the flame strip")
@@ -193,11 +193,21 @@ return {
 		local names = {}
 		local rate = 0
 		for _, e in r.TrailEmitters or {} do
-			names[e.Name] = true
+			names[e.Name] = e
 			rate += rateOf(e.Rate)
 			H.expect(isAsset(e.Texture), ID .. ": trail emitter " .. tostring(e.Name) .. " texture")
+			H.expect(
+				e.Texture ~= TOON_FLAME
+					and e.Texture ~= SOFT_FLAME
+					and string.find(e.Name, "Flame") == nil,
+				ID .. ": trail emitter " .. tostring(e.Name) .. " is a flat painted flame"
+			)
 		end
-		H.expect(names.SlashFlames == true, ID .. ": no flames shed off the trail")
+		local embers = names.SlashEmbers
+		H.expect(embers ~= nil, ID .. ": no embers shed off the trail")
+		H.expect((embers.LightEmission or 0) >= 0.8, ID .. ": the embers do not glow")
+		H.expect(maxOf(embers.Size) <= 0.2, ID .. ": the embers are not small")
+		H.expect(names.SlashSmoke ~= nil, ID .. ": the trail's little dark smoke is gone")
 		H.expect(rate <= 40, ID .. ": the trail sheds " .. rate .. " particles a second")
 	end,
 }
