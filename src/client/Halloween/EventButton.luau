@@ -4,8 +4,9 @@
 -- through Halloween/TileLayout: the Daily Challenge's spot, or next to the offer tile while that
 -- shows. It shows only while the event is Live for a player whose tutorial is over
 -- (Halloween/State). A pumpkin with candy, the word HALLOWEEN, an "ENDS IN 5d 23h" pill over
--- its top, NEW until the menu was opened once, a red "!" while a quest waits to be claimed or a
--- new board has opened since the menu was last opened. A press opens the event menu.
+-- its top, NEW until the menu was opened once, a red "!" while one of today's quests waits to be
+-- claimed or a new board has opened since the menu was last opened (the menu shows today's
+-- board only, designer 2026-10-29). A press opens the event menu.
 local GuiService = game:GetService("GuiService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TextService = game:GetService("TextService")
@@ -16,6 +17,7 @@ local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local Clock = require(Shared.Halloween.Clock)
 local Event = require(Shared.Halloween.Event)
+local HwMenuMath = require(Shared:WaitForChild("HwMenuMath"))
 local TileLayout = require(Shared.Halloween.TileLayout)
 local HudParts = require(script.Parent.Parent.HudParts)
 local Menus = require(script.Parent.Parent.Menus)
@@ -180,20 +182,18 @@ function EventButton.wanted(_self: any): boolean
 	return State.phase() == "Live" and not Countdown.holding()
 end
 
--- Whether a quest waits to be claimed, or a board opened since the menu was last opened.
+-- Whether one of today's quests waits to be claimed, or today's board opened since the menu
+-- was last opened.
 local function alerting(self: any, view: any?): boolean
 	if type(view) ~= "table" or type(view.boards) ~= "table" then
 		return false
 	end
 	if view.on and view.on.quests then
-		for _, board in view.boards do
-			for _, q in board.quests or {} do
-				if not q.claimed and q.have >= q.need then
-					return true
-				end
-			end
+		local today = HwMenuMath.today(view, Clock.now())
+		if HwMenuMath.claimable(view, today) > 0 then
+			return true
 		end
-		if view.seen and (view.open or 0) > self.openedBoard and self.openedBoard > 0 then
+		if view.seen and today > self.openedBoard and self.openedBoard > 0 then
 			return true
 		end
 	end
@@ -293,7 +293,7 @@ function EventButton.press(self: any)
 	UISound.play("Click")
 	UIAnim.bounce(self.button)
 	local view = State.view()
-	self.openedBoard = if type(view) == "table" then view.open or 0 else 0
+	self.openedBoard = HwMenuMath.today(view, Clock.now())
 	self.alert.Visible = false
 	Menus.open(EventButton.MenuName)
 end
