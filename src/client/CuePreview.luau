@@ -27,14 +27,24 @@
 -- on Stage), the header's 8-balls scroll, the sheet has the dots, the title's icon, the lit tab's
 -- icon and the 8-ball flair rock; a close folds the panel back over the world already given back.
 --
+-- The SHOWCASE (Config.UI.CuePreview.Showcase, designer 2026-10-29: "just make it exactly like
+-- the mp4 video preview videos"): the Halloween cards' PREVIEW plays the cue like the designer's
+-- clips instead, one big 16:9 screen with only the red X (and B) and a thin progress line, a
+-- loop until it is closed: MODEL (the cue floating alone on black, its aura running, the camera
+-- drifting along it), a cut to TRAIL (the stroke, the ball rolling with its trail, a low camera
+-- following it), a cut to FINISHER (a low camera at the pocket as the ball drops and the
+-- finisher plays whole). The model waits at its cut for the cue's shot effects (at most
+-- ShotWaitSeconds); with Reduce Motion each camera holds still (cuts only). The first whole loop
+-- is counted ("CuePreviewWatched" .. from). Its switch off, the cards open the tabs on TRAIL.
+--
 -- Public: CuePreview.open(id, opts?) -> boolean, CuePreview.allowed(id), CuePreview.enabled(),
 -- CuePreview.isOpen(), CuePreview.close(). Who may open it: every cue while
 -- Config.UI.CuePreview.Enabled (My Cues' and the Index's Preview buttons show only then), else
--- the cues its Event row lists (the Halloween cards' PREVIEW, which opens on TRAIL). The pure
--- maths is CuePreviewMath; numbers in Config.UI.CuePreview, words in Strings.CuePreview. Studio
--- only: GuiQA `preview` (id, tab?, note?), `previewTab`, `previewTurn` (degrees, through the
+-- the cues its Event row lists (the Halloween cards' PREVIEW: the showcase). The pure maths is
+-- CuePreviewMath; numbers in Config.UI.CuePreview, words in Strings.CuePreview. Studio only:
+-- GuiQA `preview` (id, tab?, note?, mode?), `previewTab`, `previewTurn` (degrees, through the
 -- stick's code), `previewDrag`, `previewLoad`, `previewScreen` (w, h: a phone's screen in the
--- top-left corner), `previewLeaks`.
+-- top-left corner), `previewPin` (the showcase held at a second), `previewLeaks`.
 local ContextActionService = game:GetService("ContextActionService")
 local GuiService = game:GetService("GuiService")
 local Players = game:GetService("Players")
@@ -67,6 +77,7 @@ local UIAnim = require(script.Parent.UIAnim)
 local UISound = require(script.Parent.UISound)
 
 local C = Config.UI.CuePreview
+local SC = C.Showcase
 local K = Config.UI.Kit
 local LV = Config.UI.Menu.Lively
 local COPY = Strings.CuePreview
@@ -131,9 +142,26 @@ type Session = {
 	reveal: Stage.Stage?, -- the open (Config.UI.CuePreview.Open)
 	tabRock: UIAnim.Handle?, -- the lit tab's icon
 	flairRest: UDim2,
+	-- The showcase (Config.UI.CuePreview.Showcase; CuePreviewMath.modeOf): the clips' loop.
+	mode: string, -- "Tabs" or "Showcase"
+	timeline: { CuePreviewMath.Phase }, -- the showcase's loop (its finisher held whole)
+	segment: string?, -- its segment now: a change is a cut
+	watched: boolean, -- its first whole loop is reported
+	waitSince: number?, -- when it began to wait at the model's cut for the shot effects
+	waitDone: boolean, -- that wait timed out once: it never waits again
+	showFits: CuePreviewMath.Fits?, -- its cameras' fitted distances (refit like `fits`)
+	spot: Vector3?, -- the floating cue's middle on MODEL
+	pinAt: number?, -- Studio (previewPin): the clock stops at this second
+	pinFreeze: boolean, -- and the stage's particles freeze there
+	frozen: { [Instance]: number }?, -- the frozen emitters' TimeScale, trails' Lifetime
+	lights: { key: SpotLight, rim: PointLight }?, -- the table's (the showcase sets them per segment)
 }
 
 local session: Session? = nil
+-- The openers counted (TutorialEvent "CuePreview" .. from -> the CuePreview custom event; the
+-- showcase's first whole loop: "CuePreviewWatched" .. from).
+local REPORTED: { [string]: boolean } =
+	{ Cues = true, Index = true, Track = true, Halloween = true }
 -- Studio only (GuiQA `previewScreen`): a phone's screen emulated in the top-left corner, as a
 -- lively menu's Root trick does (this panel lays out from its ScreenGui and fits its camera from
 -- the real view, so that trick cannot reach it). Always nil in a live game.
@@ -285,7 +313,8 @@ local function buildStage(s: Session)
 	local stage = Instance.new("Model")
 	stage.Name = "CuePreviewStage"
 	s.stage = stage
-	local dark = rgb(C.Backdrop)
+	local showcase = s.mode == "Showcase"
+	local dark = rgb(if showcase then SC.Backdrop else C.Backdrop)
 	-- The room: a floor, a ceiling and four walls round the table, its own lights inside (it
 	-- must read under any lighting preset), big enough for the farthest fitted camera.
 	local room = C.Room.SideStuds
@@ -314,6 +343,16 @@ local function buildStage(s: Session)
 			stage
 		)
 	end
+	if showcase then
+		-- The showcase's black is unlit (Neon), and its room shuts the sun and the sky out (they
+		-- lit the walls lilac and washed the magenta cloth out from the low cameras).
+		for _, part in stage:GetChildren() do
+			if part:IsA("BasePart") then
+				part.Material = Enum.Material.Neon
+				part.CastShadow = true
+			end
+		end
+	end
 	local placement = Placement.new(origin.X, origin.Y, origin.Z, 0)
 	local geometry = TableGeometry.build({ pocketsOpen = true })
 	-- The pocket the ball rolls into: a corner pocket on the foot rail (+x, -y).
@@ -327,8 +366,8 @@ local function buildStage(s: Session)
 	local radius = Config.Balls.RenderRadiusInches
 	local px, py, pz = Placement.toWorld(placement, target.x, target.y, radius)
 	s.pocket = Vector3.new(px, py, pz)
-	-- The ball starts this far back along the pocket's diagonal.
-	local back = 0.55
+	-- The ball starts this far back along the pocket's diagonal (the showcase's rolls longer).
+	local back = if showcase then SC.StartShare else 0.55
 	local sx, sy, sz =
 		Placement.toWorld(placement, target.x * (1 - back), target.y * (1 - back), radius)
 	s.start = Vector3.new(sx, sy, sz)
@@ -349,7 +388,7 @@ local function buildStage(s: Session)
 	)
 	keyHost.Transparency = 1
 	local key = Instance.new("SpotLight")
-	key.Brightness = C.KeyLight.Brightness
+	key.Brightness = if showcase then SC.TableLights.Trail.Key else C.KeyLight.Brightness
 	key.Range = C.KeyLight.Range
 	key.Angle = C.KeyLight.Angle
 	key.Face = Enum.NormalId.Front
@@ -365,10 +404,11 @@ local function buildStage(s: Session)
 	rimHost.Transparency = 1
 	local rim = Instance.new("PointLight")
 	rim.Color = rgb(C.RimLight.Color)
-	rim.Brightness = C.RimLight.Brightness
+	rim.Brightness = if showcase then SC.TableLights.Trail.Rim else C.RimLight.Brightness
 	rim.Range = C.RimLight.Range
 	rim.Shadows = false
 	rim.Parent = rimHost
+	s.lights = { key = key, rim = rim }
 	-- The ball, at the game's drawn size.
 	local d = 2 * radius * Config.Table.StudsPerInch
 	local ball = bare(
@@ -380,6 +420,30 @@ local function buildStage(s: Session)
 	)
 	ball.Shape = Enum.PartType.Ball
 	s.ball = ball
+	if showcase then
+		-- The floating cue far over the table (no table in the screen), with its own key and rim.
+		local spot = origin + Vector3.new(0, SC.Model.LiftStuds, 0)
+		s.spot = spot
+		local lights: { { any } } = { { "ModelKey", SC.Model.Key }, { "ModelRim", SC.Model.Rim } }
+		for _, pair in lights do
+			local name, spec = pair[1], pair[2]
+			local o = spec.Offset
+			local host = bare(
+				name,
+				Vector3.new(0.2, 0.2, 0.2),
+				CFrame.new(spot + Vector3.new(o[1], o[2], o[3])),
+				dark,
+				stage
+			)
+			host.Transparency = 1
+			local light = Instance.new("PointLight")
+			light.Color = rgb(spec.Color)
+			light.Brightness = spec.Brightness
+			light.Range = spec.Range
+			light.Shadows = false
+			light.Parent = host
+		end
+	end
 	stage.Parent = workspace
 end
 
@@ -432,6 +496,11 @@ local function buildCue(s: Session)
 		else nil
 	s.reach = CuePreviewMath.finisherReach(pocket, creature)
 	s.hold = CuePreviewMath.holdSeconds(s.reach.seconds)
+	s.timeline = CuePreviewMath.showcaseTimeline(s.hold)
+	if s.mode == "Showcase" then -- a new cue plays its loop from the model
+		s.loopAt, s.segment, s.burstDone = 0, nil, false
+		s.waitSince, s.waitDone, s.showFits = nil, false, nil
+	end
 	measure(s)
 	-- Hidden until its assets are in (or the timeout), with the spinner up: posed in its place
 	-- meanwhile (step), so it appears there. Parked far off and moved in, a skin's orbiting
@@ -720,9 +789,250 @@ local function isReady(s: Session): boolean
 	return (s.ready and (s.tab == "Model" or CueAssets.shotReady(s.id))) or os.clock() >= s.readyAt
 end
 
+--------------------------------------------------------------------------------------------
+-- The showcase's loop and cameras (Config.UI.CuePreview.Showcase; the maths in
+-- CuePreviewMath: showcaseTimeline, showcaseBeat, showcaseShot)
+--------------------------------------------------------------------------------------------
+
+-- The floating cue on MODEL: its drawn middle at the spot, along CuePreviewMath.showcaseAxis.
+local function poseShowcase(s: Session)
+	local stick, spot = s.stick, s.spot
+	if not stick or not spot then
+		return
+	end
+	local a = CuePreviewMath.showcaseAxis()
+	local axis = Vector3.new(a.x, a.y, a.z)
+	local tip = spot - axis * spanMiddle(s)
+	stick:PivotTo(CFrame.lookAt(tip, tip - axis) * CFrame.Angles(0, 0, math.rad(SC.Model.RollDeg)))
+end
+
+local function showcaseScene(s: Session): CuePreviewMath.Scene
+	local ball = s.ball :: BasePart
+	return {
+		spot = vec(s.spot :: Vector3),
+		start = vec(s.start :: Vector3),
+		pocket = vec(s.pocket :: Vector3),
+		ball = vec(ball.Position),
+		cloth = s.cloth,
+		span = s.span,
+		reach = s.reach,
+	}
+end
+
+-- The ball, the stick, the trail and the burst at `beat`: on a cut the stick is hidden for the
+-- frame it jumps (its look restarts where it lands); on FINISHER it stays hidden (behind the
+-- camera, its aura would drift into the shot).
+local function playShowcase(s: Session, beat: CuePreviewMath.Beat)
+	local ball, stick = s.ball, s.stick
+	if not ball or not stick or not s.start or not s.pocket or not s.spot then
+		return
+	end
+	if beat.segment ~= s.segment then
+		s.segment = beat.segment
+		s.jumped = true
+		if beat.segment ~= "finisher" then
+			s.burstDone = false
+		end
+		-- The table's lights for the segment (a cut hides the change): dim for the trail's low
+		-- camera, full for the finisher's lit particles.
+		local spec = SC.TableLights[if beat.segment == "finisher" then "Finisher" else "Trail"]
+		local lights = s.lights
+		if lights then
+			lights.key.Brightness = spec.Key
+			lights.rim.Brightness = spec.Rim
+		end
+	end
+	if beat.segment == "model" then
+		ball.Transparency = 1
+		setTrail(s, false, true)
+		poseShowcase(s)
+		return
+	end
+	local from, to = s.start :: Vector3, s.pocket :: Vector3
+	local dir = (to - from).Unit
+	local gap = C.Stroke.GapStuds
+	local phase, progress = beat.phase, beat.progress
+	if phase == "back" or phase == "hit" then
+		ball.Transparency = 0
+		ball.Position = from
+		setTrail(s, false, false)
+		local pull = if phase == "back" then CuePreviewMath.easeOut(progress) else 1 - progress
+		stick:PivotTo(CueStickBuilder.frame(from, dir, gap + pull * C.Stroke.PullStuds))
+	elseif phase == "roll" then
+		ball.Transparency = 0
+		ball.Position = from:Lerp(to, beat.roll)
+		setTrail(s, true, false)
+		stick:PivotTo(CueStickBuilder.frame(from, dir, gap))
+	elseif phase == "drop" then
+		ball.Position = to - Vector3.new(0, progress * 0.6, 0)
+		ball.Transparency = progress
+		setTrail(s, false, true)
+	else
+		ball.Transparency = 1
+		setTrail(s, false, true)
+	end
+	-- The burst once, as the ball drops (or the first frame after, a long frame skipping it).
+	if (phase == "drop" or phase == "finisher") and not s.burstDone then
+		s.burstDone = true
+		pcall(function()
+			s.effects:pocketBurst(Vector3.new(to.X, s.cloth, to.Z), 1)
+		end)
+	end
+end
+
+-- The body was drawn (or dropped) since the cue was measured: the cue's length changed.
+local function remeasure(s: Session)
+	local stick = s.stick
+	local body = if stick then stick:GetAttribute("Body") else nil
+	if (if type(body) == "string" then body else nil) ~= s.body then
+		measure(s)
+	end
+end
+
+local function frameShowcase(s: Session, beat: CuePreviewMath.Beat)
+	local cam = workspace.CurrentCamera
+	local at = windowCentre(s)
+	if not at or not s.start or not s.pocket or not s.spot or not s.ball then
+		return
+	end
+	local viewport = cam.ViewportSize
+	local size = (s.parts.window :: GuiObject).AbsoluteSize
+	remeasure(s)
+	local scene = showcaseScene(s)
+	local key = ("S|%.0f|%.0f|%.0f|%.0f|%.0f|%.0f"):format(
+		at.X,
+		at.Y,
+		size.X,
+		size.Y,
+		viewport.X,
+		viewport.Y
+	)
+	if key ~= s.fitKey or s.showFits == nil then
+		s.fitKey = key
+		local keep = 1 - C.Fit.MarginShare
+		s.showFits = CuePreviewMath.showcaseFits(scene, s.timeline, {
+			viewport = { w = viewport.X, h = viewport.Y },
+			at = { x = at.X, y = at.Y },
+			half = { w = size.X / 2 * keep, h = size.Y / 2 * keep },
+			windowH = size.Y,
+		})
+	end
+	local shot = CuePreviewMath.showcaseShot(
+		scene,
+		beat,
+		s.showFits :: CuePreviewMath.Fits,
+		UIAnim.reduced()
+	)
+	local fov = CuePreviewMath.cameraFov(shot.fovDeg, viewport.Y, size.Y)
+	local eye, target = CuePreviewMath.camera(
+		shot.focus,
+		shot.yaw,
+		shot.pitch,
+		shot.distance,
+		fov,
+		{ w = viewport.X, h = viewport.Y },
+		{ x = at.X, y = at.Y }
+	)
+	cam.CameraType = Enum.CameraType.Scriptable
+	cam.FieldOfView = fov
+	cam.CFrame =
+		CFrame.lookAt(Vector3.new(eye.x, eye.y, eye.z), Vector3.new(target.x, target.y, target.z))
+end
+
+-- Studio (previewPin): every particle on the stage stops where it is and every trail stays
+-- drawn, or they go on again.
+local function freeze(s: Session, on: boolean)
+	if on and s.frozen == nil and s.stage then
+		local frozen: { [Instance]: number } = {}
+		for _, d in (s.stage :: Model):GetDescendants() do
+			if d:IsA("ParticleEmitter") then
+				frozen[d] = d.TimeScale
+				d.TimeScale = 0
+			elseif d:IsA("Trail") then -- its ribbon stays drawn
+				frozen[d] = d.Lifetime
+				d.Lifetime = 1e4
+			end
+		end
+		s.frozen = frozen
+	elseif not on and s.frozen then
+		for d, value in s.frozen :: { [Instance]: number } do
+			if d.Parent and d:IsA("ParticleEmitter") then
+				d.TimeScale = value
+			elseif d.Parent and d:IsA("Trail") then
+				d.Lifetime = value
+			end
+		end
+		s.frozen = nil
+	end
+end
+
+local function stepShowcase(s: Session, dt: number)
+	local look = s.ready or os.clock() >= s.readyAt
+	local timeline = s.timeline
+	local waiting = false
+	if look then
+		-- The model holds at its cut for the cue's shot effects (the trail, the finisher's
+		-- creature), at most ShotWaitSeconds once; then it plays with what there is.
+		local shots = CueAssets.shotReady(s.id)
+		local now = os.clock()
+		if
+			not shots
+			and not s.waitDone
+			and s.waitSince
+			and now - s.waitSince >= SC.ShotWaitSeconds
+		then
+			s.waitDone = true
+		end
+		local t
+		t, waiting = CuePreviewMath.showcaseAdvance(timeline, s.loopAt, dt, shots or s.waitDone)
+		if waiting then
+			s.waitSince = s.waitSince or now
+		end
+		local pin = s.pinAt
+		if pin and t >= pin then
+			t = pin
+			if s.pinFreeze then
+				freeze(s, true)
+			end
+		end
+		s.loopAt = t
+	end
+	local spinner = s.parts.spinner
+	if spinner then
+		spinner.Visible = not look or waiting
+	end
+	local beat = CuePreviewMath.showcaseBeat(timeline, s.loopAt)
+	if not s.watched and beat.loop >= 1 then
+		s.watched = true -- the first whole loop: model, trail and finisher
+		local from = s.opts and s.opts.from
+		if type(from) == "string" and REPORTED[from] then
+			report("CuePreviewWatched" .. from)
+		end
+	end
+	playShowcase(s, beat)
+	local stick = s.stick
+	local show = look and not s.jumped and beat.segment ~= "finisher"
+	s.jumped = false
+	if stick and show ~= s.shown then
+		s.shown = show
+		CueStickBuilder.setVisible(stick, show)
+	end
+	local fill = s.parts.lineFill
+	if fill then
+		local total = timeline[#timeline].to
+		local share = if total > 0 then (s.loopAt % total) / total else 0
+		fill.Size = UDim2.fromScale(share, 1)
+	end
+	frameShowcase(s, beat)
+end
+
 local function step(dt: number)
 	local s = session
 	if not s then
+		return
+	end
+	if s.mode == "Showcase" then
+		stepShowcase(s, dt)
 		return
 	end
 	-- The right stick turns it; a drag or a flick spins it; idle long enough, it turns alone
@@ -800,6 +1110,53 @@ local function cycleTab(s: Session, by: number)
 	setTab(s, nextTab)
 end
 
+-- The showcase's panel (CuePreviewMath.showcasePanel): the frame round one 16:9 screen, the
+-- progress line under it.
+local function layoutShowcase(s: Session, size: Vector2)
+	local p = CuePreviewMath.showcasePanel({ w = size.X, h = size.Y })
+	local parts = s.parts
+	local function place(object: GuiObject?, r: CuePreviewMath.Rect)
+		if object then
+			object.Position = UDim2.fromOffset(r.x, r.y)
+			object.Size = UDim2.fromOffset(r.w, r.h)
+		end
+	end
+	local P, W = p.panel, p.window
+	place(parts.veilTop, { x = 0, y = -60, w = size.X, h = P.y + 60 })
+	place(parts.veilBottom, { x = 0, y = P.y + P.h, w = size.X, h = size.Y - P.y - P.h + 60 })
+	place(parts.veilLeft, { x = 0, y = P.y, w = P.x, h = P.h })
+	place(parts.veilRight, { x = P.x + P.w, y = P.y, w = size.X - P.x - P.w, h = P.h })
+	place(
+		parts.bodyTop,
+		{ x = P.x, y = p.header.y + p.header.h - 2, w = P.w, h = W.y - p.header.y - p.header.h + 2 }
+	)
+	place(parts.bodyBottom, { x = P.x, y = W.y + W.h, w = P.w, h = P.y + P.h - W.y - W.h })
+	place(parts.bodyLeft, { x = P.x, y = W.y, w = W.x - P.x, h = W.h })
+	place(parts.bodyMid, { x = W.x + W.w, y = W.y, w = P.x + P.w - W.x - W.w, h = W.h })
+	place(parts.backing, P)
+	place(parts.header, p.header)
+	local iconPx = math.floor(p.header.h * C.TitleIconShare)
+	local gap = if p.short then C.Layout.ShortGapPx else C.Layout.GapPx
+	place(
+		parts.icon,
+		{ x = p.title.x, y = p.header.y + (p.header.h - iconPx) / 2, w = iconPx, h = iconPx }
+	)
+	place(
+		parts.title,
+		{ x = p.title.x + iconPx + gap, y = p.title.y, w = p.title.w - iconPx - gap, h = p.title.h }
+	)
+	s.flairRest = UDim2.fromOffset(P.x, math.floor(P.y + P.h * SC.FlairDownShare))
+	if parts.flair then
+		parts.flair.Position = s.flairRest
+	end
+	place(parts.close, p.close)
+	place(parts.window, W)
+	place(parts.drag, W)
+	place(parts.spinner, { x = W.x + W.w / 2 - 24, y = W.y + W.h / 2 - 24, w = 48, h = 48 })
+	place(parts.line, p.line)
+	HudParts.setTextSize(parts.title, if p.short then 20 else 28)
+end
+
 local function layout(s: Session)
 	local gui = s.gui
 	if not gui then
@@ -811,6 +1168,10 @@ local function layout(s: Session)
 		size = Vector2.new(e.X, e.Y - GuiService:GetGuiInset().Y)
 	end
 	if size.X <= 0 then
+		return
+	end
+	if s.mode == "Showcase" then
+		layoutShowcase(s, size)
 		return
 	end
 	local p = CuePreviewMath.panel({ w = size.X, h = size.Y })
@@ -990,7 +1351,9 @@ local function buildGui(s: Session)
 	local icon = HudParts.icon(content, "Cue", "Icon")
 	icon.ZIndex = 3
 	parts.icon = icon
-	local title = HudParts.text(content, "Title", 28, COPY.Title)
+	local showcase = s.mode == "Showcase"
+	local title =
+		HudParts.text(content, "Title", 28, if showcase then CueThumb.cueName(s.id) else COPY.Title)
 	title.TextXAlignment = Enum.TextXAlignment.Left
 	title.TextWrapped = false
 	title.ZIndex = 3
@@ -1023,13 +1386,50 @@ local function buildGui(s: Session)
 	drag.ZIndex = 2
 	drag.Parent = content
 	parts.drag = drag
-	local hint = HudParts.text(content, "Hint", 15, COPY.Hint)
-	hint.ZIndex = 3
-	parts.hint = hint
 	local spinner = HudParts.icon(content, "Rolling", "Spinner")
 	spinner.ZIndex = 3
 	parts.spinner = spinner
 	table.insert(s.parts.loops, UIAnim.turn(spinner, 240))
+	if showcase then
+		-- The showcase: only a thin progress line under the screen (a video's), never pressed.
+		local line = HudParts.frame(content, "Line")
+		line.BackgroundTransparency = 0
+		line.BackgroundColor3 = rgb(SC.LineTrack)
+		line.ZIndex = 3
+		HudParts.corner(line, 3)
+		local fill = HudParts.frame(line, "Fill")
+		fill.BackgroundTransparency = 0
+		fill.BackgroundColor3 = rgb(SC.LineColor)
+		fill.Size = UDim2.fromScale(0, 1)
+		fill.ZIndex = 4
+		HudParts.corner(fill, 3)
+		parts.line = line
+		parts.lineFill = fill
+	else
+		local hint = HudParts.text(content, "Hint", 15, COPY.Hint)
+		hint.ZIndex = 3
+		parts.hint = hint
+	end
+	local flair = Instance.new("ImageLabel") -- the 8-ball on the panel's left edge
+	flair.Name = "Flair"
+	flair.BackgroundTransparency = 1
+	flair.Image = LV.FlairImage
+	flair.ScaleType = Enum.ScaleType.Fit
+	flair.AnchorPoint = Vector2.new(0.5, 0.5)
+	flair.Size = UDim2.fromOffset(LV.FlairPx, LV.FlairPx)
+	flair.ZIndex = 6
+	flair.Parent = content
+	parts.flair = flair
+	if showcase then
+		layout(s)
+		table.insert(
+			s.connections,
+			gui:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
+				layout(s)
+			end)
+		)
+		return
+	end
 	-- The info sheet.
 	local sheet = HudParts.card(content, "Sheet", 14)
 	sheet.ZIndex = 2
@@ -1071,16 +1471,6 @@ local function buildGui(s: Session)
 	equip.Name = "Equip"
 	equip.ZIndex = 4
 	parts.equip = equip
-	local flair = Instance.new("ImageLabel") -- the 8-ball on the panel's left edge
-	flair.Name = "Flair"
-	flair.BackgroundTransparency = 1
-	flair.Image = LV.FlairImage
-	flair.ScaleType = Enum.ScaleType.Fit
-	flair.AnchorPoint = Vector2.new(0.5, 0.5)
-	flair.Size = UDim2.fromOffset(LV.FlairPx, LV.FlairPx)
-	flair.ZIndex = 6
-	flair.Parent = content
-	parts.flair = flair
 	-- Gamepad: the tabs in a row, EQUIP under them.
 	local t1, t2, t3 = parts.tabModel, parts.tabTrail, parts.tabFinisher
 	t1.NextSelectionRight, t2.NextSelectionLeft = t2, t1
@@ -1117,6 +1507,9 @@ end
 
 -- The gamepad's first stop: EQUIP for an owned cue, else the lit tab.
 local function firstStop(s: Session): GuiObject?
+	if s.mode == "Showcase" then
+		return s.parts.close
+	end
 	return if owned(s.id) then s.parts.equip else s.parts["tab" .. s.tab]
 end
 
@@ -1138,6 +1531,17 @@ local function bindInput(s: Session)
 			end
 		end)
 	)
+	local priority = Enum.ContextActionPriority.High.Value + 25 -- over the menus' own close
+	if s.mode == "Showcase" then
+		-- Nothing to turn or switch: the right stick and LB/RB do nothing while it plays.
+		ContextActionService:BindActionAtPriority(STICK_ACTION, function()
+			return Enum.ContextActionResult.Sink
+		end, false, priority, Enum.KeyCode.Thumbstick2)
+		ContextActionService:BindActionAtPriority(TAB_ACTION, function()
+			return Enum.ContextActionResult.Sink
+		end, false, priority, Enum.KeyCode.ButtonL1, Enum.KeyCode.ButtonR1)
+		return
+	end
 	table.insert(
 		s.connections,
 		drag.InputBegan:Connect(function(input: InputObject)
@@ -1179,7 +1583,6 @@ local function bindInput(s: Session)
 			end
 		end)
 	)
-	local priority = Enum.ContextActionPriority.High.Value + 25 -- over the menus' own close
 	ContextActionService:BindActionAtPriority(STICK_ACTION, function(_, _state, input: InputObject)
 		local v = input.Position
 		s.stickInput = Vector2.new(v.X, v.Y)
@@ -1399,7 +1802,8 @@ end
 -- opens onto the stage (the backing fades) and the pieces pop in; the flair drops on last.
 local function playOpen(s: Session)
 	local parts = s.parts
-	local reveal = Stage.new(C.Open)
+	local showcase = s.mode == "Showcase"
+	local reveal = Stage.new(if showcase then SC.Open else C.Open)
 	s.reveal = reveal
 	local function keep(handle: UIAnim.Handle)
 		if session == s then
@@ -1440,6 +1844,14 @@ local function playOpen(s: Session)
 	end)
 	reveal:add("Title", parts.title)
 	reveal:add("Close", parts.close)
+	if showcase then
+		reveal:add("Line", parts.line)
+		reveal:add("Flair", parts.flair, function()
+			keep(flairIdle(s))
+		end)
+		reveal:play()
+		return
+	end
 	reveal:add("Name", parts.name)
 	reveal:add("Pill", parts.pill)
 	reveal:add("Thumb", parts.thumb)
@@ -1509,6 +1921,18 @@ local function openNow()
 		reveal = nil,
 		tabRock = nil,
 		flairRest = UDim2.new(),
+		mode = CuePreviewMath.modeOf(C, opts.from, opts.mode),
+		timeline = CuePreviewMath.showcaseTimeline(nil),
+		segment = nil,
+		watched = false,
+		waitSince = nil,
+		waitDone = false,
+		showFits = nil,
+		spot = nil,
+		pinAt = nil,
+		pinFreeze = false,
+		frozen = nil,
+		lights = nil,
 	}
 	session = s
 	local ok, err = pcall(function()
@@ -1520,9 +1944,13 @@ local function openNow()
 		buildCue(s)
 		buildGui(s)
 		bindInput(s)
-		setTab(s, first)
-		refreshEquip(s)
-		frameCamera(s)
+		if s.mode == "Showcase" then
+			stepShowcase(s, 0) -- posed and framed at the loop's start
+		else
+			setTab(s, first)
+			refreshEquip(s)
+			frameCamera(s)
+		end
 		RunService:BindToRenderStep(NAME, Enum.RenderPriority.Camera.Value + 1, step)
 		renderBound = true
 		playOpen(s)
@@ -1571,12 +1999,46 @@ local function start()
 		end,
 		root = nil,
 	})
-	GuiQA.add("preview", function(id: string?, tab: string?, note: string?)
+	GuiQA.add("preview", function(id: string?, tab: string?, note: string?, mode: string?)
 		if id == nil then
 			Menus.close(NAME)
 			return false
 		end
-		return (CuePreview :: any).open(id, { from = "QA", note = note, tab = tab })
+		return (CuePreview :: any).open(id, { from = "QA", note = note, tab = tab, mode = mode })
+	end)
+	-- The showcase pinned at `seconds` of its loop (deterministic screenshots): it plays the
+	-- PinLeadSeconds before it (the trail drawn, the burst fired), then stops there, its
+	-- particles frozen unless `freeze` is false; `after` seconds from now (a screenshot's own
+	-- delay: a finisher's particles live only a second or two). No seconds: it plays on.
+	-- Returns where it will stop.
+	GuiQA.add("previewPin", function(seconds: number?, freezeIt: boolean?, after: number?)
+		local s = session
+		if not s or s.mode ~= "Showcase" then
+			return nil
+		end
+		freeze(s, false)
+		if type(seconds) ~= "number" then
+			s.pinAt = nil
+			return { pinned = false, at = s.loopAt }
+		end
+		local function pin()
+			if session ~= s then
+				return
+			end
+			freeze(s, false)
+			s.pinAt = seconds
+			s.pinFreeze = freezeIt ~= false
+			s.loopAt = math.max(0, seconds - SC.PinLeadSeconds)
+			s.segment, s.burstDone = nil, false
+		end
+		if type(after) == "number" and after > 0 then
+			task.delay(after, pin)
+		else
+			pin()
+		end
+		local beat = CuePreviewMath.showcaseBeat(s.timeline, seconds)
+		local total = s.timeline[#s.timeline].to
+		return { segment = beat.segment, phase = beat.phase, at = beat.at, loopSeconds = total }
 	end)
 	GuiQA.add("previewTab", function(by: any)
 		local s = session
@@ -1669,24 +2131,32 @@ local function start()
 			attribute = Players.LocalPlayer:GetAttribute(ATTRIBUTE),
 			bound = renderBound,
 			connections = if session then #(session :: Session).connections else 0,
+			fov = cam.FieldOfView,
+			mode = if session then (session :: Session).mode else "none",
+			watched = if session then (session :: Session).watched else false,
 			memoryKb = math.floor(gcinfo()),
 		}
 	end)
 end
 
--- The openers counted (TutorialEvent "CuePreview" .. from -> the CuePreview custom event).
-local REPORTED: { [string]: boolean } =
-	{ Cues = true, Index = true, Track = true, Halloween = true }
-
 --- Open the preview on catalog cue `id` (`opts.from`: "Cues", "Index", "Halloween" for the
 --- event cards, "Track"; `opts.tab`: "Model", "Trail" or "Finisher" to open on, MODEL by
 --- default; `opts.onClose` runs after it closes; `opts.note` is the line under the rarity).
+--- The openers in Config.UI.CuePreview.Showcase.From (the event cards) get the showcase while
+--- it is on, a loop like the designer's clips with no tabs (`opts.mode` "Showcase" or "Tabs"
+--- asks for one; CuePreviewMath.modeOf).
 --- False when `allowed` refuses the cue (switched off, not an event cue, unknown), blocked (a
 --- match, a popup, a reel) or spammed. Opened again while open, it switches to the new cue (on
 --- `opts.tab` if given).
 function CuePreview.open(
 	id: string,
-	opts: { from: string?, onClose: (() -> ())?, note: string?, tab: string? }?
+	opts: {
+		from: string?,
+		onClose: (() -> ())?,
+		note: string?,
+		tab: string?,
+		mode: string?,
+	}?
 ): boolean
 	start()
 	if not CuePreview.allowed(id) then
@@ -1707,6 +2177,10 @@ function CuePreview.open(
 			-- Its shot effects start loading now, not at Main's next look (ShotRefreshSeconds).
 			CueAssets.holdShots({ CueStickBuilder.equippedCue(Players.LocalPlayer), id })
 			buildCue(s)
+			if s.mode == "Showcase" then
+				s.parts.title.Text = CueThumb.cueName(id) -- buildCue restarted the loop
+				return
+			end
 			s.parts.name.Text = CueThumb.cueName(id)
 			CueThumb.set(s.parts.thumb, id)
 			local rarity = CueThumb.rarityOf(id)
