@@ -52,7 +52,7 @@ type Who = {
 	graceUntil: number,
 	pausedUntil: number,
 	noted: boolean, -- the bag-full note shown this pause
-	pickups: number,
+	candy: number, -- the Candy picked up this session (the CandyPickups event's value)
 	capped: boolean,
 	joinedAt: number,
 	lobbySeconds: number,
@@ -122,7 +122,7 @@ local function stateOf(p: Player): Who
 			graceUntil = 0,
 			pausedUntil = 0,
 			noted = false,
-			pickups = 0,
+			candy = 0,
 			capped = false,
 			joinedAt = now,
 			lobbySeconds = 0,
@@ -360,11 +360,11 @@ local function pickupTick()
 			end
 			local outcome = Rules.pickupOutcome(granted == true, reason, Clock.serverNow())
 			if outcome.take then
-				w.pickups += 1
-				forget(c)
-				table.remove(candies, i)
 				-- The Candy it gave (flat: CandyService.pickup adds Pickup.Candy) for the "+5".
 				local amount = Config.Halloween.Pickup.Candy
+				w.candy += amount
+				forget(c)
+				table.remove(candies, i)
 				pcall(function()
 					Net.get("HalloweenMapFx")
 						:FireClient(p, { kind = "Pickup", at = c.at, amount = amount })
@@ -379,7 +379,10 @@ local function pickupTick()
 	end
 end
 
--- The CandyPickups event at leave: pickups this session, capped or not, lobby minutes, device.
+-- The CandyPickups event at leave. value: the Candy picked up this session (since
+-- 2026-10-29; the pickups are value / Config.Halloween.Pickup.Candy, flat), to set against
+-- HwCandy "Match" for the ground/match split; a: capped or not; b: the eligible minutes (lobby
+-- and roaming in a match) bucket; c: the device.
 local function report(p: Player)
 	local w = who[p]
 	who[p] = nil
@@ -397,7 +400,7 @@ local function report(p: Player)
 		Funnel.event,
 		p,
 		"CandyPickups",
-		w.pickups,
+		w.candy,
 		if w.capped then "capped" else "ok",
 		bucket,
 		Funnel.device(p)

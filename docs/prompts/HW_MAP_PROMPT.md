@@ -476,9 +476,10 @@ enforced by `CandyService.pickup`) are core's: never copy them here.
   `Busy`, `Cooldown`, `Won`, `Lost` or `Left`; b = `"<playerTier>><kingTier>"`; c =
   `Funnel.device(p)`. After publishing it shows challenges per DAU, the win share per TierFor row
   (to retune it), and the NoTable + Busy share (to retune MaxAtOnce and SpareTables; keep it under 10%).
-- `CandyPickups`: once per player per session, at leave: value = pickups; a = `capped` or `ok`; b
-  = lobby minutes bucket; c = device. Target about 25 per active hour; the cap-hit share shows
-  exploit pressure.
+- `CandyPickups`: once per player per session, at leave: value = the Candy picked up (since
+  2026-10-29; pickups = value / Pickup.Candy); a = `capped` or `ok`; b = eligible minutes bucket;
+  c = device. Target about 270 Candy (54 pickups) per match hour; the cap-hit share shows exploit
+  pressure.
 - Neither has a number today (new features): say so in the lane file. Context (economy-candy.md
   §1): DAU about 24.9K (Oct 26), 91% new; Console 33%, PC 31%, Phone 28%, Tablet 8%, so the
   controller and phone checks matter as much as PC.
