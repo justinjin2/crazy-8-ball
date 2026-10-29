@@ -4,7 +4,7 @@
   "tier": "Secret",
   "draft": false,
   "catalog_id": "HalloweenSwordCue",
-  "note": "Halloween 2026's top prize (7000 Candy; coordinator 19:2x 2026-10-28, Justin: the purple sword model, replicated exactly, as the cue body). Drawn by its own body piece (halloween_sword): a purple-black blade with a raised ridge and glowing violet flame edges, a carved jack-o'-lantern guard with bat wings, a wrapped grip, a crystal pommel. Concept: mocks/v2/C8_halloween_sword.png. Lane hw-cues-a. Core adds the Catalog and Track rows.",
+  "note": "Halloween 2026's top prize (7000 Candy; coordinator 19:2x 2026-10-28, Justin: the purple sword model, replicated exactly, as the cue body). Drawn by its own body piece (halloween_sword): a purple-black blade with a raised ridge and glowing violet flame edges, a carved jack-o'-lantern guard with bat wings, a wrapped grip, a crystal pommel. Concept: mocks/v2/C8_halloween_sword.png. Lane hw-cues-a. Core adds the Catalog and Track rows. v3 (lane cuesB, 2026-10-29): richer aura (painted toon edge flames, a deep glow band), a darker deep-purple slash trail, the finisher redone as a laughing face of purple fire (the ghosts are gone).",
   "body": "halloween_sword",
   "maps_from": "classic",
   "look": {
@@ -688,13 +688,13 @@
       "Pocket": {
         "Colors": [
           [
-            176,
-            92,
-            255
+            123,
+            47,
+            247
           ],
           [
-            217,
-            194,
+            205,
+            166,
             255
           ]
         ],
@@ -909,114 +909,75 @@
       ]
     },
     "Pocket": {
-      "Note": "About 1.8 s (C8's WIN EFFECT, spooky aura): a violet flash and two rings on the cloth, a purple aura burst (a soft glow ball and a violet flame column out of the pocket), three small cute 3D ghosts (halloween_sword_pocket) swirling up through it, a sparkle fall.",
+      "Note": "About 2.6 s (C8's WIN EFFECT, v3: designer 2026-10-29, bigger and redone, no ghosts): a violet flash and three rings on the cloth, a bed of painted purple flames bursting out of the pocket, then the sword's carved jack-o'-lantern face rising out of it made of purple fire (fire_face_4x4: one big camera-facing particle, its 16 frames loop two cackles: the jaw drops, the eyes squint, the head bobs, the crown of flame licks up), a deep-violet glow behind it, flames licking round it in two waves, embers floating up and sparkles, then it fades into dark-violet smoke. No sound.",
       "Flash": {
         "Color": [
-          176,
-          92,
-          255
+          123,
+          47,
+          247
         ],
-        "Brightness": 8,
-        "Seconds": 0.3
+        "Brightness": 7,
+        "Seconds": 0.45
       },
       "Rings": [
         {
           "Texture": "vfx/_shared/ring.png",
-          "Color": "#B05CFF",
-          "Start": 0.6,
-          "End": 3.6,
-          "Seconds": 0.5,
+          "Color": "#2A0C50",
+          "Start": 0.4,
+          "End": 3.4,
+          "Seconds": 0.45,
           "Delay": 0.0
         },
         {
           "Texture": "vfx/_shared/ring.png",
+          "Color": "#9B4BFF",
+          "Start": 0.5,
+          "End": 5.0,
+          "Seconds": 0.6,
+          "Delay": 0.05
+        },
+        {
+          "Texture": "vfx/_shared/ring.png",
           "Color": "#D9C2FF",
-          "Start": 0.6,
-          "End": 2.8,
-          "Seconds": 0.45,
-          "Delay": 0.15
+          "Start": 0.4,
+          "End": 3.8,
+          "Seconds": 0.5,
+          "Delay": 0.3
         }
       ],
-      "Piece": {
-        "Piece": "halloween_sword_pocket",
-        "Delay": 0.1,
-        "Seconds": 1.7,
-        "Rise": [
-          [
-            0,
-            -0.5
-          ],
-          [
-            0.3,
-            0.2
-          ],
-          [
-            1,
-            0.6
-          ]
-        ],
-        "Scale": [
-          [
-            0,
-            0.7
-          ],
-          [
-            0.3,
-            1.0
-          ],
-          [
-            1,
-            1.0
-          ]
-        ],
-        "Spin": [
-          [
-            0,
-            0
-          ],
-          [
-            1,
-            0
-          ]
-        ],
-        "Transparency": [
-          [
-            0,
-            0
-          ],
-          [
-            0.65,
-            0
-          ],
-          [
-            1,
-            1
-          ]
-        ]
-      },
       "Layers": [
         {
-          "Name": "AuraBurst",
-          "Texture": "vfx/_shared/glow_soft.png",
+          "Name": "FlameBed",
+          "Texture": "vfx/halloween_sword/toon_flame_4x4.png",
+          "FlipbookLayout": "Grid4x4",
+          "FlipbookMode": "Loop",
+          "FlipbookFramerate": 15,
+          "FlipbookStartRandom": true,
           "Host": {
             "Kind": "Point",
-            "Size": 0.4
+            "Size": 0.9
           },
-          "Burst": 18,
+          "Burst": 22,
           "Delay": 0.0,
           "Lifetime": [
-            0.6,
-            1.0
+            0.7,
+            1.2
           ],
           "Speed": [
-            1.5,
-            3.5
+            3,
+            6
           ],
           "SpreadAngle": [
-            180,
-            180
+            28,
+            28
           ],
-          "Drag": 2.5,
+          "EmissionDirection": "Top",
+          "Drag": 1.4,
+          "Acceleration": [
+            0,
+            1.5,
+            0
+          ],
           "Size": [
             [
               0,
@@ -1024,71 +985,213 @@
             ],
             [
               0.4,
-              1.4
+              1.1
             ],
             [
               1,
-              0.4
+              0.3
             ]
           ],
           "Transparency": [
             [
               0,
-              0.3
+              0.05
             ],
             [
-              0.5,
-              0.5
+              0.7,
+              0.15
             ],
             [
               1,
               1
             ]
           ],
-          "Color": [
+          "Rotation": [
+            -12,
+            12
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 0.15,
+          "LightInfluence": 0,
+          "Brightness": 1.3,
+          "ZOffset": 0,
+          "Note": "the bed of flames bursting out of the pocket under the face"
+        },
+        {
+          "Name": "FaceGlow",
+          "Texture": "vfx/_shared/glow_soft.png",
+          "Host": {
+            "Kind": "Point",
+            "Size": 0.3,
+            "Offset": [
+              0,
+              -0.2,
+              0
+            ]
+          },
+          "Burst": 1,
+          "Delay": 0.05,
+          "Lifetime": 2.4,
+          "Speed": 3.8,
+          "SpreadAngle": [
+            0,
+            0
+          ],
+          "EmissionDirection": "Top",
+          "Drag": 2.2,
+          "Acceleration": [
+            0,
+            0.25,
+            0
+          ],
+          "Size": [
             [
               0,
-              "#D9C2FF"
+              2.0
+            ],
+            [
+              0.12,
+              5.4
+            ],
+            [
+              0.8,
+              5.0
             ],
             [
               1,
-              "#7B2FF7"
+              3.6
             ]
           ],
-          "LightEmission": 0.8,
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.1,
+              0.58
+            ],
+            [
+              0.75,
+              0.64
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#6A22D0",
+          "LightEmission": 0.45,
           "LightInfluence": 0,
-          "Brightness": 1.5
+          "Brightness": 1.2,
+          "ZOffset": -0.6,
+          "Note": "the deep-violet aura behind the face, rising with it"
         },
         {
-          "Name": "FlameColumn",
-          "Texture": "vfx/halloween_sword/flame_4x4.png",
+          "Name": "Face",
+          "Texture": "vfx/halloween_sword/fire_face_4x4.png",
           "FlipbookLayout": "Grid4x4",
           "FlipbookMode": "Loop",
-          "FlipbookFramerate": 10,
+          "FlipbookFramerate": 13,
+          "Host": {
+            "Kind": "Point",
+            "Size": 0.3,
+            "Offset": [
+              0,
+              -0.4,
+              0
+            ]
+          },
+          "Burst": 1,
+          "Delay": 0.1,
+          "Lifetime": 2.4,
+          "Speed": 4.0,
+          "SpreadAngle": [
+            0,
+            0
+          ],
+          "EmissionDirection": "Top",
+          "Drag": 2.2,
+          "Acceleration": [
+            0,
+            0.25,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              2.0
+            ],
+            [
+              0.12,
+              4.0
+            ],
+            [
+              0.85,
+              4.2
+            ],
+            [
+              1,
+              3.6
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0.7
+            ],
+            [
+              0.06,
+              0.06
+            ],
+            [
+              0.78,
+              0.06
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Rotation": 0,
+          "RotSpeed": 0,
+          "Color": "#FFFFFF",
+          "LightEmission": 0.08,
+          "LightInfluence": 0,
+          "Brightness": 1.35,
+          "ZOffset": 0.8,
+          "Note": "the laughing face of purple fire, one big particle rising out of the pocket (starts in it, so the table hides its chin at first); 13 fps over the 16-frame loop is two cackles a 1.2 s"
+        },
+        {
+          "Name": "FrontLicks",
+          "Texture": "vfx/halloween_sword/toon_flame_4x4.png",
+          "FlipbookLayout": "Grid4x4",
+          "FlipbookMode": "Loop",
+          "FlipbookFramerate": 15,
           "FlipbookStartRandom": true,
           "Host": {
             "Kind": "Point",
-            "Size": 0.5
+            "Size": 0.8
           },
-          "Burst": 22,
-          "Delay": 0.05,
+          "Burst": 7,
+          "Delay": 0.12,
           "Lifetime": [
-            0.9,
-            1.4
+            0.5,
+            0.8
           ],
           "Speed": [
-            2.5,
-            4.5
+            1.2,
+            2.4
           ],
           "SpreadAngle": [
-            14,
-            14
+            35,
+            35
           ],
           "EmissionDirection": "Top",
-          "Drag": 1.2,
+          "Drag": 1.4,
           "Acceleration": [
             0,
-            1,
+            2.0,
             0
           ],
           "Size": [
@@ -1098,21 +1201,21 @@
             ],
             [
               0.4,
-              0.9
+              0.8
             ],
             [
               1,
-              0.3
+              0.2
             ]
           ],
           "Transparency": [
             [
               0,
-              0.2
+              0.05
             ],
             [
-              0.6,
-              0.35
+              0.7,
+              0.15
             ],
             [
               1,
@@ -1120,59 +1223,278 @@
             ]
           ],
           "Rotation": [
-            -10,
-            10
+            -12,
+            12
           ],
-          "Color": [
+          "Color": "#FFFFFF",
+          "LightEmission": 0.15,
+          "LightInfluence": 0,
+          "Brightness": 1.3,
+          "ZOffset": 1.3,
+          "Note": "flames licking over the chin in front of the face as it comes out"
+        },
+        {
+          "Name": "FlameWrap",
+          "Texture": "vfx/halloween_sword/toon_flame_4x4.png",
+          "FlipbookLayout": "Grid4x4",
+          "FlipbookMode": "Loop",
+          "FlipbookFramerate": 15,
+          "FlipbookStartRandom": true,
+          "Host": {
+            "Kind": "Point",
+            "Size": 2.6,
+            "Offset": [
+              0,
+              1.4,
+              0
+            ]
+          },
+          "Burst": 22,
+          "Delay": 0.35,
+          "Lifetime": [
+            0.6,
+            1.0
+          ],
+          "Speed": [
+            0.8,
+            2.0
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "EmissionDirection": "Top",
+          "Drag": 1.4,
+          "Acceleration": [
+            0,
+            3.0,
+            0
+          ],
+          "Size": [
             [
               0,
-              "#D9C2FF"
+              0.5
             ],
             [
               0.5,
-              "#B05CFF"
+              0.9
             ],
             [
               1,
-              "#7B2FF7"
+              0.2
             ]
           ],
-          "LightEmission": 0.3,
+          "Transparency": [
+            [
+              0,
+              0.05
+            ],
+            [
+              0.7,
+              0.15
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Rotation": [
+            -12,
+            12
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 0.15,
           "LightInfluence": 0,
-          "Brightness": 1.3
+          "Brightness": 1.3,
+          "ZOffset": -0.3,
+          "Note": "flames licking round the face (behind it)"
         },
         {
-          "Name": "Sparkle",
-          "Texture": "vfx/_shared/star4.png",
+          "Name": "FlameCrown",
+          "Texture": "vfx/halloween_sword/toon_flame_4x4.png",
+          "FlipbookLayout": "Grid4x4",
+          "FlipbookMode": "Loop",
+          "FlipbookFramerate": 15,
+          "FlipbookStartRandom": true,
           "Host": {
             "Kind": "Point",
-            "Size": 0.3
+            "Size": 2.0,
+            "Offset": [
+              0,
+              2.0,
+              0
+            ]
           },
-          "Burst": 30,
-          "Delay": 0.1,
+          "Burst": 18,
+          "Delay": 1.0,
           "Lifetime": [
-            0.8,
-            1.4
+            0.6,
+            1.0
           ],
           "Speed": [
-            3,
-            6
+            1.0,
+            2.5
           ],
           "SpreadAngle": [
             40,
             40
           ],
           "EmissionDirection": "Top",
-          "Drag": 1.0,
+          "Drag": 1.4,
           "Acceleration": [
             0,
-            -6,
+            2.5,
             0
           ],
           "Size": [
             [
               0,
-              0.14
+              0.55
+            ],
+            [
+              0.5,
+              0.95
+            ],
+            [
+              1,
+              0.2
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0.05
+            ],
+            [
+              0.7,
+              0.15
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Rotation": [
+            -12,
+            12
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 0.15,
+          "LightInfluence": 0,
+          "Brightness": 1.3,
+          "ZOffset": -0.3,
+          "Note": "a second wave of flames off the crown, so the fire keeps burning"
+        },
+        {
+          "Name": "Embers",
+          "Texture": "vfx/_shared/spark.png",
+          "Host": {
+            "Kind": "Point",
+            "Size": 1.2,
+            "Offset": [
+              0,
+              0.5,
+              0
+            ]
+          },
+          "Burst": 50,
+          "Delay": 0.15,
+          "Lifetime": [
+            1.0,
+            1.8
+          ],
+          "Speed": [
+            2.5,
+            6
+          ],
+          "SpreadAngle": [
+            50,
+            50
+          ],
+          "EmissionDirection": "Top",
+          "Drag": 1.2,
+          "Acceleration": [
+            0,
+            1.5,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.12
+            ],
+            [
+              0.5,
+              0.1
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0
+            ],
+            [
+              0.7,
+              0.2
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": [
+            [
+              0,
+              "#FFFFFF"
+            ],
+            [
+              0.4,
+              "#D9C2FF"
+            ],
+            [
+              1,
+              "#7B2FF7"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "Brightness": 2.5
+        },
+        {
+          "Name": "Sparkle",
+          "Texture": "vfx/_shared/star4.png",
+          "Host": {
+            "Kind": "Point",
+            "Size": 2.0,
+            "Offset": [
+              0,
+              1.5,
+              0
+            ]
+          },
+          "Burst": 26,
+          "Delay": 0.5,
+          "Lifetime": [
+            0.6,
+            1.1
+          ],
+          "Speed": [
+            1,
+            3
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Drag": 1.5,
+          "Size": [
+            [
+              0,
+              0.18
             ],
             [
               1,
@@ -1205,18 +1527,90 @@
           ],
           "LightEmission": 1,
           "LightInfluence": 0,
-          "Brightness": 1.8
+          "Brightness": 2.0
+        },
+        {
+          "Name": "Smoke",
+          "Texture": "vfx/_shared/smoke_8x8.png",
+          "FlipbookLayout": "Grid8x8",
+          "FlipbookMode": "OneShot",
+          "Host": {
+            "Kind": "Point",
+            "Size": 1.6,
+            "Offset": [
+              0,
+              2.0,
+              0
+            ]
+          },
+          "Burst": 8,
+          "Delay": 1.9,
+          "Lifetime": [
+            0.8,
+            1.2
+          ],
+          "Speed": [
+            0.6,
+            1.4
+          ],
+          "SpreadAngle": [
+            40,
+            40
+          ],
+          "EmissionDirection": "Top",
+          "Acceleration": [
+            0,
+            1.5,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              1.0
+            ],
+            [
+              1,
+              2.0
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0.65
+            ],
+            [
+              0.5,
+              0.8
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": [
+            [
+              0,
+              "#3B1F5C"
+            ],
+            [
+              1,
+              "#2A2048"
+            ]
+          ],
+          "LightEmission": 0,
+          "LightInfluence": 0.5,
+          "Note": "the face fades into faint dark-violet smoke (lit, not additive)"
         }
       ],
       "KeepRibbons": false
     },
     "Budget": {
-      "ParticlesPerSecond": 21.0,
-      "Back": 10.5,
-      "Beams": 2,
+      "ParticlesPerSecond": 39.0,
+      "Back": 19.5,
+      "Beams": 3,
       "Lights": 2,
       "Orbiters": 0,
-      "Note": "Plus the body (5 parts, 8,784 tris: the Meshy sword split and re-proportioned, one 1024 colour map, a 512 emissive mask, a 256 wrap tile) and the finisher piece (3 ghost models, 2,700 tris); trail 12/s while the ball moves; the finisher bursts 70 once plus the three-ghost piece."
+      "Note": "v3 (2026-10-29): aura 12+12 edge flames, 8 sparks, 3 glow motes, 4 mist = 39/s steady, half on the back; Lower effects hides the edge flames, the motes and the glow band (12/s left: sparks, mist). Plus the body (5 parts, 8,784 tris: the Meshy sword split and re-proportioned, a 512 colour atlas, a 512 emissive mask, a 256 wrap tile); textures: toon_flame 512, fire_face 1024 (the finisher's), flame_strip 512x128. Trail 32/s while the ball moves (12 sparks, 14 flames, 6 smoke). The finisher bursts 155 particles once (2 of them big: the face and its glow), no 3D piece."
     }
   }
 }
