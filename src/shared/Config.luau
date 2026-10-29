@@ -3900,8 +3900,10 @@ Config.Halloween = {
 		} :: { { At: number, Cue: string?, Spins: number?, Money: number? } },
 	},
 	-- The playtime cue: Seconds of ACTIVE play while the event is Live (any server; idle time
-	-- does not count: SkyDropService.isActive), 3 h 01 m.
-	Spider = { Enabled = true, Cue = "SpiderCue", Seconds = 10860 },
+	-- does not count: SkyDropService.isActive), 3 h 01 m. Off since the lineup of 2026-10-29
+	-- (designer, 03:59): the Spider is a track cue at 4,500; active time still fills the
+	-- "Play N min" quests. Off also hides his panel in the event menu.
+	Spider = { Enabled = false, Cue = "SpiderCue", Seconds = 10860 },
 	-- Active play (the Spider and the "Play N min" quests) counts in a match and in the lobby
 	-- alike, idle time never (SkyDropService.isActive), and only once the player has finished a
 	-- real match that UTC day, like the Sky clock: before it the time is held (in memory, at most

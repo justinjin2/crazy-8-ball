@@ -37,14 +37,17 @@ local CLOSE_ACTION = "HalloweenEndScreen"
 
 local EndScreen = {}
 
--- The event cues in the track's order, then the Spider.
+-- The event cues in the track's order, then the Spider while he is the playtime cue (once
+-- each: since the lineup of 2026-10-29 he is a track cue and his clock is off).
 local EVENT_CUES: { string } = {}
 for _, step in H.Track.Steps do
 	if step.Cue ~= nil then
 		table.insert(EVENT_CUES, step.Cue)
 	end
 end
-table.insert(EVENT_CUES, H.Spider.Cue)
+if H.Spider.Enabled == true and table.find(EVENT_CUES, H.Spider.Cue) == nil then
+	table.insert(EVENT_CUES, H.Spider.Cue)
+end
 
 local function progression(): any?
 	local ok, P = pcall(require, script.Parent.Parent.Progression)

@@ -626,11 +626,16 @@ function EventMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		local questH = rowY + 4 * (rowPx + 6) + qPad
 		questBox.Position = UDim2.fromOffset(0, y)
 		questBox.Size = UDim2.fromOffset(questW, questH)
-		-- The Spider and Get Candy.
+		-- The Spider and Get Candy (the Spider's panel only while his clock runs: Spider.Enabled;
+		-- off, Get Candy takes the column).
+		local spiderShown = H.Spider.Enabled == true
 		local sideX = if short then 0 else questW + gap
 		local sideW = if short then inner else inner - questW - gap
 		local sideY = if short then y + questH + gap else y
-		local spiderH = if short then round(rowPx * 2.6) else round(questH * 0.58)
+		local spiderH = if not spiderShown
+			then 0
+			elseif short then round(rowPx * 2.6)
+			else round(questH * 0.58)
 		spiderBox.Position = UDim2.fromOffset(sideX, sideY)
 		spiderBox.Size = UDim2.fromOffset(sideW, spiderH)
 		spiderTitle.Size = UDim2.fromOffset(sideW, titleH)
@@ -650,8 +655,11 @@ function EventMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		spiderNote.Size = UDim2.fromOffset(textW, 2 * textPx + 4)
 		spiderNote.Position = UDim2.fromOffset(textX, titleH + round(artPx * 0.15) + textPx + 30)
 		sizeText(spiderNote, math.max(10, textPx - 4))
-		local packY = sideY + spiderH + gap
-		local packH = if short then round(rowPx * 2.2) else questH - spiderH - gap
+		local spiderGap = if spiderShown then spiderH + gap else 0
+		local packY = sideY + spiderGap
+		local packH = if short then round(rowPx * 2.2) else questH - spiderGap
+		-- A tall column (no Spider) keeps the buttons a button's height under the title.
+		local buttonH = math.max(40, math.min(packH - titleH - 16, round(rowPx * 1.6)))
 		packBox.Position = UDim2.fromOffset(sideX, packY)
 		packBox.Size = UDim2.fromOffset(sideW, packH)
 		packTitle.Size = UDim2.fromOffset(sideW, titleH)
@@ -659,7 +667,7 @@ function EventMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		sizeText(packTitle, headPx)
 		local bw = (sideW - 3 * qPad) / 2
 		for i, button in packButtons do
-			button.Size = UDim2.fromOffset(round(bw), math.max(40, packH - titleH - 16))
+			button.Size = UDim2.fromOffset(round(bw), buttonH)
 			button.Position = UDim2.fromOffset(round(qPad + (i - 1) * (bw + qPad)), titleH + 4)
 			HudParts.setButtonTextSize(button, textPx)
 		end
@@ -768,9 +776,9 @@ function EventMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 					else HudParts.tone("Gold")
 			end
 		end
-		-- The Spider.
+		-- The Spider (his panel only while his clock runs).
 		local spiderOn = type(view.on) == "table" and view.on.spider == true
-		spiderBox.Visible = true
+		spiderBox.Visible = H.Spider.Enabled == true
 		local active = view.active or 0
 		local need = H.Spider.Seconds
 		spiderText.Text = if view.spider
