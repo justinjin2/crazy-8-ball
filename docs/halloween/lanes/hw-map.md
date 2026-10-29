@@ -50,6 +50,25 @@ From PLAN §4 (everything else is read-only to this lane; ask through Requests):
 - `Config.HalloweenMap.Props.Budget.Lights = 6` (throne 2 + the throne King's aura 1 + 3 table Kings).
 
 ## Status
+- 21:04 hw-map: **PITCHFORK CUE slimmed** (Justin via the coordinator 20:58: "make pitchfork skinnier
+  all around including the horns and the width of the cue, it's too wide").
+  - SHAFT: the whole lathe at 0.82 of the shared cue's envelope (it was ON the envelope: 0.36
+    across at the butt, now 0.295), under a new named `Slim` exception to the hand rule, so the
+    hands rest at most 0.032 off the grip and 0.014 off the bridge. Raised bands at 0.6 of their
+    rise, the ferrule ring +0.008. Body bounding box 0.38 across (was 0.50).
+  - HORNS: smaller and slimmer (reach 0.15, was 0.21; base radius 0.037, was 0.06).
+  - FORK: the span is kept (2.08 across the barbs, 1.04 off the axis). Prongs 0.12 x 0.14 (were
+    0.19 x 0.23); arrowheads 1.15x wide (were 1.45x) and 0.7 of that thick, so flat blades; the
+    yoke at 0.75. Outer prongs spread to 0.80 (were 0.74) to hold the span. Tip flames moved to
+    the new points (Side +-0.693, Up +-0.40).
+  - TAIL: tube 0.04 (was 0.052), still visible from the stand and the back; tip arrowhead 0.75x.
+  - Gloss and gold work unchanged (same atlas and roughness map: their ids did not change).
+    3 parts / 9,440 tris; `check_body` passes. New GLB 136051344252950, new card 108749630308384.
+  - LAB, same cameras as the 20:40 pass: stand Night (full and fork), back carry 7 Day and 15
+    Night, hand at aim (solo game, clear). Console: only Studio's usual lines. The hands' gap
+    was checked by numbers, not a close-up (the match camera overrides the capture camera).
+    Before/after: `~/Desktop/8ball-refs/halloween/shots/hw-map/pitchfork/pitchfork_before_after.jpg`
+    (and `blender_before_after.jpg`); R2 side-by-side: `pitchfork_vs_R2.jpg`; the 20:40 pass in `v2/`.
 - 20:40 hw-map: **PITCHFORK CUE refined** (coordinator 20:4x: detail and polish before Justin sees it).
   - FORK about 20% bigger: prong centres 0.74 off the axis (were 0.62), prongs 0.19 x 0.23 with
     a rounded-square (superellipse) section so their edges catch light, arrowheads 1.45x (were
@@ -71,7 +90,8 @@ From PLAN §4 (everything else is read-only to this lane; ask through Requests):
     (114949053813201, not in src, the manifest or the place). Shots and the R2 side-by-side:
     `~/Desktop/8ball-refs/halloween/shots/hw-map/pitchfork/pitchfork_vs_R2.jpg` (first build's in `v1/`).
   - CARD re-rendered (`thumb_margin` 2.2: the bigger fork met the edge at 1.75): new image id
-    109608018268838, sent to core for `Art.PitchforkCue` (was 121098110131668).
+    109608018268838 (was 121098110131668). I sent it only to the coordinator, not to core; core
+    took it from the merged skin's Thumb and pointed `Art.PitchforkCue` at it (hw-core a45d8c6e).
 - 20:22 hw-map: **PITCHFORK CUE built and labbed** (coordinator 19:40, concept R2; never "devil").
   `assets/cue/CuePiecesHalloween_Pitchfork.py`, `skins/pitchfork.json`, `pieces/pitchfork`,
   `vfx/pitchfork`, `thumbs/pitchfork.png`. Core's rows merged (Legendary, track 500); core set
@@ -451,6 +471,9 @@ Landed (only my own blocks unless said):
   frame) and `thumb_shift` (studs toward the tip); absent = the house framing, so every other card
   renders as before (the Pitchfork's fork, thickened 1.45x with the rest, met the corner).
 - `assets/cue/CuePieces.py`: a guarded `import CuePiecesHalloween_Pitchfork` beside the Bone's.
+- `assets/cue/CuePiecesHalloween_A.py`: a named `Slim` body exception (a factor under 1): the hand
+  rule holds against that share of the envelope. Only the Pitchfork sets it (0.82); other bodies
+  are unchanged.
 - `tools/build_cue_templates.luau`: `dress()` applies a piece part's `RoughnessMap` when its row
   says `UseRoughness = true` (the Pitchfork's lacquer). Opt-in because Infernal's skull already
   carries Meshy roughness and metalness maps this never applied; its look stays put.
@@ -556,6 +579,10 @@ coordinator resolves overlaps. Planned (add the commit sha when each lands):
     coordinator asked for it; it still reads cleanly at 7 and 15 studs.
   - Painted streaks are wide (main sigma 0.035 of the way round, sides 0.022): a hairline streak
     vanished on the floor at 7 studs.
+  - Slim (Justin 20:58): 0.82 rather than the envelope with flatter bands. The shaft already
+    sat on the shared envelope, and he asked for "the width of the cue". 0.82 reads as a slim
+    pool cue and keeps the hands' gap to about a tenth of a hand's thickness. The fork keeps
+    its span; only its parts got slimmer.
   - The tail tip's arrowhead stays nearly flat (face tipped 0.2 toward the stand side). The up
     cone leaves no room to show it face-on from the side, so from the stand it reads as a
     hooked tip and from above (back carry) as an arrowhead.
