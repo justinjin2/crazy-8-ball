@@ -28,6 +28,13 @@ From PLAN §4 (everything else is read-only; ask below under Requests):
 - Tests: `tests/halloween_*_test.luau`, additions to `save_schema_test` and `config_test`.
 
 ## Status
+- 03:55 hw-core: **Halloween Limited card PARKED** (coordinator: Justin dropped Shop changes for tonight, "focus strictly on the Halloween GUI and candy system").
+  - The work stays on branch `hw-core-limited` (c8d2fdf7):
+    - 87d7a1fa: the card behind Config.Shop.HalloweenLimited, off.
+    - 3bd660ee: the HwLimited events.
+    - The lane notes: READY detail, the hw-gui interface, the assumption.
+  - hw-core is back at e23b6f27 plus the Sword's rim-popped card (0903f652, a re-pick of 28f643d0, which the coordinator cherry-picks). No Limited code on this branch.
+  - Next: the new lineup's server side (track steps, the Spider off the playtime clock, the King's drop roll), on the coordinator's go.
 - 23:10 hw-core: **READY @HEAD** bb2c3c69: Art.HalloweenSwordCue = rbxassetid://136458818972136, cues-a's v5 card (slim hilt). It replaces 121167927707840.
   - Lint OK, 1,477 tests.
   - Studio: the 7,000 node shows it, loaded; console clean.
