@@ -66,8 +66,8 @@ return {
 				Host = {
 					Kind = "Attachment",
 					AtStuds = 8.37,
-					Up = 0.37,
-					Side = -0.641,
+					Up = 0.4,
+					Side = -0.693,
 					Joint = "Fork",
 				},
 				Rate = 8,
@@ -104,8 +104,8 @@ return {
 				Host = {
 					Kind = "Attachment",
 					AtStuds = 8.37,
-					Up = -0.37,
-					Side = 0.641,
+					Up = -0.4,
+					Side = 0.693,
 					Joint = "Fork",
 				},
 				Rate = 8,
@@ -424,7 +424,7 @@ return {
 		},
 	},
 	Body = "pitchfork",
-	Thumb = "rbxassetid://109608018268838",
+	Thumb = "rbxassetid://108749630308384",
 	Look = {
 		Shaft = { 216, 30, 30 },
 		Forearm = { 216, 30, 30 },

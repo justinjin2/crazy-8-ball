@@ -19,16 +19,15 @@
       "Joint": "Body",
       "Offset": [
         0.0,
-        0.0192,
+        0.0117,
         -0.004
       ],
       "Size": [
-        0.496,
-        0.5343,
+        0.3768,
+        0.4002,
         7.008
       ],
-      "Triangles": 5392,
-      "Smooth": true
+      "Triangles": 5392
     },
     {
       "Material": "SmoothPlastic",
@@ -44,17 +43,16 @@
       "File": "pieces/pitchfork/TailTip_Pitchfork.obj",
       "Joint": "TailTip",
       "Offset": [
-        0.0249,
-        0.2438,
-        -0.3888
+        0.0245,
+        0.2248,
+        -0.3864
       ],
       "Size": [
-        0.3585,
-        0.1684,
-        0.5443
+        0.3041,
+        0.1923,
+        0.539
       ],
-      "Triangles": 628,
-      "Smooth": true
+      "Triangles": 628
     },
     {
       "Material": "SmoothPlastic",
@@ -75,12 +73,11 @@
         -4.2325
       ],
       "Size": [
-        1.8107,
-        1.0762,
+        1.8001,
+        1.0564,
         1.495
       ],
-      "Triangles": 3420,
-      "Smooth": true
+      "Triangles": 3420
     }
   ],
   "Joints": {
@@ -103,11 +100,11 @@
       "Pivot": [
         0.0,
         -3.619999885559082,
-        0.21050488948822021
+        0.16831400990486145
       ],
       "PivotRoblox": [
         -0.0,
-        0.2105,
+        0.1683,
         -0.12
       ],
       "Motion": [

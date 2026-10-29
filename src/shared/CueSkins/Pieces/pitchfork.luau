@@ -5,7 +5,7 @@
 return {
 	Id = "pitchfork",
 	Frame = "cue",
-	Rigid = "115767821399612",
+	Rigid = "136051344252950",
 	Models = {},
 	Parts = {
 		{
@@ -20,9 +20,8 @@ return {
 			},
 			Name = "Body_Pitchfork",
 			Joint = "Body",
-			Offset = { 0, 0.0192, -0.004 },
-			Size = { 0.496, 0.5343, 7.008 },
-			Smooth = true,
+			Offset = { 0, 0.0117, -0.004 },
+			Size = { 0.3768, 0.4002, 7.008 },
 		},
 		{
 			Material = "SmoothPlastic",
@@ -36,9 +35,8 @@ return {
 			},
 			Name = "TailTip_Pitchfork",
 			Joint = "TailTip",
-			Offset = { 0.0249, 0.2438, -0.3888 },
-			Size = { 0.3585, 0.1684, 0.5443 },
-			Smooth = true,
+			Offset = { 0.0245, 0.2248, -0.3864 },
+			Size = { 0.3041, 0.1923, 0.539 },
 		},
 		{
 			Material = "SmoothPlastic",
@@ -53,8 +51,7 @@ return {
 			Name = "Fork_Pitchfork",
 			Joint = "Fork",
 			Offset = { 0, 0, -4.2325 },
-			Size = { 1.8107, 1.0762, 1.495 },
-			Smooth = true,
+			Size = { 1.8001, 1.0564, 1.495 },
 		},
 	},
 	Joints = {
@@ -65,7 +62,7 @@ return {
 		},
 		TailTip = {
 			Parent = nil,
-			PivotRoblox = { -0, 0.2105, -0.12 },
+			PivotRoblox = { -0, 0.1683, -0.12 },
 			Motion = {
 				{
 					Kind = "Hinge",
