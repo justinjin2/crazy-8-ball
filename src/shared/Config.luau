@@ -10403,6 +10403,14 @@ Config.UI.CandyFlyer = {
 -- stage far from the lobby seen through the panel's window. Studs, degrees, seconds, pixels.
 Config.UI.CuePreview = {
 	Enabled = false, -- ON only after it passes on a phone size and with a controller
+	-- With Enabled off, these cues alone may open it (CuePreviewMath.allowed): the Halloween
+	-- cards' PREVIEW button (designer, 2026-10-29: "for these 4 specific cues ... it auto plays
+	-- the ball trail and finisher on loop"), opening on TRAIL. Off: the cards show no button;
+	-- My Cues and the Index follow Enabled alone either way.
+	Event = {
+		Enabled = true,
+		Cues = { "PitchforkCue", "WitchBroomCue", "JackOLanternCue", "HalloweenSwordCue" },
+	},
 	Origin = { 2400, 2400, 0 }, -- clear of the map and the Backrooms hall ({0, 2400, 0})
 	OutsideTransparency = 0.35, -- the flat navy veil outside the panel (never a blur)
 	WindowShare = 0.6, -- the 3D window, a share of the panel's width

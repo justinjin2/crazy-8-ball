@@ -804,6 +804,10 @@ local FUNNEL_EVENTS: { [string]: (Player) -> () } = {
 	CuePreviewTrack = function(player: Player)
 		Funnel.event(player, "CuePreview", 1, "Opened", "Track", Funnel.device(player))
 	end,
+	-- A Halloween card's PREVIEW (the four event cues, 2026-10-29).
+	CuePreviewHalloween = function(player: Player)
+		Funnel.event(player, "CuePreview", 1, "Opened", "Halloween", Funnel.device(player))
+	end,
 	CuePreviewEquip = function(player: Player)
 		Funnel.event(player, "CuePreview", 1, "Equip", Funnel.device(player))
 	end,

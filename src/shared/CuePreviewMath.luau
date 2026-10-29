@@ -8,6 +8,9 @@
 -- window on the left (a transparent hole the real 3D view shows through), the info sheet on the
 -- right (the name, the rarity pill, the note, the three tabs in a row, EQUIP). Rects are
 -- { x, y, w, h } in the menu screen's pixels (under Roblox's top bar).
+--
+-- Also the decisions with no Instance in them: which cues may open it (allowed) and the tab it
+-- opens on (tabOf).
 local Config = require(script.Parent.Config)
 
 local C = Config.UI.CuePreview
@@ -34,8 +37,36 @@ export type Panel = {
 
 local CuePreviewMath = {}
 
+--- The tabs, in their row's order.
+CuePreviewMath.Tabs = { "Model", "Trail", "Finisher" }
+
 local function round(x: number): number
 	return math.floor(x + 0.5)
+end
+
+--- Whether the preview may open on cue `id` under the switches `cfg` (Config.UI.CuePreview):
+--- every cue while Enabled; with Enabled off, only the cues Event.Cues lists while
+--- Event.Enabled (the Halloween cards' PREVIEW, designer 2026-10-29). Whether `id` is a
+--- catalog cue is the caller's to check.
+function CuePreviewMath.allowed(cfg: any, id: any): boolean
+	if type(id) ~= "string" or type(cfg) ~= "table" then
+		return false
+	end
+	if cfg.Enabled == true then
+		return true
+	end
+	local event = cfg.Event
+	return type(event) == "table"
+		and event.Enabled == true
+		and type(event.Cues) == "table"
+		and table.find(event.Cues, id) ~= nil
+end
+
+--- The tab to open on: `name` when it is one ("Model", "Trail", "Finisher"), else MODEL.
+function CuePreviewMath.tabOf(name: any): string
+	return if type(name) == "string" and table.find(CuePreviewMath.Tabs, name)
+		then name
+		else "Model"
 end
 
 --- Every rect of the panel on a screen of `w` x `h` pixels.

@@ -21,10 +21,13 @@
 -- on Stage), the header's 8-balls scroll, the sheet has the dots, the title's icon, the lit tab's
 -- icon and the 8-ball flair rock; a close folds the panel back over the world already given back.
 --
--- Public: CuePreview.open(id, opts?) -> boolean, CuePreview.enabled(), CuePreview.isOpen(),
--- CuePreview.close(). The pure maths is CuePreviewMath; numbers in Config.UI.CuePreview, words
--- in Strings.CuePreview. Studio only: GuiQA `preview` (id, tab?, note?), `previewTab`,
--- `previewTurn` (degrees, through the stick's code), `previewDrag`, `previewLoad`, `previewLeaks`.
+-- Public: CuePreview.open(id, opts?) -> boolean, CuePreview.allowed(id), CuePreview.enabled(),
+-- CuePreview.isOpen(), CuePreview.close(). Who may open it: every cue while
+-- Config.UI.CuePreview.Enabled (My Cues' and the Index's Preview buttons show only then), else
+-- the cues its Event row lists (the Halloween cards' PREVIEW, which opens on TRAIL). The pure
+-- maths is CuePreviewMath; numbers in Config.UI.CuePreview, words in Strings.CuePreview. Studio
+-- only: GuiQA `preview` (id, tab?, note?), `previewTab`, `previewTurn` (degrees, through the
+-- stick's code), `previewDrag`, `previewLoad`, `previewLeaks`.
 local ContextActionService = game:GetService("ContextActionService")
 local GuiService = game:GetService("GuiService")
 local Players = game:GetService("Players")
@@ -60,7 +63,7 @@ local K = Config.UI.Kit
 local LV = Config.UI.Menu.Lively
 local COPY = Strings.CuePreview
 local NAME = "CuePreview"
-local TABS = { "Model", "Trail", "Finisher" }
+local TABS = CuePreviewMath.Tabs
 local TAB_ICONS = { Model = "Cue", Trail = "Lightning", Finisher = "Target" }
 local STICK_ACTION = "8ballCuePreviewStick"
 local TAB_ACTION = "8ballCuePreviewTabs"
@@ -118,9 +121,17 @@ local renderBound = false -- the render step is bound (previewLeaks)
 local lastOpen = -math.huge
 local started = false
 
---- Whether the preview is switched on (the entry buttons show only then).
+--- Whether the preview is switched on for every cue (My Cues' and the Index's Preview buttons
+--- show only then).
 function CuePreview.enabled(): boolean
 	return C.Enabled == true
+end
+
+--- Whether the preview opens on catalog cue `id` now: every cue while it is switched on, else
+--- only the cues Config.UI.CuePreview.Event lists while that is on (the Halloween cards' PREVIEW
+--- shows only for these).
+function CuePreview.allowed(id: string): boolean
+	return CuePreviewMath.allowed(C, id) and Catalog.get(id) ~= nil
 end
 
 --- Whether the preview is open now.
@@ -1204,10 +1215,12 @@ local function openNow()
 	if not want then
 		return
 	end
+	local opts = want.opts or {}
+	local first = CuePreviewMath.tabOf(opts.tab) -- the event cards open on TRAIL
 	local s: Session = {
 		id = want.id,
-		opts = want.opts or {},
-		tab = "Model",
+		opts = opts,
+		tab = first,
 		gui = nil,
 		parts = { loops = {} },
 		stage = nil,
@@ -1223,7 +1236,7 @@ local function openNow()
 		held = nil,
 		touch = nil,
 		yaw = 200,
-		pitch = C.Tabs.Model.Pitch,
+		pitch = C.Tabs[first].Pitch,
 		spin = 0,
 		idle = C.IdleResumeSeconds,
 		loopAt = 0,
@@ -1250,14 +1263,16 @@ local function openNow()
 		buildCue(s)
 		buildGui(s)
 		bindInput(s)
-		setTab(s, "Model")
+		setTab(s, first)
 		refreshEquip(s)
 		frameCamera(s)
 		RunService:BindToRenderStep(NAME, Enum.RenderPriority.Camera.Value + 1, step)
 		renderBound = true
 		playOpen(s)
 		if UserInputService.GamepadEnabled then
-			GuiService.SelectedObject = if owned(s.id) then s.parts.equip else s.parts.tabModel
+			GuiService.SelectedObject = if owned(s.id)
+				then s.parts.equip
+				else s.parts["tab" .. first]
 		end
 	end)
 	if not ok then
@@ -1306,11 +1321,7 @@ local function start()
 			Menus.close(NAME)
 			return false
 		end
-		local okOpen = (CuePreview :: any).open(id, { from = "QA", note = note })
-		if okOpen and tab and session then
-			setTab(session :: Session, tab)
-		end
-		return okOpen
+		return (CuePreview :: any).open(id, { from = "QA", note = note, tab = tab })
 	end)
 	GuiQA.add("previewTab", function(by: any)
 		local s = session
@@ -1399,16 +1410,22 @@ local function start()
 	end)
 end
 
---- Open the preview on catalog cue `id` (`opts.from`: "Cues", "Index", "Track" for the event;
---- `opts.onClose` runs after it closes; `opts.note` is the line under the rarity). False when
---- switched off, blocked (a match, a popup, a reel), spammed, or for an unknown cue. Opened
---- again while open, it switches to the new cue.
+-- The openers counted (TutorialEvent "CuePreview" .. from -> the CuePreview custom event).
+local REPORTED: { [string]: boolean } =
+	{ Cues = true, Index = true, Track = true, Halloween = true }
+
+--- Open the preview on catalog cue `id` (`opts.from`: "Cues", "Index", "Halloween" for the
+--- event cards, "Track"; `opts.tab`: "Model", "Trail" or "Finisher" to open on, MODEL by
+--- default; `opts.onClose` runs after it closes; `opts.note` is the line under the rarity).
+--- False when `allowed` refuses the cue (switched off, not an event cue, unknown), blocked (a
+--- match, a popup, a reel) or spammed. Opened again while open, it switches to the new cue (on
+--- `opts.tab` if given).
 function CuePreview.open(
 	id: string,
-	opts: { from: string?, onClose: (() -> ())?, note: string? }?
+	opts: { from: string?, onClose: (() -> ())?, note: string?, tab: string? }?
 ): boolean
 	start()
-	if not CuePreview.enabled() or type(id) ~= "string" or Catalog.get(id) == nil then
+	if not CuePreview.allowed(id) then
 		return false
 	end
 	local now = os.clock()
@@ -1430,7 +1447,7 @@ function CuePreview.open(
 			s.parts.pill.BackgroundColor3 = CueThumb.rarityColor(rarity)
 			s.parts.pillWords.Text = CueThumb.rarityName(rarity)
 			refreshEquip(s)
-			setTab(s, s.tab)
+			setTab(s, if opts and opts.tab then CuePreviewMath.tabOf(opts.tab) else s.tab)
 		end)
 		return okSwitch
 	end
@@ -1441,7 +1458,7 @@ function CuePreview.open(
 		return false
 	end
 	local from = opts and opts.from
-	if from == "Cues" or from == "Index" or from == "Track" then
+	if type(from) == "string" and REPORTED[from] then
 		report("CuePreview" .. from)
 	end
 	return true

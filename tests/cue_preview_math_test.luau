@@ -157,6 +157,48 @@ return {
 		H.expect(M.easeOut(0) == 0 and M.easeOut(1) == 1 and M.easeOut(0.5) > 0.5, "eases out")
 	end,
 
+	["who may open it: every cue while Enabled, else only the event's cues while Event is on"] = function()
+		local M = H.require("CuePreviewMath")
+		local Config = H.require("Config")
+		local Catalog = H.require("Progression.Catalog")
+		local four = { "PitchforkCue", "WitchBroomCue", "JackOLanternCue", "HalloweenSwordCue" }
+		local event = { Enabled = true, Cues = four }
+		-- Switched on: every cue (My Cues and the Index), the event's too.
+		local on = { Enabled = true, Event = event }
+		H.expect(M.allowed(on, "Classic") and M.allowed(on, "WitchBroomCue"), "Enabled: every cue")
+		-- Off, the event on: its four alone.
+		local off = { Enabled = false, Event = event }
+		for _, id in four do
+			H.expect(M.allowed(off, id), "the event's cue: " .. id)
+		end
+		H.expect(not M.allowed(off, "Classic"), "not another cue")
+		H.expect(not M.allowed(off, "CandyCornCue"), "not another Halloween cue")
+		-- Both off, or no event row: none.
+		H.expect(
+			not M.allowed({ Enabled = false, Event = { Enabled = false, Cues = four } }, four[1])
+		)
+		H.expect(not M.allowed({ Enabled = false }, four[1]), "no event row")
+		H.expect(not M.allowed(off, nil) and not M.allowed(off, 7), "not a cue id")
+		-- As shipped: the preview off for all, on for the four, and the four are catalog cues.
+		local C = Config.UI.CuePreview
+		H.expect(C.Enabled == false, "the preview stays off for My Cues and the Index")
+		H.expect(C.Event.Enabled == true and #C.Event.Cues == 4, "the event's switch is on")
+		for _, id in four do
+			H.expect(M.allowed(C, id), "shipped: " .. id)
+			H.expect(Catalog.get(id) ~= nil, "a catalog cue: " .. id)
+		end
+		H.expect(not M.allowed(C, "Classic"), "shipped: no other cue")
+	end,
+
+	["the tab it opens on: the one asked for, else MODEL"] = function()
+		local M = H.require("CuePreviewMath")
+		H.expect(M.tabOf("Trail") == "Trail", "TRAIL (the event cards)")
+		H.expect(M.tabOf("Finisher") == "Finisher" and M.tabOf("Model") == "Model")
+		H.expect(M.tabOf(nil) == "Model", "none asked for")
+		H.expect(M.tabOf("trail") == "Model" and M.tabOf(3) == "Model", "not a tab")
+		H.expect(table.concat(M.Tabs, " ") == "Model Trail Finisher", "the row's order")
+	end,
+
 	["turning: a flick decays, the auto-turn waits, the pitch stays in its limits"] = function()
 		local M = H.require("CuePreviewMath")
 		local Config = H.require("Config")
