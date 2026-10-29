@@ -3506,11 +3506,11 @@ Config.Daily = {
 		-- generous next to 5KLIKES and 10KLIKES).
 		["2KLIKES"] = { Spins = 10, Money = 10000 },
 		-- The 5,000- and 10,000-like codes (designer, 2026-10-29: one reward split in two, so it
-		-- feels like more): 5 spins and $5,000, then 5 spins and $10,000, always on. The like
-		-- codes together: 20 spins and $25,000 (40 and $30,000 before, while 1KLIKES and
+		-- feels like more): 5 spins and $5,000, then 10 spins and $10,000 (designer: 10 spins
+		-- for 10KLIKES), always on. The like codes together: 25 spins and $25,000 (40 and $30,000 before, while 1KLIKES and
 		-- 250LIKES ran; codes are the biggest money source and spin packs about 10% of Robux).
 		["5KLIKES"] = { Spins = 5, Money = 5000 },
-		["10KLIKES"] = { Spins = 5, Money = 10000 },
+		["10KLIKES"] = { Spins = 10, Money = 10000 },
 		-- Like milestones: 100 (the code box's first goal, CodeBanner.NextGoalLikes), 1k, 5k,
 		-- 10k, 25k, 50k, 100k likes.
 		LIKES100 = { Money = 5000, Spins = 2, Live = true },

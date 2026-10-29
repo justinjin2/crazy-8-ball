@@ -315,8 +315,8 @@ return {
 		local codes = {}
 		local row = Config.Daily.Codes[U.CodeBanner.ActiveCode]
 		H.expect(
-			row ~= nil and row.Spins == 5 and row.Money == 10000,
-			"the banner's code (10KLIKES) gives 5 spins and $10,000"
+			row ~= nil and row.Spins == 10 and row.Money == 10000,
+			"the banner's code (10KLIKES) gives 10 spins and $10,000"
 		)
 		H.expect(
 			#U.CodeBanner.Also == 1 and U.CodeBanner.Also[1] == "5KLIKES",
@@ -355,13 +355,13 @@ return {
 		H.expect(ok2k and (got2k :: any).spins == 10, "2KLIKES gives 10 spins")
 		H.expect((got2k :: any).money == 10000, "and $10,000")
 		H.expect(not Daily.isLive("2KLIKES"), "2KLIKES on without /code on")
-		-- 5KLIKES and 10KLIKES (2026-10-29): 5 spins and $5,000, 5 spins and $10,000, always on,
+		-- 5KLIKES and 10KLIKES (2026-10-29): 5 spins and $5,000, 10 spins and $10,000, always on,
 		-- each once.
 		local ok5k, got5k = Daily.redeem(codes, "5klikes", 1793491200)
 		H.expect(ok5k and (got5k :: any).spins == 5 and (got5k :: any).money == 5000, "5KLIKES")
 		local ok10k, got10k = Daily.redeem(codes, "10KLIKES", 1793491200)
 		H.expect(
-			ok10k and (got10k :: any).spins == 5 and (got10k :: any).money == 10000,
+			ok10k and (got10k :: any).spins == 10 and (got10k :: any).money == 10000,
 			"10KLIKES"
 		)
 		local twice = Daily.redeem(codes, "10klikes", 1793491200)
