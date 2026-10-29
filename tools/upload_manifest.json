@@ -6710,5 +6710,17 @@
     "assetType": "Image",
     "imageId": "131711880887023",
     "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/.claude/worktrees/wf_a0729e1c-dc8-4/assets/cue/vfx/halloween_sword/fire_face_4x4.png": {
+    "assetId": "109113140681429",
+    "assetType": "Image",
+    "imageId": "109113140681429",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/.claude/worktrees/wf_a0729e1c-dc8-4/assets/cue/vfx/halloween_sword/toon_flame_4x4.png": {
+    "assetId": "87257680474573",
+    "assetType": "Image",
+    "imageId": "87257680474573",
+    "status": "ok"
   }
 }
