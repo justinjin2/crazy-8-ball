@@ -9,8 +9,9 @@ by itself Nov 3 19:00 EST. Config line numbers re-read 18:45 Oct 29.
 
 On a phone, a PC and a controller where you can:
 
-1. Join on a **new account** and an **old account**. The tutorial shows nothing of Halloween
-   until it is done or skipped.
+1. Join on a **new account** and an **old account**. The tutorial's guided part shows nothing
+   of Halloween; the money pill shows from the start. Right after the guided part (the soft
+   part, game 2) or a skip, the HALLOWEEN button, the Candy Boost line and the Candy pill appear.
 2. Play one match against a person (or the bot a search finds). **Every ball you pot pays +3
    Candy** (+4 now and then with a boost): a little candy pops out under the cash and flies into
    the Candy pill, which counts up as each lands. After the result, one "+N" chip with the
