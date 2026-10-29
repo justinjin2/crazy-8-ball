@@ -57,17 +57,38 @@ return {
 			"the cue row and the peek fit"
 		)
 		H.expect(Math.totalUnits(true) * plan.k > h, "the rest scrolls")
-		-- The buttons a thumb presses stay big enough, the text readable.
+		-- The buttons a thumb presses stay big enough (their touch areas reach the touch minimum
+		-- through HudParts.setMinHit), the text readable.
 		local C = Math.card(true)
 		H.expect(
-			C.RobuxUnits * plan.k >= 38,
-			"the Robux button at least 38 px: " .. C.RobuxUnits * plan.k
-		)
-		H.expect(
-			C.CandyUnits * plan.k >= 32,
-			"the Candy button at least 32 px: " .. C.CandyUnits * plan.k
+			C.ButtonUnits * plan.k >= 32,
+			"the Robux and Candy buttons at least 32 px: " .. C.ButtonUnits * plan.k
 		)
 		H.expect(Math.textPx(1, plan.k) == L.MinTextPx, "tiny text is lifted to the minimum")
+	end,
+
+	["the Robux and Candy buttons are one size, stacked clear of each other"] = function()
+		local _, Config = load()
+		local L = Config.UI.Halloween.Menu.Layout
+		for _, units in { L.Card, L.ShortCard } do
+			local C = units :: any
+			H.expect(C.RobuxUnits == nil and C.CandyUnits == nil, "one ButtonUnits for both")
+			H.expect(C.ButtonUnits > 0 and C.ButtonTextUnits > 0, "a size and its words")
+			H.expect(
+				C.RobuxTopUnits + C.ButtonUnits < C.CandyTopUnits,
+				"the Robux button ends above the Candy button"
+			)
+			H.expect(
+				C.CandyTopUnits + C.ButtonUnits <= C.HeightUnits,
+				"the Candy button inside the card"
+			)
+			H.expect(C.TagTopUnits + C.TagUnits <= C.RobuxTopUnits, "the UNIQUE pill above them")
+			H.expect(
+				C.RibbonTopUnits >= C.RobuxTopUnits
+					and C.RibbonTopUnits + C.RibbonUnits <= C.CandyTopUnits + C.ButtonUnits,
+				"the ribbon in the buttons' place"
+			)
+		end
 	end,
 
 	["a computer and a tablet show the whole menu"] = function()

@@ -7,12 +7,13 @@
 --     2026-10-29), each with the Cues inventory's faint 8-balls drifting up-left, the cue's
 --     picture (its skin Thumb through CueThumb) with its own effects playing over it in 2D
 --     (Halloween/CardFx, richer up the ladder), the "Halloween 2026" emblem top left
---     (EventEmblem), a big green Robux button (the purple gift square inside its left end; it
---     shines) over a smaller orange Candy button (a first press says BUY?, a second buys:
---     State.send({ buy = cue }), the answer comes as the bought moment). An owned cue's card
---     says OWNED. (With the Pumpkin King's drop switched on, a drop cue not on sale gets the
---     PUMPKIN KING DROP ribbon instead of buttons.) Each card's pink edge lies inside its box,
---     so the scroller never cuts it (designer, 2026-10-29);
+--     (EventEmblem), a green Robux button (the purple gift square inside its left end; it
+--     shines) over an orange Candy button of the same size (designer, 2026-10-29; a first
+--     press says BUY?, a second buys: State.send({ buy = cue }), the answer comes as the
+--     bought moment). An owned cue's card says OWNED. (With the Pumpkin King's drop switched
+--     on, a drop cue not on sale gets the PUMPKIN KING DROP ribbon instead of buttons.) Each
+--     card's pink edge lies inside its box, so the scroller never cuts it (designer,
+--     2026-10-29);
 --   * TODAY'S QUESTS: today's board only, four rows (icon, line, bar, count, Candy chip or a
 --     bouncing CLAIM), "New quests in 14:28";
 --   * GET CANDY: the two packs, green Robux buttons with their gift squares.
@@ -158,8 +159,10 @@ local function robuxPair(parent: Instance, onBuy: () -> (), onGift: () -> ()): R
 	green.AnchorPoint = Vector2.zero
 	local gift = ShopCards.giftButton(green, onGift)
 	gift.AnchorPoint = Vector2.new(0, 0.5)
-	gift.ZIndex = 12 -- over the green's own parts
+	gift.ZIndex = 12 -- over the green's own parts (its touch area too)
 	HudParts.setMinHit(gift, Config.UI.Menu.Frame.TouchMinPx)
+	-- A small Robux button still has the touch minimum (a phone's cue card: about 34 px tall).
+	HudParts.setMinHit(green, Config.UI.Menu.Frame.TouchMinPx)
 	local pad = Instance.new("UIPadding")
 	local parts = HudParts.candyParts(green)
 	if parts then
@@ -553,7 +556,9 @@ function EventMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 				pressCandy(card)
 			end, "Yellow", "Star")
 			buy.Name = "Candy"
-			buy.ZIndex = 4 -- under the Robux button where their touch areas meet
+			-- Over the Robux button where their touch areas meet: a stray press there asks BUY?
+			-- (a second press buys), never a Robux prompt.
+			buy.ZIndex = 6
 			makeOrange(buy)
 			HudParts.setMinHit(buy, Config.UI.Menu.Frame.TouchMinPx)
 			card.buy = buy
@@ -920,17 +925,19 @@ function EventMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		card.tag.Size = UDim2.fromOffset(w - 2 * pad - 4, tagH)
 		card.tagRing.Thickness = math.max(1, y(2))
 		HudParts.setTextSize(card.tagWord, math.min(tagH - 2, tp(C.TagTextUnits)), L.MinTextPx)
-		-- The buttons (or the ribbon), and OWNED in their place.
+		-- The buttons (or the ribbon), and OWNED in their place: the Robux and Candy buttons one
+		-- size (designer, 2026-10-29).
 		local bw = w - 2 * pad
+		local bh = y(C.ButtonUnits)
 		local pair = card.robux
 		if pair then
-			placeRobux(pair, pad, y(C.RobuxTopUnits), bw, y(C.RobuxUnits), tp(C.RobuxTextUnits))
+			placeRobux(pair, pad, y(C.RobuxTopUnits), bw, bh, tp(C.ButtonTextUnits))
 		end
 		local buy = card.buy
 		if buy then
-			buy.Position = UDim2.fromOffset(pad + 2, y(C.CandyTopUnits))
-			buy.Size = UDim2.fromOffset(bw - 4, y(C.CandyUnits))
-			HudParts.setButtonTextSize(buy, tp(C.CandyTextUnits), L.MinTextPx)
+			buy.Position = UDim2.fromOffset(pad, y(C.CandyTopUnits))
+			buy.Size = UDim2.fromOffset(bw, bh)
+			HudParts.setButtonTextSize(buy, tp(C.ButtonTextUnits), L.MinTextPx)
 		end
 		local ribbon = card.ribbon
 		if ribbon then
@@ -960,15 +967,15 @@ function EventMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 			end
 		end
 		-- OWNED in the middle of where the buttons (or the ribbon) were.
-		local oh = y(C.RobuxUnits)
+		local oh = bh
 		local areaTop = if ribbon then C.RibbonTopUnits else C.RobuxTopUnits
 		local areaBottom = if ribbon
 			then C.RibbonTopUnits + C.RibbonUnits
-			else C.CandyTopUnits + C.CandyUnits
+			else C.CandyTopUnits + C.ButtonUnits
 		local oy = round((areaTop + areaBottom) / 2 * k - oh / 2)
 		card.owned.Position = UDim2.fromOffset(pad, oy)
 		card.owned.Size = UDim2.fromOffset(bw, oh)
-		local ownedPx = tp(C.RobuxTextUnits)
+		local ownedPx = tp(C.ButtonTextUnits)
 		local iconPx = round(oh * 0.62)
 		local ownedW = math.ceil(textWidth(W.Owned, ownedPx))
 		local startX = math.max(4, round((bw - iconPx - 6 - ownedW) / 2))
