@@ -533,7 +533,7 @@ end
 local function arrive(start: number)
 	visit = start
 	table.clear(line)
-	KingLook.showThrone() -- (waits for the meshes the first time)
+	KingLook.showThrone() -- (built at start; waits only if that build is still running)
 	local at = KingLook.promptPosition()
 	local fx = Net.get("HalloweenMapFx")
 	fx:FireAllClients({ kind = "Puff", at = at + Vector3.new(0, 3, 0) })
@@ -676,6 +676,19 @@ function BossService.start(isLobby: boolean)
 		end
 	end)
 	if Rules.kingVisits() then
+		-- The throne and his figure built now, once the meshes load (Assets.wait, up to
+		-- Assets.WaitSeconds), into ServerStorage: a server's first visit then arrives on time
+		-- (arrive's showThrone no longer waits out the build, so the rise and the burst land
+		-- together on every client).
+		task.spawn(function()
+			local ok, err = pcall(function(): any
+				KingLook.prepareThrone()
+				return nil
+			end)
+			if not ok then
+				warnOnce("prepare", "the throne's early build: " .. tostring(err))
+			end
+		end)
 		task.spawn(function()
 			while true do
 				local ok, err = pcall(function()
