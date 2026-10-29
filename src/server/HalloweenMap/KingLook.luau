@@ -4,7 +4,9 @@
 -- icon, animations and dress) and by the figure on his throne alike, and the throne itself
 -- at the piano's spot (an EventMap part: built once into ServerStorage, parented while Live).
 --
--- Every piece is welded (WeldConstraint, so AvatarPose keeps them while he shoots), Massless
+-- His cape is cloth each client draws (KingCape) from an anchor on his UpperTorso
+-- (Config.HalloweenMap.King.Cloth; off: three rigid boxes). Every other piece is welded
+-- (WeldConstraint, so AvatarPose keeps them while he shoots), Massless
 -- and touches nothing; the throne has one invisible collision box and nothing else collides.
 -- The carved pumpkin (his head, the throne's back, the small pumpkins) and the crown are the
 -- event's meshes (HalloweenMap/Assets); while they are not loaded, code-built shapes stand in. Real lights: his aura's one, the
@@ -327,7 +329,8 @@ local function dressHead(head: BasePart)
 	end
 end
 
--- The suit's pieces on the UpperTorso: vest, bow tie, chain, epaulettes, cape.
+-- The suit's pieces on the UpperTorso: vest, bow tie, chain, epaulettes, and the cape's anchor
+-- (Config.HalloweenMap.King.Cloth; off: the old rigid cape).
 local function dressTorso(torso: BasePart)
 	local s = torso.Size
 	local vest = piece("Vest", nil, Vector3.new(s.X * 0.42, s.Y * 0.8, 0.04), rgb(KL.Vest))
@@ -356,6 +359,17 @@ local function dressTorso(torso: BasePart)
 		)
 		weld(eyes, torso, CFrame.new(side * s.X * 0.48, s.Y * 0.5, -0.25))
 	end
+	if KL.Cloth.Enabled then
+		-- The cloth cape is drawn on each client (KingCape) from this anchor: the collar's
+		-- middle on his back, the cloth's Margin off it (KingLook.dress tags the body).
+		local anchor = Instance.new("Attachment")
+		anchor.Name = KL.Cloth.Anchor
+		anchor.Position =
+			Vector3.new(0, s.Y * (0.5 - KL.Cloth.CollarDrop), s.Z / 2 + KL.Cloth.Margin)
+		anchor.Parent = torso
+		return
+	end
+	-- The old cape (Cloth.Enabled off): three rigid boxes welded on.
 	local capeAt = CFrame.new(0, s.Y * 0.45, s.Z / 2 + 0.08)
 		* CFrame.Angles(math.rad(8), 0, 0)
 		* CFrame.new(0, -1.5, 0)
@@ -401,6 +415,9 @@ function KingLook.dress(model: Model)
 	end
 	if root and root:IsA("BasePart") then
 		KingLook.aura(root)
+	end
+	if KL.Cloth.Enabled then
+		CollectionService:AddTag(model, KL.Cloth.Tag) -- each client draws his cape (KingCape)
 	end
 	for _, d in model:GetDescendants() do
 		if d:IsA("BasePart") and d.Name ~= "HumanoidRootPart" then
@@ -785,6 +802,18 @@ local function buildFigure(model: Model)
 			* CFrame.new(0, 3.2 + 1.4 * scale, -2.3 - 0.4 * (scale - 1))
 			* CFrame.Angles(0, math.pi, 0)
 	)
+	-- His cape lies on the cushion and keeps off the pumpkin behind him (KingCape): the
+	-- cushion's top (buildThrone's Cushion: 2.85 up, 0.7 tall) and the back's front face (its
+	-- shell: 6.6 behind, 5.5 deep), both in his root's space (+Z behind him).
+	local torso = figure:FindFirstChild("UpperTorso")
+	local anchor = torso and torso:FindFirstChild(KL.Cloth.Anchor)
+	if anchor then
+		local rootCF = root.CFrame
+		local seat = (pivot() * CFrame.new(0, 2.85 + 0.35, -2.5)).Position
+		local wall = (pivot() * CFrame.new(0, 7.6, -6.6 + 5.5 / 2)).Position
+		anchor:SetAttribute("SeatY", rootCF:PointToObjectSpace(seat).Y)
+		anchor:SetAttribute("WallZ", rootCF:PointToObjectSpace(wall).Z)
+	end
 	-- His name over his head.
 	local head = figure:FindFirstChild("Head")
 	if head and head:IsA("BasePart") then

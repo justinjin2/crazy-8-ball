@@ -9643,6 +9643,41 @@ Config.HalloweenMap = {
 		-- The crown's lift over the mesh head's half height (studs; the mesh's top bound is its
 		-- stem's tip, so negative sets the band on the pumpkin with the stem inside it).
 		CrownOnMesh = -0.2,
+		-- His cape (designer, 2026-10-29: "too blocky and doesn't have regular physics when
+		-- he's shooting, should actually sway like a cape"): cloth drawn on each client
+		-- (KingCape) from an anchor the server puts on his UpperTorso (an Attachment named
+		-- Anchor, the collar's middle; KingLook): Rows segments from the collar to the hem,
+		-- purple outside, the orange lining in, a gold collar, each row hinged to the one
+		-- above, pulled down, swung by his moves and turns and a gentle wind, kept off his body,
+		-- the floor and his throne. Drawn after the shooting pose each frame on the nearest
+		-- MaxCapes Kings within MaxStuds that are on screen; every other frame on Lower effects;
+		-- hanging still under Reduce Motion. (Its colours are Cape, Lining and Gold above.)
+		Cloth = {
+			Enabled = true, -- off: the old cape (three rigid boxes the server welds to his back)
+			Tag = "KingCape", -- the CollectionService tag on every King body that wears it
+			Anchor = "CapeAnchor", -- the Attachment on his UpperTorso it hangs from
+			Rows = 8, -- each two parts (cloth and lining), plus the collar: 17 parts a King
+			TopWidth = 1.12, -- the collar's width, of the UpperTorso's
+			HemWidth = 1.5, -- the hem's width, of the UpperTorso's (it flares)
+			Length = 2.15, -- collar to hem, in UpperTorso heights (to his calves standing)
+			SeatedLength = 1.4, -- on his throne: down his back to the cushion
+			CollarDrop = 0.05, -- the collar this far under the torso's top, of its height
+			Thickness = 0.08, -- the cloth, of the UpperTorso's depth (the lining half that, inside)
+			Overlap = 0.15, -- each row's extra length, of its own, so a bend never opens a gap
+			Margin = 0.1, -- studs the cloth's middle keeps off his body, the floor and the throne
+			Gravity = 70, -- studs/s² down on the cloth (lighter than Roblox's 196: it floats a little)
+			Damping = 0.05, -- of its speed lost each step (more settles faster)
+			Bend = 0.08, -- how strongly each row keeps the line of the one above each step (stiffness)
+			FtlDamping = 0.9, -- each row's speed gives back this share of the pull the next row took
+			Flare = 6, -- studs/s² out behind him, so the hem stands a little off his legs
+			Wind = { Studs = 5, Hz = 0.3, Side = 2 }, -- a gentle sway behind (and sideways), each King's own phase
+			MaxCapes = 4, -- drawn at once, the nearest (the throne King and Boss.MaxAtOnce at tables)
+			MaxStuds = 140, -- none farther from the camera
+			JumpStuds = 4, -- the collar moving this far in one step (a teleport, his rise) hangs it afresh
+			ScanSeconds = 0.5, -- the Kings in range looked for this often
+			StepSeconds = 1 / 60, -- the cloth's fixed step...
+			MaxSteps = 4, -- ...and at most this many in one frame (a long frame drops the rest)
+		},
 	},
 	Candy = {
 		Enabled = true, -- the lobby's candy drops (the hour cap is core's Halloween.Pickup.HourCap)

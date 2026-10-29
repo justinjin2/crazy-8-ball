@@ -6,7 +6,8 @@
 -- (LightCycle.event: Night in Day's slot of the cycle), crossfading over FlipSeconds on a flip
 -- (a client joining mid-event sees Night at once); after Live it hands back Config.Lighting.
 -- It puts the Pumpkin King's prompt on his throne (hold E / tap / X: "Challenge the Pumpkin
--- King"; the server checks everything) and starts MapFx (the candy, the +1, the burst).
+-- King"; the server checks everything) and starts MapFx (the candy, the +1, the burst) and
+-- KingCape (his cloth cape).
 -- Off (does nothing at all) while Config.HalloweenMap.Enabled is.
 
 local ContentProvider = game:GetService("ContentProvider")
@@ -25,6 +26,7 @@ local Clock = require(Shared:WaitForChild("Halloween"):WaitForChild("Clock"))
 local Rules = require(Shared:WaitForChild("HalloweenMap"):WaitForChild("Rules"))
 local MapFx = require(script.Parent:WaitForChild("MapFx"))
 local KingDropSign = require(script.Parent:WaitForChild("KingDropSign"))
+local KingCape = require(script.Parent:WaitForChild("KingCape"))
 
 local HM = Config.HalloweenMap
 local K = HM.Boss
@@ -201,6 +203,7 @@ function MapClient.start(dayCycle: any, hub: any?)
 	MapFx.start()
 	if K.Enabled then
 		KingDropSign.start()
+		KingCape.start() -- his cloth cape (Main steps it each frame, after the poses)
 		local seatedAt: number? = nil
 		if hub then
 			hub:onSeatChanged(function(id: number?)
