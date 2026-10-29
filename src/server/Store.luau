@@ -70,6 +70,7 @@ local LIST: {
 		Retired: boolean?, -- never offered again, so its price is never shown
 		ClaimAll: number?, -- Claim All (Config.Daily.ClaimAll): never a gift
 		Candy: number?, -- a Halloween Candy pack: its window runs on the Halloween clock
+		Cue: string?, -- a Halloween cue (Config.Halloween.Cues): the Halloween clock too
 	},
 } =
 	Config.Products.List :: any
@@ -589,15 +590,21 @@ local function grantProduct(
 	elseif LuckyBlocks.skipTierOf(key) ~= nil then
 		grant = { key = key, money = 0, luckySkip = true }
 	else
-		-- A Candy pack's window runs on the Halloween clock (the same os.time() in the live game;
-		-- Studio's /hw test time there), every other product on os.time().
-		local now = if row ~= nil and row.Candy ~= nil then HwClock.serverNow() else os.time()
+		-- A Candy pack's and a Halloween cue's window run on the Halloween clock (the same
+		-- os.time() in the live game; Studio's /hw test time there), every other product on
+		-- os.time(). A Halloween cue this player owns already pays the money fallback.
+		local hw = row ~= nil and (row.Candy ~= nil or row.Cue ~= nil)
+		local now = if hw then HwClock.serverNow() else os.time()
+		local saved = data
 		grant, notFor = Shop.grantFor(
 			key,
 			data.Shop,
 			now,
 			owns(player, "Vip"),
-			player:GetAttribute(ATTR.Restricted) == true
+			player:GetAttribute(ATTR.Restricted) == true,
+			function(id: string): boolean
+				return Inventory.owns(saved, id)
+			end
 		)
 	end
 	if grant == nil then
@@ -698,6 +705,15 @@ end
 -- first-buy double, offer windows and fallbacks), then the purchase id is recorded in the
 -- giver's save so Roblox's retries never grant twice. A receiver who left gets nothing: the
 -- giver gets the item instead and is told. Returns (true) or (false, why).
+-- HwBuy: a Halloween cue bought for Robux landed (value: its Robux; a: the cue; b: "Robux" or
+-- "Gift"). Nothing for a money fallback (no cue in the grant).
+local function logCueBuy(player: Player, grant: Shop.Grant?, how: string)
+	local row = if grant ~= nil then LIST[grant.key] else nil
+	if grant ~= nil and row ~= nil and row.Cue ~= nil and grant.cue == row.Cue then
+		Funnel.event(player, "HwBuy", row.Robux, row.Cue, how)
+	end
+end
+
 local function grantGift(
 	buyer: Player,
 	pend: { key: string, to: number, name: string },
@@ -710,6 +726,7 @@ local function grantGift(
 		local ok, why, grant = grantProduct(buyer, key, purchaseId)
 		if ok then
 			tellPurchase(buyer, grant) -- theirs after all: thanked, and it flows in
+			logCueBuy(buyer, grant, "Robux")
 			pendingGift[buyer] = nil
 			log(
 				("gift %s from %d: %d left; granted to the giver"):format(
@@ -745,6 +762,7 @@ local function grantGift(
 	end
 	tellPurchase(buyer, grant, { to = receiver.DisplayName }) -- the giver is thanked
 	tellPurchase(receiver, grant, { from = buyer.DisplayName }) -- the gift flows in
+	logCueBuy(buyer, grant, "Gift")
 	mark(receiver)
 	return true, nil
 end
@@ -799,6 +817,7 @@ local function runReceipt(receipt: Shop.Receipt, key: string?): (Shop.Decision, 
 				ok, reason, grant = grantProduct(player, productKey, id)
 				if ok then
 					tellPurchase(player, grant)
+					logCueBuy(player, grant, "Robux")
 				end
 			end
 			why = reason

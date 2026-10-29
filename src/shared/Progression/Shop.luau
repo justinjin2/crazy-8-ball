@@ -50,7 +50,8 @@ export type Pack = { key: string, robux: number, money: number, bonus: number }
 export type Grant = {
 	key: string, -- the Config.Products key bought
 	money: number, -- money to add (0 for none)
-	cue: string?, -- a cue to add: the VIP Cue the first time, the Starter Pack's Starter Cue
+	-- a cue to add: the VIP Cue the first time, the Starter Pack's Starter Cue, a Halloween cue
+	cue: string?,
 	vip: boolean?, -- VIP from the welcome offer (sets Shop.VipOffer)
 	vipCue: boolean?, -- cue is the VIP Cue (sets Shop.VipCueGiven)
 	party: boolean?, -- start or extend this server's Money Party (Shop.partyEndsAt)
@@ -127,6 +128,7 @@ type ProductRow = {
 	Retired: boolean?, -- never offered again; an old receipt still pays (economy v4)
 	ClaimAll: number?, -- Claim All: the most login days one claims (Config.Daily.ClaimAll)
 	Candy: number?, -- Halloween Candy one purchase adds (the Candy packs, Config.Halloween.Packs)
+	Cue: string?, -- the one cue a purchase gives (the Halloween cue shop, Config.Halloween.Cues)
 }
 
 local LIST: { [string]: ProductRow } = P.List :: any
@@ -484,15 +486,36 @@ function Shop.packsOpen(now: number): boolean
 	return Config.Halloween.Packs.Enabled == true and Event.isLive(now)
 end
 
+--- Whether the Halloween cues (Config.Products rows with Cue) are sold at unix time `now` (the
+--- Halloween clock): Config.Halloween.Cues switched on and the event Live. `grace`: a receipt,
+--- which counts OfferGraceSeconds past EndsAt (a prompt confirmed just before the end).
+function Shop.cuesOpen(now: number, grace: boolean?): boolean
+	local H = Config.Halloween
+	if H.Cues.Enabled ~= true then
+		return false
+	end
+	if grace == true then
+		return now >= H.StartsAt and inGrace(now, H.EndsAt)
+	end
+	return Event.isLive(now)
+end
+
 --- Why a receipt for developer product `key` at unix time `now` must not give what the product
 --- gives, or nil when it may. `vipPass` is whether the player owns the VIP game pass. "Owned":
 --- VIP already (the pass or the offer) for the VIP offer, the Starter Pack bought, a Robux
 --- Limited already in Shop.Limited. "Closed": the VIP offer outside both its welcome and its
 --- comeback window, the Starter Pack past its week (FirstJoin unknown: closed); each window
 --- counts OfferGraceSeconds longer here than at the prompt. A Candy pack while the packs are
---- not sold (Shop.packsOpen, no grace). Every other product: nil. A Robux Limited's window and
---- cap are the server's Limited counter's.
-function Shop.receiptCheck(key: string, shopSave: ShopSave, now: number, vipPass: boolean): string?
+--- not sold (Shop.packsOpen, no grace). A Halloween cue outside its window (Shop.cuesOpen with
+--- the grace: "Closed") or already owned (`ownsCue`, the one who gets it: "Owned"). Every other
+--- product: nil. A Robux Limited's window and cap are the server's Limited counter's.
+function Shop.receiptCheck(
+	key: string,
+	shopSave: ShopSave,
+	now: number,
+	vipPass: boolean,
+	ownsCue: ((string) -> boolean)?
+): string?
 	local first = whole(shopSave.FirstJoin)
 	local saleRow = LIST[key]
 	if saleRow ~= nil and saleRow.Vip == true and Shop.isVip(vipPass, shopSave) then
@@ -500,6 +523,14 @@ function Shop.receiptCheck(key: string, shopSave: ShopSave, now: number, vipPass
 	end
 	if saleRow ~= nil and saleRow.Candy ~= nil and not Shop.packsOpen(now) then
 		return "Closed" -- a Candy pack off or outside the event (a receipt pays the fallback)
+	end
+	if saleRow ~= nil and saleRow.Cue ~= nil then
+		-- A Halloween cue: the fallback money instead of a cue it cannot give (or that is owned).
+		if not Shop.cuesOpen(now, true) then
+			return "Closed"
+		elseif ownsCue ~= nil and ownsCue(saleRow.Cue) then
+			return "Owned"
+		end
 	end
 	if key == VIP_OFFER then
 		if Shop.isVip(vipPass, shopSave) then
@@ -581,22 +612,23 @@ end
 --- fallback instead (receiptCheck's reason), or nil for a pass, an unknown key, or a product
 --- that would give nothing (a receipt for it is left NotProcessedYet and logged instead of
 --- taking Robux for nothing). A receipt is Robux already paid, so a product that is not for
---- this player now (an offer closed, the Starter Pack or VIP had already) is never refused: it
---- becomes Shop.fallbackGrant. Inside the launch bonus (Shop.launchBonus, plus
---- OfferGraceSeconds) a money pack gives its Percent more money and 10 Mystery blocks come as
---- MysteryBulkCount.
+--- this player now (an offer closed, the Starter Pack or VIP had already, a Halloween cue owned:
+--- `ownsCue`) is never refused: it becomes Shop.fallbackGrant. Inside the launch bonus
+--- (Shop.launchBonus, plus OfferGraceSeconds) a money pack gives its Percent more money and 10
+--- Mystery blocks come as MysteryBulkCount.
 function Shop.grantFor(
 	key: string,
 	shopSave: ShopSave,
 	now: number,
 	vipPass: boolean,
-	restricted: boolean?
+	restricted: boolean?,
+	ownsCue: ((string) -> boolean)?
 ): (Grant?, string?)
 	local row = LIST[key]
 	if row == nil or row.Kind ~= "Product" then
 		return nil, nil
 	end
-	local notFor = Shop.receiptCheck(key, shopSave, now, vipPass)
+	local notFor = Shop.receiptCheck(key, shopSave, now, vipPass, ownsCue)
 	if notFor ~= nil then
 		return Shop.fallbackGrant(key), notFor
 	end
@@ -638,6 +670,8 @@ function Shop.grantFor(
 		grant.boostEnds = math.max(now, whole(shopSave.BoostEnds)) + S.StarterBoostSeconds
 	elseif key == MONEY_PARTY then
 		grant.party = true
+	elseif type(row.Cue) == "string" then
+		grant.cue = row.Cue -- a Halloween cue (open and not owned: receiptCheck)
 	end
 	local limited = limitedForProduct(key)
 	if limited ~= nil then
