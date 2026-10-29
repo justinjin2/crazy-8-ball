@@ -213,6 +213,7 @@ type Scene = {
 	sub: TextLabel,
 	hint: TextLabel,
 	hidden: { ScreenGui },
+	boards: { BillboardGui }, -- his name and drop sign, off while the camera is on him
 	held: { [string]: any }?,
 	fov: number,
 	kind: Enum.CameraType,
@@ -634,6 +635,11 @@ local function finish(s: Scene, outcome: string)
 			gui.Enabled = true
 		end
 	end
+	for _, b in s.boards do
+		if b.Parent then
+			b.Enabled = true
+		end
+	end
 	s.gui:Destroy()
 	report(outcome)
 end
@@ -722,6 +728,22 @@ local function play(throne: Model, t0: number)
 			table.insert(hidden, gui)
 		end
 	end
+	-- His name tag and drop sign would float over his face in the close shots.
+	local boards: { BillboardGui } = {}
+	local function board(b: Instance)
+		if b:IsA("BillboardGui") and b.Enabled then
+			b.Enabled = false
+			table.insert(boards, b)
+		end
+	end
+	for _, d in throne:GetDescendants() do
+		board(d)
+	end
+	for _, d in playerGui:GetDescendants() do
+		if d:IsA("BillboardGui") and d.Adornee and d.Adornee:IsDescendantOf(throne) then
+			board(d)
+		end
+	end
 	local gui = Instance.new("ScreenGui")
 	gui.Name = "KingRiseScene"
 	gui.ResetOnSpawn = false
@@ -789,6 +811,7 @@ local function play(throne: Model, t0: number)
 		sub = sub,
 		hint = hint,
 		hidden = hidden,
+		boards = boards,
 		held = hold(h),
 		fov = cam.FieldOfView,
 		kind = cam.CameraType,

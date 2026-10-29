@@ -9601,9 +9601,11 @@ Config.HalloweenMap = {
 				Shots = {
 					{ At = 0, Eye = { 7.5, 2.2, 30 }, Look = { 0, 2.5, 0 }, Fov = 55 },
 					{ At = 1.2, Eye = { 6, 2.6, 25 }, Look = { 0, 3, 0 }, Fov = 55 },
-					{ At = 3.4, Eye = { 3.5, 4.5, 16 }, Look = { 0, 7, -2 }, Fov = 50 },
-					{ At = 4.1, Eye = { 1.2, 3.2, 11.5 }, Look = { 0, 8.2, -2.5 }, Fov = 42 },
-					{ At = 5.4, Eye = { 0.6, 3.4, 10.5 }, Look = { 0, 8.4, -2.5 }, Fov = 40 },
+					{ At = 3.4, Eye = { 3.5, 4.8, 20 }, Look = { 0, 8, -2 }, Fov = 52 },
+					-- the hero shots keep his crown and the throne's top in frame (Studio, 2026-10-29:
+					-- 11.5 studs out at Fov 42 cut the crown off under the top bar)
+					{ At = 4.1, Eye = { 2, 5, 19 }, Look = { 0, 9, -2 }, Fov = 50 },
+					{ At = 5.4, Eye = { 1.5, 5.2, 17.5 }, Look = { 0, 9, -2 }, Fov = 48 },
 				},
 				BackAt = 5.4, -- the blend back to the player's own camera starts...
 				BackSeconds = 1, -- ...and takes this long (the bars and the title go with it)
