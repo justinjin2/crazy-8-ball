@@ -304,7 +304,18 @@ end
 
 --- The auto-turn and drag: the next yaw and spin after `dt` seconds. `spin` (degrees a second)
 --- decays by SpinDecay; with no spin left and the idle wait over, it turns at TurnDegPerSecond.
-function CuePreviewMath.turn(yaw: number, spin: number, idle: number, dt: number): (number, number)
+--- `still` (Reduce Motion): the view never turns on its own, no auto-turn and no flick's spin
+--- (a drag or the stick still turn it, through their own code).
+function CuePreviewMath.turn(
+	yaw: number,
+	spin: number,
+	idle: number,
+	dt: number,
+	still: boolean?
+): (number, number)
+	if still then
+		return yaw % 360, 0
+	end
 	local decayed = spin * math.exp(-C.SpinDecay * dt)
 	if math.abs(decayed) < 1 then
 		decayed = 0

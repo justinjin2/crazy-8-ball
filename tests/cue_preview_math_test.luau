@@ -423,5 +423,10 @@ return {
 		H.expect(M.pitch(40, 30) == C.PitchMaxDeg and M.pitch(0, -90) == C.PitchMinDeg, "clamped")
 		local y2 = M.turn(350, 0, 99, 1)
 		H.expect(y2 >= 0 and y2 < 360, "yaw wraps")
+		-- Reduce Motion: it never turns on its own.
+		local y3, s3 = M.turn(10, 0, 99, 1, true)
+		H.expect(y3 == 10 and s3 == 0, "no auto-turn with Reduce Motion")
+		local y4, s4 = M.turn(10, 300, 0, 0.1, true)
+		H.expect(y4 == 10 and s4 == 0, "no flick's spin with Reduce Motion")
 	end,
 }

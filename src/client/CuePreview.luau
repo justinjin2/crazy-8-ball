@@ -708,7 +708,8 @@ local function step(dt: number)
 	if not s then
 		return
 	end
-	-- The right stick turns it; a drag or a flick spins it; idle long enough, it turns alone.
+	-- The right stick turns it; a drag or a flick spins it; idle long enough, it turns alone
+	-- (with Reduce Motion it never turns on its own: no auto-turn, no flick's spin).
 	local stick = s.stickInput
 	if stick.Magnitude > 0.15 then
 		s.yaw = (s.yaw - stick.X * C.StickDegPerSecond * dt) % 360
@@ -717,7 +718,7 @@ local function step(dt: number)
 		s.spin = 0
 	elseif not s.dragging then
 		s.idle += dt
-		s.yaw, s.spin = CuePreviewMath.turn(s.yaw, s.spin, s.idle, dt)
+		s.yaw, s.spin = CuePreviewMath.turn(s.yaw, s.spin, s.idle, dt, UIAnim.reduced())
 	end
 	local ready = isReady(s)
 	local spinner = s.parts.spinner
