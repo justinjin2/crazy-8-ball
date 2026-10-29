@@ -10166,6 +10166,19 @@ Config.UI.BoostPill = {
 	},
 	-- The Rush chip's shell (R1.10), right over the pill at its left x: core's words
 	-- (RushChip.content), the candy icon from Config.Halloween.CandyIcon.
+	-- The temporary Candy pill (designer, 2026-10-29): the player's Candy right over the money
+	-- pill, the boost lines above it, while the Candy line shows (the event live). A press opens
+	-- the Halloween menu; a hover opens the Candy card. false: no pill.
+	CandyPill = {
+		Enabled = true,
+		HeightPx = 32,
+		ShortHeightPx = 26,
+		TextPx = 20, -- as the money pill's total
+		ShortTextPx = 16,
+		GapPx = 4, -- between it and the lines above
+		PadPx = 8, -- inside its ends
+		IconShare = 0.9, -- the candy icon's size per pill height
+	},
 	Chip = {
 		-- No separate Rush pill (designer, 2026-10-29): the Rush's words show inside the Candy
 		-- line's card instead. true: the chip over the pill as before.

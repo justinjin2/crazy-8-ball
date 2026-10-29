@@ -167,6 +167,30 @@ return {
 		H.expect(bc.pill.y + bc.pill.h == b2.pill.y + b2.pill.h, "the Candy line goes over it")
 	end,
 
+	["the Candy pill takes a row under the lines, right over the money pill"] = function()
+		local HudLayout = H.require("HudLayout")
+		local Config = H.require("Config")
+		local P = Config.UI.BoostPill
+		for _, screen in { { w = 1920, h = 1022 }, { w = 844, h = 390 }, { w = 750, h = 311 } } do
+			local s = { moneyText = "$125,000", blocks = 3, candy = true, winTrackOpen = false }
+			local withPill = table.clone(s)
+			withPill.candyPill = true
+			local b = HudLayout.boost(screen, s, HudLayout.others(screen, s))
+			local bp = HudLayout.boost(screen, withPill, HudLayout.others(screen, withPill))
+			local row = HudLayout.candyPillRow(screen)
+			local tag = screen.w .. "x" .. screen.h
+			H.expect(
+				b.candyPillH == 0 and bp.candyPillH == row,
+				tag .. ": the row only with the pill"
+			)
+			H.expect(bp.pill.h == b.pill.h + row, tag .. ": the box grows by the row")
+			H.expect(
+				bp.pill.y + bp.pill.h <= HudLayout.others(screen, withPill).money.y - P.GapPx,
+				tag .. ": over the money pill"
+			)
+		end
+	end,
+
 	["the chip sits right over the pill, compact only when it must be"] = function()
 		local HudLayout = H.require("HudLayout")
 		local Config = H.require("Config")

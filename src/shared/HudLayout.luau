@@ -39,6 +39,7 @@ export type Screen = { w: number, h: number }
 export type Scene = {
 	vip: boolean?,
 	candy: boolean?, -- the Candy Boost line shows (the event is live): two lines, not one
+	candyPill: boolean?, -- the Candy pill shows under the lines (Config.UI.BoostPill.CandyPill)
 	moneyText: string?, -- the money pill's words ("$125,000")
 	moneyPlus: boolean?, -- the money pill's gold "+" (hidden in a match); nil = shown
 	plusShown: boolean?, -- the Roblox Plus tile right of Invite
@@ -65,6 +66,7 @@ export type Boost = {
 	pill: Rect, -- the lines' box (one line, or two with Candy)
 	pillTextPx: number,
 	lineH: number, -- one line's height
+	candyPillH: number, -- the Candy pill's row at the box's bottom (its gap included), or 0
 	chip: Rect?,
 	chipText: string?, -- the words the chip shows (the compact form when chipCompact)
 	chipTextPx: number,
@@ -98,6 +100,12 @@ function HudLayout.pillSize(screen: Screen, lines: number): (number, number, num
 	local lineH = if short then P.ShortLinePx else P.LinePx
 	local textPx = if short then P.ShortTextPx else P.TextPx
 	return HudLayout.textWidth(P.WidestText, textPx), lineH * lines, textPx, lineH
+end
+
+--- The Candy pill's row under the boost lines: its height and the gap over it.
+function HudLayout.candyPillRow(screen: Screen): number
+	local CP = P.CandyPill
+	return (if HudLayout.short(screen) then CP.ShortHeightPx else CP.HeightPx) + CP.GapPx
 end
 
 --- The chip's size for `text` at `textPx` with or without its icon: (width, height).
@@ -276,6 +284,8 @@ end
 function HudLayout.boost(screen: Screen, s: Scene, others: Others): Boost
 	local short = HudLayout.short(screen)
 	local pw, ph, pillTextPx, lineH = HudLayout.pillSize(screen, if s.candy then 2 else 1)
+	local candyPillH = if s.candyPill then HudLayout.candyPillRow(screen) else 0
+	ph += candyPillH
 	local y = others.money.y - P.GapPx - ph
 	local pill = { x = round(others.money.x + P.LeftPx), y = y, w = pw, h = ph }
 	local column = others.column
@@ -352,6 +362,7 @@ function HudLayout.boost(screen: Screen, s: Scene, others: Others): Boost
 		pill = pill,
 		pillTextPx = pillTextPx,
 		lineH = lineH,
+		candyPillH = candyPillH,
 		chip = chip,
 		chipText = chipText,
 		chipTextPx = chipTextPx,

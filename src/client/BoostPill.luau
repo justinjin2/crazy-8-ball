@@ -38,9 +38,11 @@ local HudLayout = require(Shared:WaitForChild("HudLayout"))
 local ProgressionShared = Shared:WaitForChild("Progression")
 local BoostFlags = require(ProgressionShared:WaitForChild("BoostFlags"))
 local Money = require(ProgressionShared:WaitForChild("Money"))
+local Format = require(ProgressionShared:WaitForChild("Format"))
 local Steps = require(Shared:WaitForChild("Tutorial"):WaitForChild("Steps"))
 local GuiQA = require(script.Parent.GuiQA)
 local HudParts = require(script.Parent.HudParts)
+local Menus = require(script.Parent.Menus)
 local ShopParts = require(script.Parent.ShopParts)
 local UIAnim = require(script.Parent.UIAnim)
 local UISound = require(script.Parent.UISound)
@@ -48,6 +50,7 @@ local UISound = require(script.Parent.UISound)
 local P = Config.UI.BoostPill
 local K = P.Card
 local CHIP = P.Chip
+local CP = P.CandyPill
 local E = Config.Economy
 local COPY = Strings.BoostPill
 local PARTS: { [string]: string } = COPY.Parts :: any
@@ -206,6 +209,47 @@ function BoostPill.new(money: any): any
 		end)
 	end
 
+	-- The temporary Candy pill (CandyPill): the player's Candy right over the money pill, under
+	-- the lines. Its own button: a press opens the Halloween menu, a hover the Candy card.
+	local candyPill = HudParts.pill(tag, "CandyPill")
+	candyPill.Visible = false
+	candyPill.ZIndex = P.ZIndex + 1
+	self.candyPill = candyPill
+	local candyPillIcon = Instance.new("ImageLabel")
+	candyPillIcon.Name = "Icon"
+	candyPillIcon.BackgroundTransparency = 1
+	candyPillIcon.ScaleType = Enum.ScaleType.Fit
+	candyPillIcon.AnchorPoint = Vector2.new(0, 0.5)
+	candyPillIcon.ZIndex = P.ZIndex + 2
+	candyPillIcon.Parent = candyPill
+	self.candyPillIcon = candyPillIcon
+	local candyAmount = HudParts.text(candyPill, "Amount", CP.TextPx, "0")
+	candyAmount.AutoLocalize = false -- only a number
+	candyAmount.TextWrapped = false
+	candyAmount.TextXAlignment = Enum.TextXAlignment.Left
+	candyAmount.AnchorPoint = Vector2.new(0, 0.5)
+	candyAmount.ZIndex = P.ZIndex + 2
+	self.candyAmount = candyAmount
+	local candyHit = Instance.new("TextButton")
+	candyHit.Name = "Hit"
+	candyHit.BackgroundTransparency = 1
+	candyHit.Text = ""
+	candyHit.Size = UDim2.fromScale(1, 1)
+	candyHit.ZIndex = P.ZIndex + 3
+	candyHit.Selectable = false -- a pad reaches the menu from the HALLOWEEN button
+	candyHit.Parent = candyPill
+	candyHit.MouseEnter:Connect(function()
+		self:setKind("Candy")
+	end)
+	candyHit.Activated:Connect(function()
+		if self.inMatch then
+			return
+		end
+		UISound.play("Click")
+		self:closeCard()
+		Menus.open("Halloween")
+	end)
+
 	-- The card over the pill, in a holder whose UIScale shrinks it on a short screen
 	-- (HudLayout.cardFit; the card's own UIScale is its pop's).
 	local holder = Instance.new("Frame")
@@ -286,7 +330,9 @@ function BoostPill.new(money: any): any
 
 	local player = Players.LocalPlayer
 	if player then
-		for _, name in { "Vip", "InGroup", "FriendsHere", "MoneyBoostEnds", "TutorialStep" } do
+		for _, name in
+			{ "Vip", "InGroup", "FriendsHere", "MoneyBoostEnds", "TutorialStep", "Candy" }
+		do
 			player:GetAttributeChangedSignal(name):Connect(function()
 				self:refresh()
 			end)
@@ -527,6 +573,7 @@ function BoostPill.layout(self: any)
 	local scene: HudLayout.Scene = {
 		chipText = if self.chipOn then self.chipWords else nil,
 		candy = self.candyOn,
+		candyPill = self.candyOn and CP.Enabled == true,
 	}
 	local others = self:others(size)
 	local b = HudLayout.boost(size, scene, others)
@@ -541,8 +588,32 @@ function BoostPill.layout(self: any)
 	for kind, line in self.lines :: { [string]: any } do
 		local fromBottom = if kind == "Money" then 0 else 1
 		HudParts.setTextSize(line.label, b.pillTextPx)
-		line.label.Position = UDim2.fromOffset(0, pill.h - (fromBottom + 0.5) * b.lineH)
+		line.label.Position =
+			UDim2.fromOffset(0, pill.h - b.candyPillH - (fromBottom + 0.5) * b.lineH)
 		line.label.Size = UDim2.fromOffset(pill.w, b.lineH)
+	end
+	-- The Candy pill: the box's bottom row, right over the money pill.
+	self.candyPill.Visible = b.candyPillH > 0
+	if b.candyPillH > 0 then
+		local h = b.candyPillH - CP.GapPx
+		local textPx = if short then CP.ShortTextPx else CP.TextPx
+		local player = Players.LocalPlayer
+		local count = if player then player:GetAttribute("Candy") else nil
+		local words = Format.commas(if type(count) == "number" then count else 0)
+		local icon = candyIcon()
+		local iconPx = if icon then math.floor(h * CP.IconShare) else 0
+		local textX = CP.PadPx + (if icon then iconPx + CP.PadPx / 2 else 0)
+		local textW = math.ceil(ShopParts.textWidth(words, textPx))
+		self.candyPill.Position = UDim2.fromOffset(0, pill.h - h)
+		self.candyPill.Size = UDim2.fromOffset(textX + textW + CP.PadPx, h)
+		self.candyPillIcon.Image = icon or ""
+		self.candyPillIcon.Visible = icon ~= nil
+		self.candyPillIcon.Position = UDim2.new(0, CP.PadPx, 0.5, 0)
+		self.candyPillIcon.Size = UDim2.fromOffset(iconPx, iconPx)
+		self.candyAmount.Text = words
+		HudParts.setTextSize(self.candyAmount, textPx)
+		self.candyAmount.Position = UDim2.new(0, textX, 0.5, 0)
+		self.candyAmount.Size = UDim2.fromOffset(textW + 2, h)
 	end
 
 	-- The chip.
