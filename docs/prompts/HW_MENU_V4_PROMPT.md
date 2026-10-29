@@ -48,9 +48,8 @@ Keep the cost low: no multi-agent workflows unless a check really needs one.
 4. **Remove the Spider fully** (17 files: `grep -rln "SpiderCue\|Halloween.Spider\|HwSpider"
    src tests`). It never went live, so no real save holds it; the save-schema test may still
    name the field.
-5. **HUD:** a temporary Candy pill (the player's Candy) right above the money pill, with the two
-   boost lines above it. HudLayout and its phone-size tests need room for it. The boost cards
-   are done.
+5. **HUD:** done. The Candy pill sits right above the money pill (`Config.UI.BoostPill.CandyPill`,
+   Studio-checked on PC). Check it by hand on a phone, and check that tapping it opens the menu.
 6. **The Shop banner**: a small Halloween banner at the top of the Shop that opens the event
    menu. There are no Halloween lucky blocks.
 7. **The Pitchfork model**: the fork must be the cue's TIP, the end that hits the ball
