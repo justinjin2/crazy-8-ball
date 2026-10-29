@@ -1315,7 +1315,7 @@ return {
 			Vip = "VIP",
 			Group = "Group",
 			Plus = "Roblox Plus",
-			Friends = "Friends +%d%% each (%d)", -- shown at +0% too (designer, 2026-10-29)
+			Friends = "Friend Boost", -- shown at +0% too; its value grows as friends join (designer, 2026-10-29)
 			Starter = "Starter Pack",
 			Party = "Money Party",
 		},

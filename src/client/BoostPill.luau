@@ -733,10 +733,6 @@ function BoostPill.cardLines(self: any): { any }
 	end
 	for _, part in parts do
 		local words = PARTS[part.kind] or part.kind
-		if part.kind == "Friends" then
-			local n = if type(flags.friends) == "number" then math.floor(flags.friends) else 0
-			words = words:format(math.floor(E.FriendBoost * 100 + 0.5), n)
-		end
 		local left = timeLeft(part.kind, at)
 		if left then
 			words = COPY.TimeLeft:format(words, left)
@@ -825,7 +821,7 @@ function BoostPill.candyLines(self: any, flags: Money.Boosts): { any }
 	if E.FriendBoostEnabled == true then
 		table.insert(lines, {
 			icon = ICONS.Friends,
-			words = PARTS.Friends:format(math.floor(E.FriendBoost * 100 + 0.5), friends),
+			words = PARTS.Friends,
 			value = percent(friendsAdd),
 			kind = "Friends",
 			line = "Part",
