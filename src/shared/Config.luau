@@ -17531,7 +17531,7 @@ Config.UI.Halloween = {
 			{ Ids = { "Panel" }, Kind = "Unroll", At = 0 },
 			{ Ids = { "Header" }, Kind = "Fade", At = 0.12, Length = 0.15 },
 			{ Ids = { "Basket", "Title", "Close" }, Kind = "Pop", At = 0.18 },
-			{ Ids = { "HwCandy", "HwEnds" }, Kind = "Pop", At = 0.2 },
+			{ Ids = { "HwCandy", "HwKingDrop", "HwEnds" }, Kind = "Pop", At = 0.2 },
 			{ Ids = { "HwTrack" }, Kind = "Grow", At = 0.22 },
 			{
 				Ids = {
