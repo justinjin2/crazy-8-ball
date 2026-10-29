@@ -63,6 +63,21 @@ local menu: any
 local shown = false
 local bound = false
 
+-- The Pumpkin King's rise cutscene (HalloweenMap.KingEntrance, Halloween 2026), read late (it
+-- reads Progression, which this reads); never up if it fails to load.
+local kingEntrance: any = nil
+local function kingScene(): boolean
+	if kingEntrance == nil then
+		local ok, module = pcall(function(): any
+			local folder = script.Parent:FindFirstChild("HalloweenMap")
+			local m = folder and folder:FindFirstChild("KingEntrance")
+			return if m and m:IsA("ModuleScript") then require(m) :: any else false
+		end)
+		kingEntrance = if ok and module then module else false
+	end
+	return kingEntrance ~= false and kingEntrance.isPlaying() == true
+end
+
 local function r15(): boolean
 	local character = Players.LocalPlayer.Character
 	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
@@ -194,6 +209,7 @@ function EmoteHud.update(inMatch: boolean, shooting: boolean, picking: boolean)
 		and not Menus.isOpen()
 		and not LuckyClient.isOpen()
 		and not GiftDrop.isPlaying()
+		and not kingScene()
 		and not blocked
 	-- Sync in a match too (Sync.InMatch; a controller's Y there, X being the ult's), never
 	-- under the ability pick.

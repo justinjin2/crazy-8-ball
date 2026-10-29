@@ -1807,12 +1807,27 @@ local function renderFrame(dt: number)
 end
 -- The first-time tutorial (tutorial v2): its line, dim, hand and arrow.
 require(script.Parent.Tutorial).start()
-RunService.RenderStepped:Connect(function(dt)
-	renderFrame(dt)
-	-- The back cues last, once every hand cue of this frame is drawn: a cue is never on a back
-	-- and in the hands at once, nor missing from both.
-	backCue:update(dt, cueStick:GetAttribute("Visible") == true, hub.watched:holding())
-end)
+do
+	-- The Pumpkin King's cloth capes (Halloween 2026, HalloweenMap.KingCape), stepped after the
+	-- frame's poses (renderFrame: WatchedShooters poses a King at his table), so a cape hangs
+	-- from where his torso is drawn. Nothing once the event's folder is gone.
+	local folder = script.Parent:FindFirstChild("HalloweenMap")
+	local module = folder and folder:FindFirstChild("KingCape")
+	local capes: any = nil
+	if module and module:IsA("ModuleScript") then
+		local ok, result = pcall(require, module)
+		capes = if ok then result else nil
+	end
+	RunService.RenderStepped:Connect(function(dt)
+		renderFrame(dt)
+		-- The back cues last, once every hand cue of this frame is drawn: a cue is never on a
+		-- back and in the hands at once, nor missing from both.
+		backCue:update(dt, cueStick:GetAttribute("Visible") == true, hub.watched:holding())
+		if capes then
+			capes.step(dt)
+		end
+	end)
+end
 -- GUI lane: a Studio-only test hook for the screens (GuiQA; nothing in a live server).
 require(script.Parent.GuiQA).start()
 -- The abilities' Studio checks: GuiQA "aim" aims at `angle` (radians) with `pull` (0..1) as the

@@ -9572,6 +9572,74 @@ Config.HalloweenMap = {
 			CandyScale = 0.6,
 			FlashStuds = 9,
 		},
+		-- His arrival (designer, 2026-10-29: "when the pumpkin king spawns, people who aren't
+		-- in a match get a special cutscene showing him rising from the ground with his throne
+		-- and everything; short, black bars, cinematic, make it cool"; every visit, a tap
+		-- skips). On each client the throne and the King rise out of the roof (KingEntrance,
+		-- that client only: the server's throne stands at once) through a glowing crack, with
+		-- a dirt burst, an orange light and a shake; a player free in the lobby (KingScene.free)
+		-- also gets the cutscene. The server's arrival burst and puff wait for him to land
+		-- (KingScene.landSeconds). Times are seconds from the throne showing.
+		Entrance = {
+			Enabled = true, -- off: he appears at once with the burst, as before (no rise, no cutscene)
+			Cutscene = true, -- off: the rise alone (no camera, bars or title)
+			-- A throne that shows this soon after his visit's start rises; one seen later (a
+			-- join mid-visit) just stands there.
+			FreshSeconds = 6,
+			DelaySeconds = 0.9, -- the crack glows this long before he moves
+			RiseSeconds = 2.5, -- up from under the roof onto his stage (easing in and out)
+			DepthStuds = 21, -- where he starts under his stage (the throne and crown stand ~18 tall)
+			RumbleStuds = 0.06, -- the throne's judder while it rises (none with Reduce Motion)
+			ShowStuds = 180, -- the crack, dust and light only for a camera this close to his stage
+			Crack = {
+				Rays = 7, -- glowing cracks out from the middle (Neon parts on the floor)
+				LengthStuds = { 5, 9.5 }, -- the rays' lengths take turns between these
+				WidthStuds = 0.32,
+				CoreStuds = 3.2, -- the glowing disc in the middle (the throne covers it once up)
+				Color = { 255, 120, 30 },
+				InSeconds = 0.35, -- it glows up this fast...
+				OutSeconds = 1.2, -- ...and fades this slowly once he has landed
+			},
+			Dust = {
+				Puffs = 24, -- dirt and smoke puffs as he starts up (half on Lower effects)
+				Embers = 30, -- orange embers with them (half on Lower effects)
+				TrailRate = 18, -- dust a second rising round him while he comes up (half on Lower)
+				Color = { 96, 78, 64 },
+			},
+			Light = { Range = 24, Brightness = 5, Color = { 255, 130, 40 } }, -- one PointLight, only while it rises
+			Shake = {
+				Studs = 0.32, -- the camera's judder at its strongest
+				Hz = 9,
+				TailSeconds = 0.5, -- it fades out this long after he lands
+				NearStuds = 60, -- a free player this close with no cutscene feels it too (none with Reduce Motion)
+			},
+			-- The cutscene's camera, in his stage's space (studs from the throne's foot: X
+			-- across, Y up, Z out toward the spawn, down the aisle), easing from shot to shot: a
+			-- wide low shot as the ground cracks, a push-in as he rises, a low hero shot as he
+			-- lands, held under the title; then back into the player's own camera.
+			Camera = {
+				InSeconds = 0.5, -- from the player's camera into the first shot
+				LookFollow = 0.7, -- the aim rides this share of his rise (it tilts up with him)
+				Shots = {
+					{ At = 0, Eye = { 7.5, 2.2, 30 }, Look = { 0, 2.5, 0 }, Fov = 55 },
+					{ At = 1.2, Eye = { 6, 2.6, 25 }, Look = { 0, 3, 0 }, Fov = 55 },
+					{ At = 3.4, Eye = { 3.5, 4.5, 16 }, Look = { 0, 7, -2 }, Fov = 50 },
+					{ At = 4.1, Eye = { 1.2, 3.2, 11.5 }, Look = { 0, 8.2, -2.5 }, Fov = 42 },
+					{ At = 5.4, Eye = { 0.6, 3.4, 10.5 }, Look = { 0, 8.4, -2.5 }, Fov = 40 },
+				},
+				BackAt = 5.4, -- the blend back to the player's own camera starts...
+				BackSeconds = 1, -- ...and takes this long (the bars and the title go with it)
+				SkipSeconds = 0.35, -- a skip blends back this fast
+				ClearStuds = 0.6, -- a wall between him and the camera pulls it in, this far off it
+			},
+			BarsShare = 0.12, -- each black bar, of the screen's height (Letterbox)
+			BarsSeconds = 0.45,
+			TitleAt = 3.55, -- the title (and his drop's line) as he lands
+			TitleTextPx = 34, -- in the bottom bar (scaled to fit)
+			SubTextPx = 20,
+			HintTextPx = 16, -- "Tap to skip" in the top bar
+			TitleColor = { 255, 170, 40 },
+		},
 	},
 	-- The event's meshes (assets/halloween/map/gen_props.py: one .glb, one palette texture),
 	-- uploaded as one Model and loaded on the server (HalloweenMap/Assets) into ReplicatedStorage
@@ -9648,6 +9716,41 @@ Config.HalloweenMap = {
 		-- The crown's lift over the mesh head's half height (studs; the mesh's top bound is its
 		-- stem's tip, so negative sets the band on the pumpkin with the stem inside it).
 		CrownOnMesh = -0.2,
+		-- His cape (designer, 2026-10-29: "too blocky and doesn't have regular physics when
+		-- he's shooting, should actually sway like a cape"): cloth drawn on each client
+		-- (KingCape) from an anchor the server puts on his UpperTorso (an Attachment named
+		-- Anchor, the collar's middle; KingLook): Rows segments from the collar to the hem,
+		-- purple outside, the orange lining in, a gold collar, each row hinged to the one
+		-- above, pulled down, swung by his moves and turns and a gentle wind, kept off his body,
+		-- the floor and his throne. Drawn after the shooting pose each frame on the nearest
+		-- MaxCapes Kings within MaxStuds that are on screen; every other frame on Lower effects;
+		-- hanging still under Reduce Motion. (Its colours are Cape, Lining and Gold above.)
+		Cloth = {
+			Enabled = true, -- off: the old cape (three rigid boxes the server welds to his back)
+			Tag = "KingCape", -- the CollectionService tag on every King body that wears it
+			Anchor = "CapeAnchor", -- the Attachment on his UpperTorso it hangs from
+			Rows = 8, -- each two parts (cloth and lining), plus the collar: 17 parts a King
+			TopWidth = 1.12, -- the collar's width, of the UpperTorso's
+			HemWidth = 1.5, -- the hem's width, of the UpperTorso's (it flares)
+			Length = 2.15, -- collar to hem, in UpperTorso heights (to his calves standing)
+			SeatedLength = 1.4, -- on his throne: down his back to the cushion
+			CollarDrop = 0.05, -- the collar this far under the torso's top, of its height
+			Thickness = 0.08, -- the cloth, of the UpperTorso's depth (the lining half that, inside)
+			Overlap = 0.15, -- each row's extra length, of its own, so a bend never opens a gap
+			Margin = 0.1, -- studs the cloth's middle keeps off his body, the floor and the throne
+			Gravity = 70, -- studs/s² down on the cloth (lighter than Roblox's 196: it floats a little)
+			Damping = 0.05, -- of its speed lost each step (more settles faster)
+			Bend = 0.08, -- how strongly each row keeps the line of the one above each step (stiffness)
+			FtlDamping = 0.9, -- each row's speed gives back this share of the pull the next row took
+			Flare = 6, -- studs/s² out behind him, so the hem stands a little off his legs
+			Wind = { Studs = 5, Hz = 0.3, Side = 2 }, -- a gentle sway behind (and sideways), each King's own phase
+			MaxCapes = 4, -- drawn at once, the nearest (the throne King and Boss.MaxAtOnce at tables)
+			MaxStuds = 140, -- none farther from the camera
+			JumpStuds = 4, -- the collar moving this far in one step (a teleport, his rise) hangs it afresh
+			ScanSeconds = 0.5, -- the Kings in range looked for this often
+			StepSeconds = 1 / 60, -- the cloth's fixed step...
+			MaxSteps = 4, -- ...and at most this many in one frame (a long frame drops the rest)
+		},
 	},
 	-- Ground candy, about half of all Candy (designer, 2026-10-29): Halloween.Pickup.Candy (5) a
 	-- pickup; about 54 pickups (~270 Candy) an hour for a match player who walks about while

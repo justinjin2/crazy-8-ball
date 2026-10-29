@@ -177,6 +177,21 @@ end
 
 -- A popup that has the player's attention: menus and held rank popups wait for it, the column
 -- hides under it.
+-- The Pumpkin King's rise cutscene (HalloweenMap.KingEntrance, Halloween 2026), read late (it
+-- reads Progression); never up if it fails to load.
+local kingEntrance: any = nil
+local function kingScene(): boolean
+	if kingEntrance == nil then
+		local ok, module = pcall(function(): any
+			local folder = script.Parent:FindFirstChild("HalloweenMap")
+			local m = folder and folder:FindFirstChild("KingEntrance")
+			return if m and m:IsA("ModuleScript") then require(m) :: any else false
+		end)
+		kingEntrance = if ok and module then module else false
+	end
+	return kingEntrance ~= false and kingEntrance.isPlaying() == true
+end
+
 local function popupUp(): boolean
 	return result:isOpen() or newRank:isOpen() or LuckyClient.isOpen()
 end
@@ -398,9 +413,10 @@ function Progression.start(screen: ScreenGui, hooks: Hooks)
 		{ rankHud.oneMore }
 	)
 	TutorialAnchors.set("SkyBanner", skyBanner.pill) -- the quest line keeps under it
-	-- No menu opens over the Gift's cutscene (it hides every screen and puts them back after).
+	-- No menu opens over the Gift's cutscene or the King's (each hides every screen and puts
+	-- them back after).
 	Menus.setBlocker(function(): boolean
-		return lastState.inMatch or popupUp() or GiftDrop.isPlaying()
+		return lastState.inMatch or popupUp() or GiftDrop.isPlaying() or kingScene()
 	end)
 	LuckyClient.start(screen) -- lucky blocks: the hotbar, the throw, the reel
 	local player = Players.LocalPlayer
@@ -450,9 +466,10 @@ end
 
 --- Whether a rank, money or economy screen has the player's attention (the result screen, NEW
 --- RANK!, a lucky block's reel, or any full menu: the roadmap, Shop, Inventory, Rewards,
---- Trade): Main's B-to-leave waits while one is up.
+--- Trade), or the Pumpkin King's cutscene: Main's B-to-leave (and the Gift's fall) waits while
+--- one is up.
 function Progression.isBusy(): boolean
-	return started and (popupUp() or Menus.isOpen())
+	return started and (popupUp() or Menus.isOpen() or kingScene())
 end
 
 --- Whether a match's result is still on screen (its cutscene or the result screen, until
@@ -490,6 +507,7 @@ function Progression.quiet(): boolean
 		and not popupUp()
 		and not ResultCutscene.isPlaying()
 		and not GiftDrop.isPlaying()
+		and not kingScene()
 		and not Menus.isOpen()
 		and not teleportUp()
 		and not halloweenUp()

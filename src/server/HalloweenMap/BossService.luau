@@ -22,6 +22,7 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
+local ServerStorage = game:GetService("ServerStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
@@ -31,6 +32,7 @@ local Strings = require(Shared:WaitForChild("Strings"))
 -- test-place offset (HwTimeOffset; 0 in the live game).
 local Clock = require(Shared:WaitForChild("Halloween"):WaitForChild("Clock"))
 local Rules = require(Shared:WaitForChild("HalloweenMap"):WaitForChild("Rules"))
+local KingScene = require(Shared:WaitForChild("HalloweenMap"):WaitForChild("KingScene"))
 local Engine = require(Shared:WaitForChild("Rules"):WaitForChild("MatchEngine"))
 
 local Server = script.Parent.Parent
@@ -528,16 +530,37 @@ local function copyCooldown(p: Player)
 	end
 end
 
--- Timed: he arrives in a candy burst and a puff, with a banner for everyone. KingSpawn is
--- logged for each player here then (his reach; KingChallenge's Seated over it, the uptake).
-local function arrive(start: number)
-	visit = start
-	table.clear(line)
-	KingLook.showThrone() -- (waits for the meshes the first time)
+-- His arrival's puff and candy burst over his stage.
+local function arrivalFx()
 	local at = KingLook.promptPosition()
 	local fx = Net.get("HalloweenMapFx")
 	fx:FireAllClients({ kind = "Puff", at = at + Vector3.new(0, 3, 0) })
 	fx:FireAllClients({ kind = "Burst", at = at + Vector3.new(0, 6, 0), amount = 0, full = true })
+end
+
+-- Timed: he arrives with a banner for everyone, rising out of the roof on each client (Boss
+-- .Entrance, KingEntrance) and landing in a candy burst and a puff (at once with Entrance off).
+-- KingSpawn is logged for each player here then (his reach; KingChallenge's Seated over it,
+-- the uptake).
+local function arrive(start: number)
+	visit = start
+	table.clear(line)
+	KingLook.showThrone() -- (built at start; waits only if that build is still running)
+	if KingScene.on() then
+		task.delay(KingScene.landSeconds(), function()
+			if visit == start then
+				local ok, err = pcall(function(): any
+					arrivalFx()
+					return nil
+				end)
+				if not ok then
+					warnOnce("arrivalFx", "the King's arrival burst: " .. tostring(err))
+				end
+			end
+		end)
+	else
+		arrivalFx()
+	end
 	Net.get("Banner"):FireAllClients({ kind = "King", here = true })
 	for _, p in Players:GetPlayers() do
 		if p:GetAttribute("HwOn") == true then
@@ -676,6 +699,46 @@ function BossService.start(isLobby: boolean)
 		end
 	end)
 	if Rules.kingVisits() then
+		-- Studio: ServerStorage.KingQA:Invoke("next", lead?) jumps the test clock (HwTimeOffset)
+		-- so his next visit starts in `lead` seconds (3 by default): the whole arrival as it
+		-- runs live (the throne, every client's rise and cutscene, the burst on landing);
+		-- ("state") -> what the visit loop sees.
+		if RunService:IsStudio() then
+			local hook = Instance.new("BindableFunction")
+			hook.Name = "KingQA"
+			hook.OnInvoke = function(op: string?, lead: any): any
+				if op == "next" then
+					local now = Clock.now()
+					local target = Rules.kingNext(now)
+						- (if type(lead) == "number" then lead else 3)
+					Clock.setOffset(Clock.offset() + math.floor(target - now))
+					return "his next visit " .. Rules.minuteText(Rules.kingNext(Clock.now()))
+				elseif op == "state" then
+					return {
+						visit = visit,
+						here = Rules.kingHere(Clock.now()),
+						live = EventMap.isLive(),
+						line = #line,
+						offset = Clock.offset(),
+					}
+				end
+				return 'KingQA ops: ("next", leadSeconds?), ("state")'
+			end
+			hook.Parent = ServerStorage
+		end
+		-- The throne and his figure built now, once the meshes load (Assets.wait, up to
+		-- Assets.WaitSeconds), into ServerStorage: a server's first visit then arrives on time
+		-- (arrive's showThrone no longer waits out the build, so the rise and the burst land
+		-- together on every client).
+		task.spawn(function()
+			local ok, err = pcall(function(): any
+				KingLook.prepareThrone()
+				return nil
+			end)
+			if not ok then
+				warnOnce("prepare", "the throne's early build: " .. tostring(err))
+			end
+		end)
 		task.spawn(function()
 			while true do
 				local ok, err = pcall(function()

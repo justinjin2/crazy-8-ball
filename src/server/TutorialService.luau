@@ -784,6 +784,20 @@ local FUNNEL_EVENTS: { [string]: (Player) -> () } = {
 	CuePreviewCues = function(player: Player)
 		Funnel.event(player, "CuePreview", 1, "Opened", "Cues", Funnel.device(player))
 	end,
+	-- The Pumpkin King's rise cutscene (Halloween 2026, KingEntrance): shown, then skipped, cut
+	-- short (a seat, a menu) or watched to the end. Only the count is the client's.
+	KingCutsceneShown = function(player: Player)
+		Funnel.event(player, "KingCutscene", 1, "Shown", Funnel.device(player))
+	end,
+	KingCutsceneSkipped = function(player: Player)
+		Funnel.event(player, "KingCutscene", 1, "Skipped", Funnel.device(player))
+	end,
+	KingCutsceneCut = function(player: Player)
+		Funnel.event(player, "KingCutscene", 1, "Cut", Funnel.device(player))
+	end,
+	KingCutsceneDone = function(player: Player)
+		Funnel.event(player, "KingCutscene", 1, "Done", Funnel.device(player))
+	end,
 	CuePreviewIndex = function(player: Player)
 		Funnel.event(player, "CuePreview", 1, "Opened", "Index", Funnel.device(player))
 	end,
