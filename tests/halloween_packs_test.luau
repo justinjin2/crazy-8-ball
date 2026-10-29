@@ -1,9 +1,9 @@
 --!strict
 -- The Halloween Candy packs (Config.Products Candy500 / Candy2000; Config.Halloween.Packs): the
 -- rows, the receipt check (sold only while Packs is on and the event is Live, else the money
--- fallback), the Buy check, the once-only receipt and the track steps a pack reaches. The fake
--- server applies a grant the way src/server/PlayerData.luau's applyPurchase does: the receipt
--- id, the Candy into Halloween.Bought (flat) and the due track steps in one change.
+-- fallback), the Buy check and the once-only receipt. The fake server applies a grant the way
+-- src/server/PlayerData.luau's applyPurchase does: the receipt id and the Candy into
+-- Halloween.Bought (flat) in one change.
 
 local H = require("./harness")
 
@@ -11,7 +11,6 @@ local Config = H.require("Config")
 local Shop = H.require("Progression.Shop")
 local ShopView = H.require("Progression.ShopView")
 local Ledger = H.require("Halloween.Ledger")
-local Track = H.require("Halloween.Track")
 local SaveSchema = H.require("Progression.SaveSchema")
 
 local C = Config.Halloween
@@ -67,7 +66,7 @@ end
 
 -- A fake server for Shop.processReceipt: one player whose receipts land at unix time `now`.
 -- `grant` mirrors PlayerData.applyPurchase for a Candy pack: the receipt id, the money (a
--- closed pack's fallback), the Candy into Bought and every due track step, together.
+-- closed pack's fallback) and the Candy into Bought, together.
 local function fakeServer(now: number): any
 	local server: any = { grants = 0, saves = 0, keys = {} }
 	server.player = {
@@ -98,11 +97,7 @@ local function fakeServer(now: number): any
 			Shop.recordPurchase(save.Shop, purchaseId)
 			save.Money += grant.money
 			if grant.candy ~= nil then
-				local hw = save.Halloween
-				Ledger.addCandy(hw, grant.candy, "Bought")
-				for _, index in Track.due(Ledger.total(hw), hw.Given) do
-					hw.Given[Track.key(index)] = true
-				end
+				Ledger.addCandy(save.Halloween, grant.candy, "Bought")
 			end
 			Shop.markGrant(save.Shop, grant)
 			server.grants += 1
@@ -231,28 +226,15 @@ return {
 		end)
 	end,
 
-	["a pack crossing track steps marks them given, flat in a Rush"] = function()
+	["a pack adds to the balance flat in a Rush, never quest progress"] = function()
 		withPacks(true, function()
 			local server = fakeServer(RUSH)
 			local hw = server.player.save.Halloween
-			hw.Earned = 120
-			hw.Given["1"] = true -- the 50 step, earned in play
+			hw.Earned, hw.Spent = 120, 100
 			local id = Config.Products.List.Candy500.Id
 			H.expect(Shop.processReceipt(server.deps, receipt(id, "r1")) == "Granted", "bought")
 			H.expect(hw.Bought == 300 and hw.Earned == 120, "flat: 300 into Bought, not doubled")
-			H.expect(Ledger.total(hw) == 420, "420 in all")
-			for _, index in { 1, 2, 3 } do
-				H.expect(hw.Given[Track.key(index)] == true, "step " .. index .. " given")
-			end
-			H.expect(hw.Given["4"] == nil, "500 not reached")
-			-- The 2,000 pack carries the rest of the way past 2,000 (the Black Cat Cue).
-			local big = Config.Products.List.Candy2000.Id
-			H.expect(Shop.processReceipt(server.deps, receipt(big, "r2")) == "Granted", "bought")
-			H.expect(Ledger.total(hw) == 1620, "1,620")
-			for index = 1, 6 do
-				H.expect(hw.Given[Track.key(index)] == true, "step " .. index .. " given")
-			end
-			H.expect(hw.Given["7"] == nil, "2,000 not reached")
+			H.expect(Ledger.balance(hw) == 320 and Ledger.total(hw) == 420, "320 to spend")
 			H.expect(next(hw.Q) == nil, "no quest progress from a pack")
 		end)
 	end,

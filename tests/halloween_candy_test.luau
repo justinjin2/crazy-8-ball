@@ -1,7 +1,7 @@
 --!strict
 -- Halloween Candy (Halloween/CandyMath and Halloween/Ledger; Config.Halloween): a match's Candy,
 -- the friends and group parts through Money and through the fallback, the King's paid wins and
--- cooldown, the pickup cap, the Spider and the end's conversion.
+-- cooldown, the pickup cap, the balance and the end's conversion.
 
 local H = require("./harness")
 
@@ -49,7 +49,7 @@ return {
 		H.expect(C.Boss.Candy == 50 and C.Boss.PaidWinsPerDay == 2, "King")
 		H.expect(C.Boss.CooldownSeconds == 900, "15:00")
 		H.expect(C.Pickup.Candy == 5 and C.Pickup.HourCap == 80, "pickups: 5 Candy, 80 an hour")
-		H.expect(C.Spider.Seconds == 10860 and C.Convert.MoneyPerCandy == 10, "Spider, $10")
+		H.expect(C.Convert.MoneyPerCandy == 10, "$10")
 	end,
 
 	["a match's base Candy: 3 a ball, 10 finished, 25 a win"] = function()
@@ -245,24 +245,54 @@ return {
 		H.expect(Ledger.total(hw) == 559, "total")
 	end,
 
-	["the Spider at 3 h 01 m of active play, once"] = function()
-		local _, Ledger, Config, SaveSchema = load()
-		local S = Config.Halloween.Spider
-		local saved = S.Enabled
-		S.Enabled = true
+	["the balance is Earned + Bought - Spent; a spend takes only what the balance covers"] = function()
+		local _, Ledger, _, SaveSchema = load()
 		local hw = SaveSchema.freshHalloween()
-		Ledger.addActive(hw, 10855)
-		H.expect(not Ledger.spiderDue(hw), "5 s short")
-		Ledger.addActive(hw, 5)
-		H.expect(Ledger.spiderDue(hw), "due at 10,860")
-		hw.Spider = true
-		Ledger.addActive(hw, 5)
-		H.expect(not Ledger.spiderDue(hw), "once")
-		S.Enabled = false
-		local other = SaveSchema.freshHalloween()
-		Ledger.addActive(other, 20000)
-		H.expect(not Ledger.spiderDue(other), "switched off")
-		S.Enabled = saved
+		H.expect(hw.Spent == 0 and Ledger.balance(hw) == 0, "a fresh save: nothing")
+		hw.Earned, hw.Bought = 400, 300
+		H.expect(Ledger.balance(hw) == 700, "700")
+		H.expect(Ledger.spend(hw, 300) and hw.Spent == 300, "300 spent")
+		H.expect(Ledger.balance(hw) == 400 and Ledger.total(hw) == 700, "400 left, 700 ever")
+		H.expect(not Ledger.spend(hw, 401) and hw.Spent == 300, "more than the balance: refused")
+		H.expect(not Ledger.spend(hw, 0) and not Ledger.spend(hw, -5), "nothing or less")
+		H.expect(not Ledger.spend(hw, 0 / 0) and not Ledger.spend(hw, 2.5), "NaN, a fraction")
+		H.expect(hw.Spent == 300, "unchanged by a refusal")
+		H.expect(Ledger.spend(hw, 400) and Ledger.balance(hw) == 0, "all of it")
+		-- A broken save (Spent past what was ever got) never goes below 0.
+		hw.Spent = 5000
+		H.expect(Ledger.balance(hw) == 0, "never below 0")
+		hw.Spent = nil
+		H.expect(Ledger.balance(hw) == 700, "a save without Spent: all of it")
+	end,
+
+	["the end converts the balance; spent Candy comes out of Earned first"] = function()
+		local _, Ledger, _, SaveSchema = load()
+		local hw = SaveSchema.freshHalloween()
+		hw.Earned, hw.Bought = 1240, 500
+		H.expect(Ledger.spend(hw, 300), "a 300 cue")
+		H.expect(Ledger.convertMoney(hw) == 14400, "$14,400 for 1,440")
+		local earned, bought = Ledger.convertSplit(hw)
+		H.expect(earned == 9400 and bought == 5000, "earned 940, bought 500 untouched")
+		H.expect(earned + bought == Ledger.convertMoney(hw), "the two make the whole")
+		-- Spent past Earned: the rest comes out of Bought.
+		H.expect(Ledger.spend(hw, 1200), "1,200 more")
+		earned, bought = Ledger.convertSplit(hw)
+		H.expect(earned == 0 and bought == 2400, "earned all spent, 240 bought left")
+		H.expect(Ledger.convertMoney(hw) == 2400, "$2,400")
+		H.expect(Ledger.spend(hw, 240), "the last 240")
+		earned, bought = Ledger.convertSplit(hw)
+		H.expect(earned == 0 and bought == 0 and Ledger.convertMoney(hw) == 0, "nothing left")
+	end,
+
+	["active play adds whole seconds, up to the stat cap"] = function()
+		local _, Ledger, Config, SaveSchema = load()
+		local hw = SaveSchema.freshHalloween()
+		H.expect(Ledger.addActive(hw, 10855) == 10855, "added")
+		H.expect(Ledger.addActive(hw, 5.7) == 10860, "floored")
+		H.expect(Ledger.addActive(hw, -30) == 10860, "never less")
+		hw.Active = Config.Save.StatCap - 1
+		H.expect(Ledger.addActive(hw, 50) == Config.Save.StatCap, "capped")
+		H.expect(Ledger.spiderDue == nil, "no Spider any more")
 	end,
 
 	["active play counts only after a real match today, the time before it credited"] = function()

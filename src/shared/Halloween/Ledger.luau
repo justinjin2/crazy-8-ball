@@ -1,7 +1,7 @@
 --!strict
 -- Ledger: the rules behind every change to a save's Halloween field (SaveSchema.freshHalloween;
 -- Config.Halloween). Pure: PlayerData calls these on the live save inside one mutation, so the
--- Candy, the track's prizes and the marks land in one commit; `now` is the server's
+-- Candy, a cue bought with it and the marks land in one commit; `now` is the server's
 -- (Halloween/Clock.serverNow), never read here.
 local Config = require(script.Parent.Parent.Config)
 local Event = require(script.Parent.Event)
@@ -21,6 +21,10 @@ export type BossResult = {
 	drop: string?, -- the cue it dropped
 }
 
+-- A cue the event's shop sells (Config.Halloween.Cues.List): its price in Candy and the
+-- Config.Products key that sells it for Robux.
+export type CueRow = { Cue: string, Candy: number, Product: string }
+
 local function whole(x: any): number
 	if type(x) ~= "number" or x ~= x or math.abs(x) == math.huge then
 		return 0
@@ -28,9 +32,26 @@ local function whole(x: any): number
 	return math.max(0, math.floor(x))
 end
 
--- All the save's Candy (earned + bought): what the track counts and the end converts.
+-- All the Candy the save ever got (earned + bought; lifetime, never less after a spend).
 function Ledger.total(hw: any): number
 	return whole(hw.Earned) + whole(hw.Bought)
+end
+
+-- The Candy the player has now (Earned + Bought - Spent, never below 0): what a cue costs from,
+-- what the HUD and the menu show and what the end converts.
+function Ledger.balance(hw: any): number
+	return math.max(0, Ledger.total(hw) - whole(hw.Spent))
+end
+
+-- Spends `amount` Candy from the balance (Spent grows by it). False, and nothing changes, for
+-- anything but a whole amount >= 1 or more than the balance.
+function Ledger.spend(hw: any, amount: number): boolean
+	local n = whole(amount)
+	if n < 1 or n ~= amount or Ledger.balance(hw) < n or whole(hw.Spent) + n > CAP then
+		return false
+	end
+	hw.Spent = whole(hw.Spent) + n
+	return true
 end
 
 -- Adds `amount` Candy to `bucket` ("Earned" or "Bought"), up to the stat cap. Returns what was
@@ -43,6 +64,53 @@ function Ledger.addCandy(hw: any, amount: number, bucket: "Earned" | "Bought"): 
 	local before = whole(hw[bucket])
 	hw[bucket] = math.min(before + n, CAP)
 	return hw[bucket] - before
+end
+
+-- The Config.Halloween.Cues row selling cue `cueId`, or nil when the shop does not sell it.
+function Ledger.cueRow(cueId: any): CueRow?
+	for _, row in C.Cues.List do
+		if row.Cue == cueId then
+			return row
+		end
+	end
+	return nil
+end
+
+-- Why cue `cueId` cannot be bought with Candy at `now` (`owned`: the player has it; `ready`:
+-- Catalog.ready), or nil when it can: "Closed" (not Live, Cues switched off, not a shop cue, or
+-- not ready to give), "Owned", "Poor" (the balance is below its price).
+function Ledger.buyCheck(hw: any, cueId: any, now: number, owned: boolean, ready: boolean): string?
+	local row = Ledger.cueRow(cueId)
+	if C.Cues.Enabled ~= true or row == nil or not Event.isLive(now) then
+		return "Closed"
+	elseif owned then
+		return "Owned"
+	elseif not ready then
+		return "Closed"
+	elseif Ledger.balance(hw) < row.Candy then
+		return "Poor"
+	end
+	return nil
+end
+
+-- Buys cue `cueId` with Candy (Ledger.buyCheck, then Spent grows by its price; the caller gives
+-- the cue in the same change). (true) or (false, buyCheck's reason).
+function Ledger.buyCue(
+	hw: any,
+	cueId: any,
+	now: number,
+	owned: boolean,
+	ready: boolean
+): (boolean, string?)
+	local why = Ledger.buyCheck(hw, cueId, now, owned, ready)
+	if why ~= nil then
+		return false, why
+	end
+	local row = Ledger.cueRow(cueId) :: CueRow
+	if not Ledger.spend(hw, row.Candy) then
+		return false, "Poor"
+	end
+	return true, nil
 end
 
 -- A Pumpkin King win at `now` (Live only: nil otherwise). Every win counts (KingWins); the
@@ -128,7 +196,7 @@ function Ledger.pickup(hw: any, now: number): (boolean, string?)
 	return true, nil
 end
 
--- Adds `seconds` of active play (the Spider's clock). Returns the new total.
+-- Adds `seconds` of active play (the "Play N min" quests count it too). Returns the new total.
 function Ledger.addActive(hw: any, seconds: number): number
 	hw.Active = math.min(whole(hw.Active) + whole(seconds), CAP)
 	return hw.Active
@@ -148,22 +216,20 @@ function Ledger.gateActive(held: number, seconds: number, played: boolean): (num
 	return 0, math.min(wait + now, G.HoldCapSeconds)
 end
 
--- Whether the Spider Cue is earned and not yet given.
-function Ledger.spiderDue(hw: any): boolean
-	local S = C.Spider
-	return S.Enabled == true and hw.Spider ~= true and whole(hw.Active) >= S.Seconds
-end
-
--- The money the end turns the save's Candy into (all of it, MoneyPerCandy each).
+-- The money the end turns the save's Candy into (the balance, MoneyPerCandy each).
 function Ledger.convertMoney(hw: any): number
-	return Ledger.total(hw) * C.Convert.MoneyPerCandy
+	return Ledger.balance(hw) * C.Convert.MoneyPerCandy
 end
 
--- The end's money in its two shares: (earned Candy's, bought Candy's). Money from bought Candy
--- is not earned money (Stats.MoneyEarned never counts money bought with Robux).
+-- The end's money in its two shares: (earned Candy's, bought Candy's). Spent Candy comes out of
+-- Earned first, so the earned share is what is left of Earned and the rest of the balance is
+-- bought. Money from bought Candy is not earned money (Stats.MoneyEarned never counts money
+-- bought with Robux).
 function Ledger.convertSplit(hw: any): (number, number)
 	local per = C.Convert.MoneyPerCandy
-	return whole(hw.Earned) * per, whole(hw.Bought) * per
+	local balance = Ledger.balance(hw)
+	local earned = math.min(balance, math.max(0, whole(hw.Earned) - whole(hw.Spent)))
+	return earned * per, (balance - earned) * per
 end
 
 -- Whether the save is due its conversion at `now`: the event over, switched on, not done yet.

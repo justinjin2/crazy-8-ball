@@ -15,6 +15,7 @@ local Restock = require(script.Parent.Restock)
 local BlockDrop = require(script.Parent.BlockDrop)
 local BlockOdds = require(script.Parent.BlockOdds)
 local LuckyBlocks = require(script.Parent.LuckyBlocks)
+local Catalog = require(script.Parent.Catalog)
 
 local S = Config.Shop
 local LIST: {
@@ -30,6 +31,7 @@ local LIST: {
 		Blocks: { Kind: string, Count: number }?,
 		ClaimAll: number?,
 		Candy: number?, -- a Halloween Candy pack (Shop.packsOpen)
+		Cue: string?, -- a Halloween cue (Shop.cuesOpen)
 	},
 } =
 	Config.Products.List :: any
@@ -61,7 +63,7 @@ export type Context = {
 	-- nothing of the row is left. Every other Claim All product is Closed.
 	claimAll: string?,
 	-- The Halloween clock (Halloween/Clock.serverNow: Studio's /hw test time) for the Candy
-	-- packs' window; nil: `now`.
+	-- packs' and the Halloween cues' window; nil: `now`.
 	hwNow: number?,
 }
 
@@ -86,7 +88,8 @@ export type ProductView = {
 	kind: string, -- "Product" (developer product) or "Pass" (game pass)
 	robux: number, -- the live price once known, else Config's fallback
 	available: boolean, -- made in Creator Hub (its Id is set); false: "Coming soon"
-	owned: boolean, -- a pass owned, VIP already (VipOffer), bought (StarterPack, a Limited)
+	-- a pass owned, VIP already (VipOffer), bought (StarterPack, a Limited), a Halloween cue owned
+	owned: boolean,
 	canBuy: boolean, -- a "Buy" now would prompt (ShopView.check found nothing against it)
 	reason: string?, -- why not, when canBuy is false (ShopView.check's reason)
 	-- The money one purchase gives now (a first pack doubled); 0 for none, and 0 for a product
@@ -251,7 +254,8 @@ end
 
 --- Why a StoreRequest "Buy" of `key` must not prompt now, or nil when it may: "BadRequest"
 --- (not a Config.Products key), "Owned" (a pass owned; VIP already, for the welcome offer; the
---- Starter Pack or a Limited bought), "Closed" (its offer or Limited window is not open),
+--- Starter Pack or a Limited bought; a Halloween cue owned), "Closed" (its offer, Limited or
+--- Halloween window is not open),
 --- "SoldOut" (a Limited at its cap), "PartyFull" (the Money Party already has an hour queued),
 --- "Restricted" (an ult spin pack where paid random items are restricted), "NotLoaded" (a spin
 --- pack before PolicyService has answered), "ComingSoon" (its Id is still 0, or a spin pack
@@ -271,6 +275,14 @@ function ShopView.check(key: string, ctx: Context): string?
 	-- A Halloween Candy pack only while the packs are on and the event is Live.
 	if row.Candy ~= nil and not Shop.packsOpen(ctx.hwNow or ctx.now) then
 		return "Closed"
+	end
+	-- A Halloween cue only while the cue shop is on, the event Live and the cue built; one each.
+	if row.Cue ~= nil then
+		if not Shop.cuesOpen(ctx.hwNow or ctx.now) or not Catalog.ready(row.Cue) then
+			return "Closed"
+		elseif ctx.ownsCue ~= nil and ctx.ownsCue(row.Cue) then
+			return "Owned"
+		end
 	end
 	-- Blocks need room in the hotbar ("Full": Config.LuckyBlocks.MaxBlocks).
 	if row.Blocks ~= nil and ShopView.full(ctx, row.Blocks.Count) then
@@ -406,6 +418,8 @@ function ShopView.build(ctx: Context): Payload
 			owned = limitedOwned(ctx, limited.Cue)
 		elseif row.Kind == "Pass" then
 			owned = otherPassOwned(ctx, key)
+		elseif row.Cue ~= nil then
+			owned = ctx.ownsCue ~= nil and ctx.ownsCue(row.Cue)
 		end
 		local price = ctx.prices[key]
 		products[key] = {

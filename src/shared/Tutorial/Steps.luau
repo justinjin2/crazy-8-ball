@@ -422,15 +422,15 @@ Steps.Funnels = {
 		"LikeClicked",
 	},
 	-- The Halloween event (hw-core; CandyService): the tile shown, the menu opened, the first
-	-- Candy, then the Candy of each track cue reached, named by slot (500, 2,000, 7,000; the
-	-- lineup of 2026-10-29).
+	-- Candy, then each shop cue owned however it was got (Candy, Robux, a gift), in the order of
+	-- Config.Halloween.Cues (the cue shop of 2026-10-29; the track's names never went live).
 	Halloween = {
 		"1_Button",
 		"2_Opened",
 		"3_FirstCandy",
-		"4_Cue500",
-		"5_Cue2000",
-		"6_Cue7000",
+		"4_Pitchfork",
+		"5_Broom",
+		"6_Sword",
 	},
 }
 

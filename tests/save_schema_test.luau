@@ -1825,7 +1825,8 @@ return {
 		reconcile(out, SaveSchema.template())
 		local hw = out.Halloween
 		H.expect(type(hw) == "table" and hw.Earned == 0 and hw.Bought == 0, "added fresh")
-		H.expect(hw.Converted == false and next(hw.Given) == nil and next(hw.Q) == nil, "empty")
+		H.expect(hw.Converted == false and next(hw.Q) == nil, "empty")
+		H.expect(hw.Given == nil and hw.Spider == nil, "no track or Spider keys (2026-10-29)")
 		local _, fixes = SaveSchema.validate(out)
 		H.expect(#fixes == 0, "clean: " .. table.concat(fixes, "; "))
 		assertClean(Config, SaveSchema, out)
@@ -1836,7 +1837,8 @@ return {
 		local fixedPartial, why0 = SaveSchema.validate(partial)
 		H.expect(#why0 == 0, "reconciled clean: " .. table.concat(why0, "; "))
 		H.expect(fixedPartial.Halloween.Earned == 120, "Candy kept")
-		H.expect(fixedPartial.Halloween.Given["1"] == true, "step kept")
+		-- An old test save's track and Spider keys stay as unknown keys (nothing reads them).
+		H.expect(fixedPartial.Halloween.Given["1"] == true, "an old key kept")
 		H.expect(
 			fixedPartial.Halloween.KingReadyAt == 0 and fixedPartial.Halloween.Seen == false,
 			""
@@ -1845,19 +1847,30 @@ return {
 			fixedPartial.Halloween.KingVisit == 0,
 			"a save from before the timed King: KingVisit 0"
 		)
+		-- A save from before the cue shop (2026-10-29): no Spent. Reconcile adds 0, clean.
+		local noSpent = SaveSchema.template()
+		noSpent.Halloween = SaveSchema.freshHalloween()
+		noSpent.Halloween.Spent = nil
+		noSpent.Halloween.Earned, noSpent.Halloween.Bought = 900, 300
+		reconcile(noSpent, SaveSchema.template())
+		local fixedNoSpent, why1 = SaveSchema.validate(noSpent)
+		H.expect(#why1 == 0, "no Spent: clean: " .. table.concat(why1, "; "))
+		H.expect(fixedNoSpent.Halloween.Spent == 0, "Spent added as 0")
+		H.expect(fixedNoSpent.Halloween.Earned == 900, "Candy kept")
+		assertClean(Config, SaveSchema, fixedNoSpent)
 		-- Junk values: clamped, dropped or reset; unknown keys kept.
 		local save = SaveSchema.template()
 		save.Halloween.Earned = -5
 		save.Halloween.Bought = 2.5
-		save.Halloween.Spider = "yes"
-		save.Halloween.Given = { ["2"] = true, ["3"] = 1, [4] = true }
+		save.Halloween.Seen = "yes"
 		save.Halloween.Q = { ["1.1"] = 3, ["1.2"] = -1, ["1.3"] = "x" }
 		save.Halloween.Claimed = 7
 		save.Halloween.Later = 1
+		save.Halloween.Spent = 9
 		local fixed, why = SaveSchema.validate(save)
 		local f = fixed.Halloween
-		H.expect(f.Earned == 0 and f.Bought == 2 and f.Spider == false, "counters and marks")
-		H.expect(f.Given["2"] == true and f.Given["3"] == nil and f.Given[4] == nil, "Given")
+		H.expect(f.Earned == 0 and f.Bought == 2 and f.Seen == false, "counters and marks")
+		H.expect(f.Spent == 2, "Spent at most the Candy ever got")
 		H.expect(f.Q["1.1"] == 3 and f.Q["1.2"] == nil and f.Q["1.3"] == nil, "Q")
 		H.expect(type(f.Claimed) == "table" and f.Later == 1, "Claimed mended, unknown kept")
 		H.expect(#why >= 5, "reported")
@@ -1866,5 +1879,13 @@ return {
 		broken.Halloween = 7
 		local mended = SaveSchema.validate(broken)
 		H.expect(type(mended.Halloween) == "table" and mended.Halloween.Earned == 0, "mended")
+		-- Junk Spent: a fraction floored, a negative or NaN 0.
+		for _, pair in { { 2.7, 2 }, { -4, 0 }, { 0 / 0, 0 }, { "x", 0 } } do
+			local junk = SaveSchema.template()
+			junk.Halloween.Earned = 10
+			junk.Halloween.Spent = pair[1]
+			local j = SaveSchema.validate(junk)
+			H.expect(j.Halloween.Spent == pair[2], "Spent " .. tostring(pair[1]))
+		end
 	end,
 }

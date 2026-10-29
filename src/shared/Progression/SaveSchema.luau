@@ -133,16 +133,17 @@ local DAILY_KEYS = {
 	"SkyGiven",
 }
 
---- A fresh Halloween table (the event's save field): Candy from play and from packs, the
---- active seconds (the Spider), the track steps given, quest progress and claims, the Pumpkin
---- King's day and cooldown, the pickup hour, and the conversion's marks. String keys only.
+--- A fresh Halloween table (the event's save field): Candy from play and from packs, the Candy
+--- spent on the event's cues, the active seconds, quest progress and claims, the Pumpkin King's
+--- day and cooldown, the pickup hour, and the conversion's marks. String keys only. (Given and
+--- Spider, the track's and the Spider's, are gone: never in a live save; an old test save keeps
+--- them as unknown keys.)
 function SaveSchema.freshHalloween(): any
 	return {
 		Earned = 0, -- Candy from play: matches, quests, the King, pickups
 		Bought = 0, -- Candy from the two packs
-		Active = 0, -- seconds of active play while the event was Live (the Spider)
-		Given = {}, -- ["1".."11"] = true: track steps granted
-		Spider = false, -- the Spider Cue granted
+		Spent = 0, -- Candy spent on the event's cues (the balance is Earned + Bought - Spent)
+		Active = 0, -- seconds of active play while the event was Live (the "Play N min" quests)
 		Q = {}, -- ["<board>.<slot>"] = quest progress (a whole number)
 		Claimed = {}, -- ["<board>.<slot>"] = true
 		KingDay = 0, -- the UTC day (unix // 86400) KingPaid counts
@@ -270,8 +271,9 @@ function SaveSchema.template(): any
 		-- so a retired badge never strips anything.
 		Badges = {},
 		-- The Halloween 2026 event (2026-10-28; Config.Halloween, Halloween/Ledger). A new field,
-		-- so no version bump: Reconcile adds it to an older save. Candy is never spent: the
-		-- track counts Earned + Bought, and once the event ends it all becomes money (Converted).
+		-- so no version bump: Reconcile adds it (and a later key such as Spent) to an older save.
+		-- Earned and Bought are lifetime totals; cues are bought from the balance (Earned + Bought
+		-- - Spent), and once the event ends the balance becomes money (Converted).
 		Halloween = SaveSchema.freshHalloween(),
 	}
 end
@@ -1286,6 +1288,7 @@ end
 local HALLOWEEN_COUNTS = {
 	"Earned",
 	"Bought",
+	"Spent",
 	"Active",
 	"KingDay",
 	"KingPaid",
@@ -1295,13 +1298,19 @@ local HALLOWEEN_COUNTS = {
 	"ConvertedMoney",
 }
 local HALLOWEEN_TIMES = { "KingReadyAt", "ConvertedAt", "KingVisit" }
-local HALLOWEEN_FLAGS = { "Spider", "Seen", "Converted", "EndSeen" }
+local HALLOWEEN_FLAGS = { "Seen", "Converted", "EndSeen" }
 
--- The Halloween field (2026-10-28): whole counters and times clamped, marks true or false,
--- Given and Claimed sets, Q whole progress counts. Unknown keys are kept.
+-- The Halloween field (2026-10-28): whole counters and times clamped, Spent at most the Candy
+-- ever got (Earned + Bought), marks true or false, the Claimed set, Q whole progress counts.
+-- Unknown keys are kept.
 local function fixHalloween(hw: { [any]: any }, fixes: { string })
 	for _, key in HALLOWEEN_COUNTS do
 		fixInteger(hw, key, "Halloween." .. key, SaveCfg.StatCap, fixes)
+	end
+	local got = hw.Earned + hw.Bought
+	if hw.Spent > got then
+		table.insert(fixes, ("Halloween.Spent was %d: set to %d"):format(hw.Spent, got))
+		hw.Spent = got
 	end
 	for _, key in HALLOWEEN_TIMES do
 		fixInteger(hw, key, "Halloween." .. key, SaveCfg.UnixTimeCap, fixes)
@@ -1310,7 +1319,6 @@ local function fixHalloween(hw: { [any]: any }, fixes: { string })
 		fixBoolean(hw, key, "Halloween." .. key, fixes)
 	end
 	local small = SaveCfg.MaxSmallEntries
-	fixMapAt(hw, "Given", "Halloween.Given", small, onlyTrue, fixes)
 	fixMapAt(hw, "Q", "Halloween.Q", small, wholeFrom1(SaveCfg.StatCap), fixes)
 	fixMapAt(hw, "Claimed", "Halloween.Claimed", small, onlyTrue, fixes)
 end

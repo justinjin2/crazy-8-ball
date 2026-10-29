@@ -1,6 +1,7 @@
 --!strict
--- Halloween quests (Halloween/Quests; Config.Halloween.Quests): six boards of four, routed
--- oldest unfinished first with overflow, Alts while a hook is off, claims.
+-- Halloween quests (Halloween/Quests; Config.Halloween.Quests): six boards of four, progress on
+-- today's board only (with overflow inside it), Alts while a hook is off, claims, and the older
+-- boards' finished quests paid by themselves once a newer board opens.
 
 local H = require("./harness")
 
@@ -77,57 +78,70 @@ return {
 		end
 	end,
 
-	["active seconds fill the Play-minutes quests only once their boards open, oldest first"] = function()
+	["active seconds fill a Play-minutes quest only on its own day"] = function()
 		local Quests = load()
 		local q = {}
-		H.expect(#Quests.route(q, 3, ALL_ON, "Active", 5) == 0, "no Active quest on boards 1-3")
-		local four = keyOf(Quests, 4, "Active", ALL_ON)
-		local six = keyOf(Quests, 6, "Active", ALL_ON)
-		for _ = 1, 360 do
-			Quests.route(q, 6, ALL_ON, "Active", 5) -- the server's 5 s ticks
+		H.expect(#Quests.route(q, 3, ALL_ON, "Active", 5) == 0, "no Active quest on board 3")
+		local four = keyOf(Quests, 4, "Active", ALL_ON) :: string
+		local six = keyOf(Quests, 6, "Active", ALL_ON) :: string
+		for _ = 1, 400 do
+			Quests.route(q, 4, ALL_ON, "Active", 5) -- the server's 5 s ticks on Oct 31
 		end
 		H.expect(q[four] == 1800, "board 4's 30 minutes: " .. tostring(q[four]))
-		H.expect(q[six] == nil or q[six] == 0, "board 6 waits")
+		H.expect(q[six] == nil, "board 6 never gets board 4's time")
+		H.expect(#Quests.route(q, 5, ALL_ON, "Active", 5) == 0, "board 5 has none")
 		local r = Quests.route(q, 6, ALL_ON, "Active", 5)
-		H.expect(#r == 1 and r[1].key == six and q[six] == 5, "then board 6")
+		H.expect(#r == 1 and r[1].key == six and q[six] == 5, "board 6 on its day")
 	end,
 
-	["one win counts once, on the oldest open board with that quest unfinished"] = function()
+	["a win counts only on today's board, never an older one"] = function()
 		local Quests = load()
 		local q = {}
 		local r = Quests.route(q, 3, ALL_ON, "Wins", 1)
-		H.expect(#r == 1 and r[1].key == keyOf(Quests, 1, "Wins", ALL_ON) and r[1].done, "board 1")
-		r = Quests.route(q, 3, ALL_ON, "Wins", 1)
-		local b2 = keyOf(Quests, 2, "Wins", ALL_ON) :: string
-		H.expect(#r == 1 and r[1].key == b2 and not r[1].done, "then board 2")
-		H.expect(q[b2] == 1, "1 of 2")
+		local b3 = keyOf(Quests, 3, "Wins", ALL_ON) :: string
+		H.expect(#r == 1 and r[1].key == b3 and not r[1].done, "board 3's Wins")
+		H.expect(q[keyOf(Quests, 1, "Wins", ALL_ON) :: string] == nil, "board 1 untouched")
+		H.expect(q[keyOf(Quests, 2, "Wins", ALL_ON) :: string] == nil, "board 2 untouched")
+		H.expect(#Quests.route(q, 0, ALL_ON, "Wins", 1) == 0, "before the first board: none")
+		H.expect(#Quests.route(q, 7, ALL_ON, "Wins", 1) == 0, "past the last: none")
 	end,
 
-	["an amount fills the oldest quest and the rest flows on"] = function()
+	["an amount fills today's quest and the rest flows to the board's next of that kind"] = function()
 		local Quests = load()
 		local q = {}
-		-- Board 1 needs 15 balls, board 2 30: 20 balls fill board 1 and put 5 on board 2.
-		local r = Quests.route(q, 2, ALL_ON, "Balls", 20)
-		local k1 = keyOf(Quests, 1, "Balls", ALL_ON) :: string
-		local k2 = keyOf(Quests, 2, "Balls", ALL_ON) :: string
+		-- Board 1 with the pickups off: Balls 15 and (the pickups' Alt) Balls 30.
+		local r = Quests.route(q, 1, ALL_OFF, "Balls", 20)
+		local list = Quests.board(1, ALL_OFF) :: any
+		local k1, k2 = list[2].key, list[4].key
+		H.expect(list[2].need == 15 and list[4].need == 30, "the two Balls quests")
 		H.expect(q[k1] == 15 and q[k2] == 5 and #r == 2, "15 then 5")
-		-- Only open boards: board 3 is not open, so the rest is dropped.
-		Quests.route(q, 2, ALL_ON, "Balls", 100)
-		H.expect(q[k2] == 30, "capped at the need")
-		H.expect(Quests.route(q, 2, ALL_ON, "Balls", 5)[1] == nil, "nothing left open")
-		H.expect(#Quests.route(q, 2, ALL_ON, "Balls", 0) == 0, "zero routes nothing")
+		Quests.route(q, 1, ALL_OFF, "Balls", 100)
+		H.expect(q[k2] == 30, "capped at the need; the rest is dropped (never board 2)")
+		H.expect(q[keyOf(Quests, 2, "Balls", ALL_OFF) :: string] == nil, "board 2 untouched")
+		H.expect(Quests.route(q, 1, ALL_OFF, "Balls", 5)[1] == nil, "nothing left open")
+		H.expect(#Quests.route(q, 1, ALL_OFF, "Balls", 0) == 0, "zero routes nothing")
 	end,
 
-	["a hard quest never blocks later boards' other quests"] = function()
+	["once a newer board opens, the older boards' finished unclaimed quests are due to be paid"] = function()
 		local Quests = load()
 		local q = {}
-		-- The King on board 2 unfinished; a win still lands on board 2's and board 3's Wins.
-		Quests.route(q, 3, ALL_ON, "Wins", 1)
-		Quests.route(q, 3, ALL_ON, "Wins", 2)
-		H.expect(q[keyOf(Quests, 2, "Wins", ALL_ON) :: string] == 2, "board 2 wins done")
-		Quests.route(q, 3, ALL_ON, "Wins", 1)
-		H.expect(q[keyOf(Quests, 3, "Wins", ALL_ON) :: string] == 1, "board 3 next")
-		H.expect(q[keyOf(Quests, 2, "King", ALL_ON) :: string] == nil, "the King still open")
+		-- Board 1: a win and 15 balls finished on its day, its first quest claimed.
+		Quests.route(q, 1, ALL_ON, "Wins", 1)
+		Quests.route(q, 1, ALL_ON, "Balls", 15)
+		Quests.route(q, 1, ALL_ON, "Matches", 2) -- 2 of 3: not finished
+		local claimed = { [keyOf(Quests, 1, "Wins", ALL_ON) :: string] = true }
+		H.expect(#Quests.pastDue(q, claimed, 1, ALL_ON) == 0, "board 1 is today's: nothing due")
+		-- Board 2 opens; a board 2 quest finished today is not due (it is claimed by hand).
+		Quests.route(q, 2, ALL_ON, "Wins", 2)
+		local due = Quests.pastDue(q, claimed, 2, ALL_ON)
+		H.expect(#due == 1 and due[1].key == keyOf(Quests, 1, "Balls", ALL_ON), "board 1's Balls")
+		H.expect(due[1].reward == 100, "its 100 Candy")
+		claimed[due[1].key] = true
+		H.expect(#Quests.pastDue(q, claimed, 2, ALL_ON) == 0, "paid once")
+		-- Board 3: board 2's Wins (finished, unclaimed) is due now.
+		local later = Quests.pastDue(q, claimed, 3, ALL_ON)
+		H.expect(#later == 1 and later[1].key == keyOf(Quests, 2, "Wins", ALL_ON), "board 2's Wins")
+		H.expect(#Quests.pastDue({}, {}, 6, ALL_ON) == 0, "nothing finished, nothing due")
 	end,
 
 	["claimable, find and done"] = function()
@@ -146,9 +160,9 @@ return {
 		local Quests = load()
 		-- Finished while the King and the pickups ran (the event as it went)...
 		local q = {}
-		for _ = 1, 50 do
-			Quests.route(q, 6, ALL_ON, "King", 1)
-			Quests.route(q, 6, ALL_ON, "Pickups", 1)
+		for n = 1, 6 do
+			Quests.route(q, n, ALL_ON, "King", 5)
+			Quests.route(q, n, ALL_ON, "Pickups", 50)
 		end
 		local king, pickups
 		for n = 1, 6 do

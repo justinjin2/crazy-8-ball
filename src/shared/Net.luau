@@ -443,13 +443,15 @@ local REMOTES: { [string]: string } = {
 	-- server -> one player: { favorites = { [id] = true } } on load and after each change.
 	EmoteState = "RemoteEvent",
 	-- The Halloween event (hw-core; src/server/Halloween/CandyService.luau, client
-	-- Halloween/State). server -> one player: { view = { candy, earned, bought, given, active,
-	-- spider, open, boards, hooks, seen, kingReadyAt, converted, convertedMoney, endSeen, owned,
-	-- on = { quests, packs, spider } } } (at most one every Config.Halloween.PushSeconds), or a
-	-- moment: { toast = { candy, source, x2 } } (Candy landed), { step = index } (a track prize),
-	-- { spider = true }. client -> server, rate limited: { claim = "<board>.<slot>" },
-	-- { seen = true } (the menu opened), { endSeen = true } (the end screen shown),
-	-- { pack = key } (a Get Candy button pressed: analytics only; the Buy is a StoreRequest).
+	-- Halloween/State). server -> one player: { view = { candy (the balance), earned, bought,
+	-- spent, open, today (the board that takes progress), boards, hooks, seen, kingReadyAt, converted,
+	-- convertedMoney, endSeen, owned, on = { quests, packs, cues } } } (at most one every
+	-- Config.Halloween.PushSeconds, at once after a buy), or a moment: { toast = { candy, source,
+	-- x2 } } (Candy landed), { king = {...} } (a timed King win), { bought = {
+	-- cue, ok, reason } } (a buy's answer). client -> server, rate limited: { claim =
+	-- "<board>.<slot>" }, { buy = cueId } (an event cue with Candy), { seen = true } (the menu
+	-- opened), { endSeen = true } (the end screen shown), { pack = key } (a Get Candy button
+	-- pressed: analytics only; the Buy is a StoreRequest).
 	Halloween = "RemoteEvent",
 	-- The Haunted Rooftop (Halloween 2026; src/server/HalloweenMap, src/client/HalloweenMap).
 	-- server -> clients: { kind = "Burst", tableId, at, amount, winner } (the King's candy

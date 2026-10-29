@@ -72,6 +72,12 @@ local function itemText(message: { [string]: any }): string
 	elseif message.skip == true then
 		return COPY.Skip
 	end
+	-- A cue sold on its own (the Halloween cues: a product row with Cue): "+Witch's Broom".
+	local row = LIST[key]
+	local cueNames: { [string]: string } = Strings.Items.Cues :: any
+	if row ~= nil and type(row.Cue) == "string" and message.cue == row.Cue then
+		return string.format(COPY.Named, cueNames[row.Cue] or row.Cue)
+	end
 	return RewardsParts.gains(RewardsParts.reward(message))
 end
 

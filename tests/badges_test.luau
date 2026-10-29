@@ -4,6 +4,7 @@
 local H = require("./harness")
 local Badges = H.require("Progression.Badges")
 local Catalog = H.require("Progression.Catalog")
+local Inventory = H.require("Progression.Inventory")
 local SaveSchema = H.require("Progression.SaveSchema")
 local Config = H.require("Config")
 local Strings = H.require("Strings")
@@ -117,6 +118,30 @@ return {
 			expect(not Badges.passes(rule(key), save), key .. " from a non-Block cue")
 		end
 		expect(Badges.passes(rule("CueUnique"), save), "Unique group")
+		-- The Halloween cues show as Unique (Group Exclusive): each one alone earns One of a Kind.
+		local shownUnique = 0
+		for _, cue in Catalog.list() do
+			if cue.Rarity == "Unique" and cue.Group ~= "Unique" then
+				shownUnique += 1
+				local one = SaveSchema.template()
+				one.Index.Seen[cue.Id] = true
+				expect(Badges.passes(rule("CueUnique"), one), cue.Id .. " is One of a Kind")
+			end
+		end
+		expect(shownUnique >= 4, "the event cues show as Unique: " .. shownUnique)
+		-- A plain Exclusive cue (a rank's) does not.
+		local rank = SaveSchema.template()
+		for _, cue in Catalog.list() do
+			if cue.Group == "Exclusive" and cue.Rarity ~= "Unique" then
+				rank.Index.Seen[cue.Id] = true
+			end
+		end
+		expect(not Badges.passes(rule("CueUnique"), rank), "an Exclusive cue is not Unique")
+		-- Broom Rider: the Witch's Broom owned, however it was got (Candy, Robux, a gift).
+		local broom = SaveSchema.template()
+		expect(not Badges.passes(rule("BroomRider"), broom), "no Broom")
+		Inventory.addCue(broom, "WitchBroomCue", 1, true)
+		expect(Badges.passes(rule("BroomRider"), broom), "the Broom owned")
 		-- Classic alone: no collection badge.
 		local classic = SaveSchema.template()
 		classic.Index.Seen[Catalog.Default] = true
