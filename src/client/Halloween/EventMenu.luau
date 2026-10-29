@@ -1334,6 +1334,9 @@ function EventMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 				end
 				lastStep = clock
 				local reduced = UIAnim.reduced()
+				-- No effects while the reveal runs: its fader writes every card's transparencies
+				-- back to their rest values each frame until it ends.
+				local revealing = frame.stage ~= nil and frame.stage:busy() ~= nil
 				local top = scroll.AbsolutePosition.Y
 				local bottom = top + scroll.AbsoluteSize.Y
 				for _, card in cards do
@@ -1352,7 +1355,7 @@ function EventMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 					end
 					local fx = card.fx
 					if fx then
-						if seen then
+						if seen and not revealing then
 							CardFx.step(fx, clock, low, reduced)
 						else
 							CardFx.hide(fx)
