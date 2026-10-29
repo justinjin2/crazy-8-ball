@@ -123,6 +123,8 @@ type Session = {
 	fitKey: string, -- what they were fitted for: the tab, the window, the body
 	phase: string?, -- the loop's phase now, and how far through it (TRAIL's camera follows)
 	progress: number,
+	shown: boolean, -- the stick is shown (its look is in)
+	jumped: boolean, -- the stick jumps to another pose this frame: hidden for it
 	focus: Vector3,
 	burstDone: boolean,
 	reveal: Stage.Stage?, -- the open (Config.UI.CuePreview.Open)
@@ -426,16 +428,19 @@ local function buildCue(s: Session)
 	s.reach = CuePreviewMath.finisherReach(pocket, creature)
 	s.hold = CuePreviewMath.holdSeconds(s.reach.seconds)
 	measure(s)
-	-- Hidden until its assets are in (or the timeout), with the spinner up.
+	-- Hidden until its assets are in (or the timeout), with the spinner up: posed in its place
+	-- meanwhile (step), so it appears there. Parked far off and moved in, a skin's orbiting
+	-- ribbons (the Broom's stars) streaked from where it had waited.
 	s.ready = false
 	s.readyAt = os.clock() + C.LoadTimeoutSeconds
+	s.shown = false
+	CueStickBuilder.setVisible(stick, false)
 	local id = s.id
 	CueAssets.whenReady(id, function()
 		if session == s and s.id == id then
 			s.ready = true
 		end
 	end)
-	stick:PivotTo(CFrame.new(0, -1000, 0) + stage:GetPivot().Position)
 end
 
 --------------------------------------------------------------------------------------------
@@ -719,8 +724,15 @@ local function step(dt: number)
 	if spinner then
 		spinner.Visible = not ready
 	end
-	if ready then
-		playLoop(s, dt)
+	-- Posed in place even while loading (the loop waits at its start), shown once its look is
+	-- in; hidden the one frame after a jump (a tab switch), so its look restarts where it lands.
+	playLoop(s, if ready then dt else 0)
+	local stickNow = s.stick
+	local show = (s.ready or os.clock() >= s.readyAt) and not s.jumped
+	s.jumped = false
+	if stickNow and show ~= s.shown then
+		s.shown = show
+		CueStickBuilder.setVisible(stickNow, show)
 	end
 	frameCamera(s)
 end
@@ -736,6 +748,7 @@ local function setTab(s: Session, tab: string)
 	s.tab = tab
 	s.loopAt = 0
 	s.burstDone = false
+	s.jumped = true -- the stick moves to the tab's pose
 	if tab ~= "Model" and not CueAssets.shotReady(s.id) then
 		s.readyAt = math.max(s.readyAt, os.clock() + C.LoadTimeoutSeconds)
 	end
@@ -1446,6 +1459,8 @@ local function openNow()
 		fitKey = "",
 		phase = nil,
 		progress = 0,
+		shown = false,
+		jumped = false,
 		focus = Vector3.zero,
 		burstDone = false,
 		reveal = nil,
@@ -1572,11 +1587,8 @@ local function start()
 			return nil
 		end
 		if stall then
-			s.ready = false
+			s.ready = false -- the next step hides the stick, as buildCue leaves it
 			s.readyAt = os.clock() + C.LoadTimeoutSeconds
-			if s.stick and s.stage then -- hidden as buildCue leaves it
-				s.stick:PivotTo(CFrame.new(0, -1000, 0) + s.stage:GetPivot().Position)
-			end
 		end
 		local stick = s.stick
 		return {
@@ -1584,7 +1596,7 @@ local function start()
 			look = s.ready,
 			shot = CueAssets.shotReady(s.id),
 			spinner = s.parts.spinner ~= nil and s.parts.spinner.Visible,
-			stickShown = stick ~= nil and stick:GetPivot().Position.Y > s.cloth - 100,
+			stickShown = stick ~= nil and stick:GetAttribute("Visible") == true,
 			timeoutIn = math.max(0, s.readyAt - os.clock()),
 		}
 	end)
@@ -1639,6 +1651,8 @@ function CuePreview.open(
 		s.opts = opts or s.opts
 		Players.LocalPlayer:SetAttribute(ATTRIBUTE, id)
 		local okSwitch = pcall(function()
+			-- Its shot effects start loading now, not at Main's next look (ShotRefreshSeconds).
+			CueAssets.holdShots({ CueStickBuilder.equippedCue(Players.LocalPlayer), id })
 			buildCue(s)
 			s.parts.name.Text = CueThumb.cueName(id)
 			CueThumb.set(s.parts.thumb, id)
