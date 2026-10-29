@@ -130,10 +130,11 @@ end
 -- end screen's cards).
 local EVENT_CUES: { string } = Ledger.eventCues()
 
--- Whether the player's tutorial is over (Done or Skipped): nothing Halloween shows before.
+-- Whether the player's tutorial is past its guided part (Steps.pastGuided: the soft part, Done
+-- or Skipped): nothing Halloween shows before.
 local function tutorialOver(player: Player): boolean
 	local step = PlayerData.flag(player, "Tutorial")
-	return type(step) == "string" and Steps.Ends[step] == true
+	return Steps.pastGuided(step)
 end
 
 -- The player attributes the client and other lanes read: Candy (the balance, Earned + Bought -

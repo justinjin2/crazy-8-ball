@@ -93,6 +93,19 @@ local function used(source: string): { { name: string, line: number } }
 end
 
 return {
+	["the Halloween event shows from the soft part on, not only once game 2 is Done"] = function()
+		local Steps = load()
+		-- Designer 2026-10-29: the HALLOWEEN button, the Candy pill and the Candy Boost line
+		-- should appear right after the tutorial (CandyService's HwOn reads Steps.pastGuided).
+		for _, step in { "Arrow", "Pad", "Game1", "Result", "Mystery", "Place", "Abilities" } do
+			H.expect(not Steps.pastGuided(step), "still guided at " .. step)
+		end
+		for _, step in { "Soft", "Done", "Skipped" } do
+			H.expect(Steps.pastGuided(step), "past the guided part at " .. step)
+		end
+		H.expect(not Steps.pastGuided(nil) and not Steps.pastGuided("Nope"), "no step: not yet")
+	end,
+
 	["the Win a Match quest's reward is a real lucky block (a Mystery, designer 2026-10-12)"] = function()
 		local Config = H.require("Config")
 		local soft = Config.Tutorial.Soft

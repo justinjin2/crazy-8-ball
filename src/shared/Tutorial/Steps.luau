@@ -212,6 +212,13 @@ Steps.Reveal = (
 	}
 ) :: { [string]: string }
 
+--- Whether the guided part is over at `step`: the soft part (every icon, game 2), Done or
+--- Skipped. The Halloween event shows from here (designer, 2026-10-29: it should appear "after
+--- completing the tutorial", not only once game 2 ends). False for nil or an unknown name.
+function Steps.pastGuided(step: string?): boolean
+	return type(step) == "string" and (Steps.Ends[step] == true or Steps.atLeast(step, "Soft"))
+end
+
 --- Whether the HUD item `item` shows at `step` (nil: no tutorial). Anything the tutorial does
 --- not hide always shows; after the guided part (Soft, Done, Skipped) everything shows.
 function Steps.shows(step: string?, item: string): boolean
