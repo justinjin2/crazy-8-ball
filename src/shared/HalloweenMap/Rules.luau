@@ -347,4 +347,30 @@ function Rules.lineDrop(line: { number }, id: number): boolean
 	return false
 end
 
+--- The Pumpkin King's cue drop (Config.Halloween.KingDrop, hw-core's), or nil while it is off,
+--- missing or malformed: his sign hides rather than errors before core's row lands.
+function Rules.kingDrop(): { Cue: string, Chance: number }?
+	local halloween = (Config :: any).Halloween
+	local drop = if type(halloween) == "table" then halloween.KingDrop else nil
+	if
+		type(drop) ~= "table"
+		or drop.Enabled ~= true
+		or type(drop.Cue) ~= "string"
+		or type(drop.Chance) ~= "number"
+		or drop.Chance <= 0
+	then
+		return nil
+	end
+	return drop
+end
+
+--- A chance as the sign shows it: whole percents bare ("5%"), else one decimal ("2.5%").
+function Rules.chanceText(chance: number): string
+	local tenths = math.floor(chance * 1000 + 0.5)
+	if tenths % 10 == 0 then
+		return ("%d%%"):format(tenths // 10)
+	end
+	return ("%d.%d%%"):format(tenths // 10, tenths % 10)
+end
+
 return Rules

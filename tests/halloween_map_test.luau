@@ -579,6 +579,32 @@ return {
 		end
 	end,
 
+	["the King's drop sign reads its chance and hides without the drop"] = function()
+		local R = H.require("HalloweenMap.Rules")
+		local Config = H.require("Config") :: any
+		H.expect(R.chanceText(0.05) == "5%", "5% bare")
+		H.expect(R.chanceText(0.1) == "10%", "10% bare")
+		H.expect(R.chanceText(0.025) == "2.5%", "one decimal")
+		H.expect(R.chanceText(0.001) == "0.1%", "a tenth of a percent")
+		local saved = Config.Halloween.KingDrop
+		Config.Halloween.KingDrop = nil
+		H.expect(R.kingDrop() == nil, "no row: no sign, no error")
+		Config.Halloween.KingDrop = { Enabled = false, Cue = "JackOLanternCue", Chance = 0.05 }
+		H.expect(R.kingDrop() == nil, "switched off: no sign")
+		Config.Halloween.KingDrop = { Enabled = true, Cue = "JackOLanternCue" }
+		H.expect(R.kingDrop() == nil, "no chance: no sign")
+		Config.Halloween.KingDrop = { Enabled = true, Cue = "JackOLanternCue", Chance = 0.05 }
+		local drop = R.kingDrop()
+		H.expect(
+			drop ~= nil and drop.Cue == "JackOLanternCue" and drop.Chance == 0.05,
+			"on: the row"
+		)
+		Config.Halloween.KingDrop = saved
+		local Strings = H.require("Strings")
+		H.expect(Strings.Items.Cues.JackOLanternCue ~= nil, "the sign names the cue from Strings")
+		H.expect(Config.UI.Halloween.Art.JackOLanternCue ~= nil, "the sign's art from Config")
+	end,
+
 	["the King's queue notices stay short enough for the queue card"] = function()
 		-- The card is UI.Queue.StatusWidth px at every screen size (no UIScale), 20 px of it padding.
 		-- Measured in Studio (TextService, FredokaOne 18 px): 43 characters is the longest King
