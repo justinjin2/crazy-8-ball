@@ -735,7 +735,9 @@ function Progression.update(state: State)
 	)
 	column:setPadRoute(not state.inMatch and not Menus.isOpen())
 	Portals.setBlocked(state.inMatch or state.afterMatch) -- roaming players get no portal ask
-	money:setPlusShown(not state.inMatch) -- no shop trips during a game (designer, 2026-10-06)
+	-- no shop trips during a game (designer, 2026-10-06) or the guided tutorial (the Shop is
+	-- hidden until its soft part; the pill itself always shows)
+	money:setPlusShown(not state.inMatch and not TutorialAnchors.hidden("Shop"))
 	money:setTutorialHidden(TutorialAnchors.hidden("Money"))
 	banner:setInMatch(state.inMatch)
 	if state.inMatch and ResultCutscene.isPlaying() then
