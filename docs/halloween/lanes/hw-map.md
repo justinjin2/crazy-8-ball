@@ -50,6 +50,14 @@ From PLAN §4 (everything else is read-only to this lane; ask through Requests):
 - `Config.HalloweenMap.Props.Budget.Lights = 6` (throne 2 + the throne King's aura 1 + 3 table Kings).
 
 ## Status
+- 21:12 hw-map: **PITCHFORK CARD popped for the dark track tile** (core: at about 62x50 px the slim fork read as
+  a thin red line on the purple). The round halo (`tools/thumb_pop.py`, the Sword's) sat in the
+  middle and missed the fork in the corner, so the tool gained an opt-in `--rim`: a soft light
+  that hugs the cue's silhouette, under it. The Pitchfork's card is re-rendered at
+  `thumb_margin` 2.4 (room for the rim) and run through
+  `python3 tools/thumb_pop.py pitchfork --rim 9 --rim-color FFDDBE --rim-alpha 0.85 --halo-alpha 0 --glow 1.25 --lift 0.9 --zoom 1.0`.
+  Re-run it after any re-render. New card id 139633646140924, sent to core. The Sword's pop
+  output is byte-identical with `--rim` at its default 0.
 - 21:04 hw-map: **PITCHFORK CUE slimmed** (Justin via the coordinator 20:58: "make pitchfork skinnier
   all around including the horns and the width of the cue, it's too wide").
   - SHAFT: the whole lathe at 0.82 of the shared cue's envelope (it was ON the envelope: 0.36
@@ -471,6 +479,8 @@ Landed (only my own blocks unless said):
   frame) and `thumb_shift` (studs toward the tip); absent = the house framing, so every other card
   renders as before (the Pitchfork's fork, thickened 1.45x with the rest, met the corner).
 - `assets/cue/CuePieces.py`: a guarded `import CuePiecesHalloween_Pitchfork` beside the Bone's.
+- `tools/thumb_pop.py` (cues-a's): opt-in `--rim`, `--rim-color`, `--rim-alpha`, a silhouette glow under the
+  cue. With the default `--rim 0` the output is unchanged (checked byte for byte on the Sword).
 - `assets/cue/CuePiecesHalloween_A.py`: a named `Slim` body exception (a factor under 1): the hand
   rule holds against that share of the envelope. Only the Pitchfork sets it (0.82); other bodies
   are unchanged.

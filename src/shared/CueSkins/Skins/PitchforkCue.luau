@@ -424,7 +424,7 @@ return {
 		},
 	},
 	Body = "pitchfork",
-	Thumb = "rbxassetid://108749630308384",
+	Thumb = "rbxassetid://139633646140924",
 	Look = {
 		Shaft = { 216, 30, 30 },
 		Forearm = { 216, 30, 30 },
