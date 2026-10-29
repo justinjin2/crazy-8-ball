@@ -1,12 +1,17 @@
 --!strict
--- The Halloween Sword's v3 effects (lane cuesB, 2026-10-29; the designer: the top of the
--- event's ladder, the best emissive effects of the four): a richer aura inside a phone-sized
--- budget, a darker deep-purple slash trail, and the finisher redone as a laughing face of
--- purple fire (one big looping flipbook particle) with no spinning ghosts.
+-- The Halloween Sword's effects. v3 (lane cuesB, 2026-10-29) gave it painted toon flames, a
+-- darker deep-purple slash trail and a laughing fire-face finisher; v4 (the designer, 2026-10-29
+-- ~14:20: the older version was better, no flat 2D flame pictures): the aura and its event-menu
+-- card are back to the soft flames of before v3, and the darker slash trail stays.
 
 local H = require("./harness")
 
 local ID = "HalloweenSwordCue"
+-- vfx/halloween_sword/flame_4x4.png: the soft painted fire the aura wore before v3
+local SOFT_FLAME = "rbxassetid://115803746724573"
+-- v3's sprites the designer turned down: the inked toon flame and the fire-face sheet
+local TOON_FLAME = "rbxassetid://87257680474573"
+local FIRE_FACE = "rbxassetid://109113140681429"
 
 local function isAsset(value: any): boolean
 	return type(value) == "string" and value:sub(1, 13) == "rbxassetid://" and #value > 13
@@ -113,7 +118,7 @@ return {
 		H.expect(#(pocket.Rings or {}) <= 3, ID .. ": at most three rings")
 	end,
 
-	["the aura is richer but stays inside its budget"] = function()
+	["the aura is the soft flames of before v3, inside its budget"] = function()
 		local r = row()
 		local aura = r.Aura
 		local total, low = 0, 0
@@ -123,8 +128,11 @@ return {
 				low += rateOf(e.Rate)
 			end
 			H.expect(isAsset(e.Texture), ID .. ": aura emitter " .. tostring(e.Name) .. " texture")
+			H.expect(
+				e.Texture ~= TOON_FLAME and e.Texture ~= FIRE_FACE,
+				ID .. ": aura emitter " .. tostring(e.Name) .. " wears a v3 flat flame"
+			)
 		end
-		H.expect(total >= 30, ID .. ": the top cue's aura is thin (" .. total .. "/s)")
 		H.expect(total <= 60, ID .. ": the aura is over 60 particles a second (" .. total .. ")")
 		H.expect(low <= 15, ID .. ": Lower effects still leaves " .. low .. "/s")
 		H.expect(#(aura.Lights or {}) <= 2, ID .. ": at most two lights")
@@ -136,6 +144,7 @@ return {
 		for _, e in aura.Emitters do
 			if e.Name:find("EdgeFlames") then
 				flames += 1
+				H.expect(e.Texture == SOFT_FLAME, ID .. ": " .. e.Name .. " is not the soft flame")
 				H.expect(e.Low == "hide", ID .. ": " .. e.Name .. " must hide under Lower effects")
 				H.expect(
 					(e.LightEmission or 0) <= 0.3,
@@ -144,6 +153,29 @@ return {
 			end
 		end
 		H.expect(flames == 2, ID .. ": both blade edges flame")
+	end,
+
+	["the event menu's Sword card draws the soft flame"] = function()
+		local Config = H.require("Config")
+		local HwCardFxMath = H.require("HwCardFxMath")
+		local card = (Config.UI.Halloween.CardFx.Cues :: any)[ID]
+		H.expect(card ~= nil, ID .. ": no event-menu card effects")
+		local rises = 0
+		for i, layer in card.Layers do
+			local texture = HwCardFxMath.resolve(row(), layer)
+			H.expect(
+				texture ~= TOON_FLAME and texture ~= FIRE_FACE,
+				("%s card layer %d draws a v3 flat flame"):format(ID, i)
+			)
+			if layer.Kind == "Rise" then
+				rises += 1
+				H.expect(
+					texture == SOFT_FLAME,
+					("%s card layer %d: the flames are not the soft flame"):format(ID, i)
+				)
+			end
+		end
+		H.expect(rises >= 1, ID .. ": the card's flames are gone")
 	end,
 
 	["the slash trail is a darker deep purple with its flames"] = function()
