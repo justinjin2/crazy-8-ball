@@ -673,6 +673,75 @@
     "imageId": "113918266054738",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball-hw-map/assets/cue/pieces/bone/bone_parts.glb": {
+    "assetId": "84663268268673",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-map/assets/cue/pieces/bone_pocket/bone_pocket_parts.glb": {
+    "assetId": "78687625811913",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-map/assets/cue/pieces/pitchfork/pitchfork_parts.glb": {
+    "assetId": "115767821399612",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-map/assets/cue/thumbs/bone.png": {
+    "assetId": "137357376268612",
+    "assetType": "Decal",
+    "imageId": "131967740072541",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-map/assets/cue/thumbs/pitchfork.png": {
+    "assetId": "134522209376353",
+    "assetType": "Decal",
+    "imageId": "109608018268838",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-map/assets/cue/vfx/bone/bone_512.png": {
+    "assetId": "120188138929757",
+    "assetType": "Decal",
+    "imageId": "78151215613806",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-map/assets/cue/vfx/bone/flame_8x8.png": {
+    "assetId": "81401326515445",
+    "assetType": "Decal",
+    "imageId": "100565885816987",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-map/assets/cue/vfx/bone/skull_512.png": {
+    "assetId": "118776807369861",
+    "assetType": "Decal",
+    "imageId": "93343656057249",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-map/assets/cue/vfx/bone/skull_jaw_512.png": {
+    "assetId": "130907496602792",
+    "assetType": "Decal",
+    "imageId": "70582963869082",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-map/assets/cue/vfx/pitchfork/flame_4x4.png": {
+    "assetId": "85340977331246",
+    "assetType": "Decal",
+    "imageId": "123290266051638",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-map/assets/cue/vfx/pitchfork/pitchfork_atlas.png": {
+    "assetId": "117373388408489",
+    "assetType": "Decal",
+    "imageId": "120878614434492",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball-hw-map/assets/cue/vfx/pitchfork/pitchfork_rough.png": {
+    "assetId": "80729479119260",
+    "assetType": "Decal",
+    "imageId": "109325063007596",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball-hw-sys/assets/cue/pieces/jack_o_lantern/atlas_color.png": {
     "assetId": "114826661142008",
     "assetType": "Decal",

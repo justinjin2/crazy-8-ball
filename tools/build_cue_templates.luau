@@ -219,6 +219,9 @@ local function dress(part, spec)
 			Color = sa.ColorMap,
 			Normal = sa.NormalMap,
 			Emissive = sa.EmissiveMask,
+			-- opt-in (the Pitchfork Cue's lacquer, 2026-10-28): older pieces carry generated
+			-- roughness maps this never applied (Infernal's skull), so their look stays put
+			Roughness = if sa.UseRoughness then sa.RoughnessMap else nil,
 		}, { EmissiveStrength = sa.EmissiveStrength, EmissiveTint = sa.EmissiveTint })
 		look.AlphaMode = (Enum.AlphaMode :: any)[sa.AlphaMode or "Overlay"]
 		look.Parent = part

@@ -667,11 +667,15 @@ def blender_main(args):
         yw, zw = Vector((s, 0, s)), Vector((-s, 0, s))  # local +Y (toward the tip), the cue's top
         xw = yw.cross(zw)  # its side faces the camera, which is raised THUMB_ELEVATION toward the top
         rot = Matrix((xw, yw, zw)).transposed().to_euler()
-        loc = (3.5 + reach / 2) * Vector((s, 0, s))
+        # a skin's own "thumb_shift" (studs toward the tip) moves a body wide past the butt off
+        # the picture's corner, into the room the thin tip end leaves; 0 for every other card
+        loc = (3.5 + reach / 2 + float(skin.get('thumb_shift', 0.0))) * Vector((s, 0, s))
         n = THUMB_SIZE * THUMB_SUPER
         still_size['thumb'] = (n, n)
         vfx.RING_TILT_DEG = THUMB_RING_TILT
-        span = (7.0 + reach) * s + THUMB_MARGIN
+        # a skin's own "thumb_margin" (studs) when its body spreads wide past the butt (the
+        # Pitchfork's fork, thickened with the rest, met the picture's corner); else the house one
+        span = (7.0 + reach) * s + float(skin.get('thumb_margin', THUMB_MARGIN))
         e = math.radians(THUMB_ELEVATION)
         eye = 20 * (Vector((0, -math.cos(e), 0)) + math.sin(e) * zw)
         # The aura shows, frozen at one moment (designer, 2026-10-07; --noaura, the GUI lane's

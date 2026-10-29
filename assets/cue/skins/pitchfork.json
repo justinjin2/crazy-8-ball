@@ -1,0 +1,846 @@
+{
+  "id": "pitchfork",
+  "name": "Pitchfork Cue",
+  "tier": "Legendary",
+  "catalog_id": "PitchforkCue",
+  "note": "Halloween 2026 track cue, 500 Candy (the designer's slot-2 pick, coordinator 2026-10-28 19:40; concept mocks/v3/R2.png). Only ever \"Pitchfork Cue\", never \"devil\". Built by lane hw-map (assets/cue/CuePiecesHalloween_Pitchfork.py); core owns its Catalog, Track, Strings and Art rows.",
+  "body": "pitchfork",
+  "maps_from": "classic",
+  "thumb_margin": 2.2,
+  "thumb_shift": 0.3,
+  "look": {
+    "Shaft": "#D81E1E",
+    "Forearm": "#D81E1E",
+    "Wrap": "#5A0B0B",
+    "Ring": "#F2B632",
+    "Tip": "#FFF1DC",
+    "Cap": "#111111",
+    "Accent": "#E0221B"
+  },
+  "vfx": {
+    "Moving": {
+      "Kind": "Body motion",
+      "Note": "The tail's arrowhead tip sways; small painted flames flicker on the three prong tips; a few sparks rise off the fork. No light (a coloured light dyes the body by day)."
+    },
+    "Aura": {
+      "Note": "Opaque painted flames (red, orange only at the tongues' tips) at the three arrowheads' points (rising clear of the red prongs, lab 2026-10-28), and sparks: no additive mush on the bright floor (coordinator 19:40). They ride the fork's joint; the whole aura goes quiet on the owner's turn, when the fork fades.",
+      "BackRateScale": 0.5,
+      "Outline": "#FF3B2F",
+      "Orbiters": [],
+      "Beams": [],
+      "Lights": [],
+      "Emitters": [
+        {
+          "Name": "TipFlameMid",
+          "Texture": "vfx/pitchfork/flame_4x4.png",
+          "FlipbookLayout": "Grid4x4",
+          "FlipbookMode": "OneShot",
+          "Host": {
+            "Kind": "Attachment",
+            "AtStuds": 8.4,
+            "Up": 0.0,
+            "Side": 0.0,
+            "Joint": "Fork"
+          },
+          "Rate": 8,
+          "Lifetime": [
+            0.45,
+            0.6
+          ],
+          "Speed": [
+            0.3,
+            0.6
+          ],
+          "SpreadAngle": [
+            25,
+            25
+          ],
+          "Acceleration": [
+            0,
+            3.5,
+            0
+          ],
+          "Drag": 0.5,
+          "Size": [
+            [
+              0,
+              0.18
+            ],
+            [
+              0.35,
+              0.32
+            ],
+            [
+              1,
+              0.1
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0.2
+            ],
+            [
+              0.12,
+              0.0
+            ],
+            [
+              0.75,
+              0.1
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Rotation": [
+            -10,
+            10
+          ],
+          "Color": [
+            [
+              0,
+              "#FFFFFF"
+            ],
+            [
+              1,
+              "#FFFFFF"
+            ]
+          ],
+          "LightEmission": 0,
+          "LightInfluence": 0,
+          "Brightness": 1.0
+        },
+        {
+          "Name": "TipFlameA",
+          "Texture": "vfx/pitchfork/flame_4x4.png",
+          "FlipbookLayout": "Grid4x4",
+          "FlipbookMode": "OneShot",
+          "Host": {
+            "Kind": "Attachment",
+            "AtStuds": 8.37,
+            "Up": 0.37,
+            "Side": -0.641,
+            "Joint": "Fork"
+          },
+          "Rate": 8,
+          "Lifetime": [
+            0.45,
+            0.6
+          ],
+          "Speed": [
+            0.3,
+            0.6
+          ],
+          "SpreadAngle": [
+            25,
+            25
+          ],
+          "Acceleration": [
+            0,
+            3.5,
+            0
+          ],
+          "Drag": 0.5,
+          "Size": [
+            [
+              0,
+              0.18
+            ],
+            [
+              0.35,
+              0.32
+            ],
+            [
+              1,
+              0.1
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0.2
+            ],
+            [
+              0.12,
+              0.0
+            ],
+            [
+              0.75,
+              0.1
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Rotation": [
+            -10,
+            10
+          ],
+          "Color": [
+            [
+              0,
+              "#FFFFFF"
+            ],
+            [
+              1,
+              "#FFFFFF"
+            ]
+          ],
+          "LightEmission": 0,
+          "LightInfluence": 0,
+          "Brightness": 1.0
+        },
+        {
+          "Name": "TipFlameB",
+          "Texture": "vfx/pitchfork/flame_4x4.png",
+          "FlipbookLayout": "Grid4x4",
+          "FlipbookMode": "OneShot",
+          "Host": {
+            "Kind": "Attachment",
+            "AtStuds": 8.37,
+            "Up": -0.37,
+            "Side": 0.641,
+            "Joint": "Fork"
+          },
+          "Rate": 8,
+          "Lifetime": [
+            0.45,
+            0.6
+          ],
+          "Speed": [
+            0.3,
+            0.6
+          ],
+          "SpreadAngle": [
+            25,
+            25
+          ],
+          "Acceleration": [
+            0,
+            3.5,
+            0
+          ],
+          "Drag": 0.5,
+          "Size": [
+            [
+              0,
+              0.18
+            ],
+            [
+              0.35,
+              0.32
+            ],
+            [
+              1,
+              0.1
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0.2
+            ],
+            [
+              0.12,
+              0.0
+            ],
+            [
+              0.75,
+              0.1
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Rotation": [
+            -10,
+            10
+          ],
+          "Color": [
+            [
+              0,
+              "#FFFFFF"
+            ],
+            [
+              1,
+              "#FFFFFF"
+            ]
+          ],
+          "LightEmission": 0,
+          "LightInfluence": 0,
+          "Brightness": 1.0
+        },
+        {
+          "Name": "ForkSparks",
+          "Texture": "vfx/_shared/spark.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 7.2,
+            "ToStuds": 8.45,
+            "Width": 1.4,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Volume",
+            "Joint": "Fork"
+          },
+          "LockedToPart": false,
+          "Rate": 5,
+          "Lifetime": [
+            0.6,
+            1.1
+          ],
+          "Speed": [
+            0.1,
+            0.4
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Acceleration": [
+            0,
+            1.2,
+            0
+          ],
+          "Drag": 0.6,
+          "Size": [
+            [
+              0,
+              0.07
+            ],
+            [
+              0.3,
+              0.11
+            ],
+            [
+              1,
+              0.0
+            ]
+          ],
+          "Transparency": 0,
+          "Color": [
+            [
+              0,
+              "#FFFFFF"
+            ],
+            [
+              0.35,
+              "#FFC05A"
+            ],
+            [
+              1,
+              "#E0221B"
+            ]
+          ],
+          "LightEmission": 0.8,
+          "LightInfluence": 0,
+          "Brightness": 2.2
+        }
+      ]
+    },
+    "Style": {
+      "Trail": {
+        "Transparency": [
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "WidthStuds": 0.02,
+        "Lifetime": 0.05,
+        "LightEmission": 0
+      },
+      "Pocket": {
+        "Colors": [
+          [
+            216,
+            30,
+            30
+          ],
+          [
+            242,
+            182,
+            50
+          ]
+        ],
+        "ColorShare": 1
+      }
+    },
+    "Trail": {
+      "Note": "No ribbon (coordinator 19:40): painted red flames licking up off the ball's path, and sparks shedding and falling. Style.Trail stays on but draws nothing (fully clear, hair-thin, 0.05 s): Effects.attachTrail attaches a skin's TrailEmitters only with a trail on, and a data-only clear ribbon keeps the shared runtime untouched.",
+      "Emitters": [
+        {
+          "Name": "TrailFlames",
+          "Texture": "vfx/pitchfork/flame_4x4.png",
+          "FlipbookLayout": "Grid4x4",
+          "FlipbookMode": "OneShot",
+          "Host": {
+            "Kind": "Point"
+          },
+          "Rate": 55,
+          "Lifetime": [
+            0.6,
+            0.9
+          ],
+          "Speed": [
+            0.1,
+            0.5
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Acceleration": [
+            0,
+            2.5,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.4
+            ],
+            [
+              0.3,
+              0.6
+            ],
+            [
+              1,
+              0.2
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0.0
+            ],
+            [
+              0.7,
+              0.1
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Rotation": [
+            -20,
+            20
+          ],
+          "Color": [
+            [
+              0,
+              "#FFFFFF"
+            ],
+            [
+              1,
+              "#FFFFFF"
+            ]
+          ],
+          "LightEmission": 0,
+          "LightInfluence": 0,
+          "Brightness": 1.0
+        },
+        {
+          "Name": "TrailSparks",
+          "Texture": "vfx/_shared/spark.png",
+          "Host": {
+            "Kind": "Point"
+          },
+          "Rate": 24,
+          "Lifetime": [
+            0.35,
+            0.7
+          ],
+          "Speed": [
+            0.8,
+            2.2
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Drag": 1.5,
+          "Acceleration": [
+            0,
+            -5,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.08
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Transparency": 0,
+          "Color": [
+            [
+              0,
+              "#FFFFFF"
+            ],
+            [
+              0.35,
+              "#FFC05A"
+            ],
+            [
+              1,
+              "#E0221B"
+            ]
+          ],
+          "LightEmission": 0.8,
+          "LightInfluence": 0,
+          "Brightness": 2.5
+        }
+      ]
+    },
+    "Pocket": {
+      "Note": "About 1.5 s: a dark-red ring and a red flash, a column of painted red flame bursting up out of the pocket with a ring of flame round its foot, gold sparkles twinkling out and sparks falling, a fire whoosh. Red, orange only at the flames' tips.",
+      "Flash": {
+        "Color": [
+          224,
+          34,
+          27
+        ],
+        "Brightness": 6,
+        "Seconds": 0.3
+      },
+      "Rings": [
+        {
+          "Texture": "vfx/_shared/ring.png",
+          "Color": "#5A0B0B",
+          "Start": 0.4,
+          "End": 3.0,
+          "Seconds": 0.4,
+          "Delay": 0.0
+        },
+        {
+          "Texture": "vfx/_shared/ring.png",
+          "Color": "#E0221B",
+          "Start": 0.4,
+          "End": 4.0,
+          "Seconds": 0.5,
+          "Delay": 0.05
+        },
+        {
+          "Texture": "vfx/_shared/ring.png",
+          "Color": "#F2B632",
+          "Start": 0.3,
+          "End": 2.2,
+          "Seconds": 0.45,
+          "Delay": 0.3
+        }
+      ],
+      "Layers": [
+        {
+          "Name": "FlameColumn",
+          "Texture": "vfx/pitchfork/flame_4x4.png",
+          "FlipbookLayout": "Grid4x4",
+          "FlipbookMode": "OneShot",
+          "Host": {
+            "Kind": "Point",
+            "Size": 0.6
+          },
+          "Burst": 26,
+          "Delay": 0.0,
+          "Lifetime": [
+            0.55,
+            0.85
+          ],
+          "Speed": [
+            3,
+            6
+          ],
+          "SpreadAngle": [
+            12,
+            12
+          ],
+          "EmissionDirection": "Top",
+          "Drag": 1.5,
+          "Acceleration": [
+            0,
+            3,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.5
+            ],
+            [
+              0.35,
+              0.9
+            ],
+            [
+              1,
+              0.35
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0.0
+            ],
+            [
+              0.7,
+              0.1
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Rotation": [
+            -15,
+            15
+          ],
+          "Color": [
+            [
+              0,
+              "#FFFFFF"
+            ],
+            [
+              1,
+              "#FFFFFF"
+            ]
+          ],
+          "LightEmission": 0,
+          "LightInfluence": 0,
+          "Brightness": 1.0
+        },
+        {
+          "Name": "FlameRing",
+          "Texture": "vfx/pitchfork/flame_4x4.png",
+          "FlipbookLayout": "Grid4x4",
+          "FlipbookMode": "OneShot",
+          "Host": {
+            "Kind": "Point",
+            "Size": 1.2
+          },
+          "Burst": 16,
+          "Delay": 0.05,
+          "Lifetime": [
+            0.45,
+            0.7
+          ],
+          "Speed": [
+            1.5,
+            3.5
+          ],
+          "SpreadAngle": [
+            55,
+            55
+          ],
+          "EmissionDirection": "Top",
+          "Drag": 1.0,
+          "Acceleration": [
+            0,
+            2.5,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.35
+            ],
+            [
+              0.4,
+              0.55
+            ],
+            [
+              1,
+              0.15
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0.0
+            ],
+            [
+              0.7,
+              0.15
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Rotation": [
+            -20,
+            20
+          ],
+          "Color": [
+            [
+              0,
+              "#FFFFFF"
+            ],
+            [
+              1,
+              "#FFFFFF"
+            ]
+          ],
+          "LightEmission": 0,
+          "LightInfluence": 0,
+          "Brightness": 1.0
+        },
+        {
+          "Name": "Sparkles",
+          "Texture": "vfx/_shared/star4.png",
+          "Host": {
+            "Kind": "Point",
+            "Size": 0.8
+          },
+          "Burst": 18,
+          "Delay": 0.15,
+          "Lifetime": [
+            0.6,
+            1.1
+          ],
+          "Speed": [
+            2,
+            5
+          ],
+          "SpreadAngle": [
+            50,
+            50
+          ],
+          "EmissionDirection": "Top",
+          "Drag": 2.0,
+          "Acceleration": [
+            0,
+            -1,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.0
+            ],
+            [
+              0.15,
+              0.22
+            ],
+            [
+              0.6,
+              0.18
+            ],
+            [
+              1,
+              0.0
+            ]
+          ],
+          "Rotation": [
+            0,
+            45
+          ],
+          "RotSpeed": [
+            -90,
+            90
+          ],
+          "Transparency": 0,
+          "Color": [
+            [
+              0,
+              "#FFF1DC"
+            ],
+            [
+              0.5,
+              "#F2B632"
+            ],
+            [
+              1,
+              "#E0221B"
+            ]
+          ],
+          "LightEmission": 0.6,
+          "LightInfluence": 0,
+          "Brightness": 2.5
+        },
+        {
+          "Name": "Sparks",
+          "Texture": "vfx/_shared/spark.png",
+          "Host": {
+            "Kind": "Point",
+            "Size": 0.4
+          },
+          "Burst": 36,
+          "Delay": 0.1,
+          "Lifetime": [
+            0.5,
+            1.0
+          ],
+          "Speed": [
+            6,
+            11
+          ],
+          "SpreadAngle": [
+            35,
+            35
+          ],
+          "EmissionDirection": "Top",
+          "Drag": 0.8,
+          "Acceleration": [
+            0,
+            -14,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.09
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Transparency": 0,
+          "Color": [
+            [
+              0,
+              "#FFFFFF"
+            ],
+            [
+              0.35,
+              "#FFC05A"
+            ],
+            [
+              1,
+              "#E0221B"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "Brightness": 3.5
+        }
+      ],
+      "Sound": {
+        "Asset": "rbxassetid://9114446802",
+        "Volume": 0.45,
+        "RollOffMinStuds": 8,
+        "RollOffMaxStuds": 60,
+        "Note": "Roblox library: Pro Sound Effects \"Fire Whoosh 13 (SFX)\" (1.2 s, a single torch burst with an air hiss), free, no upload; PreloadAsync Success 2026-10-28"
+      }
+    },
+    "Budget": {
+      "ParticlesPerSecond": 29,
+      "Back": 14.5,
+      "Beams": 0,
+      "Lights": 0,
+      "Orbiters": 0,
+      "BodyTriangles": 9440,
+      "PocketPieceTriangles": 0,
+      "Note": "No decor or pocket piece: the body (3 parts, 8,442 triangles, one 256 x 1024 atlas: the lathe with the horns and the coil, the tail's swaying tip, the fork) carries the look; the aura 29/s (three tip flames and sparks); the trail 79/s while the ball moves (lifetimes halved by TrailEmitterLifetimeScale: about 20 flames alive, overlapping into a streak); the finisher bursts 96 particles once."
+    }
+  }
+}
