@@ -38,12 +38,13 @@ existing runtime; no Luau runtime change.
    uploaded), deep violet fading to near-black violet, LightEmission 0.15, 0.6 wide, a thin lilac
    core; it sheds toon flames (14/s) and a faint dark-violet smoke wake (6/s) beside the sparks
    (12/s): 32/s while the ball moves (the Jack's 39).
-4. **Finisher** (98a7cf96), about 2.6 s: a violet flash, three rings, a bed of 22 toon flames
-   out of the pocket, then the fire face (one particle, 4.2 studs at most, Loop at 13 fps = two
-   cackles every 1.2 s) rising out of the pocket (emitted 0.4 under it, so the table hides its
-   chin at first; it settles with its chin about a stud over the cloth), a 5.4-stud deep-violet
-   glow behind it, flames licking round it (22, then a second wave of 18) and over its chin (7,
-   in front), 50 embers floating up, 26 sparkles, then faint dark-violet smoke. 155 particles
+4. **Finisher** (98a7cf96, e9a1433b), about 2.6 s: a violet flash, three rings, a bed of 22
+   toon flames out of the pocket, then the fire face (one particle, 4.2 studs at most, Loop at
+   13 fps = two cackles every 1.2 s) rising out of the pocket (emitted 0.4 under it, so the
+   table hides its chin at first; it settles with its chin about a stud over the cloth), a
+   5.4-stud deep-violet glow behind it, flames licking round it (22 at 0.35 s, a second wave of
+   22 at 0.9 s, both from a 3.4-stud host so they show past the face) and over its chin (7, in
+   front), 50 embers floating up, 26 sparkles, then faint dark-violet smoke. 159 particles
    once, 2 of them big; no 3D piece and no swirl ribbons. The `halloween_sword_pocket` row (the
    three ghosts) is no longer generated; its source files stay in `assets/cue/pieces/`.
 
@@ -58,7 +59,7 @@ trail (painted, LightEmission at most 0.3, a near-black tail, its flames, at mos
 Textures: +1 MB-class 1024 face sheet (loaded with the Sword's shot sprites, only at a table
 with a Sword owner), the 512 toon flame replaces the 1024 soft flame sheet on the aura (net
 less). Aura 39/s (Lower effects 12/s), one more beam. Trail 32/s while the ball moves. Finisher
-155 particles once per pot (every pot of the owner's balls: a break that drops three shows three
+159 particles once per pot (every pot of the owner's balls: a break that drops three shows three
 faces), two of them big quads (overdraw on a phone: the face and its glow). No per-frame Luau.
 
 ## How to check by hand (Studio, the coordinator)
@@ -74,6 +75,18 @@ faces), two of them big quads (overdraw on a phone: the face and its glow). No p
    camera: the face should read (ink line), not wash out, and not hide the table too long.
 4. The two images are fresh uploads: if the face or flames show blank in the first minutes,
    that is Roblox still generating them (`ContentProvider:PreloadAsync` should give Success).
+
+## Renders (`~/Desktop/8ball-refs/halloween/v3/cues-b/`)
+
+- `face_contact.png`: the face's 16 frames on dark and on cream; `face_00/04/08/12_{dark,cream}.png`
+  full-size frames (closed grin, first cackle, closed, second cackle); `face_loop_{dark,cream}.gif`
+  the loop at its in-game 13 fps; `flame_contact.png` the toon flame's 16 frames.
+- `compare_aura.jpg`, `compare_trail.jpg`, `compare_finisher.jpg`: before (v5) and after (v3)
+  stills from the same preview frames, dark backdrop, plus the bright-floor read.
+- `after/finisher_frames_{dark,bright}.jpg` (every 1/6 s from the drop), `after/finisher_{dark,bright}.gif`,
+  `after/finisher_*_00285.png` / `_00300.png`, `after/aura_turn_*.png`, `after/trail_*.png`,
+  `after/aura_still_*.png`, `after/clip_after_{dark,bright}.mp4` (the whole preview clip).
+- `before/`: the v5 clip, its frames and stills.
 
 ## Open issues / not verified
 
