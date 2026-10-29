@@ -9281,6 +9281,9 @@ Config.HalloweenMap = {
 	FlipAtAttribute = "HalloweenMapFlipAt",
 	Night = {
 		Enabled = true, -- the Night light while Live (Config.Lighting.Night in Day's slot)
+		-- Night all event, the moon always out, no Sunset (designer, 2026-10-29). false: the
+		-- night and Sunset cycle as before (LightCycle.event's permanent).
+		Permanent = true,
 		-- In Play, Night held vs Day held from one camera: the floor and tables' mean luminance
 		-- at least this share of Day's ("as readable as day"). 0.8 since 2026-10-28: the richer,
 		-- more saturated night the designer asked for is a touch darker (measured 0.84).

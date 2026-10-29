@@ -190,6 +190,22 @@ return {
 		H.expect(L.Cycle.Speed == 1, "the cycle runs at 1")
 	end,
 
+	["a permanent event light is Night all through the cycle (no Sunset)"] = function()
+		local LC = H.require("LightCycle")
+		local Config = H.require("Config")
+		local L = Config.Lighting
+		local HM = Config.HalloweenMap
+		H.expect(HM.Night.Permanent == true, "the event night is permanent")
+		local E = LC.event(L, L.Night, HM.Night.SunPath, HM.Night.Permanent)
+		for _, blend in { 0, 0.25, 0.5, 0.75, 1 } do
+			matches(LC.state(blend, E), L.Night, "blend " .. blend .. " is Night")
+			for key, id in L.Night.Sky do
+				H.expect(LC.state(blend, E).Sky[key] == id, key .. " stays Night's")
+			end
+		end
+		H.expect(L.Sunset ~= L.Night, "Config.Lighting unchanged")
+	end,
+
 	["two light states crossfade, the sky's images at half way"] = function()
 		local LC = H.require("LightCycle")
 		local L = H.require("Config").Lighting

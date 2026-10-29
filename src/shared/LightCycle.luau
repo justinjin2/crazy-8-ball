@@ -227,12 +227,24 @@ end
 --- An event's lighting (Halloween 2026, hw-map lane): Config.Lighting with `night` in Day's slot
 --- of the cycle (Day's hold and the fades unchanged), its sky also the in-between sky (so the
 --- only sky change is night to Sunset's, at the last swap, under SwapHaze), and the sun held on
---- sunPath (by default Sunset's sun all the way: the light from the moon's side). Generic, so a
---- Night could become permanent later with one switch.
-function LightCycle.event(lighting: any, night: { [string]: any }, sunPath: { SunKey }?): any
+--- sunPath (by default Sunset's sun all the way: the light from the moon's side). permanent puts
+--- night in Sunset's slot too, without the dusk warmth or swap haze, so the cycle never leaves
+--- it (Config.HalloweenMap.Night.Permanent).
+function LightCycle.event(
+	lighting: any,
+	night: { [string]: any },
+	sunPath: { SunKey }?,
+	permanent: boolean?
+): any
 	local out: { [string]: any } = table.clone(lighting)
 	out.Day = night
 	out.DuskSky = night.Sky
+	if permanent then
+		-- Night in both slots, and no dusk warmth or swap haze between them: night all through.
+		out.Sunset = night
+		out.DuskWarm = { Width = lighting.DuskWarm.Width, Amount = 0, Colours = {} }
+		out.SwapHaze = { Width = lighting.SwapHaze.Width, Density = 0, Haze = 0, Environment = 0 }
+	end
 	if sunPath then
 		out.SunPath = sunPath
 	else

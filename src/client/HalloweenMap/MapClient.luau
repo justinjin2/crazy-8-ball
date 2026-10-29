@@ -180,7 +180,7 @@ function MapClient.start(dayCycle: any, hub: any?)
 	if not HM.Enabled then
 		return
 	end
-	local eventLight = LightCycle.event(L, L.Night, HM.Night.SunPath)
+	local eventLight = LightCycle.event(L, L.Night, HM.Night.SunPath, HM.Night.Permanent)
 	local function follow()
 		local s = state()
 		local flipAt = workspace:GetAttribute(HM.FlipAtAttribute)
