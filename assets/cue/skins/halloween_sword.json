@@ -1242,7 +1242,7 @@
           "FlipbookStartRandom": true,
           "Host": {
             "Kind": "Point",
-            "Size": 2.6,
+            "Size": 3.4,
             "Offset": [
               0,
               1.4,
@@ -1318,26 +1318,26 @@
           "FlipbookStartRandom": true,
           "Host": {
             "Kind": "Point",
-            "Size": 2.0,
+            "Size": 3.4,
             "Offset": [
               0,
-              2.0,
+              1.6,
               0
             ]
           },
-          "Burst": 18,
-          "Delay": 1.0,
+          "Burst": 22,
+          "Delay": 0.9,
           "Lifetime": [
-            0.6,
-            1.0
+            0.7,
+            1.1
           ],
           "Speed": [
             1.0,
             2.5
           ],
           "SpreadAngle": [
-            40,
-            40
+            60,
+            60
           ],
           "EmissionDirection": "Top",
           "Drag": 1.4,
@@ -1383,7 +1383,7 @@
           "LightInfluence": 0,
           "Brightness": 1.3,
           "ZOffset": -0.3,
-          "Note": "a second wave of flames off the crown, so the fire keeps burning"
+          "Note": "a second wave of flames round the crown and the cheeks (a wide host, so most show past the face), so the fire keeps burning"
         },
         {
           "Name": "Embers",
@@ -1610,7 +1610,7 @@
       "Beams": 3,
       "Lights": 2,
       "Orbiters": 0,
-      "Note": "v3 (2026-10-29): aura 12+12 edge flames, 8 sparks, 3 glow motes, 4 mist = 39/s steady, half on the back; Lower effects hides the edge flames, the motes and the glow band (12/s left: sparks, mist). Plus the body (5 parts, 8,784 tris: the Meshy sword split and re-proportioned, a 512 colour atlas, a 512 emissive mask, a 256 wrap tile); textures: toon_flame 512, fire_face 1024 (the finisher's), flame_strip 512x128. Trail 32/s while the ball moves (12 sparks, 14 flames, 6 smoke). The finisher bursts 155 particles once (2 of them big: the face and its glow), no 3D piece."
+      "Note": "v3 (2026-10-29): aura 12+12 edge flames, 8 sparks, 3 glow motes, 4 mist = 39/s steady, half on the back; Lower effects hides the edge flames, the motes and the glow band (12/s left: sparks, mist). Plus the body (5 parts, 8,784 tris: the Meshy sword split and re-proportioned, a 512 colour atlas, a 512 emissive mask, a 256 wrap tile); textures: toon_flame 512, fire_face 1024 (the finisher's), flame_strip 512x128. Trail 32/s while the ball moves (12 sparks, 14 flames, 6 smoke). The finisher bursts 159 particles once (2 of them big: the face and its glow), no 3D piece."
     }
   }
 }
