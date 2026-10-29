@@ -11,9 +11,10 @@
 --
 -- The rules (`boost`): the "pill" (since 2026-10-28 its lines of outlined text with no
 -- background: Money Boost, and Candy Boost over it while the event is live) sits right over the
--- money pill, LeftPx right of the money HUD's left edge; on a short screen at least ColumnGapPx
--- right of the left column when it fits there, so the column never moves for it, else over the
--- money pill with the column kept above it (`columnAfter`); if it still touches a piece (an
+-- money pill, LeftPx right of the money HUD's left edge, the left column kept above it
+-- (`columnAfter`; on a short screen too since 2026-10-29: ShortBesideColumn false); with
+-- ShortBesideColumn a short screen puts it at least ColumnGapPx right of the left column when it
+-- fits there, so the column never moves for it; if it still touches a piece (an
 -- iPad's full hotbar) it rises over it. Its width is fixed by WidestText. The chip sits right over
 -- the pill at the same left x; if it would touch another piece it becomes the compact chip
 -- ("CANDY 8:12"), then its words shrink (never under MinTextPx), and as a last resort it rises
@@ -289,7 +290,7 @@ function HudLayout.boost(screen: Screen, s: Scene, others: Others): Boost
 	local y = others.money.y - P.GapPx - ph
 	local pill = { x = round(others.money.x + P.LeftPx), y = y, w = pw, h = ph }
 	local column = others.column
-	if short and column then
+	if short and column and P.ShortBesideColumn == true then
 		local right = column.x + column.w + P.ColumnGapPx
 		local beside = { x = round(math.max(pill.x, right)), y = y, w = pw, h = ph }
 		if not firstHit(beside, obstaclesOf(others, nil, true), screen) then

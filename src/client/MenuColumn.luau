@@ -220,6 +220,10 @@ function MenuColumn.new(screen: ScreenGui, opts: Options): any
 			local tag = moneyRoot:FindFirstChild(name)
 			if tag and tag:IsA("GuiObject") then
 				connect(tag:GetPropertyChangedSignal("Visible"), queueLayout)
+				-- It grows (the Candy line and pill once the event shows) or moves under the
+				-- column (a phone's, Config.UI.BoostPill.ShortBesideColumn): the column follows.
+				connect(tag:GetPropertyChangedSignal("AbsoluteSize"), queueLayout)
+				connect(tag:GetPropertyChangedSignal("AbsolutePosition"), queueLayout)
 			end
 		end
 	end

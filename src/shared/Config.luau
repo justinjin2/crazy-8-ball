@@ -10293,12 +10293,16 @@ Config.UI.BoostPill = {
 	-- No background (designer, 2026-10-28): outlined lines in the HUD font right over the money
 	-- pill, "Money Boost: +N%" and, over it while the event is live, "Candy Boost: +N%".
 	LinePx = 24, -- one line's height
-	ShortLinePx = 18,
+	ShortLinePx = 16, -- a phone's lines stack under the left column (2026-10-29: was 18)
 	TextPx = 20, -- as the money pill's total
-	ShortTextPx = 15,
+	ShortTextPx = 13, -- was 15; the house minimum is 12
 	LeftPx = 6, -- from the money HUD's left edge
 	GapPx = 6, -- between the lines and the money pill under them
-	ColumnGapPx = 6, -- a short screen: at least this far right of the left column
+	-- A short screen (a phone): false = the lines and the Candy pill stack under the left column,
+	-- right over the money pill, the column kept above them (designer, 2026-10-29: "all fit
+	-- underneath the guis on the left side"); true = right of the column when they fit there.
+	ShortBesideColumn = false,
+	ColumnGapPx = 6, -- ShortBesideColumn: at least this far right of the left column
 	ClearPx = 2, -- the room HudLayout keeps between the lines or chip and any other piece
 	WidestText = "Money Boost: +360%", -- the lines' fixed width (VIP + Party + Starter + Group + Plus + 4 friends)
 	CharWidthShare = 0.62, -- a character's width per text px (the layout's estimate, test and game alike)
@@ -10340,9 +10344,9 @@ Config.UI.BoostPill = {
 	CandyPill = {
 		Enabled = true,
 		HeightPx = 32,
-		ShortHeightPx = 26,
+		ShortHeightPx = 24, -- was 26 (2026-10-29: under the left column on a phone)
 		TextPx = 20, -- as the money pill's total
-		ShortTextPx = 16,
+		ShortTextPx = 15, -- was 16
 		GapPx = 4, -- between it and the lines above
 		PadPx = 8, -- inside its ends
 		IconShare = 0.9, -- the candy icon's size per pill height
