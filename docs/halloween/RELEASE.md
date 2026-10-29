@@ -25,10 +25,9 @@ On a phone, a PC and a controller where you can:
    lobby see a short black-bar cutscene of him rising out of the roof on his throne (a tap
    skips). Check his **cape**: smooth and swaying, also while he shoots. Beat him once: +150
    Candy, +$2,500, +100 XP, and the 5% Jack-o'-Lantern roll.
-7. The **Pitchfork** has the old large fork at its tip (the end that hits the ball), on the card
-   too; while you aim, the outer prongs fade so you aim at the middle point. The **Witch's
-   Broom** is thinner than before. Look at the Pitchfork from another player's screen once: they
-   see the whole fork at the tip.
+7. The **Pitchfork** has a compact fork at its tip (the end that hits the ball); while you aim,
+   the outer prongs fade so you aim at the middle point. The **Witch's Broom** is thinner than
+   before.
 8. Settings > **Lower effects** on and off with a Halloween cue.
 
 ## 2. Publishing

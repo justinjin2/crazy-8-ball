@@ -20,8 +20,8 @@ entry of `docs/archive/STATUS_HISTORY.md`.
   and 1,200 for 149 R$. The Candy track and the Spider are gone. The Pumpkin King rises out of
   the roof on his throne with a letterboxed cutscene for players free in the lobby (every
   visit, a tap skips); his cape is cloth (17 parts) and sways, also while he shoots. The
-  Pitchfork is the old large fork at the TIP (2.08 across, flat; the compact tip fork read too
-  small; new model and card, designer ~10:00); the Witch's Broom is thinner. "One of a Kind" counts
+  Pitchfork has the compact fork at the tip (designer ~10:30, after trying the old butt fork
+  and a large tip fork); the Witch's Broom is thinner. "One of a Kind" counts
   the Halloween cues; the Broom badge says Get. Roaming during a match and the 50 badges ship in
   this update (both already on the branch since Oct 28).
 - **Verified (Oct 29, 08:55-09:15):** lint and the full Lune tests; the Pitchfork and Broom
@@ -29,8 +29,8 @@ entry of `docs/archive/STATUS_HISTORY.md`.
   join, tutorial skip, the Daily popup, the menu owned and unowned, a Candy buy (ok and Poor),
   a Robux receipt (grant, and the money fallback when owned), ground candy +5 and spawns in a
   match, roaming, the King's rise, cutscene and cape, the Pitchfork in aim view, a first match,
-  console clean. ~09:45-10:20: ground candy at 1 each, 5x as many; the Pitchfork's large
-  fork at the tip (the menu card, aim view, a shot). Products and prices on Roblox checked (`tools/roblox_products.py --sync`
+  console clean. ~09:45-10:35: ground candy at 1 each, 5x as many; the Pitchfork back
+  on the compact tip fork (template rebuilt, the menu card). Products and prices on Roblox checked (`tools/roblox_products.py --sync`
   dry run: nothing to change; Studio shows the account's discounted prices).
 - **Open:** a real phone, iPad and controller check (only emulated); on phone the 8-ball flair
   overlaps the left end of the Pitchfork's Candy button; the denser ground candy's client cost
