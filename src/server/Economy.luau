@@ -80,6 +80,10 @@ local function candyService(): any?
 			return require(script.Parent.Halloween.CandyService) :: any
 		end)
 		candyModule = if ok and type(module) == "table" then module else nil
+		if candyModule == nil then
+			-- No pocket Candy on this server then (the money still pays): say so once.
+			warn("[8ball] Economy: CandyService did not load: " .. tostring(module))
+		end
 	end
 	return candyModule
 end
