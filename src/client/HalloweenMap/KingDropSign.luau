@@ -67,15 +67,25 @@ local function build(head: BasePart, drop: { Cue: string, Chance: number }): Sig
 	local S = Strings.HalloweenMap
 	local gui = Instance.new("BillboardGui")
 	gui.Name = "KingDropSign"
-	gui.Size = UDim2.new(KS.SizeStuds[1], KS.MinPx[1], KS.SizeStuds[2], KS.MinPx[2])
-	gui.StudsOffsetWorldSpace = Vector3.new(0, KS.AboveHeadStuds, 0)
+	-- Anchored by its bottom edge on the name's centre; a clear strip of the name's half height
+	-- plus GapPx under the card keeps it above the name's top at every distance (both in px).
+	local name = head:FindFirstChild("KingName")
+	local nameStuds, nameHalfPx = KS.NameFallback.Studs, KS.NameFallback.HalfPx
+	if name and name:IsA("BillboardGui") then
+		nameStuds = name.StudsOffsetWorldSpace.Y + name.Size.Y.Scale / 2
+		nameHalfPx = name.Size.Y.Offset / 2
+	end
+	local clearPx = nameHalfPx + KS.GapPx
+	gui.Size = UDim2.new(KS.SizeStuds[1], KS.MinPx[1], KS.SizeStuds[2], KS.MinPx[2] + clearPx)
+	gui.SizeOffset = Vector2.new(0, 0.5)
+	gui.StudsOffsetWorldSpace = Vector3.new(0, nameStuds, 0)
 	gui.MaxDistance = KS.MaxDistance
 	gui.LightInfluence = 0
 	gui.Enabled = wanted(drop.Cue)
 
 	local card = Instance.new("Frame")
 	card.Name = "Card"
-	card.Size = UDim2.fromScale(1, 1)
+	card.Size = UDim2.new(1, 0, 1, -clearPx)
 	card.BackgroundColor3 = rgb(KS.Card)
 	card.Parent = gui
 	local corner = Instance.new("UICorner")
@@ -182,6 +192,9 @@ local function attach(figure: Instance, drop: { Cue: string, Chance: number })
 	end
 	task.spawn(function()
 		local head = figure:WaitForChild("Head", 5)
+		if head then
+			head:WaitForChild("KingName", 2) -- (the sign sits above it; a fallback without)
+		end
 		if
 			not (head and head:IsA("BasePart"))
 			or signs[figure]

@@ -50,6 +50,13 @@ From PLAN §4 (everything else is read-only to this lane; ask through Requests):
 - `Config.HalloweenMap.Props.Budget.Lights = 6` (throne 2 + the throne King's aura 1 + 3 table Kings).
 
 ## Status
+- 04:40 hw-map: **KING SIGN OVERLAP FIXED** (hw-gui QA @6d6fce11: from ~75 studs the name
+  "Pumpkin King" covered "JACK-O'-LANTERN CUE"). Commit 3ce60b7c. The sign is now anchored by its
+  bottom edge (SizeOffset 0, 0.5) on the KingName's centre (3.4 studs), with a clear strip of the
+  name's half height plus `Config.HalloweenMap.KingSign.GapPx` (8 px) under the card. Both are in
+  pixels, so the gap never closes (`AboveHeadStuds` is gone). Studio: clear at 15, 30, 75, 88 (the
+  name's own MaxDistance of 90) and 135 studs (sign alone). Console clean. Shots:
+  `~/Desktop/8ball-refs/halloween/shots/hw-map/king_drop_sign/fix_*.jpg`.
 - 04:08 hw-map: **KING DROP SIGN built** (Justin approved the mock, plus: hidden for an owner).
   - `src/client/HalloweenMap/KingDropSign.luau` (started by MapClient with the Boss on): one
     BillboardGui on the King's stage figure (tag PumpkinKing, ThroneKing) above his name: the
