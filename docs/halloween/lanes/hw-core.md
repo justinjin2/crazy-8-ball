@@ -28,6 +28,12 @@ From PLAN §4 (everything else is read-only; ask below under Requests):
 - Tests: `tests/halloween_*_test.luau`, additions to `save_schema_test` and `config_test`.
 
 ## Status
+- 21:40 hw-core: **the whole track checked end to end with every skin in** (halloween c911297c + my a45d8c6e; hw-core now = halloween 0f6bae83).
+  - Lint OK, 1,477 tests; a regen of the skin data is clean.
+  - Studio: 7,100 Candy grants all 11 steps, the Pitchfork's 4 and the Sword's 11 included (no longer held).
+  - Funnel 3_FirstCandy through 7_Cue7000 fire, HwTrack for all 11 rewards; every node is ticked with its card; console clean.
+  - Candy Corn did not come back: cues-a's branch history restores its rows, but the merge kept them out (no CandyCorn in src/, tests or tools, no candy_corn assets).
+  - The designer's 20:55 notes (a skinnier Pitchfork, a smaller Sword handle, flame VFX) are the cue lanes' work. If their cards change, I swap the Art ids when sent.
 - 21:20 hw-core: **READY @HEAD** a45d8c6e: Art.PitchforkCue = rbxassetid://109608018268838, hw-map's re-rendered card. It replaces 121098110131668 and is the same id as the merged skin's Thumb. hw-map's lane file says it was sent to core; no message reached me, so I took it from their 3a111dca merge.
   - Lint OK, 1,477 tests.
   - Studio on halloween 3a111dca (the Pitchfork's skin in): 600 Candy now grants step 4. Given 1-4; HwTrack 500 [PitchforkCue] and 5_Cue500 fire; "New in your Index: Pitchfork Cue!". The hold released as designed (Catalog.ready).
