@@ -15,7 +15,13 @@ so a row's Color tints them.
     witch_broom/bat_flap_4x4      16 frames, Loop: a bat flapping, front view (symmetric, so it
                                   reads right from every side), black with a violet rim
     witch_broom/witch_moon_4x4    16 frames, OneShot: a pale full moon fades in, a witch on her
-                                  broom crosses it with two bats, it fades out
+                                  broom crosses it with two bats, it fades out (shipped until v3)
+    witch_broom/witch_fly_8x8     64 frames, OneShot (v3, designer 2026-10-29: no moon, the witch
+                                  much smoother and faster): the witch alone sweeps across in an
+                                  arc, her cloak, hair, hat tip and bristles fluttering, a gold and
+                                  violet sparkle trail streaming off the bristles; 128 px cells
+    witch_broom/star5             a five-point star with a soft glow, 256 px (v3: the finisher's
+                                  star fountain and bursts)
     spider/web                    a radial web (spokes and a spiral)
     spider/silk                   a silk strand, tileable left to right (Beam texture)
     spider/web_ring               a ring decal of web strands
@@ -145,6 +151,17 @@ def sheet(frames, fade=None):
             im.putalpha(a)
         r, c = divmod(i, 4)
         out.paste(im, (c * cell + PAD, r * cell + PAD))
+    return out
+
+
+def sheet8(frames, pad=3):
+    """Pack 64 RGBA cell images 8x8 at 1024 (128 px cells, `pad` px clear round each)."""
+    cell = SHEET // 8
+    out = Image.new('RGBA', (SHEET, SHEET), (0, 0, 0, 0))
+    for i, im in enumerate(frames):
+        im = im.resize((cell - 2 * pad, cell - 2 * pad), Image.LANCZOS)
+        r, c = divmod(i, 8)
+        out.paste(im, (c * cell + pad, r * cell + pad))
     return out
 
 
@@ -284,6 +301,116 @@ def witch_moon():
     return sheet(frames)
 
 
+def witch_fly_pose(cv, c, s, lean, ph):
+    """A fuller witch on her broom facing +x for the 128 px cells (v3): a thick stick and a solid
+    bristle fan, a big cloak, a hooked nose, a wide brim and a crooked hat; the flight's flutter
+    at phase `ph` (radians): the cloak's hem and the hair wave, the hat tip flops, the boot
+    kicks, the bristles splay and close."""
+    def T(p):
+        return rot((c[0] + p[0] * s, c[1] + p[1] * s), c, lean)
+    w1, w2, w3 = math.sin(ph), math.sin(ph + 1.3), math.sin(ph + 2.6)
+    # the broom: the stick, then a solid fan of bristles with ragged tips
+    cv.capsule(T((-0.34, -0.1)), T((0.42, -0.02)), 0.03 * s)
+    spread = 0.11 + 0.025 * w2
+    fan = [T((-0.3, -0.07))]
+    for k in range(7):
+        t = k / 6
+        tip_y = -0.1 + spread * (1 - 2 * t) - 0.03 * t
+        tip_x = -0.6 - 0.05 * (0.5 + 0.5 * math.sin(k * 2.3 + ph * 1.5))
+        fan.append(T((tip_x, tip_y)))
+        if k < 6:
+            fan.append(T((tip_x + 0.07, tip_y - spread / 6)))
+    fan.append(T((-0.3, -0.13)))
+    cv.polygon(fan)
+    cv.capsule(T((-0.33, -0.065)), T((-0.33, -0.135)), 0.02 * s)
+    # the cloak: from the shoulders back past the broom, its hem waving
+    cv.polygon([T((0.11, 0.2)), T((0.03, 0.21)), T((-0.12, 0.15 + 0.03 * w1)), T((-0.3 - 0.04 * w2, 0.1 + 0.05 * w3)),
+                T((-0.2, 0.05 + 0.04 * w2)), T((-0.24 - 0.03 * w1, 0.0 + 0.03 * w3)), T((-0.05, -0.05)), T((0.05, -0.05))])
+    # the body leaning forward, the arm to the broom
+    cv.polygon([T((-0.05, -0.07)), T((0.07, -0.07)), T((0.17, 0.12)), T((0.12, 0.21)), T((0.0, 0.17))])
+    cv.capsule(T((0.11, 0.15)), T((0.3, -0.03)), 0.036 * s)
+    cv.ellipse(T((0.31, -0.03)), 0.03 * s, 0.03 * s)
+
+    # the leg tucked back with a pointed boot that kicks a little
+    knee = (-0.04 + 0.01 * w3, -0.15 + 0.015 * w3)
+    cv.capsule(T((0.02, -0.06)), T(knee), 0.042 * s)
+    boot = (knee[0] - 0.13, knee[1] - 0.01 + 0.02 * w1)
+    cv.capsule(T(knee), T(boot), 0.032 * s)
+    cv.polygon([T((0.04, -0.06)), T(knee), T(boot), T((boot[0], -0.1)), T((-0.05, -0.085))])
+    cv.polygon([T((boot[0] + 0.02, boot[1] + 0.03)), T((boot[0] - 0.07, boot[1] + 0.03)), T((boot[0] + 0.02, boot[1] - 0.03))])
+    # the head with a hooked nose
+    cv.ellipse(T((0.15, 0.255)), 0.062 * s, 0.062 * s)
+    cv.polygon([T((0.19, 0.27)), T((0.27, 0.235)), T((0.2, 0.235))])
+    # the hat: a wide tilted brim and a crooked cone whose tip flops back with the wind
+    cv.ellipse(T((0.14, 0.3)), 0.15 * s, 0.026 * s, angle=lean * 0 - 0.12)
+    flop = 0.5 + 0.5 * w1
+    cv.polygon([T((0.06, 0.305)), T((0.23, 0.3)), T((0.2, 0.39)), T((0.12 - 0.08 * flop, 0.52 - 0.02 * flop)),
+                T((0.13, 0.42)), T((0.08, 0.36))])
+    # hair streaming back in waves
+    cv.stroke([T((0.11, 0.24)), T((0.02, 0.25 + 0.02 * w2)), T((-0.08, 0.235 + 0.035 * w3)), T((-0.16, 0.24 + 0.03 * w1))], 0.024 * s)
+    cv.stroke([T((0.1, 0.2)), T((0.0, 0.19 + 0.025 * w3)), T((-0.1, 0.18 + 0.03 * w1))], 0.02 * s)
+
+
+def star_alpha(cv, c, r, points=4, inner=0.32, ang=0.0):
+    """A pointed star (4 or 5 points) of outer radius r at c (unit coordinates)."""
+    pts = []
+    for i in range(points * 2):
+        a = ang + math.pi / 2 + math.pi * i / points
+        rr = r if i % 2 == 0 else r * inner
+        pts.append((c[0] + rr * math.cos(a), c[1] + rr * math.sin(a)))
+    cv.polygon(pts)
+
+
+def witch_fly():
+    """64 frames: the witch alone (no moon) sweeping across the cell in a rising arc, about 1.1 s
+    in game (the finisher's Lifetime; 58 frames a second), so she reads as a smooth, fast fly-by.
+    A sparkle trail (gold stars to violet, shrinking) streams off her bristles."""
+    frames = []
+    n = 64
+    s = 0.52
+    gold = np.array((255, 214, 110), np.float32) / 255.0
+    violet = np.array((190, 130, 255), np.float32) / 255.0
+
+    def path(u):
+        x = 0.32 + 0.46 * u
+        y = 0.4 + 0.14 * math.sin(math.pi * u) + 0.012 * math.sin(2 * math.pi * 3 * u)
+        lean = 0.14 * math.cos(math.pi * u)
+        return x, y, lean
+    for i in range(n):
+        u = i / (n - 1)
+        x, y, lean = path(u)
+        ph = 2 * math.pi * 5 * u
+        cv = Canvas(CELL // 2)
+        witch_fly_pose(cv, (x, y), s, lean, ph)
+        fade = float(smooth(u, 0.0, 0.08) * (1 - smooth(u, 0.9, 1.0)))
+        witch = np.asarray(rimmed(cv.alpha() * fade, (14, 7, 28), VIOLET, rim_px=1.0, glow_px=1, glow=0.3), np.float32) / 255.0
+        # the sparkle trail: stars where the bristles were a moment ago, older ones smaller and violet
+        sp = Canvas(CELL // 2)
+        sp_col = np.zeros((CELL // 2, CELL // 2, 3), np.float32)
+        sp_a = np.zeros((CELL // 2, CELL // 2), np.float32)
+        for kk in range(1, 9):
+            ub = u - 0.065 * kk
+            if ub < 0:
+                break
+            bx, by, bl = path(ub)
+            p = rot((bx - 0.6 * s, by - 0.1 * s + 0.025 * math.sin(kk * 2.1 + i * 0.4)), (bx, by), bl)
+            age = kk / 8
+            one = Canvas(CELL // 2)
+            star_alpha(one, p, (0.042 - 0.024 * age) * (0.85 + 0.3 * hash01(i, kk)), 4, 0.32, 0.4 * kk)
+            a1 = one.alpha() * (1 - 0.75 * age) * fade
+            col = gold * (1 - age) + violet * age
+            sp_col = sp_col * (1 - a1[..., None]) + col[None, None] * a1[..., None]
+            sp_a = sp_a + a1 * (1 - sp_a)
+        glow = np.asarray(Image.fromarray((np.clip(sp_a, 0, 1) * 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(1.6)), np.float32) / 255.0 * 0.6
+        sp_rgb = np.where(sp_a[..., None] > 1e-3, sp_col / np.maximum(sp_a[..., None], 1e-3), gold[None, None])
+        under_a = np.clip(sp_a + glow * (1 - sp_a), 0, 1)
+        wa = witch[..., 3]
+        out_a = wa + under_a * (1 - wa)
+        out_rgb = (witch[..., :3] * wa[..., None] + sp_rgb * (under_a * (1 - wa))[..., None]) / np.maximum(out_a[..., None], 1e-3)
+        frames.append(Image.fromarray((np.dstack([np.clip(out_rgb, 0, 1), np.clip(out_a, 0, 1)]) * 255 + 0.5).astype(np.uint8)))
+    return sheet8(frames)
+
+
 # --------------------------------------------------------------------------- flat sprites
 
 def crescent():
@@ -293,6 +420,17 @@ def crescent():
     alpha = np.clip(disc - bite, 0, 1)
     glow = smooth(r, 0.95, 0.6) * 0.25 * (1 - bite)
     return flat(np.clip(alpha + glow * (1 - alpha), 0, 1))
+
+
+def star5():
+    """A white five-point star (straight edges, crisp points) with a soft glow round it, 256 px."""
+    n = 256
+    cv = Canvas(n)
+    star_alpha(cv, (0.5, 0.49), 0.36, 5, 0.42)
+    body = cv.alpha()
+    soft = np.asarray(Image.fromarray((body * 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(14)), np.float32) / 255.0
+    alpha = np.clip(body + 0.7 * soft * (1 - body), 0, 1)
+    return flat(alpha)
 
 
 def straw():
@@ -359,6 +497,7 @@ def web_ring():
 SPRITES = {
     'witch_broom/crescent': crescent, 'witch_broom/straw': straw,
     'witch_broom/bat_flap_4x4': bat_flap, 'witch_broom/witch_moon_4x4': witch_moon,
+    'witch_broom/witch_fly_8x8': witch_fly, 'witch_broom/star5': star5,
     'spider/web': web, 'spider/silk': silk, 'spider/web_ring': web_ring,
 }
 

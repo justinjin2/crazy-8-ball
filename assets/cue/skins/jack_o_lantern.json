@@ -848,7 +848,7 @@
       ]
     },
     "Pocket": {
-      "Note": "About 1.7 s (hw-sys, 2026-10-28, to C4): a dark ring and a flash, a column of bold painted flames (flame_4x4, opaque: the lobby floor washes the old soft additive fire out), the cue's own carved jack-o'-lantern rising out of the pocket wrapped in flame (jack_o_lantern_rise: its core flickering, nodding as it laughs, three mini 3D jacks circling it), a seed-and-ember burst, then dark smoke (lit, not additive: additive orange smoke stacked into a yellow ball on the bright floor). Of the shared gust only the ring and flash stay: its ribbons, streaks and sparkle crosses read as flat orange cards on the bright floor, and the fire column is the gust. Roblox library laugh 9116239118.",
+      "Note": "About 1.7 s (hw-sys, 2026-10-28, to C4): a dark ring and a flash, a column of bold painted flames (flame_4x4, opaque: the lobby floor washes the old soft additive fire out), the cue's own carved jack-o'-lantern rising out of the pocket wrapped in flame (jack_o_lantern_rise: its core flickering, nodding as it laughs, three mini 3D jacks circling it), a seed-and-ember burst, then dark smoke (lit, not additive: additive orange smoke stacked into a yellow ball on the bright floor). Of the shared gust only the ring and flash stay: its ribbons, streaks and sparkle crosses read as flat orange cards on the bright floor, and the fire column is the gust. Roblox library laugh 9116239118. v3 (designer 2026-10-29): the pumpkin head rising out of the pocket is the clear focus: the three mini jacks that circled it are gone (the Orbit joint and part dropped from jack_o_lantern_rise), the fire column 8 smaller flames (was 18), the flame wrap round the head 6 small flames (was 18), embers 20 and seeds 8 (were 50 and 20), the closing smoke 4 smaller puffs (was 8): 46 particles (was 114). The laugh is 58% quieter (Volume 0.25, was 0.6) and heard only near the table (RollOff 10 to 25 studs, InverseTapered: silent from 25 studs; was 8 to 60).",
       "Flash": {
         "Color": [
           255,
@@ -943,15 +943,15 @@
             "Kind": "Point",
             "Size": 0.6
           },
-          "Burst": 18,
+          "Burst": 8,
           "Delay": 0.0,
           "Lifetime": [
             0.6,
             0.9
           ],
           "Speed": [
-            5,
-            9
+            3.5,
+            6
           ],
           "SpreadAngle": [
             12,
@@ -966,15 +966,15 @@
           "Size": [
             [
               0,
-              0.45
+              0.32
             ],
             [
               0.5,
-              0.8
+              0.55
             ],
             [
               1,
-              0.25
+              0.18
             ]
           ],
           "Transparency": [
@@ -1012,15 +1012,15 @@
               0
             ]
           },
-          "Burst": 18,
+          "Burst": 6,
           "Delay": 0.3,
           "Lifetime": [
             0.7,
             1.0
           ],
           "Speed": [
-            1,
-            2.5
+            0.6,
+            1.4
           ],
           "SpreadAngle": [
             180,
@@ -1034,15 +1034,15 @@
           "Size": [
             [
               0,
-              0.4
+              0.26
             ],
             [
               0.5,
-              0.65
+              0.42
             ],
             [
               1,
-              0.2
+              0.14
             ]
           ],
           "Transparency": [
@@ -1073,7 +1073,7 @@
             "Kind": "Point",
             "Size": 0.4
           },
-          "Burst": 50,
+          "Burst": 20,
           "Delay": 0.6,
           "Lifetime": [
             0.6,
@@ -1097,7 +1097,7 @@
           "Size": [
             [
               0,
-              0.1
+              0.08
             ],
             [
               1,
@@ -1130,7 +1130,7 @@
             "Kind": "Point",
             "Size": 0.4
           },
-          "Burst": 20,
+          "Burst": 8,
           "Delay": 0.6,
           "Lifetime": [
             0.7,
@@ -1183,7 +1183,7 @@
               0
             ]
           },
-          "Burst": 8,
+          "Burst": 4,
           "Delay": 1.3,
           "Lifetime": [
             0.6,
@@ -1206,11 +1206,11 @@
           "Size": [
             [
               0,
-              0.6
+              0.5
             ],
             [
               1,
-              1.4
+              1.0
             ]
           ],
           "Transparency": [
@@ -1247,8 +1247,10 @@
       ],
       "Sound": {
         "Asset": "rbxassetid://9116239118",
-        "Volume": 0.6,
-        "Note": "Roblox library: Pro Sound Effects \"Laugh Evil Male Various Versions 1\" (3.7 s), loads in Play (PreloadAsync Success, TimeLength 3.73)"
+        "Volume": 0.25,
+        "RollOffMinStuds": 10,
+        "RollOffMaxStuds": 25,
+        "Note": "Roblox library: Pro Sound Effects \"Laugh Evil Male Various Versions 1\" (3.7 s), loads in Play (PreloadAsync Success, TimeLength 3.73); v3 (designer 2026-10-29): 58% quieter (0.25, was 0.6) and near the table only: full volume within 10 studs, fading to silent at 25 (InverseTapered, src/client/Effects.luau)"
       },
       "KeepRibbons": false
     },
@@ -1258,7 +1260,7 @@
       "Beams": 0,
       "Lights": 2,
       "Orbiters": 0,
-      "Note": "Plus the decor piece (4 parts, 4,264 triangles; the body is 5 parts, 8,086); trail 39/s while the ball moves; the finisher bursts 116 once and its piece is 3 parts, 6,552 triangles. Firework is 214/s, 1 beam, 2 lights."
+      "Note": "Plus the decor piece (4 parts, 4,264 triangles; the body is 5 parts, 8,086); trail 39/s while the ball moves; the finisher bursts 46 once (114 before v3) and its piece is 2 parts, 3,354 triangles (the three circling mini jacks dropped in v3). Firework is 214/s, 1 beam, 2 lights."
     },
     "Piece": {
       "Note": "pieces/jack_o_lantern_jacks (assets/cue/CuePiecesJack.py): four low-poly carved jacks, the body's pumpkin at a fifth of its size with its inner skin glowing through the face (the body's atlas, no new texture), a stem curling off the top; each an aura joint that bobs, tilts and turns slowly round its stem so its face comes round to every side (Jack1 between the hands, Jack2 behind the grip, Jack3 over the pumpkin, Jack4 behind it). Aim joints; Lower effects hides Jack1 and Jack4."

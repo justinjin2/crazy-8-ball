@@ -5,7 +5,7 @@
 return {
 	Id = "witch_broom",
 	Frame = "cue",
-	Rigid = "106017662921644",
+	Rigid = "119274159538699",
 	Models = {
 		HatCharm = "104736333858086",
 	},
@@ -82,8 +82,8 @@ return {
 			},
 			Name = "Bristles_Bark",
 			Joint = "Bristles",
-			Offset = { 0.0011, -0.0142, -4.2384 },
-			Size = { 1.3685, 1.3499, 1.4768 },
+			Offset = { -0.0103, -0.0142, -4.076 },
+			Size = { 1.3458, 1.3499, 1.1519 },
 			Outline = false,
 		},
 	},

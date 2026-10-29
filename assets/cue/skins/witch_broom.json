@@ -4,7 +4,7 @@
   "tier": "Secret",
   "catalog_id": "WitchBroomCue",
   "draft": false,
-  "note": "Halloween 2026 (lane Cues B, docs/prompts/HW_CUES_B_PROMPT.md 2.4, concept C3b_broom.png), remade 2026-10-28 (Justin 12:55): a real broom, a gnarled twisted branch with knots and a broken stub, a violet crystal tip with a silver coil, a thick purple binding with a silver buckle and gold crescent, a big full head of golden straw (3.3x), a swaying witch-hat charm; moons, stars, bats and spell stars round it, potion smoke and bats out of the bristles, sparks from the crystal. No ribbons.",
+  "note": "Halloween 2026 (lane Cues B, docs/prompts/HW_CUES_B_PROMPT.md 2.4, concept C3b_broom.png), remade 2026-10-28 (Justin 12:55): a real broom, a gnarled twisted branch with knots and a broken stub, a violet crystal tip with a silver coil, a thick purple binding with a silver buckle and gold crescent, a big full head of golden straw (3.3x), a swaying witch-hat charm; moons, stars, bats and spell stars round it, potion smoke and bats out of the bristles, sparks from the crystal. No ribbons. v3 (2026-10-29): the finisher is a witch's-hat constellation and the witch alone, no portal rings or moon.",
   "body": "witch_broom",
   "maps_from": "classic",
   "look": {
@@ -61,7 +61,7 @@
       "Note": "The moons, stars, bats and spell stars (the aura piece), the two orbiters and the halo beam move; the crystal glows 0.25-1.0 over 2.4 s; the charm swings over 1.8 s; the bristle head flexes over 2.6 and 4 s."
     },
     "Aura": {
-      "Note": "Secret (brief 2.4), third build (Justin 12:55: no ribbons, the Broom's own effects), inside out: a deep violet haze body, a violet additive glow, emerald wisps, violet motes, star and gold glints, crescent flecks along the handle; at the bristle head potion smoke curling up out of the straw (teal to violet), potion bubbles rising, straw leaves flying off and bats bursting out of it; sparks and a flare spraying from the crystal; a sparkle trickle from the hat charm; spell pops (four star pops, sparks; no rings); one violet halo beam; a violet PointLight at the crystal, an emerald one mid-handle and a gold one at the binding; two sparkle heads riding the cue; violet outline. About 169 particles a second before BackRateScale (budget 170).",
+      "Note": "Secret (brief 2.4), third build (Justin 12:55: no ribbons, the Broom's own effects), inside out: a deep violet haze body, a violet additive glow, emerald wisps, violet motes, star and gold glints, crescent flecks along the handle; at the bristle head potion smoke curling up out of the straw (teal to violet), potion bubbles rising, straw leaves flying off and bats bursting out of it; sparks and a flare spraying from the crystal; a sparkle trickle from the hat charm; spell pops (four star pops, sparks; no rings); one violet halo beam; a violet PointLight at the crystal, an emerald one mid-handle and a gold one at the binding; two sparkle heads riding the cue; violet outline. About 169 particles a second before BackRateScale (budget 170). v3 (designer 2026-10-29: the Halloween cues' effects climb like a ladder, Pitchfork, Broom, Jack, Sword; the Broom is the second rung): the haze and glow cloud thinned (Haze and VioletGlow 8/s, were 12; the teal glow and the mid-handle emerald light gone; the emerald wisps 6/s, were 16) and the sparkles fewer (star glints 10, gold glints 6, violet motes 6, crescents 6/s): 115.45 particles a second (was 157.45), two lights (was three). The moons, stars, bats and spell stars of the aura piece, the potion smoke and bats at the bristles, the crystal's flare and sparks, the halo beam and the two sparkle heads stay.",
       "Emitters": [
         {
           "Name": "Haze",
@@ -76,7 +76,7 @@
             "Shape": "Cylinder",
             "ShapeStyle": "Volume"
           },
-          "Rate": 12,
+          "Rate": 8,
           "Lifetime": [
             1.6,
             2.4
@@ -161,7 +161,7 @@
             "Shape": "Cylinder",
             "ShapeStyle": "Volume"
           },
-          "Rate": 12,
+          "Rate": 8,
           "Lifetime": [
             1.2,
             1.8
@@ -235,92 +235,6 @@
           "Brightness": 1.0
         },
         {
-          "Name": "TealGlow",
-          "Texture": "vfx/v2/smoke_8x8.png",
-          "FlipbookLayout": "Grid8x8",
-          "FlipbookMode": "OneShot",
-          "Host": {
-            "Kind": "Part",
-            "FromStuds": 0.3,
-            "ToStuds": 7.0,
-            "Width": 1.0,
-            "Shape": "Cylinder",
-            "ShapeStyle": "Volume"
-          },
-          "Rate": 6,
-          "Lifetime": [
-            1.2,
-            1.8
-          ],
-          "Speed": [
-            0.05,
-            0.25
-          ],
-          "SpreadAngle": [
-            180,
-            180
-          ],
-          "Drag": 1.2,
-          "Size": [
-            [
-              0,
-              0.7
-            ],
-            [
-              0.5,
-              1.3
-            ],
-            [
-              1,
-              1.6
-            ]
-          ],
-          "Transparency": [
-            [
-              0,
-              1
-            ],
-            [
-              0.1,
-              0.4
-            ],
-            [
-              0.6,
-              0.7
-            ],
-            [
-              1,
-              1
-            ]
-          ],
-          "Rotation": [
-            0,
-            360
-          ],
-          "RotSpeed": [
-            -25,
-            25
-          ],
-          "Color": [
-            [
-              0,
-              "#2EE6A0"
-            ],
-            [
-              0.5,
-              "#14A070"
-            ],
-            [
-              1,
-              "#0E5A40"
-            ]
-          ],
-          "LightEmission": 1,
-          "LightInfluence": 0,
-          "LockedToPart": true,
-          "Brightness": 0.9
-        },
-        {
           "Name": "EmeraldWisps",
           "Texture": "vfx/v2/wisp_8x8.png",
           "FlipbookLayout": "Grid8x8",
@@ -333,7 +247,7 @@
             "Shape": "Cylinder",
             "ShapeStyle": "Volume"
           },
-          "Rate": 16,
+          "Rate": 6,
           "Lifetime": [
             1.0,
             1.6
@@ -419,7 +333,7 @@
             "Shape": "Cylinder",
             "ShapeStyle": "Volume"
           },
-          "Rate": 10,
+          "Rate": 6,
           "Lifetime": [
             1.2,
             2.0
@@ -499,7 +413,7 @@
             "Shape": "Cylinder",
             "ShapeStyle": "Volume"
           },
-          "Rate": 16,
+          "Rate": 10,
           "Lifetime": [
             0.5,
             0.9
@@ -562,7 +476,7 @@
             "Shape": "Cylinder",
             "ShapeStyle": "Volume"
           },
-          "Rate": 10,
+          "Rate": 6,
           "Lifetime": [
             0.6,
             1.0
@@ -620,7 +534,7 @@
             "Shape": "Cylinder",
             "ShapeStyle": "Volume"
           },
-          "Rate": 10,
+          "Rate": 6,
           "Lifetime": [
             1.4,
             2.0
@@ -1731,17 +1645,6 @@
           }
         },
         {
-          "AtStuds": 3.5,
-          "Color": "#2EE6A0",
-          "Brightness": 0.6,
-          "Range": 7,
-          "Flicker": {
-            "Min": 0.8,
-            "Max": 1.1,
-            "Period": 3.1
-          }
-        },
-        {
           "AtStuds": 6.9,
           "Color": "#FFD36A",
           "Brightness": 0.6,
@@ -2159,7 +2062,7 @@
       ]
     },
     "Pocket": {
-      "Note": "Secret, about 2.2 s: a violet flash; the portal piece (two Neon rings turning opposite ways, a ForceField disc, crescents and stars riding them) rises and widens over the pocket with a swirl disc lying flat in it; a dark column behind a column of sparkles and crescents; then the witch over the moon (a 4x4 OneShot flipbook, 4.5 studs, 3 studs up: the moon fades in, the witch crosses with two bats, it fades); a gold star burst at the moon; bats; violet and emerald ring decals on the cloth; motes raining down to close.",
+      "Note": "Secret, about 2.2 s, v3 (designer 2026-10-29: the portal rings read like the Beta cue's; no moon, the witch smoother and faster): a violet flash; a witch's-hat constellation (pieces/witch_broom_stars: eight Neon stars joined by violet chart lines, twinkling at their own pace, dust stars round it) rises and grows out of the pocket facing the camera; a dark column behind a fountain of gold five-point stars; twinkling star dust round the hat; then the witch alone (no moon: a 64-frame OneShot flipbook of 128 px cells, 1.05 s, about 60 frames a second, 5 studs, 3.4 up; was 16 frames over 2.2 s) sweeps across the hat's tip with a gold and violet sparkle trail off her bristles; a gold star burst at the hat's tip; bats; stars raining down to close. No ring decals, no swirl disc, no shared gust ribbons (KeepRibbons false); only the shared gust's own shockwave ring on the cloth stays, as on every cue.",
       "Flash": {
         "Color": [
           190,
@@ -2169,24 +2072,7 @@
         "Brightness": 12,
         "Seconds": 0.35
       },
-      "Rings": [
-        {
-          "Texture": "vfx/v2/ring.png",
-          "Color": "#B07CFF",
-          "Start": 0.4,
-          "End": 5.0,
-          "Seconds": 0.6,
-          "Delay": 0.05
-        },
-        {
-          "Texture": "vfx/v2/ring.png",
-          "Color": "#2EE6A0",
-          "Start": 0.3,
-          "End": 3.6,
-          "Seconds": 0.5,
-          "Delay": 0.35
-        }
-      ],
+      "Rings": [],
       "Layers": [
         {
           "Name": "DarkColumn",
@@ -2197,7 +2083,7 @@
             "Kind": "Point",
             "Size": 0.5
           },
-          "Burst": 10,
+          "Burst": 8,
           "Lifetime": [
             0.7,
             1.1
@@ -2250,152 +2136,77 @@
           "LightInfluence": 0
         },
         {
-          "Name": "Column",
-          "Texture": "vfx/v2/wisp_8x8.png",
-          "FlipbookLayout": "Grid8x8",
-          "FlipbookMode": "OneShot",
+          "Name": "StarFountain",
+          "Texture": "vfx/witch_broom/star5.png",
+          "Delay": 0.05,
           "Host": {
             "Kind": "Point",
             "Size": 0.4
           },
-          "Burst": 16,
+          "Burst": 18,
           "Lifetime": [
-            0.6,
-            0.9
+            0.8,
+            1.2
           ],
           "Speed": [
-            3,
-            6
+            4,
+            8
           ],
           "SpreadAngle": [
             14,
             14
           ],
           "EmissionDirection": "Top",
-          "Drag": 2,
-          "Size": [
-            [
-              0,
-              0.5
-            ],
-            [
-              0.4,
-              1.0
-            ],
-            [
-              1,
-              0.3
-            ]
-          ],
-          "Transparency": [
-            [
-              0,
-              0.1
-            ],
-            [
-              0.6,
-              0.3
-            ],
-            [
-              1,
-              1
-            ]
-          ],
-          "Color": [
-            [
-              0,
-              "#F0E4FF"
-            ],
-            [
-              0.5,
-              "#9B4DFF"
-            ],
-            [
-              1,
-              "#2EE6A0"
-            ]
-          ],
-          "LightEmission": 1,
-          "LightInfluence": 0
-        },
-        {
-          "Name": "Swirl",
-          "Texture": "vfx/v2/swirl_8x8.png",
-          "FlipbookLayout": "Grid8x8",
-          "FlipbookMode": "OneShot",
-          "Delay": 0.05,
-          "Host": {
-            "Kind": "Point",
-            "Offset": [
-              0,
-              0.15,
-              0
-            ],
-            "Size": 0
-          },
-          "Burst": 3,
-          "Lifetime": [
-            1.2,
-            1.6
-          ],
-          "Speed": [
-            0.3,
-            0.5
-          ],
-          "SpreadAngle": [
+          "Drag": 2.2,
+          "Acceleration": [
             0,
+            -1.5,
             0
           ],
-          "EmissionDirection": "Top",
-          "Orientation": "VelocityPerpendicular",
           "Size": [
             [
               0,
-              1.6
+              0.0
             ],
             [
-              0.5,
-              3.0
-            ],
-            [
-              1,
-              3.6
-            ]
-          ],
-          "Transparency": [
-            [
-              0,
+              0.15,
               0.3
             ],
             [
-              0.5,
-              0.4
+              0.7,
+              0.22
             ],
             [
               1,
-              1
+              0.0
             ]
           ],
+          "Transparency": 0,
+          "Rotation": [
+            0,
+            72
+          ],
           "RotSpeed": [
-            60,
-            90
+            -120,
+            120
           ],
           "Color": [
             [
               0,
-              "#B07CFF"
+              "#FFF6D0"
             ],
             [
-              0.6,
-              "#9B4DFF"
+              0.45,
+              "#FFD36A"
             ],
             [
               1,
-              "#2EE6A0"
+              "#9B4DFF"
             ]
           ],
           "LightEmission": 1,
-          "LightInfluence": 0
+          "LightInfluence": 0,
+          "Brightness": 3.5
         },
         {
           "Name": "Sparkles",
@@ -2405,7 +2216,7 @@
             "Kind": "Point",
             "Size": 0.3
           },
-          "Burst": 36,
+          "Burst": 28,
           "Lifetime": [
             0.7,
             1.2
@@ -2462,80 +2273,104 @@
           "Brightness": 4
         },
         {
-          "Name": "Crescents",
-          "Texture": "vfx/witch_broom/crescent.png",
-          "Delay": 0.2,
-          "Host": {
-            "Kind": "Point",
-            "Size": 0.3
-          },
-          "Burst": 10,
-          "Lifetime": [
-            0.9,
-            1.3
-          ],
-          "Speed": [
-            2.5,
-            5
-          ],
-          "SpreadAngle": [
-            25,
-            25
-          ],
-          "EmissionDirection": "Top",
-          "Acceleration": [
-            0,
-            -3,
-            0
-          ],
-          "Size": 0.26,
-          "Transparency": [
-            [
-              0,
-              0
-            ],
-            [
-              0.8,
-              0
-            ],
-            [
-              1,
-              1
-            ]
-          ],
-          "Rotation": [
-            -40,
-            40
-          ],
-          "RotSpeed": [
-            -90,
-            90
-          ],
-          "Color": "#FFE08A",
-          "LightEmission": 1,
-          "LightInfluence": 0,
-          "Brightness": 1.6
-        },
-        {
-          "Name": "WitchMoon",
-          "Texture": "vfx/witch_broom/witch_moon_4x4.png",
-          "FlipbookLayout": "Grid4x4",
-          "FlipbookMode": "OneShot",
-          "FlipbookFramerate": 7.3,
-          "Delay": 0.25,
+          "Name": "Twinkles",
+          "Texture": "vfx/_shared/star4.png",
+          "Delay": 0.3,
           "Host": {
             "Kind": "Point",
             "Offset": [
               0,
-              3.0,
+              2.3,
+              0
+            ],
+            "Size": 2.8
+          },
+          "Burst": 24,
+          "Lifetime": [
+            1.0,
+            1.6
+          ],
+          "Speed": [
+            0,
+            0.25
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Drag": 2,
+          "Size": [
+            [
+              0,
+              0.0
+            ],
+            [
+              0.2,
+              0.2
+            ],
+            [
+              0.4,
+              0.06
+            ],
+            [
+              0.6,
+              0.22
+            ],
+            [
+              0.8,
+              0.05
+            ],
+            [
+              1,
+              0.0
+            ]
+          ],
+          "Transparency": 0,
+          "Rotation": [
+            0,
+            45
+          ],
+          "RotSpeed": [
+            -40,
+            40
+          ],
+          "Color": [
+            [
+              0,
+              "#FFFFFF"
+            ],
+            [
+              0.5,
+              "#FFE9A8"
+            ],
+            [
+              1,
+              "#2EE6A0"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "Brightness": 3
+        },
+        {
+          "Name": "Witch",
+          "Texture": "vfx/witch_broom/witch_fly_8x8.png",
+          "FlipbookLayout": "Grid8x8",
+          "FlipbookMode": "OneShot",
+          "Delay": 0.35,
+          "Host": {
+            "Kind": "Point",
+            "Offset": [
+              0,
+              3.4,
               0
             ],
             "Size": 0
           },
           "Burst": 1,
           "Lifetime": [
-            2.2,
-            2.2
+            1.05,
+            1.05
           ],
           "Speed": [
             0,
@@ -2545,7 +2380,7 @@
             0,
             0
           ],
-          "Size": 4.5,
+          "Size": 5.0,
           "Transparency": 0,
           "Rotation": 0,
           "Color": "#FFFFFF",
@@ -2555,18 +2390,18 @@
         },
         {
           "Name": "StarBurst",
-          "Texture": "vfx/v2/flare.png",
-          "Delay": 0.6,
+          "Texture": "vfx/witch_broom/star5.png",
+          "Delay": 0.75,
           "Host": {
             "Kind": "Point",
             "Offset": [
               0,
-              3.0,
+              3.6,
               0
             ],
             "Size": 0
           },
-          "Burst": 24,
+          "Burst": 20,
           "Lifetime": [
             0.5,
             0.8
@@ -2586,7 +2421,7 @@
             ],
             [
               0.3,
-              0.35
+              0.32
             ],
             [
               1,
@@ -2596,7 +2431,7 @@
           "Transparency": 0,
           "Rotation": [
             0,
-            45
+            72
           ],
           "Color": [
             [
@@ -2604,13 +2439,21 @@
               "#FFF6D0"
             ],
             [
-              1,
+              0.6,
               "#FFD36A"
+            ],
+            [
+              1,
+              "#2EE6A0"
             ]
           ],
           "LightEmission": 1,
           "LightInfluence": 0,
-          "Brightness": 5
+          "Brightness": 5,
+          "RotSpeed": [
+            -180,
+            180
+          ]
         },
         {
           "Name": "Bats",
@@ -2674,9 +2517,9 @@
           "LightInfluence": 0
         },
         {
-          "Name": "Motes",
-          "Texture": "vfx/v2/dust.png",
-          "Delay": 0.9,
+          "Name": "StarRain",
+          "Texture": "vfx/_shared/star4.png",
+          "Delay": 0.95,
           "Host": {
             "Kind": "Point",
             "Offset": [
@@ -2686,7 +2529,7 @@
             ],
             "Size": 2.4
           },
-          "Burst": 30,
+          "Burst": 24,
           "Lifetime": [
             0.8,
             1.3
@@ -2707,11 +2550,11 @@
           "Size": [
             [
               0,
-              0.16
+              0.14
             ],
             [
               1,
-              0.05
+              0.04
             ]
           ],
           "Transparency": [
@@ -2738,63 +2581,75 @@
               "#FFFFFF"
             ],
             [
+              0.5,
+              "#FFE9A8"
+            ],
+            [
               1,
-              "#D9B8FF"
+              "#C9A0FF"
             ]
           ],
           "LightEmission": 1,
           "LightInfluence": 0,
-          "Brightness": 2
+          "Brightness": 2,
+          "RotSpeed": [
+            -90,
+            90
+          ]
         }
       ],
       "Piece": {
-        "Piece": "witch_broom_pocket",
+        "Piece": "witch_broom_stars",
         "Delay": 0.05,
         "Seconds": 2.2,
         "Rise": [
           [
             0,
-            -0.4
+            -0.3
           ],
           [
             0.3,
-            0.8
+            0.9
           ],
           [
             0.75,
-            1.4
+            1.3
           ],
           [
             1,
-            1.7
+            1.5
           ]
         ],
         "Scale": [
           [
             0,
-            0.6
+            0.5
           ],
           [
             0.3,
-            1.4
+            1.3
           ],
           [
             0.8,
-            1.8
+            1.55
           ],
           [
             1,
-            1.9
+            1.6
           ]
         ],
         "Spin": [
           [
             0,
-            0
+            -20
+          ],
+          [
+            0.5,
+            8
           ],
           [
             1,
-            360
+            20
           ]
         ],
         "Transparency": [
@@ -2822,6 +2677,7 @@
         "ShellFade": 0.3,
         "EmissiveScale": 1.0
       },
+      "KeepRibbons": false,
       "Sound": {
         "Asset": "rbxassetid://9125646252",
         "Volume": 0.45,
@@ -2831,16 +2687,16 @@
       }
     },
     "Budget": {
-      "ParticlesPerSecond": 157.45,
+      "ParticlesPerSecond": 115.45,
       "Beams": 1,
-      "Lights": 3,
+      "Lights": 2,
       "Orbiters": 2,
       "BodyTriangles": 9600,
       "PieceTriangles": 2392,
-      "PocketPieceTriangles": 4928,
-      "Note": "Third build (2026-10-28, 13:15): the remade broom body (6 parts, 9,600 triangles: gnarled handle, 3.3x straw head) and the aura piece without ribbons (19 parts, 2,392 triangles: moons, stars, bats, three spell stars).",
+      "PocketPieceTriangles": 652,
+      "Note": "Third build (2026-10-28, 13:15): the remade broom body (6 parts, 9,600 triangles: gnarled handle, 3.3x straw head) and the aura piece without ribbons (19 parts, 2,392 triangles: moons, stars, bats, three spell stars). v3 (2026-10-29): the finisher piece is the hat constellation witch_broom_stars (11 parts, 652 triangles, was the portal rings' 13 parts, 4,928) and bursts 127 particles once (was 134).",
       "OrbiterHeads": 48,
-      "LivePps": "measured 168.4/s in hand and on the back with the two orbiter heads (Config.CueSkins HeadRate 24 each); 180.4 before the trim (robustness pass 2026-10-28)"
+      "LivePps": "measured 168.4/s in hand and on the back with the two orbiter heads (Config.CueSkins HeadRate 24 each); 180.4 before the trim (robustness pass 2026-10-28); v3: 115.45/s plus the two heads (48) = 163.45"
     }
   }
 }

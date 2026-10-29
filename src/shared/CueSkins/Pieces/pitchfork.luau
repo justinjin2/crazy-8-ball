@@ -86,7 +86,6 @@ return {
 			Parent = nil,
 			PivotRoblox = { -0, 0, 2.28 },
 			Motion = {},
-			Aim = "fade",
 		},
 	},
 }
