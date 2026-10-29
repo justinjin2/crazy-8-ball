@@ -3,11 +3,11 @@
   "name": "Pitchfork Cue",
   "tier": "Legendary",
   "catalog_id": "PitchforkCue",
-  "note": "Halloween 2026 track cue, 500 Candy (the designer's slot-2 pick, coordinator 2026-10-28 19:40; concept mocks/v3/R2.png). Only ever \"Pitchfork Cue\", never \"devil\". Built by lane hw-map (assets/cue/CuePiecesHalloween_Pitchfork.py); core owns its Catalog, Track, Strings and Art rows. Remade 2026-10-29 (the designer): a compact fork at the TIP, about half as wide, flat, the middle prong is the tip; the outer prongs fade while aiming, the flames on their points.",
+  "note": "Halloween 2026 track cue, 500 Candy (the designer's slot-2 pick, coordinator 2026-10-28 19:40; concept mocks/v3/R2.png). Only ever \"Pitchfork Cue\", never \"devil\". Built by lane hw-map (assets/cue/CuePiecesHalloween_Pitchfork.py); core owns its Catalog, Track, Strings and Art rows.",
   "body": "pitchfork",
   "maps_from": "classic",
-  "thumb_margin": 1.8,
-  "thumb_shift": -0.12,
+  "thumb_margin": 2.4,
+  "thumb_shift": 0.3,
   "look": {
     "Shaft": "#D81E1E",
     "Forearm": "#D81E1E",
@@ -20,10 +20,10 @@
   "vfx": {
     "Moving": {
       "Kind": "Body motion",
-      "Note": "The tail's arrowhead tip sways; small painted flames flicker on the two outer prongs' points (the fork is at the tip since 2026-10-29); a few sparks rise off the fork. No light (a coloured light dyes the body by day)."
+      "Note": "The tail's arrowhead tip sways; small painted flames flicker on the three prong tips; a few sparks rise off the fork. No light (a coloured light dyes the body by day)."
     },
     "Aura": {
-      "Note": "Opaque painted flames (red, orange only at the tongues' tips) at the two outer arrowheads' points, set back 0.32 from the tip (none on the middle point: it is the cue's tip and meets the ball), and sparks off the fork: no additive mush on the bright floor (coordinator 19:40). They name the fork's Tines joint; the whole aura goes quiet on the owner's turn, when the outer prongs fade.",
+      "Note": "Opaque painted flames (red, orange only at the tongues' tips) at the three arrowheads' points (rising clear of the red prongs, lab 2026-10-28), and sparks: no additive mush on the bright floor (coordinator 19:40). They ride the fork's joint; the whole aura goes quiet on the owner's turn, when the fork fades.",
       "BackRateScale": 0.5,
       "Outline": "#FF3B2F",
       "Orbiters": [],
@@ -31,16 +31,97 @@
       "Lights": [],
       "Emitters": [
         {
+          "Name": "TipFlameMid",
+          "Texture": "vfx/pitchfork/flame_4x4.png",
+          "FlipbookLayout": "Grid4x4",
+          "FlipbookMode": "OneShot",
+          "Host": {
+            "Kind": "Attachment",
+            "AtStuds": 8.4,
+            "Up": 0.0,
+            "Side": 0.0,
+            "Joint": "Fork"
+          },
+          "Rate": 8,
+          "Lifetime": [
+            0.45,
+            0.6
+          ],
+          "Speed": [
+            0.3,
+            0.6
+          ],
+          "SpreadAngle": [
+            25,
+            25
+          ],
+          "Acceleration": [
+            0,
+            3.5,
+            0
+          ],
+          "Drag": 0.5,
+          "Size": [
+            [
+              0,
+              0.18
+            ],
+            [
+              0.35,
+              0.32
+            ],
+            [
+              1,
+              0.1
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0.2
+            ],
+            [
+              0.12,
+              0.0
+            ],
+            [
+              0.75,
+              0.1
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Rotation": [
+            -10,
+            10
+          ],
+          "Color": [
+            [
+              0,
+              "#FFFFFF"
+            ],
+            [
+              1,
+              "#FFFFFF"
+            ]
+          ],
+          "LightEmission": 0,
+          "LightInfluence": 0,
+          "Brightness": 1.0
+        },
+        {
           "Name": "TipFlameA",
           "Texture": "vfx/pitchfork/flame_4x4.png",
           "FlipbookLayout": "Grid4x4",
           "FlipbookMode": "OneShot",
           "Host": {
             "Kind": "Attachment",
-            "AtStuds": 0.4,
-            "Up": 0.0,
-            "Side": -0.31,
-            "Joint": "Tines"
+            "AtStuds": 8.37,
+            "Up": 0.4,
+            "Side": -0.693,
+            "Joint": "Fork"
           },
           "Rate": 8,
           "Lifetime": [
@@ -118,10 +199,10 @@
           "FlipbookMode": "OneShot",
           "Host": {
             "Kind": "Attachment",
-            "AtStuds": 0.4,
-            "Up": 0.0,
-            "Side": 0.31,
-            "Joint": "Tines"
+            "AtStuds": 8.37,
+            "Up": -0.4,
+            "Side": 0.693,
+            "Joint": "Fork"
           },
           "Rate": 8,
           "Lifetime": [
@@ -197,12 +278,12 @@
           "Texture": "vfx/_shared/spark.png",
           "Host": {
             "Kind": "Part",
-            "FromStuds": 0.1,
-            "ToStuds": 1.3,
-            "Width": 0.82,
+            "FromStuds": 7.2,
+            "ToStuds": 8.45,
+            "Width": 1.4,
             "Shape": "Cylinder",
             "ShapeStyle": "Volume",
-            "Joint": "Tines"
+            "Joint": "Fork"
           },
           "LockedToPart": false,
           "Rate": 5,
@@ -752,14 +833,14 @@
       }
     },
     "Budget": {
-      "ParticlesPerSecond": 21,
-      "Back": 10.5,
+      "ParticlesPerSecond": 29,
+      "Back": 14.5,
       "Beams": 0,
       "Lights": 0,
       "Orbiters": 0,
-      "BodyTriangles": 8960,
+      "BodyTriangles": 9440,
       "PocketPieceTriangles": 0,
-      "Note": "No decor or pocket piece: the body (3 parts, 8,960 triangles, one 256 x 1024 atlas: the lathe with the middle prong, the horns and the coil; the tail's swaying tip; the yoke and the outer prongs) carries the look; the aura 21/s (two tip flames and sparks); the trail 79/s while the ball moves (lifetimes halved by TrailEmitterLifetimeScale: about 20 flames alive, overlapping into a streak); the finisher bursts 96 particles once."
+      "Note": "No decor or pocket piece: the body (3 parts, 8,442 triangles, one 256 x 1024 atlas: the lathe with the horns and the coil, the tail's swaying tip, the fork) carries the look; the aura 29/s (three tip flames and sparks); the trail 79/s while the ball moves (lifetimes halved by TrailEmitterLifetimeScale: about 20 flames alive, overlapping into a streak); the finisher bursts 96 particles once."
     }
   }
 }

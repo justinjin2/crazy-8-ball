@@ -17665,7 +17665,7 @@ Config.UI.Halloween = {
 	-- Candy packs) and cash.
 	Art = {
 		JackOLanternCue = "rbxassetid://114487013205177",
-		PitchforkCue = "rbxassetid://110284560248397", -- its skin's Thumb (the compact fork at the tip, rim-popped; 2026-10-29)
+		PitchforkCue = "rbxassetid://139633646140924", -- its skin's Thumb (the slim fork past the butt, rim-popped; back from the compact tip fork, designer 2026-10-29: too small)
 		WitchBroomCue = "rbxassetid://82560329966868", -- its skin's Thumb (22% thinner; 2026-10-29)
 		HalloweenSwordCue = "rbxassetid://106906520938583", -- cues-a's v5 card (its skin's Thumb; the slim hilt, rim-popped)
 		Header = "rbxassetid://100823591958466", -- the menu header's jack-o'-lantern ("" = the Candy icon)

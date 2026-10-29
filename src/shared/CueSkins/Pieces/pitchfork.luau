@@ -5,7 +5,7 @@
 return {
 	Id = "pitchfork",
 	Frame = "cue",
-	Rigid = "116270933265788",
+	Rigid = "136051344252950",
 	Models = {},
 	Parts = {
 		{
@@ -22,7 +22,6 @@ return {
 			Joint = "Body",
 			Offset = { 0, 0.0117, -0.004 },
 			Size = { 0.3768, 0.4002, 7.008 },
-			Smooth = true,
 		},
 		{
 			Material = "SmoothPlastic",
@@ -38,7 +37,6 @@ return {
 			Joint = "TailTip",
 			Offset = { 0.0245, 0.2248, -0.3864 },
 			Size = { 0.3041, 0.1923, 0.539 },
-			Smooth = true,
 		},
 		{
 			Material = "SmoothPlastic",
@@ -50,11 +48,10 @@ return {
 				RoughnessMap = "rbxassetid://109325063007596",
 				UseRoughness = true,
 			},
-			Name = "Tines_Pitchfork",
-			Joint = "Tines",
-			Offset = { 0, 0, 2.6525 },
-			Size = { 0.9185, 0.1623, 1.055 },
-			Smooth = true,
+			Name = "Fork_Pitchfork",
+			Joint = "Fork",
+			Offset = { 0, 0, -4.2325 },
+			Size = { 1.8001, 1.0564, 1.495 },
 		},
 	},
 	Joints = {
@@ -82,9 +79,9 @@ return {
 				},
 			},
 		},
-		Tines = {
+		Fork = {
 			Parent = nil,
-			PivotRoblox = { -0, 0, 2.28 },
+			PivotRoblox = { -0, 0, -3.5 },
 			Motion = {},
 			Aim = "fade",
 		},
