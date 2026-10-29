@@ -43,6 +43,77 @@ local function touches(a: any, b: any): boolean
 	return a.x < b.x + b.w and b.x < a.x + a.w and a.y < b.y + b.h and b.y < a.y + a.h
 end
 
+-- The showcase's stage as CuePreview builds it (Config.UI.CuePreview.Origin; the 9-foot table,
+-- the foot rail's corner pocket, the ball StartShare back along its diagonal, the floating cue
+-- LiftStuds over the stage), a tall finisher and the window at `size`.
+local function showcaseStage(size: any, reach: any?)
+	local M = H.require("CuePreviewMath")
+	local Config = H.require("Config")
+	local C = Config.UI.CuePreview
+	local S = C.Showcase
+	local spi = Config.Table.StudsPerInch
+	local o = { x = C.Origin[1], y = C.Origin[2], z = C.Origin[3] }
+	local cloth = o.y + Config.Table.SurfaceHeightStuds
+	local r = Config.Balls.RenderRadiusInches * spi
+	local px, pz = 50 * spi, 25 * spi -- the corner pocket (+x, -y in the table's own frame)
+	local pocket = { x = o.x + px, y = cloth + r, z = o.z + pz }
+	local back = S.StartShare
+	local start = { x = o.x + px * (1 - back), y = cloth + r, z = o.z + pz * (1 - back) }
+	local scene = {
+		spot = { x = o.x, y = o.y + S.Model.LiftStuds, z = o.z },
+		start = start,
+		pocket = pocket,
+		ball = start,
+		cloth = cloth,
+		span = M.cueSpan(Config.Cue.CueLengthStuds, {}),
+		reach = reach or { top = 6, radius = 2, seconds = 3 },
+	}
+	local p = M.showcasePanel(size.screen)
+	local window = {
+		x = p.window.x + size.offset.x,
+		y = p.window.y + size.offset.y,
+		w = p.window.w,
+		h = p.window.h,
+	}
+	local view = {
+		viewport = size.viewport,
+		at = { x = window.x + window.w / 2, y = window.y + window.h / 2 },
+		half = {
+			w = window.w / 2 * (1 - C.Fit.MarginShare),
+			h = window.h / 2 * (1 - C.Fit.MarginShare),
+		},
+		windowH = window.h,
+	}
+	return scene, window, view
+end
+
+-- Where `shot` puts its camera (the eye, the point it looks at, the camera's field of view).
+local function aim(shot: any, view: any): (any, any, number)
+	local M = H.require("CuePreviewMath")
+	local fov = M.cameraFov(shot.fovDeg, view.viewport.h, view.windowH)
+	local eye, target =
+		M.camera(shot.focus, shot.yaw, shot.pitch, shot.distance, fov, view.viewport, view.at)
+	return eye, target, fov
+end
+
+-- The ball where the client puts it at `beat` (rolled `beat.roll` of its path).
+local function ballAt(scene: any, beat: any): any
+	local a, b = scene.start, scene.pocket
+	return {
+		x = a.x + (b.x - a.x) * beat.roll,
+		y = a.y,
+		z = a.z + (b.z - a.z) * beat.roll,
+	}
+end
+
+local function within(px: any, window: any, slack: number?): boolean
+	local e = slack or 0
+	return px.x >= window.x - e
+		and px.x <= window.x + window.w + e
+		and px.y >= window.y - e
+		and px.y <= window.y + window.h + e
+end
+
 return {
 	["the panel fits every size: a big window, 44 px buttons, nothing overlapping"] = function()
 		local M = H.require("CuePreviewMath")
@@ -428,5 +499,349 @@ return {
 		H.expect(y3 == 10 and s3 == 0, "no auto-turn with Reduce Motion")
 		local y4, s4 = M.turn(10, 300, 0, 0.1, true)
 		H.expect(y4 == 10 and s4 == 0, "no flick's spin with Reduce Motion")
+	end,
+	["the showcase plays for the event cards while it is on; off, or opened elsewhere, the tabs"] = function()
+		local M = H.require("CuePreviewMath")
+		local Config = H.require("Config")
+		local on = { Showcase = { Enabled = true, From = { "Halloween" } } }
+		local off = { Showcase = { Enabled = false, From = { "Halloween" } } }
+		H.expect(M.modeOf(on, "Halloween") == "Showcase", "the event cards")
+		H.expect(M.modeOf(on, "Cues") == "Tabs" and M.modeOf(on, nil) == "Tabs", "anyone else")
+		H.expect(M.modeOf(on, "Cues", "Showcase") == "Showcase", "asked for")
+		H.expect(M.modeOf(on, "Halloween", "Tabs") == "Tabs", "the tabs asked for")
+		H.expect(M.modeOf(off, "Halloween") == "Tabs", "switched off: today's tabs")
+		H.expect(M.modeOf(off, "Halloween", "Showcase") == "Tabs", "off wins over asking")
+		H.expect(
+			M.modeOf(nil, "Halloween") == "Tabs" and M.modeOf({}, "Halloween") == "Tabs",
+			"none"
+		)
+		H.expect(
+			M.modeOf(Config.UI.CuePreview, "Halloween") == "Showcase",
+			"shipped: the Halloween cards play the showcase"
+		)
+	end,
+
+	["the showcase's loop: the model, the trail, the finisher held its own length, then again"] = function()
+		local M = H.require("CuePreviewMath")
+		local Config = H.require("Config")
+		local C = Config.UI.CuePreview
+		local S = C.Showcase
+		local hold = M.holdSeconds(3.4)
+		local tl = M.showcaseTimeline(hold)
+		H.expect(#tl == 3, "three segments")
+		H.expect(
+			tl[1].name == "model" and tl[2].name == "trail" and tl[3].name == "finisher",
+			"order"
+		)
+		H.near(tl[1].to - tl[1].from, S.Model.Seconds, 1e-9, "the model's length")
+		H.near(tl[2].to - tl[2].from, S.Trail.Seconds, 1e-9, "the trail's length")
+		H.near(
+			tl[3].to - tl[3].from,
+			S.Finisher.LeadSeconds + C.DropSeconds + hold + S.Finisher.TailSeconds,
+			1e-9,
+			"the finisher holds the cue's finisher whole"
+		)
+		H.near(
+			M.showcaseTimeline(nil)[3].to - M.showcaseTimeline(nil)[3].from,
+			S.Finisher.LeadSeconds + C.DropSeconds + C.FinisherHoldSeconds + S.Finisher.TailSeconds,
+			1e-9,
+			"a plain burst's pace"
+		)
+		local total = tl[3].to
+		local b = M.showcaseBeat(tl, 0.4)
+		H.expect(b.segment == "model" and b.phase == "none" and b.loop == 0, "starts on the model")
+		b = M.showcaseBeat(tl, tl[2].from + C.StrokeBackSeconds / 2)
+		H.expect(b.segment == "trail" and b.phase == "back" and b.roll == 0, "the stroke")
+		b = M.showcaseBeat(tl, tl[2].from + C.StrokeBackSeconds + C.StrokeHitSeconds / 2)
+		H.expect(b.phase == "hit" and b.roll == 0, "the hit")
+		-- The roll goes on across the cut, never back, and ends over the pocket.
+		local last = -1
+		local t = tl[2].from + C.StrokeBackSeconds + C.StrokeHitSeconds
+		while t < tl[3].from + S.Finisher.LeadSeconds do
+			local beat = M.showcaseBeat(tl, t)
+			H.expect(beat.phase == "roll", "rolling at " .. t)
+			H.expect(beat.roll >= last - 1e-9, "never back at " .. t)
+			last = beat.roll
+			t += 1 / 30
+		end
+		local before = M.showcaseBeat(tl, tl[3].from - 1e-6)
+		local after = M.showcaseBeat(tl, tl[3].from + 1e-6)
+		H.expect(before.segment == "trail" and after.segment == "finisher", "the cut")
+		H.near(before.roll, after.roll, 1e-4, "the ball rolls on across the cut")
+		H.expect(
+			after.roll > 0.6 and after.roll < 0.97,
+			"the cut: most of the roll done, the pocket ahead"
+		)
+		b = M.showcaseBeat(tl, tl[3].from + S.Finisher.LeadSeconds + C.DropSeconds / 2)
+		H.expect(b.phase == "drop" and b.roll == 1, "the drop over the pocket")
+		b = M.showcaseBeat(tl, tl[3].from + S.Finisher.LeadSeconds + C.DropSeconds + hold / 2)
+		H.expect(b.phase == "finisher", "the finisher")
+		b = M.showcaseBeat(tl, total - S.Finisher.TailSeconds / 2)
+		H.expect(b.phase == "tail", "its fade")
+		b = M.showcaseBeat(tl, total + 0.2)
+		H.expect(b.segment == "model" and b.loop == 1, "then the model again, one loop done")
+		H.expect(M.rollAt(0) == 0 and math.abs(M.rollAt(1) - 1) < 1e-9, "the roll's ends")
+		H.expect(M.rollAt(1) - M.rollAt(0.98) > 0.004, "still rolling as it drops")
+	end,
+
+	["the showcase waits at the model's cut for the cue's shot effects, then plays on"] = function()
+		local M = H.require("CuePreviewMath")
+		local tl = M.showcaseTimeline(nil)
+		local cut = tl[1].to
+		local t, waiting = M.showcaseAdvance(tl, cut - 0.1, 0.2, false)
+		H.expect(waiting and t < cut and t > cut - 0.01, "waits just before the cut")
+		local t2, still = M.showcaseAdvance(tl, t, 0.5, false)
+		H.expect(still and t2 == t, "and keeps waiting")
+		local t3, w3 = M.showcaseAdvance(tl, t2, 0.1, true)
+		H.expect(not w3 and t3 > cut, "the effects are in: the trail")
+		local t4, w4 = M.showcaseAdvance(tl, tl[2].from + 0.5, 0.1, false)
+		H.expect(not w4 and math.abs(t4 - (tl[2].from + 0.6)) < 1e-9, "never waits past the cut")
+		local total = tl[3].to
+		local t5, w5 = M.showcaseAdvance(tl, total + cut - 0.05, 0.1, false)
+		H.expect(w5 and t5 > total and t5 < total + cut, "every loop's model waits too")
+		local t6 = M.showcaseAdvance(tl, 1, 0.1, false)
+		H.near(t6, 1.1, 1e-9, "the model plays meanwhile")
+	end,
+
+	["the showcase's panel: one 16:9 screen as big as fits, the X in its header, the line under it"] = function()
+		local M = H.require("CuePreviewMath")
+		for _, size in SIZES do
+			local where = size.name
+			local p = M.showcasePanel(size.screen)
+			local screen = { x = 0, y = 0, w = size.screen.w, h = size.screen.h }
+			H.expect(inside(p.panel, screen), "panel inside: " .. where)
+			H.expect(math.abs(p.window.w / p.window.h - 16 / 9) < 0.01, "16:9: " .. where)
+			H.expect(
+				inside(p.window, p.panel) and inside(p.line, p.panel),
+				"screen and line in it: " .. where
+			)
+			H.expect(
+				inside(p.close, p.header) and inside(p.title, p.header),
+				"X and title in the header: " .. where
+			)
+			H.expect(not touches(p.title, p.close), "the title clear of the X: " .. where)
+			H.expect(
+				p.line.y >= p.window.y + p.window.h and p.line.w == p.window.w,
+				"the line under it: " .. where
+			)
+			H.expect(not touches(p.header, p.window), "the header over the screen: " .. where)
+			H.expect(
+				p.window.h >= 0.6 * size.screen.h,
+				"the screen fills the height: " .. where .. " " .. p.window.h
+			)
+		end
+		local pc = M.showcasePanel({ w = 1920, h = 1022 })
+		H.expect(pc.window.w >= 1150, "a PC's screen is big: " .. pc.window.w)
+		local phone = M.showcasePanel({ w = 844, h = 332 })
+		H.expect(phone.short and phone.window.w >= 420, "a phone's too: " .. phone.window.w)
+	end,
+
+	["the camera is widened so the screen shows its own field of view"] = function()
+		local M = H.require("CuePreviewMath")
+		H.near(M.cameraFov(40, 1080, 1080), 40, 1e-9, "a whole-view window")
+		H.expect(M.cameraFov(40, 1080, 540) > 40, "a smaller window: a wider camera")
+		H.expect(M.cameraFov(170, 1080, 100) <= 120, "Roblox's cap")
+		-- A point 20 degrees over the camera's axis lands on the edge of a 40-degree window.
+		local viewport = { w = 1920, h = 1080 }
+		local fov = M.cameraFov(40, viewport.h, 540)
+		local eye = { x = 0, y = 0, z = 10 }
+		local target = { x = 0, y = 0, z = 0 }
+		local up = 10 * math.tan(math.rad(20))
+		local px = M.project({ x = 0, y = up, z = 0 }, eye, target, fov, viewport)
+		H.near(px.y, viewport.h / 2 - 270, 0.5, "the window's top edge")
+	end,
+
+	["the showcase's model: the cue alone, large and diagonal, and no table in the screen"] = function()
+		local M = H.require("CuePreviewMath")
+		local Config = H.require("Config")
+		local C = Config.UI.CuePreview
+		local spi = Config.Table.StudsPerInch
+		-- The table's footprint with its rails, and its rails' top (rough, generous).
+		local halfX = (Config.Table.LengthInches / 2 + Config.Table.RailWidthInches) * spi + 0.5
+		local halfZ = (Config.Table.WidthInches / 2 + Config.Table.RailWidthInches) * spi + 0.5
+		for _, size in SIZES do
+			local scene, window, view = showcaseStage(size)
+			local tl = M.showcaseTimeline(M.holdSeconds(3))
+			local fits = M.showcaseFits(scene, tl, view)
+			local railTop = scene.cloth + 0.6
+			for _, u in { 0, 0.25, 0.5, 0.75, 1 } do
+				local beat = M.showcaseBeat(tl, u * (tl[1].to - 1e-6))
+				H.expect(beat.segment == "model", "the model")
+				local shot = M.showcaseShot(scene, beat, fits, false)
+				local eye, target, fov = aim(shot, view)
+				local right, upv, forward = M.basis(eye, target)
+				local k = view.viewport.h / (2 * math.tan(math.rad(fov) / 2))
+				-- Every ray through the window's edge stays off the table.
+				for _, corner in
+					{
+						{ window.x, window.y + window.h },
+						{ window.x + window.w, window.y + window.h },
+						{ window.x + window.w / 2, window.y + window.h },
+						{ window.x, window.y },
+					}
+				do
+					local sx = (corner[1] - view.viewport.w / 2) / k
+					local sy = (corner[2] - view.viewport.h / 2) / k
+					local d = {
+						x = forward.x + right.x * sx - upv.x * sy,
+						y = forward.y + right.y * sx - upv.y * sy,
+						z = forward.z + right.z * sx - upv.z * sy,
+					}
+					if d.y < 0 then
+						local s = (railTop - eye.y) / d.y
+						local hx, hz = eye.x + d.x * s, eye.z + d.z * s
+						local onTable = math.abs(hx - C.Origin[1]) < halfX
+							and math.abs(hz - C.Origin[3]) < halfZ
+						H.expect(not onTable, ("%s u %.2f: the table shows"):format(size.name, u))
+					end
+				end
+				-- Large and diagonal: the tip up-right, the butt down-left (as the cards), wide across.
+				local a = M.showcaseAxis()
+				local mid = (scene.span.from + scene.span.to) / 2
+				local function at(along: number): any
+					return {
+						x = scene.spot.x + a.x * (along - mid),
+						y = scene.spot.y + a.y * (along - mid),
+						z = scene.spot.z + a.z * (along - mid),
+					}
+				end
+				local tip = M.project(at(scene.span.from), eye, target, fov, view.viewport)
+				local butt = M.project(at(scene.span.to), eye, target, fov, view.viewport)
+				H.expect(
+					tip.x > butt.x and tip.y < butt.y,
+					size.name .. ": tip up-right, butt down-left"
+				)
+				H.expect(
+					within(tip, window, 2) and within(butt, window, 2),
+					("%s u %.2f: both ends in the screen (a head past the butt stays whole)"):format(
+						size.name,
+						u
+					)
+				)
+				local slope = math.deg(math.atan2(butt.y - tip.y, tip.x - butt.x))
+				H.expect(
+					slope > 10 and slope < 35,
+					("%s: diagonal, %.1f deg"):format(size.name, slope)
+				)
+				H.expect(
+					math.abs(butt.x - tip.x) >= 0.7 * window.w,
+					("%s u %.2f: large (%.0f of %d px)"):format(
+						size.name,
+						u,
+						tip.x - butt.x,
+						window.w
+					)
+				)
+			end
+		end
+	end,
+
+	["the showcase's trail: a low camera following the ball; its finisher: the pocket, then the whole column"] = function()
+		local M = H.require("CuePreviewMath")
+		local Config = H.require("Config")
+		local C = Config.UI.CuePreview
+		local S = C.Showcase
+		for _, size in SIZES do
+			local scene, window, view = showcaseStage(size)
+			local tl = M.showcaseTimeline(M.holdSeconds(3))
+			local fits = M.showcaseFits(scene, tl, view)
+			local dx, dz = scene.pocket.x - scene.start.x, scene.pocket.z - scene.start.z
+			local len = math.sqrt(dx * dx + dz * dz)
+			local t = tl[2].from
+			while t < tl[2].to do
+				local beat = M.showcaseBeat(tl, t)
+				scene.ball = ballAt(scene, beat)
+				local shot = M.showcaseShot(scene, beat, fits, false)
+				local eye, target, fov = aim(shot, view)
+				-- It follows the ball: its focus a fixed step ahead of it.
+				H.near(
+					shot.focus.x - scene.ball.x,
+					dx / len * S.Trail.AheadStuds,
+					1e-6,
+					"follows x"
+				)
+				H.near(
+					shot.focus.z - scene.ball.z,
+					dz / len * S.Trail.AheadStuds,
+					1e-6,
+					"follows z"
+				)
+				local px, depth = M.project(scene.ball, eye, target, fov, view.viewport)
+				H.expect(
+					depth > 0 and within(px, window),
+					("%s t %.2f: the ball in the screen"):format(size.name, t)
+				)
+				local over = eye.y - scene.cloth
+				H.expect(
+					over > 0.3,
+					("%s t %.2f: over the cloth (%.2f)"):format(size.name, t, over)
+				)
+				if
+					beat.phase == "roll"
+					and beat.at > C.StrokeBackSeconds + C.StrokeHitSeconds + S.Trail.EaseSeconds
+				then
+					H.expect(
+						over < 1.2,
+						("%s t %.2f: low by the cloth (%.2f)"):format(size.name, t, over)
+					)
+				end
+				t += 0.1
+			end
+			-- FINISHER: the ball comes into the shot; once pulled back, the whole column shows.
+			local arrive = M.showcaseBeat(tl, tl[3].from + 0.05)
+			scene.ball = ballAt(scene, arrive)
+			local eye, target, fov = aim(M.showcaseShot(scene, arrive, fits, false), view)
+			local px, depth = M.project(scene.ball, eye, target, fov, view.viewport)
+			H.expect(depth > 0 and within(px, window), size.name .. ": the ball rolls in")
+			local full = M.showcaseBeat(tl, tl[3].from + S.Finisher.PullSeconds + 0.1)
+			H.expect(full.phase == "finisher", "the finisher plays")
+			eye, target, fov = aim(M.showcaseShot(scene, full, fits, false), view)
+			local r, top = scene.reach.radius, scene.reach.top
+			for _, h in { 0, top } do
+				for _, off in { { 1, 0 }, { -1, 0 }, { 0, 1 }, { 0, -1 } } do
+					local p = {
+						x = scene.pocket.x + off[1] * r,
+						y = scene.cloth + h,
+						z = scene.pocket.z + off[2] * r,
+					}
+					local q = M.project(p, eye, target, fov, view.viewport)
+					H.expect(
+						within(q, window, 2),
+						("%s: the finisher whole (h %.1f)"):format(size.name, h)
+					)
+				end
+			end
+			-- A low camera: by the cloth as the ball arrives, never over the finisher's top.
+			local low = aim(M.showcaseShot(scene, arrive, fits, false), view)
+			H.expect(low.y - scene.cloth < 3.5, size.name .. ": low as the ball arrives")
+			H.expect(eye.y - scene.cloth < top, size.name .. ": under the finisher's top")
+		end
+	end,
+
+	["with Reduce Motion each showcase camera holds still: cuts only"] = function()
+		local M = H.require("CuePreviewMath")
+		local scene, _, view = showcaseStage(SIZES[4])
+		local tl = M.showcaseTimeline(M.holdSeconds(3))
+		local fits = M.showcaseFits(scene, tl, view)
+		for _, seg in tl do
+			local first: any = nil
+			for _, u in { 0.02, 0.3, 0.6, 0.98 } do
+				local beat = M.showcaseBeat(tl, seg.from + u * (seg.to - seg.from))
+				scene.ball = ballAt(scene, beat)
+				local shot = M.showcaseShot(scene, beat, fits, true)
+				local moving = M.showcaseShot(scene, beat, fits, false)
+				if first == nil then
+					first = shot
+				else
+					for _, key in { "x", "y", "z" } do
+						H.near(shot.focus[key], first.focus[key], 1e-9, seg.name .. " focus still")
+					end
+					H.near(shot.yaw, first.yaw, 1e-9, seg.name .. " yaw still")
+					H.near(shot.pitch, first.pitch, 1e-9, seg.name .. " pitch still")
+					H.near(shot.distance, first.distance, 1e-9, seg.name .. " distance still")
+				end
+				H.expect(moving.fovDeg == shot.fovDeg, "the same lens")
+			end
+		end
 	end,
 }

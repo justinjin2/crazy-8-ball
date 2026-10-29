@@ -10545,6 +10545,118 @@ Config.UI.CuePreview = {
 			{ Ids = { "Flair" }, Kind = "Drop", At = 0.5 },
 		},
 	},
+	-- The SHOWCASE (designer, 2026-10-29: "make it exactly like the mp4 video preview videos ...
+	-- with the black background first showing the model, then showing the ball trail then the
+	-- finisher ... so the preview video doesnt have options it just plays like the video"): one
+	-- big 16:9 screen in the lively frame, no tabs, no EQUIP, no sheet, only the red X (and B),
+	-- playing a loop until it is closed (CuePreviewMath.showcaseTimeline): MODEL the cue alone
+	-- on black, large and diagonal, its aura running, the camera drifting along it; TRAIL a cut
+	-- to a low camera by the cloth, the stroke and the ball rolling with the cue's trail, the
+	-- camera following; FINISHER a cut to a low camera at the pocket as the ball drops and the
+	-- cue's finisher plays whole; then the model again. Studs, degrees, seconds, pixels. (tune)
+	-- Every FovDeg here is the SCREEN's own vertical field of view (the camera's is widened to
+	-- match, CuePreviewMath.cameraFov: the screen is a part of the real view).
+	Showcase = {
+		Enabled = true, -- false: the event cards open the tabbed preview on TRAIL, as before
+		From = { "Halloween" }, -- the openers that play the showcase (any other: the tabs)
+		Backdrop = { 0, 0, 0 }, -- the room round the stage: pure black (unlit), as the clips' background
+		StartShare = 1.1, -- the ball starts this far back along the pocket's diagonal (the table's middle is 1)
+		-- The table's key and rim (KeyLight, RimLight) in the showcase's closed room, per
+		-- segment: dimmer for the trail's low camera (at 3 and 2 it saw the cloth washed out),
+		-- the tabbed preview's for the finisher (its particles take light: the Sword's flames
+		-- went black under the dim ones).
+		TableLights = {
+			Trail = { Key = 1.2, Rim = 1 },
+			Finisher = { Key = 3, Rim = 2 },
+		},
+		RollEndSpeed = 0.35, -- the ball still rolls at this share of its mean speed as it drops (not a dead stop)
+		ShotWaitSeconds = 4, -- the model holds at most this long for the cue's shot effects, then plays on
+		PinLeadSeconds = 1.5, -- Studio's `previewPin`: plays this long up to the pinned second first
+		-- MODEL: the cue floats LiftStuds over the stage (far over the table: no table in the
+		-- screen), its tip up-right and its butt down-left TiltDeg off level, as the cards'
+		-- pictures, turned RollDeg about its own axis. The camera, square-on at yaw 0, drifts over the segment from the first
+		-- value to the second (eased): yaw and pitch, its focus sliding along the cue (a share of
+		-- the drawn cue's length from its middle, + toward the butt) and its distance (a share of
+		-- the one that fits the whole cue in the screen inside Fit.MarginShare: at 1 - MarginShare
+		-- its ends touch the edges).
+		Model = {
+			Seconds = 3,
+			LiftStuds = 22,
+			TiltDeg = 20,
+			-- Its top turned from the camera: seen 50 degrees off its top on the side the cards'
+			-- pictures show (the Jack's pumpkin face, the Pitchfork's fork; square-on, or tip
+			-- left, showed the pumpkin's back).
+			RollDeg = -40,
+			FovDeg = 30,
+			YawDeg = { -12, 8 },
+			PitchDeg = { 6, 2 },
+			SlideShare = { -0.04, 0.04 },
+			FillShare = { 1.04, 0.96 }, -- never under the fit's own margin: the ends (a head) stay in
+			-- Its own lights (the room's are over the table): a warm key in front, a violet rim behind.
+			Key = { Offset = { 0, 5, 7 }, Brightness = 2.2, Range = 16, Color = { 255, 244, 228 } },
+			Rim = { Offset = { 0, 3, -7 }, Brightness = 1.6, Range = 14, Color = { 150, 120, 255 } },
+		},
+		-- TRAIL: StrokeBackSeconds + StrokeHitSeconds of stroke, then the roll for the rest (it
+		-- goes on across the cut into FINISHER). The camera orbits the ball (its focus AheadStuds
+		-- in front of it) at a yaw off straight behind it: the stroke's pose, easing into the
+		-- low follow over EaseSeconds from the hit. Reduce Motion: one still wide shot of the
+		-- whole roll (Still, its distance fitted).
+		Trail = {
+			Seconds = 2.4,
+			FovDeg = 46,
+			AheadStuds = 0.5,
+			EaseSeconds = 0.6,
+			Stroke = { Distance = 4.2, PitchDeg = 24, YawDeg = 32 },
+			Follow = { Distance = 2.4, PitchDeg = 12, YawDeg = 26 },
+			Still = { PitchDeg = 18, YawDeg = 24 },
+		},
+		-- FINISHER: the roll's last LeadSeconds into the pocket, the drop (DropSeconds), the
+		-- cue's finisher held its own length (CuePreviewMath.holdSeconds), TailSeconds of its
+		-- fade, then the loop. The camera looks down the ball's path into the pocket, YawDeg off
+		-- it, low; from the first value to the second over PullSeconds (eased): its pitch, its
+		-- focus's height (a share of the finisher's top, CuePreviewMath.finisherReach) and its
+		-- distance (a share of the one that keeps the whole finisher in the screen): pushed in
+		-- on the pocket as the ball arrives, out to the whole column as it rises.
+		Finisher = {
+			LeadSeconds = 0.8,
+			TailSeconds = 0.4,
+			PullSeconds = 1.6,
+			FovDeg = 46,
+			YawDeg = 22,
+			PitchDeg = { 14, 9 }, -- by the cloth as the ball arrives, near level on the whole column
+			FocusShare = { 0.15, 0.48 },
+			FillShare = { 0.62, 1 },
+		},
+		-- The panel (CuePreviewMath.showcasePanel): the header band (the cue's name, the X), the
+		-- 16:9 screen as big as fits, a thin progress line under it. Pixels; "Short" on a phone.
+		Layout = {
+			WidthShare = 0.92, -- of the screen's width at most
+			MaxWidthPx = 1240, -- a PC's screen about 1216 x 684
+			HeightShare = 0.94, -- of the screen's height (under Roblox's top bar) at most
+			Aspect = 16 / 9, -- the screen, as the clips
+			LinePx = 5, -- the progress line
+			ShortLinePx = 4,
+			LineGapPx = 6, -- between the screen and the line
+			ShortLineGapPx = 4,
+		},
+		-- The 8-ball flair sits on the panel's bottom-left corner, under the screen (at the
+		-- tabbed FlairDownShare it covered the floating Jack's pumpkin).
+		FlairDownShare = 1,
+		LineColor = { 255, 140, 30 }, -- the progress line's fill (the event's orange)
+		LineTrack = { 27, 32, 51 }, -- and its track (the ink)
+		-- The open (Stage): the house frame's unroll, the header, the X and the line; the flair last.
+		Open = {
+			OpenSeconds = 0.6,
+			Steps = {
+				{ Ids = { "Panel" }, Kind = "Unroll", At = 0 },
+				{ Ids = { "Veil" }, Kind = "Fade", At = 0, Length = 0.15 },
+				{ Ids = { "Header" }, Kind = "Fade", At = 0.12, Length = 0.15 },
+				{ Ids = { "Icon", "Title", "Close" }, Kind = "Pop", At = 0.18 },
+				{ Ids = { "Line" }, Kind = "Grow", At = 0.26 },
+				{ Ids = { "Flair" }, Kind = "Drop", At = 0.34 },
+			},
+		},
+	},
 }
 
 -- The economy's menus (2026-09-28, docs/prompts/ECONOMY_UI_PROMPT.md sections 5 and 5.1): the
