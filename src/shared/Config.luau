@@ -3799,6 +3799,11 @@ Config.Halloween = {
 		-- (coordinator 13:10); a match the player's side forfeited counts only its balls.
 		CountsForQuests = true,
 	},
+	-- The Pumpkin King's drop (designer, 2026-10-29 04:0x): a visit's first paid win (Timed
+	-- mode, Ledger.bossVisitWin) rolls Chance once for Cue, in the same change as the visit's
+	-- pay (a replay never rolls again); never rolled once owned. The map lane's sign and the
+	-- event menu's pill read Chance. Enabled false: no drop.
+	KingDrop = { Enabled = true, Cue = "JackOLanternCue", Chance = 0.05 },
 	-- Lobby pickups (map's CandyDrop spawns them): Candy each (flat), at most HourCap per player
 	-- per UTC hour. The ONLY pickup cap: CandyService.pickup enforces it.
 	Pickup = { Candy = 1, HourCap = 40 },

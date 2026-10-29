@@ -17,6 +17,8 @@ export type BossResult = {
 	cooldownEndsAt: number,
 	money: number?, -- Timed mode's visit reward (bossVisitWin)
 	xp: number?,
+	dropRoll: ("Drop" | "NoDrop")?, -- the visit's KingDrop roll (nil: none rolled)
+	drop: string?, -- the cue it dropped
 }
 
 local function whole(x: any): number
@@ -89,6 +91,16 @@ function Ledger.bossVisitWin(hw: any, now: number, visitStart: number): BossResu
 		money = whole(V.Money),
 		xp = whole(V.Xp),
 	}
+end
+
+-- A paid visit win's KingDrop roll (`roll` in [0, 1), the server's random): nil (no roll) when
+-- the drop is off, the cue owned or not ready to give, else "Drop" under Chance.
+function Ledger.kingDrop(roll: number?, owned: boolean, ready: boolean): ("Drop" | "NoDrop")?
+	local D = C.KingDrop
+	if D.Enabled ~= true or owned or not ready or type(roll) ~= "number" then
+		return nil
+	end
+	return if roll < D.Chance then "Drop" else "NoDrop"
 end
 
 -- When the player's King cooldown ends (unix seconds), or 0 when none is running.

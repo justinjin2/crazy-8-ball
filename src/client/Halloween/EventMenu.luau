@@ -172,6 +172,16 @@ function EventMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 	candyText.AutoLocalize = false
 	candyText.TextXAlignment = Enum.TextXAlignment.Left
 	candyText.ZIndex = 4
+	-- The Pumpkin King's drop (Halloween.KingDrop): his cue and its chance, OWNED once owned.
+	local kingPill = HudParts.pill(scroll, "HwKingDrop", rgb(M.HeadTint))
+	kingPill.ZIndex = 3
+	kingPill.Visible = H.KingDrop.Enabled == true
+	local kingArt = picture(kingPill, "Art", (ART :: any)[H.KingDrop.Cue] or "")
+	kingArt.ZIndex = 4
+	local kingText = HudParts.text(kingPill, "Text", M.TextPx, "")
+	kingText.AutoLocalize = false
+	kingText.TextXAlignment = Enum.TextXAlignment.Left
+	kingText.ZIndex = 4
 	local endsPill = HudParts.pill(scroll, "HwEnds", HudParts.tone("Purple"))
 	endsPill.ZIndex = 3
 	local endsText = HudParts.text(endsPill, "Time", M.TextPx, "")
@@ -458,6 +468,7 @@ function EventMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 	local stage = frame.stage
 	if stage then
 		stage:add("HwCandy", candyPill)
+		stage:add("HwKingDrop", kingPill)
 		stage:add("HwEnds", endsPill)
 		stage:add("HwTrack", trackBox)
 		for _, node in nodes do
@@ -521,6 +532,16 @@ function EventMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		endsPill.Size = UDim2.fromOffset(round(pillPx * 5), pillPx)
 		endsPill.Position = UDim2.fromOffset(inner - round(pillPx * 5), y)
 		sizeText(endsText, textPx)
+		-- The King's pill in the gap between the two, as wide as its words need.
+		local kingX = round(pillPx * 4) + gap
+		local kingW = math.min(round(pillPx * 8), inner - round(pillPx * 5) - gap - kingX)
+		kingPill.Size = UDim2.fromOffset(math.max(0, kingW), pillPx)
+		kingPill.Position = UDim2.fromOffset(kingX, y)
+		kingArt.Size = UDim2.fromOffset(pillPx - 4, pillPx - 4)
+		kingArt.Position = UDim2.fromOffset(4, 2)
+		kingText.Size = UDim2.fromOffset(math.max(0, kingW - pillPx - 8), pillPx)
+		kingText.Position = UDim2.fromOffset(pillPx + 2, 0)
+		sizeText(kingText, textPx)
 		y += pillPx + gap
 		-- The track.
 		local nodePx = if short then M.ShortNodePx else M.NodePx
@@ -678,6 +699,10 @@ function EventMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		if type(view) ~= "table" then
 			return
 		end
+		local kingOwned = type(view.owned) == "table" and view.owned[H.KingDrop.Cue] == true
+		kingText.Text = if kingOwned
+			then W.KingDropOwned
+			else W.KingDrop:format(tostring(math.floor(H.KingDrop.Chance * 100 + 0.5)))
 		-- The track: the bar fills each segment by share; reached nodes framed gold.
 		local given: { [number]: boolean } = {}
 		for _, i in view.given or {} do

@@ -52,7 +52,12 @@ local function isPlayer(x: any): boolean
 	return typeof(x) == "Instance" and x:IsA("Player") and x.Parent == Players
 end
 
-export type BossWon = { granted: boolean, amount: number, cooldownEndsAt: number }
+export type BossWon = { granted: boolean, amount: number, cooldownEndsAt: number, drop: string? }
+
+-- The King's drop roll (Halloween.KingDrop), and the players whose next roll drops (Studio
+-- only: HwQA "kingdrop").
+local dropRandom = Random.new()
+local forceDrop: { [Player]: boolean } = setmetatable({}, { __mode = "k" }) :: any
 
 -- The start of the King's visit running now, or else of the next one (the map lane's
 -- HalloweenMap/Rules.kingWindow on the Halloween clock); nil without it.
@@ -119,7 +124,8 @@ function CandyService.ctx(): PlayerData.HwCtx
 	return { now = now, open = Event.boardIndex(now), hooks = CandyService.hooks() }
 end
 
--- The event's cues (the track's and the Spider): the end screen shows the ones owned.
+-- The event's cues (the track's and the Spider: the end screen shows the ones owned) and the
+-- King's drop (the event menu's pill shows it OWNED).
 local EVENT_CUES: { string } = {}
 for _, step in Config.Halloween.Track.Steps do
 	if step.Cue ~= nil then
@@ -127,6 +133,7 @@ for _, step in Config.Halloween.Track.Steps do
 	end
 end
 table.insert(EVENT_CUES, C.Spider.Cue)
+table.insert(EVENT_CUES, C.KingDrop.Cue)
 
 -- Whether the player's tutorial is over (Done or Skipped): nothing Halloween shows before.
 local function tutorialOver(player: Player): boolean
@@ -379,8 +386,13 @@ function CandyService.bossWon(player: Player, visitStart: number?): BossWon
 		return none
 	end
 	local timed = kingTimed() and type(visitStart) == "number"
-	local boss, result =
-		PlayerData.hwBoss(player, CandyService.ctx(), if timed then visitStart else nil)
+	local roll = if forceDrop[player] then 0 else dropRandom:NextNumber()
+	local boss, result = PlayerData.hwBoss(
+		player,
+		CandyService.ctx(),
+		if timed then visitStart else nil,
+		if timed then roll else nil
+	)
 	if boss == nil then
 		return none
 	end
@@ -388,6 +400,18 @@ function CandyService.bossWon(player: Player, visitStart: number?): BossWon
 	if timed then
 		-- HwKing: a visit's win (value: its Candy; a: paid or a repeat in the same visit).
 		Funnel.event(player, "HwKing", boss.amount, if boss.granted then "Paid" else "Repeat")
+		if boss.dropRoll ~= nil then
+			-- HwKingDrop: the visit's roll for his cue (a: Drop or NoDrop; b: the cue).
+			forceDrop[player] = nil
+			Funnel.event(
+				player,
+				"HwKingDrop",
+				1,
+				boss.dropRoll,
+				C.KingDrop.Cue,
+				Funnel.device(player)
+			)
+		end
 		local xp = boss.xp or 0
 		if boss.granted and xp > 0 then
 			-- Ranking reads CandyService at settle: required here, late.
@@ -408,11 +432,17 @@ function CandyService.bossWon(player: Player, visitStart: number?): BossWon
 				money = boss.money or 0,
 				xp = xp,
 				back = nextVisitText(),
+				drop = boss.drop,
 			},
 		})
 	end
 	after(player, result, "Boss")
-	return { granted = boss.granted, amount = boss.amount, cooldownEndsAt = boss.cooldownEndsAt }
+	return {
+		granted = boss.granted,
+		amount = boss.amount,
+		cooldownEndsAt = boss.cooldownEndsAt,
+		drop = boss.drop,
+	}
 end
 
 --- When the player's King cooldown ends (unix seconds, the server clock), or 0 when none runs.
@@ -845,6 +875,7 @@ end
 --   ("add", userId, amount, source, boost?) -> CandyService.add
 --   ("pickup", userId) -> (ok, reason)     ("boss", userId) -> bossWon
 --   ("cooldown", userId) -> seconds left    ("save", userId) -> the Halloween field (a copy)
+--   ("kingdrop", userId) -> the next rolled King win drops his cue
 --   ("now") -> { now, state, multiplier, board }
 local function startQA()
 	if not RunService:IsStudio() then
@@ -875,6 +906,9 @@ local function startQA()
 		elseif op == "boss" then
 			-- a: the visit's start (Timed mode), else the visit running now.
 			return CandyService.bossWon(player, if type(a) == "number" then a else visitNow())
+		elseif op == "kingdrop" then
+			forceDrop[player] = true
+			return true
 		elseif op == "cooldown" then
 			local at = CandyService.bossCooldown(player)
 			return if at > 0 then at - Clock.serverNow() else 0
