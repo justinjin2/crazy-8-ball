@@ -137,8 +137,21 @@ local function tutorialOver(player: Player): boolean
 	return Steps.pastGuided(step)
 end
 
+-- The player's personal Candy Rush anchor (C.Rush.Personal): the start of their current
+-- cycle, the HwRushAt attribute (the client's chip and card read it) and save flag (a rejoin
+-- keeps the cycle, Event.rushAnchor). Nil until Halloween turns on for them.
+local function rushAt(player: Player): number?
+	local at = player:GetAttribute("HwRushAt")
+	return if type(at) == "number" then at else nil
+end
+
+local function setRushAt(player: Player, at: number)
+	player:SetAttribute("HwRushAt", at)
+	PlayerData.setFlag(player, "HwRushAt", at)
+end
+
 -- The player attributes the client and other lanes read: Candy (the balance, Earned + Bought -
--- Spent) and HwOn (the save loaded, the event switched on, the tutorial over).
+-- Spent), HwOn (the save loaded, the event switched on, the tutorial over) and HwRushAt.
 local function setAttributes(player: Player, hw: any?)
 	local candy = if hw then Ledger.balance(hw) else 0
 	local on = hw ~= nil and C.Enabled == true and tutorialOver(player)
@@ -147,6 +160,11 @@ local function setAttributes(player: Player, hw: any?)
 	end
 	if player:GetAttribute("HwOn") ~= on then
 		player:SetAttribute("HwOn", on)
+	end
+	-- the first 2x starts when Halloween turns on for them (HwOn is set first, so the flag's
+	-- Changed below never comes back here)
+	if on and C.Rush.Personal == true and rushAt(player) == nil then
+		setRushAt(player, Event.rushAnchor(PlayerData.flag(player, "HwRushAt"), Clock.serverNow()))
 	end
 end
 
@@ -280,7 +298,7 @@ local function after(player: Player, result: PlayerData.HwResult?, source: strin
 			toast = {
 				candy = result.candy,
 				source = source,
-				x2 = source == "Match" and Event.multiplier(Clock.serverNow()) > 1,
+				x2 = source == "Match" and Event.multiplier(Clock.serverNow(), rushAt(player)) > 1,
 			},
 		})
 	end
@@ -320,7 +338,7 @@ end
 -- The whole Candy multiplier for the player now (event x (1 + friends + group)).
 function CandyService.multiplier(player: Player): number
 	local friends, group = boostInputs(player)
-	return CandyMath.multiplier(Event.multiplier(Clock.serverNow()), friends, group)
+	return CandyMath.multiplier(Event.multiplier(Clock.serverNow(), rushAt(player)), friends, group)
 end
 
 -- The HwCandy event (value: the Candy; a: its source; b: "x1" or "x2", the event multiplier,
@@ -330,7 +348,7 @@ local function logCandy(player: Player, amount: number, source: string, x2: bool
 	if amount > 0 and source ~= "Pickup" and source ~= "Pot" then
 		local x = if x2 ~= nil
 			then (if x2 then "x2" else "x1")
-			else ("x%d"):format(Event.multiplier(Clock.serverNow()))
+			else ("x%d"):format(Event.multiplier(Clock.serverNow(), rushAt(player)))
 		Funnel.event(player, "HwCandy", amount, source, x, Funnel.device(player))
 	end
 end
@@ -506,7 +524,7 @@ function CandyService.pots(player: Player, f: PotFacts): ({ number }, number?)
 		pots = f.pots,
 		farm = f.farm,
 		multiplier = CandyService.multiplier(player),
-		event = Event.multiplier(now),
+		event = Event.multiplier(now, rushAt(player)),
 		seq = f.seq,
 	})
 	local total = PotCandy.sum(amounts)
@@ -807,6 +825,12 @@ local function tickPlayer(player: Player): any
 	end
 	if Event.isLive(ctx.now) then
 		autoClaim(player, ctx)
+		-- a new cycle of the personal Rush began: its start is the saved anchor now
+		local anchor = rushAt(player)
+		local start = if anchor then Event.rushCycleStart(ctx.now, anchor) else nil
+		if start and anchor and start > anchor then
+			setRushAt(player, start)
+		end
 	end
 	-- The Active quests' clock: this tick's seconds while the player is active, held until they
 	-- have finished a real match today (Ledger.gateActive, C.ActiveGate).
@@ -1038,7 +1062,7 @@ function CandyService.dev(player: Player, args: { string }): { string }
 			Clock.offset(),
 			if hw then Ledger.balance(hw) else 0,
 			Event.boardIndex(now),
-			Event.multiplier(now),
+			Event.multiplier(now, rushAt(player)),
 			if hw then hw.Active else 0
 		)
 	)

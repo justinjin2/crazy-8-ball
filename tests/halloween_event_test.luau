@@ -21,6 +21,18 @@ local function withEnabled(on: boolean, fn: () -> ())
 	end
 end
 
+-- Runs `fn` with the clock Rush (Config.Halloween.Rush.Personal false), then puts it back.
+local function withClockRush(fn: () -> ())
+	local R = H.require("Config").Halloween.Rush
+	local saved = R.Personal
+	R.Personal = false
+	local ok, err = pcall(fn)
+	R.Personal = saved
+	if not ok then
+		error(err, 0)
+	end
+end
+
 local COUNTDOWN = 1793226600 -- Wed Oct 28 18:30:00 EDT
 local START = 1793228400 -- 19:00:00 EDT (23:00 UTC)
 local DOUBLE_FROM = 1793419200 -- Sat Oct 31 00:00:00 EDT
@@ -63,23 +75,61 @@ return {
 	end,
 
 	["the Candy Rush: UTC minutes 0-9 of every hour, only while Live"] = function()
+		withClockRush(function()
+			local Event = load()
+			H.expect(Event.rushActive(START), "19:00:00 is a Rush (23:00 UTC)")
+			H.expect(Event.rushActive(START + 9 * 60 + 59), "9:59")
+			H.expect(not Event.rushActive(START + 10 * 60), "10:00")
+			H.expect(not Event.rushActive(START + 59 * 60 + 59), "59:59")
+			H.expect(Event.rushActive(START + 3600), "the next hour")
+			H.expect(not Event.rushActive(START - 3600), "not before the event")
+			H.expect(not Event.rushActive(END), "not after it (00:00 UTC)")
+			H.expect(Event.rushEndsAt(START + 5) == START + 600, "ends at minute 10")
+			H.expect(Event.rushEndsAt(START + 600) == nil, "no Rush in progress")
+			H.expect(Event.nextRushAt(START + 600) == START + 3600, "next hour")
+			H.expect(Event.nextRushAt(START + 3600) == START + 3600, "on the hour")
+			H.expect(Event.nextRushAt(COUNTDOWN) == START, "before the event: its first Rush")
+			local ends = END
+			H.expect(Event.nextRushAt(ends - 3600 - 1) == ends - 3600, "the last Rush")
+			H.expect(Event.nextRushAt(ends - 3600 + 1) == nil, "none in the last hour")
+			H.expect(Event.nextRushAt(ends + 10) == nil, "none after the end")
+		end)
+	end,
+
+	["the personal Candy Rush: 10 minutes from the player's start, again every 45"] = function()
+		local Event, C = load()
+		H.expect(C.Rush.Personal == true and C.Rush.CycleMinutes == 45, "personal, every 45 min")
+		local at = START + 7 * 60 + 13 -- not on the hour: the player's own clock
+		H.expect(not Event.rushActive(at), "no anchor: no Rush")
+		H.expect(Event.multiplier(at) == 1 and Event.rushChip(at) == nil, "no anchor: 1x")
+		H.expect(Event.rushActive(at, at) and Event.multiplier(at, at) == 2, "2x at once")
+		H.expect(Event.rushActive(at + 599, at), "9:59 in")
+		H.expect(not Event.rushActive(at + 600, at), "10:00 in: over")
+		H.expect(not Event.rushActive(at - 1, at), "not before the start")
+		H.expect(Event.rushEndsAt(at + 5, at) == at + 600, "ends 10 minutes after the start")
+		H.expect(Event.nextRushAt(at + 600, at) == at + 2700, "the next one 45 minutes on")
+		H.expect(Event.rushActive(at + 2700, at) and Event.rushActive(at + 3299, at), "again")
+		H.expect(not Event.rushActive(at + 3300, at), "and over again")
+		H.expect(Event.rushCycleStart(at + 2700 + 30, at) == at + 2700, "the second cycle")
+		local chip = Event.rushChip(at + 108, at)
+		H.expect(chip ~= nil and chip.text == "CANDY RUSH 8:12" and chip.kind == "Rush", "chip")
+		H.expect(not Event.rushActive(END + 1, END - 60), "never after the event")
+		H.expect(Event.nextRushAt(END - 600, END - 2700) == nil, "none past the end")
+	end,
+
+	["a rejoin keeps the personal Rush's cycle: never two starts closer than 45 minutes"] = function()
 		local Event = load()
-		H.expect(Event.rushActive(START), "19:00:00 is a Rush (23:00 UTC)")
-		H.expect(Event.rushActive(START + 9 * 60 + 59), "9:59")
-		H.expect(not Event.rushActive(START + 10 * 60), "10:00")
-		H.expect(not Event.rushActive(START + 59 * 60 + 59), "59:59")
-		H.expect(Event.rushActive(START + 3600), "the next hour")
-		H.expect(not Event.rushActive(START - 3600), "not before the event")
-		H.expect(not Event.rushActive(END), "not after it (00:00 UTC)")
-		H.expect(Event.rushEndsAt(START + 5) == START + 600, "ends at minute 10")
-		H.expect(Event.rushEndsAt(START + 600) == nil, "no Rush in progress")
-		H.expect(Event.nextRushAt(START + 600) == START + 3600, "next hour")
-		H.expect(Event.nextRushAt(START + 3600) == START + 3600, "on the hour")
-		H.expect(Event.nextRushAt(COUNTDOWN) == START, "before the event: its first Rush")
-		local ends = END
-		H.expect(Event.nextRushAt(ends - 3600 - 1) == ends - 3600, "the last Rush")
-		H.expect(Event.nextRushAt(ends - 3600 + 1) == nil, "none in the last hour")
-		H.expect(Event.nextRushAt(ends + 10) == nil, "none after the end")
+		local start = START + 3 * 3600
+		-- left in the 2x and back 4 minutes later: the same 2x, its 6 minutes left
+		H.expect(Event.rushAnchor(start, start + 240) == start, "same cycle")
+		-- left after the 2x, back 30 minutes in: no fresh 2x, the next one at 45
+		H.expect(Event.rushAnchor(start, start + 1800) == start, "no early 2x")
+		H.expect(not Event.rushActive(start + 1800, Event.rushAnchor(start, start + 1800)), "1x")
+		-- back after a whole cycle: a fresh 2x at once
+		H.expect(Event.rushAnchor(start, start + 2700) == start + 2700, "fresh after 45 min")
+		H.expect(Event.rushAnchor(nil, start) == start, "a first join: 2x at once")
+		H.expect(Event.rushAnchor("x", start) == start, "a bad flag")
+		H.expect(Event.rushAnchor(start + 60, start) == start, "a flag from the future")
 	end,
 
 	["the double day is Oct 31 in US Eastern time"] = function()
@@ -91,20 +141,22 @@ return {
 	end,
 
 	["the multiplier is 1 or 2, never 4"] = function()
-		local Event = load()
-		H.expect(Event.multiplier(START - 1) == 1, "before")
-		H.expect(Event.multiplier(START) == 2, "a Rush")
-		H.expect(Event.multiplier(START + 600) == 1, "no Rush")
-		-- A Rush on the double day (the top of an hour on Oct 31) is still 2x.
-		local rushOnDouble = DOUBLE_FROM + 3600 - DOUBLE_FROM % 3600
-		H.expect(Event.rushActive(rushOnDouble) and Event.doubleDay(rushOnDouble), "both on")
-		H.expect(Event.multiplier(rushOnDouble) == 2, "never stacked")
-		H.expect(Event.multiplier(DOUBLE_FROM + 1800) == 2, "the double day alone")
-		for t = START - 7200, END + 7200, 37 do
-			local m = Event.multiplier(t)
-			H.expect(m == 1 or m == 2, "only 1 or 2")
-		end
-		H.expect(Event.multiplier(END) == 1, "after")
+		withClockRush(function()
+			local Event = load()
+			H.expect(Event.multiplier(START - 1) == 1, "before")
+			H.expect(Event.multiplier(START) == 2, "a Rush")
+			H.expect(Event.multiplier(START + 600) == 1, "no Rush")
+			-- A Rush on the double day (the top of an hour on Oct 31) is still 2x.
+			local rushOnDouble = DOUBLE_FROM + 3600 - DOUBLE_FROM % 3600
+			H.expect(Event.rushActive(rushOnDouble) and Event.doubleDay(rushOnDouble), "both on")
+			H.expect(Event.multiplier(rushOnDouble) == 2, "never stacked")
+			H.expect(Event.multiplier(DOUBLE_FROM + 1800) == 2, "the double day alone")
+			for t = START - 7200, END + 7200, 37 do
+				local m = Event.multiplier(t)
+				H.expect(m == 1 or m == 2, "only 1 or 2")
+			end
+			H.expect(Event.multiplier(END) == 1, "after")
+		end)
 	end,
 
 	["a new board every day at 23:00 UTC, six in all"] = function()
@@ -125,17 +177,22 @@ return {
 	end,
 
 	["the Rush chip's text"] = function()
-		local Event = load()
-		local chip = Event.rushChip(START + 108) -- 1:48 into a Rush: 8:12 left
-		H.expect(chip ~= nil and chip.text == "CANDY RUSH 8:12", "Rush text")
-		H.expect(chip ~= nil and chip.endsAt == START + 600 and chip.kind == "Rush", "Rush end")
-		H.expect(Event.rushChip(START + 600) == nil, "no chip between Rushes")
-		H.expect(Event.rushChip(START - 1) == nil, "no chip before")
-		local t = DOUBLE_TO - (9 * 3600 + 12 * 60 + 44) -- 9:12:44 left of Oct 31
-		local double = Event.rushChip(t)
-		H.expect(double ~= nil and double.text == "HALLOWEEN NIGHT 9:12:44", "double text")
-		H.expect(double ~= nil and double.endsAt == DOUBLE_TO and double.kind == "Double", "double")
-		H.expect(Event.rushChip(DOUBLE_TO + 600) == nil, "Nov 1, between Rushes")
+		withClockRush(function()
+			local Event = load()
+			local chip = Event.rushChip(START + 108) -- 1:48 into a Rush: 8:12 left
+			H.expect(chip ~= nil and chip.text == "CANDY RUSH 8:12", "Rush text")
+			H.expect(chip ~= nil and chip.endsAt == START + 600 and chip.kind == "Rush", "Rush end")
+			H.expect(Event.rushChip(START + 600) == nil, "no chip between Rushes")
+			H.expect(Event.rushChip(START - 1) == nil, "no chip before")
+			local t = DOUBLE_TO - (9 * 3600 + 12 * 60 + 44) -- 9:12:44 left of Oct 31
+			local double = Event.rushChip(t)
+			H.expect(double ~= nil and double.text == "HALLOWEEN NIGHT 9:12:44", "double text")
+			H.expect(
+				double ~= nil and double.endsAt == DOUBLE_TO and double.kind == "Double",
+				"double"
+			)
+			H.expect(Event.rushChip(DOUBLE_TO + 600) == nil, "Nov 1, between Rushes")
+		end)
 	end,
 
 	["the clock and short formats"] = function()

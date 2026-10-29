@@ -5,7 +5,9 @@
 --
 --   Before -> Countdown (CountdownAt, 18:30 EDT) -> Live (StartsAt, 19:00 EDT) -> Ended (EndsAt)
 --
--- In the Live window: the Candy Rush (UTC minutes 0..Rush.Minutes-1 of every hour) and the
+-- In the Live window: the Candy Rush (Rush.Personal: each player's Rush.Minutes from their
+-- anchor, `anchor` below, then every Rush.CycleMinutes; else UTC minutes 0..Rush.Minutes-1 of
+-- every hour) and the
 -- double day (Double.From..Double.To) double Candy (EventMultiplier, never stacked), and a new
 -- quest board opens every BoardSeconds.
 local Config = require(script.Parent.Parent.Config)
@@ -59,14 +61,49 @@ local function hourStart(now: number): number
 	return now - now % 3600
 end
 
-function Event.rushActive(now: number): boolean
-	return C.Rush.Enabled == true and Event.isLive(now) and (now // 60) % 60 < C.Rush.Minutes
+local function cycleSeconds(): number
+	return math.max(60, (C.Rush.CycleMinutes or 60) * 60)
+end
+
+--- The personal Rush's cycle start that `now` is in, for a player anchored at `anchor` (the
+--- player's HwRushAt: when their first 2x began); nil without one or before it.
+function Event.rushCycleStart(now: number, anchor: number?): number?
+	if type(anchor) ~= "number" or now < anchor then
+		return nil
+	end
+	local cycle = cycleSeconds()
+	return anchor + ((now - anchor) // cycle) * cycle
+end
+
+--- A player's anchor when Halloween turns on for them (a join, the tutorial's end): the saved
+--- cycle start while that cycle still runs, so a rejoin never brings the 2x back early; else
+--- `now`, a fresh 2x at once. Rush starts are never closer than a cycle.
+function Event.rushAnchor(saved: any, now: number): number
+	if type(saved) == "number" and saved <= now and now - saved < cycleSeconds() then
+		return saved
+	end
+	return now
+end
+
+--- Whether a Candy Rush runs at `now` (personal: the player's, from `anchor`).
+function Event.rushActive(now: number, anchor: number?): boolean
+	if C.Rush.Enabled ~= true or not Event.isLive(now) then
+		return false
+	end
+	if C.Rush.Personal == true then
+		local start = Event.rushCycleStart(now, anchor)
+		return start ~= nil and now - start < C.Rush.Minutes * 60
+	end
+	return (now // 60) % 60 < C.Rush.Minutes
 end
 
 -- The end of the Candy Rush in progress, or nil when none is.
-function Event.rushEndsAt(now: number): number?
-	if not Event.rushActive(now) then
+function Event.rushEndsAt(now: number, anchor: number?): number?
+	if not Event.rushActive(now, anchor) then
 		return nil
+	end
+	if C.Rush.Personal == true then
+		return (Event.rushCycleStart(now, anchor) :: number) + C.Rush.Minutes * 60
 	end
 	return hourStart(now) + C.Rush.Minutes * 60
 end
@@ -74,9 +111,14 @@ end
 -- The start of the next Candy Rush after `now` (the top of the next hour, or StartsAt's first
 -- one before the event), or nil when none comes: Rush switched off, or the next top of the hour
 -- is at or past EndsAt (the event's last hour, and after it).
-function Event.nextRushAt(now: number): number?
+function Event.nextRushAt(now: number, anchor: number?): number?
 	if not C.Rush.Enabled then
 		return nil
+	end
+	if C.Rush.Personal == true then
+		local start = Event.rushCycleStart(now, anchor)
+		local nextAt = if start then start + cycleSeconds() else nil
+		return if nextAt and nextAt < C.EndsAt then nextAt else nil
 	end
 	local from = math.max(now, C.StartsAt)
 	local start = hourStart(from)
@@ -95,8 +137,8 @@ end
 
 -- The event's Candy multiplier: EventMultiplier in a Rush or on the double day, else 1 (and 1
 -- outside Live). Never more: a Rush on the double day is still 2x.
-function Event.multiplier(now: number): number
-	if Event.rushActive(now) or Event.doubleDay(now) then
+function Event.multiplier(now: number, anchor: number?): number
+	if Event.rushActive(now, anchor) or Event.doubleDay(now) then
 		return C.EventMultiplier
 	end
 	return 1
@@ -141,7 +183,7 @@ end
 
 -- The Candy Rush chip's text and end: on the double day "2x CANDY 9:12:44" (to Double.To), in
 -- a Rush "2x CANDY 8:12", else nil (no chip).
-function Event.rushChip(now: number): Chip?
+function Event.rushChip(now: number, anchor: number?): Chip?
 	local S = Strings.Halloween.Chip
 	if Event.doubleDay(now) then
 		local endsAt = math.min(C.Double.To, C.EndsAt)
@@ -151,7 +193,7 @@ function Event.rushChip(now: number): Chip?
 			kind = "Double",
 		}
 	end
-	local endsAt = Event.rushEndsAt(now)
+	local endsAt = Event.rushEndsAt(now, anchor)
 	if endsAt ~= nil then
 		return { text = S.Rush:format(Event.clock(endsAt - now)), endsAt = endsAt, kind = "Rush" }
 	end

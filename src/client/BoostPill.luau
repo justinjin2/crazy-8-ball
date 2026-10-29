@@ -105,6 +105,12 @@ local function now(): number
 	return workspace:GetServerTimeNow()
 end
 
+-- The player's personal Candy Rush anchor (the server's HwRushAt; Event.rushActive).
+local function rushAt(): number?
+	local at = Players.LocalPlayer:GetAttribute("HwRushAt")
+	return if type(at) == "number" then at else nil
+end
+
 -- Core's client State (State.on(): the event may show for this player), read guarded.
 local StateModule: any = nil
 local stateLooked = false
@@ -437,8 +443,11 @@ function BoostPill.candyPercent(self: any, flags: Money.Boosts): number?
 			return nil
 		end
 		local friends = if type(flags.friends) == "number" then flags.friends else 0
-		local m =
-			CandyMathModule.multiplier(EventModule.multiplier(at), friends, flags.group == true)
+		local m = CandyMathModule.multiplier(
+			EventModule.multiplier(at, rushAt()),
+			friends,
+			flags.group == true
+		)
 		return math.floor((m - 1) * 100 + 0.5)
 	end)
 	return if ok and type(value) == "number" then math.max(0, value) else nil
@@ -763,7 +772,7 @@ function BoostPill.footLines(self: any): { string }
 		elseif EventModule and type(EventModule.nextRushAt) == "function" then
 			pcall(function()
 				local at = now()
-				local nextAt = EventModule.nextRushAt(at)
+				local nextAt = EventModule.nextRushAt(at, rushAt())
 				if nextAt then
 					local words = (Strings.Halloween :: any).RushSoon
 					table.insert(lines, words:format(EventModule.clock(nextAt - at)))
@@ -796,7 +805,7 @@ function BoostPill.candyLines(self: any, flags: Money.Boosts): { any }
 	local lines: { any } = {}
 	local event = 1
 	if EventModule and type(EventModule.multiplier) == "function" then
-		local ok, m = pcall(EventModule.multiplier, now())
+		local ok, m = pcall(EventModule.multiplier, now(), rushAt())
 		if ok and type(m) == "number" then
 			event = m
 		end

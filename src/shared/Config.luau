@@ -3777,7 +3777,12 @@ Config.Halloween = {
 	Boards = 6,
 	BoardSeconds = 86400,
 	Double = { From = 1793419200, To = 1793505600 }, -- Oct 31 in US Eastern time: 2x all day
-	Rush = { Enabled = true, Minutes = 10 }, -- Candy Rush: UTC minutes 0-9 of every hour
+	-- Candy Rush: 2x Candy for Minutes. Personal (designer, 2026-10-29: "a boost at the
+	-- beginning when they play and a reasonable refresh time"): each player's own, from when
+	-- Halloween turns on for them, then again every CycleMinutes of play (the saved start,
+	-- Flags.HwRushAt, means a rejoin never brings it back early); ~1.05x the Candy of the old
+	-- clock Rush. Personal false: UTC minutes 0..Minutes-1 of every hour, as before.
+	Rush = { Enabled = true, Minutes = 10, Personal = true, CycleMinutes = 45 },
 	EventMultiplier = 2, -- in a Rush or on the double day; the two never stack (never 4x)
 	-- Friends and group: NO keys here. Config.Economy.FriendBoost / FriendBoostMaxFriends /
 	-- FriendBoostEnabled (the GUI lane) and the existing GroupBoost are the only source, read

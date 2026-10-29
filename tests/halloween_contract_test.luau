@@ -62,6 +62,10 @@ return {
 		if not present("Halloween.Event (core)", Event) then
 			return
 		end
+		-- the clock Rush (Rush.Personal false); the personal one is in halloween_event_test
+		local R = H.require("Config").Halloween.Rush
+		local personal = R.Personal
+		R.Personal = false
 		local t = GO_LIVE
 		while t < ENDS do
 			for _, offset in { 0, 5 * 60, 9 * 60 + 59, 10 * 60 } do
@@ -78,6 +82,7 @@ return {
 			end
 			t += 600
 		end
+		R.Personal = personal
 	end,
 
 	["halloween: Candy, quests, King, pickups, packs and conversion numbers"] = function()
