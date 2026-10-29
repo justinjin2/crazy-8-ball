@@ -14,7 +14,8 @@
 -- with the Free Reward menu). Nothing here ever opens the Shop by itself.
 --
 -- One page scrolls under the jump buttons: "- FEATURED -" and the Grand Opening card
--- (GrandOpeningCard), then "- BLOCKS -" with the Mystery Lucky Block (ShopMystery), the restock
+-- (GrandOpeningCard; the group and its jump button hide while the block is off the Shop,
+-- deals.GrandOpening.offShop, and the Shop opens on Blocks), then "- BLOCKS -" with the Mystery Lucky Block (ShopMystery), the restock
 -- (ShopRestock) and, while they are on, the Starter Pack and VIP (ShopOffers): the designer's
 -- picks on the mock page, 2026-10-08; then "- MONEY -" with the money packs (ShopMoney, pick
 -- B) and "- PASSES -" with VIP, the ability slots, Money Party and Roblox Plus (ShopPasses, pick
@@ -89,6 +90,7 @@ function ShopMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 	self.busy = {} :: { [string]: boolean } -- buy requests in flight, by button
 	self.openedOn = nil :: string? -- the group the Shop was opened on (a late layout jumps again)
 	self.openedAt = 0
+	self.offShop = false -- the Grand Opening block is off the Shop (ShopMenu.arrange)
 
 	local frame = MenuFrame.new(screen, {
 		name = NAME,
@@ -280,10 +282,18 @@ function ShopMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		self:layout()
 	end
 	-- The panel is as tall as the Grand Opening card (designer, 2026-10-06); the page scrolls
-	-- on below it.
+	-- on below it. With the block off the Shop, as tall as the Blocks header and the Mystery card.
 	frame.fitHeight = function(width: number, panelW: number): number
 		local pageW = width - (if self.jumpRail:outside(panelW) then 0 else self.jumpRail:room(nil))
-		return GrandOpeningCard.heightFor(pageW - self.scroll.ScrollBarThickness) + P.PeekPx
+		pageW -= self.scroll.ScrollBarThickness
+		if self.offShop then
+			local k = GrandOpeningCard.scaleFor(pageW)
+			return GrandOpeningCard.headerHeight(k)
+				+ round(SB.HeaderGapUnits * k)
+				+ ShopMystery.heightFor(k)
+				+ P.PeekPx
+		end
+		return GrandOpeningCard.heightFor(pageW) + P.PeekPx
 	end
 	ItemState.Changed.Shop:Connect(function()
 		self:refresh()
@@ -291,9 +301,10 @@ function ShopMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 
 	local handle: Menus.Handle = {
 		open = function(tab: string?)
+			self:arrange() -- before the frame fits its height to the first screen
 			frame:open()
 			local group = if tab then groupOf(tab) else nil
-			if tab and group then
+			if tab and group and self.jumpRail:has(group) then
 				self.openedOn, self.openedAt = tab, os.clock()
 				self.jumpRail:jump(group, true)
 				self.jumpRail:scrollTo(tab, true)
@@ -326,9 +337,43 @@ end
 -- Drawing
 --------------------------------------------------------------------------------------------
 
+-- Whether the Grand Opening block is off the Shop (hw-core's Config.Shop.GrandOpeningOffShop,
+-- sent as deals.GrandOpening.offShop; missing = on the Shop, as before).
+local function offShop(state: any): boolean
+	local deals = if type(state) == "table" and type(state.deals) == "table"
+		then state.deals
+		else {}
+	return type(deals.GrandOpening) == "table" and deals.GrandOpening.offShop == true
+end
+
+--- The Featured group (its header and the Grand Opening card, its jump button) shows only
+--- while the block is on the Shop; off it, the page starts at Blocks. True when that changed.
+function ShopMenu.arrange(self: any): boolean
+	local off = offShop(ItemState.shop())
+	if off == self.offShop then
+		return false
+	end
+	self.offShop = off
+	self.featured.root.Visible = not off
+	local keys: { string } = {}
+	for _, jump in JUMPS do
+		if not (off and jump.Key == "Featured") then
+			table.insert(keys, jump.Key)
+		end
+	end
+	local stage = self.frame.stage
+	if self.jumpRail:setOrder(keys) and stage then
+		self.jumpRail:register(stage)
+	end
+	return true
+end
+
 function ShopMenu.refresh(self: any)
 	if not self.frame:isOpen() then
 		return
+	end
+	if self:arrange() then
+		self.frame:layout() -- the panel's height follows the new first screen
 	end
 	local state = ItemState.shop()
 	self.placeholder.Visible = false
@@ -353,13 +398,14 @@ function ShopMenu.layout(self: any)
 	end
 	local width = self.jumpRail:layout(geo)
 	self.scroll.Size = UDim2.fromOffset(width, geo.content.Y)
-	-- The card fits the page whole (designer, 2026-10-06: no scrolling on a phone).
-	local height = self.featured:layout(width - self.scroll.ScrollBarThickness)
-	-- Below the card the Blocks group: its header, the Mystery block, the restock, the offers.
-	local k = self.featured.k
+	-- The card fits the page whole (designer, 2026-10-06: no scrolling on a phone); with the
+	-- block off the Shop the page starts at the Blocks group.
 	local pageW = width - self.scroll.ScrollBarThickness
+	local height = if self.offShop then 0 else self.featured:layout(pageW)
+	-- Below the card the Blocks group: its header, the Mystery block, the restock, the offers.
+	local k = GrandOpeningCard.scaleFor(pageW)
 	local headH = GrandOpeningCard.headerHeight(k)
-	self.tops.Featured = 0
+	self.tops.Featured = if self.offShop then nil else 0
 	self.tops.Blocks = height
 	GrandOpeningCard.layoutHeader(self.blocksHead, round(pageW / 2), round(headH / 2), k)
 	local y = headH + round(SB.HeaderGapUnits * k)
@@ -414,7 +460,8 @@ function ShopMenu.layout(self: any)
 end
 
 -- What makes a group "new": the restock slot (Blocks), the open Limited rows and offers
--- (Featured). Seen when the Shop opens.
+-- (Featured; Blocks, which holds the offers, while the Grand Opening is off the Shop). Seen
+-- when the Shop opens.
 local function newMarks(state: any): { [string]: string }
 	local marks: { [string]: string } = {}
 	local restock = if type(state.restock) == "table" then state.restock else {}
@@ -443,7 +490,9 @@ local function newMarks(state: any): { [string]: string }
 	end
 	table.sort(deals)
 	if #deals > 0 then
-		marks.Featured = table.concat(deals, ",")
+		local into = if offShop(state) then "Blocks" else "Featured"
+		local mark = table.concat(deals, ",")
+		marks[into] = if marks[into] then marks[into] .. ";" .. mark else mark
 	end
 	return marks
 end
@@ -467,7 +516,9 @@ end
 function ShopMenu.refreshBadges(self: any, state: any)
 	local marks = newMarks(state)
 	local deals = if type(state.deals) == "table" then state.deals else {}
-	local opening = type(deals.GrandOpening) == "table" and deals.GrandOpening.open == true
+	local opening = type(deals.GrandOpening) == "table"
+		and deals.GrandOpening.open == true
+		and not offShop(state)
 	local pinned: { string } = P.PinnedBadges :: any
 	for _, jump in JUMPS do
 		local mark = marks[jump.Key]
