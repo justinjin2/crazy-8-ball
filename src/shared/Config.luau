@@ -10591,6 +10591,9 @@ Config.UI.CuePreview = {
 			-- pictures show (the Jack's pumpkin face, the Pitchfork's fork; square-on, or tip
 			-- left, showed the pumpkin's back).
 			RollDeg = -40,
+			-- A cue's own turn instead (designer, 2026-10-29: the Sword "should be tilted so you
+			-- can actually see the sword model": its blade's flat to the camera, not its edge).
+			RollDegByCue = { HalloweenSwordCue = 50 },
 			FovDeg = 30,
 			YawDeg = { -12, 8 },
 			PitchDeg = { 6, 2 },

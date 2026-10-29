@@ -803,7 +803,8 @@ local function poseShowcase(s: Session)
 	local a = CuePreviewMath.showcaseAxis()
 	local axis = Vector3.new(a.x, a.y, a.z)
 	local tip = spot - axis * spanMiddle(s)
-	stick:PivotTo(CFrame.lookAt(tip, tip - axis) * CFrame.Angles(0, 0, math.rad(SC.Model.RollDeg)))
+	local roll = SC.Model.RollDegByCue and SC.Model.RollDegByCue[s.id] or SC.Model.RollDeg
+	stick:PivotTo(CFrame.lookAt(tip, tip - axis) * CFrame.Angles(0, 0, math.rad(roll)))
 end
 
 local function showcaseScene(s: Session): CuePreviewMath.Scene
