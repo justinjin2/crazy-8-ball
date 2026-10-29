@@ -8,12 +8,15 @@ Updated 2026-10-29 (**published by the designer 2026-10-27: everything up to `7c
 in `~/Desktop/8ball`, branch `gui-v4`. The STATUS from just before launch, in full, is the top
 entry of `docs/archive/STATUS_HISTORY.md`.
 
-## Halloween 2026 (branch `halloween`, pushed at `7b212c71`, NOT published)
+## Halloween 2026 (branch `halloween`, pushed, NOT published: on hold for the simplified menu)
 
-- **Waiting to publish:** `halloween` at `7b212c71` (it also carries `gui-v4`'s emote audio
-  update). Team Create is synced to it (every changed script checked byte for byte, 04:47
-  Oct 29) and boots clean into Live. One publish (designer, 04:00). Steps, checks and every
-  switch: `docs/halloween/RELEASE.md`.
+- **Do not publish yet** (designer, 2026-10-29 ~05:30). The update is being simplified:
+  - Done: night all event, the cues shown as Unique (pink), the Spider off.
+  - To do: the menu redo (mock A approved), buying with Candy or Robux, removing the track and
+    the Spider fully, the HUD Candy pill and boost breakdowns, the Shop banner, and the
+    Pitchfork's fork at the tip.
+  - Brief: `docs/prompts/HW_MENU_V4_PROMPT.md`.
+- **What follows describes 7b212c71,** the build that was ready before this change:
 - **In it:** Candy (matches, lobby pickups, 2x Candy minutes 0-9 UTC), daily quests, the Candy
   track (11 steps: spins, money, the Pitchfork at 500, the Witch's Broom at 2,000, the
   Halloween Sword at 7,000), the Spider play-time cue (3 h), the Pumpkin King (:15 and :45,
