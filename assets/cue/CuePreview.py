@@ -57,6 +57,24 @@ THUMB_CONTRAST = 0.22  # an S-curve on the cue's brightness, 0 none
 THUMB_GLOW_GAMMA = 0.65  # the aura's alpha raised to this (below 1: faint glow reads stronger on a pale card)
 THUMB_RING_TILT = 50.0  # degrees a ring round the cue (VelocityPerpendicular) is turned toward the camera: seen side-on it vanishes
 THUMB_AURA_RATE = 2.0  # the aura's emitters at this many times their rate: one frozen moment looks sparser than the moving aura
+# Two opt-in skin keys for a body cue's card picture only (designer, 2026-10-29: "the pitchfork
+# trident forks are too small ... make it a lot bigger even if its not completely scale to
+# size", "the pumpkin head should be way bigger and obvious in the gui"). Absent = the picture
+# as before; the game's model, its meshes and their uploads never see them (only --thumb reads
+# them, on its own copy of the body in Blender, restored afterwards).
+#   "thumb_grow": {"at": d, "toward": "tip" | "butt", "scale": k, "blend": studs, "roll": deg}
+#       the head drawn k times bigger: every body vertex past `at` studs from the tip (toward the
+#       tip or the butt) is scaled k times about the cue's axis point at `at` and turned `roll`
+#       degrees about the axis, its top toward the camera's side (the card camera sits 50
+#       degrees off the top, so a flat fork at 50 shows its face full on); over the `blend`
+#       studs behind `at` the cue widens (and turns) smoothly from 1 to k, so the head grows out
+#       of the shaft without a step. The aura's emitters and lights hosted in that zone move with
+#       it, and its emitters' sizes, speeds and pull grow k times. (OBJ body parts only.)
+#   "thumb_fit": pad px (of THUMB_SIZE) - the picture framed to the drawn body itself, its
+#       projected extent plus this padding on the longer side, centred (the house framing is the
+#       cue's length on the diagonal, and a wide head or a grown one meets the edge); thumb_margin
+#       and thumb_shift are then unused.
+THUMB_FIT_PAD = 14  # px, thumb_fit's padding when the key is true: room for the outline (5.5 px) and thumb_pop's rim (9 px)
 
 PREVIEW = {
     'clip_size': (1280, 720),
@@ -683,8 +701,46 @@ def blender_main(args):
         aura_t = PREVIEW['prewarm'] if ((V.get('Aura') or {}).get('Emitters') or beams) and '--noaura' not in args else None
         stills = os.path.join(out_dir, 'stills')
 
+        def vertices(ob):
+            co = np.empty(len(ob.data.vertices) * 3, np.float32)
+            ob.data.vertices.foreach_get('co', co)
+            return co.reshape(-1, 3).astype(np.float64)
+
+        # a skin's own "thumb_grow" (THUMB_FIT_PAD's note): the head drawn bigger, on this
+        # render's copy of the body only (restored below)
+        grow = skin.get('thumb_grow') if body_anim is not None else None
+        grown, saved_specs, saved_lights = [], list(aura_specs), list(aura_lights)
+        if grow:
+            for ob in body_anim.parts:
+                if ob.type != 'MESH' or any(m.type == 'ARMATURE' for m in ob.modifiers):
+                    continue
+                co = vertices(ob)
+                grown.append((ob, co))
+                ob.data.vertices.foreach_set('co', grow_points(co, grow).astype(np.float32).ravel())
+                ob.data.update()
+            aura_specs[:] = [grow_spec(sp, grow) for sp in aura_specs]
+            aura_lights[:] = [(grow_light(sp, grow), lo) for sp, lo in aura_lights]
+        # a skin's own "thumb_fit": framed to the drawn body (or the cue), padded, centred
+        cam_eye, cam_target, cam_ortho = Vector(eye), Vector((0, 0, 0)), span
+        if skin.get('thumb_fit'):
+            pad = THUMB_FIT_PAD if skin['thumb_fit'] is True else float(skin['thumb_fit'])
+            place_cue(tuple(loc), tuple(rot))
+            set_surface(aura_t or 1.0)
+            set_cam(loc=tuple(eye), target=(0, 0, 0), ortho=span)
+            bpy.context.view_layer.update()
+            right, up = cam.matrix_world.col[0].xyz, cam.matrix_world.col[1].xyz
+            pts = []
+            for ob in ([o for o in body_objs if o.type == 'MESH'] or [cue]):
+                M = np.array(ob.matrix_world)
+                pts.append(vertices(ob) @ M[:3, :3].T + M[:3, 3])
+            pts = np.concatenate(pts)
+            pu, pv = pts @ np.array(right), pts @ np.array(up)
+            mid = right * float((pu.min() + pu.max()) / 2) + up * float((pv.min() + pv.max()) / 2)
+            cam_eye, cam_target = Vector(eye) + mid, mid
+            cam_ortho = float(max(np.ptp(pu), np.ptp(pv))) / (1 - 2 * pad / THUMB_SIZE)
+
         def shot(name, aura=True):
-            still('thumb', dict(loc=tuple(eye), target=(0, 0, 0), ortho=span), (tuple(loc), tuple(rot)),
+            still('thumb', dict(loc=tuple(cam_eye), target=tuple(cam_target), ortho=cam_ortho), (tuple(loc), tuple(rot)),
                   aura_t=aura_t if aura else None, aura_rate=THUMB_AURA_RATE)
             os.replace(os.path.join(stills, 'thumb.png'), os.path.join(stills, name))
 
@@ -746,6 +802,10 @@ def blender_main(args):
         out.file_format = 'PNG'
         os.makedirs(dest, exist_ok=True)
         out.save()
+        for ob, co in grown:  # thumb_grow was the picture's alone: the body and its rows as they were
+            ob.data.vertices.foreach_set('co', co.astype(np.float32).ravel())
+            ob.data.update()
+        aura_specs[:], aura_lights[:] = saved_specs, saved_lights
         print('CUE preview thumb done', skin_id)
 
     # ---- clip -----------------------------------------------------------------------------------
@@ -1216,6 +1276,111 @@ def thumb_outline(rgb, a, stick, skin_id, n, path):
         colour = np.broadcast_to(hexrgb(row['color']), rgb.shape)
     ring = np.clip(d1 - stick, 0, 1) * opaque
     return thumb_over(rgb, a, colour, ring)
+
+
+def _grow_parts(g):
+    """thumb_grow's numbers: (at, sign, k, blend, roll radians); sign +1 when the head is toward
+    the tip (d < at), -1 toward the butt."""
+    sgn = 1.0 if g.get('toward', 'tip') == 'tip' else -1.0
+    return float(g['at']), sgn, float(g['scale']), float(g.get('blend', 0.0)), math.radians(float(g.get('roll', 0.0)))
+
+
+def grow_weight(u, blend):
+    """How much of the grow a point gets, `u` studs into the head past the anchor (negative:
+    behind it): 1 in the head, easing to 0 over the `blend` studs behind it."""
+    u = np.asarray(u, np.float64)
+    if blend <= 0:
+        return (u >= 0).astype(np.float64)
+    s = np.clip(1 + u / blend, 0, 1)
+    return np.where(u >= 0, 1.0, s * s * (3 - 2 * s))
+
+
+def grow_points(P, g):
+    """thumb_grow on points P (n x 3, the cue's Blender frame: tip at the origin, butt along -Y,
+    top +Z): the head scaled about the axis point at `at` and rolled about the axis; the blend
+    ring behind it only widened and rolled (its d kept), so nothing tears at the anchor."""
+    at, sgn, k, blend, roll = _grow_parts(g)
+    P = np.asarray(P, np.float64)
+    u = sgn * (at - (-P[:, 1]))
+    w = grow_weight(u, blend)
+    out = P.copy()
+    head = u >= 0
+    A = np.array([0.0, -at, 0.0])
+    out[head] = A + k * (P[head] - A)
+    ring = ~head
+    f = 1 + (k - 1) * w[ring]
+    out[ring, 0] *= f
+    out[ring, 2] *= f
+    ang = roll * w
+    c, s = np.cos(ang), np.sin(ang)
+    x, z = out[:, 0].copy(), out[:, 2].copy()
+    out[:, 0] = x * c + z * s
+    out[:, 2] = -x * s + z * c
+    return out
+
+
+def _grow_host_point(at, up, side, g):
+    """(AtStuds, Up, Side) of a host point after thumb_grow, and whether it sits in the head."""
+    p = grow_points(np.array([[side, -at, up]]), g)[0]
+    a, sgn = _grow_parts(g)[:2]
+    return (float(-p[1]), float(p[2]), float(p[0])), sgn * (a - at) >= 0
+
+
+def grow_spec(spec, g):
+    """An aura emitter's row for the grown head: one hosted in the head (an Attachment, a Part
+    or a Segment there) moves with it, and its sizes, speeds and pull grow `scale` times; any
+    other row comes back as it was."""
+    import copy
+    h = spec.get('Host') or {}
+    k = float(g['scale'])
+    kind = h.get('Kind', 'Attachment')
+    if kind == 'Attachment':
+        point, inside = _grow_host_point(h.get('AtStuds', 0.0), h.get('Up', 0.0), h.get('Side', 0.0), g)
+    elif kind == 'Part':
+        mid = (h.get('FromStuds', 3.8) + h.get('ToStuds', 6.9)) / 2
+        point, inside = _grow_host_point(mid, h.get('Up', 0.0), h.get('Side', 0.0), g)
+    elif kind == 'Segment':
+        point, inside = _grow_host_point((h['From'][0] + h['To'][0]) / 2, 0.0, 0.0, g)
+    else:
+        return spec
+    if not inside:
+        return spec
+    out = copy.deepcopy(spec)
+    nh = out['Host']
+    at, sgn = _grow_parts(g)[:2]
+    if kind == 'Attachment':
+        nh['AtStuds'], nh['Up'], nh['Side'] = point
+    elif kind == 'Part':
+        for key in ('FromStuds', 'ToStuds'):
+            nh[key] = at - k * (at - h.get(key, 3.8 if key == 'FromStuds' else 6.9))
+        nh['Width'] = h.get('Width', 0.3) * k
+        nh['Up'], nh['Side'] = point[1], point[2]
+    else:
+        for key in ('From', 'To'):
+            q, _ = _grow_host_point(h[key][0], h[key][1] if len(h[key]) > 1 else 0.0,
+                                    h[key][2] if len(h[key]) > 2 else 0.0, g)
+            nh[key] = list(q)
+        nh['Radius'] = h.get('Radius', 0.0) * k
+
+    def times(v):
+        if isinstance(v, (int, float)):
+            return v * k
+        return [[e[0]] + [x * k for x in e[1:]] for e in v]
+    if 'Size' in out:
+        out['Size'] = times(out['Size'])
+    out['Speed'] = [x * k for x in out.get('Speed', [1, 1])]
+    out['Acceleration'] = [x * k for x in out.get('Acceleration', [0, 0, 0])]
+    return out
+
+
+def grow_light(spec, g):
+    """An aura light's row for the grown head (only its place moves)."""
+    point, inside = _grow_host_point(spec.get('AtStuds', 5.0), spec.get('Up', 0.0), spec.get('Side', 0.0), g)
+    if not inside:
+        return spec
+    out = dict(spec)
+    out['AtStuds'], out['Up'], out['Side'] = point
+    return out
 
 
 def add_bloom(bpy, scene):
