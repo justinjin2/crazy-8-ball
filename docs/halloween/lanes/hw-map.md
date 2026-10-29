@@ -50,6 +50,28 @@ From PLAN §4 (everything else is read-only to this lane; ask through Requests):
 - `Config.HalloweenMap.Props.Budget.Lights = 6` (throne 2 + the throne King's aura 1 + 3 table Kings).
 
 ## Status
+- 20:40 hw-map: **PITCHFORK CUE refined** (coordinator 20:4x: detail and polish before Justin sees it).
+  - FORK about 20% bigger: prong centres 0.74 off the axis (were 0.62), prongs 0.19 x 0.23 with
+    a rounded-square (superellipse) section so their edges catch light, arrowheads 1.45x (were
+    1.2x) and longer. 2.08 across the barbs (was 1.74), 1.04 off the axis (Aim cap 1.1), still
+    1.48 past the butt. The gold yoke is bevelled: two rims and a groove, then the dome.
+  - GLOSS, painted in the atlas: a sheen, a near-white streak with a thinner one each side, and a
+    rim light underneath. The gold and black bands are bevelled (a dark edge, then a bright line
+    just inside), with dark-red hairlines at the band edges. The tail's shadow is painted on the
+    shaft round the coil. The swatches have rim lights (a red rim on the black horns). A 64x256
+    roughness map (red 0.22, black 0.26, gold 0.34): in an Edit A/B the sun draws a crisper white
+    line with it (`roughness_ab_edit.jpg`). No Reflectance.
+  - TAIL: tube 0.052 (was 0.036), riding higher on top; the coil ends at 3.62 and the tip lifts
+    0.035 to a 0.9x arrowhead laid nearly flat (the up rule's 45-degree cone: tipped more, its
+    lower barb reads as "sideways"). 3 parts / 9,440 tris; `check_body` passes, hand zones flush.
+    The tip flames moved to the new points.
+  - LAB (lane window, Play): stand Night (fork close and full), back carry 7 studs Day and 15
+    Night, hand at aim in a solo game (clear: the fork fades, shaft glossy), finisher Day.
+    Console: only Studio's DataStore/MemoryStore lines and an avatar asset "being generated"
+    (114949053813201, not in src, the manifest or the place). Shots and the R2 side-by-side:
+    `~/Desktop/8ball-refs/halloween/shots/hw-map/pitchfork/pitchfork_vs_R2.jpg` (first build's in `v1/`).
+  - CARD re-rendered (`thumb_margin` 2.2: the bigger fork met the edge at 1.75): new image id
+    109608018268838, sent to core for `Art.PitchforkCue` (was 121098110131668).
 - 20:22 hw-map: **PITCHFORK CUE built and labbed** (coordinator 19:40, concept R2; never "devil").
   `assets/cue/CuePiecesHalloween_Pitchfork.py`, `skins/pitchfork.json`, `pieces/pitchfork`,
   `vfx/pitchfork`, `thumbs/pitchfork.png`. Core's rows merged (Legendary, track 500); core set
@@ -429,6 +451,9 @@ Landed (only my own blocks unless said):
   frame) and `thumb_shift` (studs toward the tip); absent = the house framing, so every other card
   renders as before (the Pitchfork's fork, thickened 1.45x with the rest, met the corner).
 - `assets/cue/CuePieces.py`: a guarded `import CuePiecesHalloween_Pitchfork` beside the Bone's.
+- `tools/build_cue_templates.luau`: `dress()` applies a piece part's `RoughnessMap` when its row
+  says `UseRoughness = true` (the Pitchfork's lacquer). Opt-in because Infernal's skull already
+  carries Meshy roughness and metalness maps this never applied; its look stays put.
 - `Config.luau`: `Config.Lighting.Night` (after Sunset), `Config.HalloweenMap` (after Lighting) — 0b5ef756, ccb73403, 0498b301.
 - `Strings.luau`: `Strings.HalloweenMap` (after `Arena`); 5 keys in `GlobalQueue.Failed` (`KingBusy`,
   `KingNoTable`, `KingCooldown`, `KingNotNow`, `CandyBagFull`: the bag-full note reuses the queue
@@ -526,6 +551,14 @@ coordinator resolves overlaps. Planned (add the commit sha when each lands):
     on the bright table. A 3D flame mesh can be added later if wanted.
   - Horns at 30 degrees off the top: the up rule's +0.25 is a 45-degree cone and a horn's flank
     reaches about 13 degrees more.
+  - Refinement (coordinator 20:4x): the fork went from 0.87 to 1.04 off the axis, which uses most
+    of the Aim cap's 1.1 and pushes the lower prong further into the legs on a back. The
+    coordinator asked for it; it still reads cleanly at 7 and 15 studs.
+  - Painted streaks are wide (main sigma 0.035 of the way round, sides 0.022): a hairline streak
+    vanished on the floor at 7 studs.
+  - The tail tip's arrowhead stays nearly flat (face tipped 0.2 toward the stand side). The up
+    cone leaves no room to show it face-on from the side, so from the stand it reads as a
+    hooked tip and from above (back carry) as an arrowhead.
 
 - Cue labs, 2026-10-28: the lab spot moved to (-80, 0, 68). At (-40, 0, 70) the SoloPortal's
   cyan PointLight (range 14, brightness 2) tints every cue mint (cues-a and cues-b told). Body
