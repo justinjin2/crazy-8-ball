@@ -28,6 +28,38 @@ From PLAN §4 (everything else is read-only; ask below under Requests):
 - Tests: `tests/halloween_*_test.luau`, additions to `save_schema_test` and `config_test`.
 
 ## Status
+- 04:12 hw-core: **READY @HEAD** (the coordinator's 03:59 GO, amended 04:0x). Commits, in order:
+  - a6ad5754: the lineup on the Candy track (150 Spins 2; Pitchfork 500, Witch's Broom 2000, Sword 7000); funnel cue steps named from the track.
+  - 3c7e5042, then its revert dae51f51: the Spider off the playtime clock, undone by Justin's 04:0x change.
+  - 94f0f836: the Spider stays the playtime cue; 4,500 back to $10,000; funnel 4_Cue500, 5_Cue2000, 6_Cue7000.
+  - 89e3eaa5: `Config.Shop.GrandOpeningOffShop = true` (false = today's Shop). No money buy (NotSold), no Robux (Closed; a late receipt pays the fallback), owned blocks still open, the launch bonus and the Grand Opening Luck unchanged. The client reads `ShopState.deals.GrandOpening.offShop` (hw-gui's interface).
+  - e321ba0f: `Config.Halloween.KingDrop = { Enabled = true, Cue = "JackOLanternCue", Chance = 0.05 }`.
+    - The roll rides a visit's first paid win only (Live, Timed), inside `hwBoss`'s one save change, so a replay never rolls again. Owned or not ready: no roll.
+    - A drop goes through giveReward. `drop = cueId` is in the bossWon reply and in the `king` payload.
+    - Events: HwKingDrop (a: Drop/NoDrop, b: the cue, c: device), and HwKing as before.
+    - CandyToast: the NEW CUE! card "From the Pumpkin King".
+    - The event menu: a pill "Pumpkin King drop · 5%" (OWNED once owned) between the Candy and ENDS pills. The end screen doesn't list the Jack.
+    - Studio only: HwQA `("kingdrop", userId)` makes the next roll drop.
+  - Lint OK, 1,480 tests (a new `Ledger.kingDrop` test; the GO off-Shop test in shop_test).
+  - Studio, one session:
+    - Live, King wins: a normal roll logged NoDrop; a forced roll dropped the Jack (HwKingDrop Drop); a replay of that visit paid 0 and didn't roll; a forced roll once owned didn't roll.
+    - The menu: the pill reads "Pumpkin King drop · OWNED" with the Jack's picture; the track shows the new lineup.
+    - The card "NEW CUE! Jack-o'-Lantern Cue · From the Pumpkin King" shows.
+    - Shop: `deals.GrandOpening.offShop = true`, open false; a money buy gives NotSold, Robux gives Closed.
+    - Console clean.
+  - hw-map: the sign reads `Config.Halloween.KingDrop.Chance` (0.05).
+- 03:55 hw-core: **Halloween Limited card PARKED** (coordinator: Justin dropped Shop changes for tonight, "focus strictly on the Halloween GUI and candy system").
+  - The work stays on branch `hw-core-limited` (c8d2fdf7):
+    - 87d7a1fa: the card behind Config.Shop.HalloweenLimited, off.
+    - 3bd660ee: the HwLimited events.
+    - The lane notes: READY detail, the hw-gui interface, the assumption.
+  - hw-core is back at e23b6f27 plus the Sword's rim-popped card (0903f652, a re-pick of 28f643d0, which the coordinator cherry-picks). No Limited code on this branch.
+  - Next: the new lineup's server side (track steps, the Spider off the playtime clock, the King's drop roll), on the coordinator's go.
+- 23:10 hw-core: **READY @HEAD** bb2c3c69: Art.HalloweenSwordCue = rbxassetid://136458818972136, cues-a's v5 card (slim hilt). It replaces 121167927707840.
+  - Lint OK, 1,477 tests.
+  - Studio: the 7,000 node shows it, loaded; console clean.
+  - Look note (not changed): v5's card is darker than the popped v4, and the dark blade fades into the tile again; told cues-a.
+- 21:46 hw-core: STOPPING (usage limit). Nothing open: every hw-core commit is merged into halloween (last f0257a2c), and the tree is clean at the halloween tip. On resume: swap Art ids when a cue lane re-renders a card (the Sword v5 may bring a new Thumb); the event menu/HUD improvement list (planning only) when the designer's screenshot notes arrive.
 - 21:19 hw-core: **READY @HEAD** 52d24ae4: Art.PitchforkCue = rbxassetid://139633646140924, hw-map's skinnier card with thumb_pop's new --rim pass. It replaces 108749630308384 and is the Thumb in hw-map 533b0a60's skin row.
   - Lint OK, 1,477 tests.
   - Studio: the 500 node shows it, loaded; it reads as a red fork on a cream glow, clear on the dark tile (my 21:10 look note is answered); console clean.
@@ -174,6 +206,7 @@ All landed, each with its commit:
 - The timed King (a775fd51): `SaveSchema.luau` `KingVisit = 0` in `freshHalloween` and in `HALLOWEEN_TIMES` (fixed like the other times; old-save test in `save_schema_test`); `PlayerData.hwBoss(player, ctx, visitStart?)` (Timed: `Ledger.bossVisitWin`, the money in the same change, reason `HalloweenKing`); `Config.Halloween.Boss` now multi-line with `Visit = { Candy = 150, Money = 2500, Xp = 100 }`.
 - `HubCorners.luau` (52c1f23c): the `Halloween.Countdown` require as `KingTimer`, and `KingTimer.padStop()` once each in `padStops` (after the event tile), `blurPad` and `padFocusedOn` (the King's pill as a controller stop).
 - `docs/ECONOMY.md` section 6: the timed King's reward paragraph (this commit).
+- The lineup of 2026-10-29 (89e3eaa5, e321ba0f): `Config.Shop.GrandOpeningOffShop` after `Config.Shop.Deals`; `Shop.luau` `Shop.dealOffShop` + `offShop` in `DealWindow`/`Shop.deal`; `ShopView.luau` `offShop` in `DealView`; `tests/shop_test.luau` (the new test, the three Grand Opening tests run with the switch off); `Config.Halloween.KingDrop` after `Boss`; `PlayerData.hwBoss(..., roll?)` (core's own block).
 - Robustness pass (18:12): `Quests.luau` `find` canonical key + `endClaimable` (072de8cb, 04c77084); `Ledger.luau` `convertSplit` (4fdcfa38); `PlayerData.luau` core's own Halloween block only: `hwClaim` records `quest.key`, `hwConvert` uses `endClaimable` and pays the split, `hwGrantDue(..., bought?)` with `applyPurchase` passing true, `hwMutate` stops on a converted save but `hwMark` (072de8cb, 04c77084, 4fdcfa38, 905c351e); `Progression.luau` a `halloween(what, setup)` local before `Progression.start` and the five Halloween lines wrapped in it (07ee9fc7); `Config.Halloween.ActiveCommitSeconds = 30` (317fcb86). HubCorners: unchanged in the end (466c8b64 took 07ee9fc7's hunk back out for hw-gui).
 
 ## Requests
@@ -240,6 +273,7 @@ Halloween funnel 4_Cue150 .. 7_Broom per day; HwCandy by source.
 - Studio and the test place boot with the event Live (`Config.Halloween.Test.BootLive`, 60 s past 19:00) so a playtest before 19:00 sees it; never in the live game.
 - Pack prices: the menu shows the price Roblox reports (in Studio ~80% of Config's for every product, e.g. Candy500 49 -> 40), the same as the shop does.
 - The Rush chip says what runs, not how much (agreed with hw-gui 11:54, 213c8220): "CANDY RUSH 8:12" and on Oct 31 "HALLOWEEN NIGHT 9:12:44" (the menu strip's names). hw-gui's restyled boost pill shows the Candy boost as "Candy Boost: +100%", so "2x CANDY" in the chip said the same thing twice, or two different numbers with friends.
+- The King's drop needs the cue ready (`Catalog.ready`, like the track): not ready means no roll that visit, not a held drop. The menu pill sits between the Candy and ENDS pills; the end screen's list stays the track's cues and the Spider.
 
 ## Gate shots
 

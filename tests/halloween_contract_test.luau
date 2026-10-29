@@ -148,7 +148,7 @@ return {
 		then
 			local want = {
 				{ 50, 1 },
-				{ 150, "JackOLanternCue" },
+				{ 150, 2 },
 				{ 300, 2500 },
 				{ 500, "PitchforkCue" },
 				{ 1000, 2 },

@@ -3799,6 +3799,11 @@ Config.Halloween = {
 		-- (coordinator 13:10); a match the player's side forfeited counts only its balls.
 		CountsForQuests = true,
 	},
+	-- The Pumpkin King's drop (designer, 2026-10-29 04:0x): a visit's first paid win (Timed
+	-- mode, Ledger.bossVisitWin) rolls Chance once for Cue, in the same change as the visit's
+	-- pay (a replay never rolls again); never rolled once owned. The map lane's sign and the
+	-- event menu's pill read Chance. Enabled false: no drop.
+	KingDrop = { Enabled = true, Cue = "JackOLanternCue", Chance = 0.05 },
 	-- Lobby pickups (map's CandyDrop spawns them): Candy each (flat), at most HourCap per player
 	-- per UTC hour. The ONLY pickup cap: CandyService.pickup enforces it.
 	Pickup = { Candy = 1, HourCap = 40 },
@@ -3883,17 +3888,21 @@ Config.Halloween = {
 	-- once, never a claim. Cue (one copy, skipped if owned), Spins (ability spins) or Money.
 	Track = {
 		Steps = {
+			-- The lineup (designer, 2026-10-29 04:0x): the Pitchfork, the Witch's Broom and the
+			-- Sword on the track; the Jack-o'-Lantern is the Pumpkin King's drop
+			-- (Config.Halloween.KingDrop); the Spider stays the playtime cue. Given is keyed by
+			-- index: final before the publish.
 			{ At = 50, Spins = 1 },
-			{ At = 150, Cue = "JackOLanternCue" },
+			{ At = 150, Spins = 2 }, -- was the Jack-o'-Lantern
 			{ At = 300, Money = 2500 },
-			{ At = 500, Cue = "PitchforkCue" }, -- the designer's slot-2 pick (2026-10-28 19:40)
+			{ At = 500, Cue = "PitchforkCue" },
 			{ At = 1000, Spins = 2 },
 			{ At = 1500, Money = 5000 },
 			{ At = 2000, Cue = "WitchBroomCue" },
 			{ At = 3000, Spins = 3 },
 			{ At = 4500, Money = 10000 },
 			{ At = 5500, Spins = 5 },
-			{ At = 7000, Cue = "HalloweenSwordCue" }, -- the top prize (cues-a builds its body)
+			{ At = 7000, Cue = "HalloweenSwordCue" }, -- the top prize
 		} :: { { At: number, Cue: string?, Spins: number?, Money: number? } },
 	},
 	-- The playtime cue: Seconds of ACTIVE play while the event is Live (any server; idle time
@@ -3999,6 +4008,12 @@ Config.Shop = {
 			VaultedSeconds = 7 * 86400, -- the "Vaulted" card stays this long after the end
 		},
 	},
+	-- The Grand Opening block off the Shop (designer, 2026-10-29: Firework 500/500 and Beta
+	-- 100/100 all found): no money or Robux buy (a late receipt pays the fallback), its card
+	-- and the Featured header hidden (ShopState deals.GrandOpening.offShop); owned blocks still
+	-- open, and the launch bonus and the Grand Opening Luck still follow its row. false: today's
+	-- Shop.
+	GrandOpeningOffShop = true,
 	-- The Mystery block's money price as the shop card shows it (Deals.Mystery.Money is what the
 	-- server charges; keep the two the same). Economy v6 (designer, 2026-10-10): $25,000 and
 	-- 5 for $100,000 (v5.1: $19,900 and $89,900): about 3 hours of matches for a free player.

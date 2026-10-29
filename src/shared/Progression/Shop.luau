@@ -156,6 +156,7 @@ export type DealWindow = {
 	endsAt: number,
 	vaultedUntil: number, -- the end of the Vaulted card (endsAt when none)
 	vaulted: boolean, -- ended, and still inside VaultedSeconds
+	offShop: boolean, -- taken off the Shop (Config.Shop.GrandOpeningOffShop): closed, card hidden
 }
 
 -- The products whose grant is more than their Money (ECONOMY 11.3-11.5).
@@ -412,10 +413,18 @@ function Shop.setDeal(key: string, startsAt: number?, seconds: number?): boolean
 	return true
 end
 
---- Deal `key`'s window at unix time `now` (see DealWindow). An unknown key is closed.
+--- Whether deal `key` is off the Shop: the Grand Opening while Config.Shop.GrandOpeningOffShop.
+function Shop.dealOffShop(key: string): boolean
+	return key == "GrandOpening" and (S :: any).GrandOpeningOffShop == true
+end
+
+--- Deal `key`'s window at unix time `now` (see DealWindow). An unknown key is closed. A deal off
+--- the Shop (Shop.dealOffShop) is closed and offShop: no money or Robux buy (a late receipt
+--- pays the fallback); owned blocks still open (opening never asks the deal), and the launch
+--- bonus and the Luck read the deal's row, not this window.
 function Shop.deal(key: string, now: number): DealWindow
 	local row = effectiveDeal(key)
-	if row == nil then
+	if row == nil or Shop.dealOffShop(key) then
 		return {
 			open = false,
 			timed = true,
@@ -423,6 +432,7 @@ function Shop.deal(key: string, now: number): DealWindow
 			endsAt = 0,
 			vaultedUntil = 0,
 			vaulted = false,
+			offShop = row ~= nil,
 		}
 	end
 	if row.StartsAt == nil or (row.SoftLaunch == true and whole(row.StartsAt) <= 0) then
@@ -433,6 +443,7 @@ function Shop.deal(key: string, now: number): DealWindow
 			endsAt = 0,
 			vaultedUntil = 0,
 			vaulted = false,
+			offShop = false,
 		}
 	end
 	local startsAt = whole(row.StartsAt)
@@ -445,6 +456,7 @@ function Shop.deal(key: string, now: number): DealWindow
 		endsAt = endsAt,
 		vaultedUntil = vaultedUntil,
 		vaulted = startsAt > 0 and now >= endsAt and now < vaultedUntil,
+		offShop = false,
 	}
 end
 

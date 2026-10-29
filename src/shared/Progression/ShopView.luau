@@ -125,6 +125,7 @@ export type DealView = {
 	endsAt: number,
 	vaulted: boolean, -- ended, the "Vaulted" card still shows
 	vaultedUntil: number,
+	offShop: boolean, -- taken off the Shop (Config.Shop.GrandOpeningOffShop): hide its card
 }
 
 -- A block kind's guarantee for this player (Config.LuckyBlocks.Kinds[kind].Guarantee).
@@ -471,6 +472,7 @@ function ShopView.build(ctx: Context): Payload
 			endsAt = window.endsAt,
 			vaulted = window.vaulted,
 			vaultedUntil = window.vaultedUntil,
+			offShop = window.offShop,
 		}
 	end
 

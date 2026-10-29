@@ -191,6 +191,12 @@ function CandyToast.moment(self: any, msg: any)
 		self:push("now", function()
 			self:line(words, king.paid == true)
 		end)
+		local drop = king.drop
+		if type(drop) == "string" then
+			self:push("card", function()
+				self:showCard(drop, W.FromKing)
+			end)
+		end
 	end
 end
 

@@ -1939,6 +1939,8 @@ return {
 		KingRepeat = "Already rewarded this visit. He's back at %s!", -- ":45"
 		-- The event menu (Halloween/EventMenu).
 		TrackTitle = "CANDY TRACK",
+		KingDrop = "Pumpkin King drop · %s%%", -- "· 5%": Halloween.KingDrop.Chance
+		KingDropOwned = "Pumpkin King drop · OWNED",
 		-- The track cards' short cue names.
 		CueShort = {
 			JackOLanternCue = "Jack-o'-Lantern",
@@ -1991,6 +1993,7 @@ return {
 		NewCue = "NEW CUE!",
 		FromTrack = "Candy Track prize",
 		FromSpider = "3 hours of play",
+		FromKing = "From the Pumpkin King",
 		Ok = "OK",
 		Night = "HALLOWEEN NIGHT",
 		NightNow = "2x CANDY ALL DAY %s",

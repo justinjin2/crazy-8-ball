@@ -3636,7 +3636,8 @@ end
 function PlayerData.hwBoss(
 	player: Player,
 	ctx: HwCtx,
-	visitStart: number?
+	visitStart: number?,
+	roll: number?
 ): (HwLedger.BossResult?, HwResult?)
 	local boss: HwLedger.BossResult? = nil
 	local result = hwMutate("hwBoss", player, function(data, hw, result)
@@ -3652,6 +3653,17 @@ function PlayerData.hwBoss(
 				addMoneyTo(data, money, true, "HalloweenKing")
 			end
 			hwRoute(hw, ctx, { { kind = "King", amount = 1 } }, result)
+			-- The King's drop: the visit's first paid win rolls `roll` once (Halloween.KingDrop),
+			-- in this same change with the visit's mark.
+			if visitStart ~= nil and boss.granted then
+				local cue = Config.Halloween.KingDrop.Cue
+				boss.dropRoll =
+					HwLedger.kingDrop(roll, Inventory.count(data, cue) > 0, hwCueReady(cue))
+				if boss.dropRoll == "Drop" then
+					giveReward(data, { cues = { cue } }, "Halloween")
+					boss.drop = cue
+				end
+			end
 		end
 	end)
 	return boss, result
