@@ -514,7 +514,7 @@ return {
 		KeepRibbons = false,
 	},
 	Body = "halloween_sword",
-	Thumb = "rbxassetid://121167927707840",
+	Thumb = "rbxassetid://136458818972136",
 	Look = {
 		Shaft = { 42, 26, 64 },
 		Forearm = { 42, 26, 64 },
