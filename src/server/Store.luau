@@ -477,6 +477,17 @@ end
 -- Receipts
 ---------------------------------------------------------------------------------------------
 
+-- The Halloween Limited card's custom event "HwLimited" (Config.Shop.HalloweenLimited): `step`
+-- "Pressed" (the prompt shown), "Bought" (the numbered cue given) or "Fallback" (paid as money
+-- instead: owned, ended, the card off), with the cue and the device; the value is the
+-- product's Robux. Nothing for any other product.
+local function limitedEvent(player: Player, key: string, step: string)
+	local row = Shop.limitedForProduct(key)
+	if row ~= nil and row.Event ~= nil then
+		Funnel.event(player, "HwLimited", LIST[key].Robux, row.Cue, step, Funnel.device(player))
+	end
+end
+
 -- A Robux Limited's copy number for this purchase: one kept from an earlier try in this
 -- server, else this player's from the shared counter (yields): the number they were given
 -- before (a try in another server), else the next one. A receipt still takes a new one
@@ -673,6 +684,7 @@ local function grantProduct(
 	if limited ~= nil and copy ~= nil then
 		Counters.add(limited, 1)
 	end
+	limitedEvent(player, key, if copy ~= nil then "Bought" else "Fallback")
 	if grant.party then
 		addParty(player)
 	end
@@ -993,6 +1005,7 @@ local function onStoreRequest(player: Player, action: any, key: any, extra: any)
 		return reply(false, reason)
 	end
 	Funnel.shop(player, "PressedBuy") -- the shop funnel (the tutorial lane)
+	limitedEvent(player, key, "Pressed")
 	-- A restock item: remember the restock seen, and hold a Legendary unit while the prompt is up.
 	if row.Restock ~= nil then
 		local slot = Items.restockSlot(ctx.now)
