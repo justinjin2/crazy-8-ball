@@ -1988,7 +1988,7 @@ return {
 				Many = "Use an ability in %d matches",
 			},
 			King = { One = "Beat the Pumpkin King", Many = "Beat the Pumpkin King %d times" },
-			Pickups = { One = "Pick up 1 lobby Candy", Many = "Pick up %d lobby Candy" },
+			Pickups = { One = "Grab 1 candy on the ground", Many = "Grab %d candies on the ground" },
 			Active = { One = "Play 1 min", Many = "Play %d min" },
 		},
 		QuestsSoon = "Quests open soon!",

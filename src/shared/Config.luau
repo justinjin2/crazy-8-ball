@@ -3804,9 +3804,13 @@ Config.Halloween = {
 	-- pay (a replay never rolls again); never rolled once owned. The map lane's sign and the
 	-- event menu's pill read Chance. Enabled false: no drop.
 	KingDrop = { Enabled = true, Cue = "JackOLanternCue", Chance = 0.05 },
-	-- Lobby pickups (map's CandyDrop spawns them): Candy each (flat), at most HourCap per player
-	-- per UTC hour. The ONLY pickup cap: CandyService.pickup enforces it.
-	Pickup = { Candy = 1, HourCap = 40 },
+	-- Ground candy (map's CandyDrop spawns it): Candy each pickup (flat), at most HourCap
+	-- pickups per player per UTC hour (the save counts pickups; the Pickups quests count them
+	-- too, not Candy). The ONLY pickup cap: CandyService.pickup enforces it. About half of all
+	-- Candy (designer, 2026-10-29): a match player who walks about while waiting for their turn
+	-- picks up about 54 an hour (~270 Candy, as much as their ~280 match Candy); a lobby walker
+	-- stops at the cap, 80 pickups = 400 Candy an hour.
+	Pickup = { Candy = 5, HourCap = 80 },
 	-- Quests: four a board, easiest first, paying Rewards[slot] Candy (flat) on CLAIM. Kind
 	-- (Halloween/Quests): Matches, Wins, Balls, NiceShots, TeamMatches, TeamWins (2v2 or 3v3),
 	-- UltMatches (an ability used in the match), King (Pumpkin King wins), Pickups (lobby Candy),
@@ -3842,13 +3846,14 @@ Config.Halloween = {
 					Alt = { Kind = "Matches", Need = 5 },
 				},
 				{ Kind = "Wins", Need = 3, Icon = "Win" },
-				{ Kind = "NiceShots", Need = 5, Icon = "Nice" },
+				-- Before the nice shots since ground candy comes about 3x as often (2026-10-29).
 				{
 					Kind = "Pickups",
 					Need = 30,
 					Icon = "Candy",
 					Alt = { Kind = "Balls", Need = 60 },
 				},
+				{ Kind = "NiceShots", Need = 5, Icon = "Nice" },
 			},
 			{ -- 4, Sat Oct 31 (opens Halloween night)
 				{ Kind = "Active", Need = 30 * 60, Icon = "Clock" },
@@ -9644,15 +9649,21 @@ Config.HalloweenMap = {
 		-- stem's tip, so negative sets the band on the pumpkin with the stem inside it).
 		CrownOnMesh = -0.2,
 	},
+	-- Ground candy, about half of all Candy (designer, 2026-10-29): Halloween.Pickup.Candy (5) a
+	-- pickup; about 54 pickups (~270 Candy) an hour for a match player who walks about while
+	-- waiting for their turn, the hour cap (core's Halloween.Pickup.HourCap, 80 = 400 Candy)
+	-- for a lobby walker.
 	Candy = {
-		Enabled = true, -- the lobby's candy drops (the hour cap is core's Halloween.Pickup.HourCap)
-		TargetPerHour = 25, -- about this many an hour for an active player
-		SpawnEverySeconds = 30, -- one candy per eligible player this often...
-		JitterSeconds = 10, -- ...give or take this
+		Enabled = true, -- the lobby's candy drops
+		SpawnEverySeconds = 20, -- one candy per eligible player this often (at most 180 an hour)...
+		JitterSeconds = 6, -- ...give or take this
 		NearStuds = { 10, 30 }, -- this far from them
 		PadClearStuds = 6, -- never this close to a queue or portal pad
-		LifeSeconds = 60, -- an unclaimed candy goes after this
-		MaxAlive = 40, -- on the server
+		LifeSeconds = 45, -- an unclaimed candy goes after this
+		-- On the server. Every client draws every candy (one MeshPart of about 244 triangles
+		-- each: a full 60 is about 14,600 triangles) and floats those within AnimateStuds each
+		-- frame, so the per-frame loop never passes 60.
+		MaxAlive = 60,
 		MaxAlivePerPlayer = 3,
 		PickupStuds = 5, -- walked over within this
 		PickupTickSeconds = 0.2, -- the server checks pickups this often

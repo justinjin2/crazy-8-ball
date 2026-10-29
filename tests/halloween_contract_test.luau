@@ -127,7 +127,10 @@ return {
 			C.Boss.Candy == 50 and C.Boss.PaidWinsPerDay == 2 and C.Boss.CooldownSeconds == 900,
 			"King 50 x2/day, 900 s"
 		)
-		H.expect(C.Pickup.HourCap == 40, "pickup cap 40 a player a UTC hour")
+		H.expect(
+			C.Pickup.Candy == 5 and C.Pickup.HourCap == 80,
+			"5 Candy a pickup, 80 pickups a player a UTC hour"
+		)
 		H.expect(
 			C.Spider.Seconds == 10860 and C.Spider.Cue == "SpiderCue",
 			"Spider at 3 h 01 m active"

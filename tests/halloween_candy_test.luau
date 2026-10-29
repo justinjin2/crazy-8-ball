@@ -48,7 +48,7 @@ return {
 		H.expect(C.Match.PerBall == 3 and C.Match.Finished == 10 and C.Match.Win == 25, "match")
 		H.expect(C.Boss.Candy == 50 and C.Boss.PaidWinsPerDay == 2, "King")
 		H.expect(C.Boss.CooldownSeconds == 900, "15:00")
-		H.expect(C.Pickup.Candy == 1 and C.Pickup.HourCap == 40, "pickups")
+		H.expect(C.Pickup.Candy == 5 and C.Pickup.HourCap == 80, "pickups: 5 Candy, 80 an hour")
 		H.expect(C.Spider.Seconds == 10860 and C.Convert.MoneyPerCandy == 10, "Spider, $10")
 	end,
 
@@ -211,7 +211,7 @@ return {
 		H.expect(off == nil, "switched off: no roll")
 	end,
 
-	["pickups: NotLive outside the event, Cap at 40 a UTC hour"] = function()
+	["pickups: NotLive outside the event, Cap at 80 pickups (400 Candy) a UTC hour"] = function()
 		local _, Ledger, _, SaveSchema = load()
 		local hw = SaveSchema.freshHalloween()
 		local ok, why = Ledger.pickup(hw, START - 1)
@@ -219,13 +219,14 @@ return {
 		ok, why = Ledger.pickup(hw, END)
 		H.expect(not ok and why == "NotLive", "after")
 		local hour = START + 7200
-		for i = 1, 40 do
+		for i = 1, 80 do
 			local got, reason = Ledger.pickup(hw, hour + i)
 			H.expect(got and reason == nil, "pickup " .. i)
 		end
-		ok, why = Ledger.pickup(hw, hour + 41)
-		H.expect(not ok and why == "Cap", "the 41st")
-		H.expect(hw.Earned == 40 and hw.PickCount == 40, "40 Candy")
+		ok, why = Ledger.pickup(hw, hour + 81)
+		H.expect(not ok and why == "Cap", "the 81st")
+		-- The save counts pickups; each is 5 Candy.
+		H.expect(hw.Earned == 400 and hw.PickCount == 80, "400 Candy")
 		ok, why = Ledger.pickup(hw, hour + 3600)
 		H.expect(ok and why == nil and hw.PickCount == 1, "the next hour starts over")
 	end,

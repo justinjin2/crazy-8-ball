@@ -1,17 +1,18 @@
 --!strict
 -- CandyDrop (Halloween 2026, hw-map lane; a copy of MoneyRain): while the event is Live, candy
 -- pieces pop up on the roof near each eligible player (Rules.eligible: a lobby, HwOn, not
--- filming, not in a match, not sitting, not idle), one every SpawnEverySeconds (give or take
--- JitterSeconds) on a floor spot NearStuds from them, never on a queue or portal pad nor in a
--- table's match area. Each is an invisible anchored part in workspace[Folder] (attribute Kind:
--- the wrapper's colour); every client's MapClient draws, spins and pops it. The server checks
--- pickups every PickupTickSeconds: a player walking within PickupStuds asks core's
--- CandyService.pickup, which owns the Candy and the hour cap (Config.Halloween.Pickup.HourCap):
--- ok takes it (+1 shown on that player's screen), "Cap" leaves it for others and shows the
--- bag-full note once, pausing that player to the next UTC hour (Rules.pickupOutcome). A root
--- that jumped (a teleport: a turn's move, a portal) picks up nothing for TeleportGraceSeconds.
--- No client remote collects anything. Off (does nothing at all) while Config.HalloweenMap
--- .Enabled or Candy.Enabled is, and in an arena.
+-- filming, not queued on a pad, in a running match only while free to roam, not sitting, not
+-- idle), one every SpawnEverySeconds (give or take JitterSeconds) on a floor spot NearStuds
+-- from them, never on a queue or portal pad nor in a table's match area. Each is an invisible
+-- anchored part in workspace[Folder] (attribute Kind: the wrapper's colour); every client's
+-- MapClient draws, spins and pops it. The server checks pickups every PickupTickSeconds: a
+-- player walking within PickupStuds asks core's CandyService.pickup, which owns the Candy and
+-- the hour cap (Config.Halloween.Pickup.HourCap): ok takes it ("+5" on that player's screen:
+-- the Pickup message carries the Candy, Config.Halloween.Pickup.Candy), "Cap" leaves it for
+-- others and shows the bag-full note once, pausing that player to the next UTC hour
+-- (Rules.pickupOutcome). A root that jumped (a teleport: a turn's move, a portal) picks up
+-- nothing for TeleportGraceSeconds. No client remote collects anything. Off (does nothing at
+-- all) while Config.HalloweenMap.Enabled or Candy.Enabled is, and in an arena.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -25,6 +26,8 @@ local Placement = require(Shared:WaitForChild("Placement"))
 -- test-place offset (HwTimeOffset; 0 in the live game).
 local Clock = require(Shared:WaitForChild("Halloween"):WaitForChild("Clock"))
 local Rules = require(Shared:WaitForChild("HalloweenMap"):WaitForChild("Rules"))
+local Roam = require(Shared:WaitForChild("Matchmaking"):WaitForChild("Roam"))
+local Settle = require(Shared:WaitForChild("Progression"):WaitForChild("Settle"))
 
 local Server = script.Parent.Parent
 local Tables = require(Server:WaitForChild("TableService"))
@@ -49,7 +52,7 @@ type Who = {
 	graceUntil: number,
 	pausedUntil: number,
 	noted: boolean, -- the bag-full note shown this pause
-	pickups: number,
+	candy: number, -- the Candy picked up this session (the CandyPickups event's value)
 	capped: boolean,
 	joinedAt: number,
 	lobbySeconds: number,
@@ -119,7 +122,7 @@ local function stateOf(p: Player): Who
 			graceUntil = 0,
 			pausedUntil = 0,
 			noted = false,
-			pickups = 0,
+			candy = 0,
 			capped = false,
 			joinedAt = now,
 			lobbySeconds = 0,
@@ -141,12 +144,28 @@ local function eligible(p: Player, w: Who, now: number): boolean
 		w.anchor = pos
 		w.movedAt = now
 	end
+	-- At a table: only queued on its pad until its match starts (the server's phase, not where
+	-- they stand); in the running match they collect while they roam (TableService's rule).
+	local freecam = p:GetAttribute(Config.Freecam.Attribute) == true
+	local tableId = Tables.tableOf(p)
+	local t = if tableId ~= nil then Tables.get(tableId) else nil
+	local e = t and t.engine
+	local running = e ~= nil and e.phase ~= "Waiting"
 	local ok = Rules.eligible({
 		isLobby = true,
 		live = EventMap.isLive(),
 		hwOn = p:GetAttribute("HwOn"),
-		freecam = p:GetAttribute(Config.Freecam.Attribute) == true,
-		inMatch = Tables.tableOf(p) ~= nil,
+		freecam = freecam,
+		queued = tableId ~= nil and not running,
+		inMatch = running,
+		roams = running and Roam.allowed({
+			enabled = Config.Multiplayer.Roam.Enabled,
+			arena = false, -- CandyDrop runs only in a lobby
+			engineTutorial = e.tutorial,
+			botKind = Settle.botKind(e),
+			tutorialActive = p:GetAttribute("TutorialActive") :: any,
+			freecam = freecam,
+		}),
 		sitting = humanoid.SeatPart ~= nil,
 		movedStuds = if now - w.movedAt < C.IdleSeconds then C.IdleStuds else 0,
 	})
@@ -341,11 +360,14 @@ local function pickupTick()
 			end
 			local outcome = Rules.pickupOutcome(granted == true, reason, Clock.serverNow())
 			if outcome.take then
-				w.pickups += 1
+				-- The Candy it gave (flat: CandyService.pickup adds Pickup.Candy) for the "+5".
+				local amount = Config.Halloween.Pickup.Candy
+				w.candy += amount
 				forget(c)
 				table.remove(candies, i)
 				pcall(function()
-					Net.get("HalloweenMapFx"):FireClient(p, { kind = "Pickup", at = c.at })
+					Net.get("HalloweenMapFx")
+						:FireClient(p, { kind = "Pickup", at = c.at, amount = amount })
 				end)
 			elseif outcome.note then
 				w.capped = true
@@ -357,7 +379,10 @@ local function pickupTick()
 	end
 end
 
--- The CandyPickups event at leave: pickups this session, capped or not, lobby minutes, device.
+-- The CandyPickups event at leave. value: the Candy picked up this session (since
+-- 2026-10-29; the pickups are value / Config.Halloween.Pickup.Candy, flat), to set against
+-- HwCandy "Match" for the ground/match split; a: capped or not; b: the eligible minutes (lobby
+-- and roaming in a match) bucket; c: the device.
 local function report(p: Player)
 	local w = who[p]
 	who[p] = nil
@@ -375,7 +400,7 @@ local function report(p: Player)
 		Funnel.event,
 		p,
 		"CandyPickups",
-		w.pickups,
+		w.candy,
 		if w.capped then "capped" else "ok",
 		bucket,
 		Funnel.device(p)

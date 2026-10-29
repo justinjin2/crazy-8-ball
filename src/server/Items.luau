@@ -59,6 +59,10 @@ local QUIET_OPS: { [string]: boolean } = {
 	addPlaySeconds = true,
 	setPlayMinutes = true,
 	hwActive = true, -- Halloween's 5 s active tick ("hwActiveGrant" when it gives a cue)
+	-- A ground-candy pickup (about one a minute a player): Candy and a quest count only, none
+	-- of it in the snapshot (the Candy track, whose cue steps a pickup could reach, is removed
+	-- for the evening release, 2026-10-29).
+	hwPickup = true,
 	recordShot = true,
 	addMoney = true,
 	addDailyMoney = true,
