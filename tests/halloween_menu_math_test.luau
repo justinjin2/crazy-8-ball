@@ -112,6 +112,43 @@ return {
 		end
 	end,
 
+	["PREVIEW sits top left and the emblem bottom right, clear of each other"] = function()
+		local Math, Config = load()
+		local L = Config.UI.Halloween.Menu.Layout
+		local E = Config.UI.EventEmblem
+		local cardW = (L.WidthUnits - 3 * L.CardGapUnits) / 4
+		-- Fredoka One's capitals are about 0.62 of their size wide ("PREVIEW": 7 letters).
+		local function words(px: number): number
+			return 7 * 0.62 * px
+		end
+		local w0, px0 = Math.pill(30, words, Config.UI.Halloween.Menu.Preview.TextShare)
+		H.expect(px0 >= L.MinTextPx and w0 > 30, ("a pill: %d wide, words %d px"):format(w0, px0))
+		for _, units in { L.Card, L.ShortCard } do
+			local C = units :: any
+			local P = C.PreviewUnits
+			local short = units == L.ShortCard
+			local pw = if short and not Config.UI.Halloween.Menu.Preview.ShortWords
+				then P[3] -- a phone's: the play icon alone, round
+				else Math.pill(P[3], words, Config.UI.Halloween.Menu.Preview.TextShare)
+			local left, top = L.CardPadUnits + P[1], P[2]
+			H.expect(top >= L.EdgeUnits + L.InnerUnits, "PREVIEW under the pink edge's line")
+			H.expect(
+				left + pw <= cardW * 0.62,
+				("PREVIEW stays in the top-left corner: %.0f"):format(left + pw)
+			)
+			local eh = C.EmblemUnits[3]
+			local ew = eh * E.Aspect
+			local eTop = C.NameTopUnits - C.EmblemUnits[2] - eh
+			local eLeft = cardW - L.CardPadUnits - C.EmblemUnits[1] - ew
+			H.expect(top + P[3] < eTop, "PREVIEW above the emblem")
+			H.expect(eLeft > cardW / 3, "the emblem on the right")
+			H.expect(
+				eTop >= C.ArtTopUnits + C.ArtUnits * 0.55,
+				"the emblem in the picture's lower part"
+			)
+		end
+	end,
+
 	["a computer and a tablet show the whole menu"] = function()
 		local Math, Config = load()
 		for _, size in { { 1920, 1080 }, { 1366, 768 }, { 1280, 720 }, { 1024, 768 } } do
@@ -191,7 +228,15 @@ return {
 		local Strings = H.require("Strings")
 		local W = Strings.Halloween :: any
 		for _, key in
-			{ "KingRibbon", "Owned", "BuyConfirm", "NeedCandy", "BoughtCue", "QuestsTitle" }
+			{
+				"KingRibbon",
+				"Owned",
+				"BuyConfirm",
+				"NeedCandy",
+				"BoughtCue",
+				"QuestsTitle",
+				"Preview",
+			}
 		do
 			H.expect(type(W[key]) == "string", key)
 		end

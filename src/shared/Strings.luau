@@ -1959,6 +1959,7 @@ return {
 			HalloweenSwordCue = "Halloween Sword",
 		},
 		Owned = "OWNED", -- an owned cue's card
+		Preview = "PREVIEW", -- a card's button over its picture: the Cue Preview (trail and finisher)
 		BuyConfirm = "BUY?", -- a Candy button after its first press (a second press buys)
 		NeedCandy = "You need %s more Candy", -- a Candy press with too little: "You need 120 more Candy"
 		BoughtCue = "%s is yours!", -- the cue's name

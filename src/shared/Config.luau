@@ -17727,6 +17727,19 @@ Config.UI.Halloween = {
 		BreatheSeconds = 1.6,
 		LowerSlower = 2, -- Lower effects: the loops this many times slower, the breathe half as deep
 		ClaimBounceSeconds = 1.2, -- a waiting CLAIM bounces this often
+		-- A card's PREVIEW button (designer's pick, 2026-10-29: "a small PREVIEW button on each
+		-- Halloween card opens the cue preview, auto-playing trail + finisher on loop"): a small
+		-- candy pill in Tone with Icon, its words TextShare of its face's height. Shown only when
+		-- CuePreview.allowed(cue) says so (the preview lane's; none yet: no button). ShortWords
+		-- false: a phone's is the play icon alone, a round button (its words at the 12 px minimum
+		-- covered the cues' tips on an 844 x 390 screen).
+		Preview = {
+			Tone = "Purple",
+			Icon = "Play",
+			TextShare = 0.6,
+			Tab = "Trail",
+			ShortWords = false,
+		},
 		-- The PUMPKIN KING DROP ribbon: its fill top to bottom, gold rim and words (mock A).
 		RibbonFill = { { 98, 46, 16 }, { 52, 29, 15 }, { 115, 37, 7 } },
 		RibbonRim = { 255, 196, 64 },
@@ -17780,6 +17793,9 @@ Config.UI.Halloween = {
 				-- it was top left), in the picture's clear corner: in from the right (past the
 				-- pad), the gap over the name, height.
 				EmblemUnits = { 4, 2, 38 },
+				-- The PREVIEW button top left over the picture (its clear corner, now the emblem's
+				-- is bottom right): in from the left (past the pad), top, height.
+				PreviewUnits = { 4, 9, 36 },
 			},
 			-- A phone's card: a smaller picture, taller buttons (a thumb's touch).
 			ShortCard = {
@@ -17800,6 +17816,7 @@ Config.UI.Halloween = {
 				RibbonTextUnits = 30,
 				HeightUnits = 440,
 				EmblemUnits = { 4, 2, 50 }, -- bigger on a phone, so its "2026" reads
+				PreviewUnits = { 4, 8, 48 }, -- its touch area reaches Menu.Frame.TouchMinPx
 			},
 			SectionGapUnits = 16, -- the cue row to the boxes under it
 			QuestsWidthUnits = 690, -- TODAY'S QUESTS (GET CANDY takes the rest)

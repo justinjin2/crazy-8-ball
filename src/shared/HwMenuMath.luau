@@ -77,6 +77,22 @@ function HwMenuMath.plan(width: number, height: number, phone: boolean): Plan
 	return { k = kxFull, kx = kxFull, x0 = 0, whole = false, short = phone }
 end
 
+--- A small candy pill's width for `textPx`-wide words at `height` px with an icon (HudParts'
+--- candy layout: its pad, the icon, half a pad, the words with their outline, a pad), and its
+--- words' size (TextShare of the face over the lip). Returns width, text size.
+function HwMenuMath.pill(
+	height: number,
+	wordsWidth: (number) -> number,
+	textShare: number
+): (number, number)
+	local K = Config.UI.Kit
+	local face = height - math.floor(height * K.ButtonLipShare + 0.5)
+	local pad = math.max(6, math.floor(face * 0.18))
+	local icon = math.floor(face * K.ButtonIconShare)
+	local px = math.max(L.MinTextPx, math.floor(face * textShare + 0.5))
+	return pad + icon + math.floor(pad / 2) + math.ceil(wordsWidth(px)) + 6 + pad, px
+end
+
 --- Text `units` tall at scale `k`, never under Layout.MinTextPx.
 function HwMenuMath.textPx(units: number, k: number): number
 	return math.max(L.MinTextPx, math.floor(units * k + 0.5))

@@ -6,8 +6,9 @@
 --     Pitchfork, the Witch's Broom, the Jack-o'-Lantern, the Halloween Sword; designer
 --     2026-10-29), each with the Cues inventory's faint 8-balls drifting up-left, the cue's
 --     picture (its skin Thumb through CueThumb) with its own effects playing over it in 2D
---     (Halloween/CardFx, richer up the ladder), the "Halloween 2026" emblem bottom right
---     above the name (EventEmblem), a green Robux button (the purple gift square inside its left end; it
+--     (Halloween/CardFx, richer up the ladder), a small PREVIEW button top left over it (the
+--     Cue Preview's trail and finisher; only where CuePreview.allowed says so), the "Halloween
+--     2026" emblem bottom right above the name (EventEmblem), a green Robux button (the purple gift square inside its left end; it
 --     shines) over an orange Candy button of the same size (designer, 2026-10-29; a first
 --     press says BUY?, a second buys: State.send({ buy = cue }), the answer comes as the
 --     bought moment). An owned cue's card says OWNED. (With the Pumpkin King's drop switched
@@ -80,6 +81,28 @@ end
 
 local function textWidth(text: string, px: number): number
 	return TextService:GetTextSize(text, px, FONT, Vector2.new(4000, 400)).X
+end
+
+-- The Cue Preview, required on first use and guarded: the PREVIEW buttons need its
+-- `allowed(cueId)` (the preview lane's, with the "Halloween" entry and the TRAIL tab), and stay
+-- hidden while it has none, so this menu never depends on it being there.
+local cuePreview: any = nil
+local function previewModule(): any
+	if cuePreview == nil then
+		local ok, made = pcall(require, script.Parent.Parent.CuePreview)
+		cuePreview = if ok and type(made) == "table" then made else false
+	end
+	return if cuePreview then cuePreview else nil
+end
+
+-- Whether cue `cueId` may open the Cue Preview from this menu (false with no `allowed` yet).
+local function previewAllowed(cueId: string): boolean
+	local preview = previewModule()
+	if preview == nil or type(preview.allowed) ~= "function" then
+		return false
+	end
+	local ok, allowed = pcall(preview.allowed, cueId)
+	return ok and allowed == true
 end
 
 -- A plain picture under `parent`.
@@ -202,6 +225,7 @@ type Card = {
 	thumb: Frame,
 	fx: CardFx.Fx?, -- its cue's live effects (none: no CardFx row)
 	emblem: ImageLabel?, -- the Halloween 2026 emblem (none: no event picture)
+	preview: TextButton, -- PREVIEW, top left over the picture (shown when the preview allows it)
 	ballsPhase: number, -- where its 8-balls' drift starts (0..1)
 	landed: boolean, -- its reveal is over: its effects may play
 	name: TextLabel,
@@ -274,6 +298,8 @@ function EventMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 	local lastSent: { [string]: any }? = nil
 	-- Studio checks: draw every cue as not owned (GuiQA "hwMenuUnowned"; the designer owns them).
 	local previewUnowned = false
+	-- Studio checks: show the PREVIEW buttons before CuePreview.allowed exists (GuiQA "hwPreview").
+	local previewShown = false
 
 	local function send(msg: { [string]: any })
 		lastSent = msg
@@ -421,6 +447,29 @@ function EventMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		draw()
 	end
 
+	-- PREVIEW: the Cue Preview on this cue's TRAIL (its trail and finisher on a loop); closing it
+	-- comes back to this menu unless another menu has taken over meanwhile.
+	local function openPreview(cueId: string)
+		local preview = previewModule()
+		if preview == nil or type(preview.open) ~= "function" then
+			return
+		end
+		UISound.play("Click")
+		lastSent = { preview = cueId }
+		local ok = pcall(preview.open, cueId, {
+			from = NAME,
+			tab = M.Preview.Tab,
+			onClose = function()
+				if Menus.current() == nil then
+					Menus.open(NAME)
+				end
+			end,
+		})
+		if not ok then
+			warn("[8ball] Halloween menu: the Cue Preview did not open for " .. cueId)
+		end
+	end
+
 	for index, entry in entries do
 		local root = HudParts.frame(scroll, "HwCard" .. index)
 		root.ZIndex = 3
@@ -480,6 +529,14 @@ function EventMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 			e.ZIndex = 6
 			emblem = e
 		end
+		local cueId = entry.cue
+		local preview = HudParts.candy(root, W.Preview, function()
+			openPreview(cueId)
+		end, M.Preview.Tone, M.Preview.Icon)
+		preview.Name = "Preview"
+		preview.ZIndex = 7 -- over the picture and its effects
+		preview.Visible = false -- until the preview allows this cue (paintCard)
+		HudParts.setMinHit(preview, Config.UI.Menu.Frame.TouchMinPx)
 		local name = HudParts.text(root, "Name", 18, CueThumb.cueName(entry.cue))
 		name.TextWrapped = false
 		name.ZIndex = 6
@@ -529,6 +586,7 @@ function EventMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 			thumb = thumb,
 			fx = fx,
 			emblem = emblem,
+			preview = preview,
 			ballsPhase = (index * 0.31) % 1,
 			landed = false,
 			name = name,
@@ -927,6 +985,21 @@ function EventMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 			emblem.Position = UDim2.fromOffset(ex, ey)
 			emblem.Size = UDim2.fromOffset(ew, eh)
 		end
+		-- PREVIEW top left over the picture, in its clear corner; a phone's is the play icon
+		-- alone (its words at the 12 px minimum would cover the cues' tips).
+		local P = C.PreviewUnits
+		local ph = math.max(L.MinTextPx + 8, y(P[3]))
+		local withWords = not plan.short or M.Preview.ShortWords == true
+		HudParts.setText(card.preview, if withWords then W.Preview else "")
+		local pw, ppx = ph, L.MinTextPx
+		if withWords then
+			pw, ppx = HwMenuMath.pill(ph, function(px: number): number
+				return textWidth(W.Preview, px)
+			end, M.Preview.TextShare)
+		end
+		card.preview.Position = UDim2.fromOffset(pad + round(P[1] * plan.kx), y(P[2]))
+		card.preview.Size = UDim2.fromOffset(math.min(pw, w - 2 * pad), ph)
+		HudParts.setButtonTextSize(card.preview, ppx, L.MinTextPx)
 		local namePx = tp(C.NameTextUnits)
 		local nameW = w - 2 * pad
 		local full = CueThumb.cueName(card.cue)
@@ -1155,6 +1228,32 @@ function EventMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		return ItemState.cueCount(card.cue) > 0
 	end
 
+	-- PREVIEW shows where the Cue Preview allows the cue; a controller's D-pad goes down from it
+	-- to the Robux button and back up (left and right between the cards).
+	local function paintPreview(card: Card)
+		local shown = previewShown or previewAllowed(card.cue)
+		local button = card.preview
+		if button.Visible ~= shown then
+			button.Visible = shown
+		end
+		local pair = card.robux
+		local below: GuiObject? = if pair and pair.green.Visible
+			then pair.green
+			elseif card.buy and card.buy.Visible then card.buy
+			else nil
+		-- (nil clears a link: Roblox's types call these GuiObject, but they take nil.)
+		local up: any = if shown then button else nil
+		local down: any = if shown then below else nil
+		button.NextSelectionDown = down
+		if pair then
+			pair.green.NextSelectionUp = up
+			pair.gift.NextSelectionUp = up
+		end
+		if not shown and GuiService.SelectedObject == button then
+			GuiService.SelectedObject = below
+		end
+	end
+
 	local function paintCard(card: Card, view: any, list: { [string]: any }, cuesOn: boolean)
 		local owned = ownedCue(view, list, card)
 		card.isOwned = owned
@@ -1253,6 +1352,7 @@ function EventMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 			and not (type(view) == "table" and type(view.on) == "table" and view.on.cues == false)
 		for _, card in cards do
 			paintCard(card, view, list, cuesOn)
+			paintPreview(card)
 		end
 		paintQuests(view, now)
 		paintPacks(view, list)
@@ -1438,6 +1538,21 @@ function EventMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		previewUnowned = on ~= false
 		draw()
 		return previewUnowned
+	end)
+	-- GuiQA:Invoke("hwPreview", on?) shows the PREVIEW buttons before CuePreview.allowed exists
+	-- (on false: back to what allowed says); ("hwPreview", "press", n) presses card n's.
+	GuiQA.add("hwPreview", function(on: any, index: number?): any
+		if on == "press" then
+			local card = cards[index or 1]
+			if card and card.preview.Visible then
+				openPreview(card.cue)
+				return true
+			end
+			return false
+		end
+		previewShown = on ~= false
+		draw()
+		return previewShown
 	end)
 	GuiQA.add("hwBought", function(cue: string, ok: boolean?, reason: string?): boolean
 		bought({ cue = cue, ok = ok == true, reason = reason })
