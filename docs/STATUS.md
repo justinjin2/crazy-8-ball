@@ -12,7 +12,7 @@ entry of `docs/archive/STATUS_HISTORY.md`.
 ## Halloween 2026 (branch `halloween`, LIVE: published by the designer Oct 29 ~20:00 EDT)
 
 - **Pushed Oct 30 ~09:45 EDT, NOT yet published: the boost lines' "i" on a phone** (designer,
-  morning). On a touch screen with no mouse the Money Boost / Candy Boost lines take no touch
+  morning). On a touch screen (until a mouse is used) the Money Boost / Candy Boost lines take no touch
   (a finger on them walks), and a tiny blue "i" left of each opens that line's card; PC hover
   and click and a pad's A are as before; no "i" in a match (`8c9d9b27`..`6b67d1e7`;
   `Config.UI.BoostPill.Info.Enabled` false = the old way). A review workflow's fixes are in:
