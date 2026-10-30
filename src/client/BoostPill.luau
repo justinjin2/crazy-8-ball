@@ -714,7 +714,7 @@ function BoostPill.layout(self: any)
 			local x = INFO.RingPx + px / 2 -- its ring clear of the box's left edge
 			line.info.Position = UDim2.fromOffset(x, y)
 			line.info.Size = UDim2.fromOffset(px, px)
-			HudParts.setTextSize(line.letter, math.floor(px * INFO.LetterShare), 8)
+			HudParts.setTextSize(line.letter, math.floor(px * INFO.LetterShare))
 			line.hit.Position = UDim2.fromOffset(x, y)
 			line.hit.Size = UDim2.fromOffset(px + 2 * INFO.HitPadPx, b.lineH)
 		end
@@ -810,7 +810,7 @@ function BoostPill.row(self: any, index: number): any
 	return row
 end
 
--- What the card says now: { icon?, words, value?, kind ("Part", "Note", "Get") }.
+-- What the card says now: { icon?, words, value?, kind?, line ("Part" or "Note") }.
 function BoostPill.cardLines(self: any): { any }
 	local flags = self:flags()
 	if self.cardKind == "Candy" and self.candyOn then
