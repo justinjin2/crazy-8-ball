@@ -15,8 +15,7 @@ entry of `docs/archive/STATUS_HISTORY.md`.
   round**. The checklist and every switch are in `docs/halloween/RELEASE.md`. The LIVE store
   icon is set (91272722538693) and the description has the 5KLIKES/10KLIKES lines, a Halloween
   line and "Still working codes: 2KLIKES" (saved 20:01).
-- **Waiting to publish (pushed Oct 29, `d7fdbd45` + `ec83be41`): ground candy far fewer, 4
-  Candy each.** The designer, live: dozens on the map (a spawn every 4.5 s a player, most never
+- **Published Oct 29 ~22:20 EDT (up to `107e7843`): ground candy far fewer, 4 Candy each.** The designer, live: dozens on the map (a spawn every 4.5 s a player, most never
   collectable under the cap). Now one every 20 s (+-5), ~1.5 around a player, **4 Candy a candy,
   a bag of 38 a UTC hour (152 Candy)**; a full bag stops that player's spawns and hides every
   candy on their screen until the next UTC hour (`HalloweenMap.Candy.HideWhenFull`, attribute
@@ -27,12 +26,12 @@ entry of `docs/archive/STATUS_HISTORY.md`.
   auto-paid +160 at board 3, x2 on Oct 31), the end converted 325 Candy to $3,250 and the lobby
   went back to normal. Check live: few candies; fill a bag (38) and the candy vanishes with
   the note, then comes back at :00. Restart: no save change, any.
-- **Waiting to publish, before Oct 30 19:00 EDT (pushed Oct 29 ~21:15): the King-quest auto-pay
-  fix.** A live bug found by the Candy review: at each board's open the auto-claim read the King
+- **Published Oct 29 ~22:20 EDT: the King-quest auto-pay fix.** A live bug found by the Candy review: at each board's open the auto-claim read the King
   slots (run as their Alts all event) at the King's need, paying 250 Candy for 1 s of play
   (2.4, at board 3's open, Oct 30 19:00 EDT), for 2 wins (4.4, board 5) and 3 nice shots (6.4,
-  the end). Fixed in `Quests.endClaimable`; Lune test and Studio board-jump check. Publish it
-  with the ground candy update; if it misses 19:00, every board-2 player gets a free 250.
+  the end). Fixed in `Quests.endClaimable`; Lune test and Studio board-jump check. Watch at
+  board 3's open (Oct 30 19:00 EDT): HwQuest "Auto" events for key 2.4 should be rare (only a
+  real 60 min of play), not most board-2 players.
 - **v4 (designer 14:20, with an interview):**
   - The Sword's soft pre-v3 aura is back, also on its menu card. Its dark purple trail has
     glowing embers instead of painted flames, and its finisher is a purple energy burst standing
