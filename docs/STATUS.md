@@ -8,11 +8,13 @@ Updated 2026-10-29 18:50 (**published by the designer 2026-10-27: everything up 
 in `~/Desktop/8ball`, branch `halloween` (it holds all of `gui-v4`). The STATUS from just before launch, in full, is the top
 entry of `docs/archive/STATUS_HISTORY.md`.
 
-## Halloween 2026 (branch `halloween`, pushed, waiting for the designer to publish tonight)
+## Halloween 2026 (branch `halloween`, LIVE: published by the designer Oct 29 ~20:00 EDT)
 
-- **Ready to publish** (Oct 29 evening): v3 (the designer's ~12:00 list), **v4, the 14:20
-  GUI round**, **v5, the 17:30 fixes**, and **v6, the 19:20 Rush and Friend Boost round**. The checklist and every switch are in `docs/halloween/RELEASE.md`. Use the
-  outdated-only restart. Nothing of Halloween is live yet (the live build `7c4d85aa` has none).
+- **Published** (Oct 29 ~20:00 EDT, up to `e879ef8e`): v3 (the designer's ~12:00 list), **v4,
+  the 14:20 GUI round**, **v5, the 17:30 fixes**, and **v6, the 19:20 Rush and Friend Boost
+  round**. The checklist and every switch are in `docs/halloween/RELEASE.md`. The LIVE store
+  icon is set (91272722538693) and the description has the 5KLIKES/10KLIKES lines, a Halloween
+  line and "Still working codes: 2KLIKES" (saved 20:01).
 - **v4 (designer 14:20, with an interview):**
   - The Sword's soft pre-v3 aura is back, also on its menu card. Its dark purple trail has
     glowing embers instead of painted flames, and its finisher is a purple energy burst standing
@@ -86,8 +88,9 @@ entry of `docs/archive/STATUS_HISTORY.md`.
     cleanup: the Sword's fire_face and toon_flame sheets and `tools/hw_sword_fx.py`, the Broom's
     witch_fly sheet, the old Pitchfork and Jack thumbs.
 - **After the publish:**
-  - Update the game description (the codes) and set the LIVE store icon.
   - Save the place to `place/8ball.rbxl`.
+  - By hand on live: a new account's tutorial into the Halloween UI, the personal 2x chip, a
+    cue bought with Candy (RELEASE 1).
   - Watch 3_FirstCandy -> 4_Pitchfork, `HwCandy` vs `CandyPickups` vs `HwQuest`, `HwBuy`, the
     new `CuePreview` "Halloween" opens, FPS and memory (RELEASE 6).
 - **Parked:** Robux Limited cues (branch `hw-core-limited`). The Grand Opening block stays off
