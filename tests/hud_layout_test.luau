@@ -226,6 +226,8 @@ return {
 		local Config = H.require("Config")
 		local P = Config.UI.BoostPill
 		local I = P.Info
+		local shipped = I.Enabled
+		I.Enabled = true -- the rules as they run when it is on, whatever the switch ships as
 		-- The widest line ("Money Boost: +360%") in the real font, measured in Studio with
 		-- TextService (2026-10-30), by text size.
 		local REAL_WIDEST = { [20] = 167, [13] = 111 }
@@ -279,7 +281,7 @@ return {
 			{ info = true },
 			HudLayout.others({ w = 750, h = 311 }, { info = true })
 		)
-		I.Enabled = true
+		I.Enabled = shipped
 		H.expect(off.infoW == 0 and off.infoPx == 0, "Info.Enabled false: no column")
 	end,
 
