@@ -19,7 +19,8 @@ local SCREENS = {
 
 local CHIPS: { string | false } = { false, "CANDY RUSH 8:12", "HALLOWEEN NIGHT 23:59:59" }
 
--- Every scene: VIP, the Candy line, chip, blocks, WinTrack open/folded, Plus tile, money words.
+-- Every scene: VIP, the Candy line, chip, blocks, WinTrack open/folded, Plus tile, money words,
+-- and a touch screen's "i" column.
 local function eachScene(fn: (any) -> ())
 	for _, vip in { false, true } do
 		for _, candy in { false, true } do
@@ -28,15 +29,18 @@ local function eachScene(fn: (any) -> ())
 					for _, open in { true, false } do
 						for _, plusShown in { true, false } do
 							for _, moneyText in { "$125,000", "$1,050,000" } do
-								fn({
-									vip = vip,
-									candy = candy,
-									chipText = if chip then chip else nil,
-									blocks = blocks,
-									winTrackOpen = open,
-									plusShown = plusShown,
-									moneyText = moneyText,
-								})
+								for _, info in { false, true } do
+									fn({
+										vip = vip,
+										candy = candy,
+										chipText = if chip then chip else nil,
+										blocks = blocks,
+										winTrackOpen = open,
+										plusShown = plusShown,
+										moneyText = moneyText,
+										info = info,
+									})
+								end
 							end
 						end
 					end
@@ -47,7 +51,7 @@ local function eachScene(fn: (any) -> ())
 end
 
 local function describe(screen: any, s: any): string
-	return ("%s vip=%s candy=%s chip=%s blocks=%d track=%s plus=%s money=%s"):format(
+	return ("%s vip=%s candy=%s chip=%s blocks=%d track=%s plus=%s money=%s info=%s"):format(
 		screen.name,
 		tostring(s.vip),
 		tostring(s.candy),
@@ -55,7 +59,8 @@ local function describe(screen: any, s: any): string
 		s.blocks,
 		if s.winTrackOpen then "open" else "folded",
 		tostring(s.plusShown),
-		s.moneyText
+		s.moneyText,
+		tostring(s.info)
 	)
 end
 
@@ -121,7 +126,7 @@ return {
 				end
 			end)
 		end
-		H.expect(cases == #SCREENS * 2 * 2 * 3 * 3 * 2 * 2 * 2, "every case ran")
+		H.expect(cases == #SCREENS * 2 * 2 * 3 * 3 * 2 * 2 * 2 * 2, "every case ran")
 		local lines = {}
 		for key in existing do
 			table.insert(lines, key)
@@ -219,6 +224,46 @@ return {
 				tag .. ": over the money pill"
 			)
 		end
+	end,
+
+	["a touch screen's info column: left of the lines, as wide as the disc and its gap"] = function()
+		local HudLayout = H.require("HudLayout")
+		local Config = H.require("Config")
+		local P = Config.UI.BoostPill
+		local I = P.Info
+		for _, screen in SCREENS do
+			local s = { moneyText = "$125,000", blocks = 3, candy = true, candyPill = true }
+			local touch = table.clone(s)
+			touch.info = true
+			local b = HudLayout.boost(screen, s, HudLayout.others(screen, s))
+			local bt = HudLayout.boost(screen, touch, HudLayout.others(screen, touch))
+			local where = screen.name
+			H.expect(b.infoW == 0 and b.infoPx == 0, "no column without a touch screen: " .. where)
+			local px = math.floor(bt.lineH * I.BadgeShare + 0.5)
+			H.expect(bt.infoPx == px, "the disc is BadgeShare of a line: " .. where)
+			H.expect(bt.infoW == px + I.GapPx, "the column is the disc and its gap: " .. where)
+			H.expect(bt.pill.w == b.pill.w + bt.infoW, "the box grows by the column: " .. where)
+			H.expect(bt.pill.x == b.pill.x, "the box keeps its left edge: " .. where)
+			H.expect(bt.pill.h == b.pill.h, "and its height: " .. where)
+			-- The disc fits its line, and its press area stays one line tall.
+			H.expect(bt.infoPx <= bt.lineH, "the disc inside its line: " .. where)
+		end
+		-- A phone: a tiny disc (the designer's word), the house minimum text inside it.
+		local phone = HudLayout.boost(
+			{ w = 750, h = 311 },
+			{ info = true },
+			HudLayout.others({ w = 750, h = 311 }, { info = true })
+		)
+		H.expect(phone.infoPx == 14, "14 px on a phone: " .. phone.infoPx)
+		-- The switch off: no column anywhere.
+		I.Enabled = false
+		local off = HudLayout.boost(
+			{ w = 750, h = 311 },
+			{ info = true },
+			HudLayout.others({ w = 750, h = 311 }, { info = true })
+		)
+		I.Enabled = true
+		H.expect(off.infoW == 0 and off.infoPx == 0, "Info.Enabled false: no column")
 	end,
 
 	["the chip sits right over the pill, compact only when it must be"] = function()

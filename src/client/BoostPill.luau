@@ -13,9 +13,11 @@
 -- counts up, then its line pops; a lower one just changes.
 -- Hovering shows "YOUR BOOSTS" over it (a row per Money.boostParts part and the total; the
 -- Candy line's card ends with the Rush's words in grey); a click,
--- tap or A pins it open for PinSeconds, a second press or B closes it. In a match it still
--- shows (money does) but takes no input and its card shuts. Hidden while the tutorial runs
--- (a VIP's shows, as the VIP tag did).
+-- tap or A pins it open for PinSeconds, a second press or B closes it. On a touch screen with
+-- no mouse (Info, designer 2026-10-30) the lines take no touch, so a finger on them walks, and a
+-- tiny blue "i" left of each line opens that line's card instead. In a match it still shows
+-- (money does) but takes no input, its "i" hides and its card shuts. Hidden while the tutorial
+-- runs (a VIP's shows, as the VIP tag did).
 --
 -- The Rush chip (R1.10): its shell and place are this module's, its words core's. Once a second
 -- it asks src/client/Halloween/RushChip.luau `RushChip.content(now) -> { text, endsAt }?`
@@ -23,8 +25,9 @@
 -- missing or "" collapses the slot). It pops in the first time, then its colour breathes gently
 -- (never its scale: text never pulses); it says what runs and for how long, the Candy line how
 -- much. HudLayout places the lines and the chip from the live rects of the pieces around them.
--- Studio only: GuiQA `boosts`, `candyLine`, `boostCard`, `boostPress`, `boostPerks`, `rushChip`,
--- `hudRects`, `hudOverlap`. Sizes in Config.UI.BoostPill, words in Strings.BoostPill.
+-- Studio only: GuiQA `boosts`, `candyLine`, `boostCard`, `boostPress`, `boostInfo`,
+-- `boostInfoPress`, `boostPerks`, `rushChip`, `hudRects`, `hudOverlap`. Sizes in
+-- Config.UI.BoostPill, words in Strings.BoostPill.
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -51,6 +54,7 @@ local P = Config.UI.BoostPill
 local K = P.Card
 local CHIP = P.Chip
 local CP = P.CandyPill
+local INFO = P.Info
 local E = Config.Economy
 local COPY = Strings.BoostPill
 local PARTS: { [string]: string } = COPY.Parts :: any
@@ -71,6 +75,22 @@ end
 
 local function percent(add: number): string
 	return COPY.Percent:format(math.floor(add * 100 + 0.5))
+end
+
+-- A touch is the input in use (a finger's drag also fires the mouse's enter and leave).
+local function touching(): boolean
+	return UserInputService:GetLastInputType() == Enum.UserInputType.Touch
+end
+
+local function padInput(): boolean
+	return UserInputService:GetLastInputType().Name:find("Gamepad") ~= nil
+end
+
+-- A touch screen with no mouse (a phone, a tablet): the "i" opens the cards (Info).
+local function touchScreen(): boolean
+	return INFO.Enabled == true
+		and UserInputService.TouchEnabled
+		and not UserInputService.MouseEnabled
 end
 
 -- Core's pieces, each read guarded (a missing one hides a line, never errors).
@@ -200,6 +220,8 @@ function BoostPill.new(money: any): any
 	self.reportedCard = false
 	self.rushWarned = false
 	self.perks = false -- VIP was just bought (showPerks): it shows even while the tutorial runs
+	self.info = touchScreen() -- the "i" opens the cards; the lines take no touch (Info)
+	self.infoFake = nil :: boolean? -- GuiQA `boostInfo`
 
 	local tag = Instance.new("TextButton")
 	tag.Name = "BoostPill"
@@ -223,13 +245,50 @@ function BoostPill.new(money: any): any
 		label.AnchorPoint = Vector2.new(0, 0.5) -- its pop grows from its left end
 		label.Visible = kind == "Money"
 		label.ZIndex = P.ZIndex + 1
-		self.lines[kind] = { label = label, pattern = COPY.Lines[kind], value = nil, count = nil }
+		-- Its "i" (a touch screen only, Info): a blue disc left of the words, its press area
+		-- one line tall so the finger keeps the room round it to walk.
+		local info = HudParts.pill(tag, "Info" .. kind, HudParts.tone("Blue"))
+		info.AnchorPoint = Vector2.new(0.5, 0.5)
+		info.Visible = false
+		info.ZIndex = P.ZIndex + 1
+		local letter = HudParts.text(info, "Letter", P.ShortTextPx, INFO.Letter)
+		letter.AutoLocalize = false -- a symbol, not a word
+		letter.Size = UDim2.fromScale(1, 1)
+		letter.ZIndex = P.ZIndex + 2
+		local hit = Instance.new("TextButton")
+		hit.Name = "InfoPress" .. kind
+		hit.BackgroundTransparency = 1
+		hit.Text = ""
+		hit.AutoButtonColor = false
+		hit.Selectable = false -- a pad opens the cards from the pill's corner stop
+		hit.AnchorPoint = Vector2.new(0.5, 0.5)
+		hit.Visible = false
+		hit.ZIndex = P.ZIndex + 3
+		hit.Parent = tag
+		hit.Activated:Connect(function()
+			self:infoPress(kind)
+		end)
+		self.lines[kind] = {
+			label = label,
+			pattern = COPY.Lines[kind],
+			value = nil,
+			count = nil,
+			info = info,
+			letter = letter,
+			hit = hit,
+		}
 		-- Each line opens its own card: hovering it picks it, a press on it too (InputBegan
-		-- comes before the tag's Activated). The labels take no input themselves.
+		-- comes before the tag's Activated). The labels take no input themselves. On a touch
+		-- screen only the "i" picks.
 		label.MouseEnter:Connect(function()
-			self:setKind(kind)
+			if not (self.info or touching()) then
+				self:setKind(kind)
+			end
 		end)
 		label.InputBegan:Connect(function(input: InputObject)
+			if self.info then
+				return
+			end
 			local t = input.UserInputType
 			if t == Enum.UserInputType.MouseButton1 or t == Enum.UserInputType.Touch then
 				self.cardKind = kind
@@ -267,7 +326,9 @@ function BoostPill.new(money: any): any
 	candyHit.Selectable = false -- a pad reaches the menu from the HALLOWEEN button
 	candyHit.Parent = candyPill
 	candyHit.MouseEnter:Connect(function()
-		self:setKind("Candy")
+		if not (self.info or touching()) then
+			self:setKind("Candy")
+		end
 	end)
 	candyHit.Activated:Connect(function()
 		if self.inMatch then
@@ -340,7 +401,11 @@ function BoostPill.new(money: any): any
 	chipText.ZIndex = CHIP.ZIndex + 1
 	self.chipText = chipText
 
+	-- A finger's drag fires these too: on a touch it never opens the card (designer, 2026-10-30).
 	tag.MouseEnter:Connect(function()
+		if self.info or touching() then
+			return
+		end
 		self.hovered = true
 		if not self.inMatch then
 			self:showCard(false)
@@ -353,8 +418,19 @@ function BoostPill.new(money: any): any
 		end
 	end)
 	tag.Activated:Connect(function()
+		if self.info and not padInput() then
+			return -- a touch screen opens the cards from the "i" (applyActive keeps a pad's A)
+		end
 		self:press()
 	end)
+	-- Which input is in use moves the pill's Active (a pad's A on a touch screen).
+	UserInputService.LastInputTypeChanged:Connect(function()
+		self:applyActive()
+	end)
+	UserInputService:GetPropertyChangedSignal("MouseEnabled"):Connect(function()
+		self:updateInfo()
+	end)
+	self:applyActive()
 
 	local player = Players.LocalPlayer
 	if player then
@@ -606,6 +682,7 @@ function BoostPill.layout(self: any)
 		chipText = if self.chipOn then self.chipWords else nil,
 		candy = self.candyOn,
 		candyPill = self.candyOn and CP.Enabled == true,
+		info = self.info,
 	}
 	local others = self:others(size)
 	local b = HudLayout.boost(size, scene, others)
@@ -619,10 +696,22 @@ function BoostPill.layout(self: any)
 	self.tag.Size = UDim2.fromOffset(pill.w, pill.h)
 	for kind, line in self.lines :: { [string]: any } do
 		local fromBottom = if kind == "Money" then 0 else 1
+		local y = pill.h - b.candyPillH - (fromBottom + 0.5) * b.lineH
 		HudParts.setTextSize(line.label, b.pillTextPx)
-		line.label.Position =
-			UDim2.fromOffset(0, pill.h - b.candyPillH - (fromBottom + 0.5) * b.lineH)
-		line.label.Size = UDim2.fromOffset(pill.w, b.lineH)
+		line.label.Position = UDim2.fromOffset(b.infoW, y)
+		line.label.Size = UDim2.fromOffset(pill.w - b.infoW, b.lineH)
+		-- Its "i" (a touch screen): centred in the column left of the words, hidden in a match.
+		local px = b.infoPx
+		local infoOn = px > 0 and not self.inMatch and line.label.Visible
+		line.info.Visible = infoOn
+		line.hit.Visible = infoOn
+		if px > 0 then
+			line.info.Position = UDim2.fromOffset(px / 2, y)
+			line.info.Size = UDim2.fromOffset(px, px)
+			HudParts.setTextSize(line.letter, math.floor(px * INFO.LetterShare), 8)
+			line.hit.Position = UDim2.fromOffset(px / 2, y)
+			line.hit.Size = UDim2.fromOffset(px + 2 * INFO.HitPadPx, b.lineH)
+		end
 	end
 	-- The Candy pill: the box's bottom row, right over the money pill.
 	self.candyPill.Visible = b.candyPillH > 0
@@ -994,7 +1083,7 @@ function BoostPill.press(self: any)
 		return
 	end
 	UISound.play("Click")
-	local pad = UserInputService:GetLastInputType().Name:find("Gamepad") ~= nil
+	local pad = padInput()
 	if self.pinned and pad and self.candyOn and self.shownKind == "Money" then
 		self.cardKind = "Candy" -- a pad has no hover: A shows Money, then Candy, then closes
 	end
@@ -1017,6 +1106,33 @@ function BoostPill.press(self: any)
 			end)
 		end
 	end
+end
+
+--- A tap on a line's "i" (a touch screen): its card, as a press on that line.
+function BoostPill.infoPress(self: any, kind: string)
+	if self.inMatch or not self.info then
+		return
+	end
+	self.cardKind = kind
+	self:press()
+end
+
+--- The pill takes input out of a match; on a touch screen only from a pad (a button that is
+--- not Active fires no Activated and lets the touch through, so a finger on the lines walks).
+function BoostPill.applyActive(self: any)
+	self.tag.Active = not self.inMatch and (not self.info or padInput())
+end
+
+--- Whether the "i" opens the cards (a touch screen with no mouse, or GuiQA's stand-in).
+function BoostPill.updateInfo(self: any)
+	local on = if self.infoFake ~= nil then self.infoFake else touchScreen()
+	if on == self.info then
+		return
+	end
+	self.info = on
+	self.hovered = false
+	self:applyActive()
+	self:layout()
 end
 
 --- Whether the card is open (HubCorners: B closes it first).
@@ -1053,12 +1169,13 @@ function BoostPill.setInMatch(self: any, on: boolean)
 		return
 	end
 	self.inMatch = on
-	self.tag.Active = not on
+	self:applyActive()
 	if on then
 		self.pinned = false
 		self.pinToken += 1
 		self:hideCard()
 	end
+	self:layout() -- the "i" hides in a match
 end
 
 --- VIP was just bought: the pill shows its new total and the card slams in, the VIP row
@@ -1221,6 +1338,18 @@ function BoostPill.addQA(self: any)
 	GuiQA.add("boostPress", function()
 		self:press()
 		return self.card.Visible
+	end)
+	-- ("boostInfo", on?): the touch screen's "i" on (true) or off (false) whatever the device;
+	-- nil: the device's again. Returns whether it is on and the lines' Active.
+	GuiQA.add("boostInfo", function(on: boolean?)
+		self.infoFake = on
+		self:updateInfo()
+		return self.info, self.tag.Active
+	end)
+	-- ("boostInfoPress", kind): a tap on that line's "i" ("Money" or "Candy").
+	GuiQA.add("boostInfoPress", function(kind: string?)
+		self:infoPress(if kind == "Candy" then "Candy" else "Money")
+		return self.card.Visible, self.shownKind
 	end)
 	GuiQA.add("boostPerks", function()
 		self:showPerks()

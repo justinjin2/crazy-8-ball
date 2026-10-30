@@ -10329,6 +10329,21 @@ Config.UI.BoostPill = {
 	CountSeconds = 0.4, -- a higher number counts up this long, then its line pops
 	PopScale = 1.12,
 	PinSeconds = 6, -- a press keeps the card open this long
+	-- The "i" on a touch screen (designer, 2026-10-30: "a tiny info button" left of each line). On
+	-- a phone or tablet with no mouse the lines take no touch, so a finger on them walks (dragging
+	-- over them opened the card: 71% of phone players in the update's first 12 h, 0.8% on PC),
+	-- and only a line's "i" opens its card. A pad and a mouse work as before. false: the lines
+	-- open it again.
+	Info = {
+		Enabled = true,
+		BadgeShare = 0.85, -- the "i" disc, of a line's height (14 px on a phone, 20 on a tablet)
+		GapPx = 3, -- between the disc and its line's words
+		-- The press area: this far left and right of the disc, one line tall. Never TouchMinPx: a
+		-- bigger area would take the thumbstick's room again (the designer asked for tiny).
+		HitPadPx = 4,
+		Letter = "i",
+		LetterShare = 0.8, -- the letter's size, of the disc
+	},
 	PurchaseSeconds = 8, -- after buying VIP the card stays this long, the VIP row flashing gold
 	PollSeconds = 1, -- the timed parts (Starter, Party): how often it looks while one runs
 	-- The "YOUR BOOSTS" card over the pill (H1): a row per part, a rule, the total, the footer.
