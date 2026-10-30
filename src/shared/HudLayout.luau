@@ -15,8 +15,9 @@
 -- (`columnAfter`; on a short screen too since 2026-10-29: ShortBesideColumn false); with
 -- ShortBesideColumn a short screen puts it at least ColumnGapPx right of the left column when it
 -- fits there, so the column never moves for it; if it still touches a piece (an
--- iPad's full hotbar) it rises over it. Its width is fixed by WidestText, plus on a touch screen
--- the "i" column at its left (`infoColumn`, 2026-10-30). The chip sits right over
+-- iPad's full hotbar) it rises over it. Its width is fixed by WidestText; on a touch screen the
+-- "i" column (`infoColumn`, 2026-10-30) takes its left inside that width, never widening it. The
+-- chip sits right over
 -- the pill at the same left x; if it would touch another piece it becomes the compact chip
 -- ("CANDY 8:12"), then its words shrink (never under MinTextPx), and as a last resort it rises
 -- over the piece it touches. The card sits over the pill; when it is too tall for the room
@@ -70,7 +71,7 @@ export type Boost = {
 	pillTextPx: number,
 	lineH: number, -- one line's height
 	candyPillH: number, -- the Candy pill's row at the box's bottom (its gap included), or 0
-	infoW: number, -- the "i" column at the box's left (its gap included), or 0; the lines go right
+	infoW: number, -- the "i" column at the box's left, inside its width (gap included), or 0
 	infoPx: number, -- the "i" disc's size, or 0
 	chip: Rect?,
 	chipText: string?, -- the words the chip shows (the compact form when chipCompact)
@@ -302,8 +303,10 @@ function HudLayout.boost(screen: Screen, s: Scene, others: Others): Boost
 	local pw, ph, pillTextPx, lineH = HudLayout.pillSize(screen, if s.candy then 2 else 1)
 	local candyPillH = if s.candyPill then HudLayout.candyPillRow(screen) else 0
 	ph += candyPillH
+	-- The "i" column takes the box's left and the lines move right of it, inside the same width:
+	-- WidestText's estimate is wider than the real font (Studio, 2026-10-30: 167 px against 224 at
+	-- 20 px, 111 against 145 at 13 px), so the line still fits and no other piece moves.
 	local infoW, infoPx = HudLayout.infoColumn(screen, s.info)
-	pw += infoW
 	local y = others.money.y - P.GapPx - ph
 	local pill = { x = round(others.money.x + P.LeftPx), y = y, w = pw, h = ph }
 	local column = others.column
