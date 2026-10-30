@@ -1322,11 +1322,6 @@ return {
 		TimeLeft = "%s · %s left", -- a timed part and its time: "Starter Pack · 42m left"
 		Total = "Total",
 		None = "No boosts yet",
-		CandyToo = "Friends and Group boost Candy too",
-		Get = {
-			Group = "Join the group: +%d%%",
-			Vip = "VIP: +%d%%",
-		},
 	},
 	-- The Cue Preview (CuePreview; R7): the stage behind a framed panel.
 	CuePreview = {

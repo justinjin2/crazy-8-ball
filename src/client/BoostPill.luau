@@ -11,8 +11,8 @@
 -- +N%" in orange, N from CandyMath.multiplier (the event's Rush or double day x (1 + friends +
 -- group), what CandyService pays). A line at +0% shows dimmed (ShowAtZero). A higher number
 -- counts up, then its line pops; a lower one just changes.
--- Hovering shows "YOUR BOOSTS" over it (a row per Money.boostParts part, the total, the friend
--- rule, the Candy line while the event is live, then grey the boosts still to get); a click,
+-- Hovering shows "YOUR BOOSTS" over it (a row per Money.boostParts part and the total; the
+-- Candy line's card ends with the Rush's words in grey); a click,
 -- tap or A pins it open for PinSeconds, a second press or B closes it. In a match it still
 -- shows (money does) but takes no input and its card shuts. Hidden while the tutorial runs
 -- (a VIP's shows, as the VIP tag did).
@@ -762,12 +762,12 @@ function BoostPill.cardLines(self: any): { any }
 	return lines
 end
 
--- The lines under the total: the Candy line, the boosts still to get. fillCard drops them from the end when the card would not fit.
+-- The line under the Candy card's total: the Rush's words while it runs, else when the next
+-- starts. The Money card has none (designer, 2026-10-30: the grey "Candy too", group and VIP
+-- hints went). fillCard drops it when the card would not fit.
 function BoostPill.footLines(self: any): { string }
-	local flags = self:flags()
 	local lines = {}
 	if self.cardKind == "Candy" and self.candyOn then
-		-- The Rush's words while it runs, else when the next starts; then the group to join.
 		if self.rushWords then
 			table.insert(lines, self.rushWords)
 		elseif EventModule and type(EventModule.nextRushAt) == "function" then
@@ -780,22 +780,6 @@ function BoostPill.footLines(self: any): { string }
 				end
 			end)
 		end
-		if flags.group ~= true then
-			table.insert(lines, COPY.Get.Group:format(math.floor(E.GroupBoost * 100 + 0.5)))
-		end
-		return lines
-	end
-	if EventModule and type(EventModule.isLive) == "function" then
-		local ok, live = pcall(EventModule.isLive, now())
-		if ok and live == true then
-			table.insert(lines, COPY.CandyToo)
-		end
-	end
-	if flags.group ~= true then
-		table.insert(lines, COPY.Get.Group:format(math.floor(E.GroupBoost * 100 + 0.5)))
-	end
-	if flags.vip ~= true then
-		table.insert(lines, COPY.Get.Vip:format(math.floor(E.VipBoost * 100 + 0.5)))
 	end
 	return lines
 end

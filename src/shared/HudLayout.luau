@@ -51,7 +51,7 @@ export type Scene = {
 	columnTiles: number?, -- the left column's tiles (default 4)
 	chipText: string?, -- core's chip words; nil = no chip
 	cardRows: number?, -- the card's part rows (default 6, every part)
-	cardFeet: number?, -- its foot lines before any go (default 4: the rule, Candy, two "get")
+	cardFeet: number?, -- its foot lines before any go (default 1: the Candy card's Rush line)
 }
 
 export type Others = {
@@ -354,7 +354,7 @@ function HudLayout.boost(screen: Screen, s: Scene, others: Others): Boost
 
 	-- The card over the pill: what fits the room up to the screen's top, kept inside its width.
 	local rows = s.cardRows or 6
-	local feet, scale = HudLayout.cardFit(pill.y - P.Card.AbovePx, rows, s.cardFeet or 4)
+	local feet, scale = HudLayout.cardFit(pill.y - P.Card.AbovePx, rows, s.cardFeet or 1)
 	local cardW = (if short then P.Card.ShortWidthPx else P.Card.WidthPx) * scale
 	local cardH = HudLayout.cardHeight(rows, feet) * scale
 	local cx = math.clamp(pill.x, 0, math.max(0, screen.w - cardW))
@@ -393,8 +393,8 @@ function HudLayout.cardHeight(rows: number, feet: number): number
 		+ K.PadPx
 end
 
---- How the card fits `room` px over the pill: the foot lines it keeps (the last go first: the
---- grey "get" lines, then the Candy line, then the friend rule) and its scale (1, or smaller when
+--- How the card fits `room` px over the pill: the foot lines it keeps (the last go first; since
+--- 2026-10-30 only the Candy card has one, the Rush's words) and its scale (1, or smaller when
 --- even its rows alone are too tall; never under Card.MinScale).
 function HudLayout.cardFit(room: number, rows: number, feet: number): (number, number)
 	local keep = feet
