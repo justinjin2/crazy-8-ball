@@ -243,7 +243,10 @@ return {
 			H.expect(b.infoW == 0 and b.infoPx == 0, "no column without a touch screen: " .. where)
 			local px = math.floor(bt.lineH * I.BadgeShare + 0.5)
 			H.expect(bt.infoPx == px, "the disc is BadgeShare of a line: " .. where)
-			H.expect(bt.infoW == px + I.GapPx, "the column is the disc and its gap: " .. where)
+			H.expect(
+				bt.infoW == px + math.ceil(2 * I.RingPx) + I.GapPx,
+				"the column is the disc, its ring and the gap: " .. where
+			)
 			-- The box, so every other piece, is where it was without the column.
 			H.expect(
 				bt.pill.x == b.pill.x
@@ -256,8 +259,11 @@ return {
 				bt.infoW + REAL_WIDEST[bt.pillTextPx] <= bt.pill.w,
 				"the widest real line fits right of the column: " .. where
 			)
-			-- The disc fits its line, and its press area stays one line tall.
-			H.expect(bt.infoPx <= bt.lineH, "the disc inside its line: " .. where)
+			-- The disc and its ring fit their line with room: two discs a line apart never touch.
+			H.expect(
+				bt.infoPx + 2 * I.RingPx <= bt.lineH - 1,
+				"the disc and its ring inside its line: " .. where
+			)
 		end
 		-- A phone: a tiny disc (the designer's word), the house minimum text inside it.
 		local phone = HudLayout.boost(
@@ -265,7 +271,7 @@ return {
 			{ info = true },
 			HudLayout.others({ w = 750, h = 311 }, { info = true })
 		)
-		H.expect(phone.infoPx == 14, "14 px on a phone: " .. phone.infoPx)
+		H.expect(phone.infoPx == 12, "12 px on a phone: " .. phone.infoPx)
 		-- The switch off: no column anywhere.
 		I.Enabled = false
 		local off = HudLayout.boost(

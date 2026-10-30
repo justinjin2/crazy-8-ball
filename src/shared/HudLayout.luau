@@ -109,14 +109,14 @@ function HudLayout.pillSize(screen: Screen, lines: number): (number, number, num
 end
 
 --- The "i" column left of the lines on a touch screen (`info`; Info.Enabled): (its width with
---- the gap, the disc's size); 0, 0 without it.
+--- the disc's ring on both sides and the gap, the disc's size); 0, 0 without it.
 function HudLayout.infoColumn(screen: Screen, info: boolean?): (number, number)
 	if not info or P.Info.Enabled ~= true then
 		return 0, 0
 	end
 	local lineH = if HudLayout.short(screen) then P.ShortLinePx else P.LinePx
 	local px = round(lineH * P.Info.BadgeShare)
-	return px + P.Info.GapPx, px
+	return px + math.ceil(2 * P.Info.RingPx) + P.Info.GapPx, px
 end
 
 --- The Candy pill's row under the boost lines: its height and the gap over it.

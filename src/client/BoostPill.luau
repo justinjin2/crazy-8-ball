@@ -251,6 +251,10 @@ function BoostPill.new(money: any): any
 		info.AnchorPoint = Vector2.new(0.5, 0.5)
 		info.Visible = false
 		info.ZIndex = P.ZIndex + 1
+		local ring = info:FindFirstChildOfClass("UIStroke")
+		if ring then
+			ring.Thickness = INFO.RingPx
+		end
 		local letter = HudParts.text(info, "Letter", P.ShortTextPx, INFO.Letter)
 		letter.AutoLocalize = false -- a symbol, not a word
 		letter.Size = UDim2.fromScale(1, 1)
@@ -706,10 +710,11 @@ function BoostPill.layout(self: any)
 		line.info.Visible = infoOn
 		line.hit.Visible = infoOn
 		if px > 0 then
-			line.info.Position = UDim2.fromOffset(px / 2, y)
+			local x = INFO.RingPx + px / 2 -- its ring clear of the box's left edge
+			line.info.Position = UDim2.fromOffset(x, y)
 			line.info.Size = UDim2.fromOffset(px, px)
 			HudParts.setTextSize(line.letter, math.floor(px * INFO.LetterShare), 8)
-			line.hit.Position = UDim2.fromOffset(px / 2, y)
+			line.hit.Position = UDim2.fromOffset(x, y)
 			line.hit.Size = UDim2.fromOffset(px + 2 * INFO.HitPadPx, b.lineH)
 		end
 	end

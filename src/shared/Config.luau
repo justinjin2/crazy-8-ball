@@ -10336,13 +10336,15 @@ Config.UI.BoostPill = {
 	-- open it again.
 	Info = {
 		Enabled = true,
-		BadgeShare = 0.85, -- the "i" disc, of a line's height (14 px on a phone, 20 on a tablet)
-		GapPx = 3, -- between the disc and its line's words
+		BadgeShare = 0.75, -- the "i" disc, of a line's height (12 px on a phone, 18 on a tablet)
+		RingPx = 1.5, -- its ink ring, drawn outside it: thinner than a button's, so the two discs
+		-- a line apart and the Candy pill under them never touch (review, 2026-10-30)
+		GapPx = 3, -- between the ring and its line's words
 		-- The press area: this far left and right of the disc, one line tall. Never TouchMinPx: a
 		-- bigger area would take the thumbstick's room again (the designer asked for tiny).
 		HitPadPx = 4,
 		Letter = "i",
-		LetterShare = 0.8, -- the letter's size, of the disc
+		LetterShare = 0.9, -- the letter's size, of the disc (10 px on a phone)
 	},
 	PurchaseSeconds = 8, -- after buying VIP the card stays this long, the VIP row flashing gold
 	PollSeconds = 1, -- the timed parts (Starter, Party): how often it looks while one runs
