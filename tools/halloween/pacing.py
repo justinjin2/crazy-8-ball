@@ -8,21 +8,21 @@ the Rush's average (or 2 on Oct 31) x the friends + group boost; ground: a flat 
 Run: python3 tools/halloween/pacing.py
 """
 MIN = {"Matches": 6.3, "Wins": 12.6, "Balls": 6.3 / 5.75, "NiceShots": 18.9, "UltMatches": 12.6,
-       "Pickups": 60 / 130, "Active": 1 / 60, "TeamMatches": 8}
+       "Pickups": 60 / 30, "Active": 1 / 60, "TeamMatches": 8}
 REW = [60, 100, 150, 250]
 # boards 2..6 with the King off (release reading)
 BOARDS = {
     2: [("Matches", 1), ("Wins", 1), ("Balls", 15), ("Active", 3600)],
-    3: [("Balls", 8), ("Wins", 1), ("Pickups", 40), ("UltMatches", 4)],
+    3: [("Balls", 8), ("Wins", 1), ("Pickups", 8), ("UltMatches", 4)],
     4: [("Matches", 1), ("Balls", 12), ("Active", 1200), ("Wins", 6)],
-    5: [("Balls", 8), ("Wins", 1), ("Matches", 3), ("Pickups", 150)],
+    5: [("Balls", 8), ("Wins", 1), ("Matches", 3), ("Pickups", 35)],
     6: [("Matches", 1), ("Wins", 1), ("Balls", 15), ("NiceShots", 5)],
 }
 PER_POCKET = 3
 POTS_H = 60 / 6.3 * 5.75 * 0.85  # eligible pots an hour
 RUSH = 1 + 10 / 45  # the personal Rush: 10 of every 45 minutes (Config.Halloween.Rush)
 BOOST = 1.05
-GROUND_H = 130
+GROUND_H = 30  # one spawn every ~20 s a player since 2026-10-29 ~20:20 (was ~130 at 4.5 s)
 DOUBLE_DAY = 3  # day 3 = board 4 (Oct 31 evening EDT)
 
 

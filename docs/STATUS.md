@@ -15,6 +15,15 @@ entry of `docs/archive/STATUS_HISTORY.md`.
   round**. The checklist and every switch are in `docs/halloween/RELEASE.md`. The LIVE store
   icon is set (91272722538693) and the description has the 5KLIKES/10KLIKES lines, a Halloween
   line and "Still working codes: 2KLIKES" (saved 20:01).
+- **Waiting to publish (pushed Oct 29 ~20:45, `d7fdbd45`): ground candy far fewer.** The
+  designer, live: dozens on the map (a spawn every 4.5 s a player, ~6 around each, most never
+  collectable under the 150 cap). Now one every 20 s (+-5), ~1.5 around a player; a full bag
+  stops that player's spawns and hides every candy on their screen until the next UTC hour
+  (`HalloweenMap.Candy.HideWhenFull`, attribute `HwCandyFull`); board 3/5 Pickups quests 8 / 35.
+  Studio-checked. Effect: ~30 ground Candy an hour in matches (was ~130), so the 3 h-a-day player
+  ends ~6,280, short of the Sword without a pack (ECONOMY, Halloween): the designer decides
+  whether a candy pays more. Check live: few candies on the map; fill a bag (150) and the candy
+  vanishes with the "bag is full" note, then comes back at :00. Restart: no save change, any.
 - **v4 (designer 14:20, with an interview):**
   - The Sword's soft pre-v3 aura is back, also on its menu card. Its dark purple trail has
     glowing embers instead of painted flames, and its finisher is a purple energy burst standing
@@ -57,8 +66,8 @@ entry of `docs/archive/STATUS_HISTORY.md`.
   - Four cues for Candy or Robux: Pitchfork 300 / 49 R$, Broom 2,500 / 249 R$, Jack 4,500 /
     399 R$, Sword 7,500 / 599 R$.
   - Candy about a third each from pockets (+3 a paying pot), quests (60/100/150/250) and the
-    ground (1 each, a spawn every 4.5 s, 150 an hour at most). The tutorial's real match pays
-    quietly.
+    ground (1 each, 150 an hour at most; a spawn every 20 s since d7fdbd45, below). The
+    tutorial's real match pays quietly.
   - The Pitchfork's prongs stay and its flames are calm. The Jack's laugh is quieter and near
     only. The Broom's head is shorter.
   - Codes: 5KLIKES and 10KLIKES (10 spins, $10,000; the tutorial types it) and 2KLIKES lowered.

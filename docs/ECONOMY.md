@@ -266,7 +266,7 @@ pays most, and the Pitchfork comes in a new player's first ~20-25 minutes.
 | Source | Numbers | Per hour of play (model) |
 |---|---|---|
 | Pockets | **3 Candy a pot that pays money** (`Config.Halloween.Match.PerPocket`), flying from the pocket into the Candy pill like the cash; against people and disguised bots (designer; past the day's 20 disguised wins at the practice share x0.3, hidden like their money), never PC practice, solo or the tutorial's bot (the tutorial's real match pays its pots, shown only once the tutorial is over); no daily cap of its own past the disguised limit (at the practice share, ~40 an hour at most); x the money's anti-farm ball factor; x2 in the player's own Rush (10 minutes from when Halloween turns on for them, again every 45 minutes; the start is saved, so a rejoin keeps the cycle; designer 2026-10-29) and on Oct 31 (Eastern), never x4; friends +10% each (at most 4), group +10%. No Candy at settle (Finished and Win folded into the pots: a winner pots more). Switch `Match.PerPocketEnabled` off: the old settle-time Candy (3 a ball, 10 finished, 25 a win) | **~179** (Oct 31: ~290) |
-| Ground candy | 1 a pickup; one spawn near each eligible player every 4.5 s (+-1), 30 s each on the ground, up to 8 each and 150 in a server, also while roaming in a match; **150 pickups an hour at most** (`Pickup.HourCap`, was 400) | **~130** (cap 150) |
+| Ground candy | 1 a pickup; one spawn near each eligible player every **20 s (+-5)** (4.5 s +-1 until 2026-10-29 ~20:20, the designer: dozens on the map at once), 30 s each on the ground (~1.5 around a player), up to 8 each and 150 in a server, also while roaming in a match; **150 pickups an hour at most** (`Pickup.HourCap`); a full bag stops that player's spawns and hides every candy on their screen until the next UTC hour (`HalloweenMap.Candy.HideWhenFull`) | **~30** (was ~130; a walker up to the cap 150) |
 | Quests | 60 / 100 / 150 / 250 a board, today's board only; the first three take ~6, ~13 and ~16-20 min of play, the fourth 50-95 min | 560 a day (310 in the first ~20 min) |
 | The Pumpkin King | off for the release (was +150 a visit's first win, up to ~300 a day) | 0 |
 
@@ -287,7 +287,15 @@ The numbers behind it (stated, with where they come from):
 | Tutorial | ~5 min before Halloween shows (HwOn); its real match (game 2, or path R's game 1) pays its pots quietly, the model leaves them out | **assumption** |
 
 So ~46.5 eligible pots an hour x 3 x 1.22 (the personal Rush's 10 of every 45 minutes; 1.17 with the old clock Rush) x 1.05 = ~179 Candy an
-hour from pockets (~290 on Oct 31), ~130 from the ground, and the quests' 560 a day.
+hour from pockets (~290 on Oct 31), ~30 from the ground (~130 before the 2026-10-29 ~20:20
+slowdown), and the quests' 560 a day.
+
+**Since the ground slowdown (2026-10-29 ~20:20; `pacing.py` reruns):** the 3 h-a-day player ends
+with **~6,280** (pockets 3,030, ground 450, quests 2,800): the Broom at ~6.2 h, the Jack at
+~10.2 h, and **the Sword no longer within the event** without a pack (~1,220 short). The ~22
+min-a-day player ends with ~1,960; a 1 h-a-day player ~3,210 (the Broom on day 4). The tables
+below are the model before the slowdown, kept for the record; the designer decides whether a
+candy pays more.
 
 | Cue | Candy | Robux | The 3 h-a-day player (boards 2-6), saving for this cue alone | The ~22 min-a-day player |
 |---|---|---|---|---|
