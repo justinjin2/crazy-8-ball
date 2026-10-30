@@ -24,6 +24,12 @@ entry of `docs/archive/STATUS_HISTORY.md`.
   ends ~6,280, short of the Sword without a pack (ECONOMY, Halloween): the designer decides
   whether a candy pays more. Check live: few candies on the map; fill a bag (150) and the candy
   vanishes with the "bag is full" note, then comes back at :00. Restart: no save change, any.
+- **Waiting to publish, before Oct 30 19:00 EDT (pushed Oct 29 ~21:15): the King-quest auto-pay
+  fix.** A live bug found by the Candy review: at each board's open the auto-claim read the King
+  slots (run as their Alts all event) at the King's need, paying 250 Candy for 1 s of play
+  (2.4, at board 3's open, Oct 30 19:00 EDT), for 2 wins (4.4, board 5) and 3 nice shots (6.4,
+  the end). Fixed in `Quests.endClaimable`; Lune test and Studio board-jump check. Publish it
+  with the ground candy update; if it misses 19:00, every board-2 player gets a free 250.
 - **v4 (designer 14:20, with an interview):**
   - The Sword's soft pre-v3 aura is back, also on its menu card. Its dark purple trail has
     glowing embers instead of painted flames, and its finisher is a purple energy burst standing
