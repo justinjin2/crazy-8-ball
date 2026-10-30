@@ -15,15 +15,18 @@ entry of `docs/archive/STATUS_HISTORY.md`.
   round**. The checklist and every switch are in `docs/halloween/RELEASE.md`. The LIVE store
   icon is set (91272722538693) and the description has the 5KLIKES/10KLIKES lines, a Halloween
   line and "Still working codes: 2KLIKES" (saved 20:01).
-- **Waiting to publish (pushed Oct 29 ~20:45, `d7fdbd45`): ground candy far fewer.** The
-  designer, live: dozens on the map (a spawn every 4.5 s a player, ~6 around each, most never
-  collectable under the 150 cap). Now one every 20 s (+-5), ~1.5 around a player; a full bag
-  stops that player's spawns and hides every candy on their screen until the next UTC hour
-  (`HalloweenMap.Candy.HideWhenFull`, attribute `HwCandyFull`); board 3/5 Pickups quests 8 / 35.
-  Studio-checked. Effect: ~30 ground Candy an hour in matches (was ~130), so the 3 h-a-day player
-  ends ~6,280, short of the Sword without a pack (ECONOMY, Halloween): the designer decides
-  whether a candy pays more. Check live: few candies on the map; fill a bag (150) and the candy
-  vanishes with the "bag is full" note, then comes back at :00. Restart: no save change, any.
+- **Waiting to publish (pushed Oct 29, `d7fdbd45` + `ec83be41`): ground candy far fewer, 4
+  Candy each.** The designer, live: dozens on the map (a spawn every 4.5 s a player, most never
+  collectable under the cap). Now one every 20 s (+-5), ~1.5 around a player, **4 Candy a candy,
+  a bag of 38 a UTC hour (152 Candy)**; a full bag stops that player's spawns and hides every
+  candy on their screen until the next UTC hour (`HalloweenMap.Candy.HideWhenFull`, attribute
+  `HwCandyFull`); board 3/5 Pickups quests 8 / 35. The 3 h-a-day player: Broom ~4.6 h, Jack
+  ~8.5 h, Sword ~14.6 h (ECONOMY, Halloween). Studio fresh-player run Oct 29 ~22:00: join, skip,
+  +4 pickups, the 38th hides the candy with the note, a first match vs a lobby bot (+7 a pot in
+  the Rush, Matches and Wins done), boards 3-6 by time jump (board 2's two finished quests
+  auto-paid +160 at board 3, x2 on Oct 31), the end converted 325 Candy to $3,250 and the lobby
+  went back to normal. Check live: few candies; fill a bag (38) and the candy vanishes with
+  the note, then comes back at :00. Restart: no save change, any.
 - **Waiting to publish, before Oct 30 19:00 EDT (pushed Oct 29 ~21:15): the King-quest auto-pay
   fix.** A live bug found by the Candy review: at each board's open the auto-claim read the King
   slots (run as their Alts all event) at the King's need, paying 250 Candy for 1 s of play

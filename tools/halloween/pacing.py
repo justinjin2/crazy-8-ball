@@ -22,7 +22,7 @@ PER_POCKET = 3
 POTS_H = 60 / 6.3 * 5.75 * 0.85  # eligible pots an hour
 RUSH = 1 + 10 / 45  # the personal Rush: 10 of every 45 minutes (Config.Halloween.Rush)
 BOOST = 1.05
-GROUND_H = 30  # one spawn every ~20 s a player since 2026-10-29 ~20:20 (was ~130 at 4.5 s)
+GROUND_H = 120  # ~30 pickups an hour at 4 Candy a candy (2026-10-29 ~21:40; a spawn every ~20 s, a bag of 38)
 DOUBLE_DAY = 3  # day 3 = board 4 (Oct 31 evening EDT)
 
 
