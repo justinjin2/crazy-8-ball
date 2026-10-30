@@ -40,6 +40,9 @@ type Drawn = { model: Model, part: BasePart, phase: number, born: number }
 
 local drawn: { [BasePart]: Drawn } = {}
 local started = false
+-- This player's bag is full (CandyDrop's FullAttribute, to the next UTC hour): every candy's
+-- look is taken off the screen until it clears.
+local hidden = false
 
 local function decor(p: BasePart)
 	p.Anchored = true
@@ -140,15 +143,27 @@ local function track(part: Instance)
 		sparkle.Color = ColorSequence.new(Color3.fromRGB(255, 220, 140))
 		sparkle.Parent = model.PrimaryPart
 	end
-	model.Parent = part
+	model.Parent = if hidden then nil else part
 	local d = { model = model, part = part, phase = math.random() * math.pi * 2, born = os.clock() }
 	drawn[part] = d
 	placeCandy(d, part.CFrame)
 	part.AncestryChanged:Connect(function()
 		if not part:IsDescendantOf(workspace) then
 			drawn[part] = nil
+			model:Destroy() -- a hidden look is not under the part
 		end
 	end)
+end
+
+-- Hides (or shows again) every candy's look on this screen: the bag-full pause.
+local function setHidden(on: boolean)
+	if on == hidden then
+		return
+	end
+	hidden = on
+	for part, d in drawn do
+		d.model.Parent = if on then nil else part
+	end
 end
 
 -- Every frame: float, spin and pop in each candy near the camera (nearer with Lower effects;
@@ -424,8 +439,14 @@ function MapFx.start()
 		watch(child)
 	end
 	workspace.ChildAdded:Connect(watch)
+	local me = Players.LocalPlayer
+	local function full()
+		setHidden(HM.Candy.HideWhenFull == true and me:GetAttribute(HM.Candy.FullAttribute) == true)
+	end
+	me:GetAttributeChangedSignal(HM.Candy.FullAttribute):Connect(full)
+	full()
 	RunService.RenderStepped:Connect(function()
-		if next(drawn) ~= nil then
+		if not hidden and next(drawn) ~= nil then
 			step()
 		end
 	end)

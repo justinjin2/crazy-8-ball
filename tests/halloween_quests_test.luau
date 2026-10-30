@@ -9,9 +9,9 @@ local ALL_ON = { king = true, pickups = true, ult = true }
 local ALL_OFF = { king = false, pickups = false, ult = false }
 
 -- A rough clock of minutes of play per quest unit (docs/ECONOMY.md, Halloween): 6.3 min a match
--- (measured 2026-10-11), half of them won, 5.75 balls a match, a King win in about 3 tries, 130
--- ground candies an hour (a match player who walks about between turns, 2026-10-29 ~12:00:
--- one spawn every 4.5 s while free, about half picked up, ~20 free minutes an hour), one nice
+-- (measured 2026-10-11), half of them won, 5.75 balls a match, a King win in about 3 tries, 30
+-- ground candies an hour (a match player who walks about between turns, 2026-10-29 ~20:20:
+-- one spawn every ~20 s while free, about half picked up, ~20 free minutes an hour), one nice
 -- shot in 3 matches, an ability in half of them, a team match about every 8 min.
 local MINUTES: { [string]: number } = {
 	Matches = 6.3,
@@ -22,7 +22,7 @@ local MINUTES: { [string]: number } = {
 	TeamWins = 16,
 	UltMatches = 12.6,
 	King = 18,
-	Pickups = 60 / 130,
+	Pickups = 60 / 30,
 	Active = 1 / 60,
 }
 

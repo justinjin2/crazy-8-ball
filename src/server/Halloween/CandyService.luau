@@ -10,6 +10,7 @@
 --   CandyService.bossWon(player, visitStart?) -> { granted, amount, cooldownEndsAt }   the King
 --   CandyService.bossCooldown(player) -> number   unix time the King is ready again (0: now)
 --   CandyService.pickup(player) -> (ok, reason)   reason "Cap" | "NotLive" | "NotLoaded" | nil
+--   CandyService.pickupFull(player) -> boolean   the pickups at the hour cap this UTC hour
 --   CandyService.isLive() -> boolean
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -478,6 +479,16 @@ function CandyService.pickup(player: Player): (boolean, string?)
 		after(player, result, "Pickup")
 	end
 	return ok, reason
+end
+
+--- Whether the player's lobby pickups are at Pickup.HourCap this UTC hour (the map's CandyDrop
+--- stops their spawns and hides the candy on their screen until the hour); false outside the
+--- event and before the save loads.
+function CandyService.pickupFull(player: Player): boolean
+	if not isPlayer(player) or not CandyService.isLive() then
+		return false
+	end
+	return PlayerData.hwPickupFull(player, Clock.serverNow())
 end
 
 --- What Ranking.settleOne knows about one player's settled match.

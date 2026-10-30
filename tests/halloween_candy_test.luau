@@ -251,6 +251,24 @@ return {
 		H.expect(ok and why == nil and hw.PickCount == 1, "the next hour starts over")
 	end,
 
+	["pickupFull: full from the pickup that reaches the cap, in that UTC hour only"] = function()
+		local _, Ledger, Config, SaveSchema = load()
+		local cap = Config.Halloween.Pickup.HourCap
+		local hw = SaveSchema.freshHalloween()
+		local hour = START + 7200 - (START + 7200) % 3600 -- on the hour
+		H.expect(not Ledger.pickupFull(hw, hour), "a fresh save has room")
+		for i = 1, cap - 1 do
+			Ledger.pickup(hw, hour + i)
+		end
+		H.expect(not Ledger.pickupFull(hw, hour + cap), "one short of the cap")
+		Ledger.pickup(hw, hour + cap)
+		-- The map hides the candy from this pickup on, not from the next one touched.
+		H.expect(Ledger.pickupFull(hw, hour + cap), "the cap's pickup fills the bag")
+		H.expect(Ledger.pickupFull(hw, hour + 3599), "to the end of the hour")
+		H.expect(not Ledger.pickupFull(hw, hour + 3600), "the next UTC hour has room")
+		H.expect(not Ledger.pickupFull(hw, hour - 1), "an earlier hour is not this one's count")
+	end,
+
 	["Candy adds whole amounts into its bucket; the total counts both"] = function()
 		local _, Ledger, _, SaveSchema = load()
 		local hw = SaveSchema.freshHalloween()

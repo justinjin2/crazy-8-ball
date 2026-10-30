@@ -212,6 +212,12 @@ function Ledger.pickup(hw: any, now: number): (boolean, string?)
 	return true, nil
 end
 
+-- Whether the UTC hour of `now` has taken its Pickup.HourCap pickups already (Ledger.pickup
+-- would say "Cap"): the map stops spawning and hides the candy for that player until the hour.
+function Ledger.pickupFull(hw: any, now: number): boolean
+	return hw.PickHour == now // 3600 and whole(hw.PickCount) >= C.Pickup.HourCap
+end
+
 -- Adds `seconds` of active play (the "Play N min" quests count it too). Returns the new total.
 function Ledger.addActive(hw: any, seconds: number): number
 	hw.Active = math.min(whole(hw.Active) + whole(seconds), CAP)

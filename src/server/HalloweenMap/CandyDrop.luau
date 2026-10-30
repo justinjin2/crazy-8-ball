@@ -9,8 +9,10 @@
 -- player walking within PickupStuds asks core's CandyService.pickup, which owns the Candy and
 -- the hour cap (Config.Halloween.Pickup.HourCap): ok takes it ("+1" on that player's screen:
 -- the Pickup message carries the Candy, Config.Halloween.Pickup.Candy), "Cap" leaves it for
--- others and shows the bag-full note once, pausing that player to the next UTC hour
--- (Rules.pickupOutcome). A root that jumped (a teleport: a turn's move, a portal) picks up
+-- others. A full bag (the pickup that fills it, a "Cap", or a spawn finding it full after a
+-- rejoin) pauses that player's spawns and pickups to the next UTC hour, shows the bag-full
+-- note once and (HideWhenFull) sets FullAttribute so their MapFx hides every candy until
+-- then (designer, 2026-10-29: no candy lying about that a full bag cannot take). A root that jumped (a teleport: a turn's move, a portal) picks up
 -- nothing for TeleportGraceSeconds. No client remote collects anything. Off (does nothing at
 -- all) while Config.HalloweenMap.Enabled or Candy.Enabled is, and in an arena.
 
@@ -279,6 +281,22 @@ local function forget(c: Candy)
 	end
 end
 
+-- The player's bag is full (Pickup.HourCap this UTC hour): no spawns and no pickups for them
+-- to the next UTC hour, the bag-full note once, and (HideWhenFull) the FullAttribute that has
+-- their MapFx hide every candy until spawnTick clears it at the hour.
+local function markFull(p: Player, w: Who)
+	w.capped = true
+	w.pausedUntil = Rules.nextHour(Clock.serverNow())
+	if w.noted then
+		return
+	end
+	w.noted = true
+	if C.HideWhenFull then
+		p:SetAttribute(C.FullAttribute, true)
+	end
+	pcall(GlobalQueue.notify, { p }, { kind = "Failed", reason = "CandyBagFull" })
+end
+
 -- Every second: spawn for whoever is due, clear the old candy; everything goes once not Live.
 local function spawnTick()
 	local now = os.clock()
@@ -296,12 +314,18 @@ local function spawnTick()
 			table.remove(candies, i)
 		end
 	end
-	if candyService() == nil then
+	local CandyService = candyService()
+	if CandyService == nil then
 		return
 	end
 	local params: RaycastParams? = nil
 	for _, p in Players:GetPlayers() do
 		local w = stateOf(p)
+		if w.noted and Clock.serverNow() >= w.pausedUntil then
+			-- A new UTC hour: the bag has room again and the candy shows.
+			w.noted = false
+			p:SetAttribute(C.FullAttribute, nil)
+		end
 		local ok = eligible(p, w, now)
 		if ok then
 			w.lobbySeconds += 1
@@ -314,6 +338,12 @@ local function spawnTick()
 			and #candies < C.MaxAlive
 		then
 			w.nextAt = now + Rules.spawnDelay(rng:NextNumber())
+			-- Full already (a rejoin or a server hop in the same hour): nothing for them.
+			local full, isFull = pcall(CandyService.pickupFull, p)
+			if full and isFull == true then
+				markFull(p, w)
+				continue
+			end
 			params = params or floorParams()
 			spawnFor(p, w, params :: RaycastParams)
 		end
@@ -369,10 +399,13 @@ local function pickupTick()
 					Net.get("HalloweenMapFx")
 						:FireClient(p, { kind = "Pickup", at = c.at, amount = amount })
 				end)
+				-- That one filled the bag: stop and hide now, not at the next candy touched.
+				local full, isFull = pcall(CandyService.pickupFull, p)
+				if full and isFull == true then
+					markFull(p, w)
+				end
 			elseif outcome.note then
-				w.capped = true
-				w.pausedUntil = outcome.pauseUntil or 0
-				pcall(GlobalQueue.notify, { p }, { kind = "Failed", reason = "CandyBagFull" })
+				markFull(p, w)
 			end
 			break -- one candy a tick each
 		end

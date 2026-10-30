@@ -3834,10 +3834,10 @@ Config.Halloween = {
 	-- pickups per player per UTC hour (the save counts pickups; the Pickups quests count them
 	-- too, not Candy). The ONLY pickup cap: CandyService.pickup enforces it. A bit under a third
 	-- of all Candy (designer, 2026-10-29 ~12:00: pockets, quests and the ground about a third
-	-- each): one Candy a candy, many candies on the ground (Config.HalloweenMap.Candy); a match
-	-- player who walks about between turns picks up about 130 an hour, and even a pure lobby
-	-- walker stops at the cap, 150 an hour (under the ~170 an hour the pots pay a match player).
-	-- docs/ECONOMY.md, Halloween.
+	-- each): one Candy a candy (Config.HalloweenMap.Candy; one spawn every ~20 s a player since
+	-- 2026-10-29 ~20:20, the designer: far fewer on the ground): a match player who walks about
+	-- between turns picks up about 30 an hour, a pure lobby walker up to the cap, 150 an hour
+	-- (the ~180 an hour the pots pay a match player stays the most). docs/ECONOMY.md, Halloween.
 	Pickup = { Candy = 1, HourCap = 150 },
 	-- Quests: four a board, easiest first, paying Rewards[slot] Candy (flat) on CLAIM. Kind
 	-- (Halloween/Quests): Matches, Wins, Balls, NiceShots, TeamMatches, TeamWins (2v2 or 3v3),
@@ -3880,7 +3880,7 @@ Config.Halloween = {
 				{ Kind = "Wins", Need = 1, Icon = "Win" },
 				{
 					Kind = "Pickups",
-					Need = 40, -- about 18 min of play with some walking about (130 an hour)
+					Need = 8, -- about 16 min of play with some walking about (~30 an hour; 40 at ~130)
 					Icon = "Candy",
 					Alt = { Kind = "Matches", Need = 3 },
 				},
@@ -3903,7 +3903,7 @@ Config.Halloween = {
 				{ Kind = "Matches", Need = 3, Icon = "Match" },
 				{
 					Kind = "Pickups",
-					Need = 150, -- about 70 min of play with some walking about
+					Need = 35, -- about 70 min of play with some walking about (150 at ~130 an hour)
 					Icon = "Candy",
 					Alt = { Kind = "Active", Need = 60 * 60 },
 				},
@@ -9779,23 +9779,31 @@ Config.HalloweenMap = {
 			MaxSteps = 4, -- ...and at most this many in one frame (a long frame drops the rest)
 		},
 	},
-	-- Ground candy, about half of all Candy (designer, 2026-10-29: one Candy each, many more
-	-- of them): Halloween.Pickup.Candy (1) a pickup; about 270 pickups (~270 Candy) an hour for
-	-- a match player who walks about while waiting for their turn (about 36 eligible minutes an
-	-- hour, a spawn every ~4 s on the 1 s tick, half picked up), the hour cap (core's
-	-- Halloween.Pickup.HourCap, 400) for a lobby walker.
+	-- Ground candy (designer, 2026-10-29 ~20:20, the evening after the release: far fewer on the
+	-- ground at once, and none lying about once a bag is full): Halloween.Pickup.Candy (1) a
+	-- pickup, at most Halloween.Pickup.HourCap (150) a player a UTC hour. One spawn about every
+	-- 20 s for each eligible player (about 175 an hour, ~1.5 around each, ~20-25 on a busy
+	-- lobby's map), so a walker who takes nearly every one fills the bag only near the end of
+	-- the hour; a match player (~20 free minutes an hour, about half picked up: an assumption,
+	-- measured by CandyPickups) about 30 an hour. A full bag stops that player's spawns and hides
+	-- every candy on their screen until the next UTC hour (CandyDrop; MapFx).
 	Candy = {
 		Enabled = true, -- the lobby's candy drops
-		-- One candy per eligible player this often (about 800 an hour; 3.5 before the 2026-10-29
-		-- thirds retune, hw-core: with LifeSeconds 30 a player who stands still still has about
-		-- 6-7 around them, as many as before; the Candy is bounded by Halloween.Pickup.HourCap)...
-		SpawnEverySeconds = 4.5,
-		JitterSeconds = 1, -- ...give or take this
+		-- One candy per eligible player this often, give or take JitterSeconds, on the 1 s spawn
+		-- tick (about 175 an hour; 4.5 +-1 s, ~720 an hour and ~6 around each, before 2026-10-29
+		-- ~20:20: dozens on the map, most never collectable under the cap)...
+		SpawnEverySeconds = 20,
+		JitterSeconds = 5, -- ...give or take this
 		NearStuds = { 10, 30 }, -- this far from them
 		PadClearStuds = 6, -- never this close to a queue or portal pad
 		-- An unclaimed candy goes after this: short, so a walker's candy stays around them
-		-- (about 6-7 alive each, under MaxAlivePerPlayer) instead of piling up behind them.
+		-- (about 1-2 alive each, under MaxAlivePerPlayer) instead of piling up behind them.
 		LifeSeconds = 30,
+		-- A full bag (Halloween.Pickup.HourCap this UTC hour): the server sets this player
+		-- attribute true until the next UTC hour and that player's MapFx hides every candy.
+		-- false: the candy stays drawn (spawns and pickups still pause; the note still shows).
+		HideWhenFull = true,
+		FullAttribute = "HwCandyFull",
 		-- On the server (a 60-player lobby). Every client draws every candy (one MeshPart of
 		-- about 244 triangles, the same two meshes, each: a full 150 is about 36,600 triangles)
 		-- with SparkleRate sparkles (none with Lower effects), and floats those within

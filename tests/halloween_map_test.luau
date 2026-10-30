@@ -400,6 +400,21 @@ return {
 		H.near(R.spawnDelay(0.5), Config.HalloweenMap.Candy.SpawnEverySeconds, 1e-9, "pace")
 	end,
 
+	["ground candy is sparse: 1-2 around a player, the bag full only late in an hour"] = function()
+		-- Designer, 2026-10-29 ~20:20: dozens on the map at 4.5 s (about 6 around every player)
+		-- and the 150 cap in ~12 min of walking left the rest lying about.
+		local Config = H.require("Config")
+		local C = Config.HalloweenMap.Candy
+		local tick = math.ceil(C.SpawnEverySeconds) -- the 1 s spawn tick rounds a delay up
+		H.expect(C.LifeSeconds / tick <= 2, "at most ~2 alive around a player standing still")
+		local minutes = Config.Halloween.Pickup.HourCap * tick / 60
+		H.expect(
+			minutes >= 45,
+			("a walker taking every one fills the bag in %.0f min"):format(minutes)
+		)
+		H.expect(C.HideWhenFull == true and type(C.FullAttribute) == "string", "a full bag hides")
+	end,
+
 	["two ons at once build the throne once (a server starting while Live)"] = function()
 		-- Bootstrap's thread and EventMap's pass both turn the throne on while the first build
 		-- waits on the meshes (the coordinator's 12:16 blocker: two thrones). Once parks the

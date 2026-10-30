@@ -3554,6 +3554,14 @@ function PlayerData.hwCandy(player: Player): number
 	return if type(hw) == "table" then HwLedger.balance(hw) else 0
 end
 
+--- Whether the player's pickups this UTC hour are at the cap (Halloween/Ledger.pickupFull);
+--- false before the save loads.
+function PlayerData.hwPickupFull(player: Player, now: number): boolean
+	local data = peek(player)
+	local hw = if data ~= nil then data.Halloween else nil
+	return type(hw) == "table" and HwLedger.pickupFull(hw, now)
+end
+
 --- Whether the player has finished a real match this UTC day (Daily.Matches: PC practice never
 --- counts), for the Halloween active-play gate; false before the save loads.
 function PlayerData.playedToday(player: Player): boolean
