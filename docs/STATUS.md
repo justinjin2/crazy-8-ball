@@ -4,12 +4,31 @@ Current state only, rewritten in place. Keep it to about two screens (under 100 
 step is finished and verified, move its dated entry to the top of
 `docs/archive/STATUS_HISTORY.md` and keep only what is still true or still open here.
 
-Updated 2026-10-29 18:50 (**published by the designer 2026-10-27: everything up to `7c4d85aa`**: the emote system, 2KLIKES, the 1v1 result cutscene off; the emote audio update rides with the Halloween publish). **The game is live** (officially released 2026-10-10). Work goes on
+Updated 2026-10-30 09:45 (**live: everything up to `107e7843`**, the designer's Oct 29 ~22:20 EDT
+publish; pushed since, not published: the boost lines' "i"). **The game is live** (officially released 2026-10-10). Work goes on
 in `~/Desktop/8ball`, branch `halloween` (it holds all of `gui-v4`). The STATUS from just before launch, in full, is the top
 entry of `docs/archive/STATUS_HISTORY.md`.
 
 ## Halloween 2026 (branch `halloween`, LIVE: published by the designer Oct 29 ~20:00 EDT)
 
+- **Pushed Oct 30 ~09:45 EDT, NOT yet published: the boost lines' "i" on a phone** (designer,
+  morning). On a touch screen with no mouse the Money Boost / Candy Boost lines take no touch
+  (a finger on them walks), and a tiny blue "i" left of each opens that line's card; PC hover
+  and click and a pad's A are as before; no "i" in a match (`a8cd6153`, `8c9d9b27`;
+  `Config.UI.BoostPill.Info.Enabled` false = the old way). The cards lost their grey hint lines
+  under Total ("Candy too", group, VIP; the Candy card keeps the Rush timer; `a517637b`).
+  Baseline: `BoostCard` "Opened" on phones 36,137 (24,724 players, 71% of phone tile players;
+  PC 0.8%) from Oct 30 00:00 to ~12:00 UTC, ~2,500-3,400 an hour. Measure after the publish: phone opens an hour
+  should fall to a small share of that. Checked: lint, 1,571 tests, Studio at a phone-sized HUD
+  (the "i" forced on: both cards open and close from it, the in-match hide, a fresh-player
+  join, skip, first solo game and back). Check by hand on a real phone: walk with a finger
+  over the lines (no card), tap each "i". No save change; Restart Servers optional.
+- **Live read Oct 30 ~09:00 EDT (Creator Hub, first ~13 h of Halloween):** CCU ~3,100 (+40%
+  on the same hours a day earlier, the same growth as the day before); Halloween products
+  20,965 R$ (Sword 35 sales), all Robux +10.6% on a day earlier; servers healthy (P10 56-59).
+  **Watch: client frame rate P10** fell to ~1 FPS at 12:00 UTC on phones and PCs (Oct 29 too,
+  worse since the update; client script CPU 1.5-2.5x). Pitchfork 11% of first-Candy players
+  (rule 30%): re-read the full UTC Oct 30 at ~22:00 EDT before any retune.
 - **Published** (Oct 29 ~20:00 EDT, up to `e879ef8e`): v3 (the designer's ~12:00 list), **v4,
   the 14:20 GUI round**, **v5, the 17:30 fixes**, and **v6, the 19:20 Rush and Friend Boost
   round**. The checklist and every switch are in `docs/halloween/RELEASE.md`. The LIVE store

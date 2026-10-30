@@ -142,6 +142,10 @@ order; that is Open.
 
 **Decided**
 - Touch targets at least 44 px (as in `Config.UI.Spin.ButtonSizePx`).
+  One exception (designer, 2026-10-30): the boost lines' tiny blue **"i"** over the money pill on
+  a touch screen. Its press area is one line tall (16 px on a phone), so the thumbstick keeps the
+  room round it. The lines themselves take no touch there; a mouse hovers or clicks them as
+  before (`Config.UI.BoostPill.Info`).
 
 - **Raised candy buttons** (2026-09-25): lighter on top, a darker lip along the bottom, an ink
   outline, and a squish when pressed. An icon may sit left of the words. Colours: section 4.
