@@ -285,6 +285,33 @@ return {
 		H.expect(off.infoW == 0 and off.infoPx == 0, "Info.Enabled false: no column")
 	end,
 
+	["the info mode: a touch screen shows the i from the start, a mouse turns it off, a touch on"] = function()
+		local HudLayout = H.require("HudLayout")
+		local Config = H.require("Config")
+		local I = Config.UI.BoostPill.Info
+		local shipped = I.Enabled
+		I.Enabled = true
+		local mode = HudLayout.infoMode
+		-- At spawn no pointer has been used yet: Studio's phone emulator says MouseEnabled until
+		-- its first tap, and the "i" came only after a click (designer, 2026-10-30).
+		for _, last in { "None", "Focus", "Keyboard", "Touch" } do
+			H.expect(mode(true, last, nil), "a touch screen at spawn, last " .. last)
+		end
+		H.expect(not mode(true, "MouseMovement", nil), "a mouse already in use at spawn: off")
+		H.expect(not mode(false, "None", nil), "no touch screen: off")
+		-- Afterwards a pointer picks it; anything else keeps it.
+		H.expect(not mode(true, "MouseMovement", true), "a mouse moves: off")
+		H.expect(not mode(true, "MouseButton1", true), "a click: off")
+		H.expect(not mode(true, "MouseWheel", true), "a wheel: off")
+		H.expect(mode(true, "Touch", false), "a touch: on again")
+		for _, last in { "Keyboard", "Gamepad1", "Focus", "TextInput" } do
+			H.expect(mode(true, last, true) and not mode(true, last, false), "keeps it: " .. last)
+		end
+		I.Enabled = false
+		H.expect(not mode(true, "Touch", true), "Info.Enabled false: never")
+		I.Enabled = shipped
+	end,
+
 	["the chip sits right over the pill, compact only when it must be"] = function()
 		local HudLayout = H.require("HudLayout")
 		local Config = H.require("Config")

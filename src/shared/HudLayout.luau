@@ -108,6 +108,23 @@ function HudLayout.pillSize(screen: Screen, lines: number): (number, number, num
 	return HudLayout.textWidth(P.WidestText, textPx), lineH * lines, textPx, lineH
 end
 
+--- Whether the "i" opens the boost cards (Info), from what the player uses, never from
+--- MouseEnabled (Studio's phone emulator says there is a mouse until its first tap, so the "i"
+--- came only after a click; designer, 2026-10-30). A touch screen shows it from the start, a
+--- mouse input turns it off, a touch on again; a key, a pad or a focus change keeps `was` (nil:
+--- not decided yet). `last` is UserInputService:GetLastInputType()'s Name.
+function HudLayout.infoMode(touchEnabled: boolean, last: string, was: boolean?): boolean
+	if P.Info.Enabled ~= true or not touchEnabled then
+		return false
+	end
+	if last == "Touch" then
+		return true
+	elseif last:sub(1, 5) == "Mouse" then
+		return false
+	end
+	return if was == nil then true else was
+end
+
 --- The "i" column left of the lines on a touch screen (`info`; Info.Enabled): (its width with
 --- the disc's ring on both sides and the gap, the disc's size); 0, 0 without it.
 function HudLayout.infoColumn(screen: Screen, info: boolean?): (number, number)

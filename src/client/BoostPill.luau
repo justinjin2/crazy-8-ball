@@ -13,11 +13,11 @@
 -- counts up, then its line pops; a lower one just changes.
 -- Hovering shows "YOUR BOOSTS" over it (a row per Money.boostParts part and the total; the
 -- Candy line's card ends with the Rush's words in grey); a click,
--- tap or A pins it open for PinSeconds, a second press or B closes it. On a touch screen with
--- no mouse (Info, designer 2026-10-30) the lines take no touch, so a finger on them walks, and a
--- tiny blue "i" left of each line opens that line's card instead. In a match it still shows
--- (money does) but takes no input, its "i" hides and its card shuts. Hidden while the tutorial
--- runs (a VIP's shows, as the VIP tag did).
+-- tap or A pins it open for PinSeconds, a second press or B closes it. On a touch screen, until
+-- a mouse is used (Info, designer 2026-10-30), the lines take no touch, so a finger on them
+-- walks, and a tiny blue "i" left of each line opens that line's card instead. In a match it
+-- still shows (money does) but takes no input, its "i" hides and its card shuts. Hidden while
+-- the tutorial runs (a VIP's shows, as the VIP tag did).
 --
 -- The Rush chip (R1.10): its shell and place are this module's, its words core's. Once a second
 -- it asks src/client/Halloween/RushChip.luau `RushChip.content(now) -> { text, endsAt }?`
@@ -87,11 +87,13 @@ local function padInput(): boolean
 	return UserInputService:GetLastInputType().Name:find("Gamepad") ~= nil
 end
 
--- A touch screen with no mouse (a phone, a tablet): the "i" opens the cards (Info).
-local function touchScreen(): boolean
-	return INFO.Enabled == true
-		and UserInputService.TouchEnabled
-		and not UserInputService.MouseEnabled
+-- Whether the "i" opens the cards now (HudLayout.infoMode: a touch screen until a mouse is used).
+local function infoMode(was: boolean?): boolean
+	return HudLayout.infoMode(
+		UserInputService.TouchEnabled,
+		UserInputService:GetLastInputType().Name,
+		was
+	)
 end
 
 -- Core's pieces, each read guarded (a missing one hides a line, never errors).
@@ -221,7 +223,7 @@ function BoostPill.new(money: any): any
 	self.reportedCard = false
 	self.rushWarned = false
 	self.perks = false -- VIP was just bought (showPerks): it shows even while the tutorial runs
-	self.info = touchScreen() -- the "i" opens the cards; the lines take no touch (Info)
+	self.info = infoMode(nil) -- the "i" opens the cards; the lines take no touch (Info)
 	self.infoFake = nil :: boolean? -- GuiQA `boostInfo`
 
 	local tag = Instance.new("TextButton")
@@ -428,12 +430,11 @@ function BoostPill.new(money: any): any
 		end
 		self:press()
 	end)
-	-- Which input is in use moves the pill's Active (a pad's A on a touch screen).
+	-- Which input is in use picks the "i" (a mouse, a touch) and the pill's Active (a pad's A on
+	-- a touch screen).
 	UserInputService.LastInputTypeChanged:Connect(function()
-		self:applyActive()
-	end)
-	UserInputService:GetPropertyChangedSignal("MouseEnabled"):Connect(function()
 		self:updateInfo()
+		self:applyActive()
 	end)
 	self:applyActive()
 
@@ -1129,9 +1130,9 @@ function BoostPill.applyActive(self: any)
 	self.tag.Active = not self.inMatch and (not self.info or padInput())
 end
 
---- Whether the "i" opens the cards (a touch screen with no mouse, or GuiQA's stand-in).
+--- Whether the "i" opens the cards (a touch screen until a mouse is used, or GuiQA's stand-in).
 function BoostPill.updateInfo(self: any)
-	local on = if self.infoFake ~= nil then self.infoFake else touchScreen()
+	local on = if self.infoFake ~= nil then self.infoFake else infoMode(self.info)
 	if on == self.info then
 		return
 	end

@@ -10330,7 +10330,8 @@ Config.UI.BoostPill = {
 	PopScale = 1.12,
 	PinSeconds = 6, -- a press keeps the card open this long
 	-- The "i" on a touch screen (designer, 2026-10-30: "a tiny info button" left of each line). On
-	-- a phone or tablet with no mouse the lines take no touch, so a finger on them walks (dragging
+	-- a phone or tablet (a touch screen until a mouse is used, HudLayout.infoMode) the lines take
+	-- no touch, so a finger on them walks (dragging
 	-- over them opened the card: 71% of phone players in the update's first 12 h, 0.8% on PC),
 	-- and only a line's "i" opens its card. A pad and a mouse work as before. false: the lines
 	-- open it again.
