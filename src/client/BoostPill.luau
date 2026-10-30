@@ -682,7 +682,7 @@ function BoostPill.layout(self: any)
 		chipText = if self.chipOn then self.chipWords else nil,
 		candy = self.candyOn,
 		candyPill = self.candyOn and CP.Enabled == true,
-		info = self.info,
+		info = self.info and not self.inMatch, -- the "i" column goes in a match (no gap there)
 	}
 	local others = self:others(size)
 	local b = HudLayout.boost(size, scene, others)
@@ -700,9 +700,9 @@ function BoostPill.layout(self: any)
 		HudParts.setTextSize(line.label, b.pillTextPx)
 		line.label.Position = UDim2.fromOffset(b.infoW, y)
 		line.label.Size = UDim2.fromOffset(pill.w - b.infoW, b.lineH)
-		-- Its "i" (a touch screen): centred in the column left of the words, hidden in a match.
+		-- Its "i" (a touch screen, out of a match): centred in the column left of the words.
 		local px = b.infoPx
-		local infoOn = px > 0 and not self.inMatch and line.label.Visible
+		local infoOn = px > 0 and line.label.Visible
 		line.info.Visible = infoOn
 		line.hit.Visible = infoOn
 		if px > 0 then
