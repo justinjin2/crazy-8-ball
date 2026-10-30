@@ -14,9 +14,12 @@ entry of `docs/archive/STATUS_HISTORY.md`.
 - **Pushed Oct 30 ~09:45 EDT, NOT yet published: the boost lines' "i" on a phone** (designer,
   morning). On a touch screen with no mouse the Money Boost / Candy Boost lines take no touch
   (a finger on them walks), and a tiny blue "i" left of each opens that line's card; PC hover
-  and click and a pad's A are as before; no "i" in a match (`a8cd6153`, `8c9d9b27`;
-  `Config.UI.BoostPill.Info.Enabled` false = the old way). The cards lost their grey hint lines
-  under Total ("Candy too", group, VIP; the Candy card keeps the Rush timer; `a517637b`).
+  and click and a pad's A are as before; no "i" in a match (`8c9d9b27`..`6b67d1e7`;
+  `Config.UI.BoostPill.Info.Enabled` false = the old way). A review workflow's fixes are in:
+  the "i" column sits inside the lines' old box, so nothing else moves (a wider box reached
+  18 px into an iPad's open WinTrack), and the 12 px discs have a thin ring, so they never
+  touch. The cards lost their grey hint lines under Total ("Candy too", group, VIP; the Candy
+  card keeps the Rush timer; `a517637b`).
   Baseline: `BoostCard` "Opened" on phones 36,137 (24,724 players, 71% of phone tile players;
   PC 0.8%) from Oct 30 00:00 to ~12:00 UTC, ~2,500-3,400 an hour. Measure after the publish: phone opens an hour
   should fall to a small share of that. Checked: lint, 1,571 tests, Studio at a phone-sized HUD
