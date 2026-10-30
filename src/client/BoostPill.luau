@@ -77,9 +77,10 @@ local function percent(add: number): string
 	return COPY.Percent:format(math.floor(add * 100 + 0.5))
 end
 
--- A touch is the input in use (a finger's drag also fires the mouse's enter and leave).
+-- A touch is the input in use (a finger's drag also fires the mouse's enter and leave). Only
+-- with Info on: switched off, a touch hovers the lines as before.
 local function touching(): boolean
-	return UserInputService:GetLastInputType() == Enum.UserInputType.Touch
+	return INFO.Enabled == true and UserInputService:GetLastInputType() == Enum.UserInputType.Touch
 end
 
 local function padInput(): boolean
