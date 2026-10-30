@@ -190,43 +190,33 @@ return {
 		H.expect(Quests.find("x", 6, ALL_ON) == nil and Quests.find("9.9", 6, ALL_ON) == nil, "")
 	end,
 
-	["the end claims a King or Pickups quest finished while the map ran, even with it off"] = function()
+	["the end claims a Pickups quest finished while the map ran, even with the map off"] = function()
 		local Quests = load()
-		-- Finished while the King and the pickups ran (the event as it went)...
+		-- Finished while the pickups ran (the event as it went)...
 		local q = {}
 		for n = 1, 6 do
-			Quests.route(q, n, ALL_ON, "King", 5)
 			Quests.route(q, n, ALL_ON, "Pickups", 250)
 		end
-		local king, pickups
-		for n = 1, 6 do
-			king = king or keyOf(Quests, n, "King", ALL_ON)
-			pickups = pickups or keyOf(Quests, n, "Pickups", ALL_ON)
-		end
-		H.expect(king ~= nil and pickups ~= nil, "the boards have both")
-		local kingKey, pickupsKey = king :: string, pickups :: string
-		-- Without the end's own claim, the map's switches off would lose the King quest (the
-		-- bug; its Alt needs more). A Pickups quest needs more than its Alt since one Candy a
-		-- candy (2026-10-29), so claimable reads it finished either way.
-		local lost = true
-		for _, quest in Quests.claimable(q, {}, 6, { king = false, pickups = false, ult = true }) do
-			lost = lost and quest.key ~= kingKey
-		end
-		H.expect(lost, "claimable alone misses the King quest")
-		-- ...converted on a first join after the map lane switched its King and pickups off: the
-		-- quests read as their Alts (higher needs), yet what was finished still pays.
+		-- Board 5's (35 pickups): its Alt, Play 60 min, reads the 35 as seconds.
+		local pickupsKey = keyOf(Quests, 5, "Pickups", ALL_ON) :: string
 		local mapOff = { king = false, pickups = false, ult = true }
+		local lost = true
+		for _, quest in Quests.claimable(q, {}, 6, mapOff) do
+			lost = lost and quest.key ~= pickupsKey
+		end
+		H.expect(lost, "claimable alone misses the Pickups quest")
+		-- ...converted on a first join after the map lane switched the pickups off: the quests
+		-- read as their Alts, yet what was finished still pays.
 		local keys: { [string]: boolean } = {}
 		for _, quest in Quests.endClaimable(q, {}, 6, mapOff) do
 			H.expect(keys[quest.key] == nil, "each quest once: " .. quest.key)
 			keys[quest.key] = true
 		end
-		H.expect(keys[kingKey] == true, "the King quest " .. kingKey)
 		H.expect(keys[pickupsKey] == true, "the Pickups quest " .. pickupsKey)
 		-- A quest claimed already is not claimed again; with every hook on it is claimable as ever.
 		local all = #Quests.endClaimable(q, {}, 6, mapOff)
 		H.expect(
-			#Quests.endClaimable(q, { [kingKey] = true }, 6, mapOff) == all - 1,
+			#Quests.endClaimable(q, { [pickupsKey] = true }, 6, mapOff) == all - 1,
 			"claimed once"
 		)
 		H.expect(
@@ -234,6 +224,29 @@ return {
 			"same as claimable when on"
 		)
 		H.expect(#Quests.endClaimable({}, {}, 6, ALL_OFF) == 0, "nothing finished, nothing claimed")
+	end,
+
+	["a King slot run as its Alt pays only at the Alt's need, never the King's"] = function()
+		-- Live bug (2026-10-29): pastDue and the end read every quest with the King on, so
+		-- board 2's Play 60 min (the Alt of King 1) paid 250 at board 3's open for 1 s of play.
+		local Quests = load()
+		local kingOff = { king = false, pickups = true, ult = true }
+		local q = {}
+		Quests.route(q, 2, kingOff, "Active", 705) -- 11.75 of the 60 min
+		Quests.route(q, 4, kingOff, "Wins", 2) -- 2 of the Alt's 6 wins (the King's need: 2)
+		Quests.route(q, 6, kingOff, "NiceShots", 3) -- 3 of the Alt's 5 (the King's need: 3)
+		H.expect(q["2.4"] == 705 and q["4.4"] == 2 and q["6.4"] == 3, "the Alts' progress")
+		for _, quest in Quests.pastDue(q, {}, 3, kingOff) do
+			H.expect(quest.key ~= "2.4", "board 3 opens: 2.4 is not due")
+		end
+		for _, quest in Quests.pastDue(q, {}, 5, kingOff) do
+			H.expect(quest.key ~= "2.4" and quest.key ~= "4.4", "board 5 opens: " .. quest.key)
+		end
+		H.expect(#Quests.endClaimable(q, {}, 6, kingOff) == 0, "the end pays none of them")
+		-- Finished as the Alts, they pay.
+		Quests.route(q, 2, kingOff, "Active", 3600)
+		local due = Quests.pastDue(q, {}, 3, kingOff)
+		H.expect(#due == 1 and due[1].key == "2.4" and due[1].kind == "Active", "60 min: due")
 	end,
 
 	["find takes only a quest's own key, never another spelling of it"] = function()

@@ -191,16 +191,20 @@ function Quests.pastDue(
 end
 
 -- The end's claim (PlayerData.hwConvert): `claimable` with the hooks now, and also what was
--- finished as the event ran with the map lane's King and pickups on. A player converting on a
--- first join after the map switched them off (their quests read as Alts with higher needs)
--- keeps what they finished. Each quest once, in board order.
+-- finished as the event ran with the map lane's pickups on (on from the release to the end). A
+-- player converting on a first join after the map switched them off (their quests read as Alts
+-- with higher needs) keeps what they finished. Each quest once, in board order.
+-- The King is never forced on (2026-10-29): he was off for the whole live event, so his slots
+-- only ever counted their Alt's progress (seconds, wins, nice shots) under the same key, and
+-- read against his need of 1-3 that paid 250 for almost nothing (2.4's 1 s of play at board
+-- 3's open). Should he come back and go again, a quest finished as his is read as its Alt.
 function Quests.endClaimable(
 	q: { [string]: number },
 	claimed: { [string]: boolean },
 	open: number,
 	hooks: Hooks
 ): { Quest }
-	local mapOn: Hooks = { king = true, pickups = true, ult = hooks.ult }
+	local mapOn: Hooks = { king = hooks.king, pickups = true, ult = hooks.ult }
 	local now = Quests.claimable(q, claimed, open, hooks)
 	local ran = Quests.claimable(q, claimed, open, mapOn)
 	local seen: { [string]: boolean } = {}
