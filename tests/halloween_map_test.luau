@@ -400,19 +400,27 @@ return {
 		H.near(R.spawnDelay(0.5), Config.HalloweenMap.Candy.SpawnEverySeconds, 1e-9, "pace")
 	end,
 
-	["ground candy is sparse: 1-2 around a player, the bag full only late in an hour"] = function()
+	["ground candy is sparse: 1-2 around a player, the hour's ground Candy the old most"] = function()
 		-- Designer, 2026-10-29 ~20:20: dozens on the map at 4.5 s (about 6 around every player)
-		-- and the 150 cap in ~12 min of walking left the rest lying about.
+		-- and the full bags' candy left lying about; ~21:40: 4 Candy a candy, a bag of 38.
 		local Config = H.require("Config")
 		local C = Config.HalloweenMap.Candy
+		local P = Config.Halloween.Pickup
 		local tick = math.ceil(C.SpawnEverySeconds) -- the 1 s spawn tick rounds a delay up
 		H.expect(C.LifeSeconds / tick <= 2, "at most ~2 alive around a player standing still")
-		local minutes = Config.Halloween.Pickup.HourCap * tick / 60
-		H.expect(
-			minutes >= 45,
-			("a walker taking every one fills the bag in %.0f min"):format(minutes)
-		)
+		H.expect(P.HourCap * P.Candy <= 160, "a bag holds about the old 150 Candy an hour at most")
 		H.expect(C.HideWhenFull == true and type(C.FullAttribute) == "string", "a full bag hides")
+		-- The open and later boards' Pickups quests (pickups, not Candy) fit in one hour's bag.
+		for n = 2, #Config.Halloween.Quests.Boards do
+			for _, row in Config.Halloween.Quests.Boards[n] do
+				if row.Kind == "Pickups" then
+					H.expect(
+						row.Need <= P.HourCap,
+						("board %d's Pickups %d fits a bag"):format(n, row.Need)
+					)
+				end
+			end
+		end
 	end,
 
 	["two ons at once build the throne once (a server starting while Live)"] = function()
